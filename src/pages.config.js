@@ -8,6 +8,11 @@ import ScanQR from './pages/ScanQR';
 import DonationPage from './pages/DonationPage';
 import TahlilRequestPage from './pages/TahlilRequestPage';
 import SurahPage from './pages/SurahPage';
+import SubmitSuggestion from './pages/SubmitSuggestion';
+import AdminDashboard from './pages/AdminDashboard';
+import ManageGraves from './pages/ManageGraves';
+import ManageDeadPersons from './pages/ManageDeadPersons';
+import ManageOrganisations from './pages/ManageOrganisations';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +27,11 @@ export const PAGES = {
     "DonationPage": DonationPage,
     "TahlilRequestPage": TahlilRequestPage,
     "SurahPage": SurahPage,
+    "SubmitSuggestion": SubmitSuggestion,
+    "AdminDashboard": AdminDashboard,
+    "ManageGraves": ManageGraves,
+    "ManageDeadPersons": ManageDeadPersons,
+    "ManageOrganisations": ManageOrganisations,
 }
 
 export const pagesConfig = {
