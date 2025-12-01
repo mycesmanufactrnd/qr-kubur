@@ -1,0 +1,296 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Heart, CheckCircle, XCircle, Clock, Eye, Filter, ExternalLink } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+
+export default function ManageDonations() {
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedDonation, setSelectedDonation] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const { data: donations = [], isLoading } = useQuery({
+    queryKey: ['admin-donations'],
+    queryFn: () => base44.entities.Donation.list('-created_date')
+  });
+
+  const { data: organisations = [] } = useQuery({
+    queryKey: ['organisations'],
+    queryFn: () => base44.entities.Organisation.list()
+  });
+
+  const { data: tahfizCenters = [] } = useQuery({
+    queryKey: ['tahfiz'],
+    queryFn: () => base44.entities.TahfizCenter.list()
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Donation.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-donations']);
+      setIsDialogOpen(false);
+      setSelectedDonation(null);
+      toast.success('Status derma telah dikemaskini');
+    }
+  });
+
+  const filteredDonations = donations.filter(d => {
+    return filterStatus === 'all' || d.status === filterStatus;
+  });
+
+  const totalVerified = donations
+    .filter(d => d.status === 'verified')
+    .reduce((sum, d) => sum + (d.amount || 0), 0);
+
+  const openDetailDialog = (donation) => {
+    setSelectedDonation(donation);
+    setIsDialogOpen(true);
+  };
+
+  const handleVerify = () => {
+    if (!selectedDonation) return;
+    updateMutation.mutate({
+      id: selectedDonation.id,
+      data: { status: 'verified' }
+    });
+  };
+
+  const handleReject = () => {
+    if (!selectedDonation) return;
+    updateMutation.mutate({
+      id: selectedDonation.id,
+      data: { status: 'rejected' }
+    });
+  };
+
+  const getRecipientName = (donation) => {
+    if (donation.organisation_id) {
+      const org = organisations.find(o => o.id === donation.organisation_id);
+      return org?.name || 'Organisasi';
+    }
+    if (donation.tahfiz_center_id) {
+      const center = tahfizCenters.find(c => c.id === donation.tahfiz_center_id);
+      return center?.name || 'Pusat Tahfiz';
+    }
+    return '-';
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Menunggu</Badge>;
+      case 'verified':
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Disahkan</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Heart className="w-6 h-6 text-pink-600" />
+            Urus Derma
+          </h1>
+          <p className="text-gray-500">
+            {donations.filter(d => d.status === 'pending').length} menunggu pengesahan
+          </p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
+          <CardContent className="p-4">
+            <p className="text-emerald-100 text-sm">Jumlah Disahkan</p>
+            <p className="text-2xl font-bold">RM {totalVerified.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        {[
+          { label: 'Menunggu', value: donations.filter(d => d.status === 'pending').length, color: 'yellow' },
+          { label: 'Disahkan', value: donations.filter(d => d.status === 'verified').length, color: 'green' },
+          { label: 'Ditolak', value: donations.filter(d => d.status === 'rejected').length, color: 'red' }
+        ].map((stat, i) => (
+          <Card key={i} className="border-0 shadow-md">
+            <CardContent className="p-4 text-center">
+              <p className={`text-2xl font-bold text-${stat.color}-600`}>{stat.value}</p>
+              <p className="text-sm text-gray-500">{stat.label}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Filter */}
+      <Card className="border-0 shadow-md">
+        <CardContent className="p-4">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full sm:w-48">
+              <Filter className="w-4 h-4 mr-2 text-gray-400" />
+              <SelectValue placeholder="Semua Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="pending">Menunggu</SelectItem>
+              <SelectItem value="verified">Disahkan</SelectItem>
+              <SelectItem value="rejected">Ditolak</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="border-0 shadow-md">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Penderma</TableHead>
+                <TableHead>Penerima</TableHead>
+                <TableHead>Jumlah</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Tarikh</TableHead>
+                <TableHead className="text-right">Tindakan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">Memuatkan...</TableCell>
+                </TableRow>
+              ) : filteredDonations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">Tiada derma</TableCell>
+                </TableRow>
+              ) : (
+                filteredDonations.map(donation => (
+                  <TableRow key={donation.id}>
+                    <TableCell className="font-medium">
+                      {donation.donor_name || 'Tanpa Nama'}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      {getRecipientName(donation)}
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      RM {donation.amount?.toFixed(2)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(donation.status)}</TableCell>
+                    <TableCell>
+                      {new Date(donation.created_date).toLocaleDateString('ms-MY')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => openDetailDialog(donation)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Detail Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Butiran Derma</DialogTitle>
+          </DialogHeader>
+          {selectedDonation && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Penderma</p>
+                  <p className="font-semibold">{selectedDonation.donor_name || 'Tanpa Nama'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Jumlah</p>
+                  <p className="font-semibold text-lg text-emerald-600">
+                    RM {selectedDonation.amount?.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              {selectedDonation.donor_email && (
+                <div>
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p>{selectedDonation.donor_email}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-gray-500">Penerima</p>
+                <p>{getRecipientName(selectedDonation)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Kaedah Pembayaran</p>
+                <p className="capitalize">{selectedDonation.payment_method?.replace('_', ' ')}</p>
+              </div>
+              {selectedDonation.notes && (
+                <div>
+                  <p className="text-sm text-gray-500">Catatan</p>
+                  <p>{selectedDonation.notes}</p>
+                </div>
+              )}
+              {selectedDonation.receipt_url && (
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Resit</p>
+                  <a 
+                    href={selectedDonation.receipt_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:underline"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Lihat Resit
+                  </a>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-gray-500">Status Semasa</p>
+                {getStatusBadge(selectedDonation.status)}
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Tutup
+            </Button>
+            {selectedDonation?.status === 'pending' && (
+              <>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleReject}
+                  disabled={updateMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Tolak
+                </Button>
+                <Button 
+                  onClick={handleVerify}
+                  disabled={updateMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Sahkan
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

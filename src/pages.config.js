@@ -13,6 +13,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import ManageGraves from './pages/ManageGraves';
 import ManageDeadPersons from './pages/ManageDeadPersons';
 import ManageOrganisations from './pages/ManageOrganisations';
+import ManageTahfizCenters from './pages/ManageTahfizCenters';
+import ManageSuggestions from './pages/ManageSuggestions';
+import ManageDonations from './pages/ManageDonations';
+import SuperadminDashboard from './pages/SuperadminDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +36,10 @@ export const PAGES = {
     "ManageGraves": ManageGraves,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageOrganisations": ManageOrganisations,
+    "ManageTahfizCenters": ManageTahfizCenters,
+    "ManageSuggestions": ManageSuggestions,
+    "ManageDonations": ManageDonations,
+    "SuperadminDashboard": SuperadminDashboard,
 }
 
 export const pagesConfig = {
