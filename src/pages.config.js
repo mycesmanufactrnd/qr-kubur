@@ -18,6 +18,7 @@ import ManageSuggestions from './pages/ManageSuggestions';
 import ManageDonations from './pages/ManageDonations';
 import SuperadminDashboard from './pages/SuperadminDashboard';
 import ManageTahlilRequests from './pages/ManageTahlilRequests';
+import AboutSystem from './pages/AboutSystem';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "ManageDonations": ManageDonations,
     "SuperadminDashboard": SuperadminDashboard,
     "ManageTahlilRequests": ManageTahlilRequests,
+    "AboutSystem": AboutSystem,
 }
 
 export const pagesConfig = {

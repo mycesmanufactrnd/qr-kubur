@@ -50,6 +50,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
     { name: 'Derma', icon: Heart, page: 'DonationPage' },
     { name: 'Surah & Doa', icon: BookOpen, page: 'SurahPage' },
+    { name: 'Tentang Sistem', icon: Settings, page: 'AboutSystem' },
   ];
 
   const adminNavItems = [
