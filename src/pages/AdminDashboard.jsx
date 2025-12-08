@@ -84,58 +84,53 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-500">Selamat datang, {user?.full_name || 'Admin'}</p>
+          <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-xs text-gray-500">{user?.full_name || 'Admin'}</p>
         </div>
-        <Badge variant="outline" className="w-fit text-emerald-600 border-emerald-200 bg-emerald-50">
-          <CheckCircle className="w-4 h-4 mr-1" />
+        <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200 bg-emerald-50">
           Admin
         </Badge>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Compact Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {quickStats.map((stat, i) => (
           <Link key={i} to={createPageUrl(stat.page)}>
-            <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer group">
-              <CardContent className="p-6">
-                <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-100 flex items-center justify-center mb-4`}>
-                  <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+            <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
+                <div className={`w-10 h-10 rounded-xl bg-${stat.color}-100 flex items-center justify-center mb-2`}>
+                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-500 group-hover:text-emerald-600 transition-colors">{stat.label}</p>
+                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-gray-500 truncate">{stat.label}</p>
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
 
-      {/* Pending Items */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-orange-500" />
-            Memerlukan Perhatian
+      {/* Compact Pending */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="p-3 pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Clock className="w-4 h-4 text-orange-500" />
+            Menunggu
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid sm:grid-cols-3 gap-4">
+        <CardContent className="p-3 pt-0">
+          <div className="grid grid-cols-3 gap-2">
             {pendingItems.map((item, i) => (
               <Link key={i} to={createPageUrl(item.page)}>
-                <div className={`p-4 rounded-xl bg-${item.color}-50 hover:bg-${item.color}-100 transition-colors cursor-pointer group`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <item.icon className={`w-5 h-5 text-${item.color}-600`} />
-                      <span className="text-sm font-medium text-gray-700">{item.label}</span>
-                    </div>
-                    <Badge variant="secondary" className={`bg-${item.color}-200 text-${item.color}-800`}>
-                      {item.value}
-                    </Badge>
-                  </div>
+                <div className={`p-2 rounded-lg bg-${item.color}-50 hover:bg-${item.color}-100 transition-colors text-center`}>
+                  <item.icon className={`w-5 h-5 text-${item.color}-600 mx-auto mb-1`} />
+                  <Badge variant="secondary" className={`bg-${item.color}-200 text-${item.color}-800 text-xs`}>
+                    {item.value}
+                  </Badge>
+                  <p className="text-xs text-gray-600 mt-1 truncate">{item.label.split(' ')[0]}</p>
                 </div>
               </Link>
             ))}
@@ -143,36 +138,36 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Total Donations */}
-      <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
-        <CardContent className="p-6">
+      {/* Compact Total */}
+      <Card className="border-0 shadow-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100 text-sm">Jumlah Derma Terkumpul</p>
-              <p className="text-3xl font-bold mt-1">RM {(stats?.totalDonations || 0).toLocaleString()}</p>
+              <p className="text-emerald-100 text-xs">Derma Terkumpul</p>
+              <p className="text-xl font-bold">RM {(stats?.totalDonations || 0).toLocaleString()}</p>
             </div>
-            <TrendingUp className="w-12 h-12 text-emerald-200" />
+            <TrendingUp className="w-8 h-8 text-emerald-200" />
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle>Aksi Pantas</CardTitle>
+      {/* Compact Actions */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="p-3 pb-2">
+          <CardTitle className="text-sm">Aksi Pantas</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <CardContent className="p-3 pt-0">
+          <div className="grid grid-cols-2 gap-2">
             {[
-              { label: 'Tambah Kubur Baru', page: 'ManageGraves', icon: MapPin, query: '?action=add' },
-              { label: 'Tambah Rekod Si Mati', page: 'ManageDeadPersons', icon: Users, query: '?action=add' },
-              { label: 'Tambah Pusat Tahfiz', page: 'ManageTahfizCenters', icon: BookOpen, query: '?action=add' },
-              { label: 'Semak Cadangan', page: 'ManageSuggestions', icon: FileText },
-              { label: 'Semak Derma', page: 'ManageDonations', icon: Heart },
-              { label: 'Urus Organisasi', page: 'ManageOrganisations', icon: Building2 },
+              { label: 'Kubur', page: 'ManageGraves', icon: MapPin },
+              { label: 'Si Mati', page: 'ManageDeadPersons', icon: Users },
+              { label: 'Tahfiz', page: 'ManageTahfizCenters', icon: BookOpen },
+              { label: 'Cadangan', page: 'ManageSuggestions', icon: FileText },
+              { label: 'Derma', page: 'ManageDonations', icon: Heart },
+              { label: 'Organisasi', page: 'ManageOrganisations', icon: Building2 },
             ].map((action, i) => (
-              <Link key={i} to={createPageUrl(action.page) + (action.query || '')}>
-                <Button variant="outline" className="w-full justify-start h-12 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200">
+              <Link key={i} to={createPageUrl(action.page)}>
+                <Button variant="outline" size="sm" className="w-full justify-start text-xs h-9">
                   <action.icon className="w-4 h-4 mr-2" />
                   {action.label}
                 </Button>
