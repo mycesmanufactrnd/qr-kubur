@@ -120,6 +120,10 @@ export default function AboutSystem() {
       features: [
         { name: "Senarai Pengguna", description: "Paparan semua pengguna sistem", page: "SuperadminDashboard" },
         { name: "Kelulusan Admin", description: "Lulus/tolak permohonan admin" },
+        { name: "Tambah Organisasi", description: "Tambah organisasi pengurusan baharu", page: "ManageOrganisations" },
+        { name: "Tambah Admin", description: "Tambah pentadbir baharu", page: "ManageUsers" },
+        { name: "Urus Kebenaran", description: "Tetapkan kebenaran modul untuk pengguna", page: "ManagePermissions" },
+        { name: "Dokumentasi Sistem", description: "Muat turun SRS dalam PDF", page: "Documentation" },
         { name: "SQL Console", description: "Contoh arahan SQL untuk rujukan" },
       ]
     },
@@ -305,8 +309,12 @@ export default function AboutSystem() {
                 { name: "ManageSuggestions", label: "Urus Cadangan" },
                 { name: "ManageDonations", label: "Urus Derma" },
                 { name: "ManageTahlilRequests", label: "Urus Tahlil" },
+                { name: "ManageUsers", label: "Urus Pengguna" },
+                { name: "ManagePermissions", label: "Urus Kebenaran" },
                 { name: "SuperadminDashboard", label: "Super Admin" },
+                { name: "Documentation", label: "Dokumentasi Sistem" },
                 { name: "AboutSystem", label: "Tentang Sistem" },
+                { name: "MoreMenu", label: "Menu Lagi" },
               ].map((page, i) => (
                 <Link 
                   key={i}

@@ -208,14 +208,18 @@ export default function SuperadminDashboard() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users">
             <Users className="w-4 h-4 mr-2" />
-            Pengurusan Pengguna
+            Pengguna
+          </TabsTrigger>
+          <TabsTrigger value="add">
+            <Database className="w-4 h-4 mr-2" />
+            Tambah
           </TabsTrigger>
           <TabsTrigger value="sql">
             <Terminal className="w-4 h-4 mr-2" />
-            SQL Console
+            SQL
           </TabsTrigger>
         </TabsList>
 
@@ -320,6 +324,30 @@ export default function SuperadminDashboard() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Add Tab */}
+        <TabsContent value="add" className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Link to={createPageUrl('ManageOrganisations') + '?action=add'}>
+              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <Database className="w-10 h-10 text-emerald-600 mb-3" />
+                  <h3 className="font-bold text-lg mb-2">Tambah Organisasi</h3>
+                  <p className="text-sm text-gray-600">Tambah organisasi pengurusan baharu</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to={createPageUrl('ManageUsers') + '?action=add'}>
+              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <Users className="w-10 h-10 text-blue-600 mb-3" />
+                  <h3 className="font-bold text-lg mb-2">Tambah Admin</h3>
+                  <p className="text-sm text-gray-600">Tambah pentadbir baharu ke sistem</p>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </TabsContent>
 
         {/* SQL Console Tab */}

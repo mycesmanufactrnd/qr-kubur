@@ -130,16 +130,16 @@ export default function MoreMenu() {
           {menuItems.map((item, index) => (
             <Link key={index} to={createPageUrl(item.page)}>
               <Card className="border-0 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                      <item.icon className="w-6 h-6 text-white" />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0`}>
+                      <item.icon className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-base">{item.title}</h3>
-                      <p className="text-sm text-gray-500 truncate">{item.description}</p>
+                      <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
+                      <p className="text-xs text-gray-500 truncate">{item.description}</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   </div>
                 </CardContent>
               </Card>
@@ -158,16 +158,16 @@ export default function MoreMenu() {
             {adminMenuItems.map((item, index) => (
               <Link key={index} to={createPageUrl(item.page)}>
                 <Card className="border-0 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                        <item.icon className="w-6 h-6 text-white" />
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0`}>
+                        <item.icon className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-base">{item.title}</h3>
-                        <p className="text-sm text-gray-500 truncate">{item.description}</p>
+                        <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
+                        <p className="text-xs text-gray-500 truncate">{item.description}</p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>
@@ -185,16 +185,16 @@ export default function MoreMenu() {
           </h2>
           <Link to={createPageUrl('SuperadminDashboard')}>
             <Card className="border-0 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                    <Shield className="w-6 h-6 text-white" />
+              <CardContent className="p-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-base">Super Admin Panel</h3>
-                    <p className="text-sm text-gray-500 truncate">Kawalan penuh sistem</p>
+                    <h3 className="font-semibold text-gray-900 text-sm">Super Admin Panel</h3>
+                    <p className="text-xs text-gray-500 truncate">Kawalan penuh sistem</p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>

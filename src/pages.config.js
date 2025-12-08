@@ -21,6 +21,8 @@ import ManageTahlilRequests from './pages/ManageTahlilRequests';
 import AboutSystem from './pages/AboutSystem';
 import MoreMenu from './pages/MoreMenu';
 import ManageUsers from './pages/ManageUsers';
+import ManagePermissions from './pages/ManagePermissions';
+import Documentation from './pages/Documentation';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +50,8 @@ export const PAGES = {
     "AboutSystem": AboutSystem,
     "MoreMenu": MoreMenu,
     "ManageUsers": ManageUsers,
+    "ManagePermissions": ManagePermissions,
+    "Documentation": Documentation,
 }
 
 export const pagesConfig = {
