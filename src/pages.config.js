@@ -19,6 +19,7 @@ import ManageDonations from './pages/ManageDonations';
 import SuperadminDashboard from './pages/SuperadminDashboard';
 import ManageTahlilRequests from './pages/ManageTahlilRequests';
 import AboutSystem from './pages/AboutSystem';
+import MoreMenu from './pages/MoreMenu';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +45,7 @@ export const PAGES = {
     "SuperadminDashboard": SuperadminDashboard,
     "ManageTahlilRequests": ManageTahlilRequests,
     "AboutSystem": AboutSystem,
+    "MoreMenu": MoreMenu,
 }
 
 export const pagesConfig = {
