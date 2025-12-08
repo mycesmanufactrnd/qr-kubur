@@ -104,76 +104,68 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-8 md:p-12 text-white">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=1200')] opacity-10 bg-cover bg-center" />
+      {/* Compact Hero */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-4 lg:p-8 text-white">
         <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+          <h1 className="text-xl lg:text-3xl font-bold mb-2">
             Selamat Datang ke QR Kubur
           </h1>
-          <p className="text-emerald-100 text-lg mb-6 max-w-2xl">
-            Sistem pengurusan makam pintar yang memudahkan anda mencari, menziarahi, dan menguruskan makam ahli keluarga.
+          <p className="text-emerald-100 text-sm lg:text-base mb-4">
+            Sistem pengurusan makam pintar
           </p>
           
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex gap-3 max-w-xl">
+          <form onSubmit={handleSearch} className="flex gap-2">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Cari nama si mati atau lokasi kubur..."
+                placeholder="Cari nama atau lokasi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-14 rounded-2xl bg-white/95 border-0 text-gray-800 placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-white"
+                className="pl-10 h-11 rounded-xl bg-white/95 border-0 text-gray-800 text-sm"
               />
             </div>
-            <Button type="submit" size="lg" className="h-14 px-8 rounded-2xl bg-white text-emerald-600 hover:bg-emerald-50">
+            <Button type="submit" className="h-11 px-6 rounded-xl bg-white text-emerald-600 hover:bg-emerald-50">
               Cari
             </Button>
           </form>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl" />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Compact Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {[
-          { label: 'Tanah Perkuburan', value: stats?.graves || 0, icon: MapPin, color: 'emerald' },
-          { label: 'Rekod Si Mati', value: stats?.persons || 0, icon: Users, color: 'blue' },
-          { label: 'Pusat Tahfiz', value: stats?.tahfiz || 0, icon: Building2, color: 'violet' },
-          { label: 'Jumlah Derma', value: `RM ${(stats?.donations || 0).toLocaleString()}`, icon: TrendingUp, color: 'pink' },
+          { label: 'Kubur', value: stats?.graves || 0, icon: MapPin, color: 'emerald' },
+          { label: 'Si Mati', value: stats?.persons || 0, icon: Users, color: 'blue' },
+          { label: 'Tahfiz', value: stats?.tahfiz || 0, icon: Building2, color: 'violet' },
+          { label: 'Derma', value: `RM ${(stats?.donations || 0).toLocaleString()}`, icon: TrendingUp, color: 'pink' },
         ].map((stat, i) => (
-          <Card key={i} className="border-0 shadow-lg shadow-gray-100 hover:shadow-xl transition-shadow">
-            <CardContent className="p-6">
-              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-100 flex items-center justify-center mb-4`}>
-                <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+          <Card key={i} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-3">
+              <div className={`w-10 h-10 rounded-xl bg-${stat.color}-100 flex items-center justify-center mb-2`}>
+                <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              <p className="text-sm text-gray-500">{stat.label}</p>
+              <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-500">{stat.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Quick Actions */}
+      {/* Compact Actions */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Akses Pantas</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="text-base font-bold text-gray-900 mb-3">Akses Pantas</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
           {quickActions.map((action, i) => (
             <Link key={i} to={createPageUrl(action.page)}>
-              <Card className={`border-0 shadow-lg ${action.shadow} hover:scale-[1.02] transition-all duration-300 cursor-pointer group overflow-hidden`}>
-                <CardContent className="p-6">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 shadow-lg ${action.shadow}`}>
-                    <action.icon className="w-7 h-7 text-white" />
+              <Card className={`border-0 shadow-sm hover:shadow-md transition-all`}>
+                <CardContent className="p-3">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-2`}>
+                    <action.icon className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{action.title}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{action.description}</p>
-                  <div className="flex items-center text-sm font-medium text-emerald-600 group-hover:gap-2 transition-all">
-                    Pergi <ArrowRight className="w-4 h-4 ml-1" />
-                  </div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1 truncate">{action.title}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2">{action.description}</p>
                 </CardContent>
               </Card>
             </Link>
@@ -181,16 +173,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <Card className="border-0 bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg">
-        <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Mahu Mohon Tahlil?</h3>
-            <p className="text-gray-600">Hubungi pusat tahfiz berhampiran untuk perkhidmatan tahlil dan bacaan Al-Quran.</p>
+      {/* Compact CTA */}
+      <Card className="border-0 bg-gradient-to-r from-amber-50 to-orange-50 shadow-sm">
+        <CardContent className="p-4 flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900 mb-1">Mohon Tahlil</h3>
+            <p className="text-xs text-gray-600">Hubungi pusat tahfiz</p>
           </div>
           <Link to={createPageUrl('TahlilRequestPage')}>
-            <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-200">
-              Mohon Tahlil
+            <Button size="sm" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white">
+              Mohon
             </Button>
           </Link>
         </CardContent>
