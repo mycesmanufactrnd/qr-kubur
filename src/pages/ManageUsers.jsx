@@ -31,15 +31,23 @@ export default function ManageUsers() {
   const [isAddMode, setIsAddMode] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list()
+  });
+
+  const { data: appUsers = [], isLoading: appUsersLoading } = useQuery({
+    queryKey: ['appUsers'],
+    queryFn: () => base44.entities.AppUser.list()
   });
 
   const { data: organisations = [] } = useQuery({
     queryKey: ['organisations'],
     queryFn: () => base44.entities.Organisation.list()
   });
+
+  const isLoading = usersLoading || appUsersLoading;
+  const allUsers = [...users, ...appUsers];
 
   const createUserMutation = useMutation({
     mutationFn: (data) => base44.entities.AppUser.create(data),
@@ -55,6 +63,18 @@ export default function ManageUsers() {
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
+      setDialogOpen(false);
+      setEditUser(null);
+      setIsAddMode(false);
+    }
+  });
+
+  const updateAppUserMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.AppUser.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
       setDialogOpen(false);
       setEditUser(null);
       setIsAddMode(false);
@@ -64,7 +84,7 @@ export default function ManageUsers() {
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
   const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
 
-  const filteredUsers = users.filter(u => 
+  const filteredUsers = allUsers.filter(u => 
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
@@ -98,6 +118,7 @@ export default function ManageUsers() {
     setIsAddMode(false);
     setEditUser({
       ...user,
+      isAppUser: appUsers.some(u => u.id === user.id),
       state: user.state || [],
       permissions: user.permissions || {
         graves: { view: false, create: false, edit: false, delete: false },
@@ -116,7 +137,11 @@ export default function ManageUsers() {
     if (isAddMode) {
       createUserMutation.mutate(editUser);
     } else {
-      updateUserMutation.mutate({ id: editUser.id, data: editUser });
+      if (editUser.isAppUser) {
+        updateAppUserMutation.mutate({ id: editUser.id, data: editUser });
+      } else {
+        updateUserMutation.mutate({ id: editUser.id, data: editUser });
+      }
     }
   };
 
