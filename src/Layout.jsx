@@ -29,16 +29,26 @@ export default function Layout({ children, currentPageName }) {
   const loadUser = async () => {
     try {
       let userData = await base44.auth.me();
-      
+
       // Apply role override for testing
       if (roleOverride && userData) {
-        userData = {
-          ...userData,
-          role: roleOverride === 'user' ? 'user' : 'admin',
-          admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
-        };
+        try {
+          const parsed = JSON.parse(roleOverride);
+          userData = {
+            ...userData,
+            role: 'admin',
+            admin_type: 'admin',
+            state: [parsed.state]
+          };
+        } catch {
+          userData = {
+            ...userData,
+            role: roleOverride === 'user' ? 'user' : 'admin',
+            admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
+          };
+        }
       }
-      
+
       setUser(userData);
     } catch (e) {
       setUser(null);
@@ -46,12 +56,13 @@ export default function Layout({ children, currentPageName }) {
     setLoading(false);
   };
   
-  const handleRoleSwitch = (role) => {
-    localStorage.setItem('roleOverride', role);
-    setRoleOverride(role);
+  const handleRoleSwitch = (role, state = null) => {
+    const roleData = state ? JSON.stringify({ role, state }) : role;
+    localStorage.setItem('roleOverride', roleData);
+    setRoleOverride(roleData);
     window.location.reload();
   };
-  
+
   const clearRoleOverride = () => {
     localStorage.removeItem('roleOverride');
     setRoleOverride(null);
@@ -172,18 +183,34 @@ export default function Layout({ children, currentPageName }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
                     <UserIcon className="w-4 h-4" />
-                    {roleOverride ? roleOverride.charAt(0).toUpperCase() + roleOverride.slice(1) : 'Role'}
+                    {(() => {
+                      if (!roleOverride) return 'Role';
+                      try {
+                        const parsed = JSON.parse(roleOverride);
+                        return `Admin (${parsed.state})`;
+                      } catch {
+                        return roleOverride.charAt(0).toUpperCase() + roleOverride.slice(1);
+                      }
+                    })()}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="max-h-[400px] overflow-y-auto">
                   <DropdownMenuItem onClick={() => handleRoleSwitch('superadmin')}>
                     <Shield className="w-4 h-4 mr-2" />
                     Super Admin
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleRoleSwitch('admin')}>
                     <Shield className="w-4 h-4 mr-2" />
-                    Admin
+                    Admin (All States)
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"].map(state => (
+                    <DropdownMenuItem key={state} onClick={() => handleRoleSwitch('admin', state)}>
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Admin ({state})
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => handleRoleSwitch('user')}>
                     <UserIcon className="w-4 h-4 mr-2" />
                     User
