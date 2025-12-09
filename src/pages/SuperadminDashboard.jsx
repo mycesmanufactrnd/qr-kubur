@@ -347,6 +347,15 @@ export default function SuperadminDashboard() {
                 </CardContent>
               </Card>
             </Link>
+            <Link to={createPageUrl('Documentation')}>
+              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <Terminal className="w-10 h-10 text-purple-600 mb-3" />
+                  <h3 className="font-bold text-lg mb-2">Dokumentasi Sistem</h3>
+                  <p className="text-sm text-gray-600">Muat turun SRS dokumen (PDF)</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </TabsContent>
 
