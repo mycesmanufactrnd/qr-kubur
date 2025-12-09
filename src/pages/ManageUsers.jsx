@@ -17,26 +17,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useUserWithRoleOverride } from '../components/useUserWithRoleOverride';
 
 const ITEMS_PER_PAGE = 10;
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
 
 export default function ManageUsers() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser, loading: userLoading } = useUserWithRoleOverride();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    const userData = await base44.auth.me();
-    setCurrentUser(userData);
-  };
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
