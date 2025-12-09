@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Shield, FileText, Download, Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import jsPDF from 'jspdf';
 
