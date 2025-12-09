@@ -313,7 +313,6 @@ export default function ManageUsers() {
                 <Select 
                   value={editUser.admin_type || 'none'} 
                   onValueChange={(v) => setEditUser({...editUser, admin_type: v})}
-                  disabled={!isSuperAdmin}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -321,7 +320,7 @@ export default function ManageUsers() {
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
                     {isSuperAdmin && <SelectItem value="superadmin">Superadmin</SelectItem>}
-                    {isSuperAdmin && <SelectItem value="admin">Admin</SelectItem>}
+                    {(isSuperAdmin || isAdmin) && <SelectItem value="admin">Admin</SelectItem>}
                     <SelectItem value="employee">Employee</SelectItem>
                   </SelectContent>
                 </Select>
