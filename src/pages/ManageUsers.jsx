@@ -189,14 +189,25 @@ export default function ManageUsers() {
                     </div>
                   </div>
                   {(isSuperAdmin || (isAdmin && user.admin_type === 'employee')) && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEditUser(user)}
-                      className="flex-shrink-0"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditUser(user)}
+                        className="flex-shrink-0"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Link to={createPageUrl('ManagePermissions') + `?userId=${user.id}`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-shrink-0"
+                        >
+                          <Shield className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                 </div>
               </CardContent>

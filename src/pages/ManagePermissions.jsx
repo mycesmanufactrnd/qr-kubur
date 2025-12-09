@@ -22,6 +22,9 @@ const MODULES = ['graves', 'dead_persons', 'organisations', 'tahfiz', 'donations
 const PERMISSIONS = ['view', 'create', 'edit', 'delete'];
 
 export default function ManagePermissions() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const userIdParam = urlParams.get('userId');
+  
   const [currentUser, setCurrentUser] = useState(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -42,6 +45,15 @@ export default function ManagePermissions() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list()
   });
+
+  React.useEffect(() => {
+    if (userIdParam && users.length > 0) {
+      const user = users.find(u => u.id === userIdParam);
+      if (user) {
+        handleEditUser(user);
+      }
+    }
+  }, [userIdParam, users]);
 
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
@@ -87,12 +99,14 @@ export default function ManagePermissions() {
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
 
   const handleEditUser = (user) => {
+    const defaultPermissions = MODULES.reduce((acc, module) => {
+      acc[module] = { view: true, create: true, edit: true, delete: true };
+      return acc;
+    }, {});
+    
     setEditUser({
       ...user,
-      permissions: user.permissions || MODULES.reduce((acc, module) => {
-        acc[module] = { view: false, create: false, edit: false, delete: false };
-        return acc;
-      }, {})
+      permissions: user.permissions || defaultPermissions
     });
     setDialogOpen(true);
   };
