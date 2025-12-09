@@ -37,8 +37,42 @@ export default function ManageGraves() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
   const [formData, setFormData] = useState(emptyGrave);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      let userData = await base44.auth.me();
+      const roleOverride = localStorage.getItem('roleOverride');
+      if (roleOverride && userData) {
+        try {
+          const parsed = JSON.parse(roleOverride);
+          userData = {
+            ...userData,
+            role: 'admin',
+            admin_type: 'admin',
+            state: [parsed.state]
+          };
+        } catch {
+          userData = {
+            ...userData,
+            role: roleOverride === 'user' ? 'user' : 'admin',
+            admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
+          };
+        }
+      }
+      setCurrentUser(userData);
+    } catch (e) {
+      setCurrentUser(null);
+    }
+  };
+
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],
@@ -79,7 +113,13 @@ export default function ManageGraves() {
     }
   });
 
-  const filteredGraves = graves.filter(grave => {
+  const accessibleGraves = graves.filter(grave => {
+    if (isSuperAdmin) return true;
+    const adminStates = currentUser?.state || [];
+    return adminStates.includes(grave.state);
+  });
+
+  const filteredGraves = accessibleGraves.filter(grave => {
     const matchesSearch = !searchQuery || 
       grave.cemetery_name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesState = filterState === 'all' || grave.state === filterState;
