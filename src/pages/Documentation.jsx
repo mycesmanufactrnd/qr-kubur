@@ -292,13 +292,15 @@ export default function Documentation() {
     }
   };
 
-  if (!isSuperAdmin) {
+  const isAdmin = user?.role === 'admin' && (user?.admin_type === 'admin' || user?.admin_type === 'superadmin');
+
+  if (!isAdmin) {
     return (
       <Card className="max-w-lg mx-auto">
         <CardContent className="p-8 text-center">
           <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Hanya superadmin boleh akses dokumentasi</p>
+          <p className="text-gray-600">Hanya admin boleh akses dokumentasi</p>
         </CardContent>
       </Card>
     );
