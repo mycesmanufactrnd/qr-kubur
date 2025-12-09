@@ -16,11 +16,21 @@ export function useUserWithRoleOverride() {
       // Apply role override for testing
       const roleOverride = localStorage.getItem('roleOverride');
       if (roleOverride && userData) {
-        userData = {
-          ...userData,
-          role: roleOverride === 'user' ? 'user' : 'admin',
-          admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
-        };
+        try {
+          const parsed = JSON.parse(roleOverride);
+          userData = {
+            ...userData,
+            role: 'admin',
+            admin_type: 'admin',
+            state: [parsed.state]
+          };
+        } catch {
+          userData = {
+            ...userData,
+            role: roleOverride === 'user' ? 'user' : 'admin',
+            admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
+          };
+        }
       }
       
       setUser(userData);

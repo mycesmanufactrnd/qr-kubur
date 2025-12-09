@@ -100,7 +100,20 @@ export default function ManageUsers() {
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
   const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
 
-  const filteredUsers = allUsers.filter(u => 
+  const accessibleUsers = allUsers.filter(u => {
+    if (isSuperAdmin) return true;
+    if (isAdmin) {
+      // Admin can only see admin and employee
+      if (u.admin_type !== 'admin' && u.admin_type !== 'employee') return false;
+      // Must share at least one state
+      const userStates = u.state || [];
+      const adminStates = currentUser.state || [];
+      return userStates.some(s => adminStates.includes(s));
+    }
+    return false;
+  });
+
+  const filteredUsers = accessibleUsers.filter(u => 
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
