@@ -292,20 +292,6 @@ export default function Documentation() {
     }
   };
 
-  const isAdmin = user?.role === 'admin' && (user?.admin_type === 'admin' || user?.admin_type === 'superadmin');
-
-  if (!isAdmin) {
-    return (
-      <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 text-center">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Hanya admin boleh akses dokumentasi</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -313,10 +299,12 @@ export default function Documentation() {
           <FileText className="w-6 h-6 text-purple-600" />
           Dokumentasi Sistem
         </h1>
-        <Badge className="bg-purple-100 text-purple-700">
-          <Shield className="w-3 h-3 mr-1" />
-          {isSuperAdmin ? 'Superadmin' : 'Admin'}
-        </Badge>
+        {user && (
+          <Badge className="bg-purple-100 text-purple-700">
+            <Shield className="w-3 h-3 mr-1" />
+            {user.role === 'admin' ? (isSuperAdmin ? 'Superadmin' : 'Admin') : 'User'}
+          </Badge>
+        )}
       </div>
 
       <Card className="border-0 shadow-lg">
