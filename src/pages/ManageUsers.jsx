@@ -28,6 +28,7 @@ export default function ManageUsers() {
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isAddMode, setIsAddMode] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: users = [], isLoading } = useQuery({
@@ -40,12 +41,23 @@ export default function ManageUsers() {
     queryFn: () => base44.entities.Organisation.list()
   });
 
+  const createUserMutation = useMutation({
+    mutationFn: (data) => base44.entities.User.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setDialogOpen(false);
+      setEditUser(null);
+      setIsAddMode(false);
+    }
+  });
+
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDialogOpen(false);
       setEditUser(null);
+      setIsAddMode(false);
     }
   });
 
@@ -60,7 +72,30 @@ export default function ManageUsers() {
   const paginatedUsers = filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
 
+  const handleAddUser = () => {
+    setIsAddMode(true);
+    setEditUser({
+      full_name: '',
+      email: '',
+      role: 'user',
+      admin_type: 'none',
+      type: 'employee',
+      organisation_id: '',
+      state: [],
+      permissions: {
+        graves: { view: false, create: false, edit: false, delete: false },
+        dead_persons: { view: false, create: false, edit: false, delete: false },
+        organisations: { view: false, create: false, edit: false, delete: false },
+        tahfiz: { view: false, create: false, edit: false, delete: false },
+        donations: { view: false, create: false, edit: false, delete: false },
+        users: { view: false, create: false, edit: false, delete: false }
+      }
+    });
+    setDialogOpen(true);
+  };
+
   const handleEditUser = (user) => {
+    setIsAddMode(false);
     setEditUser({
       ...user,
       state: user.state || [],
@@ -78,7 +113,11 @@ export default function ManageUsers() {
 
   const handleSaveUser = () => {
     if (!editUser) return;
-    updateUserMutation.mutate({ id: editUser.id, data: editUser });
+    if (isAddMode) {
+      createUserMutation.mutate(editUser);
+    } else {
+      updateUserMutation.mutate({ id: editUser.id, data: editUser });
+    }
   };
 
   const handleStateToggle = (state) => {
@@ -120,6 +159,10 @@ export default function ManageUsers() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold">Urus Pengguna</h1>
+        <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Tambah Pengguna
+        </Button>
       </div>
 
       <Card className="border-0 shadow-sm">
@@ -237,11 +280,34 @@ export default function ManageUsers() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Pengguna</DialogTitle>
+            <DialogTitle>{isAddMode ? 'Tambah Pengguna' : 'Edit Pengguna'}</DialogTitle>
           </DialogHeader>
           
           {editUser && (
             <div className="space-y-4">
+              {isAddMode && (
+                <>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Nama Penuh</label>
+                    <Input
+                      value={editUser.full_name}
+                      onChange={(e) => setEditUser({...editUser, full_name: e.target.value})}
+                      placeholder="Masukkan nama penuh"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Email</label>
+                    <Input
+                      type="email"
+                      value={editUser.email}
+                      onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                      placeholder="Masukkan email"
+                    />
+                  </div>
+                </>
+              )}
+
               <div>
                 <label className="text-sm font-medium mb-2 block">Admin Type</label>
                 <Select 
