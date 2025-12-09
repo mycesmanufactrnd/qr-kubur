@@ -29,8 +29,42 @@ export default function ManageDeadPersons() {
   const [editingPerson, setEditingPerson] = useState(null);
   const [formData, setFormData] = useState(emptyPerson);
   const [uploading, setUploading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      let userData = await base44.auth.me();
+      const roleOverride = localStorage.getItem('roleOverride');
+      if (roleOverride && userData) {
+        try {
+          const parsed = JSON.parse(roleOverride);
+          userData = {
+            ...userData,
+            role: 'admin',
+            admin_type: 'admin',
+            state: [parsed.state]
+          };
+        } catch {
+          userData = {
+            ...userData,
+            role: roleOverride === 'user' ? 'user' : 'admin',
+            admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
+          };
+        }
+      }
+      setCurrentUser(userData);
+    } catch (e) {
+      setCurrentUser(null);
+    }
+  };
+
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
 
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],
@@ -41,6 +75,9 @@ export default function ManageDeadPersons() {
     queryKey: ['graves'],
     queryFn: () => base44.entities.Grave.list()
   });
+
+  const adminStates = currentUser?.state || [];
+  const accessibleGraves = isSuperAdmin ? graves : graves.filter(g => adminStates.includes(g.state));
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.DeadPerson.create(data),
@@ -71,7 +108,13 @@ export default function ManageDeadPersons() {
     }
   });
 
-  const filteredPersons = persons.filter(person => {
+  const accessiblePersons = persons.filter(person => {
+    if (isSuperAdmin) return true;
+    const grave = graves.find(g => g.id === person.grave_id);
+    return grave && adminStates.includes(grave.state);
+  });
+
+  const filteredPersons = accessiblePersons.filter(person => {
     const matchesSearch = !searchQuery || 
       person.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       person.ic_number?.includes(searchQuery);
@@ -270,7 +313,7 @@ export default function ManageDeadPersons() {
                   <SelectValue placeholder="Pilih kubur" />
                 </SelectTrigger>
                 <SelectContent>
-                  {graves.map(grave => (
+                  {accessibleGraves.map(grave => (
                     <SelectItem key={grave.id} value={grave.id}>
                       {grave.cemetery_name} - {grave.state}
                     </SelectItem>
