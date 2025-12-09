@@ -313,7 +313,7 @@ export default function Documentation() {
         </h1>
         <Badge className="bg-purple-100 text-purple-700">
           <Shield className="w-3 h-3 mr-1" />
-          Superadmin
+          {isSuperAdmin ? 'Superadmin' : 'Admin'}
         </Badge>
       </div>
 
