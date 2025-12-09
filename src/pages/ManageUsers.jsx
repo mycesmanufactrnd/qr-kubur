@@ -42,7 +42,7 @@ export default function ManageUsers() {
   });
 
   const createUserMutation = useMutation({
-    mutationFn: (data) => base44.entities.User.create(data),
+    mutationFn: (data) => base44.entities.AppUser.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDialogOpen(false);
@@ -159,6 +159,10 @@ export default function ManageUsers() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold">Urus Pengguna</h1>
+        <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Tambah Pengguna
+        </Button>
       </div>
 
       <Card className="border-0 shadow-sm">
