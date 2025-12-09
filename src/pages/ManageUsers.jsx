@@ -81,6 +81,22 @@ export default function ManageUsers() {
     }
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: (id) => base44.entities.User.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
+    }
+  });
+
+  const deleteAppUserMutation = useMutation({
+    mutationFn: (id) => base44.entities.AppUser.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
+    }
+  });
+
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
   const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
 
@@ -168,6 +184,42 @@ export default function ManageUsers() {
     });
   };
 
+  const handleDeleteUser = (user) => {
+    if (!confirm('Adakah anda pasti ingin memadam pengguna ini?')) return;
+    const isAppUser = appUsers.some(u => u.id === user.id);
+    if (isAppUser) {
+      deleteAppUserMutation.mutate(user.id);
+    } else {
+      deleteUserMutation.mutate(user.id);
+    }
+  };
+
+  const canEditUser = (user) => {
+    if (isSuperAdmin) return true;
+    if (isAdmin) {
+      // Admin can only edit admin and employee
+      if (user.admin_type !== 'admin' && user.admin_type !== 'employee') return false;
+      // Must be in same organisation
+      if (user.organisation_id !== currentUser.organisation_id) return false;
+      // Must share at least one state
+      const userStates = user.state || [];
+      const adminStates = currentUser.state || [];
+      return userStates.some(s => adminStates.includes(s));
+    }
+    return false;
+  };
+
+  const canDeleteUser = (user) => {
+    if (isSuperAdmin) return true;
+    if (isAdmin) {
+      // Admin can only delete admin and employee under their organisation
+      if (user.admin_type !== 'admin' && user.admin_type !== 'employee') return false;
+      if (user.organisation_id !== currentUser.organisation_id) return false;
+      return true;
+    }
+    return false;
+  };
+
   if (!isSuperAdmin && !isAdmin) {
     return (
       <Card className="max-w-lg mx-auto">
@@ -248,7 +300,7 @@ export default function ManageUsers() {
                       </div>
                     </div>
                   </div>
-                  {(isSuperAdmin || (isAdmin && user.admin_type === 'employee')) && (
+                  {canEditUser(user) && (
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -267,6 +319,16 @@ export default function ManageUsers() {
                           <Shield className="w-4 h-4" />
                         </Button>
                       </Link>
+                      {canDeleteUser(user) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteUser(user)}
+                          className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
