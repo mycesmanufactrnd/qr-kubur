@@ -20,6 +20,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [roleOverride, setRoleOverride] = useState(() => localStorage.getItem('roleOverride') || null);
 
   useEffect(() => {
     loadUser();
@@ -27,12 +28,34 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUser = async () => {
     try {
-      const userData = await base44.auth.me();
+      let userData = await base44.auth.me();
+      
+      // Apply role override for testing
+      if (roleOverride && userData) {
+        userData = {
+          ...userData,
+          role: roleOverride === 'user' ? 'user' : 'admin',
+          admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
+        };
+      }
+      
       setUser(userData);
     } catch (e) {
       setUser(null);
     }
     setLoading(false);
+  };
+  
+  const handleRoleSwitch = (role) => {
+    localStorage.setItem('roleOverride', role);
+    setRoleOverride(role);
+    window.location.reload();
+  };
+  
+  const clearRoleOverride = () => {
+    localStorage.removeItem('roleOverride');
+    setRoleOverride(null);
+    window.location.reload();
   };
 
   const handleLogout = () => {
@@ -139,6 +162,39 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
+              {/* Role Switcher - Dev/Testing Only */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <UserIcon className="w-4 h-4" />
+                    {roleOverride ? roleOverride.charAt(0).toUpperCase() + roleOverride.slice(1) : 'Role'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleRoleSwitch('superadmin')}>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Super Admin
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleRoleSwitch('admin')}>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Admin
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleRoleSwitch('user')}>
+                    <UserIcon className="w-4 h-4 mr-2" />
+                    User
+                  </DropdownMenuItem>
+                  {roleOverride && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={clearRoleOverride} className="text-red-600">
+                        <X className="w-4 h-4 mr-2" />
+                        Clear Override
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
