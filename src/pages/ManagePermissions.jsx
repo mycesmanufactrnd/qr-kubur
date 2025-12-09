@@ -38,15 +38,6 @@ export default function ManagePermissions() {
     queryFn: () => base44.entities.User.list()
   });
 
-  React.useEffect(() => {
-    if (userIdParam && users.length > 0) {
-      const user = users.find(u => u.id === userIdParam);
-      if (user) {
-        handleEditUser(user);
-      }
-    }
-  }, [userIdParam, users]);
-
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
     onSuccess: () => {
@@ -59,36 +50,6 @@ export default function ManagePermissions() {
 
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
   const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
-
-  if (!isSuperAdmin && !isAdmin) {
-    return (
-      <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 text-center">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Hanya admin boleh akses halaman ini</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Filter users based on access level
-  const accessibleUsers = users.filter(u => {
-    if (isSuperAdmin) return true; // Superadmin sees all
-    if (isAdmin) {
-      // Admin can only manage employees
-      return u.admin_type === 'employee';
-    }
-    return false;
-  });
-
-  const filteredUsers = accessibleUsers.filter(u => 
-    u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const paginatedUsers = filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
 
   const handleEditUser = (user) => {
     const defaultPermissions = MODULES.reduce((acc, module) => {
@@ -137,6 +98,43 @@ export default function ManagePermissions() {
       }
     });
   };
+
+  React.useEffect(() => {
+    if (userIdParam && users.length > 0) {
+      const user = users.find(u => u.id === userIdParam);
+      if (user) {
+        handleEditUser(user);
+      }
+    }
+  }, [userIdParam, users]);
+
+  if (!isSuperAdmin && !isAdmin) {
+    return (
+      <Card className="max-w-lg mx-auto">
+        <CardContent className="p-8 text-center">
+          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Akses Ditolak</h2>
+          <p className="text-gray-600">Hanya admin boleh akses halaman ini</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const accessibleUsers = users.filter(u => {
+    if (isSuperAdmin) return true;
+    if (isAdmin) {
+      return u.admin_type === 'employee';
+    }
+    return false;
+  });
+
+  const filteredUsers = accessibleUsers.filter(u => 
+    u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const paginatedUsers = filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-4">
