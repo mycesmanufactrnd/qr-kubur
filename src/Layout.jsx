@@ -62,8 +62,9 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
-  const isAdmin = user?.role === 'admin' || user?.admin_status === 'approved';
-  const isSuperAdmin = user?.role === 'admin';
+  const isSuperAdmin = user?.type === 'superadmin' || (user?.role === 'admin' && user?.admin_type === 'superadmin');
+  const isOrganization = user?.type === 'organization';
+  const isAdmin = user?.type === 'organization' || user?.type === 'employee' || user?.role === 'admin' || user?.admin_status === 'approved';
 
   const userNavItems = [
     { name: 'Dashboard', icon: Home, page: 'Dashboard' },
@@ -74,6 +75,10 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Derma', icon: Heart, page: 'DonationPage' },
     { name: 'Surah & Doa', icon: BookOpen, page: 'SurahPage' },
     { name: 'Tentang Sistem', icon: Settings, page: 'AboutSystem' },
+  ];
+
+  const organizationNavItems = [
+    { name: 'Manage Employees', icon: Users, page: 'ManageEmployees' },
   ];
 
   const adminNavItems = [
@@ -215,7 +220,21 @@ export default function Layout({ children, currentPageName }) {
                       <p className="text-xs text-emerald-600 capitalize">{user.role}</p>
                     </div>
                     
-                    {isAdmin && (
+                    {isOrganization && (
+                      <>
+                        <DropdownMenuSeparator />
+                        {organizationNavItems.map((item) => (
+                          <DropdownMenuItem key={item.page} asChild>
+                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
+                              <item.icon className="w-4 h-4" />
+                              {item.name}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+
+                    {isAdmin && !isOrganization && (
                       <>
                         <DropdownMenuSeparator />
                         {adminNavItems.map((item) => (

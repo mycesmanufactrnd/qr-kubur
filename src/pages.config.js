@@ -23,6 +23,8 @@ import MoreMenu from './pages/MoreMenu';
 import ManageUsers from './pages/ManageUsers';
 import ManagePermissions from './pages/ManagePermissions';
 import Documentation from './pages/Documentation';
+import OrganizationLogin from './pages/OrganizationLogin';
+import ManageEmployees from './pages/ManageEmployees';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +54,8 @@ export const PAGES = {
     "ManageUsers": ManageUsers,
     "ManagePermissions": ManagePermissions,
     "Documentation": Documentation,
+    "OrganizationLogin": OrganizationLogin,
+    "ManageEmployees": ManageEmployees,
 }
 
 export const pagesConfig = {
