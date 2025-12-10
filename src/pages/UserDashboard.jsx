@@ -43,18 +43,6 @@ export default function UserDashboard() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Login Button */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-4">
-          <Link to={createPageUrl('AppUserLogin')}>
-            <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white">
-              <LogIn className="w-4 h-4 mr-2" />
-              Log Masuk
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
     </div>
   );
 }
