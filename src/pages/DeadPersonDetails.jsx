@@ -54,11 +54,18 @@ export default function DeadPersonDetails() {
   const shareProfile = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      await navigator.share({
-        title: person?.name,
-        text: `Profil: ${person?.name}`,
-        url: url
-      });
+      try {
+        await navigator.share({
+          title: person?.name,
+          text: `Profil: ${person?.name}`,
+          url: url
+        });
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          navigator.clipboard.writeText(url);
+          alert('Pautan telah disalin!');
+        }
+      }
     } else {
       navigator.clipboard.writeText(url);
       alert('Pautan telah disalin!');

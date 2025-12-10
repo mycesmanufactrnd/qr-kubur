@@ -50,11 +50,18 @@ export default function GraveDetails() {
   const shareLocation = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      await navigator.share({
-        title: grave?.cemetery_name,
-        text: `Lokasi kubur: ${grave?.cemetery_name}`,
-        url: url
-      });
+      try {
+        await navigator.share({
+          title: grave?.cemetery_name,
+          text: `Lokasi kubur: ${grave?.cemetery_name}`,
+          url: url
+        });
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          navigator.clipboard.writeText(url);
+          alert('Pautan telah disalin!');
+        }
+      }
     } else {
       navigator.clipboard.writeText(url);
       alert('Pautan telah disalin!');
