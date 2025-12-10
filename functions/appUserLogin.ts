@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
         }
 
         // Verify password using bcrypt
-        const isPasswordValid = await bcrypt.compare(password, storedPassword);
+        const isPasswordValid = await bcrypt.compareSync(password, storedPassword);
         logDetails.isPasswordValid = isPasswordValid;
         logDetails.inputPassword = password;
 
