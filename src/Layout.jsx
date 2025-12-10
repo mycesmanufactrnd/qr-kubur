@@ -147,8 +147,8 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
+      {/* Header - Desktop Only */}
+      <header className="hidden lg:block sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -156,7 +156,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>
-              <div className="hidden sm:block">
+              <div>
                 <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                   QR Kubur
                 </h1>
@@ -165,7 +165,7 @@ export default function Layout({ children, currentPageName }) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="flex items-center gap-1">
               {userNavItems.slice(0, 4).map((item) => (
                 <Link
                   key={item.page}
@@ -257,7 +257,7 @@ export default function Layout({ children, currentPageName }) {
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
                         {user.full_name?.[0] || user.email?.[0]?.toUpperCase()}
                       </div>
-                      <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700">
                         {user.full_name || user.email?.split('@')[0]}
                       </span>
                       <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -327,46 +327,13 @@ export default function Layout({ children, currentPageName }) {
                   Log Masuk
                 </Button>
               )}
-
-              {/* Mobile Menu Button - Hidden on large screens */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
             </div>
           </div>
         </div>
-
-        {/* Mobile Navigation Dropdown (only shown when menu is open) */}
-        {isMenuOpen && (
-          <div className="lg:hidden border-t bg-white/95 backdrop-blur-xl">
-            <nav className="max-w-7xl mx-auto px-4 py-4 space-y-1">
-              {userNavItems.map((item) => (
-                <Link
-                  key={item.page}
-                  to={createPageUrl(item.page)}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    currentPageName === item.page
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        )}
       </header>
 
-      {/* Main Content - Extra padding bottom on mobile for bottom nav */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pt-6 lg:pb-6">
         {children}
       </main>
 
@@ -400,7 +367,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </nav>
 
-      {/* Footer - Hidden on mobile since we have bottom nav */}
+      {/* Footer - Desktop Only */}
       <footer className="bg-white border-t border-gray-100 mt-auto hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
