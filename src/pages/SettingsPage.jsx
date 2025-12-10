@@ -14,6 +14,7 @@ export default function SettingsPage() {
         { icon: Info, label: 'Tentang Sistem', page: 'AboutSystem' },
         { icon: HelpCircle, label: 'Bantuan', action: () => alert('Hubungi support@qrkubur.com') },
         { icon: FileText, label: 'Terma & Syarat', action: () => alert('Terma & Syarat') },
+        { icon: Login, label: 'Admin Login', page: 'AppUserLogin' },
       ]
     }
   ];
