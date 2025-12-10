@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { BookOpen, ChevronDown, ChevronUp, Play, Pause } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, ChevronDown, ChevronUp, Play, Pause, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -98,15 +99,16 @@ export default function SurahPage() {
 
   const currentContent = SURAH_CONTENT[activeTab];
 
+  const navigate = useNavigate();
+  
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-200">
-          <BookOpen className="w-10 h-10 text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Surah & Doa</h1>
-        <p className="text-gray-500 mt-2">Bacaan untuk ziarah kubur dan mendoakan arwah</p>
+    <div className="max-w-3xl mx-auto space-y-4 pb-2">
+      {/* Header with Back */}
+      <div className="flex items-center gap-3 pt-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-xl font-bold text-gray-900">Surah & Doa</h1>
       </div>
 
       {/* Navigation */}

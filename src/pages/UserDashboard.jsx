@@ -31,7 +31,7 @@ export default function UserDashboard() {
   const quickActions = [
     { icon: Search, title: 'Cari Kubur', page: 'SearchGrave', color: 'bg-blue-100 text-blue-600' },
     { icon: QrCode, title: 'Imbas QR', page: 'ScanQR', color: 'bg-emerald-100 text-emerald-600' },
-    { icon: Map, title: 'Peta Tahfiz', page: 'MapTahfiz', color: 'bg-violet-100 text-violet-600' },
+    { icon: Map, title: 'Cari Tahfiz', page: 'SearchTahfiz', color: 'bg-violet-100 text-violet-600' },
     { icon: BookOpen, title: 'Mohon Tahlil', page: 'TahlilRequestPage', color: 'bg-teal-100 text-teal-600' },
     { icon: Heart, title: 'Derma', page: 'DonationPage', color: 'bg-pink-100 text-pink-600' },
     { icon: FileText, title: 'Cadangan', page: 'SubmitSuggestion', color: 'bg-amber-100 text-amber-600' },

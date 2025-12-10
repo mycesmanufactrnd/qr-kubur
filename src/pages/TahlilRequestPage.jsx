@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2 } from 'lucide-react';
+import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,15 +107,16 @@ export default function TahlilRequestPage() {
     );
   }
 
+  const navigate = useNavigate();
+  
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-200">
-          <BookOpen className="w-10 h-10 text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Mohon Perkhidmatan Tahlil</h1>
-        <p className="text-gray-500 mt-2">Hantar permohonan bacaan tahlil kepada pusat tahfiz</p>
+    <div className="max-w-2xl mx-auto space-y-4 pb-2">
+      {/* Header with Back */}
+      <div className="flex items-center gap-3 pt-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-xl font-bold text-gray-900">Mohon Tahlil</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

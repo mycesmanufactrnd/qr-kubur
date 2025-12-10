@@ -105,7 +105,7 @@ export default function Layout({ children, currentPageName }) {
   const userNavItems = [
     { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
     { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
-    { name: 'Peta Tahfiz', icon: Map, page: 'MapTahfiz' },
+    { name: 'Cari Tahfiz', icon: Map, page: 'SearchTahfiz' },
     { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
     { name: 'Derma', icon: Heart, page: 'DonationPage' },
     { name: 'Surah & Doa', icon: BookOpen, page: 'SurahPage' },

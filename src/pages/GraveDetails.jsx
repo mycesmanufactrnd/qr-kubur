@@ -168,7 +168,7 @@ export default function GraveDetails() {
           ) : displayedPersons.length === 0 ? (
             <p className="text-xs text-gray-500 text-center py-4">Tiada rekod</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {displayedPersons.map(person => (
                 <Link key={person.id} to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
                   <div className="p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">

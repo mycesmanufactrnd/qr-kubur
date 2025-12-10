@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -64,7 +64,7 @@ export default function SubmitSuggestion() {
               Cadangan anda telah dihantar kepada admin untuk semakan. 
               Kami akan memaklumkan anda selepas semakan selesai.
             </p>
-            <Link to={createPageUrl('Dashboard')}>
+            <Link to={createPageUrl('UserDashboard')}>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
                 Kembali ke Utama
               </Button>
@@ -75,26 +75,21 @@ export default function SubmitSuggestion() {
     );
   }
 
+  const navigate = useNavigate();
+  
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      {/* Back Button */}
-      <Button variant="ghost" onClick={() => window.history.back()}>
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Kembali
-      </Button>
-
-      {/* Header */}
-      <div className="text-center">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-200">
-          <FileText className="w-10 h-10 text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Cadang Pembetulan</h1>
-        <p className="text-gray-500 mt-2">Hantar cadangan untuk memperbetulkan maklumat</p>
+    <div className="max-w-lg mx-auto space-y-4 pb-2">
+      {/* Header with Back */}
+      <div className="flex items-center gap-3 pt-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-xl font-bold text-gray-900">Cadangan</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card className="border-0 shadow-lg">
-          <CardContent className="p-6 space-y-6">
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4 space-y-4">
             <div>
               <Label htmlFor="entityType">Jenis Rekod</Label>
               <Select value={entityType} onValueChange={setEntityType}>
@@ -110,17 +105,7 @@ export default function SubmitSuggestion() {
               </Select>
             </div>
 
-            {entityId && (
-              <div>
-                <Label htmlFor="entityId">ID Rekod</Label>
-                <Input
-                  id="entityId"
-                  value={entityId}
-                  onChange={(e) => setEntityId(e.target.value)}
-                  placeholder="ID rekod (jika ada)"
-                />
-              </div>
-            )}
+
 
             <div>
               <Label htmlFor="suggestedChanges">Cadangan Pembetulan *</Label>
@@ -150,7 +135,7 @@ export default function SubmitSuggestion() {
 
             <Button 
               type="submit"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
               disabled={createSuggestion.isPending || !entityType || !suggestedChanges}
             >
               {createSuggestion.isPending ? 'Menghantar...' : 'Hantar Cadangan'}
