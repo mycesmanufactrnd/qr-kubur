@@ -28,6 +28,22 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUser = async () => {
     try {
+      // Check for AppUser authentication first
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      
+      if (appUserAuth) {
+        const appUser = JSON.parse(appUserAuth);
+        setUser({
+          ...appUser,
+          role: 'admin',
+          admin_type: appUser.admin_type || 'admin',
+          state: appUser.state || [],
+          isAppUser: true
+        });
+        setLoading(false);
+        return;
+      }
+
       let userData = await base44.auth.me();
 
       // Apply role override for testing
@@ -70,7 +86,16 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = () => {
-    base44.auth.logout();
+    // Clear AppUser authentication
+    localStorage.removeItem('appUserAuth');
+    localStorage.removeItem('roleOverride');
+    
+    // If regular user, use base44 logout
+    if (user && !user.isAppUser) {
+      base44.auth.logout();
+    } else {
+      window.location.href = '/';
+    }
   };
 
   const isSuperAdmin = user?.type === 'superadmin' || (user?.role === 'admin' && user?.admin_type === 'superadmin');

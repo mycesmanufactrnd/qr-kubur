@@ -25,6 +25,7 @@ import ManagePermissions from './pages/ManagePermissions';
 import Documentation from './pages/Documentation';
 import OrganizationLogin from './pages/OrganizationLogin';
 import ManageEmployees from './pages/ManageEmployees';
+import AppUserLogin from './pages/AppUserLogin';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "Documentation": Documentation,
     "OrganizationLogin": OrganizationLogin,
     "ManageEmployees": ManageEmployees,
+    "AppUserLogin": AppUserLogin,
 }
 
 export const pagesConfig = {
