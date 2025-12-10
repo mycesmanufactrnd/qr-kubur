@@ -105,7 +105,6 @@ export default function Layout({ children, currentPageName }) {
   const userNavItems = [
     { name: 'Dashboard', icon: Home, page: 'Dashboard' },
     { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
-    { name: 'Peta Kubur', icon: MapPin, page: 'MapKubur' },
     { name: 'Peta Tahfiz', icon: Map, page: 'MapTahfiz' },
     { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
     { name: 'Derma', icon: Heart, page: 'DonationPage' },
@@ -143,7 +142,6 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Utama', icon: Home, page: 'Dashboard' },
     { name: 'Cari', icon: Search, page: 'SearchGrave' },
     { name: 'Imbas', icon: QrCode, page: 'ScanQR' },
-    { name: 'Peta', icon: MapPin, page: 'MapKubur' },
     { name: 'Lagi', icon: Menu, page: 'MoreMenu' },
   ];
 
