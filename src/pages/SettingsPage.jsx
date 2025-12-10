@@ -20,6 +20,8 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 pb-2">
+      <h1 className="text-xl font-bold text-gray-900 pt-2">Tetapan</h1>
+      
       {settingsSections.map((section, idx) => (
         <Card key={idx} className="border-0 shadow-sm">
           <CardContent className="p-0">

@@ -89,6 +89,8 @@ export default function SearchGrave() {
 
   return (
     <div className="space-y-3 pb-2">
+      <h1 className="text-xl font-bold text-gray-900 pt-2">Cari Kubur</h1>
+      
       {/* Search Controls */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-3 space-y-2">
