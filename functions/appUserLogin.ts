@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        const storedPassword = appUser.data?.password;
+        const storedPassword = appUser.password || appUser.data?.password;
 
         if (!storedPassword) {
             logDetails.error = 'Password not set';
