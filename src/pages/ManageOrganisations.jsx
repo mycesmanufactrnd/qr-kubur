@@ -39,9 +39,15 @@ export default function ManageOrganisations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [formData, setFormData] = useState(emptyOrg);
-  const [currentUser, setCurrentUser] = useState(null);
 
   const queryClient = useQueryClient();
+
+  const { data: organisations = [], isLoading } = useQuery({
+    queryKey: ['admin-organisations'],
+    queryFn: () => base44.entities.Organisation.list('-created_date')
+  });
+
+  const [currentUser, setCurrentUser] = React.useState(null);
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -60,15 +66,10 @@ export default function ManageOrganisations() {
     loadUser();
   }, []);
 
-  const { data: organisations = [], isLoading } = useQuery({
-    queryKey: ['admin-organisations'],
-    queryFn: () => base44.entities.Organisation.list('-created_date')
-  });
-
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
   const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
 
-  if (!isSuperAdmin && !isAdmin) {
+  if (!currentUser || (!isSuperAdmin && !isAdmin)) {
     return (
       <Card className="max-w-lg mx-auto">
         <CardContent className="p-8 text-center">
