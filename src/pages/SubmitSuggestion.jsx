@@ -64,7 +64,7 @@ export default function SubmitSuggestion() {
               Cadangan anda telah dihantar kepada admin untuk semakan. 
               Kami akan memaklumkan anda selepas semakan selesai.
             </p>
-            <Link to={createPageUrl('UserDashboard')}>
+            <Link to={createPageUrl('Dashboard')}>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
                 Kembali ke Utama
               </Button>

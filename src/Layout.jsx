@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.type === 'organization' || user?.type === 'employee' || user?.role === 'admin' || user?.admin_status === 'approved';
 
   const userNavItems = [
-    { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
+    { name: 'Dashboard', icon: Home, page: 'Dashboard' },
     { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
     { name: 'Cari Tahfiz', icon: Map, page: 'SearchTahfiz' },
     { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
@@ -139,7 +139,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Bottom navbar items - Main navigation for mobile
   const bottomNavItems = [
-    { name: 'Utama', icon: Home, page: 'UserDashboard' },
+    { name: 'Utama', icon: Home, page: 'Dashboard' },
     { name: 'Cari', icon: Search, page: 'SearchGrave' },
     { name: 'Imbas', icon: QrCode, page: 'ScanQR' },
     { name: 'Tetapan', icon: Settings, page: 'SettingsPage' },
