@@ -25,6 +25,14 @@ Deno.serve(async (req) => {
 
         const appUser = appUsers[0];
 
+        // Check if password exists
+        if (!appUser.password) {
+            return Response.json({ 
+                success: false, 
+                message: 'Password not set for this user' 
+            }, { status: 401 });
+        }
+
         // Verify password using bcrypt
         const isPasswordValid = await bcrypt.compare(password, appUser.password);
 
