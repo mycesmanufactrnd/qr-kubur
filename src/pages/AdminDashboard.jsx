@@ -20,9 +20,18 @@ export default function AdminDashboard() {
 
   const loadUser = async () => {
     try {
-      const userData = await base44.auth.me();
-      setUser(userData);
-    } catch (e) {}
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        const appUser = JSON.parse(appUserAuth);
+        setUser({
+          ...appUser,
+          role: 'admin',
+          admin_type: appUser.admin_type || 'admin'
+        });
+      }
+    } catch (e) {
+      setUser(null);
+    }
   };
 
   const { data: stats, isLoading } = useQuery({
@@ -64,9 +73,9 @@ export default function AdminDashboard() {
     { label: 'Permohonan Tahlil', value: stats?.pendingTahlil || 0, icon: Clock, page: 'ManageTahlilRequests', color: 'blue' },
   ];
 
-  const isAdmin = user?.role === 'admin' || user?.admin_status === 'approved';
+  const isAdmin = user?.role === 'admin';
 
-  if (!isAdmin) {
+  if (!user || !isAdmin) {
     return (
       <div className="max-w-lg mx-auto">
         <Card className="border-0 shadow-lg">
@@ -74,8 +83,8 @@ export default function AdminDashboard() {
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
             <p className="text-gray-600 mb-4">Anda tidak mempunyai akses kepada halaman ini.</p>
-            <Link to={createPageUrl('Dashboard')}>
-              <Button>Kembali ke Utama</Button>
+            <Link to={createPageUrl('AppUserLogin')}>
+              <Button>Log Masuk</Button>
             </Link>
           </CardContent>
         </Card>
