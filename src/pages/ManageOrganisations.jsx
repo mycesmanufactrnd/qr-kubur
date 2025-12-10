@@ -35,6 +35,7 @@ const emptyOrg = {
 
 export default function ManageOrganisations() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,6 +90,8 @@ export default function ManageOrganisations() {
         }
       } catch (e) {
         setCurrentUser(null);
+      } finally {
+        setLoadingUser(false);
       }
     };
     loadUser();
@@ -96,6 +99,16 @@ export default function ManageOrganisations() {
 
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
   const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
+
+    if (loadingUser) {
+    return (
+        <Card className="max-w-lg mx-auto">
+        <CardContent className="p-8 text-center">
+            <p className="text-gray-600">Loading...</p>
+        </CardContent>
+        </Card>
+    );
+    }
 
   if (!currentUser || (!isSuperAdmin && !isAdmin)) {
     return (
