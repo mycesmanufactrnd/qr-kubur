@@ -22,18 +22,18 @@ export default function ViewLogs() {
         <Card key={log.id}>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">{log.data.summary}</CardTitle>
-              <Badge variant={log.data.success ? 'default' : 'destructive'}>
-                {log.data.level}
+              <CardTitle className="text-lg">{log.summary}</CardTitle>
+              <Badge variant={log.success ? 'default' : 'destructive'}>
+                {log.level}
               </Badge>
             </div>
             <p className="text-sm text-gray-500">
-              {log.data.function_name} - {log.data.user_email} - {new Date(log.created_date).toLocaleString()}
+              {log.function_name} - {log.user_email} - {new Date(log.created_date).toLocaleString()}
             </p>
           </CardHeader>
           <CardContent>
             <pre className="bg-gray-100 p-4 rounded text-xs overflow-x-auto">
-              {JSON.stringify(log.data.details, null, 2)}
+              {JSON.stringify(log.details, null, 2)}
             </pre>
           </CardContent>
         </Card>
