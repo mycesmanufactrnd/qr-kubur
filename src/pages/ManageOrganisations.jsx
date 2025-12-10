@@ -34,6 +34,7 @@ const emptyOrg = {
 };
 
 export default function ManageOrganisations() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,8 +47,6 @@ export default function ManageOrganisations() {
     queryKey: ['admin-organisations'],
     queryFn: () => base44.entities.Organisation.list('-created_date')
   });
-
-  const [currentUser, setCurrentUser] = React.useState(null);
 
   React.useEffect(() => {
     const loadUser = async () => {
