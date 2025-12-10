@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
         console.log('Total AppUsers:', appUsers.length);
         
-        const appUser = appUsers.find(u => u.data?.email === email);
+        const appUser = appUsers.find(u => u.data?.email == email);
         console.log('Found user:', appUser ? 'Yes' : 'No');
 
         if (!appUser) {
