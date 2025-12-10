@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
         console.log('Total AppUsers:', appUsers.length);
         
-        const appUser = appUsers.find(u => u.email === email);
+        const appUser = appUsers.find(u => u.data?.email === email);
         console.log('Found user:', appUser ? 'Yes' : 'No');
 
         if (!appUser) {
@@ -32,10 +32,11 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        console.log('User has password:', !!appUser.password);
+        const storedPassword = appUser.data?.password;
+        console.log('User has password:', !!storedPassword);
 
         // Check if password exists
-        if (!appUser.password) {
+        if (!storedPassword) {
             return Response.json({ 
                 success: false, 
                 message: 'Password not set for this user' 
@@ -43,7 +44,7 @@ Deno.serve(async (req) => {
         }
 
         // Verify password using bcrypt
-        const isPasswordValid = await bcrypt.compare(password, appUser.password);
+        const isPasswordValid = await bcrypt.compare(password, storedPassword);
         console.log('Password valid:', isPasswordValid);
 
         if (!isPasswordValid) {
