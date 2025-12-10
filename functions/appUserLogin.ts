@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         logDetails.email = email;
-        logDetails.password = password;
         logDetails.passwordLength = password?.length;
         logDetails.timestamp = new Date().toISOString();
 
@@ -37,7 +36,6 @@ Deno.serve(async (req) => {
 
         // Find AppUser by email
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
-        logDetails.appUsers = appUsers;
         logDetails.totalAppUsers = appUsers.length;
         
         const appUser = appUsers.find(u => u.data?.email == email);
