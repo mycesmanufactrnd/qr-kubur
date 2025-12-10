@@ -227,18 +227,20 @@ export default function ManageOrganisations() {
                 className="pl-10"
               />
             </div>
-            <Select value={filterState} onValueChange={setFilterState}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder="Semua Negeri" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Negeri</SelectItem>
-                {STATES.map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isSuperAdmin && (
+              <Select value={filterState} onValueChange={setFilterState}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Filter className="w-4 h-4 mr-2 text-gray-400" />
+                  <SelectValue placeholder="Semua Negeri" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  {STATES.map(state => (
+                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
