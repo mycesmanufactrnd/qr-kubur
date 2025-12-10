@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import LoadingUser from '../components/LoadingUser';
 
 const SQL_EXAMPLES = `-- CRUD Examples for QR Kubur Database
 
@@ -75,6 +76,7 @@ LEFT JOIN Grave g ON d.grave_id = g.id;
 
 export default function SuperadminDashboard() {
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
@@ -86,9 +88,18 @@ export default function SuperadminDashboard() {
 
   const loadUser = async () => {
     try {
-      const userData = await base44.auth.me();
-      setUser(userData);
-    } catch (e) {}
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        setUser(JSON.parse(appUserAuth));
+      } else {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      }
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
+    }
   };
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
@@ -148,6 +159,10 @@ export default function SuperadminDashboard() {
   };
 
   const isSuperAdmin = user?.role === 'admin';
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   if (!isSuperAdmin) {
     return (

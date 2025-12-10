@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import LoadingUser from '../components/LoadingUser';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -38,6 +39,7 @@ export default function ManageGraves() {
   const [editingGrave, setEditingGrave] = useState(null);
   const [formData, setFormData] = useState(emptyGrave);
   const [currentUser, setCurrentUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const queryClient = useQueryClient();
 
@@ -59,10 +61,16 @@ export default function ManageGraves() {
       }
     } catch (e) {
       setCurrentUser(null);
+    } finally {
+      setLoadingUser(false);
     }
   };
 
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],

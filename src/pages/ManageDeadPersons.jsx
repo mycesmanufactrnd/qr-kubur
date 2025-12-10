@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import LoadingUser from '../components/LoadingUser';
 
 const emptyPerson = {
   name: '',
@@ -30,6 +31,7 @@ export default function ManageDeadPersons() {
   const [formData, setFormData] = useState(emptyPerson);
   const [uploading, setUploading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const queryClient = useQueryClient();
 
@@ -51,10 +53,16 @@ export default function ManageDeadPersons() {
       }
     } catch (e) {
       setCurrentUser(null);
+    } finally {
+      setLoadingUser(false);
     }
   };
 
   const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],

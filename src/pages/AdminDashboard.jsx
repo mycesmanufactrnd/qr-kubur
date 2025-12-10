@@ -75,6 +75,10 @@ export default function AdminDashboard() {
 
   const isAdmin = user?.role === 'admin';
 
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
+
   if (!user || !isAdmin) {
     return (
       <div className="max-w-lg mx-auto">

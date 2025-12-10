@@ -9,12 +9,39 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import LoadingUser from '../components/LoadingUser';
 
 export default function ViewLogs() {
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const [loadingUser, setLoadingUser] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem('appUserAuth');
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+        } else {
+          const userData = await base44.auth.me();
+          setCurrentUser(userData);
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+    loadUser();
+  }, []);
+
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ['logs'],
     queryFn: () => base44.entities.LogActivity.list('-created_date', 50)
   });
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   if (isLoading) {
     return <div className="p-6">Loading logs...</div>;
