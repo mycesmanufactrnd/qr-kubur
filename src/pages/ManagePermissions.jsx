@@ -34,14 +34,14 @@ export default function ManagePermissions() {
   const queryClient = useQueryClient();
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
+    queryKey: ['appUsers'],
+    queryFn: () => base44.asServiceRole.entities.AppUser.list()
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
+    mutationFn: ({ id, data }) => base44.asServiceRole.entities.AppUser.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
       setDialogOpen(false);
       setEditUser(null);
       toast.success('Kebenaran dikemaskini');
@@ -123,7 +123,10 @@ export default function ManagePermissions() {
   const accessibleUsers = users.filter(u => {
     if (isSuperAdmin) return true;
     if (isAdmin) {
-      return u.admin_type === 'employee';
+      // Admin can manage employees in their state(s)
+      const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+      const userStates = Array.isArray(u.state) ? u.state : [u.state].filter(Boolean);
+      return u.admin_type === 'employee' && adminStates.some(s => userStates.includes(s));
     }
     return false;
   });

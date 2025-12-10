@@ -39,13 +39,46 @@ export default function ManageOrganisations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [formData, setFormData] = useState(emptyOrg);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem('appUserAuth');
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+        } else {
+          const userData = await base44.auth.me();
+          setCurrentUser(userData);
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      }
+    };
+    loadUser();
+  }, []);
 
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],
     queryFn: () => base44.entities.Organisation.list('-created_date')
   });
+
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
+
+  if (!isSuperAdmin && !isAdmin) {
+    return (
+      <Card className="max-w-lg mx-auto">
+        <CardContent className="p-8 text-center">
+          <Building2 className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <p className="text-gray-600">Only admins can access this page</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Organisation.create(data),
@@ -76,7 +109,18 @@ export default function ManageOrganisations() {
     }
   });
 
-  const filteredOrgs = organisations.filter(org => {
+  // Filter by admin state access
+  const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+  
+  const accessibleOrgs = organisations.filter(org => {
+    if (isSuperAdmin) return true;
+    
+    // Admin can only see orgs in their state(s)
+    const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
+    return adminStates.some(s => orgStates.includes(s));
+  });
+
+  const filteredOrgs = accessibleOrgs.filter(org => {
     const matchesSearch = !searchQuery || 
       org.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesState = filterState === 'all' || org.state === filterState;

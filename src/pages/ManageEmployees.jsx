@@ -29,9 +29,14 @@ export default function ManageEmployees() {
   const [isCreating, setIsCreating] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
+  const { data: appUsers = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['appUsers'],
+    queryFn: () => base44.asServiceRole.entities.AppUser.list()
+  });
+
+  const { data: organisations = [], isLoading: orgsLoading } = useQuery({
+    queryKey: ['organisations'],
+    queryFn: () => base44.entities.Organisation.list()
   });
 
   const createUserMutation = useMutation({
@@ -40,7 +45,7 @@ export default function ManageEmployees() {
       return Promise.resolve();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
       setDialogOpen(false);
       setEditUser(null);
       setIsCreating(false);
@@ -48,9 +53,9 @@ export default function ManageEmployees() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
+    mutationFn: ({ id, data }) => base44.asServiceRole.entities.AppUser.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
       setDialogOpen(false);
       setEditUser(null);
       setIsCreating(false);
@@ -58,24 +63,38 @@ export default function ManageEmployees() {
     }
   });
 
-  const isOrganization = currentUser?.type === 'organization';
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
 
-  if (!isOrganization) {
+  if (!isSuperAdmin && !isAdmin) {
     return (
       <Card className="max-w-lg mx-auto">
         <CardContent className="p-8 text-center">
           <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-          <p className="text-gray-600">Only organizations can access this page</p>
+          <p className="text-gray-600">Only admins can access this page</p>
         </CardContent>
       </Card>
     );
   }
 
-  // Filter to show only employees of this organization
-  const myEmployees = users.filter(u => 
-    u.type === 'employee' && u.organisation_id === currentUser.id
-  );
+  const isLoading = usersLoading || orgsLoading;
+
+  // Filter employees based on admin's state
+  const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+  
+  const myEmployees = appUsers.filter(u => {
+    if (u.admin_type !== 'employee') return false;
+    
+    if (isSuperAdmin) return true;
+    
+    // Get org states for this employee
+    const org = organisations.find(o => o.id === u.organisation_id);
+    if (!org) return false;
+    
+    const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
+    return adminStates.some(s => orgStates.includes(s));
+  });
 
   const filteredUsers = myEmployees.filter(u => 
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
