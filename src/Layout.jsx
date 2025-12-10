@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.type === 'organization' || user?.type === 'employee' || user?.role === 'admin' || user?.admin_status === 'approved';
 
   const userNavItems = [
-    { name: 'Dashboard', icon: Home, page: 'Dashboard' },
+    { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
     { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
     { name: 'Peta Tahfiz', icon: Map, page: 'MapTahfiz' },
     { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
@@ -139,10 +139,10 @@ export default function Layout({ children, currentPageName }) {
 
   // Bottom navbar items - Main navigation for mobile
   const bottomNavItems = [
-    { name: 'Utama', icon: Home, page: 'Dashboard' },
+    { name: 'Utama', icon: Home, page: 'UserDashboard' },
     { name: 'Cari', icon: Search, page: 'SearchGrave' },
     { name: 'Imbas', icon: QrCode, page: 'ScanQR' },
-    { name: 'Lagi', icon: Menu, page: 'MoreMenu' },
+    { name: 'Tetapan', icon: Settings, page: 'SettingsPage' },
   ];
 
   return (
@@ -333,13 +333,13 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pt-6 lg:pb-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6">
         {children}
       </main>
 
       {/* Bottom Navigation Bar - Mobile Only */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
-        <div className="flex items-center justify-around px-2 py-2">
+        <div className="flex items-center justify-around py-1">
           {bottomNavItems.map((item) => {
             const isActive = currentPageName === item.page;
             return (

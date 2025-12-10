@@ -1,26 +1,21 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  MapPin, User, Calendar, Navigation, Share2, Heart, 
-  ChevronRight, ArrowLeft, Building2, QrCode, Search, ChevronLeft, ChevronRight as ChevronRightIcon
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MapPin, Navigation, Share2, ArrowLeft, Search } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function GraveDetails() {
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const graveId = urlParams.get('id');
   const [searchName, setSearchName] = useState('');
-  const [filterYear, setFilterYear] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const [searchDate, setSearchDate] = useState('');
+  const [displayedCount, setDisplayedCount] = useState(10);
+  const [isSearching, setIsSearching] = useState(false);
 
   const { data: grave, isLoading } = useQuery({
     queryKey: ['grave', graveId],
@@ -37,15 +32,13 @@ export default function GraveDetails() {
     enabled: !!graveId
   });
 
-  const { data: organisation } = useQuery({
-    queryKey: ['organisation', grave?.organisation_id],
-    queryFn: async () => {
-      if (!grave?.organisation_id) return null;
-      const orgs = await base44.entities.Organisation.filter({ id: grave.organisation_id });
-      return orgs[0];
-    },
-    enabled: !!grave?.organisation_id
-  });
+  const handleSearch = () => {
+    setIsSearching(true);
+    setTimeout(() => {
+      setDisplayedCount(10);
+      setIsSearching(false);
+    }, 300);
+  };
 
   const openDirections = () => {
     if (grave?.gps_lat && grave?.gps_lng) {
@@ -74,262 +67,131 @@ export default function GraveDetails() {
     }
   };
 
+  const filtered = persons.filter(p => {
+    const matchesName = !searchName || p.name?.toLowerCase().includes(searchName.toLowerCase());
+    const matchesDate = !searchDate || (p.date_of_death && p.date_of_death.startsWith(searchDate));
+    return matchesName && matchesDate;
+  });
+
+  const displayedPersons = filtered.slice(0, displayedCount);
+
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
+      <div className="space-y-3 animate-pulse pb-2">
         <div className="h-8 bg-gray-200 rounded w-1/3" />
-        <div className="h-64 bg-gray-200 rounded-2xl" />
+        <div className="h-32 bg-gray-200 rounded" />
       </div>
     );
   }
 
   if (!grave) {
     return (
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-12 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Maklumat tidak dijumpai</h3>
-          <Link to={createPageUrl('SearchGrave')}>
-            <Button variant="outline">Kembali ke Carian</Button>
-          </Link>
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-8 text-center">
+          <p className="text-sm text-gray-500">Maklumat tidak dijumpai</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <Link to={createPageUrl('SearchGrave')}>
-        <Button variant="ghost" className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Kembali
+    <div className="space-y-3 pb-2">
+      {/* Header with Back */}
+      <div className="flex items-center gap-3 pt-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <ArrowLeft className="w-5 h-5" />
         </Button>
-      </Link>
+        <h1 className="text-lg font-bold text-gray-900">{grave.cemetery_name}</h1>
+      </div>
 
-      {/* Main Info Card */}
-      <Card className="border-0 shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">{grave.cemetery_name}</h1>
-              <div className="flex items-center gap-2 text-emerald-100">
-                <MapPin className="w-4 h-4" />
-                {grave.state}
-              </div>
+      {/* Grave Info */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-3">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-12 h-12 rounded-lg bg-teal-100 flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-teal-600" />
             </div>
-            <Badge 
-              className={
-                grave.status === 'active' ? 'bg-green-500/20 text-green-100 border-green-300' :
-                grave.status === 'full' ? 'bg-red-500/20 text-red-100 border-red-300' :
-                'bg-yellow-500/20 text-yellow-100 border-yellow-300'
-              }
-            >
-              {grave.status === 'active' ? 'Aktif' : grave.status === 'full' ? 'Penuh' : 'Penyelenggaraan'}
-            </Badge>
+            <div>
+              <p className="text-xs text-gray-500">{grave.state}</p>
+              {grave.block && <p className="text-xs text-gray-500">Blok {grave.block}</p>}
+              {grave.lot && <p className="text-xs text-gray-500">Lot {grave.lot}</p>}
+            </div>
           </div>
-        </div>
-
-        <CardContent className="p-6">
-          <div className="grid sm:grid-cols-2 gap-6">
-            {grave.block && (
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Blok</p>
-                <p className="font-semibold">{grave.block}</p>
-              </div>
-            )}
-            {grave.lot && (
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Lot</p>
-                <p className="font-semibold">{grave.lot}</p>
-              </div>
-            )}
-            {grave.total_graves > 0 && (
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Jumlah Kubur</p>
-                <p className="font-semibold">{grave.total_graves}</p>
-              </div>
-            )}
-            {grave.qr_code && (
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Kod QR</p>
-                <p className="font-semibold flex items-center gap-2">
-                  <QrCode className="w-4 h-4 text-emerald-600" />
-                  {grave.qr_code}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex gap-2">
             {grave.gps_lat && grave.gps_lng && (
-              <Button onClick={openDirections} className="bg-emerald-600 hover:bg-emerald-700">
-                <Navigation className="w-4 h-4 mr-2" />
-                Arah ke Lokasi
+              <Button onClick={openDirections} size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs">
+                <Navigation className="w-3 h-3 mr-1" />
+                Arah
               </Button>
             )}
-            <Button variant="outline" onClick={shareLocation}>
-              <Share2 className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={shareLocation} className="h-8 text-xs">
+              <Share2 className="w-3 h-3 mr-1" />
               Kongsi
             </Button>
-            <Link to={createPageUrl('DonationPage') + `?org=${grave.organisation_id}`}>
-              <Button variant="outline">
-                <Heart className="w-4 h-4 mr-2" />
-                Derma
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>
 
-      {/* Organisation Info */}
-      {organisation && (
-        <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-emerald-600" />
-              Organisasi Pengurusan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <h3 className="font-semibold text-lg">{organisation.name}</h3>
-            {organisation.address && (
-              <p className="text-gray-500 mt-1">{organisation.address}</p>
-            )}
-            {organisation.phone && (
-              <p className="text-gray-500">Tel: {organisation.phone}</p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Deceased Persons */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5 text-emerald-600" />
-            Senarai Si Mati ({persons.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {persons.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Tiada rekod si mati.</p>
-          ) : (
-            <>
-              {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Cari nama..."
-                    value={searchName}
-                    onChange={(e) => {
-                      setSearchName(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-10"
-                  />
-                </div>
+      {/* Persons List */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-3">
+          <h2 className="text-sm font-semibold text-gray-900 mb-2">Si Mati ({persons.length})</h2>
+          
+          {persons.length > 0 && (
+            <div className="space-y-2 mb-3">
+              <Input
+                placeholder="Cari nama..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                className="h-9"
+              />
+              <div className="flex gap-2">
                 <Input
-                  type="number"
-                  placeholder="Tahun meninggal"
-                  value={filterYear}
-                  onChange={(e) => {
-                    setFilterYear(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="w-full sm:w-48"
+                  type="date"
+                  value={searchDate}
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  className="h-9"
                 />
+                <Button onClick={handleSearch} size="sm" className="h-9 bg-emerald-600 hover:bg-emerald-700">
+                  <Search className="w-4 h-4" />
+                </Button>
               </div>
+            </div>
+          )}
 
-              {(() => {
-                const filtered = persons.filter(p => {
-                  const matchesName = !searchName || 
-                    p.name?.toLowerCase().includes(searchName.toLowerCase());
-                  const matchesYear = !filterYear || 
-                    (p.date_of_death && new Date(p.date_of_death).getFullYear().toString() === filterYear);
-                  return matchesName && matchesYear;
-                });
-
-                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-                const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-                const paginatedPersons = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-
-                return (
-                  <>
-                    {/* Table */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Nama</TableHead>
-                            <TableHead>Tarikh Meninggal</TableHead>
-                            <TableHead className="text-right">Tindakan</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginatedPersons.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={3} className="text-center py-8 text-gray-500">
-                                Tiada rekod dijumpai
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            paginatedPersons.map(person => (
-                              <TableRow key={person.id}>
-                                <TableCell className="font-medium">{person.name}</TableCell>
-                                <TableCell>
-                                  {person.date_of_death 
-                                    ? new Date(person.date_of_death).toLocaleDateString('ms-MY')
-                                    : '-'
-                                  }
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Link to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
-                                    <Button variant="ghost" size="sm">
-                                      Lihat
-                                    </Button>
-                                  </Link>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                      <div className="flex items-center justify-between mt-4">
-                        <p className="text-sm text-gray-600">
-                          Halaman {currentPage} dari {totalPages}
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
-                          >
-                            <ChevronRightIcon className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
+          {isSearching ? (
+            <div className="space-y-2">
+              {[1, 2].map(i => (
+                <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : displayedPersons.length === 0 ? (
+            <p className="text-xs text-gray-500 text-center py-4">Tiada rekod</p>
+          ) : (
+            <div className="space-y-2">
+              {displayedPersons.map(person => (
+                <Link key={person.id} to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
+                  <div className="p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
+                    <p className="font-medium text-sm text-gray-900">{person.name}</p>
+                    {person.date_of_death && (
+                      <p className="text-xs text-gray-500">
+                        {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
+                      </p>
                     )}
-                  </>
-                );
-              })()}
-            </>
+                  </div>
+                </Link>
+              ))}
+              {displayedCount < filtered.length && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setDisplayedCount(prev => prev + 10)}
+                  className="w-full h-8 text-xs"
+                >
+                  Muat Lagi
+                </Button>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
