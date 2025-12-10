@@ -33,11 +33,15 @@ export default function Layout({ children, currentPageName }) {
       
       if (appUserAuth) {
         const appUser = JSON.parse(appUserAuth);
+        // setUser({
+        //   ...appUser,
+        //   role: 'admin',
+        //   admin_type: appUser.admin_type || 'admin',
+        //   state: appUser.state || [],
+        //   isAppUser: true
+        // });
         setUser({
           ...appUser,
-          role: 'admin',
-          admin_type: appUser.admin_type || 'admin',
-          state: appUser.state || [],
           isAppUser: true
         });
         setLoading(false);
@@ -83,6 +87,8 @@ export default function Layout({ children, currentPageName }) {
   const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
   
   useEffect(() => {
+    if (loading) return;
+    
     // Redirect logged-in admin to admin dashboard if on login page or user pages
     if (isAdmin && (currentPageName === 'AppUserLogin' || userPages.includes(currentPageName))) {
       window.location.href = createPageUrl('AdminDashboard');
