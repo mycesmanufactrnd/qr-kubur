@@ -320,13 +320,13 @@ export default function Layout({ children, currentPageName }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button 
-                  // onClick={() => base44.auth.redirectToLogin()}
-                  onClick={createPageUrl('AppUserLogin')}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200"
-                >
-                  Log Masuk
-                </Button>
+                <Link to={createPageUrl('AppUserLogin')}>
+                  <Button 
+                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200"
+                  >
+                    Log Masuk
+                  </Button>
+                </Link>
               )}
             </div>
           </div>
