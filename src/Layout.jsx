@@ -83,8 +83,8 @@ export default function Layout({ children, currentPageName }) {
   const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
   
   useEffect(() => {
-    // Redirect admin to admin dashboard if accessing user pages
-    if (isAdmin && userPages.includes(currentPageName)) {
+    // Redirect logged-in admin to admin dashboard if on login page or user pages
+    if (isAdmin && (currentPageName === 'AppUserLogin' || userPages.includes(currentPageName))) {
       window.location.href = createPageUrl('AdminDashboard');
     }
     
