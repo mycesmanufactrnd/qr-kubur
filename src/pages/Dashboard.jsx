@@ -125,26 +125,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Compact Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {[
-          { label: 'Kubur', value: stats?.graves || 0, icon: MapPin, color: 'emerald' },
-          { label: 'Si Mati', value: stats?.persons || 0, icon: Users, color: 'blue' },
-          { label: 'Tahfiz', value: stats?.tahfiz || 0, icon: Building2, color: 'violet' },
-          { label: 'Derma', value: `RM ${(stats?.donations || 0).toLocaleString()}`, icon: TrendingUp, color: 'pink' },
-        ].map((stat, i) => (
-          <Card key={i} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-3">
-              <div className={`w-10 h-10 rounded-xl bg-${stat.color}-100 flex items-center justify-center mb-2`}>
-                <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
-              </div>
-              <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-              <p className="text-xs text-gray-500">{stat.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
       {/* Compact Actions */}
       <div>
         <h2 className="text-base font-bold text-gray-900 mb-3">Akses Pantas</h2>
