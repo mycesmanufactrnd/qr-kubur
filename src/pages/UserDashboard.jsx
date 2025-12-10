@@ -7,27 +7,6 @@ import { Search, MapPin, QrCode, Heart, BookOpen, FileText, Map } from 'lucide-r
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function UserDashboard() {
-  const { data: stats } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: async () => {
-      const [graves, persons, tahfiz, donations] = await Promise.all([
-        base44.entities.Grave.list(),
-        base44.entities.DeadPerson.list(),
-        base44.entities.TahfizCenter.list(),
-        base44.entities.Donation.filter({ status: 'verified' })
-      ]);
-
-      const totalDonations = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
-
-      return {
-        graves: graves.length,
-        persons: persons.length,
-        tahfiz: tahfiz.length,
-        donations: totalDonations
-      };
-    }
-  });
-
   const quickActions = [
     { icon: Search, title: 'Cari Kubur', page: 'SearchGrave', color: 'bg-blue-100 text-blue-600' },
     { icon: QrCode, title: 'Imbas QR', page: 'ScanQR', color: 'bg-emerald-100 text-emerald-600' },
@@ -64,14 +43,11 @@ export default function UserDashboard() {
         </CardContent>
       </Card>
 
+
       {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-2 gap-2">
-          <Card className="border-0 shadow-sm">
+        <div clas-2 ge="border-0 shadow-sm">
             <CardContent className="p-3">
-              <p className="text-2xl font-bold text-gray-900">{stats.graves}</p>
-              <p className="text-xs text-gray-500">Kubur</p>
-            </CardContent>
+              <p className="text-2xl font-bold text-g
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-3">
