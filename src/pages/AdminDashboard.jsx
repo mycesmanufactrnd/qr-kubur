@@ -10,9 +10,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import LoadingUser from '../components/LoadingUser';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
     loadUser();
@@ -31,6 +33,8 @@ export default function AdminDashboard() {
       }
     } catch (e) {
       setUser(null);
+    } finally {
+      setLoadingUser(false);
     }
   };
 
