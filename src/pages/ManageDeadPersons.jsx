@@ -58,12 +58,6 @@ export default function ManageDeadPersons() {
     }
   };
 
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],
     queryFn: () => base44.entities.DeadPerson.list('-created_date')
@@ -73,6 +67,12 @@ export default function ManageDeadPersons() {
     queryKey: ['graves'],
     queryFn: () => base44.entities.Grave.list()
   });
+
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const adminStates = currentUser?.state || [];
   const accessibleGraves = isSuperAdmin ? graves : graves.filter(g => adminStates.includes(g.state));

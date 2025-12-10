@@ -50,12 +50,42 @@ export default function ManageTahfizCenters() {
   const [editingCenter, setEditingCenter] = useState(null);
   const [formData, setFormData] = useState(emptyCenter);
 
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        const appUser = JSON.parse(appUserAuth);
+        setCurrentUser({
+          ...appUser,
+          role: 'admin',
+          admin_type: appUser.admin_type || 'admin',
+          state: appUser.state || []
+        });
+      }
+    } catch (e) {
+      setCurrentUser(null);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
 
   const { data: centers = [], isLoading } = useQuery({
     queryKey: ['admin-tahfiz'],
     queryFn: () => base44.entities.TahfizCenter.list('-created_date')
   });
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.TahfizCenter.create(data),
