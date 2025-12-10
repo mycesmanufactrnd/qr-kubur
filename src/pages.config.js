@@ -1,4 +1,3 @@
-import Dashboard from './pages/Dashboard';
 import SearchGrave from './pages/SearchGrave';
 import GraveDetails from './pages/GraveDetails';
 import DeadPersonDetails from './pages/DeadPersonDetails';
@@ -31,7 +30,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
     "SearchGrave": SearchGrave,
     "GraveDetails": GraveDetails,
     "DeadPersonDetails": DeadPersonDetails,
@@ -63,7 +61,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Dashboard",
+    mainPage: "SearchGrave",
     Pages: PAGES,
     Layout: __Layout,
 };
