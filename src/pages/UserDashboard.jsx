@@ -42,11 +42,6 @@ export default function UserDashboard() {
           </div>
         </CardContent>
       </Card>
-
-
-      {/* Stats */}
-        <div clas-2 ge="border-0 shado
-      )}
     </div>
   );
 }
