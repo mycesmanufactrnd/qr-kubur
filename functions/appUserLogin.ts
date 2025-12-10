@@ -3,8 +3,11 @@ import bcrypt from 'npm:bcryptjs';
 
 Deno.serve(async (req) => {
     try {
-        const base44 = createClientFromRequest(req);
+        // Parse request body first
         const { email, password } = await req.json();
+        
+        // Create client from request - this will work even without authentication
+        const base44 = createClientFromRequest(req);
 
         console.log('Login attempt:', { email, passwordLength: password?.length });
 
