@@ -21,6 +21,7 @@ Deno.serve(async (req) => {
         // Find AppUser by email
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
         console.log('Total AppUsers:', appUsers.length);
+        console.log('App User', appUsers);
         
         const appUser = appUsers.find(u => u.data?.email == email);
         console.log('Found user:', appUser ? 'Yes' : 'No');
