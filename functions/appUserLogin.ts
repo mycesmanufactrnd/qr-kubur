@@ -34,8 +34,17 @@ Deno.serve(async (req) => {
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
         logDetails.totalAppUsers = appUsers.length;
 
-        // Find user by email
-        const appUser = appUsers.find(u => u.data?.email === email);
+        // Log first user structure to debug
+        if (appUsers.length > 0) {
+            logDetails.firstUserStructure = {
+                hasData: !!appUsers[0].data,
+                hasDirectEmail: !!appUsers[0].email,
+                sampleKeys: Object.keys(appUsers[0])
+            };
+        }
+
+        // Find user by email - try both direct and nested access
+        const appUser = appUsers.find(u => u.email === email || u.data?.email === email);
         logDetails.foundUser = !!appUser;
 
         if (!appUser) {
@@ -100,11 +109,11 @@ Deno.serve(async (req) => {
         }
 
         // Build user object (without password)
-        const userData = { id: appUser.id, ...appUser.data };
+        const userData = appUser.data ? { id: appUser.id, ...appUser.data } : { ...appUser };
         const { password: _, ...userWithoutPassword } = userData;
 
         logDetails.userId = appUser.id;
-        logDetails.userRole = appUser.data?.role;
+        logDetails.userRole = appUser.role || appUser.data?.role;
 
         await base44.asServiceRole.entities.LogActivity.create({
             activity_type: 'app_user_login',
