@@ -33,13 +33,6 @@ export default function Layout({ children, currentPageName }) {
       
       if (appUserAuth) {
         const appUser = JSON.parse(appUserAuth);
-        // setUser({
-        //   ...appUser,
-        //   role: 'admin',
-        //   admin_type: appUser.admin_type || 'admin',
-        //   state: appUser.state || [],
-        //   isAppUser: true
-        // });
         setUser({
           ...appUser,
           isAppUser: true
@@ -98,7 +91,7 @@ export default function Layout({ children, currentPageName }) {
     if (!user && adminPages.includes(currentPageName)) {
       window.location.href = createPageUrl('AppUserLogin');
     }
-  }, [isAdmin, currentPageName, user]);
+  }, [isAdmin, currentPageName, user, loading]);
 
   const userNavItems = [
     { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
