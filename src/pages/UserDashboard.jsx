@@ -45,10 +45,7 @@ export default function UserDashboard() {
 
 
       {/* Stats */}
-        <div clas-2 ge="border-0 shadow-sm">
-            <CardContent className="p-3">
-              <p className="text-2xl foclassName="bordert-2xl font-bold text-gd>
-        </div>
+        <div clas-2 ge="border-0 shado
       )}
     </div>
   );
