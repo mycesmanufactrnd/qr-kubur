@@ -47,26 +47,16 @@ export default function ManageGraves() {
 
   const loadUser = async () => {
     try {
-      let userData = await base44.auth.me();
-      const roleOverride = localStorage.getItem('roleOverride');
-      if (roleOverride && userData) {
-        try {
-          const parsed = JSON.parse(roleOverride);
-          userData = {
-            ...userData,
-            role: 'admin',
-            admin_type: 'admin',
-            state: [parsed.state]
-          };
-        } catch {
-          userData = {
-            ...userData,
-            role: roleOverride === 'user' ? 'user' : 'admin',
-            admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
-          };
-        }
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        const appUser = JSON.parse(appUserAuth);
+        setCurrentUser({
+          ...appUser,
+          role: 'admin',
+          admin_type: appUser.admin_type || 'admin',
+          state: appUser.state || []
+        });
       }
-      setCurrentUser(userData);
     } catch (e) {
       setCurrentUser(null);
     }

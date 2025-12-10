@@ -25,7 +25,7 @@ import AppUserLogin from './pages/AppUserLogin';
 import ViewLogs from './pages/ViewLogs';
 import SettingsPage from './pages/SettingsPage';
 import SearchTahfiz from './pages/SearchTahfiz';
-import Dashboard from './pages/Dashboard';
+import UserDashboard from './pages/UserDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -57,7 +57,7 @@ export const PAGES = {
     "ViewLogs": ViewLogs,
     "SettingsPage": SettingsPage,
     "SearchTahfiz": SearchTahfiz,
-    "Dashboard": Dashboard,
+    "UserDashboard": UserDashboard,
 }
 
 export const pagesConfig = {

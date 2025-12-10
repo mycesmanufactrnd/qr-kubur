@@ -79,7 +79,7 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.type === 'organization' || user?.type === 'employee' || user?.role === 'admin' || user?.admin_status === 'approved';
 
   // Redirect admin away from user pages
-  const userPages = ['Dashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'SettingsPage', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
+  const userPages = ['UserDashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'SettingsPage', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
   const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
   
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function Layout({ children, currentPageName }) {
   }, [isAdmin, currentPageName, user]);
 
   const userNavItems = [
-    { name: 'Dashboard', icon: Home, page: 'Dashboard' },
+    { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
     { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
     { name: 'Cari Tahfiz', icon: Map, page: 'SearchTahfiz' },
     { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
@@ -131,7 +131,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Bottom navbar items - Main navigation for mobile
   const bottomNavItems = [
-    { name: 'Utama', icon: Home, page: 'Dashboard' },
+    { name: 'Utama', icon: Home, page: 'UserDashboard' },
     { name: 'Cari', icon: Search, page: 'SearchGrave' },
     { name: 'Imbas', icon: QrCode, page: 'ScanQR' },
     { name: 'Tetapan', icon: Settings, page: 'SettingsPage' },
@@ -144,7 +144,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
+            <Link to={createPageUrl('UserDashboard')} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>
@@ -375,7 +375,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-sm text-gray-600">© 2024 QR Kubur. Hak Cipta Terpelihara.</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <Link to={createPageUrl('Dashboard')} className="hover:text-emerald-600 transition-colors">Utama</Link>
+              <Link to={createPageUrl('UserDashboard')} className="hover:text-emerald-600 transition-colors">Utama</Link>
               <Link to={createPageUrl('SurahPage')} className="hover:text-emerald-600 transition-colors">Surah & Doa</Link>
               <Link to={createPageUrl('DonationPage')} className="hover:text-emerald-600 transition-colors">Derma</Link>
             </div>
