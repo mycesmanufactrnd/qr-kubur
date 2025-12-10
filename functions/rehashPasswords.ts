@@ -13,18 +13,16 @@ Deno.serve(async (req) => {
         // Get all AppUsers
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
         
-        const defaultPassword = "password";
-        
-        // Hash using SHA-256
+        // Hash "password" using SHA-256
         const encoder = new TextEncoder();
-        const data = encoder.encode(defaultPassword);
+        const data = encoder.encode("password");
         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         
         let updated = 0;
         
-        // Update all users
+        // Update all users with SHA-256 hashed password
         for (const user of appUsers) {
             await base44.asServiceRole.entities.AppUser.update(user.id, {
                 password: hashedPassword
