@@ -6,6 +6,8 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const { email, password } = await req.json();
 
+        console.log('Login attempt:', { email, passwordLength: password?.length });
+
         if (!email || !password) {
             return Response.json({ 
                 success: false, 
@@ -14,16 +16,20 @@ Deno.serve(async (req) => {
         }
 
         // Find AppUser by email
-        const appUsers = await base44.asServiceRole.entities.AppUser.filter({ email });
+        const appUsers = await base44.asServiceRole.entities.AppUser.list();
+        console.log('Total AppUsers:', appUsers.length);
+        
+        const appUser = appUsers.find(u => u.email === email);
+        console.log('Found user:', appUser ? 'Yes' : 'No');
 
-        if (appUsers.length === 0) {
+        if (!appUser) {
             return Response.json({ 
                 success: false, 
                 message: 'Invalid email or password' 
             }, { status: 401 });
         }
 
-        const appUser = appUsers[0];
+        console.log('User has password:', !!appUser.password);
 
         // Check if password exists
         if (!appUser.password) {
@@ -35,6 +41,7 @@ Deno.serve(async (req) => {
 
         // Verify password using bcrypt
         const isPasswordValid = await bcrypt.compare(password, appUser.password);
+        console.log('Password valid:', isPasswordValid);
 
         if (!isPasswordValid) {
             return Response.json({ 
@@ -52,6 +59,7 @@ Deno.serve(async (req) => {
             user: userWithoutPassword
         });
     } catch (error) {
+        console.error('Login error:', error);
         return Response.json({ 
             success: false, 
             message: error.message 
