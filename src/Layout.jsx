@@ -44,28 +44,8 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      let userData = await base44.auth.me();
-
-      // Apply role override for testing
-      if (roleOverride && userData) {
-        try {
-          const parsed = JSON.parse(roleOverride);
-          userData = {
-            ...userData,
-            role: 'admin',
-            admin_type: 'admin',
-            state: [parsed.state]
-          };
-        } catch {
-          userData = {
-            ...userData,
-            role: roleOverride === 'user' ? 'user' : 'admin',
-            admin_type: roleOverride === 'superadmin' ? 'superadmin' : (roleOverride === 'admin' ? 'admin' : 'none')
-          };
-        }
-      }
-
-      setUser(userData);
+      // No AppUser found - user is not logged in
+      setUser(null);
     } catch (e) {
       setUser(null);
     }
@@ -90,12 +70,8 @@ export default function Layout({ children, currentPageName }) {
     localStorage.removeItem('appUserAuth');
     localStorage.removeItem('roleOverride');
     
-    // If regular user, use base44 logout
-    if (user && !user.isAppUser) {
-      base44.auth.logout();
-    } else {
-      window.location.href = '/';
-    }
+    // Redirect to login page
+    window.location.href = createPageUrl('AppUserLogin');
   };
 
   const isSuperAdmin = user?.type === 'superadmin' || (user?.role === 'admin' && user?.admin_type === 'superadmin');
@@ -107,10 +83,16 @@ export default function Layout({ children, currentPageName }) {
   const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
   
   useEffect(() => {
+    // Redirect admin to admin dashboard if accessing user pages
     if (isAdmin && userPages.includes(currentPageName)) {
       window.location.href = createPageUrl('AdminDashboard');
     }
-  }, [isAdmin, currentPageName]);
+    
+    // Redirect non-logged-in users to login if accessing admin pages
+    if (!user && adminPages.includes(currentPageName)) {
+      window.location.href = createPageUrl('AppUserLogin');
+    }
+  }, [isAdmin, currentPageName, user]);
 
   const userNavItems = [
     { name: 'Dashboard', icon: Home, page: 'Dashboard' },
