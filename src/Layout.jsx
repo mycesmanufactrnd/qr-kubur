@@ -102,6 +102,16 @@ export default function Layout({ children, currentPageName }) {
   const isOrganization = user?.type === 'organization';
   const isAdmin = user?.type === 'organization' || user?.type === 'employee' || user?.role === 'admin' || user?.admin_status === 'approved';
 
+  // Redirect admin away from user pages
+  const userPages = ['Dashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'SettingsPage', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
+  const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
+  
+  useEffect(() => {
+    if (isAdmin && userPages.includes(currentPageName)) {
+      window.location.href = createPageUrl('AdminDashboard');
+    }
+  }, [isAdmin, currentPageName]);
+
   const userNavItems = [
     { name: 'Dashboard', icon: Home, page: 'Dashboard' },
     { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
@@ -165,39 +175,41 @@ export default function Layout({ children, currentPageName }) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="flex items-center gap-1">
-              {userNavItems.slice(0, 4).map((item) => (
-                <Link
-                  key={item.page}
-                  to={createPageUrl(item.page)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    currentPageName === item.page
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-gray-600">
-                    Lagi <ChevronDown className="w-4 h-4 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {userNavItems.slice(4).map((item) => (
-                    <DropdownMenuItem key={item.page} asChild>
-                      <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
-                        <item.icon className="w-4 h-4" />
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </nav>
+            {!isAdmin && (
+              <nav className="flex items-center gap-1">
+                {userNavItems.slice(0, 4).map((item) => (
+                  <Link
+                    key={item.page}
+                    to={createPageUrl(item.page)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      currentPageName === item.page
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-gray-600">
+                      Lagi <ChevronDown className="w-4 h-4 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {userNavItems.slice(4).map((item) => (
+                      <DropdownMenuItem key={item.page} asChild>
+                        <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
+                          <item.icon className="w-4 h-4" />
+                          {item.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </nav>
+            )}
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
@@ -339,34 +351,36 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Bottom Navigation Bar - Mobile Only */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
-        <div className="flex items-center justify-around py-1">
-          {bottomNavItems.map((item) => {
-            const isActive = currentPageName === item.page;
-            return (
-              <Link
-                key={item.page}
-                to={createPageUrl(item.page)}
-                className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'text-emerald-600'
-                    : 'text-gray-500 active:bg-gray-100'
-                }`}
-              >
-                <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
-                  <item.icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-                  {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-600" />
-                  )}
-                </div>
-                <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-emerald-600' : 'text-gray-600'}`}>
-                  {item.name}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {!isAdmin && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
+          <div className="flex items-center justify-around py-1">
+            {bottomNavItems.map((item) => {
+              const isActive = currentPageName === item.page;
+              return (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'text-emerald-600'
+                      : 'text-gray-500 active:bg-gray-100'
+                  }`}
+                >
+                  <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
+                    <item.icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                    {isActive && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-600" />
+                    )}
+                  </div>
+                  <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-emerald-600' : 'text-gray-600'}`}>
+                    {item.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
 
       {/* Footer - Desktop Only */}
       <footer className="bg-white border-t border-gray-100 mt-auto hidden lg:block">

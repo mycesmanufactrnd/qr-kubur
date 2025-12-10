@@ -28,7 +28,7 @@ export default function AppUserLogin() {
         }));
         
         // Redirect to admin dashboard
-        window.location.href = '/';
+        window.location.href = '/AdminDashboard';
       } else {
         setError(response.data.message || 'Login failed');
       }
