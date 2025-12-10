@@ -20,14 +20,6 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 pb-2">
-      {/* Header with Back */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900">Tetapan</h1>
-      </div>
-
       {settingsSections.map((section, idx) => (
         <Card key={idx} className="border-0 shadow-sm">
           <CardContent className="p-0">
