@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Info, Bell, Shield, HelpCircle, FileText } from 'lucide-react';
+import { ArrowLeft, Info, Bell, Shield, HelpCircle, FileText, LogIn } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +14,7 @@ export default function SettingsPage() {
         { icon: Info, label: 'Tentang Sistem', page: 'AboutSystem' },
         { icon: HelpCircle, label: 'Bantuan', action: () => alert('Hubungi support@qrkubur.com') },
         { icon: FileText, label: 'Terma & Syarat', action: () => alert('Terma & Syarat') },
-        { icon: Login, label: 'Admin Login', page: 'AppUserLogin' },
+        { icon: LogIn, label: 'Admin Login', page: 'AppUserLogin' },
       ]
     }
   ];
