@@ -321,7 +321,8 @@ export default function Layout({ children, currentPageName }) {
                 </DropdownMenu>
               ) : (
                 <Button 
-                  onClick={() => base44.auth.redirectToLogin()}
+                  // onClick={() => base44.auth.redirectToLogin()}
+                  onClick={createPageUrl('AppUserLogin')}
                   className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200"
                 >
                   Log Masuk
