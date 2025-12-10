@@ -48,6 +48,35 @@ export default function ManageOrganisations() {
     queryFn: () => base44.entities.Organisation.list('-created_date')
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Organisation.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-organisations']);
+      setIsDialogOpen(false);
+      setFormData(emptyOrg);
+      toast.success('Organisasi berjaya ditambah');
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Organisation.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-organisations']);
+      setIsDialogOpen(false);
+      setEditingOrg(null);
+      setFormData(emptyOrg);
+      toast.success('Organisasi berjaya dikemaskini');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Organisation.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-organisations']);
+      toast.success('Organisasi berjaya dipadam');
+    }
+  });
+
   React.useEffect(() => {
     const loadUser = async () => {
       try {
@@ -79,35 +108,6 @@ export default function ManageOrganisations() {
       </Card>
     );
   }
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Organisation.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-organisations']);
-      setIsDialogOpen(false);
-      setFormData(emptyOrg);
-      toast.success('Organisasi berjaya ditambah');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Organisation.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-organisations']);
-      setIsDialogOpen(false);
-      setEditingOrg(null);
-      setFormData(emptyOrg);
-      toast.success('Organisasi berjaya dikemaskini');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Organisation.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-organisations']);
-      toast.success('Organisasi berjaya dipadam');
-    }
-  });
 
   // Filter by admin state access
   const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
