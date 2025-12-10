@@ -29,14 +29,19 @@ export default function ManageEmployees() {
   const [isCreating, setIsCreating] = useState(false);
   const queryClient = useQueryClient();
 
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
+
   const { data: appUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: ['appUsers'],
-    queryFn: () => base44.asServiceRole.entities.AppUser.list()
+    queryFn: () => base44.asServiceRole.entities.AppUser.list(),
+    enabled: isSuperAdmin || isAdmin
   });
 
   const { data: organisations = [], isLoading: orgsLoading } = useQuery({
     queryKey: ['organisations'],
-    queryFn: () => base44.entities.Organisation.list()
+    queryFn: () => base44.entities.Organisation.list(),
+    enabled: isSuperAdmin || isAdmin
   });
 
   const createUserMutation = useMutation({
@@ -62,9 +67,6 @@ export default function ManageEmployees() {
       toast.success('Employee updated');
     }
   });
-
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
 
   if (!isSuperAdmin && !isAdmin) {
     return (
