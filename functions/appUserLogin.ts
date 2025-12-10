@@ -55,7 +55,11 @@ Deno.serve(async (req) => {
         }
 
         // Return user data (excluding password)
-        const { password: _, ...userWithoutPassword } = appUser;
+        const userData = {
+            id: appUser.id,
+            ...appUser.data
+        };
+        const { password: _, ...userWithoutPassword } = userData;
 
         return Response.json({ 
             success: true, 
