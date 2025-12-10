@@ -3,12 +3,9 @@ import bcrypt from 'npm:bcryptjs';
 
 Deno.serve(async (req) => {
     const logDetails = {};
-    
+
     try {
-        // Parse request body first
         const { email, password } = await req.json();
-        
-        // Create client from request - this will work even without authentication
         const base44 = createClientFromRequest(req);
 
         logDetails.email = email;
@@ -17,7 +14,6 @@ Deno.serve(async (req) => {
 
         if (!email || !password) {
             logDetails.error = 'Email and password are required';
-            
             await base44.asServiceRole.entities.LogActivity.create({
                 activity_type: 'app_user_login',
                 function_name: 'appUserLogin',
@@ -28,22 +24,22 @@ Deno.serve(async (req) => {
                 success: false
             });
 
-            return Response.json({ 
-                success: false, 
-                message: 'Email and password are required' 
+            return Response.json({
+                success: false,
+                message: 'Email and password are required'
             }, { status: 400 });
         }
 
-        // Find AppUser by email
+        // Load all users
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
         logDetails.totalAppUsers = appUsers.length;
-        
-        const appUser = appUsers.find(u => u.data?.email == email);
+
+        // Find user by email
+        const appUser = appUsers.find(u => u.data?.email === email);
         logDetails.foundUser = !!appUser;
 
         if (!appUser) {
             logDetails.error = 'User not found';
-            
             await base44.asServiceRole.entities.LogActivity.create({
                 activity_type: 'app_user_login',
                 function_name: 'appUserLogin',
@@ -54,20 +50,16 @@ Deno.serve(async (req) => {
                 success: false
             });
 
-            return Response.json({ 
-                success: false, 
-                message: 'Invalid email or password' 
+            return Response.json({
+                success: false,
+                message: 'Invalid email or password'
             }, { status: 401 });
         }
 
         const storedPassword = appUser.data?.password;
-        logDetails.storedPasswordExists = !!storedPassword;
-        logDetails.storedPasswordHash = storedPassword;
 
-        // Check if password exists
         if (!storedPassword) {
-            logDetails.error = 'Password not set for this user';
-            
+            logDetails.error = 'Password not set';
             await base44.asServiceRole.entities.LogActivity.create({
                 activity_type: 'app_user_login',
                 function_name: 'appUserLogin',
@@ -78,20 +70,19 @@ Deno.serve(async (req) => {
                 success: false
             });
 
-            return Response.json({ 
-                success: false, 
-                message: 'Password not set for this user' 
+            return Response.json({
+                success: false,
+                message: 'Password not set for this user'
             }, { status: 401 });
         }
 
-        // Verify password using bcrypt
-        const isPasswordValid = await bcrypt.compareSync(password, storedPassword);
+        // ✔ Correct bcrypt comparison (async)
+        const isPasswordValid = await bcrypt.compare(password, storedPassword);
+
         logDetails.isPasswordValid = isPasswordValid;
-        logDetails.inputPassword = password;
 
         if (!isPasswordValid) {
             logDetails.error = 'Invalid password';
-            
             await base44.asServiceRole.entities.LogActivity.create({
                 activity_type: 'app_user_login',
                 function_name: 'appUserLogin',
@@ -102,22 +93,18 @@ Deno.serve(async (req) => {
                 success: false
             });
 
-            return Response.json({ 
-                success: false, 
-                message: 'Invalid email or password' 
+            return Response.json({
+                success: false,
+                message: 'Invalid email or password'
             }, { status: 401 });
         }
 
-        // Return user data (excluding password)
-        const userData = {
-            id: appUser.id,
-            ...appUser.data
-        };
+        // Build user object (without password)
+        const userData = { id: appUser.id, ...appUser.data };
         const { password: _, ...userWithoutPassword } = userData;
 
         logDetails.userId = appUser.id;
         logDetails.userRole = appUser.data?.role;
-        logDetails.userAdminType = appUser.data?.admin_type;
 
         await base44.asServiceRole.entities.LogActivity.create({
             activity_type: 'app_user_login',
@@ -129,15 +116,15 @@ Deno.serve(async (req) => {
             success: true
         });
 
-        return Response.json({ 
-            success: true, 
+        return Response.json({
+            success: true,
             message: 'Login successful',
             user: userWithoutPassword
         });
+
     } catch (error) {
         logDetails.error = error.message;
-        logDetails.errorStack = error.stack;
-        
+
         try {
             const base44 = createClientFromRequest(req);
             await base44.asServiceRole.entities.LogActivity.create({
@@ -149,13 +136,11 @@ Deno.serve(async (req) => {
                 details: logDetails,
                 success: false
             });
-        } catch (logError) {
-            console.error('Failed to log activity:', logError);
-        }
+        } catch (_) {}
 
-        return Response.json({ 
-            success: false, 
-            message: error.message 
+        return Response.json({
+            success: false,
+            message: error.message
         }, { status: 500 });
     }
 });
