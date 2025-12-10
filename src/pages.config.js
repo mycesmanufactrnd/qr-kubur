@@ -2,7 +2,6 @@ import Dashboard from './pages/Dashboard';
 import SearchGrave from './pages/SearchGrave';
 import GraveDetails from './pages/GraveDetails';
 import DeadPersonDetails from './pages/DeadPersonDetails';
-import MapKubur from './pages/MapKubur';
 import MapTahfiz from './pages/MapTahfiz';
 import ScanQR from './pages/ScanQR';
 import DonationPage from './pages/DonationPage';
@@ -34,7 +33,6 @@ export const PAGES = {
     "SearchGrave": SearchGrave,
     "GraveDetails": GraveDetails,
     "DeadPersonDetails": DeadPersonDetails,
-    "MapKubur": MapKubur,
     "MapTahfiz": MapTahfiz,
     "ScanQR": ScanQR,
     "DonationPage": DonationPage,

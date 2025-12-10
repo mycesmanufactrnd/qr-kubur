@@ -1,20 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
   MapPin, User, Calendar, Navigation, Share2, Heart, 
-  ChevronRight, ArrowLeft, Building2, QrCode
+  ChevronRight, ArrowLeft, Building2, QrCode, Search, ChevronLeft, ChevronRight as ChevronRightIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function GraveDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const graveId = urlParams.get('id');
+  const [searchName, setSearchName] = useState('');
+  const [filterYear, setFilterYear] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const { data: grave, isLoading } = useQuery({
     queryKey: ['grave', graveId],
@@ -202,52 +208,128 @@ export default function GraveDetails() {
       {/* Deceased Persons */}
       <Card className="border-0 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <User className="w-5 h-5 text-emerald-600" />
-              Senarai Si Mati ({persons.length})
-            </span>
+          <CardTitle className="flex items-center gap-2">
+            <User className="w-5 h-5 text-emerald-600" />
+            Senarai Si Mati ({persons.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {persons.length === 0 ? (
             <p className="text-gray-500 text-center py-8">Tiada rekod si mati.</p>
           ) : (
-            <div className="space-y-3">
-              {persons.map(person => (
-                <Link 
-                  key={person.id} 
-                  to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}
-                  className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-emerald-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    {person.photo_url ? (
-                      <img 
-                        src={person.photo_url} 
-                        alt={person.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                        <User className="w-6 h-6 text-emerald-600" />
+            <>
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Cari nama..."
+                    value={searchName}
+                    onChange={(e) => {
+                      setSearchName(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+                <Input
+                  type="number"
+                  placeholder="Tahun meninggal"
+                  value={filterYear}
+                  onChange={(e) => {
+                    setFilterYear(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full sm:w-48"
+                />
+              </div>
+
+              {(() => {
+                const filtered = persons.filter(p => {
+                  const matchesName = !searchName || 
+                    p.name?.toLowerCase().includes(searchName.toLowerCase());
+                  const matchesYear = !filterYear || 
+                    (p.date_of_death && new Date(p.date_of_death).getFullYear().toString() === filterYear);
+                  return matchesName && matchesYear;
+                });
+
+                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+                const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+                const paginatedPersons = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+                return (
+                  <>
+                    {/* Table */}
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nama</TableHead>
+                            <TableHead>Tarikh Meninggal</TableHead>
+                            <TableHead className="text-right">Tindakan</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedPersons.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                                Tiada rekod dijumpai
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            paginatedPersons.map(person => (
+                              <TableRow key={person.id}>
+                                <TableCell className="font-medium">{person.name}</TableCell>
+                                <TableCell>
+                                  {person.date_of_death 
+                                    ? new Date(person.date_of_death).toLocaleDateString('ms-MY')
+                                    : '-'
+                                  }
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Link to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
+                                    <Button variant="ghost" size="sm">
+                                      Lihat
+                                    </Button>
+                                  </Link>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-4">
+                        <p className="text-sm text-gray-600">
+                          Halaman {currentPage} dari {totalPages}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                          >
+                            <ChevronRightIcon className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     )}
-                    <div>
-                      <p className="font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">
-                        {person.name}
-                      </p>
-                      {person.date_of_death && (
-                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          Meninggal: {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600" />
-                </Link>
-              ))}
-            </div>
+                  </>
+                );
+              })()}
+            </>
           )}
         </CardContent>
       </Card>
