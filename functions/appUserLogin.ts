@@ -85,9 +85,21 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        // ✔ Correct bcrypt comparison (async)
-        const isPasswordValid = await bcrypt.compare(password, storedPassword);
+        // Log password details for debugging
+        logDetails.storedPasswordPrefix = storedPassword.substring(0, 20);
+        logDetails.storedPasswordLength = storedPassword.length;
+        logDetails.providedPassword = password;
 
+        // Use crypto SHA-256 instead of bcrypt
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        logDetails.computedHash = computedHash;
+        
+        const isPasswordValid = computedHash === storedPassword;
         logDetails.isPasswordValid = isPasswordValid;
 
         if (!isPasswordValid) {
