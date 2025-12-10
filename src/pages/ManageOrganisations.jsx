@@ -127,13 +127,27 @@ export default function ManageOrganisations() {
     return matchesSearch && matchesState;
   });
 
+  const canManageOrg = (org) => {
+    if (isSuperAdmin) return true;
+    
+    // Admin can only manage orgs in their state(s)
+    const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
+    return adminStates.some(s => orgStates.includes(s));
+  };
+
   const openAddDialog = () => {
     setEditingOrg(null);
-    setFormData(emptyOrg);
+    // For state admin, pre-set their state
+    const defaultState = isSuperAdmin ? '' : (adminStates[0] || '');
+    setFormData({...emptyOrg, state: defaultState});
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (org) => {
+    if (!canManageOrg(org)) {
+      toast.error('Anda tidak mempunyai kebenaran untuk edit organisasi ini');
+      return;
+    }
     setEditingOrg(org);
     setFormData({
       name: org.name || '',
@@ -167,6 +181,10 @@ export default function ManageOrganisations() {
   };
 
   const handleDelete = (org) => {
+    if (!canManageOrg(org)) {
+      toast.error('Anda tidak mempunyai kebenaran untuk padam organisasi ini');
+      return;
+    }
     if (confirm(`Padam "${org.name}"?`)) {
       deleteMutation.mutate(org.id);
     }
@@ -255,10 +273,20 @@ export default function ManageOrganisations() {
                     </TableCell>
                     <TableCell>{org.state}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => openEditDialog(org)}
+                        disabled={!canManageOrg(org)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(org)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleDelete(org)}
+                        disabled={!canManageOrg(org)}
+                      >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
                     </TableCell>
@@ -303,12 +331,16 @@ export default function ManageOrganisations() {
             </div>
             <div>
               <Label>Negeri *</Label>
-              <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
+              <Select 
+                value={formData.state} 
+                onValueChange={(v) => setFormData({...formData, state: v})}
+                disabled={!isSuperAdmin && adminStates.length === 1}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih negeri" />
                 </SelectTrigger>
                 <SelectContent>
-                  {STATES.map(state => (
+                  {(isSuperAdmin ? STATES : STATES.filter(s => adminStates.includes(s))).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
                 </SelectContent>
