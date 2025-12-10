@@ -54,14 +54,6 @@ export default function Dashboard() {
       shadow: 'shadow-blue-200'
     },
     { 
-      title: 'Peta Kubur', 
-      description: 'Lihat semua tanah perkuburan di peta', 
-      icon: MapPin, 
-      page: 'MapKubur',
-      color: 'from-emerald-500 to-teal-600',
-      shadow: 'shadow-emerald-200'
-    },
-    { 
       title: 'Peta Tahfiz', 
       description: 'Cari pusat tahfiz berhampiran', 
       icon: Map, 
