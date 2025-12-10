@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Hash default password: "password123"
-        const hashedPassword = await bcrypt.hash("password123", 10);
+        // Hash default password: "password"
+        const hashedPassword = await bcrypt.hash("password", 10);
 
         // Get all AppUsers
         const appUsers = await base44.asServiceRole.entities.AppUser.list();
