@@ -102,9 +102,12 @@ export default function SuperadminDashboard() {
     }
   };
 
+  const isSuperAdmin = user?.role === 'admin';
+
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['all-users'],
-    queryFn: () => base44.entities.User.list()
+    queryFn: () => base44.entities.User.list(),
+    enabled: isSuperAdmin
   });
 
   const { data: stats } = useQuery({
@@ -128,7 +131,8 @@ export default function SuperadminDashboard() {
         suggestions: suggestions.length,
         users: users.length
       };
-    }
+    },
+    enabled: isSuperAdmin
   });
 
   const pendingAdmins = users.filter(u => u.admin_status === 'pending');
@@ -157,8 +161,6 @@ export default function SuperadminDashboard() {
     navigator.clipboard.writeText(text);
     toast.success('Disalin ke clipboard');
   };
-
-  const isSuperAdmin = user?.role === 'admin';
 
   if (loadingUser) {
     return <LoadingUser />;
