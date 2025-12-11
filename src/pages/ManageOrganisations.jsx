@@ -45,6 +45,28 @@ export default function ManageOrganisations() {
 
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem('appUserAuth');
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+        } else {
+          const userData = await base44.auth.me();
+          setCurrentUser(userData);
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
+
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],
     queryFn: () => base44.entities.Organisation.list('-created_date')
@@ -79,37 +101,15 @@ export default function ManageOrganisations() {
     }
   });
 
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-        } else {
-          const userData = await base44.auth.me();
-          setCurrentUser(userData);
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    loadUser();
-  }, []);
-
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
-
-    if (loadingUser) {
+  if (loadingUser) {
     return (
-        <Card className="max-w-lg mx-auto">
+      <Card className="max-w-lg mx-auto">
         <CardContent className="p-8 text-center">
-            <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading...</p>
         </CardContent>
-        </Card>
+      </Card>
     );
-    }
+  }
 
   if (!currentUser || (!isSuperAdmin && !isAdmin)) {
     return (
