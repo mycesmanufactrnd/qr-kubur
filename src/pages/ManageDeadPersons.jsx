@@ -58,6 +58,8 @@ export default function ManageDeadPersons() {
     }
   };
 
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],
     queryFn: () => base44.entities.DeadPerson.list('-created_date')
@@ -67,15 +69,6 @@ export default function ManageDeadPersons() {
     queryKey: ['graves'],
     queryFn: () => base44.entities.Grave.list()
   });
-
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  const adminStates = currentUser?.state || [];
-  const accessibleGraves = isSuperAdmin ? graves : graves.filter(g => adminStates.includes(g.state));
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.DeadPerson.create(data),
@@ -105,6 +98,13 @@ export default function ManageDeadPersons() {
       toast.success('Rekod berjaya dipadam');
     }
   });
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
+
+  const adminStates = currentUser?.state || [];
+  const accessibleGraves = isSuperAdmin ? graves : graves.filter(g => adminStates.includes(g.state));
 
   const accessiblePersons = persons.filter(person => {
     if (isSuperAdmin) return true;

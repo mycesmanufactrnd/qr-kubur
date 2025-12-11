@@ -66,6 +66,8 @@ export default function ManageGraves() {
     }
   };
 
+  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],
     queryFn: () => base44.entities.Grave.list('-created_date')
@@ -75,12 +77,6 @@ export default function ManageGraves() {
     queryKey: ['organisations'],
     queryFn: () => base44.entities.Organisation.list()
   });
-
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Grave.create(data),
@@ -110,6 +106,10 @@ export default function ManageGraves() {
       toast.success('Kubur berjaya dipadam');
     }
   });
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const accessibleGraves = graves.filter(grave => {
     if (isSuperAdmin) return true;
