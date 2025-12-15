@@ -18,63 +18,6 @@ import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 
-const SQL_EXAMPLES = `-- CRUD Examples for QR Kubur Database
-
--- CREATE: Insert new grave
-INSERT INTO Grave (cemetery_name, state, block, lot, status)
-VALUES ('Tanah Perkuburan Islam Sg Buloh', 'Selangor', 'A', '123', 'active');
-
--- CREATE: Insert new deceased person
-INSERT INTO DeadPerson (name, ic_number, date_of_death, grave_id)
-VALUES ('Ahmad bin Abu', '800101-10-1234', '2024-01-15', 'grave_id_here');
-
--- CREATE: Insert new organisation
-INSERT INTO Organisation (name, type, state, address)
-VALUES ('Majlis Agama Islam Selangor', 'government', 'Selangor', 'Shah Alam');
-
--- CREATE: Insert new tahfiz center
-INSERT INTO TahfizCenter (name, state, services_offered, phone)
-VALUES ('Pusat Tahfiz Al-Quran', 'Selangor', '["tahlil_ringkas", "yasin"]', '03-12345678');
-
--- READ: List all graves in Selangor
-SELECT * FROM Grave WHERE state = 'Selangor' ORDER BY created_date DESC;
-
--- READ: Find deceased by name
-SELECT * FROM DeadPerson WHERE name LIKE '%Ahmad%';
-
--- READ: Get all pending donations
-SELECT * FROM Donation WHERE status = 'pending';
-
--- READ: Get all pending suggestions
-SELECT * FROM Suggestion WHERE status = 'pending';
-
--- UPDATE: Update grave status
-UPDATE Grave SET status = 'full' WHERE id = 'grave_id_here';
-
--- UPDATE: Approve donation
-UPDATE Donation SET status = 'verified' WHERE id = 'donation_id_here';
-
--- UPDATE: Approve suggestion
-UPDATE Suggestion SET status = 'approved', admin_notes = 'Approved' WHERE id = 'suggestion_id_here';
-
--- DELETE: Remove a grave record
-DELETE FROM Grave WHERE id = 'grave_id_here';
-
--- DELETE: Remove deceased record
-DELETE FROM DeadPerson WHERE id = 'person_id_here';
-
--- AGGREGATE: Count graves by state
-SELECT state, COUNT(*) as total FROM Grave GROUP BY state ORDER BY total DESC;
-
--- AGGREGATE: Total donations by status
-SELECT status, SUM(amount) as total FROM Donation GROUP BY status;
-
--- JOIN: Get deceased with grave info
-SELECT d.name, d.date_of_death, g.cemetery_name, g.state
-FROM DeadPerson d
-LEFT JOIN Grave g ON d.grave_id = g.id;
-`;
-
 export default function SuperadminDashboard() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -379,35 +322,6 @@ export default function SuperadminDashboard() {
               </Card>
             </Link>
           </div>
-        </TabsContent>
-
-        {/* SQL Console Tab */}
-        <TabsContent value="sql">
-          <Card className="border-0 shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-purple-600" />
-                SQL Console (Contoh Sahaja)
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => copyToClipboard(SQL_EXAMPLES)}>
-                <Copy className="w-4 h-4 mr-2" />
-                Salin Semua
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-yellow-800">
-                  <AlertCircle className="w-4 h-4 inline mr-2" />
-                  Ini adalah contoh arahan SQL sahaja. Arahan tidak akan dijalankan di sini.
-                </p>
-              </div>
-              <ScrollArea className="h-[500px]">
-                <pre className="bg-gray-900 text-gray-100 p-6 rounded-lg text-sm font-mono whitespace-pre-wrap">
-                  {SQL_EXAMPLES}
-                </pre>
-              </ScrollArea>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
