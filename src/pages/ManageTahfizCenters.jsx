@@ -170,6 +170,17 @@ export default function ManageTahfizCenters() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validation
+    if (!formData.name?.trim()) {
+      toast.error('Sila masukkan nama pusat tahfiz');
+      return;
+    }
+    if (!formData.state) {
+      toast.error('Sila pilih negeri');
+      return;
+    }
+
     const data = {
       ...formData,
       gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
@@ -327,11 +338,10 @@ export default function ManageTahfizCenters() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama *</Label>
+              <Label>Nama Pusat <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                required
               />
             </div>
             <div>
