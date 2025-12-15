@@ -241,7 +241,7 @@ export default function ManageOrganisations() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
+        { label: 'Super Admin', page: 'SuperadminDashboard' },
         { label: 'Urus Organisasi', page: 'ManageOrganisations' }
       ]} />
       
