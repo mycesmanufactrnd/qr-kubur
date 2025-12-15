@@ -173,7 +173,7 @@ export default function SuperadminDashboard() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="users">
             <Users className="w-4 h-4 mr-2" />
             Pengguna
@@ -181,10 +181,6 @@ export default function SuperadminDashboard() {
           <TabsTrigger value="add">
             <Database className="w-4 h-4 mr-2" />
             Tambah
-          </TabsTrigger>
-          <TabsTrigger value="sql">
-            <Terminal className="w-4 h-4 mr-2" />
-            SQL
           </TabsTrigger>
         </TabsList>
 
