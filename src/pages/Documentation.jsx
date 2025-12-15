@@ -192,8 +192,8 @@ export default function Documentation() {
       doc.setFont(undefined, 'normal');
       
       // Group pages by role
-      const roles = ['Public User', 'All', 'Admin', 'Admin/Organisation', 'Superadmin'];
-      roles.forEach(role => {
+      const pageRoles = ['Public User', 'All', 'Admin', 'Admin/Organisation', 'Superadmin'];
+      pageRoles.forEach(role => {
         const rolePages = pages.filter(p => p.role === role);
         if (rolePages.length === 0) return;
         
