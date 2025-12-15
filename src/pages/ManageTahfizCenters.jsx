@@ -84,10 +84,6 @@ export default function ManageTahfizCenters() {
     queryFn: () => base44.entities.TahfizCenter.list('-created_date')
   });
 
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.TahfizCenter.create(data),
     onSuccess: () => {
@@ -116,6 +112,10 @@ export default function ManageTahfizCenters() {
       toast.success('Pusat tahfiz berjaya dipadam');
     }
   });
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const filteredCenters = centers.filter(center => {
     const matchesSearch = !searchQuery || 
