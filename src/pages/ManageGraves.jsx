@@ -311,7 +311,6 @@ export default function ManageGraves() {
               <Input
                 value={formData.cemetery_name}
                 onChange={(e) => setFormData({...formData, cemetery_name: e.target.value})}
-                required
               />
             </div>
             <div>

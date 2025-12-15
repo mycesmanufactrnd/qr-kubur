@@ -158,6 +158,16 @@ export default function ManageDeadPersons() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Validation
+    if (!formData.name?.trim()) {
+      toast.error('Sila masukkan nama penuh');
+      return;
+    }
+    if (!formData.grave_id) {
+      toast.error('Sila pilih tanah perkuburan');
+      return;
+    }
+
     if (editingPerson) {
       updateMutation.mutate({ id: editingPerson.id, data: formData });
     } else {
@@ -296,7 +306,6 @@ export default function ManageDeadPersons() {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                required
               />
             </div>
             <div>

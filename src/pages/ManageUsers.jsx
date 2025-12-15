@@ -19,6 +19,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
+import Breadcrumb from '../components/Breadcrumb';
+import { toast } from 'sonner';
 
 
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
@@ -225,6 +227,28 @@ export default function ManageUsers() {
   const handleSaveUser = () => {
     if (!editUser) return;
     
+    // Validation
+    if (!editUser.full_name?.trim()) {
+      toast.error('Sila masukkan nama penuh');
+      return;
+    }
+    if (!editUser.email?.trim()) {
+      toast.error('Sila masukkan email');
+      return;
+    }
+    if (isAddMode && !editUser.password?.trim()) {
+      toast.error('Sila masukkan password');
+      return;
+    }
+    if (!editUser.organisation_id) {
+      toast.error('Sila pilih organisasi');
+      return;
+    }
+    if (!editUser.state || editUser.state.length === 0) {
+      toast.error('Sila pilih sekurang-kurangnya satu negeri');
+      return;
+    }
+    
     // Remove password field if empty in edit mode
     const dataToSave = { ...editUser };
     if (!isAddMode && !dataToSave.password) {
@@ -386,6 +410,11 @@ export default function ManageUsers() {
 
   return (
     <div className="space-y-4">
+      <Breadcrumb items={[
+        { label: 'Super Admin', page: 'SuperadminDashboard' },
+        { label: 'Urus Pengguna', page: 'ManageUsers' }
+      ]} />
+      
       <div className="flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold">Urus Pengguna</h1>
         <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
@@ -509,32 +538,32 @@ export default function ManageUsers() {
               {isAddMode && (
                 <>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Nama Penuh</label>
-                    <Input
-                      value={editUser.full_name}
-                      onChange={(e) => setEditUser({...editUser, full_name: e.target.value})}
-                      placeholder="Masukkan nama penuh"
-                    />
-                  </div>
-
-                  <div>
-                   <label className="text-sm font-medium mb-2 block">Email</label>
+                   <label className="text-sm font-medium mb-2 block">Nama Penuh *</label>
                    <Input
-                     type="email"
-                     value={editUser.email}
-                     onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                     placeholder="Masukkan email"
+                     value={editUser.full_name}
+                     onChange={(e) => setEditUser({...editUser, full_name: e.target.value})}
+                     placeholder="Masukkan nama penuh"
                    />
                   </div>
 
                   <div>
-                   <label className="text-sm font-medium mb-2 block">Password</label>
-                   <Input
-                     type="password"
-                     value={editUser.password}
-                     onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-                     placeholder="Masukkan kata laluan"
-                   />
+                  <label className="text-sm font-medium mb-2 block">Email *</label>
+                  <Input
+                    type="email"
+                    value={editUser.email}
+                    onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                    placeholder="Masukkan email"
+                  />
+                  </div>
+
+                  <div>
+                  <label className="text-sm font-medium mb-2 block">Password *</label>
+                  <Input
+                    type="password"
+                    value={editUser.password}
+                    onChange={(e) => setEditUser({...editUser, password: e.target.value})}
+                    placeholder="Masukkan kata laluan"
+                  />
                   </div>
                   </>
                   )}
@@ -569,7 +598,7 @@ export default function ManageUsers() {
                   </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Organisasi</label>
+                <label className="text-sm font-medium mb-2 block">Organisasi *</label>
                 <Select 
                   value={editUser.organisation_id || ''} 
                   onValueChange={(v) => setEditUser({...editUser, organisation_id: v})}
@@ -587,7 +616,7 @@ export default function ManageUsers() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Negeri</label>
+                <label className="text-sm font-medium mb-2 block">Negeri *</label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
                   {adminAccessibleStates.map(state => (
                     <div key={state} className="flex items-center space-x-2">

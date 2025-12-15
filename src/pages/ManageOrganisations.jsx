@@ -191,6 +191,17 @@ export default function ManageOrganisations() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name?.trim()) {
+      toast.error('Sila masukkan nama organisasi');
+      return;
+    }
+    if (!formData.state) {
+      toast.error('Sila pilih negeri');
+      return;
+    }
+    
     const data = {
       ...formData,
       gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
@@ -362,7 +373,6 @@ export default function ManageOrganisations() {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                required
               />
             </div>
             <div>
