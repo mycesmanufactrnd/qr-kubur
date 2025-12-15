@@ -120,6 +120,9 @@ export default function ManageDeadPersons() {
     return matchesSearch;
   });
 
+  const paginatedPersons = filteredPersons.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(filteredPersons.length / itemsPerPage);
+
   const openAddDialog = () => {
     setEditingPerson(null);
     setFormData(emptyPerson);
@@ -193,7 +196,7 @@ export default function ManageDeadPersons() {
             <Users className="w-6 h-6 text-blue-600" />
             Urus Rekod Si Mati
           </h1>
-          <p className="text-gray-500">{persons.length} rekod</p>
+          <p className="text-gray-500">{filteredPersons.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -239,7 +242,7 @@ export default function ManageDeadPersons() {
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
                 </TableRow>
               ) : (
-                filteredPersons.map(person => (
+                paginatedPersons.map(person => (
                   <TableRow key={person.id}>
                     <TableCell className="font-medium">{person.name}</TableCell>
                     <TableCell>{person.ic_number || '-'}</TableCell>
