@@ -59,7 +59,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "SearchGrave",
+    mainPage: "UserDashboard",
     Pages: PAGES,
     Layout: __Layout,
 };
