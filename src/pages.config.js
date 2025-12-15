@@ -19,7 +19,6 @@ import AboutSystem from './pages/AboutSystem';
 import MoreMenu from './pages/MoreMenu';
 import ManageUsers from './pages/ManageUsers';
 import Documentation from './pages/Documentation';
-import ManageEmployees from './pages/ManageEmployees';
 import AppUserLogin from './pages/AppUserLogin';
 import ViewLogs from './pages/ViewLogs';
 import SettingsPage from './pages/SettingsPage';
@@ -50,7 +49,6 @@ export const PAGES = {
     "MoreMenu": MoreMenu,
     "ManageUsers": ManageUsers,
     "Documentation": Documentation,
-    "ManageEmployees": ManageEmployees,
     "AppUserLogin": AppUserLogin,
     "ViewLogs": ViewLogs,
     "SettingsPage": SettingsPage,
