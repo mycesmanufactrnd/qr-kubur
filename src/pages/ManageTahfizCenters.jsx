@@ -335,7 +335,7 @@ export default function ManageTahfizCenters() {
               />
             </div>
             <div>
-              <Label>Negeri *</Label>
+              <Label>Negeri <span className="text-red-500">*</span></Label>
               <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih negeri" />

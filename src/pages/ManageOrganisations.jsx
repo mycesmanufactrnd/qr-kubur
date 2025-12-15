@@ -369,7 +369,7 @@ export default function ManageOrganisations() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama *</Label>
+              <Label>Nama <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -390,7 +390,7 @@ export default function ManageOrganisations() {
               </Select>
             </div>
             <div>
-              <Label>Negeri *</Label>
+              <Label>Negeri <span className="text-red-500">*</span></Label>
               <Select 
                 value={formData.state} 
                 onValueChange={(v) => setFormData({...formData, state: v})}

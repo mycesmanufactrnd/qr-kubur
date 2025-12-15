@@ -302,7 +302,7 @@ export default function ManageDeadPersons() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama Penuh *</Label>
+              <Label>Nama Penuh <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -342,7 +342,7 @@ export default function ManageDeadPersons() {
               />
             </div>
             <div>
-              <Label>Tanah Perkuburan *</Label>
+              <Label>Tanah Perkuburan <span className="text-red-500">*</span></Label>
               <Select value={formData.grave_id} onValueChange={(v) => setFormData({...formData, grave_id: v})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih kubur" />

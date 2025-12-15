@@ -307,14 +307,14 @@ export default function ManageGraves() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama Tanah Perkuburan *</Label>
+              <Label>Nama Tanah Perkuburan <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.cemetery_name}
                 onChange={(e) => setFormData({...formData, cemetery_name: e.target.value})}
               />
             </div>
             <div>
-              <Label>Negeri *</Label>
+              <Label>Negeri <span className="text-red-500">*</span></Label>
               <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih negeri" />

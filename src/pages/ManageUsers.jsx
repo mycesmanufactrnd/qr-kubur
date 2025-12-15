@@ -538,7 +538,7 @@ export default function ManageUsers() {
               {isAddMode && (
                 <>
                   <div>
-                   <label className="text-sm font-medium mb-2 block">Nama Penuh *</label>
+                   <label className="text-sm font-medium mb-2 block">Nama Penuh <span className="text-red-500">*</span></label>
                    <Input
                      value={editUser.full_name}
                      onChange={(e) => setEditUser({...editUser, full_name: e.target.value})}
@@ -547,7 +547,7 @@ export default function ManageUsers() {
                   </div>
 
                   <div>
-                  <label className="text-sm font-medium mb-2 block">Email *</label>
+                   <label className="text-sm font-medium mb-2 block">Email <span className="text-red-500">*</span></label>
                   <Input
                     type="email"
                     value={editUser.email}
@@ -557,7 +557,7 @@ export default function ManageUsers() {
                   </div>
 
                   <div>
-                  <label className="text-sm font-medium mb-2 block">Password *</label>
+                   <label className="text-sm font-medium mb-2 block">Password <span className="text-red-500">*</span></label>
                   <Input
                     type="password"
                     value={editUser.password}
@@ -598,7 +598,7 @@ export default function ManageUsers() {
                   </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Organisasi *</label>
+                <label className="text-sm font-medium mb-2 block">Organisasi <span className="text-red-500">*</span></label>
                 <Select 
                   value={editUser.organisation_id || ''} 
                   onValueChange={(v) => setEditUser({...editUser, organisation_id: v})}
@@ -616,7 +616,7 @@ export default function ManageUsers() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Negeri *</label>
+                <label className="text-sm font-medium mb-2 block">Negeri <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
                   {adminAccessibleStates.map(state => (
                     <div key={state} className="flex items-center space-x-2">
