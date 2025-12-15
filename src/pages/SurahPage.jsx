@@ -86,6 +86,7 @@ Maha Suci Allah, segala puji bagi Allah, tiada tuhan melainkan Allah, dan Allah 
 };
 
 export default function SurahPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('fatihah');
   const [expandedSections, setExpandedSections] = useState(['arabic']);
 
@@ -98,8 +99,6 @@ export default function SurahPage() {
   };
 
   const currentContent = SURAH_CONTENT[activeTab];
-
-  const navigate = useNavigate();
   
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-2">

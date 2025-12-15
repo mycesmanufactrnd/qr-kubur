@@ -22,6 +22,7 @@ const SERVICE_TYPES = [
 ];
 
 export default function TahlilRequestPage() {
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const preSelectedTahfiz = urlParams.get('tahfiz');
   const preSelectedDeceased = urlParams.get('deceased');
@@ -106,8 +107,6 @@ export default function TahlilRequestPage() {
       </div>
     );
   }
-
-  const navigate = useNavigate();
   
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">

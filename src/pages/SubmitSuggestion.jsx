@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 export default function SubmitSuggestion() {
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const preType = urlParams.get('type') || '';
   const preId = urlParams.get('id') || '';
@@ -74,8 +75,6 @@ export default function SubmitSuggestion() {
       </div>
     );
   }
-
-  const navigate = useNavigate();
   
   return (
     <div className="max-w-lg mx-auto space-y-4 pb-2">
