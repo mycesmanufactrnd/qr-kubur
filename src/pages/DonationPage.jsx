@@ -171,7 +171,7 @@ export default function DonationPage() {
                   <SelectContent>
                     {tahfizCenters.map(center => (
                       <SelectItem key={center.id} value={center.id}>
-                        {center.name}
+                        {center.name} - {center.state}
                       </SelectItem>
                     ))}
                   </SelectContent>

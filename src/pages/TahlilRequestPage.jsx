@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -28,7 +28,7 @@ export default function TahlilRequestPage() {
   const preSelectedDeceased = urlParams.get('deceased');
 
   const [selectedTahfiz, setSelectedTahfiz] = useState(preSelectedTahfiz || '');
-  const [serviceType, setServiceType] = useState('tahlil_ringkas');
+  const [serviceTypes, setServiceTypes] = useState(['tahlil_ringkas']);
   const [requesterName, setRequesterName] = useState('');
   const [requesterPhone, setRequesterPhone] = useState('');
   const [requesterEmail, setRequesterEmail] = useState('');
@@ -58,14 +58,26 @@ export default function TahlilRequestPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!selectedTahfiz || !requesterName || !deceasedName || !requesterPhone) {
-      toast.error('Sila lengkapkan maklumat yang diperlukan');
+    if (!selectedTahfiz) {
+      toast.error('Sila pilih pusat tahfiz');
+      return;
+    }
+    if (!requesterName) {
+      toast.error('Sila masukkan nama pemohon');
+      return;
+    }
+    if (!requesterPhone) {
+      toast.error('Sila masukkan nombor telefon');
+      return;
+    }
+    if (!deceasedName) {
+      toast.error('Sila masukkan nama arwah');
       return;
     }
 
     createRequest.mutate({
       tahfiz_center_id: selectedTahfiz,
-      service_type: serviceType,
+      service_type: serviceTypes.join(','),
       requester_name: requesterName,
       requester_phone: requesterPhone,
       requester_email: requesterEmail,
@@ -74,6 +86,14 @@ export default function TahlilRequestPage() {
       notes: notes,
       status: 'pending'
     });
+  };
+
+  const toggleServiceType = (value) => {
+    setServiceTypes(prev => 
+      prev.includes(value) 
+        ? prev.filter(v => v !== value)
+        : [...prev, value]
+    );
   };
 
   if (submitted) {
@@ -162,25 +182,29 @@ export default function TahlilRequestPage() {
         {/* Service Type */}
         <Card className="border-0 shadow-md">
           <CardHeader>
-            <CardTitle className="text-lg">Jenis Perkhidmatan</CardTitle>
+            <CardTitle className="text-lg">Jenis Perkhidmatan (Boleh pilih lebih dari satu)</CardTitle>
           </CardHeader>
           <CardContent>
-            <RadioGroup value={serviceType} onValueChange={setServiceType}>
-              <div className="grid gap-3">
-                {SERVICE_TYPES.map(service => (
-                  <Label 
-                    key={service.value}
-                    className="flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors [&:has(:checked)]:border-violet-500 [&:has(:checked)]:bg-violet-50"
-                  >
-                    <RadioGroupItem value={service.value} className="mt-1" />
-                    <div>
-                      <span className="font-semibold">{service.label}</span>
-                      <p className="text-sm text-gray-500">{service.description}</p>
-                    </div>
-                  </Label>
-                ))}
-              </div>
-            </RadioGroup>
+            <div className="grid gap-3">
+              {SERVICE_TYPES.map(service => (
+                <Label 
+                  key={service.value}
+                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors ${
+                    serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50' : ''
+                  }`}
+                >
+                  <Checkbox 
+                    checked={serviceTypes.includes(service.value)}
+                    onCheckedChange={() => toggleServiceType(service.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <span className="font-semibold">{service.label}</span>
+                    <p className="text-sm text-gray-500">{service.description}</p>
+                  </div>
+                </Label>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
@@ -191,7 +215,7 @@ export default function TahlilRequestPage() {
           </CardHeader>
           <CardContent>
             <div>
-              <Label htmlFor="deceasedName">Nama Arwah *</Label>
+              <Label htmlFor="deceasedName">Nama Arwah <span className="text-red-500">*</span></Label>
               <Input
                 id="deceasedName"
                 placeholder="Nama penuh arwah"
@@ -210,7 +234,7 @@ export default function TahlilRequestPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="requesterName">Nama Pemohon *</Label>
+              <Label htmlFor="requesterName">Nama Pemohon <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -224,7 +248,7 @@ export default function TahlilRequestPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="requesterPhone">No. Telefon *</Label>
+              <Label htmlFor="requesterPhone">No. Telefon <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input

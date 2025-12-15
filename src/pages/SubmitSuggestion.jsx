@@ -38,8 +38,12 @@ export default function SubmitSuggestion() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!entityType || !suggestedChanges) {
-      toast.error('Sila lengkapkan maklumat cadangan');
+    if (!entityType) {
+      toast.error('Sila pilih jenis rekod');
+      return;
+    }
+    if (!suggestedChanges) {
+      toast.error('Sila masukkan cadangan pembetulan');
       return;
     }
 
@@ -107,7 +111,7 @@ export default function SubmitSuggestion() {
 
 
             <div>
-              <Label htmlFor="suggestedChanges">Cadangan Pembetulan *</Label>
+              <Label htmlFor="suggestedChanges">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
               <Textarea
                 id="suggestedChanges"
                 value={suggestedChanges}
