@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useUserWithRoleOverride } from '../components/useUserWithRoleOverride';
 
 const ITEMS_PER_PAGE = 10;
 const MODULES = ['graves', 'dead_persons', 'organisations', 'tahfiz', 'donations', 'users'];
@@ -26,8 +25,25 @@ export default function ManagePermissions() {
   const urlParams = new URLSearchParams(window.location.search);
   const userIdParam = urlParams.get('userId');
   
-  const { user: currentUser, loading: userLoading } = useUserWithRoleOverride();
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const [userLoading, setUserLoading] = React.useState(true);
   const [page, setPage] = useState(1);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem('appUserAuth');
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
