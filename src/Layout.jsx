@@ -134,43 +134,6 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
-            {!isAdmin && (
-              <nav className="flex items-center gap-1">
-                {userNavItems.slice(0, 4).map((item) => (
-                  <Link
-                    key={item.page}
-                    to={createPageUrl(item.page)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      currentPageName === item.page
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-gray-600">
-                      Lagi <ChevronDown className="w-4 h-4 ml-1" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    {userNavItems.slice(4).map((item) => (
-                      <DropdownMenuItem key={item.page} asChild>
-                        <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
-                          <item.icon className="w-4 h-4" />
-                          {item.name}
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </nav>
-            )}
-
             {/* Right Side */}
             <div className="flex items-center gap-3">
               {user ? (
