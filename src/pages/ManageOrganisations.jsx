@@ -46,7 +46,10 @@ export default function ManageOrganisations() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
-  const [formData, setFormData] = useState(emptyOrg);
+  
+  const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
+    defaultValues: emptyOrg
+  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
 

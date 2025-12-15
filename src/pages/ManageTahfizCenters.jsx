@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { useForm, Controller } from "react-hook-form";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -53,7 +54,10 @@ export default function ManageTahfizCenters() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCenter, setEditingCenter] = useState(null);
-  const [formData, setFormData] = useState(emptyCenter);
+  
+  const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
+    defaultValues: emptyCenter
+  });
 
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -137,13 +141,13 @@ export default function ManageTahfizCenters() {
 
   const openAddDialog = () => {
     setEditingCenter(null);
-    setFormData(emptyCenter);
+    reset(emptyCenter);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (center) => {
     setEditingCenter(center);
-    setFormData({
+    reset({
       name: center.name || '',
       description: center.description || '',
       services_offered: center.services_offered || [],
@@ -159,38 +163,37 @@ export default function ManageTahfizCenters() {
     setIsDialogOpen(true);
   };
 
+  const selectedServices = watch('services_offered') || [];
+
   const toggleService = (serviceValue) => {
-    const current = formData.services_offered || [];
+    const current = selectedServices;
     if (current.includes(serviceValue)) {
-      setFormData({...formData, services_offered: current.filter(s => s !== serviceValue)});
+      setValue('services_offered', current.filter(s => s !== serviceValue));
     } else {
-      setFormData({...formData, services_offered: [...current, serviceValue]});
+      setValue('services_offered', [...current, serviceValue]);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Validation
-    if (!formData.name?.trim()) {
+  const onSubmit = (data) => {
+    if (!data.name?.trim()) {
       toast.error('Sila masukkan nama pusat tahfiz');
       return;
     }
-    if (!formData.state) {
+    if (!data.state) {
       toast.error('Sila pilih negeri');
       return;
     }
 
-    const data = {
-      ...formData,
-      gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-      gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null
+    const submitData = {
+      ...data,
+      gps_lat: data.gps_lat ? parseFloat(data.gps_lat) : null,
+      gps_lng: data.gps_lng ? parseFloat(data.gps_lng) : null
     };
 
     if (editingCenter) {
-      updateMutation.mutate({ id: editingCenter.id, data });
+      updateMutation.mutate({ id: editingCenter.id, data: submitData });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(submitData);
     }
   };
 
@@ -336,26 +339,35 @@ export default function ManageTahfizCenters() {
               {editingCenter ? 'Edit Pusat Tahfiz' : 'Tambah Pusat Tahfiz Baru'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             <div>
               <Label>Nama Pusat <span className="text-red-500">*</span></Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: 'Nama pusat diperlukan' }}
+                render={({ field }) => <Input {...field} />}
               />
             </div>
             <div>
               <Label>Negeri <span className="text-red-500">*</span></Label>
-              <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih negeri" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(isSuperAdmin ? STATES : userStates).map(state => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="state"
+                control={control}
+                rules={{ required: 'Negeri diperlukan' }}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih negeri" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(isSuperAdmin ? STATES : userStates).map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div>
               <Label>Perkhidmatan</Label>
@@ -366,7 +378,7 @@ export default function ManageTahfizCenters() {
                     className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-gray-50"
                   >
                     <Checkbox
-                      checked={formData.services_offered?.includes(service.value)}
+                      checked={selectedServices.includes(service.value)}
                       onCheckedChange={() => toggleService(service.value)}
                     />
                     {service.label}
@@ -376,61 +388,63 @@ export default function ManageTahfizCenters() {
             </div>
             <div>
               <Label>Alamat</Label>
-              <Textarea
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
+              <Controller
+                name="address"
+                control={control}
+                render={({ field }) => <Textarea {...field} />}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Telefon</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
                 />
               </div>
               <div>
                 <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => <Input type="email" {...field} />}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Nama Bank</Label>
-                <Input
-                  value={formData.bank_name}
-                  onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
+                <Controller
+                  name="bank_name"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
                 />
               </div>
               <div>
                 <Label>No. Akaun</Label>
-                <Input
-                  value={formData.bank_account}
-                  onChange={(e) => setFormData({...formData, bank_account: e.target.value})}
+                <Controller
+                  name="bank_account"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>GPS Latitude</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={formData.gps_lat}
-                  onChange={(e) => setFormData({...formData, gps_lat: e.target.value})}
+                <Controller
+                  name="gps_lat"
+                  control={control}
+                  render={({ field }) => <Input type="number" step="any" {...field} />}
                 />
               </div>
               <div>
                 <Label>GPS Longitude</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={formData.gps_lng}
-                  onChange={(e) => setFormData({...formData, gps_lng: e.target.value})}
+                <Controller
+                  name="gps_lng"
+                  control={control}
+                  render={({ field }) => <Input type="number" step="any" {...field} />}
                 />
               </div>
             </div>
