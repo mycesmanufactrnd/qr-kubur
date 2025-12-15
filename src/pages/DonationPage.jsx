@@ -171,7 +171,10 @@ export default function DonationPage() {
                   <SelectContent>
                     {tahfizCenters.map(center => (
                       <SelectItem key={center.id} value={center.id}>
-                        {center.name} - {center.state}
+                        <div className="flex flex-col">
+                          <span>{center.name}</span>
+                          <span className="text-xs text-gray-500">{center.state}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
