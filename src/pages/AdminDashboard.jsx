@@ -25,12 +25,7 @@ export default function AdminDashboard() {
     try {
       const appUserAuth = localStorage.getItem('appUserAuth');
       if (appUserAuth) {
-        const appUser = JSON.parse(appUserAuth);
-        setUser({
-          ...appUser,
-          role: 'admin',
-          admin_type: appUser.admin_type || 'admin'
-        });
+        setUser(JSON.parse(appUserAuth));
       }
     } catch (e) {
       setUser(null);
@@ -78,7 +73,7 @@ export default function AdminDashboard() {
     { label: 'Permohonan Tahlil', value: stats?.pendingTahlil || 0, icon: Clock, page: 'ManageTahlilRequests', color: 'blue' },
   ];
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
 
   if (loadingUser) {
     return <LoadingUser />;

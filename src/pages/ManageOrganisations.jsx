@@ -68,8 +68,8 @@ export default function ManageOrganisations() {
     loadUser();
   }, []);
 
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin';
 
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],

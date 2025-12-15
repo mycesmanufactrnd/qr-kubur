@@ -47,13 +47,7 @@ export default function ManageDeadPersons() {
     try {
       const appUserAuth = localStorage.getItem('appUserAuth');
       if (appUserAuth) {
-        const appUser = JSON.parse(appUserAuth);
-        setCurrentUser({
-          ...appUser,
-          role: 'admin',
-          admin_type: appUser.admin_type || 'admin',
-          state: appUser.state || []
-        });
+        setCurrentUser(JSON.parse(appUserAuth));
       }
     } catch (e) {
       setCurrentUser(null);
@@ -62,7 +56,7 @@ export default function ManageDeadPersons() {
     }
   };
 
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+  const isSuperAdmin = currentUser?.role === 'superadmin';
 
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],

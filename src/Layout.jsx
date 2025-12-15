@@ -51,9 +51,8 @@ export default function Layout({ children, currentPageName }) {
     window.location.href = createPageUrl('AppUserLogin');
   };
 
-  const isSuperAdmin = user?.type === 'superadmin' || (user?.role === 'admin' && user?.admin_type === 'superadmin');
-  const isOrganization = user?.type === 'organization';
-  const isAdmin = user?.type === 'organization' || user?.type === 'employee' || user?.role === 'admin' || user?.admin_status === 'approved';
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
 
   // Redirect admin away from user pages
   const userPages = ['UserDashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'SettingsPage', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
@@ -193,22 +192,8 @@ export default function Layout({ children, currentPageName }) {
                       <p className="text-xs text-gray-500">{user.email}</p>
                       <p className="text-xs text-emerald-600 capitalize">{user.role}</p>
                     </div>
-                    
-                    {isOrganization && (
-                      <>
-                        <DropdownMenuSeparator />
-                        {organizationNavItems.map((item) => (
-                          <DropdownMenuItem key={item.page} asChild>
-                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
-                              <item.icon className="w-4 h-4" />
-                              {item.name}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    )}
 
-                    {isAdmin && !isOrganization && (
+                    {isAdmin && (
                       <>
                         <DropdownMenuSeparator />
                         {adminNavItems.map((item) => (

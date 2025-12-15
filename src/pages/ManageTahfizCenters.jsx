@@ -67,13 +67,7 @@ export default function ManageTahfizCenters() {
     try {
       const appUserAuth = localStorage.getItem('appUserAuth');
       if (appUserAuth) {
-        const appUser = JSON.parse(appUserAuth);
-        setCurrentUser({
-          ...appUser,
-          role: 'admin',
-          admin_type: appUser.admin_type || 'admin',
-          state: appUser.state || []
-        });
+        setCurrentUser(JSON.parse(appUserAuth));
       }
     } catch (e) {
       setCurrentUser(null);

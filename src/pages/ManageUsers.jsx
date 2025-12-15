@@ -136,8 +136,8 @@ export default function ManageUsers() {
     }
   });
 
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'admin';
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin';
 
   const accessibleUsers = allUsers.filter(u => {
     if (isSuperAdmin) return true;
@@ -145,7 +145,7 @@ export default function ManageUsers() {
       // Admin can see users in their organisation
       if (u.organisation_id !== currentUser.organisation_id) return false;
       // Admin can only see admin and employee
-      if (u.admin_type !== 'admin' && u.admin_type !== 'employee') return false;
+      if (u.role !== 'admin' && u.role !== 'employee') return false;
       // Must share at least one state
       const userStates = Array.isArray(u.state) ? u.state : [u.state].filter(Boolean);
       const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
@@ -186,9 +186,7 @@ export default function ManageUsers() {
       full_name: '',
       email: '',
       password: '',
-      role: 'admin',
-      admin_type: 'employee',
-      type: 'employee',
+      role: 'employee',
       organisation_id: defaultOrgId,
       state: defaultState,
       permissions: {
@@ -350,7 +348,7 @@ export default function ManageUsers() {
     if (isSuperAdmin) return true;
     if (isAdmin) {
       // Admin can only edit admin and employee
-      if (user.admin_type !== 'admin' && user.admin_type !== 'employee') return false;
+      if (user.role !== 'admin' && user.role !== 'employee') return false;
       // Must be in same organisation
       if (user.organisation_id !== currentUser.organisation_id) return false;
       // Must share at least one state
@@ -365,7 +363,7 @@ export default function ManageUsers() {
     if (isSuperAdmin) return true;
     if (isAdmin) {
       // Admin can only delete admin and employee under their organisation
-      if (user.admin_type !== 'admin' && user.admin_type !== 'employee') return false;
+      if (user.role !== 'admin' && user.role !== 'employee') return false;
       if (user.organisation_id !== currentUser.organisation_id) return false;
       return true;
     }
@@ -441,14 +439,9 @@ export default function ManageUsers() {
                       <p className="font-semibold text-gray-900 truncate">{user.full_name || user.email}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       <div className="flex gap-2 mt-1 flex-wrap">
-                        <Badge variant="outline" className="text-xs">
-                          {user.role === 'admin' ? 'Admin' : 'User'}
+                        <Badge variant="secondary" className="text-xs capitalize">
+                          {user.role}
                         </Badge>
-                        {user.admin_type && user.admin_type !== 'none' && (
-                          <Badge variant="secondary" className="text-xs capitalize">
-                            {user.admin_type}
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -569,11 +562,11 @@ export default function ManageUsers() {
                   )}
 
                   <div>
-                  <label className="text-sm font-medium mb-2 block">Admin Type</label>
-                <Select 
-                  value={editUser.admin_type || 'employee'} 
-                  onValueChange={(v) => setEditUser({...editUser, admin_type: v})}
-                >
+                  <label className="text-sm font-medium mb-2 block">Role</label>
+                  <Select 
+                  value={editUser.role || 'employee'} 
+                  onValueChange={(v) => setEditUser({...editUser, role: v})}
+                  >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -582,8 +575,8 @@ export default function ManageUsers() {
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="employee">Employee</SelectItem>
                   </SelectContent>
-                </Select>
-              </div>
+                  </Select>
+                  </div>
 
               <div>
                 <label className="text-sm font-medium mb-2 block">Organisasi</label>
@@ -620,7 +613,7 @@ export default function ManageUsers() {
                 </div>
               </div>
 
-              {editUser.admin_type === 'employee' && (
+              {editUser.role === 'employee' && (
                 <div>
                   <label className="text-sm font-medium mb-2 block">Permissions</label>
                   <div className="space-y-3 border rounded p-3 max-h-60 overflow-y-auto">

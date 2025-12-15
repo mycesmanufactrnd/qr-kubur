@@ -103,7 +103,7 @@ export default function SuperadminDashboard() {
     }
   };
 
-  const isSuperAdmin = user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['all-users'],

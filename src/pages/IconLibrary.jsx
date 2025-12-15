@@ -136,7 +136,7 @@ export default function IconLibrary() {
     loadUser();
   }, []);
 
-  const isSuperAdmin = currentUser?.role === 'admin' && currentUser?.admin_type === 'superadmin';
+  const isSuperAdmin = currentUser?.role === 'superadmin';
 
   const copyToClipboard = (iconName) => {
     const importStatement = `import { ${iconName} } from 'lucide-react';`;
