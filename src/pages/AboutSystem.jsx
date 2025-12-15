@@ -284,50 +284,132 @@ export default function AboutSystem() {
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
           <Globe className="w-5 h-5 text-blue-600" />
-          Senarai Halaman
+          Senarai Halaman Sistem
         </h2>
-        <Card className="border-0 shadow-md">
-          <CardContent className="p-4">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {[
-                { name: "Dashboard", label: "Halaman Utama" },
-                { name: "SearchGrave", label: "Cari Kubur" },
-                { name: "MapKubur", label: "Peta Kubur" },
-                { name: "MapTahfiz", label: "Peta Tahfiz" },
-                { name: "ScanQR", label: "Imbas QR" },
-                { name: "GraveDetails", label: "Butiran Kubur" },
-                { name: "DeadPersonDetails", label: "Butiran Si Mati" },
-                { name: "DonationPage", label: "Derma" },
-                { name: "TahlilRequestPage", label: "Mohon Tahlil" },
-                { name: "SurahPage", label: "Surah & Doa" },
-                { name: "SubmitSuggestion", label: "Hantar Cadangan" },
-                { name: "AdminDashboard", label: "Admin Dashboard" },
-                { name: "ManageGraves", label: "Urus Kubur" },
-                { name: "ManageDeadPersons", label: "Urus Si Mati" },
-                { name: "ManageOrganisations", label: "Urus Organisasi" },
-                { name: "ManageTahfizCenters", label: "Urus Tahfiz" },
-                { name: "ManageSuggestions", label: "Urus Cadangan" },
-                { name: "ManageDonations", label: "Urus Derma" },
-                { name: "ManageTahlilRequests", label: "Urus Tahlil" },
-                { name: "ManageUsers", label: "Urus Pengguna" },
-                { name: "ManagePermissions", label: "Urus Kebenaran" },
-                { name: "SuperadminDashboard", label: "Super Admin" },
-                { name: "Documentation", label: "Dokumentasi Sistem" },
-                { name: "AboutSystem", label: "Tentang Sistem" },
-                { name: "MoreMenu", label: "Menu Lagi" },
-              ].map((page, i) => (
+        <div className="space-y-4">
+          {/* Public User Pages */}
+          <Card className="border-0 shadow-md">
+            <CardHeader className="bg-emerald-50 p-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Users className="w-4 h-4 text-emerald-600" />
+                Halaman Pengguna Awam
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {[
+                  { name: "UserDashboard", label: "Dashboard" },
+                  { name: "SearchGrave", label: "Cari Kubur" },
+                  { name: "SearchTahfiz", label: "Cari Tahfiz" },
+                  { name: "ScanQR", label: "Imbas QR" },
+                  { name: "GraveDetails", label: "Butiran Kubur" },
+                  { name: "DeadPersonDetails", label: "Butiran Si Mati" },
+                  { name: "DonationPage", label: "Derma" },
+                  { name: "TahlilRequestPage", label: "Mohon Tahlil" },
+                  { name: "SurahPage", label: "Surah & Doa" },
+                  { name: "SubmitSuggestion", label: "Hantar Cadangan" },
+                  { name: "SettingsPage", label: "Tetapan" },
+                  { name: "AboutSystem", label: "Tentang Sistem" },
+                  { name: "MoreMenu", label: "Menu Lagi" },
+                ].map((page, i) => (
+                  <Link 
+                    key={i}
+                    to={createPageUrl(page.name)}
+                    className="p-2 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700 block">{page.label}</span>
+                    <span className="text-xs text-emerald-600 font-mono">{page.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Admin Pages */}
+          <Card className="border-0 shadow-md">
+            <CardHeader className="bg-indigo-50 p-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-indigo-600" />
+                Halaman Admin
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {[
+                  { name: "AdminDashboard", label: "Admin Dashboard" },
+                  { name: "ManageGraves", label: "Urus Kubur" },
+                  { name: "ManageDeadPersons", label: "Urus Si Mati" },
+                  { name: "ManageOrganisations", label: "Urus Organisasi" },
+                  { name: "ManageTahfizCenters", label: "Urus Tahfiz" },
+                  { name: "ManageSuggestions", label: "Urus Cadangan" },
+                  { name: "ManageDonations", label: "Urus Derma" },
+                  { name: "ManageTahlilRequests", label: "Urus Tahlil" },
+                  { name: "ManageEmployees", label: "Urus Employee" },
+                ].map((page, i) => (
+                  <Link 
+                    key={i}
+                    to={createPageUrl(page.name)}
+                    className="p-2 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700 block">{page.label}</span>
+                    <span className="text-xs text-indigo-600 font-mono">{page.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Superadmin Pages */}
+          <Card className="border-0 shadow-md">
+            <CardHeader className="bg-purple-50 p-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="w-4 h-4 text-purple-600" />
+                Halaman Super Admin
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {[
+                  { name: "SuperadminDashboard", label: "Super Admin Dashboard" },
+                  { name: "ManageUsers", label: "Urus Pengguna" },
+                  { name: "ManagePermissions", label: "Urus Kebenaran" },
+                  { name: "ViewLogs", label: "Log Aktiviti" },
+                  { name: "Documentation", label: "Dokumentasi SRS" },
+                ].map((page, i) => (
+                  <Link 
+                    key={i}
+                    to={createPageUrl(page.name)}
+                    className="p-2 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700 block">{page.label}</span>
+                    <span className="text-xs text-purple-600 font-mono">{page.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Authentication */}
+          <Card className="border-0 shadow-md">
+            <CardHeader className="bg-gray-50 p-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="w-4 h-4 text-gray-600" />
+                Authentication
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <Link 
-                  key={i}
-                  to={createPageUrl(page.name)}
-                  className="p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-between"
+                  to={createPageUrl('AppUserLogin')}
+                  className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <span className="text-sm font-medium text-gray-700">{page.label}</span>
-                  <span className="text-xs text-blue-600 font-mono">{page.name}</span>
+                  <span className="text-sm font-medium text-gray-700 block">Log Masuk Admin</span>
+                  <span className="text-xs text-gray-600 font-mono">AppUserLogin</span>
                 </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Tech Stack */}

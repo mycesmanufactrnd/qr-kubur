@@ -158,40 +158,67 @@ export default function Documentation() {
       y += 10;
 
       const pages = [
-        'Dashboard - Halaman utama dengan stats & quick actions',
-        'SearchGrave - Cari kubur/si mati dengan filter',
-        'MapKubur - Peta interaktif kubur',
-        'MapTahfiz - Peta pusat tahfiz',
-        'ScanQR - Imbas QR dengan kamera',
-        'GraveDetails - Butiran lengkap kubur',
-        'DeadPersonDetails - Butiran si mati',
-        'DonationPage - Halaman derma',
-        'TahlilRequestPage - Mohon tahlil',
-        'SurahPage - Surah & doa (Al-Fatihah, Yasin, Tahlil)',
-        'SubmitSuggestion - Hantar cadangan',
-        'AdminDashboard - Panel admin',
-        'ManageGraves - CRUD kubur',
-        'ManageDeadPersons - CRUD si mati',
-        'ManageOrganisations - CRUD organisasi',
-        'ManageTahfizCenters - CRUD tahfiz',
-        'ManageSuggestions - Urus cadangan',
-        'ManageDonations - Urus derma',
-        'ManageTahlilRequests - Urus tahlil',
-        'ManageUsers - Urus pengguna',
-        'ManagePermissions - Urus kebenaran',
-        'SuperadminDashboard - Panel superadmin',
-        'Documentation - Dokumentasi sistem (SRS)',
-        'AboutSystem - Tentang sistem'
+        { name: 'UserDashboard', desc: 'Halaman utama pengguna dengan aksi pantas', role: 'Public User' },
+        { name: 'SearchGrave', desc: 'Cari kubur dan si mati dengan filter negeri', role: 'Public User' },
+        { name: 'SearchTahfiz', desc: 'Cari pusat tahfiz mengikut negeri', role: 'Public User' },
+        { name: 'ScanQR', desc: 'Imbas kod QR kubur dengan kamera atau input manual', role: 'Public User' },
+        { name: 'GraveDetails', desc: 'Butiran lengkap kubur dengan peta dan navigasi GPS', role: 'Public User' },
+        { name: 'DeadPersonDetails', desc: 'Butiran si mati dengan biografi dan foto', role: 'Public User' },
+        { name: 'DonationPage', desc: 'Derma ke organisasi atau pusat tahfiz', role: 'Public User' },
+        { name: 'TahlilRequestPage', desc: 'Mohon perkhidmatan tahlil untuk arwah', role: 'Public User' },
+        { name: 'SurahPage', desc: 'Surah & doa (Al-Fatihah, Yasin, Doa Ziarah, Tahlil)', role: 'Public User' },
+        { name: 'SubmitSuggestion', desc: 'Hantar cadangan pembetulan data', role: 'Public User' },
+        { name: 'SettingsPage', desc: 'Tetapan profil dan maklumat pengguna', role: 'Public User' },
+        { name: 'AboutSystem', desc: 'Maklumat sistem, ciri dan halaman', role: 'Public User' },
+        { name: 'MoreMenu', desc: 'Menu tambahan untuk navigasi', role: 'Public User' },
+        { name: 'AppUserLogin', desc: 'Halaman log masuk untuk admin/employee', role: 'All' },
+        { name: 'AdminDashboard', desc: 'Panel admin dengan statistik dan aksi pantas', role: 'Admin' },
+        { name: 'ManageGraves', desc: 'CRUD tanah perkuburan dengan filter negeri', role: 'Admin' },
+        { name: 'ManageDeadPersons', desc: 'CRUD rekod si mati dengan upload foto', role: 'Admin' },
+        { name: 'ManageOrganisations', desc: 'CRUD organisasi pengurusan kubur', role: 'Admin' },
+        { name: 'ManageTahfizCenters', desc: 'CRUD pusat tahfiz dengan maklumat bank', role: 'Admin' },
+        { name: 'ManageSuggestions', desc: 'Semak dan lulus/tolak cadangan pengguna', role: 'Admin' },
+        { name: 'ManageDonations', desc: 'Sahkan derma dengan resit pembayaran', role: 'Admin' },
+        { name: 'ManageTahlilRequests', desc: 'Urus permohonan tahlil (terima/tolak)', role: 'Admin' },
+        { name: 'ManageEmployees', desc: 'Urus akaun employee organisasi', role: 'Admin/Organisation' },
+        { name: 'SuperadminDashboard', desc: 'Panel superadmin dengan pengurusan penuh', role: 'Superadmin' },
+        { name: 'ManageUsers', desc: 'Urus semua pengguna sistem', role: 'Superadmin' },
+        { name: 'ManagePermissions', desc: 'Tetapkan kebenaran modul untuk pengguna', role: 'Superadmin' },
+        { name: 'ViewLogs', desc: 'Paparan log aktiviti sistem', role: 'Superadmin' },
+        { name: 'Documentation', desc: 'Muat turun dokumentasi SRS sistem (PDF)', role: 'Superadmin' }
       ];
 
       doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      pages.forEach(page => {
-        if (y > 275) {
+      
+      // Group pages by role
+      const roles = ['Public User', 'All', 'Admin', 'Admin/Organisation', 'Superadmin'];
+      roles.forEach(role => {
+        const rolePages = pages.filter(p => p.role === role);
+        if (rolePages.length === 0) return;
+        
+        if (y > 260) {
           doc.addPage();
           y = 20;
         }
-        doc.text(`• ${page}`, 25, y);
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${role}:`, 20, y);
+        y += 6;
+        
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        rolePages.forEach(page => {
+          if (y > 275) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`• ${page.name}`, 25, y);
+          const splitDesc = doc.splitTextToSize(`  ${page.desc}`, 165);
+          doc.text(splitDesc, 30, y + 4);
+          y += 4 + splitDesc.length * 4 + 3;
+        });
         y += 5;
       });
 
