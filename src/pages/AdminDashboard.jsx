@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import LoadingUser from '../components/LoadingUser';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -102,6 +103,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-4">
+      <Breadcrumb items={[
+        { label: 'Admin Dashboard', page: 'AdminDashboard' }
+      ]} />
+      
       {/* Compact Header */}
       <div className="flex items-center justify-between">
         <div>

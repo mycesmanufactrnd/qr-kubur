@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
+import Breadcrumb from '../components/Breadcrumb';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -171,6 +172,11 @@ export default function ManageGraves() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={[
+        { label: 'Admin Dashboard', page: 'AdminDashboard' },
+        { label: 'Urus Tanah Perkuburan', page: 'ManageGraves' }
+      ]} />
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
