@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { 
   Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
   Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
-  Shield
+  Shield, Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,11 +15,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from '@tanstack/react-query';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications', user?.email],
+    queryFn: () => base44.entities.Notification.filter({ user_email: user?.email, is_read: false }),
+    enabled: !!user?.email && !user?.isAppUser
+  });
+
+  const unreadCount = notifications.length;
 
   useEffect(() => {
     loadUser();
@@ -258,6 +268,18 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
+              {user && !user.isAppUser && (
+                <Link to={createPageUrl('NotificationPage')} className="relative">
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-xs">
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
+              )}
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
