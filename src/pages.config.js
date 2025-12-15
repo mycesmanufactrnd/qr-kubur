@@ -16,7 +16,6 @@ import ManageDonations from './pages/ManageDonations';
 import SuperadminDashboard from './pages/SuperadminDashboard';
 import ManageTahlilRequests from './pages/ManageTahlilRequests';
 import AboutSystem from './pages/AboutSystem';
-import MoreMenu from './pages/MoreMenu';
 import ManageUsers from './pages/ManageUsers';
 import Documentation from './pages/Documentation';
 import AppUserLogin from './pages/AppUserLogin';
@@ -25,6 +24,10 @@ import SettingsPage from './pages/SettingsPage';
 import SearchTahfiz from './pages/SearchTahfiz';
 import UserDashboard from './pages/UserDashboard';
 import IconLibrary from './pages/IconLibrary';
+import NotificationPage from './pages/NotificationPage';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import QiblaCompass from './pages/QiblaCompass';
 import __Layout from './Layout.jsx';
 
 
@@ -47,7 +50,6 @@ export const PAGES = {
     "SuperadminDashboard": SuperadminDashboard,
     "ManageTahlilRequests": ManageTahlilRequests,
     "AboutSystem": AboutSystem,
-    "MoreMenu": MoreMenu,
     "ManageUsers": ManageUsers,
     "Documentation": Documentation,
     "AppUserLogin": AppUserLogin,
@@ -56,6 +58,10 @@ export const PAGES = {
     "SearchTahfiz": SearchTahfiz,
     "UserDashboard": UserDashboard,
     "IconLibrary": IconLibrary,
+    "NotificationPage": NotificationPage,
+    "TermsAndConditions": TermsAndConditions,
+    "PrivacyPolicy": PrivacyPolicy,
+    "QiblaCompass": QiblaCompass,
 }
 
 export const pagesConfig = {
