@@ -206,7 +206,6 @@ export default function ManageDeadPersons() {
             <Users className="w-6 h-6 text-blue-600" />
             Urus Rekod Si Mati
           </h1>
-          <p className="text-gray-500">{filteredPersons.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />

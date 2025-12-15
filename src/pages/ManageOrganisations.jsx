@@ -253,7 +253,6 @@ export default function ManageOrganisations() {
             <Building2 className="w-6 h-6 text-violet-600" />
             Urus Organisasi
           </h1>
-          <p className="text-gray-500">{filteredOrgs.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
           <Plus className="w-4 h-4 mr-2" />

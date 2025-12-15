@@ -193,7 +193,6 @@ export default function ManageGraves() {
             <MapPin className="w-6 h-6 text-emerald-600" />
             Urus Tanah Perkuburan
           </h1>
-          <p className="text-gray-500">{graves.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700">
           <Plus className="w-4 h-4 mr-2" />
