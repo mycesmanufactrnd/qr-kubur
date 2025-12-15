@@ -223,7 +223,6 @@ export default function ManageTahfizCenters() {
             <BookOpen className="w-6 h-6 text-amber-600" />
             Urus Pusat Tahfiz
           </h1>
-          <p className="text-gray-500">{filteredCenters.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
           <Plus className="w-4 h-4 mr-2" />
