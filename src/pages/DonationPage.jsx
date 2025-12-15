@@ -32,6 +32,7 @@ export default function DonationPage() {
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: organisations = [] } = useQuery({
@@ -117,8 +118,6 @@ export default function DonationPage() {
       </div>
     );
   }
-
-  const navigate = useNavigate();
   
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
