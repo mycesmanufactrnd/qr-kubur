@@ -350,24 +350,16 @@ export default function SuperadminDashboard() {
 
         {/* Add Tab */}
         <TabsContent value="add" className="space-y-4">
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle>Create Organization Account</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Organization accounts must be created via the invite system. Use the "Manage Users" page to invite organizations.
-              </p>
-              <Link to={createPageUrl('ManageUsers')}>
-                <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Users & Create Organization
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
           <div className="grid md:grid-cols-2 gap-4">
+            <Link to={createPageUrl('ManageUsers') + '?action=add'}>
+              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <Users className="w-10 h-10 text-emerald-600 mb-3" />
+                  <h3 className="font-bold text-lg mb-2">Tambah Pengguna</h3>
+                  <p className="text-sm text-gray-600">Tambah pengguna pengurusan baharu</p>
+                </CardContent>
+              </Card>
+            </Link>
             <Link to={createPageUrl('ManageOrganisations') + '?action=add'}>
               <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <CardContent className="p-6">
