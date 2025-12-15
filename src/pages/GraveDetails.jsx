@@ -146,13 +146,16 @@ export default function GraveDetails() {
                 className="h-9"
               />
               <div className="flex gap-2">
-                <Input
-                  type="date"
-                  value={searchDate}
-                  onChange={(e) => setSearchDate(e.target.value)}
-                  className="h-9"
-                />
-                <Button onClick={handleSearch} size="sm" className="h-9 bg-emerald-600 hover:bg-emerald-700">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-600 mb-1 block">Tarikh Meninggal</label>
+                  <Input
+                    type="date"
+                    value={searchDate}
+                    onChange={(e) => setSearchDate(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <Button onClick={handleSearch} size="sm" className="h-9 mt-5 bg-emerald-600 hover:bg-emerald-700">
                   <Search className="w-4 h-4" />
                 </Button>
               </div>

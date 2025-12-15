@@ -69,7 +69,12 @@ export default function SearchTahfiz() {
   const filteredCenters = centersWithDistance.filter(center => {
     const matchesSearch = !searchQuery || 
       center.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesState = selectedState === 'nearby' || center.state === selectedState;
+    
+    // When "nearby" is selected, only show centers from NEARBY_STATES
+    const matchesState = selectedState === 'nearby' 
+      ? NEARBY_STATES.includes(center.state)
+      : center.state === selectedState;
+    
     return matchesSearch && matchesState;
   });
 
@@ -119,9 +124,20 @@ export default function SearchTahfiz() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="nearby">Berdekatan</SelectItem>
-                {NEARBY_STATES.map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
-                ))}
+                <SelectItem value="Johor">Johor</SelectItem>
+                <SelectItem value="Kedah">Kedah</SelectItem>
+                <SelectItem value="Kelantan">Kelantan</SelectItem>
+                <SelectItem value="Melaka">Melaka</SelectItem>
+                <SelectItem value="Negeri Sembilan">Negeri Sembilan</SelectItem>
+                <SelectItem value="Pahang">Pahang</SelectItem>
+                <SelectItem value="Perak">Perak</SelectItem>
+                <SelectItem value="Perlis">Perlis</SelectItem>
+                <SelectItem value="Pulau Pinang">Pulau Pinang</SelectItem>
+                <SelectItem value="Sabah">Sabah</SelectItem>
+                <SelectItem value="Sarawak">Sarawak</SelectItem>
+                <SelectItem value="Selangor">Selangor</SelectItem>
+                <SelectItem value="Terengganu">Terengganu</SelectItem>
+                <SelectItem value="Wilayah Persekutuan">Wilayah Persekutuan</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleSearch} className="h-9 bg-violet-600 hover:bg-violet-700">
