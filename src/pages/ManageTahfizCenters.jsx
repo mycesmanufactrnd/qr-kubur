@@ -114,7 +114,15 @@ export default function ManageTahfizCenters() {
     return <LoadingUser />;
   }
 
-  const filteredCenters = centers.filter(center => {
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  const userStates = Array.isArray(currentUser?.state) ? currentUser.state : [];
+
+  const accessibleCenters = centers.filter(center => {
+    if (isSuperAdmin) return true;
+    return userStates.includes(center.state);
+  });
+
+  const filteredCenters = accessibleCenters.filter(center => {
     const matchesSearch = !searchQuery || 
       center.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesState = filterState === 'all' || center.state === filterState;
@@ -195,7 +203,7 @@ export default function ManageTahfizCenters() {
             <BookOpen className="w-6 h-6 text-amber-600" />
             Urus Pusat Tahfiz
           </h1>
-          <p className="text-gray-500">{centers.length} rekod</p>
+          <p className="text-gray-500">{accessibleCenters.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -216,18 +224,20 @@ export default function ManageTahfizCenters() {
                 className="pl-10"
               />
             </div>
-            <Select value={filterState} onValueChange={setFilterState}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder="Semua Negeri" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Negeri</SelectItem>
-                {STATES.map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isSuperAdmin && (
+              <Select value={filterState} onValueChange={setFilterState}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Filter className="w-4 h-4 mr-2 text-gray-400" />
+                  <SelectValue placeholder="Semua Negeri" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  {STATES.map(state => (
+                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -312,7 +322,7 @@ export default function ManageTahfizCenters() {
                   <SelectValue placeholder="Pilih negeri" />
                 </SelectTrigger>
                 <SelectContent>
-                  {STATES.map(state => (
+                  {(isSuperAdmin ? STATES : userStates).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
                 </SelectContent>
