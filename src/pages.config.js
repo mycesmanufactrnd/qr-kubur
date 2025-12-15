@@ -24,6 +24,7 @@ import ViewLogs from './pages/ViewLogs';
 import SettingsPage from './pages/SettingsPage';
 import SearchTahfiz from './pages/SearchTahfiz';
 import UserDashboard from './pages/UserDashboard';
+import IconLibrary from './pages/IconLibrary';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "SettingsPage": SettingsPage,
     "SearchTahfiz": SearchTahfiz,
     "UserDashboard": UserDashboard,
+    "IconLibrary": IconLibrary,
 }
 
 export const pagesConfig = {
