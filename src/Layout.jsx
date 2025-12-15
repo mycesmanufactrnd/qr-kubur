@@ -117,12 +117,134 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+      {/* Mobile Header - Admin Only */}
+      {isAdmin && (
+        <header className="lg:hidden sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
+          <div className="flex items-center justify-between h-14 px-4">
+            {/* Burger Menu */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-700"
+            >
+              <Menu className="w-6 h-6" />
+            </Button>
+
+            {/* Logo */}
+            <Link to={createPageUrl('AdminDashboard')} className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
+                <QrCode className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  QR Kubur
+                </h1>
+              </div>
+            </Link>
+
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
+                    {user?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2 border-b">
+                  <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-xs text-emerald-600 capitalize">{user?.role}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Log Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+      )}
+
+      {/* Mobile Drawer - Admin Only */}
+      {isAdmin && (
+        <>
+          {/* Overlay */}
+          {isMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={() => setIsMenuOpen(false)}
+            />
+          )}
+
+          {/* Drawer */}
+          <div
+            className={`fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 transform transition-transform duration-300 lg:hidden ${
+              isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-bold text-emerald-600">Menu</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <nav className="p-4 space-y-1">
+              {adminNavItems.map((item) => (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    currentPageName === item.page
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              ))}
+
+              {isSuperAdmin && (
+                <>
+                  <div className="border-t my-2" />
+                  {superAdminNavItems.map((item) => (
+                    <Link
+                      key={item.page}
+                      to={createPageUrl(item.page)}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                        currentPageName === item.page
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
+            </nav>
+          </div>
+        </>
+      )}
+
       {/* Header - Desktop Only */}
       <header className="hidden lg:block sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to={createPageUrl('UserDashboard')} className="flex items-center gap-3">
+            <Link to={createPageUrl(isAdmin ? 'AdminDashboard' : 'UserDashboard')} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>
@@ -134,8 +256,39 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </Link>
 
-            {/* Right Side */}
+            {/* Desktop Navigation & Right Side */}
             <div className="flex items-center gap-3">
+              {isAdmin && (
+                <nav className="flex items-center gap-1 mr-4">
+                  {adminNavItems.map((item) => (
+                    <Link
+                      key={item.page}
+                      to={createPageUrl(item.page)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        currentPageName === item.page
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  
+                  {isSuperAdmin && (
+                    <Link
+                      to={createPageUrl('SuperadminDashboard')}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        currentPageName === 'SuperadminDashboard'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      Super Admin
+                    </Link>
+                  )}
+                </nav>
+              )}
+
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -155,34 +308,6 @@ export default function Layout({ children, currentPageName }) {
                       <p className="text-xs text-gray-500">{user.email}</p>
                       <p className="text-xs text-emerald-600 capitalize">{user.role}</p>
                     </div>
-
-                    {isAdmin && (
-                      <>
-                        <DropdownMenuSeparator />
-                        {adminNavItems.map((item) => (
-                          <DropdownMenuItem key={item.page} asChild>
-                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
-                              <item.icon className="w-4 h-4" />
-                              {item.name}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    )}
-                    
-                    {isSuperAdmin && (
-                      <>
-                        <DropdownMenuSeparator />
-                        {superAdminNavItems.map((item) => (
-                          <DropdownMenuItem key={item.page} asChild>
-                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
-                              <item.icon className="w-4 h-4" />
-                              {item.name}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </>
-                    )}
                     
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-red-600">
