@@ -15,6 +15,7 @@ export default function UserDashboard() {
     { icon: BookOpen, title: 'Mohon Tahlil', page: 'TahlilRequestPage', color: 'bg-teal-100 text-teal-600' },
     { icon: Heart, title: 'Derma', page: 'DonationPage', color: 'bg-pink-100 text-pink-600' },
     { icon: FileText, title: 'Cadangan', page: 'SubmitSuggestion', color: 'bg-amber-100 text-amber-600' },
+    { icon: FileText, title: 'Surah', page: 'SurahPage', color: 'bg-amber-100 text-amber-600' },
   ];
 
   return (
