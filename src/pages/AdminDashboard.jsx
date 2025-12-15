@@ -109,7 +109,7 @@ export default function AdminDashboard() {
           <p className="text-xs text-gray-500">{user?.full_name || 'Admin'}</p>
         </div>
         <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200 bg-emerald-50">
-          Admin
+          {user?.role}
         </Badge>
       </div>
 
