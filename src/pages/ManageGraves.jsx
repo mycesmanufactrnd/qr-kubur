@@ -125,6 +125,9 @@ export default function ManageGraves() {
     return matchesSearch && matchesState;
   });
 
+  const paginatedGraves = filteredGraves.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(filteredGraves.length / itemsPerPage);
+
   const openAddDialog = () => {
     setEditingGrave(null);
     setFormData(emptyGrave);
