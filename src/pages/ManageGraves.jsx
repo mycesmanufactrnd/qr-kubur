@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -37,6 +38,8 @@ const emptyGrave = {
 export default function ManageGraves() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
   const [formData, setFormData] = useState(emptyGrave);
@@ -242,12 +245,12 @@ export default function ManageGraves() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">Memuatkan...</TableCell>
                 </TableRow>
-              ) : filteredGraves.length === 0 ? (
+              ) : paginatedGraves.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
                 </TableRow>
               ) : (
-                filteredGraves.map(grave => (
+                paginatedGraves.map(grave => (
                   <TableRow key={grave.id}>
                     <TableCell className="font-medium">{grave.cemetery_name}</TableCell>
                     <TableCell>{grave.state}</TableCell>
@@ -279,6 +282,19 @@ export default function ManageGraves() {
             </TableBody>
           </Table>
         </CardContent>
+        {totalPages > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={filteredGraves.length}
+          />
+        )}
       </Card>
 
       {/* Add/Edit Dialog */}

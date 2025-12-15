@@ -18,14 +18,16 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
 
-const ITEMS_PER_PAGE = 10;
+
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
 
 export default function ManageUsers() {
   const [currentUser, setCurrentUser] = React.useState(null);
   const [userLoading, setUserLoading] = React.useState(true);
   const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -175,8 +177,8 @@ export default function ManageUsers() {
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const paginatedUsers = filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const paginatedUsers = filteredUsers.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const handleAddUser = () => {
     setIsAddMode(true);
@@ -482,30 +484,18 @@ export default function ManageUsers() {
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Halaman {page} / {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+      {totalPages > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={(value) => {
+            setItemsPerPage(value);
+            setPage(1);
+          }}
+          totalItems={filteredUsers.length}
+        />
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
 
 const STATES = [
   "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -41,6 +42,8 @@ export default function ManageOrganisations() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [formData, setFormData] = useState(emptyOrg);
@@ -291,12 +294,12 @@ export default function ManageOrganisations() {
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">Memuatkan...</TableCell>
                 </TableRow>
-              ) : filteredOrgs.length === 0 ? (
+              ) : paginatedOrgs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
                 </TableRow>
               ) : (
-                filteredOrgs.map(org => (
+                paginatedOrgs.map(org => (
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
                     <TableCell>
@@ -327,6 +330,19 @@ export default function ManageOrganisations() {
             </TableBody>
           </Table>
         </CardContent>
+        {totalPages > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={filteredOrgs.length}
+          />
+        )}
       </Card>
 
       {/* Add/Edit Dialog */}

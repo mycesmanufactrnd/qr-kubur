@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
 
 const emptyPerson = {
   name: '',
@@ -28,6 +29,8 @@ const emptyPerson = {
 
 export default function ManageDeadPersons() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
   const [formData, setFormData] = useState(emptyPerson);
@@ -231,7 +234,7 @@ export default function ManageDeadPersons() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">Memuatkan...</TableCell>
                 </TableRow>
-              ) : filteredPersons.length === 0 ? (
+              ) : paginatedPersons.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
                 </TableRow>
@@ -261,6 +264,19 @@ export default function ManageDeadPersons() {
             </TableBody>
           </Table>
         </CardContent>
+        {totalPages > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={filteredPersons.length}
+          />
+        )}
       </Card>
 
       {/* Add/Edit Dialog */}

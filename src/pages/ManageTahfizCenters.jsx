@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Pagination from '../components/Pagination';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -48,6 +49,8 @@ const emptyCenter = {
 export default function ManageTahfizCenters() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCenter, setEditingCenter] = useState(null);
   const [formData, setFormData] = useState(emptyCenter);
@@ -129,6 +132,9 @@ export default function ManageTahfizCenters() {
     return matchesSearch && matchesState;
   });
 
+  const paginatedCenters = filteredCenters.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalPages = Math.ceil(filteredCenters.length / itemsPerPage);
+
   const openAddDialog = () => {
     setEditingCenter(null);
     setFormData(emptyCenter);
@@ -203,7 +209,7 @@ export default function ManageTahfizCenters() {
             <BookOpen className="w-6 h-6 text-amber-600" />
             Urus Pusat Tahfiz
           </h1>
-          <p className="text-gray-500">{accessibleCenters.length} rekod</p>
+          <p className="text-gray-500">{filteredCenters.length} rekod</p>
         </div>
         <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -259,12 +265,12 @@ export default function ManageTahfizCenters() {
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">Memuatkan...</TableCell>
                 </TableRow>
-              ) : filteredCenters.length === 0 ? (
+              ) : paginatedCenters.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
                 </TableRow>
               ) : (
-                filteredCenters.map(center => (
+                paginatedCenters.map(center => (
                   <TableRow key={center.id}>
                     <TableCell className="font-medium">{center.name}</TableCell>
                     <TableCell>{center.state}</TableCell>
@@ -296,6 +302,19 @@ export default function ManageTahfizCenters() {
             </TableBody>
           </Table>
         </CardContent>
+        {totalPages > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={filteredCenters.length}
+          />
+        )}
       </Card>
 
       {/* Add/Edit Dialog */}
