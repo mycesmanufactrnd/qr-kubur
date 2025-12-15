@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useUserWithRoleOverride } from '../components/useUserWithRoleOverride';
+import Breadcrumb from '../components/Breadcrumb';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -137,6 +138,11 @@ export default function ManageEmployees() {
 
   return (
     <div className="space-y-4">
+      <Breadcrumb items={[
+        { label: 'Admin Dashboard', page: 'AdminDashboard' },
+        { label: 'Urus Employee', page: 'ManageEmployees' }
+      ]} />
+      
       <div className="flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold">Manage Employees</h1>
         <Button onClick={handleAddEmployee} className="bg-emerald-600 hover:bg-emerald-700 gap-2">
