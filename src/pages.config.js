@@ -18,7 +18,6 @@ import ManageTahlilRequests from './pages/ManageTahlilRequests';
 import AboutSystem from './pages/AboutSystem';
 import MoreMenu from './pages/MoreMenu';
 import ManageUsers from './pages/ManageUsers';
-import ManagePermissions from './pages/ManagePermissions';
 import Documentation from './pages/Documentation';
 import ManageEmployees from './pages/ManageEmployees';
 import AppUserLogin from './pages/AppUserLogin';
@@ -50,7 +49,6 @@ export const PAGES = {
     "AboutSystem": AboutSystem,
     "MoreMenu": MoreMenu,
     "ManageUsers": ManageUsers,
-    "ManagePermissions": ManagePermissions,
     "Documentation": Documentation,
     "ManageEmployees": ManageEmployees,
     "AppUserLogin": AppUserLogin,
