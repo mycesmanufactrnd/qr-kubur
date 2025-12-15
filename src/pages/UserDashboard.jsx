@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, QrCode, Heart, BookOpen, FileText, Map, LogIn } from 'lucide-react';
+import { Search, MapPin, QrCode, Heart, BookOpen, FileText, Map, LogIn, BookText } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +15,7 @@ export default function UserDashboard() {
     { icon: BookOpen, title: 'Mohon Tahlil', page: 'TahlilRequestPage', color: 'bg-teal-100 text-teal-600' },
     { icon: Heart, title: 'Derma', page: 'DonationPage', color: 'bg-pink-100 text-pink-600' },
     { icon: FileText, title: 'Cadangan', page: 'SubmitSuggestion', color: 'bg-amber-100 text-amber-600' },
-    { icon: FileText, title: 'Surah', page: 'SurahPage', color: 'bg-amber-100 text-amber-600' },
+    { icon: BookText, title: 'Surah', page: 'SurahPage', color: 'bg-emerald-100 text-emerald-600' },
   ];
 
   return (
