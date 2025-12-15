@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { useForm, Controller } from "react-hook-form";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -87,7 +88,7 @@ export default function ManageOrganisations() {
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-organisations']);
       setIsDialogOpen(false);
-      setFormData(emptyOrg);
+      reset(emptyOrg);
       toast.success('Organisasi berjaya ditambah');
     }
   });
@@ -98,7 +99,7 @@ export default function ManageOrganisations() {
       queryClient.invalidateQueries(['admin-organisations']);
       setIsDialogOpen(false);
       setEditingOrg(null);
-      setFormData(emptyOrg);
+      reset(emptyOrg);
       toast.success('Organisasi berjaya dikemaskini');
     }
   });
@@ -166,7 +167,7 @@ export default function ManageOrganisations() {
     setEditingOrg(null);
     // For state admin, pre-set their state
     const defaultState = isSuperAdmin ? '' : (adminStates[0] || '');
-    setFormData({...emptyOrg, state: defaultState});
+    reset({...emptyOrg, state: defaultState});
     setIsDialogOpen(true);
   };
 
@@ -176,7 +177,7 @@ export default function ManageOrganisations() {
       return;
     }
     setEditingOrg(org);
-    setFormData({
+    reset({
       name: org.name || '',
       description: org.description || '',
       type: org.type || 'government',
@@ -192,29 +193,26 @@ export default function ManageOrganisations() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!formData.name?.trim()) {
+  const onSubmit = (data) => {
+    if (!data.name?.trim()) {
       toast.error('Sila masukkan nama organisasi');
       return;
     }
-    if (!formData.state) {
+    if (!data.state) {
       toast.error('Sila pilih negeri');
       return;
     }
     
-    const data = {
-      ...formData,
-      gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-      gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null
+    const submitData = {
+      ...data,
+      gps_lat: data.gps_lat ? parseFloat(data.gps_lat) : null,
+      gps_lng: data.gps_lng ? parseFloat(data.gps_lng) : null
     };
 
     if (editingOrg) {
-      updateMutation.mutate({ id: editingOrg.id, data });
+      updateMutation.mutate({ id: editingOrg.id, data: submitData });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(submitData);
     }
   };
 
@@ -370,102 +368,119 @@ export default function ManageOrganisations() {
               {editingOrg ? 'Edit Organisasi' : 'Tambah Organisasi Baru'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             <div>
               <Label>Nama <span className="text-red-500">*</span></Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: 'Nama organisasi diperlukan' }}
+                render={({ field }) => <Input {...field} />}
               />
             </div>
             <div>
               <Label>Jenis</Label>
-              <Select value={formData.type} onValueChange={(v) => setFormData({...formData, type: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="government">Kerajaan</SelectItem>
-                  <SelectItem value="grave_manager">Pengurus Kubur</SelectItem>
-                  <SelectItem value="tahfiz">Tahfiz</SelectItem>
-                  <SelectItem value="NGO">NGO</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="government">Kerajaan</SelectItem>
+                      <SelectItem value="grave_manager">Pengurus Kubur</SelectItem>
+                      <SelectItem value="tahfiz">Tahfiz</SelectItem>
+                      <SelectItem value="NGO">NGO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div>
               <Label>Negeri <span className="text-red-500">*</span></Label>
-              <Select 
-                value={formData.state} 
-                onValueChange={(v) => setFormData({...formData, state: v})}
-                disabled={!isSuperAdmin && adminStates.length === 1}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih negeri" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(isSuperAdmin ? STATES : STATES.filter(s => adminStates.includes(s))).map(state => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="state"
+                control={control}
+                rules={{ required: 'Negeri diperlukan' }}
+                render={({ field }) => (
+                  <Select 
+                    value={field.value} 
+                    onValueChange={field.onChange}
+                    disabled={!isSuperAdmin && adminStates.length === 1}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih negeri" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(isSuperAdmin ? STATES : STATES.filter(s => adminStates.includes(s))).map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div>
               <Label>Alamat</Label>
-              <Textarea
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
+              <Controller
+                name="address"
+                control={control}
+                render={({ field }) => <Textarea {...field} />}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Telefon</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
                 />
               </div>
               <div>
                 <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => <Input type="email" {...field} />}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Nama Bank</Label>
-                <Input
-                  value={formData.bank_name}
-                  onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
+                <Controller
+                  name="bank_name"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
                 />
               </div>
               <div>
                 <Label>No. Akaun</Label>
-                <Input
-                  value={formData.bank_account}
-                  onChange={(e) => setFormData({...formData, bank_account: e.target.value})}
+                <Controller
+                  name="bank_account"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>GPS Latitude</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={formData.gps_lat}
-                  onChange={(e) => setFormData({...formData, gps_lat: e.target.value})}
+                <Controller
+                  name="gps_lat"
+                  control={control}
+                  render={({ field }) => <Input type="number" step="any" {...field} />}
                 />
               </div>
               <div>
                 <Label>GPS Longitude</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={formData.gps_lng}
-                  onChange={(e) => setFormData({...formData, gps_lng: e.target.value})}
+                <Controller
+                  name="gps_lng"
+                  control={control}
+                  render={({ field }) => <Input type="number" step="any" {...field} />}
                 />
               </div>
             </div>
