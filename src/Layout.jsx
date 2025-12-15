@@ -244,7 +244,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to={createPageUrl(isAdmin ? 'AdminDashboard' : 'UserDashboard')} className="flex items-center gap-3">
+            <Link to={createPageUrl('UserDashboard')} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>
@@ -256,39 +256,8 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </Link>
 
-            {/* Desktop Navigation & Right Side */}
+            {/* Right Side */}
             <div className="flex items-center gap-3">
-              {isAdmin && (
-                <nav className="flex items-center gap-1 mr-4">
-                  {adminNavItems.map((item) => (
-                    <Link
-                      key={item.page}
-                      to={createPageUrl(item.page)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        currentPageName === item.page
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                  
-                  {isSuperAdmin && (
-                    <Link
-                      to={createPageUrl('SuperadminDashboard')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                        currentPageName === 'SuperadminDashboard'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                    >
-                      Super Admin
-                    </Link>
-                  )}
-                </nav>
-              )}
-
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -308,6 +277,34 @@ export default function Layout({ children, currentPageName }) {
                       <p className="text-xs text-gray-500">{user.email}</p>
                       <p className="text-xs text-emerald-600 capitalize">{user.role}</p>
                     </div>
+
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        {adminNavItems.map((item) => (
+                          <DropdownMenuItem key={item.page} asChild>
+                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
+                              <item.icon className="w-4 h-4" />
+                              {item.name}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                    
+                    {isSuperAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        {superAdminNavItems.map((item) => (
+                          <DropdownMenuItem key={item.page} asChild>
+                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
+                              <item.icon className="w-4 h-4" />
+                              {item.name}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
                     
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-red-600">
