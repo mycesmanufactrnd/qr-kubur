@@ -16,13 +16,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useUserWithRoleOverride } from '../components/useUserWithRoleOverride';
 import Breadcrumb from '../components/Breadcrumb';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function ManageEmployees() {
-  const { user: currentUser, loading: userLoading } = useUserWithRoleOverride();
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const [userLoading, setUserLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem('appUserAuth');
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState(null);

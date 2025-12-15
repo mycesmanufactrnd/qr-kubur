@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { 
   Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
   Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
-  Shield, User as UserIcon
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,6 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [roleOverride, setRoleOverride] = useState(() => localStorage.getItem('roleOverride') || null);
 
   useEffect(() => {
     loadUser();
@@ -28,7 +27,6 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUser = async () => {
     try {
-      // Check for AppUser authentication first
       const appUserAuth = localStorage.getItem('appUserAuth');
       
       if (appUserAuth) {
@@ -41,33 +39,15 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      // No AppUser found - user is not logged in
       setUser(null);
     } catch (e) {
       setUser(null);
     }
     setLoading(false);
   };
-  
-  const handleRoleSwitch = (role, state = null) => {
-    const roleData = state ? JSON.stringify({ role, state }) : role;
-    localStorage.setItem('roleOverride', roleData);
-    setRoleOverride(roleData);
-    window.location.reload();
-  };
-
-  const clearRoleOverride = () => {
-    localStorage.removeItem('roleOverride');
-    setRoleOverride(null);
-    window.location.reload();
-  };
 
   const handleLogout = () => {
-    // Clear AppUser authentication
     localStorage.removeItem('appUserAuth');
-    localStorage.removeItem('roleOverride');
-    
-    // Redirect to login page
     window.location.href = createPageUrl('AppUserLogin');
   };
 
@@ -194,55 +174,6 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
-              {/* Role Switcher - Dev/Testing Only */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <UserIcon className="w-4 h-4" />
-                    {(() => {
-                      if (!roleOverride) return 'Role';
-                      try {
-                        const parsed = JSON.parse(roleOverride);
-                        return `Admin (${parsed.state})`;
-                      } catch {
-                        return roleOverride.charAt(0).toUpperCase() + roleOverride.slice(1);
-                      }
-                    })()}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="max-h-[400px] overflow-y-auto">
-                  <DropdownMenuItem onClick={() => handleRoleSwitch('superadmin')}>
-                    <Shield className="w-4 h-4 mr-2" />
-                    Super Admin
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleRoleSwitch('admin')}>
-                    <Shield className="w-4 h-4 mr-2" />
-                    Admin (All States)
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"].map(state => (
-                    <DropdownMenuItem key={state} onClick={() => handleRoleSwitch('admin', state)}>
-                      <MapPin className="w-4 h-4 mr-2" />
-                      Admin ({state})
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleRoleSwitch('user')}>
-                    <UserIcon className="w-4 h-4 mr-2" />
-                    User
-                  </DropdownMenuItem>
-                  {roleOverride && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={clearRoleOverride} className="text-red-600">
-                        <X className="w-4 h-4 mr-2" />
-                        Clear Override
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
