@@ -66,9 +66,17 @@ export default function ManageUsers() {
   const allUsers = [...users, ...appUsers];
 
   const createUserMutation = useMutation({
-    mutationFn: (data) => base44.entities.AppUser.create(data),
+    mutationFn: async (data) => {
+      // Hash password if provided
+      if (data.password) {
+        const hashResponse = await base44.functions.invoke('hashPassword', { password: data.password });
+        data.password = hashResponse.data.hashed;
+      }
+      return base44.entities.AppUser.create(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
       setDialogOpen(false);
       setEditUser(null);
       setIsAddMode(false);
@@ -87,7 +95,14 @@ export default function ManageUsers() {
   });
 
   const updateAppUserMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.AppUser.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      // Hash password if provided
+      if (data.password) {
+        const hashResponse = await base44.functions.invoke('hashPassword', { password: data.password });
+        data.password = hashResponse.data.hashed;
+      }
+      return base44.entities.AppUser.update(id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['appUsers'] });
@@ -119,15 +134,30 @@ export default function ManageUsers() {
   const accessibleUsers = allUsers.filter(u => {
     if (isSuperAdmin) return true;
     if (isAdmin) {
+      // Admin can see users in their organisation
+      if (u.organisation_id !== currentUser.organisation_id) return false;
       // Admin can only see admin and employee
       if (u.admin_type !== 'admin' && u.admin_type !== 'employee') return false;
-      // Must share at least one state
-      const userStates = u.state || [];
-      const adminStates = currentUser.state || [];
-      return userStates.some(s => adminStates.includes(s));
+      return true;
     }
     return false;
   });
+
+  // Filter organisations based on admin state
+  const accessibleOrganisations = organisations.filter(org => {
+    if (isSuperAdmin) return true;
+    if (isAdmin) {
+      const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+      const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
+      return adminStates.some(s => orgStates.includes(s));
+    }
+    return false;
+  });
+
+  // Get admin's accessible states
+  const adminAccessibleStates = isAdmin && !isSuperAdmin
+    ? (Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean))
+    : STATES;
 
   const filteredUsers = accessibleUsers.filter(u => 
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -139,14 +169,17 @@ export default function ManageUsers() {
 
   const handleAddUser = () => {
     setIsAddMode(true);
+    const defaultState = isAdmin && !isSuperAdmin ? adminAccessibleStates : [];
+    const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation_id : '';
     setEditUser({
       full_name: '',
       email: '',
-      role: 'user',
-      admin_type: 'none',
+      password: '',
+      role: 'admin',
+      admin_type: 'employee',
       type: 'employee',
-      organisation_id: '',
-      state: [],
+      organisation_id: defaultOrgId,
+      state: defaultState,
       permissions: {
         graves: { view: false, create: false, edit: false, delete: false },
         dead_persons: { view: false, create: false, edit: false, delete: false },
@@ -163,6 +196,7 @@ export default function ManageUsers() {
     setIsAddMode(false);
     setEditUser({
       ...user,
+      password: '', // Empty for edit mode
       isAppUser: appUsers.some(u => u.id === user.id),
       state: user.state || [],
       permissions: user.permissions || {
@@ -179,19 +213,29 @@ export default function ManageUsers() {
 
   const handleSaveUser = () => {
     if (!editUser) return;
+    
+    // Remove password field if empty in edit mode
+    const dataToSave = { ...editUser };
+    if (!isAddMode && !dataToSave.password) {
+      delete dataToSave.password;
+    }
+    
     if (isAddMode) {
-      createUserMutation.mutate(editUser);
+      createUserMutation.mutate(dataToSave);
     } else {
       if (editUser.isAppUser) {
-        updateAppUserMutation.mutate({ id: editUser.id, data: editUser });
+        updateAppUserMutation.mutate({ id: editUser.id, data: dataToSave });
       } else {
-        updateUserMutation.mutate({ id: editUser.id, data: editUser });
+        updateUserMutation.mutate({ id: editUser.id, data: dataToSave });
       }
     }
   };
 
   const handleStateToggle = (state) => {
     if (!editUser) return;
+    // For state admin, don't allow deselecting their own states
+    if (isAdmin && !isSuperAdmin) return;
+    
     const currentStates = editUser.state || [];
     const newStates = currentStates.includes(state)
       ? currentStates.filter(s => s !== state)
@@ -413,30 +457,51 @@ export default function ManageUsers() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Email</label>
-                    <Input
-                      type="email"
-                      value={editUser.email}
-                      onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                      placeholder="Masukkan email"
-                    />
+                   <label className="text-sm font-medium mb-2 block">Email</label>
+                   <Input
+                     type="email"
+                     value={editUser.email}
+                     onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                     placeholder="Masukkan email"
+                   />
                   </div>
-                </>
-              )}
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Admin Type</label>
+                  <div>
+                   <label className="text-sm font-medium mb-2 block">Password</label>
+                   <Input
+                     type="password"
+                     value={editUser.password}
+                     onChange={(e) => setEditUser({...editUser, password: e.target.value})}
+                     placeholder="Masukkan kata laluan"
+                   />
+                  </div>
+                  </>
+                  )}
+
+                  {!isAddMode && (
+                  <div>
+                  <label className="text-sm font-medium mb-2 block">Password (kosongkan jika tidak tukar)</label>
+                  <Input
+                   type="password"
+                   value={editUser.password}
+                   onChange={(e) => setEditUser({...editUser, password: e.target.value})}
+                   placeholder="Kosongkan jika tidak tukar"
+                  />
+                  </div>
+                  )}
+
+                  <div>
+                  <label className="text-sm font-medium mb-2 block">Admin Type</label>
                 <Select 
-                  value={editUser.admin_type || 'none'} 
+                  value={editUser.admin_type || 'employee'} 
                   onValueChange={(v) => setEditUser({...editUser, admin_type: v})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
                     {isSuperAdmin && <SelectItem value="superadmin">Superadmin</SelectItem>}
-                    {(isSuperAdmin || isAdmin) && <SelectItem value="admin">Admin</SelectItem>}
+                    <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="employee">Employee</SelectItem>
                   </SelectContent>
                 </Select>
@@ -447,12 +512,13 @@ export default function ManageUsers() {
                 <Select 
                   value={editUser.organisation_id || ''} 
                   onValueChange={(v) => setEditUser({...editUser, organisation_id: v})}
+                  disabled={isAdmin && !isSuperAdmin}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
-                    {organisations.map(org => (
+                    {accessibleOrganisations.map(org => (
                       <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -462,12 +528,13 @@ export default function ManageUsers() {
               <div>
                 <label className="text-sm font-medium mb-2 block">Negeri</label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
-                  {STATES.map(state => (
+                  {adminAccessibleStates.map(state => (
                     <div key={state} className="flex items-center space-x-2">
                       <Checkbox
                         id={state}
                         checked={editUser.state?.includes(state)}
                         onCheckedChange={() => handleStateToggle(state)}
+                        disabled={isAdmin && !isSuperAdmin}
                       />
                       <label htmlFor={state} className="text-sm">{state}</label>
                     </div>
