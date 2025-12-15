@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -41,6 +42,8 @@ export default function ManageGraves() {
   const [formData, setFormData] = useState(emptyGrave);
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [graveToDelete, setGraveToDelete] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -165,9 +168,15 @@ export default function ManageGraves() {
   };
 
   const handleDelete = (grave) => {
-    if (confirm(`Padam "${grave.cemetery_name}"?`)) {
-      deleteMutation.mutate(grave.id);
-    }
+    setGraveToDelete(grave);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!graveToDelete) return;
+    deleteMutation.mutate(graveToDelete.id);
+    setDeleteDialogOpen(false);
+    setGraveToDelete(null);
   };
 
   return (
@@ -400,6 +409,16 @@ export default function ManageGraves() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Padam Kubur"
+        description={`Adakah anda pasti ingin memadam "${graveToDelete?.cemetery_name}"? Tindakan ini tidak boleh dibatalkan.`}
+        onConfirm={confirmDelete}
+        confirmText="Padam"
+        variant="destructive"
+      />
     </div>
   );
 }

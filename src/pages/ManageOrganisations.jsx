@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const STATES = [
   "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -43,6 +44,8 @@ export default function ManageOrganisations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [formData, setFormData] = useState(emptyOrg);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orgToDelete, setOrgToDelete] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -200,9 +203,15 @@ export default function ManageOrganisations() {
       toast.error('Anda tidak mempunyai kebenaran untuk padam organisasi ini');
       return;
     }
-    if (confirm(`Padam "${org.name}"?`)) {
-      deleteMutation.mutate(org.id);
-    }
+    setOrgToDelete(org);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!orgToDelete) return;
+    deleteMutation.mutate(orgToDelete.id);
+    setDeleteDialogOpen(false);
+    setOrgToDelete(null);
   };
 
   const typeLabels = {
@@ -440,6 +449,16 @@ export default function ManageOrganisations() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Padam Organisasi"
+        description={`Adakah anda pasti ingin memadam "${orgToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        onConfirm={confirmDelete}
+        confirmText="Padam"
+        variant="destructive"
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -53,6 +54,8 @@ export default function ManageTahfizCenters() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [centerToDelete, setCenterToDelete] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -173,9 +176,15 @@ export default function ManageTahfizCenters() {
   };
 
   const handleDelete = (center) => {
-    if (confirm(`Padam "${center.name}"?`)) {
-      deleteMutation.mutate(center.id);
-    }
+    setCenterToDelete(center);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!centerToDelete) return;
+    deleteMutation.mutate(centerToDelete.id);
+    setDeleteDialogOpen(false);
+    setCenterToDelete(null);
   };
 
   return (
@@ -404,6 +413,16 @@ export default function ManageTahfizCenters() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Padam Pusat Tahfiz"
+        description={`Adakah anda pasti ingin memadam "${centerToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        onConfirm={confirmDelete}
+        confirmText="Padam"
+        variant="destructive"
+      />
     </div>
   );
 }

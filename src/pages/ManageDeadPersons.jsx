@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const emptyPerson = {
   name: '',
@@ -33,6 +34,8 @@ export default function ManageDeadPersons() {
   const [uploading, setUploading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [personToDelete, setPersonToDelete] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -163,9 +166,15 @@ export default function ManageDeadPersons() {
   };
 
   const handleDelete = (person) => {
-    if (confirm(`Padam rekod "${person.name}"?`)) {
-      deleteMutation.mutate(person.id);
-    }
+    setPersonToDelete(person);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!personToDelete) return;
+    deleteMutation.mutate(personToDelete.id);
+    setDeleteDialogOpen(false);
+    setPersonToDelete(null);
   };
 
   const getGraveName = (graveId) => {
@@ -370,6 +379,16 @@ export default function ManageDeadPersons() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Padam Rekod"
+        description={`Adakah anda pasti ingin memadam rekod "${personToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        onConfirm={confirmDelete}
+        confirmText="Padam"
+        variant="destructive"
+      />
     </div>
   );
 }

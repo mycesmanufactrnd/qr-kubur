@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const ITEMS_PER_PAGE = 10;
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
@@ -47,6 +48,8 @@ export default function ManageUsers() {
   const [isAddMode, setIsAddMode] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
   const [permissionUser, setPermissionUser] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
   const queryClient = useQueryClient();
 
   const MODULES = ['graves', 'dead_persons', 'organisations', 'tahfiz', 'donations', 'users'];
@@ -266,13 +269,20 @@ export default function ManageUsers() {
   };
 
   const handleDeleteUser = (user) => {
-    if (!confirm('Adakah anda pasti ingin memadam pengguna ini?')) return;
-    const isAppUser = appUsers.some(u => u.id === user.id);
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!userToDelete) return;
+    const isAppUser = appUsers.some(u => u.id === userToDelete.id);
     if (isAppUser) {
-      deleteAppUserMutation.mutate(user.id);
+      deleteAppUserMutation.mutate(userToDelete.id);
     } else {
-      deleteUserMutation.mutate(user.id);
+      deleteUserMutation.mutate(userToDelete.id);
     }
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
   };
 
   const handleOpenPermissions = (user) => {
@@ -715,7 +725,17 @@ export default function ManageUsers() {
             </div>
           )}
         </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+        </Dialog>
+
+        <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Padam Pengguna"
+        description={`Adakah anda pasti ingin memadam pengguna ${userToDelete?.full_name || userToDelete?.email}? Tindakan ini tidak boleh dibatalkan.`}
+        onConfirm={confirmDelete}
+        confirmText="Padam"
+        variant="destructive"
+        />
+        </div>
+        );
+        }
