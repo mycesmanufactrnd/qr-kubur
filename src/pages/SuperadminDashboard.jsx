@@ -297,7 +297,7 @@ export default function SuperadminDashboard() {
             <Link to={createPageUrl('ManageUsers') + '?action=add'}>
               <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <CardContent className="p-6">
-                  <Users className="w-10 h-10 text-emerald-600 mb-3" />
+                  <Users className="w-10 h-10 text-amber-600 mb-3" />
                   <h3 className="font-bold text-lg mb-2">Tambah Pengguna</h3>
                   <p className="text-sm text-gray-600">Tambah pengguna pengurusan baharu</p>
                 </CardContent>
