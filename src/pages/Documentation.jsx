@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import jsPDF from 'jspdf';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function Documentation() {
   const [user, setUser] = useState(null);
@@ -322,6 +323,11 @@ export default function Documentation() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      <Breadcrumb items={[
+        { label: 'Super Admin Dashboard', page: 'SuperadminDashboard' },
+        { label: 'Dokumentasi Sistem', page: 'Documentation' }
+      ]} />
+      
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <FileText className="w-6 h-6 text-purple-600" />

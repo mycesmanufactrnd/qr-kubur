@@ -10,6 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import LoadingUser from '../components/LoadingUser';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function ViewLogs() {
   const [currentUser, setCurrentUser] = React.useState(null);

@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
+import Breadcrumb from '../components/Breadcrumb';
 
 const SQL_EXAMPLES = `-- CRUD Examples for QR Kubur Database
 
@@ -185,6 +186,10 @@ export default function SuperadminDashboard() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={[
+        { label: 'Super Admin Dashboard', page: 'SuperadminDashboard' }
+      ]} />
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
