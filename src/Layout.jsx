@@ -139,6 +139,8 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  const t = (key) => getTranslation(key, lang);
+
   // Bottom navbar items - Main navigation for mobile
   const bottomNavItems = [
     { name: t('main'), icon: Home, page: 'UserDashboard' },
@@ -146,8 +148,6 @@ export default function Layout({ children, currentPageName }) {
     { name: t('scanNav'), icon: QrCode, page: 'ScanQR' },
     { name: t('settingsNav'), icon: Settings, page: 'SettingsPage' },
   ];
-
-  const t = (key) => getTranslation(key, lang);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
