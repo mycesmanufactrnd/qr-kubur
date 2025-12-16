@@ -101,7 +101,7 @@ export default function GraveDetails() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-white-900">{grave.cemetery_name}</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white">{grave.cemetery_name}</h1>
       </div>
 
       {/* Grave Info */}
