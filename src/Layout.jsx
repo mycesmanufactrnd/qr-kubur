@@ -17,11 +17,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
+import { getTranslation, getCurrentLanguage } from './utils/translations';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [lang, setLang] = useState('ms');
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
@@ -33,7 +35,27 @@ export default function Layout({ children, currentPageName }) {
 
   useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
+    
+    // Apply theme on load
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    applyTheme(savedTheme);
   }, []);
+
+  const applyTheme = (theme) => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else if (theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    }
+  };
 
   const loadUser = async () => {
     try {
@@ -125,18 +147,20 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Tetapan', icon: Settings, page: 'SettingsPage' },
   ];
 
+  const t = (key) => getTranslation(key, lang);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Mobile Header - Admin Only */}
       {isAdmin && (
-        <header className="lg:hidden sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
+        <header className="lg:hidden sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
           <div className="flex items-center justify-between h-14 px-4">
             {/* Burger Menu */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700"
+              className="text-gray-700 dark:text-gray-300"
             >
               <Menu className="w-6 h-6" />
             </Button>
@@ -192,12 +216,12 @@ export default function Layout({ children, currentPageName }) {
 
           {/* Drawer */}
           <div
-            className={`fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 transform transition-transform duration-300 lg:hidden ${
+            className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 lg:hidden ${
               isMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-bold text-emerald-600">Menu</h2>
+            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+              <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Menu</h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -250,7 +274,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Header - Desktop Only */}
-      <header className="hidden lg:block sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
+      <header className="hidden lg:block sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -356,7 +380,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation Bar - Mobile Only */}
       {!isAdmin && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-2xl lg:hidden">
           <div className="flex items-center justify-around py-1">
             {bottomNavItems.map((item) => {
               const isActive = currentPageName === item.page;
@@ -387,7 +411,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Footer - Desktop Only */}
-      <footer className="bg-white border-t border-gray-100 mt-auto hidden lg:block">
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 mt-auto hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">

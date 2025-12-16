@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [fontSize, setFontSize] = useState('medium');
   const [language, setLanguage] = useState('ms');
   const [theme, setTheme] = useState('system');
+  const [lang, setLang] = useState('ms');
 
   useEffect(() => {
     const savedSize = localStorage.getItem('fontSize') || 'medium';
@@ -21,10 +22,13 @@ export default function SettingsPage() {
     setFontSize(savedSize);
     setLanguage(savedLanguage);
     setTheme(savedTheme);
+    setLang(savedLanguage);
     
     applyFontSize(savedSize);
     applyTheme(savedTheme);
   }, []);
+
+  const t = (key) => getTranslation(key, lang);
 
   const applyFontSize = (size) => {
     const root = document.documentElement;
@@ -65,11 +69,11 @@ export default function SettingsPage() {
     applyFontSize(size);
   };
 
-  const handleLanguageChange = (lang) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
-    // Language change would require app reload or i18n implementation
-    alert('Perubahan bahasa akan dilaksanakan dalam versi akan datang');
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang);
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
+    window.location.reload();
   };
 
   const handleThemeChange = (selectedTheme) => {
@@ -80,7 +84,7 @@ export default function SettingsPage() {
 
   const settingsSections = [
     {
-      title: 'Paparan',
+      title: t('display'),
       items: [
         { type: 'fontSize' },
         { type: 'language' },
@@ -88,19 +92,19 @@ export default function SettingsPage() {
       ]
     },
     {
-      title: 'Sokongan',
+      title: t('support'),
       items: [
-        { icon: HelpCircle, label: 'FAQ', action: () => alert('Soalan Lazim akan datang tidak lama lagi') },
-        { icon: FileText, label: 'Hubungi / Maklum Balas', action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Maklum Balas QR Kubur' },
-        { icon: Shield, label: 'Laporkan Pepijat', action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Laporan Pepijat' },
+        { icon: HelpCircle, label: t('faq'), action: () => alert('FAQ coming soon') },
+        { icon: FileText, label: t('contactFeedback'), action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Maklum Balas QR Kubur' },
+        { icon: Shield, label: t('reportBug'), action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Laporan Pepijat' },
       ]
     },
     {
-      title: 'Maklumat',
+      title: t('information'),
       items: [
-        { icon: FileText, label: 'Terma & Syarat', page: 'TermsAndConditions' },
-        { icon: Shield, label: 'Dasar Privasi', page: 'PrivacyPolicy' },
-        { icon: LogIn, label: 'Admin Login', page: 'AppUserLogin' },
+        { icon: FileText, label: t('termsConditions'), page: 'TermsAndConditions' },
+        { icon: Shield, label: t('privacyPolicy'), page: 'PrivacyPolicy' },
+        { icon: LogIn, label: t('adminLogin'), page: 'AppUserLogin' },
       ]
     }
   ];
@@ -110,10 +114,10 @@ export default function SettingsPage() {
       <h1 className="text-xl font-bold text-gray-900 pt-2">Tetapan</h1>
       
       {settingsSections.map((section, idx) => (
-        <Card key={idx} className="border-0 shadow-sm">
+        <Card key={idx} className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-0">
-            <div className="p-3 border-b">
-              <h2 className="text-sm font-semibold text-gray-900">{section.title}</h2>
+            <div className="p-3 border-b dark:border-gray-700">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{section.title}</h2>
             </div>
             <div className="divide-y">
               {section.items.map((item, i) => {
@@ -121,17 +125,17 @@ export default function SettingsPage() {
                   return (
                     <div key={i} className="p-4">
                       <div className="flex items-center gap-3">
-                        <Type className="w-5 h-5 text-gray-400" />
+                        <Type className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <div className="flex-1">
-                          <Label className="text-sm text-gray-700 mb-2 block">Saiz Font</Label>
+                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{t('fontSize')}</Label>
                           <Select value={fontSize} onValueChange={handleFontSizeChange}>
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="small">Kecil</SelectItem>
-                              <SelectItem value="medium">Sederhana</SelectItem>
-                              <SelectItem value="large">Besar</SelectItem>
+                            <SelectContent className="dark:bg-gray-700">
+                              <SelectItem value="small">{t('small')}</SelectItem>
+                              <SelectItem value="medium">{t('medium')}</SelectItem>
+                              <SelectItem value="large">{t('large')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -142,14 +146,14 @@ export default function SettingsPage() {
                   return (
                     <div key={i} className="p-4">
                       <div className="flex items-center gap-3">
-                        <Globe className="w-5 h-5 text-gray-400" />
+                        <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <div className="flex-1">
-                          <Label className="text-sm text-gray-700 mb-2 block">Bahasa</Label>
+                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{t('language')}</Label>
                           <Select value={language} onValueChange={handleLanguageChange}>
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="dark:bg-gray-700">
                               <SelectItem value="ms">Bahasa Melayu</SelectItem>
                               <SelectItem value="en">English</SelectItem>
                               <SelectItem value="ar">العربية</SelectItem>
@@ -163,17 +167,17 @@ export default function SettingsPage() {
                   return (
                     <div key={i} className="p-4">
                       <div className="flex items-center gap-3">
-                        <Palette className="w-5 h-5 text-gray-400" />
+                        <Palette className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <div className="flex-1">
-                          <Label className="text-sm text-gray-700 mb-2 block">Tema</Label>
+                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{t('theme')}</Label>
                           <Select value={theme} onValueChange={handleThemeChange}>
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="light">Terang</SelectItem>
-                              <SelectItem value="dark">Gelap</SelectItem>
-                              <SelectItem value="system">Mengikut Sistem</SelectItem>
+                            <SelectContent className="dark:bg-gray-700">
+                              <SelectItem value="light">{t('light')}</SelectItem>
+                              <SelectItem value="dark">{t('dark')}</SelectItem>
+                              <SelectItem value="system">{t('system')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -185,10 +189,10 @@ export default function SettingsPage() {
                     <button
                       key={i}
                       onClick={item.action || (() => navigate(createPageUrl(item.page)))}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      <item.icon className="w-5 h-5 text-gray-400" />
-                      <span className="text-sm text-gray-700">{item.label}</span>
+                      <item.icon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
                     </button>
                   );
                 }

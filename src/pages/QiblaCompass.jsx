@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Navigation, Compass, MapPin, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getTranslation, getCurrentLanguage } from '../utils/translations';
 
 export default function QiblaCompass() {
   const navigate = useNavigate();
@@ -14,6 +15,13 @@ export default function QiblaCompass() {
   const [location, setLocation] = useState({ lat: null, lng: null, name: 'Mengesan lokasi...' });
   const [calibrationOpen, setCalibrationOpen] = useState(false);
   const [isAligned, setIsAligned] = useState(false);
+  const [lang, setLang] = useState('ms');
+
+  useEffect(() => {
+    setLang(getCurrentLanguage());
+  }, []);
+
+  const t = (key) => getTranslation(key, lang);
 
   useEffect(() => {
     // Get user location
@@ -107,27 +115,27 @@ export default function QiblaCompass() {
     <div className="max-w-3xl mx-auto space-y-4 pb-2">
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold text-gray-900">Kompas Kiblat</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('qiblaCompass')}</h1>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setCalibrationOpen(true)}
-          className="gap-2"
+          className="gap-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
         >
           <RefreshCw className="w-4 h-4" />
-          Kalibrasi
+          {t('calibrate')}
         </Button>
       </div>
 
-      <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50">
+      <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
         <CardContent className="p-4">
           <div className="text-center space-y-1">
-            <p className="text-sm text-gray-600">{location.name}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm text-gray-600 dark:text-gray-300">{location.name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°
             </p>
           </div>
@@ -135,24 +143,24 @@ export default function QiblaCompass() {
       </Card>
 
       <Tabs defaultValue="arrow" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="arrow">
+        <TabsList className="grid w-full grid-cols-3 dark:bg-gray-800">
+          <TabsTrigger value="arrow" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
             <Navigation className="w-4 h-4 mr-2" />
-            Anak Panah
+            {t('arrow')}
           </TabsTrigger>
-          <TabsTrigger value="compass">
+          <TabsTrigger value="compass" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
             <Compass className="w-4 h-4 mr-2" />
-            Kompas
+            {t('compass')}
           </TabsTrigger>
-          <TabsTrigger value="map">
+          <TabsTrigger value="map" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
             <MapPin className="w-4 h-4 mr-2" />
-            Peta
+            {t('map')}
           </TabsTrigger>
         </TabsList>
 
         {/* Arrow Qibla */}
         <TabsContent value="arrow" className="mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg dark:bg-gray-800">
             <CardContent className="p-8">
               <div className="flex flex-col items-center justify-center">
                 <div className="relative w-64 h-64">
@@ -212,7 +220,7 @@ export default function QiblaCompass() {
 
         {/* Compass Qibla */}
         <TabsContent value="compass" className="mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg dark:bg-gray-800">
             <CardContent className="p-8">
               <div className="flex flex-col items-center justify-center">
                 <div className="relative w-64 h-64">
@@ -265,11 +273,11 @@ export default function QiblaCompass() {
                     </div>
                   )}
                 </div>
-                <p className="mt-4 text-lg font-semibold text-gray-800">
+                <p className="mt-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
                   {isAligned ? (
-                    <span className="text-green-600">✓ Menghadap Kiblat</span>
+                    <span className="text-green-600 dark:text-green-400">✓ {t('facingQibla')}</span>
                   ) : (
-                    <>Heading: {heading.toFixed(0)}° | Kiblat: {qiblaDirection.toFixed(0)}°</>
+                    <>Heading: {heading.toFixed(0)}° | {t('qiblaDirection')}: {qiblaDirection.toFixed(0)}°</>
                   )}
                 </p>
               </div>
@@ -279,7 +287,7 @@ export default function QiblaCompass() {
 
         {/* Map Qibla */}
         <TabsContent value="map" className="mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg dark:bg-gray-800">
             <CardContent className="p-8">
               <div className="flex flex-col items-center justify-center">
                 <div className="relative w-64 h-64">
@@ -333,21 +341,21 @@ export default function QiblaCompass() {
                     </div>
                   )}
                 </div>
-                <p className="mt-4 text-lg font-semibold text-gray-800">
+                <p className="mt-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
                   {isAligned ? (
-                    <span className="text-green-600">✓ Menghadap Kiblat</span>
+                    <span className="text-green-600 dark:text-green-400">✓ {t('facingQibla')}</span>
                   ) : (
-                    <>Arah Kiblat: {qiblaDirection.toFixed(0)}°</>
+                    <>{t('qiblaDirection')}: {qiblaDirection.toFixed(0)}°</>
                   )}
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-2 w-full">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-xs text-blue-600 font-medium mb-1">📍 Anda</p>
-                    <p className="text-xs text-gray-700">{location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°</p>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📍 {t('yourLocation')}</p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">{location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°</p>
                   </div>
-                  <div className="p-3 bg-emerald-50 rounded-lg">
-                    <p className="text-xs text-emerald-600 font-medium mb-1">🕋 Kaabah</p>
-                    <p className="text-xs text-gray-700">21.4225°, 39.8262°</p>
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">🕋 {t('kaabah')}</p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">21.4225°, 39.8262°</p>
                   </div>
                 </div>
               </div>
@@ -358,33 +366,39 @@ export default function QiblaCompass() {
 
       {/* Calibration Dialog */}
       <Dialog open={calibrationOpen} onOpenChange={setCalibrationOpen}>
-        <DialogContent>
+        <DialogContent className="dark:bg-gray-800">
           <DialogHeader>
-            <DialogTitle>Kalibrasi Kompas</DialogTitle>
+            <DialogTitle className="dark:text-white">{t('calibrate')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Untuk kalibrasi kompas, gerakkan telefon anda dalam bentuk angka 8 seperti gambar di bawah:
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {lang === 'en' ? 'To calibrate the compass, move your phone in a figure-8 pattern:' :
+               lang === 'ar' ? 'لمعايرة البوصلة، حرك هاتفك في شكل رقم 8:' :
+               'Untuk kalibrasi kompas, gerakkan telefon anda dalam bentuk angka 8:'}
             </p>
-            <div className="flex justify-center p-8 bg-gray-100 rounded-lg">
-              <div className="text-6xl">∞</div>
+            <div className="flex justify-center p-8 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <div className="text-6xl dark:text-gray-300">∞</div>
             </div>
-            <p className="text-xs text-gray-500 text-center">
-              Gerakkan telefon dalam bentuk simbol infiniti (∞) beberapa kali
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              {lang === 'en' ? 'Move phone in infinity symbol (∞) pattern' :
+               lang === 'ar' ? 'حرك الهاتف في نمط رمز اللانهاية (∞)' :
+               'Gerakkan telefon dalam bentuk simbol infiniti (∞)'}
             </p>
           </div>
           <DialogFooter>
-            <Button onClick={() => setCalibrationOpen(false)} className="bg-emerald-600">
-              Selesai
+            <Button onClick={() => setCalibrationOpen(false)} className="bg-emerald-600 dark:bg-emerald-700">
+              {lang === 'en' ? 'Done' : lang === 'ar' ? 'تم' : 'Selesai'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Card className="border-0 bg-blue-50">
+      <Card className="border-0 bg-blue-50 dark:bg-blue-900/30">
         <CardContent className="p-4">
-          <p className="text-xs text-blue-800 text-center">
-            💡 Pastikan GPS dan sensor telefon anda aktif untuk bacaan yang tepat
+          <p className="text-xs text-blue-800 dark:text-blue-300 text-center">
+            💡 {lang === 'en' ? 'Ensure GPS and phone sensors are active for accurate readings' :
+                lang === 'ar' ? 'تأكد من تشغيل GPS وأجهزة استشعار الهاتف للحصول على قراءات دقيقة' :
+                'Pastikan GPS dan sensor telefon anda aktif untuk bacaan yang tepat'}
           </p>
         </CardContent>
       </Card>
