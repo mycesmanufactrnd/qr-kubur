@@ -99,16 +99,16 @@ export default function TahlilRequestPage() {
   if (submitted) {
     return (
       <div className="max-w-lg mx-auto">
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0 shadow-lg dark:bg-gray-800">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-600" />
+            <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Permohonan Dihantar!</h2>
-            <p className="text-gray-600 mb-4">
-              Permohonan tahlil untuk <span className="font-bold">{deceasedName}</span> telah dihantar kepada pusat tahfiz.
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Permohonan Dihantar!</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Permohonan tahlil untuk <span className="font-bold dark:text-emerald-300">{deceasedName}</span> telah dihantar kepada pusat tahfiz.
             </p>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Pihak pusat tahfiz akan menghubungi anda untuk pengesahan.
             </p>
             <Button 
@@ -132,27 +132,27 @@ export default function TahlilRequestPage() {
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
       {/* Header with Back */}
       <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Mohon Servis</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Mohon Servis</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Select Tahfiz Center */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-violet-600" />
+            <CardTitle className="text-lg flex items-center gap-2 dark:text-white">
+              <Building2 className="w-5 h-5 text-violet-600 dark:text-violet-400" />
               Pilih Pusat Tahfiz
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Select value={selectedTahfiz} onValueChange={setSelectedTahfiz}>
-              <SelectTrigger>
+              <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                 <SelectValue placeholder="Pilih pusat tahfiz" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-700">
                 {tahfizCenters.map(center => (
                   <SelectItem key={center.id} value={center.id}>
                     <div className="flex flex-col">
@@ -165,8 +165,8 @@ export default function TahlilRequestPage() {
             </Select>
 
             {selectedCenter && selectedCenter.services_offered?.length > 0 && (
-              <div className="mt-4 p-4 bg-violet-50 rounded-xl">
-                <p className="text-sm text-violet-800 font-semibold mb-2">Perkhidmatan tersedia:</p>
+              <div className="mt-4 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
+                <p className="text-sm text-violet-800 dark:text-violet-300 font-semibold mb-2">Perkhidmatan tersedia:</p>
                 <div className="flex flex-wrap gap-2">
                   {selectedCenter.services_offered.map(service => (
                     <Badge key={service} variant="secondary" className="bg-violet-100 text-violet-700">
@@ -180,17 +180,17 @@ export default function TahlilRequestPage() {
         </Card>
 
         {/* Service Type */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Jenis Perkhidmatan (Boleh pilih lebih dari satu)</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Jenis Perkhidmatan (Boleh pilih lebih dari satu)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
               {SERVICE_TYPES.map(service => (
                 <Label 
                   key={service.value}
-                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 transition-colors ${
-                    serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50' : ''
+                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                    serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'dark:border-gray-600'
                   }`}
                 >
                   <Checkbox 
@@ -199,8 +199,8 @@ export default function TahlilRequestPage() {
                     className="mt-1"
                   />
                   <div>
-                    <span className="font-semibold">{service.label}</span>
-                    <p className="text-sm text-gray-500">{service.description}</p>
+                    <span className="font-semibold dark:text-white">{service.label}</span>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
                   </div>
                 </Label>
               ))}
@@ -209,13 +209,13 @@ export default function TahlilRequestPage() {
         </Card>
 
         {/* Deceased Info */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Maklumat Arwah</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Maklumat Arwah</CardTitle>
           </CardHeader>
           <CardContent>
             <div>
-              <Label htmlFor="deceasedName">Nama Arwah <span className="text-red-500">*</span></Label>
+              <Label htmlFor="deceasedName" className="dark:text-gray-300">Nama Arwah <span className="text-red-500">*</span></Label>
               <Input
                 id="deceasedName"
                 placeholder="Nama penuh arwah"
@@ -228,13 +228,13 @@ export default function TahlilRequestPage() {
         </Card>
 
         {/* Requester Info */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Maklumat Pemohon</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Maklumat Pemohon</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="requesterName">Nama Pemohon <span className="text-red-500">*</span></Label>
+              <Label htmlFor="requesterName" className="dark:text-gray-300">Nama Pemohon <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -248,7 +248,7 @@ export default function TahlilRequestPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="requesterPhone">No. Telefon <span className="text-red-500">*</span></Label>
+              <Label htmlFor="requesterPhone" className="dark:text-gray-300">No. Telefon <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -262,7 +262,7 @@ export default function TahlilRequestPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="requesterEmail">Email</Label>
+              <Label htmlFor="requesterEmail" className="dark:text-gray-300">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -279,13 +279,13 @@ export default function TahlilRequestPage() {
         </Card>
 
         {/* Preferred Date */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Tarikh & Catatan</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Tarikh & Catatan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="preferredDate">Tarikh Pilihan</Label>
+              <Label htmlFor="preferredDate" className="dark:text-gray-300">Tarikh Pilihan</Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -298,7 +298,7 @@ export default function TahlilRequestPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="notes">Catatan Tambahan</Label>
+              <Label htmlFor="notes" className="dark:text-gray-300">Catatan Tambahan</Label>
               <Textarea
                 id="notes"
                 placeholder="Sebarang maklumat tambahan..."
