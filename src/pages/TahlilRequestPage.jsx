@@ -135,7 +135,7 @@ export default function TahlilRequestPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Mohon Tahlil</h1>
+        <h1 className="text-xl font-bold text-gray-900">Mohon Servis</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
