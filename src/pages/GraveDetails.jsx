@@ -135,7 +135,7 @@ export default function GraveDetails() {
       {/* Persons List */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-3">
-          <h2 className="text-sm font-semibold text-gray-900 mb-2">Si Mati ({persons.length})</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
           
           {persons.length > 0 && (
             <div className="space-y-2 mb-3">
@@ -175,7 +175,7 @@ export default function GraveDetails() {
               {displayedPersons.map(person => (
                 <Link key={person.id} to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
                   <div className="p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
-                    <p className="font-medium text-sm text-gray-900">{person.name}</p>
+                    <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
                     {person.date_of_death && (
                       <p className="text-xs text-gray-500">
                         {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
