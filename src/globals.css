@@ -24,6 +24,15 @@ input, textarea, select {
   color: rgb(243 244 246) !important;
 }
 
+/* Fix dropdown menu items visibility */
+[role="option"] {
+  color: rgb(17 24 39) !important;
+}
+
+.dark [role="option"] {
+  color: rgb(243 244 246) !important;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 @media (max-width: 1024px) {
   *::-webkit-scrollbar {
