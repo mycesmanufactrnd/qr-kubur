@@ -138,10 +138,10 @@ export default function SettingsPage() {
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                              <SelectItem value="small" className="text-gray-900 dark:text-white">{t('small')}</SelectItem>
-                              <SelectItem value="medium" className="text-gray-900 dark:text-white">{t('medium')}</SelectItem>
-                              <SelectItem value="large" className="text-gray-900 dark:text-white">{t('large')}</SelectItem>
+                            <SelectContent className="bg-white dark:bg-gray-700 text-black-900 dark:text-white">
+                              <SelectItem value="small" className="text-black-900 dark:text-white">{t('small')}</SelectItem>
+                              <SelectItem value="medium" className="text-black-900 dark:text-white">{t('medium')}</SelectItem>
+                              <SelectItem value="large" className="text-black-900 dark:text-white">{t('large')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
