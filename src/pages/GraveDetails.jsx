@@ -174,7 +174,7 @@ export default function GraveDetails() {
             <div className="space-y-3">
               {displayedPersons.map(person => (
                 <Link key={person.id} to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
-                  <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                  <div className="mb-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                     <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
                     {person.date_of_death && (
                       <p className="text-xs text-gray-500 dark:text-gray-400">
