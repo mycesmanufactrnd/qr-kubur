@@ -13,6 +13,8 @@ export const translations = {
     success: 'Berjaya',
     error: 'Ralat',
     confirm: 'Sahkan',
+    home: 'Utama',
+    main: 'Utama',
     
     // Dashboard
     dashboard: 'Papan Pemuka',
@@ -63,6 +65,41 @@ export const translations = {
     unread: 'Belum Dibaca',
     read: 'Sudah Dibaca',
     noNotifications: 'Tiada notifikasi',
+    
+    // Search Grave
+    graveName: 'Nama kubur...',
+    state: 'Negeri',
+    nearby: 'Berdekatan',
+    noGravesFound: 'Tiada kubur dijumpai',
+    loadMore: 'Muat Lagi',
+    
+    // Search Tahfiz
+    tahfizName: 'Nama pusat tahfiz...',
+    searchTahfizCenter: 'Cari Pusat Tahfiz',
+    noTahfizFound: 'Tiada pusat tahfiz dijumpai',
+    direction: 'Arah',
+    request: 'Mohon',
+    
+    // Scan QR
+    scanQRCode: 'Imbas Kod QR',
+    useCamera: 'Gunakan kamera untuk imbas',
+    scanWithCamera: 'Imbas dengan Kamera',
+    pointCamera: 'Arahkan kamera ke kod QR',
+    openCamera: 'Buka Kamera',
+    typeCode: 'Taip Kod',
+    enterQRCode: 'Masukkan kod QR',
+    searching: 'Mencari...',
+    qrNotFound: 'Kod QR tidak dijumpai dalam sistem.',
+    cameraError: 'Ralat membaca kamera. Sila periksa kebenaran kamera.',
+    codeNotFound: 'Kod tidak dijumpai. Sila semak kod anda.',
+    recordFound: 'Rekod Dijumpai',
+    viewDetails: 'Lihat Butiran',
+    scanAgain: 'Imbas Lagi',
+    
+    // Bottom Navigation
+    searchNav: 'Cari',
+    scanNav: 'Imbas',
+    settingsNav: 'Tetapan',
   },
   
   en: {
@@ -79,6 +116,8 @@ export const translations = {
     success: 'Success',
     error: 'Error',
     confirm: 'Confirm',
+    home: 'Home',
+    main: 'Main',
     
     // Dashboard
     dashboard: 'Dashboard',
@@ -129,6 +168,41 @@ export const translations = {
     unread: 'Unread',
     read: 'Read',
     noNotifications: 'No notifications',
+    
+    // Search Grave
+    graveName: 'Cemetery name...',
+    state: 'State',
+    nearby: 'Nearby',
+    noGravesFound: 'No graves found',
+    loadMore: 'Load More',
+    
+    // Search Tahfiz
+    tahfizName: 'Tahfiz center name...',
+    searchTahfizCenter: 'Search Tahfiz Center',
+    noTahfizFound: 'No tahfiz centers found',
+    direction: 'Direction',
+    request: 'Request',
+    
+    // Scan QR
+    scanQRCode: 'Scan QR Code',
+    useCamera: 'Use camera to scan',
+    scanWithCamera: 'Scan with Camera',
+    pointCamera: 'Point camera to QR code',
+    openCamera: 'Open Camera',
+    typeCode: 'Type Code',
+    enterQRCode: 'Enter QR code',
+    searching: 'Searching...',
+    qrNotFound: 'QR code not found in system.',
+    cameraError: 'Camera error. Please check camera permissions.',
+    codeNotFound: 'Code not found. Please check your code.',
+    recordFound: 'Record Found',
+    viewDetails: 'View Details',
+    scanAgain: 'Scan Again',
+    
+    // Bottom Navigation
+    searchNav: 'Search',
+    scanNav: 'Scan',
+    settingsNav: 'Settings',
   },
   
   ar: {
@@ -145,6 +219,8 @@ export const translations = {
     success: 'نجح',
     error: 'خطأ',
     confirm: 'تأكيد',
+    home: 'الرئيسية',
+    main: 'الرئيسية',
     
     // Dashboard
     dashboard: 'لوحة القيادة',
@@ -195,6 +271,41 @@ export const translations = {
     unread: 'غير مقروء',
     read: 'مقروء',
     noNotifications: 'لا توجد إشعارات',
+    
+    // Search Grave
+    graveName: 'اسم المقبرة...',
+    state: 'الولاية',
+    nearby: 'قريب',
+    noGravesFound: 'لم يتم العثور على قبور',
+    loadMore: 'تحميل المزيد',
+    
+    // Search Tahfiz
+    tahfizName: 'اسم مركز التحفيظ...',
+    searchTahfizCenter: 'البحث عن مركز التحفيظ',
+    noTahfizFound: 'لم يتم العثور على مراكز تحفيظ',
+    direction: 'الاتجاه',
+    request: 'طلب',
+    
+    // Scan QR
+    scanQRCode: 'مسح رمز QR',
+    useCamera: 'استخدم الكاميرا للمسح',
+    scanWithCamera: 'المسح بالكاميرا',
+    pointCamera: 'وجه الكاميرا إلى رمز QR',
+    openCamera: 'فتح الكاميرا',
+    typeCode: 'اكتب الرمز',
+    enterQRCode: 'أدخل رمز QR',
+    searching: 'جاري البحث...',
+    qrNotFound: 'رمز QR غير موجود في النظام.',
+    cameraError: 'خطأ في الكاميرا. يرجى التحقق من أذونات الكاميرا.',
+    codeNotFound: 'الرمز غير موجود. يرجى التحقق من الرمز الخاص بك.',
+    recordFound: 'تم العثور على السجل',
+    viewDetails: 'عرض التفاصيل',
+    scanAgain: 'مسح مرة أخرى',
+    
+    // Bottom Navigation
+    searchNav: 'بحث',
+    scanNav: 'مسح',
+    settingsNav: 'الإعدادات',
   }
 };
 

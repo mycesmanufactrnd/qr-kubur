@@ -141,10 +141,10 @@ export default function Layout({ children, currentPageName }) {
 
   // Bottom navbar items - Main navigation for mobile
   const bottomNavItems = [
-    { name: 'Utama', icon: Home, page: 'UserDashboard' },
-    { name: 'Cari', icon: Search, page: 'SearchGrave' },
-    { name: 'Imbas', icon: QrCode, page: 'ScanQR' },
-    { name: 'Tetapan', icon: Settings, page: 'SettingsPage' },
+    { name: t('main'), icon: Home, page: 'UserDashboard' },
+    { name: t('searchNav'), icon: Search, page: 'SearchGrave' },
+    { name: t('scanNav'), icon: QrCode, page: 'ScanQR' },
+    { name: t('settingsNav'), icon: Settings, page: 'SettingsPage' },
   ];
 
   const t = (key) => getTranslation(key, lang);

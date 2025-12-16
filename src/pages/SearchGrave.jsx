@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getTranslation, getCurrentLanguage } from '../components/translations';
 
 const NEARBY_STATES = ["Selangor", "Kuala Lumpur", "Putrajaya", "Negeri Sembilan", "Melaka"];
 
@@ -18,6 +19,13 @@ export default function SearchGrave() {
   const [userLocation, setUserLocation] = useState(null);
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
+  const [lang, setLang] = useState('ms');
+
+  useEffect(() => {
+    setLang(getCurrentLanguage());
+  }, []);
+
+  const t = (key) => getTranslation(key, lang);
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['graves-search'],
@@ -89,24 +97,24 @@ export default function SearchGrave() {
 
   return (
     <div className="space-y-3 pb-2">
-      <h1 className="text-xl font-bold text-gray-900 pt-2">Cari Kubur</h1>
+      <h1 className="text-xl font-bold text-gray-900 dark:text-white pt-2">{t('searchGrave')}</h1>
       
       {/* Search Controls */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
-            placeholder="Nama kubur..."
+            placeholder={t('graveName')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9"
           />
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Negeri" />
+              <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                <SelectValue placeholder={t('state')} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="nearby">Berdekatan</SelectItem>
+              <SelectContent className="bg-white dark:bg-gray-700">
+                <SelectItem value="nearby">{t('nearby')}</SelectItem>
                 {NEARBY_STATES.map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
@@ -114,7 +122,7 @@ export default function SearchGrave() {
             </Select>
             <Button onClick={handleSearch} className="h-9 bg-emerald-600 hover:bg-emerald-700">
               <Search className="w-4 h-4 mr-1" />
-              Cari
+              {t('search')}
             </Button>
           </div>
         </CardContent>
@@ -124,32 +132,32 @@ export default function SearchGrave() {
       {isSearching || isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse">
+            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
               <CardContent className="p-3">
-                <div className="h-16 bg-gray-200 rounded" />
+                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : displayedGraves.length === 0 ? (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-8 text-center">
-            <p className="text-sm text-gray-500">Tiada kubur dijumpai</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('noGravesFound')}</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {displayedGraves.map((grave) => (
             <Link key={grave.id} to={createPageUrl('GraveDetails') + `?id=${grave.id}`}>
-              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800">
                 <CardContent className="p-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-teal-600" />
+                    <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm">{grave.cemetery_name}</h3>
-                      <p className="text-xs text-gray-500">{grave.state}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{grave.cemetery_name}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
                       {grave.distance !== null && (
                         <p className="text-xs text-emerald-600 mt-1">
                           <Navigation className="w-3 h-3 inline mr-1" />
@@ -167,8 +175,8 @@ export default function SearchGrave() {
           ))}
           {displayedCount < filteredGraves.length && (
             <div className="text-center py-2">
-              <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                Muat Lagi
+              <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)} className="dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
+                {t('loadMore')}
               </Button>
             </div>
           )}
