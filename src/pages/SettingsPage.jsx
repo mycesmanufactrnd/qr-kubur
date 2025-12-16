@@ -138,10 +138,10 @@ export default function SettingsPage() {
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="dark:bg-gray-700">
-                              <SelectItem value="small">{t('small')}</SelectItem>
-                              <SelectItem value="medium">{t('medium')}</SelectItem>
-                              <SelectItem value="large">{t('large')}</SelectItem>
+                            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                              <SelectItem value="small" className="text-gray-900 dark:text-white">{t('small')}</SelectItem>
+                              <SelectItem value="medium" className="text-gray-900 dark:text-white">{t('medium')}</SelectItem>
+                              <SelectItem value="large" className="text-gray-900 dark:text-white">{t('large')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -159,10 +159,10 @@ export default function SettingsPage() {
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="dark:bg-gray-700">
-                              <SelectItem value="ms">Bahasa Melayu</SelectItem>
-                              <SelectItem value="en">English</SelectItem>
-                              <SelectItem value="ar">العربية</SelectItem>
+                            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                              <SelectItem value="ms" className="text-gray-900 dark:text-white">Bahasa Melayu</SelectItem>
+                              <SelectItem value="en" className="text-gray-900 dark:text-white">English</SelectItem>
+                              <SelectItem value="ar" className="text-gray-900 dark:text-white">العربية</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -180,10 +180,10 @@ export default function SettingsPage() {
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="dark:bg-gray-700">
-                              <SelectItem value="light">{t('light')}</SelectItem>
-                              <SelectItem value="dark">{t('dark')}</SelectItem>
-                              <SelectItem value="system">{t('system')}</SelectItem>
+                            <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                              <SelectItem value="light" className="text-gray-900 dark:text-white">{t('light')}</SelectItem>
+                              <SelectItem value="dark" className="text-gray-900 dark:text-white">{t('dark')}</SelectItem>
+                              <SelectItem value="system" className="text-gray-900 dark:text-white">{t('system')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
