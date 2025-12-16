@@ -13,6 +13,7 @@ export default function QiblaCompass() {
   const [qiblaDirection, setQiblaDirection] = useState(0);
   const [location, setLocation] = useState({ lat: null, lng: null, name: 'Mengesan lokasi...' });
   const [calibrationOpen, setCalibrationOpen] = useState(false);
+  const [isAligned, setIsAligned] = useState(false);
 
   useEffect(() => {
     // Get user location
@@ -86,6 +87,22 @@ export default function QiblaCompass() {
 
   const qiblaAngle = qiblaDirection - heading;
 
+  // Check alignment and vibrate
+  useEffect(() => {
+    const angleDiff = Math.abs(qiblaAngle % 360);
+    const normalizedDiff = angleDiff > 180 ? 360 - angleDiff : angleDiff;
+    
+    if (normalizedDiff < 5 && !isAligned) {
+      setIsAligned(true);
+      // Vibrate device
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
+    } else if (normalizedDiff >= 10 && isAligned) {
+      setIsAligned(false);
+    }
+  }, [qiblaAngle, isAligned]);
+
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-2">
       <div className="flex items-center justify-between pt-2">
@@ -111,7 +128,7 @@ export default function QiblaCompass() {
           <div className="text-center space-y-1">
             <p className="text-sm text-gray-600">{location.name}</p>
             <p className="text-xs text-gray-500">
-              {location.lat?.toFixed(6)}°, {location.lng?.toFixed(6)}°
+              {location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°
             </p>
           </div>
         </CardContent>
@@ -167,35 +184,61 @@ export default function QiblaCompass() {
             <CardContent className="p-8">
               <div className="flex flex-col items-center justify-center">
                 <div className="relative w-64 h-64">
-                  {/* Compass background */}
+                  {/* Compass background with Kaabah icon rotating */}
                   <div 
                     className="absolute inset-0 rounded-full border-8 border-gray-300 transition-transform duration-300"
                     style={{ transform: `rotate(${heading}deg)` }}
                   >
+                    {/* North marker */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
                       <div className="w-4 h-8 bg-red-500 clip-triangle"></div>
                     </div>
+                    {/* Cardinal directions */}
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 text-sm font-bold">N</div>
                     <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-bold">S</div>
                     <div className="absolute left-2 top-1/2 -translate-y-1/2 text-sm font-bold">W</div>
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 text-sm font-bold">E</div>
+                    
+                    {/* Kaabah icon on outer ring at Qibla position */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{ 
+                        transform: `rotate(${qiblaDirection - heading}deg) translateY(-120px)`,
+                        transformOrigin: 'center center'
+                      }}
+                    >
+                      <div 
+                        className="text-3xl"
+                        style={{ transform: `rotate(${-(qiblaDirection - heading)}deg)` }}
+                      >
+                        🕋
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Qibla indicator */}
-                  <div 
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ transform: `rotate(${qiblaDirection}deg)` }}
-                  >
-                    <div className="w-1 h-32 bg-emerald-600"></div>
+                  {/* Qibla needle (fixed) */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-1 h-32 bg-emerald-600 shadow-lg"></div>
                   </div>
                   
                   {/* Center dot */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-4 h-4 rounded-full bg-gray-800"></div>
                   </div>
+
+                  {/* Alignment indicator */}
+                  {isAligned && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="absolute inset-0 rounded-full border-4 border-green-500 animate-pulse"></div>
+                    </div>
+                  )}
                 </div>
                 <p className="mt-4 text-lg font-semibold text-gray-800">
-                  Heading: {heading.toFixed(0)}° | Kiblat: {qiblaDirection.toFixed(0)}°
+                  {isAligned ? (
+                    <span className="text-green-600">✓ Menghadap Kiblat</span>
+                  ) : (
+                    <>Heading: {heading.toFixed(0)}° | Kiblat: {qiblaDirection.toFixed(0)}°</>
+                  )}
                 </p>
               </div>
             </CardContent>
@@ -206,7 +249,38 @@ export default function QiblaCompass() {
         <TabsContent value="map" className="mt-4">
           <Card className="border-0 shadow-lg">
             <CardContent className="p-4">
-              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+                {location.lat && location.lng && (
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+                    <defs>
+                      <marker
+                        id="arrowhead"
+                        markerWidth="10"
+                        markerHeight="10"
+                        refX="5"
+                        refY="5"
+                        orient="auto"
+                      >
+                        <polygon points="0 0, 10 5, 0 10" fill="#10b981" />
+                      </marker>
+                    </defs>
+                    <line
+                      x1="50%"
+                      y1="50%"
+                      x2="50%"
+                      y2="10%"
+                      stroke="#10b981"
+                      strokeWidth="3"
+                      markerEnd="url(#arrowhead)"
+                      strokeDasharray="5,5"
+                      style={{ transform: `rotate(${qiblaDirection}deg)`, transformOrigin: 'center' }}
+                    />
+                    <text x="50%" y="50%" textAnchor="middle" dy="-10" fill="#059669" fontSize="24" fontWeight="bold">
+                      🕋
+                    </text>
+                    <circle cx="50%" cy="50%" r="4" fill="#059669" />
+                  </svg>
+                )}
                 <iframe
                   width="100%"
                   height="100%"
@@ -217,7 +291,11 @@ export default function QiblaCompass() {
               </div>
               <div className="mt-4 p-4 bg-emerald-50 rounded-lg">
                 <p className="text-sm text-emerald-800 text-center">
-                  Arah Kiblat dari lokasi anda: <span className="font-bold">{qiblaDirection.toFixed(0)}°</span>
+                  Arah Kiblat: <span className="font-bold">{qiblaDirection.toFixed(0)}°</span>
+                  <span className="text-xs mx-2">•</span>
+                  <span className="text-xs">
+                    {location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°
+                  </span>
                 </p>
               </div>
             </CardContent>

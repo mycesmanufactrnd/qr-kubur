@@ -1,67 +1,69 @@
-import SearchGrave from './pages/SearchGrave';
-import GraveDetails from './pages/GraveDetails';
-import DeadPersonDetails from './pages/DeadPersonDetails';
-import ScanQR from './pages/ScanQR';
-import DonationPage from './pages/DonationPage';
-import TahlilRequestPage from './pages/TahlilRequestPage';
-import SurahPage from './pages/SurahPage';
-import SubmitSuggestion from './pages/SubmitSuggestion';
-import AdminDashboard from './pages/AdminDashboard';
-import ManageGraves from './pages/ManageGraves';
-import ManageDeadPersons from './pages/ManageDeadPersons';
-import ManageOrganisations from './pages/ManageOrganisations';
-import ManageTahfizCenters from './pages/ManageTahfizCenters';
-import ManageSuggestions from './pages/ManageSuggestions';
-import ManageDonations from './pages/ManageDonations';
-import SuperadminDashboard from './pages/SuperadminDashboard';
-import ManageTahlilRequests from './pages/ManageTahlilRequests';
 import AboutSystem from './pages/AboutSystem';
-import ManageUsers from './pages/ManageUsers';
-import Documentation from './pages/Documentation';
+import AdminDashboard from './pages/AdminDashboard';
 import AppUserLogin from './pages/AppUserLogin';
-import ViewLogs from './pages/ViewLogs';
-import SettingsPage from './pages/SettingsPage';
-import SearchTahfiz from './pages/SearchTahfiz';
-import UserDashboard from './pages/UserDashboard';
+import DeadPersonDetails from './pages/DeadPersonDetails';
+import Documentation from './pages/Documentation';
+import DonationPage from './pages/DonationPage';
+import GraveDetails from './pages/GraveDetails';
+import Home from './pages/Home';
 import IconLibrary from './pages/IconLibrary';
+import ManageDeadPersons from './pages/ManageDeadPersons';
+import ManageDonations from './pages/ManageDonations';
+import ManageGraves from './pages/ManageGraves';
+import ManageOrganisations from './pages/ManageOrganisations';
+import ManageSuggestions from './pages/ManageSuggestions';
+import ManageTahfizCenters from './pages/ManageTahfizCenters';
+import ManageTahlilRequests from './pages/ManageTahlilRequests';
+import ManageUsers from './pages/ManageUsers';
 import NotificationPage from './pages/NotificationPage';
-import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import QiblaCompass from './pages/QiblaCompass';
+import ScanQR from './pages/ScanQR';
+import SearchGrave from './pages/SearchGrave';
+import SearchTahfiz from './pages/SearchTahfiz';
+import SettingsPage from './pages/SettingsPage';
+import SubmitSuggestion from './pages/SubmitSuggestion';
+import SuperadminDashboard from './pages/SuperadminDashboard';
+import SurahPage from './pages/SurahPage';
+import TahlilRequestPage from './pages/TahlilRequestPage';
+import TermsAndConditions from './pages/TermsAndConditions';
+import UserDashboard from './pages/UserDashboard';
+import ViewLogs from './pages/ViewLogs';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "SearchGrave": SearchGrave,
-    "GraveDetails": GraveDetails,
-    "DeadPersonDetails": DeadPersonDetails,
-    "ScanQR": ScanQR,
-    "DonationPage": DonationPage,
-    "TahlilRequestPage": TahlilRequestPage,
-    "SurahPage": SurahPage,
-    "SubmitSuggestion": SubmitSuggestion,
-    "AdminDashboard": AdminDashboard,
-    "ManageGraves": ManageGraves,
-    "ManageDeadPersons": ManageDeadPersons,
-    "ManageOrganisations": ManageOrganisations,
-    "ManageTahfizCenters": ManageTahfizCenters,
-    "ManageSuggestions": ManageSuggestions,
-    "ManageDonations": ManageDonations,
-    "SuperadminDashboard": SuperadminDashboard,
-    "ManageTahlilRequests": ManageTahlilRequests,
     "AboutSystem": AboutSystem,
-    "ManageUsers": ManageUsers,
-    "Documentation": Documentation,
+    "AdminDashboard": AdminDashboard,
     "AppUserLogin": AppUserLogin,
-    "ViewLogs": ViewLogs,
-    "SettingsPage": SettingsPage,
-    "SearchTahfiz": SearchTahfiz,
-    "UserDashboard": UserDashboard,
+    "DeadPersonDetails": DeadPersonDetails,
+    "Documentation": Documentation,
+    "DonationPage": DonationPage,
+    "GraveDetails": GraveDetails,
+    "Home": Home,
     "IconLibrary": IconLibrary,
+    "ManageDeadPersons": ManageDeadPersons,
+    "ManageDonations": ManageDonations,
+    "ManageGraves": ManageGraves,
+    "ManageOrganisations": ManageOrganisations,
+    "ManageSuggestions": ManageSuggestions,
+    "ManageTahfizCenters": ManageTahfizCenters,
+    "ManageTahlilRequests": ManageTahlilRequests,
+    "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,
-    "TermsAndConditions": TermsAndConditions,
     "PrivacyPolicy": PrivacyPolicy,
     "QiblaCompass": QiblaCompass,
+    "ScanQR": ScanQR,
+    "SearchGrave": SearchGrave,
+    "SearchTahfiz": SearchTahfiz,
+    "SettingsPage": SettingsPage,
+    "SubmitSuggestion": SubmitSuggestion,
+    "SuperadminDashboard": SuperadminDashboard,
+    "SurahPage": SurahPage,
+    "TahlilRequestPage": TahlilRequestPage,
+    "TermsAndConditions": TermsAndConditions,
+    "UserDashboard": UserDashboard,
+    "ViewLogs": ViewLogs,
 }
 
 export const pagesConfig = {
