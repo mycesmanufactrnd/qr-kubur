@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, MapPin, QrCode, Heart, BookOpen, FileText, Map, LogIn, BookText, Compass } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getTranslation, getCurrentLanguage } from '../utils/translations';
+import { getTranslation, getCurrentLanguage } from '../components/translations';
 
 export default function UserDashboard() {
   const [lang, setLang] = useState('ms');
