@@ -92,13 +92,13 @@ export default function DonationPage() {
   if (submitted) {
     return (
       <div className="max-w-lg mx-auto">
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0 shadow-lg dark:bg-gray-800">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-600" />
+            <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Terima Kasih!</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Terima Kasih!</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               Derma anda sebanyak <span className="font-bold text-emerald-600">RM {customAmount || amount}</span> telah direkodkan.
               Kami akan mengesahkan derma anda selepas semakan resit.
             </p>
@@ -123,17 +123,17 @@ export default function DonationPage() {
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
       {/* Header with Back */}
       <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Derma</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Derma</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Recipient Type */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Penerima Derma</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Penerima Derma</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs value={recipientType} onValueChange={setRecipientType}>
@@ -150,10 +150,10 @@ export default function DonationPage() {
 
               <TabsContent value="organisation" className="mt-4">
                 <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-700">
                     {organisations.map(org => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.name}
@@ -165,10 +165,10 @@ export default function DonationPage() {
 
               <TabsContent value="tahfiz" className="mt-4">
                 <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                     <SelectValue placeholder="Pilih pusat tahfiz" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-700">
                     {tahfizCenters.map(center => (
                       <SelectItem key={center.id} value={center.id}>
                         <div className="flex flex-col">
@@ -184,13 +184,13 @@ export default function DonationPage() {
 
             {/* Bank Info */}
             {selectedOrg && (selectedOrg.bank_name || selectedOrg.bank_account) && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-xl">
-                <h4 className="font-semibold text-blue-900 mb-2">Maklumat Bank</h4>
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Maklumat Bank</h4>
                 {selectedOrg.bank_name && (
-                  <p className="text-sm text-blue-800">Bank: {selectedOrg.bank_name}</p>
+                  <p className="text-sm text-blue-800 dark:text-blue-300">Bank: {selectedOrg.bank_name}</p>
                 )}
                 {selectedOrg.bank_account && (
-                  <p className="text-sm text-blue-800">No. Akaun: {selectedOrg.bank_account}</p>
+                  <p className="text-sm text-blue-800 dark:text-blue-300">No. Akaun: {selectedOrg.bank_account}</p>
                 )}
               </div>
             )}
@@ -198,9 +198,9 @@ export default function DonationPage() {
         </Card>
 
         {/* Amount */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Jumlah Derma</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Jumlah Derma</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
@@ -237,9 +237,9 @@ export default function DonationPage() {
         </Card>
 
         {/* Payment Method */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Kaedah Pembayaran</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Kaedah Pembayaran</CardTitle>
           </CardHeader>
           <CardContent>
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
@@ -265,13 +265,13 @@ export default function DonationPage() {
         </Card>
 
         {/* Donor Info */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Maklumat Penderma (Pilihan)</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Maklumat Penderma (Pilihan)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="donorName">Nama</Label>
+              <Label htmlFor="donorName" className="dark:text-gray-300">Nama</Label>
               <Input
                 id="donorName"
                 placeholder="Nama anda (boleh kosongkan untuk derma tanpa nama)"
@@ -280,7 +280,7 @@ export default function DonationPage() {
               />
             </div>
             <div>
-              <Label htmlFor="donorEmail">Email</Label>
+              <Label htmlFor="donorEmail" className="dark:text-gray-300">Email</Label>
               <Input
                 id="donorEmail"
                 type="email"
@@ -290,7 +290,7 @@ export default function DonationPage() {
               />
             </div>
             <div>
-              <Label htmlFor="notes">Catatan</Label>
+              <Label htmlFor="notes" className="dark:text-gray-300">Catatan</Label>
               <Textarea
                 id="notes"
                 placeholder="Sebarang catatan..."
@@ -302,12 +302,12 @@ export default function DonationPage() {
         </Card>
 
         {/* Receipt Upload */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg">Muat Naik Resit</CardTitle>
+            <CardTitle className="text-lg dark:text-white">Muat Naik Resit</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="border-2 border-dashed rounded-xl p-6 text-center">
+            <div className="border-2 border-dashed dark:border-gray-600 rounded-xl p-6 text-center">
               <input
                 type="file"
                 id="receipt"
@@ -316,11 +316,11 @@ export default function DonationPage() {
                 className="hidden"
               />
               <label htmlFor="receipt" className="cursor-pointer">
-                <Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+                <Upload className="w-10 h-10 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
                 {receiptFile ? (
-                  <p className="text-emerald-600 font-semibold">{receiptFile.name}</p>
+                  <p className="text-emerald-600 dark:text-emerald-400 font-semibold">{receiptFile.name}</p>
                 ) : (
-                  <p className="text-gray-500">Klik untuk muat naik resit pembayaran</p>
+                  <p className="text-gray-500 dark:text-gray-400">Klik untuk muat naik resit pembayaran</p>
                 )}
               </label>
             </div>

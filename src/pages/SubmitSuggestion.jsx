@@ -59,13 +59,13 @@ export default function SubmitSuggestion() {
   if (submitted) {
     return (
       <div className="max-w-lg mx-auto">
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0 shadow-lg dark:bg-gray-800">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-600" />
+            <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Cadangan Dihantar!</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Cadangan Dihantar!</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               Cadangan anda telah dihantar kepada admin untuk semakan. 
               Kami akan memaklumkan anda selepas semakan selesai.
             </p>
@@ -84,22 +84,22 @@ export default function SubmitSuggestion() {
     <div className="max-w-lg mx-auto space-y-4 pb-2">
       {/* Header with Back */}
       <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Cadangan</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Cadangan</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label htmlFor="entityType">Jenis Rekod</Label>
+              <Label htmlFor="entityType" className="dark:text-gray-300">Jenis Rekod</Label>
               <Select value={entityType} onValueChange={setEntityType}>
-                <SelectTrigger>
+                <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                   <SelectValue placeholder="Pilih jenis rekod" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-700">
                   <SelectItem value="person">Rekod Si Mati</SelectItem>
                   <SelectItem value="grave">Tanah Perkuburan</SelectItem>
                   <SelectItem value="organisation">Organisasi</SelectItem>
@@ -111,7 +111,7 @@ export default function SubmitSuggestion() {
 
 
             <div>
-              <Label htmlFor="suggestedChanges">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
+              <Label htmlFor="suggestedChanges" className="dark:text-gray-300">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
               <Textarea
                 id="suggestedChanges"
                 value={suggestedChanges}
@@ -120,13 +120,13 @@ export default function SubmitSuggestion() {
                 rows={5}
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Contoh: "Nama sepatutnya Ahmad bin Abu, bukan Ahmad bin Bakar"
               </p>
             </div>
 
             <div>
-              <Label htmlFor="reason">Sebab / Justifikasi</Label>
+              <Label htmlFor="reason" className="dark:text-gray-300">Sebab / Justifikasi</Label>
               <Textarea
                 id="reason"
                 value={reason}
