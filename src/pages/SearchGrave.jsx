@@ -149,7 +149,7 @@ export default function SearchGrave() {
         <div className="space-y-3">
           {displayedGraves.map((grave) => (
             <Link key={grave.id} to={createPageUrl('GraveDetails') + `?id=${grave.id}`}>
-              <Card className="border-0 gap-3 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800">
+              <Card className="mb-3 border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800">
                 <CardContent className="p-3">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center flex-shrink-0">
