@@ -7,6 +7,31 @@ import { ArrowLeft, Navigation, Compass, MapPin, RefreshCw } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix leaflet icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const kaabaIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='font-size: 32px; text-align: center;'>🕋</div>",
+  iconSize: [40, 40],
+  iconAnchor: [20, 40]
+});
+
+const userIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: "<div style='font-size: 32px; text-align: center;'>📍</div>",
+  iconSize: [40, 40],
+  iconAnchor: [20, 40]
+});
 
 export default function QiblaCompass() {
   const navigate = useNavigate();
@@ -288,75 +313,46 @@ export default function QiblaCompass() {
         {/* Map Qibla */}
         <TabsContent value="map" className="mt-4">
           <Card className="border-0 shadow-lg dark:bg-gray-800">
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative w-64 h-64">
-                  {/* Rotating map/compass ring */}
-                  <div 
-                    className="absolute inset-0 rounded-full border-8 border-gray-200 overflow-hidden transition-transform duration-300"
-                    style={{ transform: `rotate(${heading}deg)` }}
+            <CardContent className="p-4">
+              {location.lat && location.lng ? (
+                <div className="h-96 rounded-lg overflow-hidden">
+                  <MapContainer
+                    center={[location.lat, location.lng]}
+                    zoom={4}
+                    style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={false}
                   >
-                    {/* Map background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100"></div>
-                    
-                    {/* Kaabah icon on outer ring at Qibla position - always pointing up */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                      style={{ 
-                        transform: `rotate(${qiblaDirection - heading}deg) translateY(-110px)`,
-                        transformOrigin: 'center center'
-                      }}
-                    >
-                      <div 
-                        className="text-3xl"
-                        style={{ transform: `rotate(${-heading}deg)` }}
-                      >
-                        🕋
-                      </div>
-                    </div>
-                    
-                    {/* Direction line */}
-                    <div 
-                      className="absolute inset-0 flex items-center justify-center"
-                      style={{ transform: `rotate(${qiblaDirection - heading}deg)` }}
-                    >
-                      <div className="w-1 h-24 bg-emerald-500 opacity-50"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Fixed arrow pointing up (North) */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Navigation className="w-24 h-24 text-blue-600 fill-blue-600" />
-                  </div>
-                  
-                  {/* Center dot */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-lg"></div>
-                  </div>
-
-                  {/* Alignment indicator */}
-                  {isAligned && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="absolute inset-0 rounded-full border-4 border-green-500 animate-pulse"></div>
-                    </div>
-                  )}
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; OpenStreetMap contributors'
+                    />
+                    {/* User location marker */}
+                    <Marker position={[location.lat, location.lng]} icon={userIcon} />
+                    {/* Kaaba location marker */}
+                    <Marker position={[21.4225, 39.8262]} icon={kaabaIcon} />
+                    {/* Line connecting user to Kaaba */}
+                    <Polyline
+                      positions={[
+                        [location.lat, location.lng],
+                        [21.4225, 39.8262]
+                      ]}
+                      pathOptions={{ color: '#10b981', weight: 3, dashArray: '10, 10' }}
+                    />
+                  </MapContainer>
                 </div>
-                <p className="mt-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  {isAligned ? (
-                    <span className="text-green-600 dark:text-green-400">✓ {t('facingQibla')}</span>
-                  ) : (
-                    <>{t('qiblaDirection')}: {qiblaDirection.toFixed(0)}°</>
-                  )}
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-2 w-full">
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📍 {t('yourLocation')}</p>
-                    <p className="text-xs text-gray-700 dark:text-gray-300">{location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°</p>
-                  </div>
-                  <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">🕋 {t('kaabah')}</p>
-                    <p className="text-xs text-gray-700 dark:text-gray-300">21.4225°, 39.8262°</p>
-                  </div>
+              ) : (
+                <div className="h-96 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <p className="text-gray-500 dark:text-gray-400">{t('detectingLocation')}</p>
+                </div>
+              )}
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📍 {t('yourLocation')}</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300">{location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°</p>
+                </div>
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">🕋 {t('kaabah')}</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300">21.4225°, 39.8262°</p>
                 </div>
               </div>
             </CardContent>
