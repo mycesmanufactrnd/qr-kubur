@@ -15,6 +15,15 @@ css
   }
 }
 
+/* Ensure input text is visible in light mode */
+input, textarea, select {
+  color: rgb(17 24 39) !important;
+}
+
+.dark input, .dark textarea, .dark select {
+  color: rgb(243 244 246) !important;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 @media (max-width: 1024px) {
   *::-webkit-scrollbar {
