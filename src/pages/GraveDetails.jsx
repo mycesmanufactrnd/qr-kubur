@@ -78,17 +78,17 @@ export default function GraveDetails() {
   if (isLoading) {
     return (
       <div className="space-y-3 animate-pulse pb-2">
-        <div className="h-8 bg-gray-200 rounded w-1/3" />
-        <div className="h-32 bg-gray-200 rounded" />
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
     );
   }
 
   if (!grave) {
     return (
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-8 text-center">
-          <p className="text-sm text-gray-500">Maklumat tidak dijumpai</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Maklumat tidak dijumpai</p>
         </CardContent>
       </Card>
     );
@@ -98,23 +98,23 @@ export default function GraveDetails() {
     <div className="space-y-3 pb-2">
       {/* Header with Back */}
       <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white">{grave.cemetery_name}</h1>
       </div>
 
       {/* Grave Info */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3">
           <div className="flex items-start gap-3 mb-3">
-            <div className="w-12 h-12 rounded-lg bg-teal-100 flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-teal-600" />
+            <div className="w-12 h-12 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-teal-600 dark:text-teal-300" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">{grave.state}</p>
-              {grave.block && <p className="text-xs text-gray-500">Blok {grave.block}</p>}
-              {grave.lot && <p className="text-xs text-gray-500">Lot {grave.lot}</p>}
+              <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
+              {grave.block && <p className="text-xs text-gray-500 dark:text-gray-400">Blok {grave.block}</p>}
+              {grave.lot && <p className="text-xs text-gray-500 dark:text-gray-400">Lot {grave.lot}</p>}
             </div>
           </div>
           <div className="flex gap-2">
@@ -124,7 +124,7 @@ export default function GraveDetails() {
                 Arah
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={shareLocation} className="h-8 text-xs">
+            <Button variant="outline" size="sm" onClick={shareLocation} className="h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
               <Share2 className="w-3 h-3 mr-1" />
               Kongsi
             </Button>
@@ -133,7 +133,7 @@ export default function GraveDetails() {
       </Card>
 
       {/* Persons List */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
           
@@ -147,7 +147,7 @@ export default function GraveDetails() {
               />
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-xs text-gray-600 mb-1 block">Tarikh Meninggal</label>
+                  <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Meninggal</label>
                   <Input
                     type="date"
                     value={searchDate}
@@ -165,19 +165,19 @@ export default function GraveDetails() {
           {isSearching ? (
             <div className="space-y-2">
               {[1, 2].map(i => (
-                <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+                <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               ))}
             </div>
           ) : displayedPersons.length === 0 ? (
-            <p className="text-xs text-gray-500 text-center py-4">Tiada rekod</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">Tiada rekod</p>
           ) : (
             <div className="space-y-3">
               {displayedPersons.map(person => (
                 <Link key={person.id} to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
-                  <div className="p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors">
+                  <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                     <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
                     {person.date_of_death && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
                       </p>
                     )}
@@ -189,7 +189,7 @@ export default function GraveDetails() {
                   variant="outline" 
                   size="sm" 
                   onClick={() => setDisplayedCount(prev => prev + 10)}
-                  className="w-full h-8 text-xs"
+                  className="w-full h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                 >
                   Muat Lagi
                 </Button>

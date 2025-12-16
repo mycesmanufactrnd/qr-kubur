@@ -71,17 +71,17 @@ export default function DeadPersonDetails() {
   if (isLoading) {
     return (
       <div className="space-y-3 animate-pulse pb-2">
-        <div className="h-8 bg-gray-200 rounded w-1/2" />
-        <div className="h-32 bg-gray-200 rounded" />
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
     );
   }
 
   if (!person) {
     return (
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-8 text-center">
-          <p className="text-sm text-gray-500">Maklumat tidak dijumpai</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Maklumat tidak dijumpai</p>
         </CardContent>
       </Card>
     );
@@ -93,33 +93,33 @@ export default function DeadPersonDetails() {
     <div className="space-y-3 pb-2">
       {/* Header with Back */}
       <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-lg font-bold text-gray-900">{person.name}</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white">{person.name}</h1>
       </div>
 
       {/* Person Info */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           {person.ic_number && (
             <div>
-              <p className="text-xs text-gray-500">No. IC</p>
-              <p className="text-sm font-medium">{person.ic_number}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
+              <p className="text-sm font-medium dark:text-white">{person.ic_number}</p>
             </div>
           )}
           {person.date_of_birth && (
             <div>
-              <p className="text-xs text-gray-500">Tarikh Lahir</p>
-              <p className="text-sm font-medium">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
+              <p className="text-sm font-medium dark:text-white">
                 {new Date(person.date_of_birth).toLocaleDateString('ms-MY')}
               </p>
             </div>
           )}
           {person.date_of_death && (
             <div>
-              <p className="text-xs text-gray-500">Tarikh Meninggal</p>
-              <p className="text-sm font-medium">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Meninggal</p>
+              <p className="text-sm font-medium dark:text-white">
                 {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
                 {age && ` (${age} tahun)`}
               </p>
@@ -127,8 +127,8 @@ export default function DeadPersonDetails() {
           )}
           {person.biography && (
             <div>
-              <p className="text-xs text-gray-500">Biografi</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{person.biography}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Biografi</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{person.biography}</p>
             </div>
           )}
         </CardContent>
@@ -136,17 +136,17 @@ export default function DeadPersonDetails() {
 
       {/* Grave Location */}
       {grave && (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
-            <h2 className="text-sm font-semibold text-gray-900 mb-2">Lokasi Kubur</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Lokasi Kubur</h2>
             <Link to={createPageUrl('GraveDetails') + `?id=${grave.id}`}>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 transition-colors mb-2">
-                <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-teal-600" />
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors mb-2">
+                <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">{grave.cemetery_name}</p>
-                  <p className="text-xs text-gray-500">{grave.state}</p>
+                  <p className="font-medium text-sm dark:text-white">{grave.cemetery_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
                 </div>
               </div>
             </Link>
@@ -157,7 +157,7 @@ export default function DeadPersonDetails() {
                   Arah
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={shareProfile} className="h-8 text-xs">
+              <Button variant="outline" size="sm" onClick={shareProfile} className="h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
                 <Share2 className="w-3 h-3 mr-1" />
                 Kongsi
               </Button>
