@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { getTranslation, getCurrentLanguage } from '../components/translations';
 
 export default function NotificationPage() {
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState(null);
   const queryClient = useQueryClient();
+  const [lang, setLang] = useState('ms');
 
   useEffect(() => {
     const appUserAuth = localStorage.getItem('appUserAuth');
@@ -20,7 +22,10 @@ export default function NotificationPage() {
       const appUser = JSON.parse(appUserAuth);
       setUserEmail(appUser.email);
     }
+    setLang(getCurrentLanguage());
   }, []);
+
+  const t = (key) => getTranslation(key, lang);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', userEmail],
@@ -71,9 +76,9 @@ export default function NotificationPage() {
   const NotificationList = ({ items }) => (
     <div className="space-y-3">
       {items.length === 0 ? (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-8 text-center text-gray-500">
-            Tiada notifikasi
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
+            {t('noNotifications')}
           </CardContent>
         </Card>
       ) : (
@@ -81,7 +86,7 @@ export default function NotificationPage() {
           <Card 
             key={notification.id} 
             className={`border cursor-pointer hover:shadow-md transition-all ${
-              !notification.is_read ? 'bg-blue-50 border-blue-200' : 'bg-white'
+              !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800'
             }`}
             onClick={() => handleNotificationClick(notification)}
           >
@@ -92,12 +97,12 @@ export default function NotificationPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900">{notification.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{notification.title}</h3>
                     {!notification.is_read && (
                       <Badge className="bg-blue-500">Baru</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{notification.message}</p>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={getStatusColor(notification.status)}>
                       {notification.status === 'approved' && 'Diluluskan'}
@@ -121,25 +126,25 @@ export default function NotificationPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-4 pb-2">
       <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Notifikasi</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('notifications')}</h1>
         {unreadNotifications.length > 0 && (
           <Badge className="bg-red-500">{unreadNotifications.length}</Badge>
         )}
       </div>
 
       <Tabs defaultValue="unread" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="unread" className="relative">
-            Belum Dibaca
+        <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
+          <TabsTrigger value="unread" className="relative dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
+            {t('unread')}
             {unreadNotifications.length > 0 && (
               <Badge className="ml-2 bg-red-500">{unreadNotifications.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="read">
-            Sudah Dibaca
+          <TabsTrigger value="read" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
+            {t('read')}
           </TabsTrigger>
         </TabsList>
 

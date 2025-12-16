@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getTranslation, getCurrentLanguage } from '../components/translations';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -111,7 +112,12 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 pb-2">
-      <h1 className="text-xl font-bold text-gray-900 pt-2">Tetapan</h1>
+      <div className="flex items-center gap-3 pt-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h1>
+      </div>
       
       {settingsSections.map((section, idx) => (
         <Card key={idx} className="border-0 shadow-sm dark:bg-gray-800">
