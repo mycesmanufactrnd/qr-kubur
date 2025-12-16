@@ -206,11 +206,11 @@ export default function QiblaCompass() {
                     </div>
                   )}
                 </div>
-                <p className="mt-4 text-lg font-semibold text-gray-800">
+                <p className="mt-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
                   {isAligned ? (
-                    <span className="text-green-600">✓ Menghadap Kiblat</span>
+                    <span className="text-green-600 dark:text-green-400">✓ {t('facingQibla')}</span>
                   ) : (
-                    <>Arah Kiblat: {qiblaDirection.toFixed(0)}°</>
+                    <>{t('qiblaDirection')}: {qiblaDirection.toFixed(0)}°</>
                   )}
                 </p>
               </div>

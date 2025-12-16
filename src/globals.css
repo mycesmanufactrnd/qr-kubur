@@ -1,6 +1,19 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+}
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 @media (max-width: 1024px) {
