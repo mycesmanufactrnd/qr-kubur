@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QrScanner from 'react-qr-scanner';
+import { getTranslation, getCurrentLanguage } from '../components/translations';
 
 export default function ScanQR() {
   const [manualCode, setManualCode] = useState('');
@@ -16,6 +17,13 @@ export default function ScanQR() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [lang, setLang] = useState('ms');
+
+  useEffect(() => {
+    setLang(getCurrentLanguage());
+  }, []);
+
+  const t = (key) => getTranslation(key, lang);
 
   const handleScan = async (data) => {
     if (data && !loading) {
@@ -52,7 +60,7 @@ export default function ScanQR() {
 
   const handleError = (err) => {
     console.error(err);
-    setError('Ralat membaca kamera. Sila periksa kebenaran kamera.');
+    setError(t('cameraError'));
   };
 
   const handleManualSearch = async (e) => {
@@ -80,7 +88,7 @@ export default function ScanQR() {
         });
         setResult({ type: 'grave', data: gravesById[0] });
       } else {
-        setError('Kod tidak dijumpai. Sila semak kod anda.');
+        setError(t('codeNotFound'));
       }
     }
     
@@ -97,13 +105,13 @@ export default function ScanQR() {
     <div className="max-w-2xl mx-auto space-y-3 pb-2">
       {/* Header */}
       <div className="text-center pt-2">
-        <h1 className="text-xl font-bold text-gray-900">Imbas Kod QR</h1>
-        <p className="text-sm text-gray-500 mt-1">Gunakan kamera untuk imbas</p>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('scanQRCode')}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('useCamera')}</p>
       </div>
 
       {/* Camera Scanner */}
       {!result && (
-        <Card className="border-0 shadow-lg overflow-hidden">
+        <Card className="border-0 shadow-lg overflow-hidden dark:bg-gray-800">
           <CardContent className="p-0">
             {scanning ? (
               <div className="relative">
@@ -133,8 +141,8 @@ export default function ScanQR() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
                   <Camera className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Imbas dengan Kamera</h3>
-                <p className="text-sm text-gray-500 mb-4">Arahkan kamera ke kod QR</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('scanWithCamera')}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t('pointCamera')}</p>
                 <div className="flex gap-2 justify-center">
                   <Button 
                     onClick={() => setScanning(true)}
@@ -142,14 +150,15 @@ export default function ScanQR() {
                     disabled={loading}
                   >
                     <Camera className="w-4 h-4 mr-2" />
-                    Buka Kamera
+                    {t('openCamera')}
                   </Button>
                   <Button 
                     variant="outline"
                     onClick={() => setShowManual(!showManual)}
+                    className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                   >
                     <Keyboard className="w-4 h-4 mr-2" />
-                    Taip Kod
+                    {t('typeCode')}
                   </Button>
                 </div>
               </div>
@@ -160,12 +169,12 @@ export default function ScanQR() {
 
       {/* Manual Input */}
       {showManual && !result && (
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardContent className="p-4">
             <form onSubmit={handleManualSearch} className="space-y-3">
               <Input
                 type="text"
-                placeholder="Masukkan kod QR"
+                placeholder={t('enterQRCode')}
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
                 className="text-center"
@@ -175,7 +184,7 @@ export default function ScanQR() {
                 className="w-full bg-emerald-600 hover:bg-emerald-700"
                 disabled={loading || !manualCode.trim()}
               >
-                {loading ? 'Mencari...' : 'Cari'}
+                {loading ? t('searching') : t('search')}
               </Button>
             </form>
           </CardContent>
@@ -192,22 +201,22 @@ export default function ScanQR() {
 
       {/* Result */}
       {result && (
-        <Card className="border-0 shadow-lg bg-emerald-50">
+        <Card className="border-0 shadow-lg bg-emerald-50 dark:bg-emerald-900/30">
           <CardContent className="p-4">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-emerald-700">Rekod Dijumpai</p>
-                <h3 className="font-bold text-lg text-gray-900 mt-1">
+                <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('recordFound')}</p>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white mt-1">
                   {result.data.cemetery_name}
                 </h3>
                 {result.data.state && (
-                  <p className="text-sm text-gray-600">{result.data.state}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{result.data.state}</p>
                 )}
                 {result.data.block && (
-                  <p className="text-sm text-gray-500 mt-1">Blok {result.data.block}, Lot {result.data.lot}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Blok {result.data.block}, Lot {result.data.lot}</p>
                 )}
               </div>
             </div>
@@ -217,7 +226,7 @@ export default function ScanQR() {
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                 onClick={navigateToResult}
               >
-                Lihat Butiran
+                {t('viewDetails')}
               </Button>
               <Button 
                 variant="outline"
@@ -226,8 +235,9 @@ export default function ScanQR() {
                   setError(null);
                   setManualCode('');
                 }}
+                className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
-                Imbas Lagi
+                {t('scanAgain')}
               </Button>
             </div>
           </CardContent>
