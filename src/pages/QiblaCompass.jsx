@@ -161,7 +161,7 @@ export default function QiblaCompass() {
                     className="absolute inset-0 rounded-full border-4 border-emerald-200 transition-transform duration-300"
                     style={{ transform: `rotate(${heading}deg)` }}
                   >
-                    {/* Kaabah icon on outer ring at Qibla position */}
+                    {/* Kaabah icon on outer ring at Qibla position - always pointing up */}
                     <div 
                       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                       style={{ 
@@ -171,19 +171,16 @@ export default function QiblaCompass() {
                     >
                       <div 
                         className="text-3xl"
-                        style={{ transform: `rotate(${-(qiblaDirection - heading)}deg)` }}
+                        style={{ transform: `rotate(${-heading}deg)` }}
                       >
                         🕋
                       </div>
                     </div>
                   </div>
                   
-                  {/* Fixed arrow pointing to Qibla with Kaabah icon */}
+                  {/* Fixed arrow pointing up (North) */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex flex-col items-center">
-                      <div className="text-2xl mb-2">🕋</div>
-                      <Navigation className="w-32 h-32 text-emerald-600 fill-emerald-600" />
-                    </div>
+                    <Navigation className="w-32 h-32 text-emerald-600 fill-emerald-600" />
                   </div>
                   
                   {/* Cardinal direction markers */}
@@ -283,78 +280,77 @@ export default function QiblaCompass() {
         {/* Map Qibla */}
         <TabsContent value="map" className="mt-4">
           <Card className="border-0 shadow-lg">
-            <CardContent className="p-4">
-              {location.lat && location.lng ? (
-                <>
-                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative border-2 border-emerald-200">
-                    {/* Custom map visualization showing both locations */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100">
-                      <svg className="w-full h-full">
-                        <defs>
-                          <marker
-                            id="arrow"
-                            markerWidth="10"
-                            markerHeight="10"
-                            refX="9"
-                            refY="3"
-                            orient="auto"
-                            markerUnits="strokeWidth"
-                          >
-                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
-                          </marker>
-                        </defs>
-                        
-                        {/* Line from user to Kaabah */}
-                        <line
-                          x1="20%"
-                          y1="70%"
-                          x2="80%"
-                          y2="30%"
-                          stroke="#059669"
-                          strokeWidth="3"
-                          strokeDasharray="8,4"
-                          markerEnd="url(#arrow)"
-                        />
-                        
-                        {/* User location */}
-                        <circle cx="20%" cy="70%" r="8" fill="#3b82f6" stroke="white" strokeWidth="2" />
-                        <text x="20%" y="70%" dy="25" textAnchor="middle" fill="#1e40af" fontSize="12" fontWeight="bold">
-                          Anda
-                        </text>
-                        
-                        {/* Kaabah location */}
-                        <text x="80%" y="30%" textAnchor="middle" fontSize="32">
-                          🕋
-                        </text>
-                        <text x="80%" y="30%" dy="40" textAnchor="middle" fill="#059669" fontSize="12" fontWeight="bold">
-                          Kaabah
-                        </text>
-                      </svg>
-                      
-                      {/* Direction indicator */}
-                      <div className="absolute top-4 right-4 bg-white/90 rounded-lg px-3 py-2 shadow-md">
-                        <p className="text-xs text-gray-600">Arah Kiblat</p>
-                        <p className="text-lg font-bold text-emerald-600">{qiblaDirection.toFixed(0)}°</p>
+            <CardContent className="p-8">
+              <div className="flex flex-col items-center justify-center">
+                <div className="relative w-64 h-64">
+                  {/* Rotating map/compass ring */}
+                  <div 
+                    className="absolute inset-0 rounded-full border-8 border-gray-200 overflow-hidden transition-transform duration-300"
+                    style={{ transform: `rotate(${heading}deg)` }}
+                  >
+                    {/* Map background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100"></div>
+                    
+                    {/* Kaabah icon on outer ring at Qibla position - always pointing up */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{ 
+                        transform: `rotate(${qiblaDirection - heading}deg) translateY(-110px)`,
+                        transformOrigin: 'center center'
+                      }}
+                    >
+                      <div 
+                        className="text-3xl"
+                        style={{ transform: `rotate(${-heading}deg)` }}
+                      >
+                        🕋
                       </div>
+                    </div>
+                    
+                    {/* Direction line */}
+                    <div 
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ transform: `rotate(${qiblaDirection - heading}deg)` }}
+                    >
+                      <div className="w-1 h-24 bg-emerald-500 opacity-50"></div>
                     </div>
                   </div>
                   
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-xs text-blue-600 font-medium mb-1">📍 Lokasi Anda</p>
-                      <p className="text-xs text-gray-700">{location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°</p>
-                    </div>
-                    <div className="p-3 bg-emerald-50 rounded-lg">
-                      <p className="text-xs text-emerald-600 font-medium mb-1">🕋 Kaabah</p>
-                      <p className="text-xs text-gray-700">21.4225°, 39.8262°</p>
-                    </div>
+                  {/* Fixed arrow pointing up (North) */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Navigation className="w-24 h-24 text-blue-600 fill-blue-600" />
                   </div>
-                </>
-              ) : (
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-500">Menunggu lokasi GPS...</p>
+                  
+                  {/* Center dot */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-lg"></div>
+                  </div>
+
+                  {/* Alignment indicator */}
+                  {isAligned && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="absolute inset-0 rounded-full border-4 border-green-500 animate-pulse"></div>
+                    </div>
+                  )}
                 </div>
-              )}
+                <p className="mt-4 text-lg font-semibold text-gray-800">
+                  {isAligned ? (
+                    <span className="text-green-600">✓ Menghadap Kiblat</span>
+                  ) : (
+                    <>Arah Kiblat: {qiblaDirection.toFixed(0)}°</>
+                  )}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2 w-full">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-600 font-medium mb-1">📍 Anda</p>
+                    <p className="text-xs text-gray-700">{location.lat?.toFixed(4)}°, {location.lng?.toFixed(4)}°</p>
+                  </div>
+                  <div className="p-3 bg-emerald-50 rounded-lg">
+                    <p className="text-xs text-emerald-600 font-medium mb-1">🕋 Kaabah</p>
+                    <p className="text-xs text-gray-700">21.4225°, 39.8262°</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
