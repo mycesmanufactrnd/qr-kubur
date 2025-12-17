@@ -37,6 +37,12 @@ export default function DeadPersonDetails() {
     }
   };
 
+  const openPersonDirections = () => {
+    if (person?.gps_lat && person?.gps_lng) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.gps_lat},${person.gps_lng}`, '_blank');
+    }
+  };
+
   const shareProfile = async () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -136,7 +142,7 @@ export default function DeadPersonDetails() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={openDirections}
+                onClick={openPersonDirections}
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Navigation className="w-3 h-3 mr-1" />
