@@ -109,11 +109,11 @@ export default function ManageDonations() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Heart className="w-6 h-6 text-pink-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400" />
             Urus Derma
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {donations.filter(d => d.status === 'pending').length} menunggu pengesahan
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function ManageDonations() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
+        <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-700 dark:to-teal-800 text-white">
           <CardContent className="p-4">
             <p className="text-emerald-100 text-sm">Jumlah Disahkan</p>
             <p className="text-2xl font-bold">RM {totalVerified.toLocaleString()}</p>
@@ -132,7 +132,7 @@ export default function ManageDonations() {
           { label: 'Disahkan', value: donations.filter(d => d.status === 'verified').length, color: 'green' },
           { label: 'Ditolak', value: donations.filter(d => d.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
-          <Card key={i} className="border-0 shadow-md">
+          <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
               <p className={`text-2xl font-bold text-${stat.color}-600`}>{stat.value}</p>
               <p className="text-sm text-gray-500">{stat.label}</p>
@@ -142,7 +142,7 @@ export default function ManageDonations() {
       </div>
 
       {/* Filter */}
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4">
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full sm:w-48">
@@ -160,7 +160,7 @@ export default function ManageDonations() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -213,9 +213,9 @@ export default function ManageDonations() {
 
       {/* Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Butiran Derma</DialogTitle>
+            <DialogTitle className="dark:text-white">Butiran Derma</DialogTitle>
           </DialogHeader>
           {selectedDonation && (
             <div className="space-y-4">

@@ -136,11 +136,11 @@ export default function SuperadminDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Shield className="w-6 h-6 text-purple-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             Super Admin Dashboard
           </h1>
-          <p className="text-gray-500">Pengurusan sistem penuh</p>
+          <p className="text-gray-500 dark:text-gray-400">Pengurusan sistem penuh</p>
         </div>
         <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
           <Shield className="w-4 h-4 mr-1" />
@@ -156,7 +156,7 @@ export default function SuperadminDashboard() {
           { label: 'Rekod Si Mati', value: stats?.persons || 0, icon: Database },
           { label: 'Derma', value: stats?.donations || 0, icon: Database },
         ].map((stat, i) => (
-          <Card key={i} className="border-0 shadow-md">
+          <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -188,9 +188,9 @@ export default function SuperadminDashboard() {
         <TabsContent value="users" className="space-y-6">
           {/* Pending Admin Approvals */}
           {pendingAdmins.length > 0 && (
-            <Card className="border-0 shadow-md border-l-4 border-l-orange-500">
+            <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700 border-l-4 border-l-orange-500">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-600">
+                <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                   <Clock className="w-5 h-5" />
                   Permohonan Admin ({pendingAdmins.length})
                 </CardTitle>
@@ -232,9 +232,9 @@ export default function SuperadminDashboard() {
           )}
 
           {/* All Users */}
-          <Card className="border-0 shadow-md">
+          <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle>Senarai Pengguna</CardTitle>
+              <CardTitle className="dark:text-white">Senarai Pengguna</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Table>

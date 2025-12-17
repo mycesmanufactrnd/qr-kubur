@@ -219,19 +219,19 @@ export default function ManageTahfizCenters() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             Urus Pusat Tahfiz
           </h1>
         </div>
-        <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
+        <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800">
           <Plus className="w-4 h-4 mr-2" />
           Tambah Pusat Tahfiz
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
@@ -262,7 +262,7 @@ export default function ManageTahfizCenters() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -332,9 +332,9 @@ export default function ManageTahfizCenters() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="dark:text-white">
               {editingCenter ? 'Edit Pusat Tahfiz' : 'Tambah Pusat Tahfiz Baru'}
             </DialogTitle>
           </DialogHeader>
