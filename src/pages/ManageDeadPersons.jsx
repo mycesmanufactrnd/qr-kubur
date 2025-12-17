@@ -236,19 +236,19 @@ export default function ManageDeadPersons() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-6 h-6 text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Urus Rekod Si Mati
           </h1>
         </div>
-        <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
           <Plus className="w-4 h-4 mr-2" />
           Tambah Rekod
         </Button>
       </div>
 
       {/* Search */}
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -263,7 +263,7 @@ export default function ManageDeadPersons() {
       </Card>
 
       {/* Table */}
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -327,9 +327,9 @@ export default function ManageDeadPersons() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="dark:text-white">
               {editingPerson ? 'Edit Rekod' : 'Tambah Rekod Baru'}
             </DialogTitle>
           </DialogHeader>
