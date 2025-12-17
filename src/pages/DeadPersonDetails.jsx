@@ -131,6 +131,19 @@ export default function DeadPersonDetails() {
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{person.biography}</p>
             </div>
           )}
+          {person.gps_lat && person.gps_lng && (
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openDirections}
+                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+              >
+                <Navigation className="w-3 h-3 mr-1" />
+                Arah
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

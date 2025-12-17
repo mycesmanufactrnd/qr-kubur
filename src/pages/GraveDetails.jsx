@@ -171,18 +171,30 @@ export default function GraveDetails() {
           ) : displayedPersons.length === 0 ? (
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">Tiada rekod</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {displayedPersons.map(person => (
-                <Link key={person.id} to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`}>
-                  <div className="mb-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
-                    <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
-                    {person.date_of_death && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
-                      </p>
-                    )}
-                  </div>
-                </Link>
+                <div key={person.id} className="flex items-center gap-2">
+                  <Link to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`} className="flex-1">
+                    <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                      <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
+                      {person.date_of_death && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                  {person.gps_lat && person.gps_lng && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.gps_lat},${person.gps_lng}`, '_blank')}
+                      className="h-auto px-2 py-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                    >
+                      <Navigation className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               ))}
               {displayedCount < filtered.length && (
                 <Button 

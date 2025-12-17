@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Plus, Edit, Trash2, Search, Save, Upload } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,10 @@ const emptyPerson = {
   cause_of_death: '',
   grave_id: '',
   biography: '',
-  photo_url: ''
+  photo_url: '',
+  gps_lat: '',
+  gps_lng: '',
+  qr_code: ''
 };
 
 export default function ManageDeadPersons() {
@@ -139,7 +142,10 @@ export default function ManageDeadPersons() {
       cause_of_death: person.cause_of_death || '',
       grave_id: person.grave_id || '',
       biography: person.biography || '',
-      photo_url: person.photo_url || ''
+      photo_url: person.photo_url || '',
+      gps_lat: person.gps_lat || '',
+      gps_lng: person.gps_lng || '',
+      qr_code: person.qr_code || ''
     });
     setIsDialogOpen(true);
   };
@@ -155,6 +161,28 @@ export default function ManageDeadPersons() {
     toast.success('Gambar berjaya dimuat naik');
   };
 
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      toast.info('Mendapatkan lokasi...');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData({
+            ...formData,
+            gps_lat: position.coords.latitude.toFixed(8),
+            gps_lng: position.coords.longitude.toFixed(8)
+          });
+          toast.success('Lokasi berjaya diperolehi');
+        },
+        (error) => {
+          toast.error('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      toast.error('GPS tidak disokong oleh pelayar ini');
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -168,10 +196,16 @@ export default function ManageDeadPersons() {
       return;
     }
 
+    const data = {
+      ...formData,
+      gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
+      gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null
+    };
+
     if (editingPerson) {
-      updateMutation.mutate({ id: editingPerson.id, data: formData });
+      updateMutation.mutate({ id: editingPerson.id, data });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(data);
     }
   };
 
@@ -354,6 +388,45 @@ export default function ManageDeadPersons() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>GPS Latitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.gps_lat}
+                  onChange={(e) => setFormData({...formData, gps_lat: e.target.value})}
+                  placeholder="3.1390"
+                />
+              </div>
+              <div>
+                <Label>GPS Longitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.gps_lng}
+                  onChange={(e) => setFormData({...formData, gps_lng: e.target.value})}
+                  placeholder="101.6869"
+                />
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={getCurrentLocation}
+              className="w-full"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Dapatkan Lokasi Semasa
+            </Button>
+            <div>
+              <Label>Kod QR</Label>
+              <Input
+                value={formData.qr_code}
+                onChange={(e) => setFormData({...formData, qr_code: e.target.value})}
+                placeholder="QRP-001"
+              />
             </div>
             <div>
               <Label>Biografi</Label>

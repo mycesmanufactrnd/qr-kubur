@@ -33,6 +33,7 @@ export default function ScanQR() {
 
       const qrCode = data.text || data;
       
+      // Check graves first
       const graves = await base44.entities.Grave.filter({ qr_code: qrCode });
       
       if (graves.length > 0) {
@@ -50,7 +51,26 @@ export default function ScanQR() {
           });
           setResult({ type: 'grave', data: gravesById[0] });
         } else {
-          setError('Kod QR tidak dijumpai dalam sistem.');
+          // Check dead persons
+          const persons = await base44.entities.DeadPerson.filter({ qr_code: qrCode });
+          if (persons.length > 0) {
+            await base44.entities.VisitLog.create({
+              dead_person_id: persons[0].id,
+              visit_type: 'qr_scan'
+            });
+            setResult({ type: 'person', data: persons[0] });
+          } else {
+            const personsById = await base44.entities.DeadPerson.filter({ id: qrCode });
+            if (personsById.length > 0) {
+              await base44.entities.VisitLog.create({
+                dead_person_id: personsById[0].id,
+                visit_type: 'qr_scan'
+              });
+              setResult({ type: 'person', data: personsById[0] });
+            } else {
+              setError('Kod QR tidak dijumpai dalam sistem.');
+            }
+          }
         }
       }
       
@@ -88,7 +108,26 @@ export default function ScanQR() {
         });
         setResult({ type: 'grave', data: gravesById[0] });
       } else {
-        setError(t('codeNotFound'));
+        // Check dead persons
+        const persons = await base44.entities.DeadPerson.filter({ qr_code: manualCode.trim() });
+        if (persons.length > 0) {
+          await base44.entities.VisitLog.create({
+            dead_person_id: persons[0].id,
+            visit_type: 'qr_scan'
+          });
+          setResult({ type: 'person', data: persons[0] });
+        } else {
+          const personsById = await base44.entities.DeadPerson.filter({ id: manualCode.trim() });
+          if (personsById.length > 0) {
+            await base44.entities.VisitLog.create({
+              dead_person_id: personsById[0].id,
+              visit_type: 'qr_scan'
+            });
+            setResult({ type: 'person', data: personsById[0] });
+          } else {
+            setError(t('codeNotFound'));
+          }
+        }
       }
     }
     
@@ -98,6 +137,8 @@ export default function ScanQR() {
   const navigateToResult = () => {
     if (result?.type === 'grave') {
       window.location.href = createPageUrl('GraveDetails') + `?id=${result.data.id}`;
+    } else if (result?.type === 'person') {
+      window.location.href = createPageUrl('DeadPersonDetails') + `?id=${result.data.id}`;
     }
   };
 
@@ -210,13 +251,18 @@ export default function ScanQR() {
               <div className="flex-1">
                 <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('recordFound')}</p>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white mt-1">
-                  {result.data.cemetery_name}
+                  {result.type === 'grave' ? result.data.cemetery_name : result.data.name}
                 </h3>
-                {result.data.state && (
+                {result.type === 'grave' && result.data.state && (
                   <p className="text-sm text-gray-600 dark:text-gray-300">{result.data.state}</p>
                 )}
-                {result.data.block && (
+                {result.type === 'grave' && result.data.block && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Blok {result.data.block}, Lot {result.data.lot}</p>
+                )}
+                {result.type === 'person' && result.data.date_of_death && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {new Date(result.data.date_of_death).toLocaleDateString('ms-MY')}
+                  </p>
                 )}
               </div>
             </div>
