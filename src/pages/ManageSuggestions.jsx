@@ -139,8 +139,53 @@ export default function ManageSuggestions() {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {isLoading ? (
+          [1, 2, 3].map(i => (
+            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
+              <CardContent className="p-3">
+                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredSuggestions.length === 0 ? (
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
+            <CardContent className="p-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada cadangan</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredSuggestions.map(suggestion => (
+            <Card key={suggestion.id} className="border-0 shadow-sm dark:bg-gray-800">
+              <CardContent className="p-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-xs">
+                        {getEntityTypeLabel(suggestion.entity_type)}
+                      </Badge>
+                      {getStatusBadge(suggestion.status)}
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                      {suggestion.suggested_changes?.substring(0, 80)}...
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {new Date(suggestion.created_date).toLocaleDateString('ms-MY')}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => openDetailDialog(suggestion)} className="h-8 w-8 p-0">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

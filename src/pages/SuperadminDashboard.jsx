@@ -236,7 +236,35 @@ export default function SuperadminDashboard() {
             <CardHeader>
               <CardTitle className="dark:text-white">Senarai Pengguna</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            
+            {/* Mobile Cards */}
+            <div className="lg:hidden px-4 pb-4 space-y-3">
+              {loadingUsers ? (
+                [1, 2, 3].map(i => (
+                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                ))
+              ) : users.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Tiada pengguna</p>
+              ) : (
+                users.map(u => (
+                  <div key={u.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{u.full_name || '-'}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
+                        {u.role === 'admin' ? 'Admin' : 'Pengguna'}
+                      </Badge>
+                      {u.admin_status === 'pending' && (
+                        <Badge className="bg-yellow-100 text-yellow-700 text-xs">Menunggu</Badge>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop Table */}
+            <CardContent className="hidden lg:block p-0">
               <Table>
                 <TableHeader>
                   <TableRow>

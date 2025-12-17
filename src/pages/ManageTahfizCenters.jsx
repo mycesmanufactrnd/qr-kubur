@@ -261,8 +261,68 @@ export default function ManageTahfizCenters() {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {isLoading ? (
+          [1, 2, 3].map(i => (
+            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
+              <CardContent className="p-3">
+                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+              </CardContent>
+            </Card>
+          ))
+        ) : paginatedCenters.length === 0 ? (
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
+            <CardContent className="p-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada rekod</p>
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedCenters.map(center => (
+            <Card key={center.id} className="border-0 shadow-sm dark:bg-gray-800">
+              <CardContent className="p-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{center.name}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{center.state}</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {center.services_offered?.slice(0, 2).map(service => (
+                        <Badge key={service} variant="secondary" className="text-xs">
+                          {SERVICES.find(s => s.value === service)?.label || service}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)} className="h-8 w-8 p-0">
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(center)} className="h-8 w-8 p-0">
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={filteredCenters.length}
+          />
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

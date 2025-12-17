@@ -159,8 +159,54 @@ export default function ManageDonations() {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {isLoading ? (
+          [1, 2, 3].map(i => (
+            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
+              <CardContent className="p-3">
+                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredDonations.length === 0 ? (
+          <Card className="border-0 shadow-sm dark:bg-gray-800">
+            <CardContent className="p-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada derma</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredDonations.map(donation => (
+            <Card key={donation.id} className="border-0 shadow-sm dark:bg-gray-800">
+              <CardContent className="p-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                      {donation.donor_name || 'Tanpa Nama'}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{getRecipientName(donation)}</p>
+                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                      RM {donation.amount?.toFixed(2)}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {getStatusBadge(donation.status)}
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(donation.created_date).toLocaleDateString('ms-MY')}
+                      </span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => openDetailDialog(donation)} className="h-8 w-8 p-0">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
