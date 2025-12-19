@@ -38,7 +38,7 @@ export default function Layout({ children, currentPageName }) {
     setLang(getCurrentLanguage());
     
     // Apply theme on load
-    const savedTheme = localStorage.getItem('theme') || 'system';
+    const savedTheme = localStorage.getItem('theme') || 'light';
     applyTheme(savedTheme);
   }, []);
 
@@ -46,14 +46,8 @@ export default function Layout({ children, currentPageName }) {
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
-    } else if (theme === 'light') {
-      root.classList.remove('dark');
     } else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
+      root.classList.remove('dark');
     }
   };
 
@@ -87,7 +81,7 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
 
   // Redirect admin away from user pages
-  const userPages = ['UserDashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'SettingsPage', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
+  const userPages = ['UserDashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
   const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
   
   useEffect(() => {
@@ -166,7 +160,7 @@ export default function Layout({ children, currentPageName }) {
             </Button>
 
             {/* Logo */}
-            <Link to={createPageUrl('AdminDashboard')} className="flex items-center gap-2">
+            <Link to={createPageUrl(isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard')} className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-4 h-4 text-white" />
               </div>
@@ -278,7 +272,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to={createPageUrl('UserDashboard')} className="flex items-center gap-3">
+            <Link to={createPageUrl(isSuperAdmin ? 'SuperadminDashboard' : isAdmin ? 'AdminDashboard' : 'UserDashboard')} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>
