@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [language, setLanguage] = useState('ms');
   const [theme, setTheme] = useState('light');
   const [lang, setLang] = useState('ms');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const savedSize = localStorage.getItem('fontSize') || 'medium';
@@ -27,6 +28,12 @@ export default function SettingsPage() {
     
     applyFontSize(savedSize);
     applyTheme(savedTheme);
+
+    // Check if user is admin
+    const appUserAuth = localStorage.getItem('appUserAuth');
+    if (appUserAuth) {
+      setIsAdmin(true);
+    }
   }, []);
 
   const t = (key) => getTranslation(key, lang);
@@ -98,7 +105,13 @@ export default function SettingsPage() {
       items: [
         { icon: FileText, label: t('termsConditions'), page: 'TermsAndConditions' },
         { icon: Shield, label: t('privacyPolicy'), page: 'PrivacyPolicy' },
-        { icon: LogIn, label: t('adminLogin'), page: 'AppUserLogin' },
+        ...(isAdmin 
+          ? [{ icon: LogIn, label: 'Log Keluar', action: () => {
+              localStorage.removeItem('appUserAuth');
+              window.location.href = createPageUrl('AppUserLogin');
+            }}] 
+          : [{ icon: LogIn, label: t('adminLogin'), page: 'AppUserLogin' }]
+        ),
       ]
     }
   ];
