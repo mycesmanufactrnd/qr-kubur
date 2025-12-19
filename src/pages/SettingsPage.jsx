@@ -12,13 +12,13 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const [fontSize, setFontSize] = useState('medium');
   const [language, setLanguage] = useState('ms');
-  const [theme, setTheme] = useState('system');
+  const [theme, setTheme] = useState('light');
   const [lang, setLang] = useState('ms');
 
   useEffect(() => {
     const savedSize = localStorage.getItem('fontSize') || 'medium';
     const savedLanguage = localStorage.getItem('language') || 'ms';
-    const savedTheme = localStorage.getItem('theme') || 'system';
+    const savedTheme = localStorage.getItem('theme') || 'light';
     
     setFontSize(savedSize);
     setLanguage(savedLanguage);
@@ -52,15 +52,8 @@ export default function SettingsPage() {
     const root = document.documentElement;
     if (selectedTheme === 'dark') {
       root.classList.add('dark');
-    } else if (selectedTheme === 'light') {
-      root.classList.remove('dark');
     } else {
-      // System preference
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
+      root.classList.remove('dark');
     }
   };
 
@@ -183,7 +176,6 @@ export default function SettingsPage() {
                             <SelectContent className="bg-white dark:bg-gray-700">
                               <SelectItem value="light">{t('light')}</SelectItem>
                               <SelectItem value="dark">{t('dark')}</SelectItem>
-                              <SelectItem value="system">{t('system')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
