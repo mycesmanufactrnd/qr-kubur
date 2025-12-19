@@ -151,8 +151,8 @@ export default function SearchGrave() {
           {displayedGraves.map((grave) => (
             <Card key={grave.id} className="mb-2 border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800">
               <CardContent className="p-3">
-                <Link to={createPageUrl('GraveDetails') + `?id=${grave.id}`}>
-                  <div className="flex items-start gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <Link to={createPageUrl('GraveDetails') + `?id=${grave.id}`} className="flex items-start gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
                     </div>
@@ -169,42 +169,41 @@ export default function SearchGrave() {
                         </p>
                       )}
                     </div>
-                  </div>
-                </Link>
-                {grave.gps_lat && grave.gps_lng && (
-                  <div className="flex gap-2 mt-3 pt-3 border-t dark:border-gray-700">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.gps_lat},${grave.gps_lng}`, '_blank');
-                      }}
-                    >
-                      <Navigation className="w-4 h-4 mr-1" />
-                      Arah
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
-                        if (navigator.share) {
-                          navigator.share({ title: grave.cemetery_name, url });
-                        } else {
-                          navigator.clipboard.writeText(url);
-                          toast.success('Pautan disalin');
-                        }
-                      }}
-                    >
-                      <Share2 className="w-4 h-4 mr-1" />
-                      Kongsi
-                    </Button>
-                  </div>
-                )}
+                  </Link>
+                  {grave.gps_lat && grave.gps_lng && (
+                    <div className="flex flex-col gap-1">
+                      <Button 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.gps_lat},${grave.gps_lng}`, '_blank');
+                        }}
+                        className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <Navigation className="w-3 h-3 mr-1" />
+                        Arah
+                      </Button>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
+                          if (navigator.share) {
+                            navigator.share({ title: grave.cemetery_name, url });
+                          } else {
+                            navigator.clipboard.writeText(url);
+                            toast.success('Pautan disalin');
+                          }
+                        }}
+                        className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                      >
+                        <Share2 className="w-3 h-3 mr-1" />
+                        Kongsi
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
