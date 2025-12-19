@@ -4,6 +4,7 @@ import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, Navigation, Share2, ArrowLeft, Search } from 'lucide-react';
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,28 +174,54 @@ export default function GraveDetails() {
           ) : (
             <div className="space-y-2">
               {displayedPersons.map(person => (
-                <div key={person.id} className="flex items-center gap-2">
-                  <Link to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`} className="flex-1">
-                    <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
-                      <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
-                      {person.date_of_death && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                  {person.gps_lat && person.gps_lng && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.gps_lat},${person.gps_lng}`, '_blank')}
-                      className="h-auto px-2 py-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-                    >
-                      <Navigation className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                <Card key={person.id} className="border-0 shadow-sm dark:bg-gray-700">
+                  <CardContent className="p-3">
+                    <Link to={createPageUrl('DeadPersonDetails') + `?personId=${person.id}`}>
+                      <div>
+                        <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
+                        {person.date_of_death && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                    {person.gps_lat && person.gps_lng && (
+                      <div className="flex gap-2 mt-3 pt-3 border-t dark:border-gray-600">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.gps_lat},${person.gps_lng}`, '_blank');
+                          }}
+                        >
+                          <Navigation className="w-4 h-4 mr-1" />
+                          Arah
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const url = `${window.location.origin}${createPageUrl('DeadPersonDetails')}?personId=${person.id}`;
+                            if (navigator.share) {
+                              navigator.share({ title: person.name, url });
+                            } else {
+                              navigator.clipboard.writeText(url);
+                              toast.success('Pautan disalin');
+                            }
+                          }}
+                        >
+                          <Share2 className="w-4 h-4 mr-1" />
+                          Kongsi
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
               {displayedCount < filtered.length && (
                 <Button 
