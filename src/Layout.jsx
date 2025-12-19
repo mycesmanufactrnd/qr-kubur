@@ -351,8 +351,14 @@ export default function Layout({ children, currentPageName }) {
                         ))}
                       </>
                     )}
-                    
+
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to={createPageUrl('SettingsPage')} className="flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        Tetapan
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                       <LogOut className="w-4 h-4 mr-2" />
                       Log Keluar
