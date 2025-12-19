@@ -140,13 +140,21 @@ export default function DeadPersonDetails() {
           {person.gps_lat && person.gps_lng && (
             <div className="flex gap-2 pt-2">
               <Button
-                variant="outline"
                 size="sm"
                 onClick={openPersonDirections}
-                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
                 <Navigation className="w-3 h-3 mr-1" />
                 Arah
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={shareProfile}
+                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+              >
+                <Share2 className="w-3 h-3 mr-1" />
+                Kongsi
               </Button>
             </div>
           )}
