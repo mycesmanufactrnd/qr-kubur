@@ -129,9 +129,7 @@ export default function SuperadminDashboard() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: 'Super Admin Dashboard', page: 'SuperadminDashboard' }
-      ]} />
+
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
