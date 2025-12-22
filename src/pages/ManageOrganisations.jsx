@@ -78,9 +78,18 @@ export default function ManageOrganisations() {
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const isAdmin = currentUser?.role === 'admin';
 
+  const { data: permissions = [] } = useQuery({
+    queryKey: ['user-permissions', currentUser?.id],
+    queryFn: () => base44.entities.Permission.filter({ user_id: currentUser?.id }),
+    enabled: !!currentUser
+  });
+
+  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_organisations' && p.enabled);
+
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],
-    queryFn: () => base44.entities.Organisation.list('-created_date')
+    queryFn: () => base44.entities.Organisation.list('-created_date'),
+    enabled: hasViewPermission
   });
 
   const createMutation = useMutation({
@@ -129,6 +138,17 @@ export default function ManageOrganisations() {
           <Building2 className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
           <p className="text-gray-600">Only admins can access this page</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!hasViewPermission) {
+    return (
+      <Card className="max-w-lg mx-auto mt-8">
+        <CardContent className="p-8 text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
+          <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
         </CardContent>
       </Card>
     );
