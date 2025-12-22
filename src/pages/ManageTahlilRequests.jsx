@@ -299,7 +299,6 @@ export default function ManageTahlilRequests() {
                             .map(type => SERVICE_LABELS[type] || type)
                             .join(', ')
                         }
-                        // {SERVICE_LABELS[request.service_type] || request.service_type}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
@@ -356,7 +355,6 @@ export default function ManageTahlilRequests() {
                     .map(type => SERVICE_LABELS[type] || type)
                     .join(', ')
                 }
-                // {SERVICE_LABELS[selectedRequest.service_type] || selectedRequest.service_type}
                 </Badge>
               </div>
               <div>
