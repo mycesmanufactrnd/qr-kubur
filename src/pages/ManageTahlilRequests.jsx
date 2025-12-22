@@ -243,8 +243,9 @@ export default function ManageTahlilRequests() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">{getCenterName(request.tahfiz_center_id)}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
-                        {request.service_type
+                        {(request.service_type || '')
                           .split(',')
+                          .filter(Boolean)
                           .map(type => SERVICE_LABELS[type] || type)
                           .join(', ')
                         }
