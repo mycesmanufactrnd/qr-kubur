@@ -107,9 +107,9 @@ export default function AdminDashboard() {
   ];
 
   const pendingItems = [
-    { label: 'Cadangan Menunggu', value: stats?.pendingSuggestions || 0, icon: FileText, page: 'ManageSuggestions', color: 'orange' },
-    { label: 'Derma Menunggu', value: stats?.pendingDonations || 0, icon: Heart, page: 'ManageDonations', color: 'pink' },
-    { label: 'Permohonan Tahlil', value: stats?.pendingTahlil || 0, icon: Clock, page: 'ManageTahlilRequests', color: 'blue' },
+    { label: 'Cadangan Menunggu', value: stats?.pendingSuggestions || 0, page: 'ManageSuggestions', color: 'orange' },
+    { label: 'Derma Menunggu', value: stats?.pendingDonations || 0, page: 'ManageDonations', color: 'pink' },
+    { label: 'Permohonan Tahlil', value: stats?.pendingTahlil || 0, page: 'ManageTahlilRequests', color: 'blue' },
   ];
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
@@ -180,7 +180,6 @@ export default function AdminDashboard() {
             {pendingItems.map((item, i) => (
               <Link key={i} to={createPageUrl(item.page)}>
                 <div className={`p-2 rounded-lg bg-${item.color}-50 hover:bg-${item.color}-100 transition-colors text-center`}>
-                  <item.icon className={`w-5 h-5 text-${item.color}-600 mx-auto mb-1`} />
                   <Badge variant="secondary" className={`bg-${item.color}-200 text-${item.color}-800 text-xs`}>
                     {item.value}
                   </Badge>
