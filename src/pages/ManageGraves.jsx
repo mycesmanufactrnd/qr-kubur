@@ -69,9 +69,18 @@ export default function ManageGraves() {
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
 
+  const { data: permissions = [] } = useQuery({
+    queryKey: ['user-permissions', currentUser?.id],
+    queryFn: () => base44.entities.Permission.filter({ user_id: currentUser?.id }),
+    enabled: !!currentUser
+  });
+
+  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_graves' && p.enabled);
+
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],
-    queryFn: () => base44.entities.Grave.list('-created_date')
+    queryFn: () => base44.entities.Grave.list('-created_date'),
+    enabled: hasViewPermission
   });
 
   const { data: organisations = [] } = useQuery({
@@ -110,6 +119,17 @@ export default function ManageGraves() {
 
   if (loadingUser) {
     return <LoadingUser />;
+  }
+
+  if (!hasViewPermission) {
+    return (
+      <Card className="max-w-lg mx-auto mt-8">
+        <CardContent className="p-8 text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
+          <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   const accessibleGraves = graves.filter(grave => {
