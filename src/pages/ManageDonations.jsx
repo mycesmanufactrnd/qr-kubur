@@ -49,25 +49,13 @@ export default function ManageDonations() {
       // If superadmin, return all
       if (isSuperAdmin) return allDonations;
       
-      // Filter by organization
+      // Filter by exact organization ID match only
       if (!user?.organisation_id) return [];
       
-      const orgsInUserStates = await base44.entities.Organisation.filter({ 
-        id: user.organisation_id 
-      });
-      const tahfizInUserStates = await base44.entities.TahfizCenter.filter({
-        state: { $in: user?.state || [] }
-      });
-      
-      const orgIds = orgsInUserStates.map(o => o.id);
-      const tahfizIds = tahfizInUserStates.map(t => t.id);
-      
       return allDonations.filter(d => {
-        if (d.recipient_type === 'organisation') {
-          return orgIds.includes(d.organisation_id);
-        }
-        if (d.recipient_type === 'tahfiz') {
-          return tahfizIds.includes(d.tahfiz_center_id);
+        // Only show donations where recipient is this admin's organization
+        if (d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id) {
+          return true;
         }
         return false;
       });
