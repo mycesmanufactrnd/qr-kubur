@@ -187,7 +187,7 @@ export default function TahlilRequestPage() {
             </CardHeader>
             <CardContent>
                 <div className="grid gap-3">
-                {SERVICE_TYPES.map(service => (
+                {selectedCenter.services_offered.map(service => (
                     <Label 
                     key={service.value}
                     className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
