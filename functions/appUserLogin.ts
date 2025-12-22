@@ -14,15 +14,6 @@ Deno.serve(async (req) => {
 
         if (!email || !password) {
             logDetails.error = 'Email and password are required';
-            await base44.asServiceRole.entities.LogActivity.create({
-                activity_type: 'app_user_login',
-                function_name: 'appUserLogin',
-                user_email: email || 'unknown',
-                level: 'error',
-                summary: 'Login failed: Missing credentials',
-                details: logDetails,
-                success: false
-            });
 
             return Response.json({
                 success: false,
@@ -49,15 +40,6 @@ Deno.serve(async (req) => {
 
         if (!appUser) {
             logDetails.error = 'User not found';
-            await base44.asServiceRole.entities.LogActivity.create({
-                activity_type: 'app_user_login',
-                function_name: 'appUserLogin',
-                user_email: email,
-                level: 'warn',
-                summary: 'Login failed: User not found',
-                details: logDetails,
-                success: false
-            });
 
             return Response.json({
                 success: false,
@@ -69,15 +51,6 @@ Deno.serve(async (req) => {
 
         if (!storedPassword) {
             logDetails.error = 'Password not set';
-            await base44.asServiceRole.entities.LogActivity.create({
-                activity_type: 'app_user_login',
-                function_name: 'appUserLogin',
-                user_email: email,
-                level: 'error',
-                summary: 'Login failed: Password not set',
-                details: logDetails,
-                success: false
-            });
 
             return Response.json({
                 success: false,
@@ -104,15 +77,6 @@ Deno.serve(async (req) => {
 
         if (!isPasswordValid) {
             logDetails.error = 'Invalid password';
-            await base44.asServiceRole.entities.LogActivity.create({
-                activity_type: 'app_user_login',
-                function_name: 'appUserLogin',
-                user_email: email,
-                level: 'warn',
-                summary: 'Login failed: Invalid password',
-                details: logDetails,
-                success: false
-            });
 
             return Response.json({
                 success: false,
