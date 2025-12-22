@@ -122,16 +122,24 @@ export default function SubmitSuggestion() {
       status: 'pending'
     };
 
-    // Add specific IDs based on entity type
+    // Add specific IDs and state based on entity type
     if (entityType === 'person') {
       suggestionData.grave_id = selectedGrave;
       suggestionData.dead_person_id = entityId;
+      const grave = graves.find(g => g.id === selectedGrave);
+      suggestionData.state_id = grave?.state;
     } else if (entityType === 'grave') {
       suggestionData.grave_id = entityId;
+      const grave = graves.find(g => g.id === entityId);
+      suggestionData.state_id = grave?.state;
     } else if (entityType === 'organisation') {
       suggestionData.organisation_id = entityId;
+      const org = organisations.find(o => o.id === entityId);
+      suggestionData.state_id = Array.isArray(org?.state) ? org.state[0] : org?.state;
     } else if (entityType === 'tahfiz') {
       suggestionData.tahfiz_center_id = entityId;
+      const tahfiz = tahfizCenters.find(t => t.id === entityId);
+      suggestionData.state_id = tahfiz?.state;
     }
 
     createSuggestion.mutate(suggestionData);

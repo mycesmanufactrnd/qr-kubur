@@ -59,17 +59,23 @@ export default function ManageSuggestions() {
 
     // Admin filters by their context
     return allSuggestions.filter(s => {
+      // Organisation admin - can only see their organisation's suggestions
       if (s.entity_type === 'organisation' && s.organisation_id) {
         return s.organisation_id === user.organisation_id;
       }
+      
+      // Tahfiz admin - can only see their tahfiz center's suggestions
       if (s.entity_type === 'tahfiz' && s.tahfiz_center_id) {
-        // Need to check if tahfiz belongs to admin's organisation
-        return false; // For now, only superadmin sees tahfiz
+        // Check if admin manages this tahfiz center (via organisation or direct permission)
+        return s.tahfiz_center_id === user.tahfiz_center_id;
       }
-      if ((s.entity_type === 'grave' || s.entity_type === 'person') && s.grave_id) {
-        // Check if grave is in admin's states - need to fetch grave data
-        return true; // Will be filtered by state in the component
+      
+      // State admin - can only see suggestions for their assigned states
+      if ((s.entity_type === 'grave' || s.entity_type === 'person') && s.state_id) {
+        const adminStates = user.state || [];
+        return adminStates.includes(s.state_id);
       }
+      
       return false;
     });
   }, [allSuggestions, user, isSuperAdmin]);
