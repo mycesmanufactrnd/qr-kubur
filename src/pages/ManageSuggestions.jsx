@@ -18,13 +18,65 @@ export default function ManageSuggestions() {
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const queryClient = useQueryClient();
 
-  const { data: suggestions = [], isLoading } = useQuery({
+  React.useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        setUser(JSON.parse(appUserAuth));
+      }
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin';
+
+  const { data: allSuggestions = [], isLoading } = useQuery({
     queryKey: ['admin-suggestions'],
-    queryFn: () => base44.entities.Suggestion.list('-created_date')
+    queryFn: () => base44.entities.Suggestion.list('-created_date'),
+    enabled: !!user
   });
+
+  // Filter suggestions based on user role
+  const suggestions = React.useMemo(() => {
+    if (!user) return [];
+    
+    if (isSuperAdmin) {
+      return allSuggestions;
+    }
+
+    // Admin filters by their context
+    return allSuggestions.filter(s => {
+      if (s.entity_type === 'organisation' && s.organisation_id) {
+        return s.organisation_id === user.organisation_id;
+      }
+      if (s.entity_type === 'tahfiz' && s.tahfiz_center_id) {
+        // Need to check if tahfiz belongs to admin's organisation
+        return false; // For now, only superadmin sees tahfiz
+      }
+      if ((s.entity_type === 'grave' || s.entity_type === 'person') && s.grave_id) {
+        // Check if grave is in admin's states - need to fetch grave data
+        return true; // Will be filtered by state in the component
+      }
+      return false;
+    });
+  }, [allSuggestions, user, isSuperAdmin]);
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Suggestion.update(id, data),
@@ -46,20 +98,50 @@ export default function ManageSuggestions() {
     setIsDialogOpen(true);
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (!selectedSuggestion) return;
     updateMutation.mutate({
       id: selectedSuggestion.id,
       data: { status: 'approved', admin_notes: adminNotes }
     });
+
+    // Log activity
+    try {
+      await base44.entities.LogActivity.create({
+        activity_type: 'suggestion_approve',
+        function_name: 'ManageSuggestions',
+        user_email: user?.email,
+        level: 'info',
+        summary: `Cadangan diluluskan: ${selectedSuggestion.entity_type}`,
+        details: { suggestion_id: selectedSuggestion.id, entity_type: selectedSuggestion.entity_type },
+        success: true
+      });
+    } catch (err) {
+      console.error('Failed to log activity:', err);
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!selectedSuggestion) return;
     updateMutation.mutate({
       id: selectedSuggestion.id,
       data: { status: 'rejected', admin_notes: adminNotes }
     });
+
+    // Log activity
+    try {
+      await base44.entities.LogActivity.create({
+        activity_type: 'suggestion_reject',
+        function_name: 'ManageSuggestions',
+        user_email: user?.email,
+        level: 'warn',
+        summary: `Cadangan ditolak: ${selectedSuggestion.entity_type}`,
+        details: { suggestion_id: selectedSuggestion.id, entity_type: selectedSuggestion.entity_type },
+        success: true
+      });
+    } catch (err) {
+      console.error('Failed to log activity:', err);
+    }
   };
 
   const getStatusBadge = (status) => {

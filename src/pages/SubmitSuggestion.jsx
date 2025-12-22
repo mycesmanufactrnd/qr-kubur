@@ -114,13 +114,27 @@ export default function SubmitSuggestion() {
       return;
     }
 
-    createSuggestion.mutate({
+    const suggestionData = {
       entity_type: entityType,
       entity_id: entityId,
       suggested_changes: suggestedChanges,
       reason: reason,
       status: 'pending'
-    });
+    };
+
+    // Add specific IDs based on entity type
+    if (entityType === 'person') {
+      suggestionData.grave_id = selectedGrave;
+      suggestionData.dead_person_id = entityId;
+    } else if (entityType === 'grave') {
+      suggestionData.grave_id = entityId;
+    } else if (entityType === 'organisation') {
+      suggestionData.organisation_id = entityId;
+    } else if (entityType === 'tahfiz') {
+      suggestionData.tahfiz_center_id = entityId;
+    }
+
+    createSuggestion.mutate(suggestionData);
 
     // Create notification for admin
     try {
