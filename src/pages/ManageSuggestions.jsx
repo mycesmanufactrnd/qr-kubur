@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
@@ -23,7 +23,7 @@ export default function ManageSuggestions() {
 
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
+  useEffect(() => {
     loadUser();
   }, []);
 
@@ -50,7 +50,7 @@ export default function ManageSuggestions() {
   });
 
   // Filter suggestions based on user role
-  const suggestions = React.useMemo(() => {
+  const suggestions = useMemo(() => {
     if (!user) return [];
     
     if (isSuperAdmin) {
