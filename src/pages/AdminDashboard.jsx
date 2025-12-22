@@ -57,24 +57,16 @@ export default function AdminDashboard() {
         ? await base44.entities.DeadPerson.list()
         : await base44.entities.DeadPerson.filter({ grave_id: { $in: graveIds } });
 
-      // Fetch tahlil requests based on tahfiz centers in user's states
-      const tahfizIds = tahfiz.map(t => t.id);
+      // Tahlil requests - only superadmin can see
       const tahlilRequests = isSuperAdmin
         ? await base44.entities.TahlilRequest.list()
-        : await base44.entities.TahlilRequest.filter({ tahfiz_center_id: { $in: tahfizIds } });
+        : [];
       
-      // Filter donations by organization/tahfiz
-      const orgIds = orgs.map(o => o.id);
+      // Filter donations - only show donations to admin's own organization
       const filteredDonations = isSuperAdmin 
         ? donations 
         : donations.filter(d => {
-            if (d.recipient_type === 'organisation') {
-              return orgIds.includes(d.organisation_id);
-            }
-            if (d.recipient_type === 'tahfiz') {
-              return tahfizIds.includes(d.tahfiz_center_id);
-            }
-            return false;
+            return d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id;
           });
       
       return {
