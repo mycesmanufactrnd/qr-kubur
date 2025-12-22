@@ -49,6 +49,30 @@ export default function ManageSuggestions() {
     enabled: !!user
   });
 
+  const { data: graves = [] } = useQuery({
+    queryKey: ['graves-for-suggestions'],
+    queryFn: () => base44.entities.Grave.list(),
+    enabled: !!user
+  });
+
+  const { data: persons = [] } = useQuery({
+    queryKey: ['persons-for-suggestions'],
+    queryFn: () => base44.entities.DeadPerson.list(),
+    enabled: !!user
+  });
+
+  const { data: organisations = [] } = useQuery({
+    queryKey: ['organisations-for-suggestions'],
+    queryFn: () => base44.entities.Organisation.list(),
+    enabled: !!user
+  });
+
+  const { data: tahfizCenters = [] } = useQuery({
+    queryKey: ['tahfiz-for-suggestions'],
+    queryFn: () => base44.entities.TahfizCenter.list(),
+    enabled: !!user
+  });
+
   // Filter suggestions based on user role
   const suggestions = useMemo(() => {
     if (!user) return [];
@@ -99,6 +123,26 @@ export default function ManageSuggestions() {
   if (loadingUser) {
     return <LoadingUser />;
   }
+
+  const getEntityDetails = (suggestion) => {
+    if (suggestion.entity_type === 'grave' && suggestion.grave_id) {
+      const grave = graves.find(g => g.id === suggestion.grave_id);
+      return grave ? `${grave.cemetery_name} - ${grave.state}` : 'Tidak dijumpai';
+    }
+    if (suggestion.entity_type === 'person' && suggestion.dead_person_id) {
+      const person = persons.find(p => p.id === suggestion.dead_person_id);
+      return person ? `${person.name} (${person.ic_number || 'Tiada IC'})` : 'Tidak dijumpai';
+    }
+    if (suggestion.entity_type === 'organisation' && suggestion.organisation_id) {
+      const org = organisations.find(o => o.id === suggestion.organisation_id);
+      return org ? `${org.name} - ${Array.isArray(org.state) ? org.state.join(', ') : org.state}` : 'Tidak dijumpai';
+    }
+    if (suggestion.entity_type === 'tahfiz' && suggestion.tahfiz_center_id) {
+      const tahfiz = tahfizCenters.find(t => t.id === suggestion.tahfiz_center_id);
+      return tahfiz ? `${tahfiz.name} - ${tahfiz.state}` : 'Tidak dijumpai';
+    }
+    return '-';
+  };
 
   const openDetailDialog = (suggestion) => {
     setSelectedSuggestion(suggestion);
@@ -333,38 +377,39 @@ export default function ManageSuggestions() {
           {selectedSuggestion && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500">Jenis Rekod</p>
-                <p className="font-semibold">{getEntityTypeLabel(selectedSuggestion.entity_type)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Jenis Rekod</p>
+                <p className="font-semibold dark:text-white">{getEntityTypeLabel(selectedSuggestion.entity_type)}</p>
               </div>
-              {selectedSuggestion.entity_id && (
-                <div>
-                  <p className="text-sm text-gray-500">ID Rekod</p>
-                  <p className="font-mono text-sm">{selectedSuggestion.entity_id}</p>
-                </div>
-              )}
               <div>
-                <p className="text-sm text-gray-500">Cadangan Perubahan</p>
-                <div className="p-3 bg-gray-50 rounded-lg mt-1">
-                  <p className="whitespace-pre-wrap">{selectedSuggestion.suggested_changes}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Butiran Rekod</p>
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mt-1">
+                  <p className="font-medium dark:text-white">{getEntityDetails(selectedSuggestion)}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Cadangan Perubahan</p>
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mt-1">
+                  <p className="whitespace-pre-wrap dark:text-gray-200">{selectedSuggestion.suggested_changes}</p>
                 </div>
               </div>
               {selectedSuggestion.reason && (
                 <div>
-                  <p className="text-sm text-gray-500">Sebab / Justifikasi</p>
-                  <p>{selectedSuggestion.reason}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Sebab / Justifikasi</p>
+                  <p className="dark:text-gray-200">{selectedSuggestion.reason}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">Status Semasa</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Status Semasa</p>
                 {getStatusBadge(selectedSuggestion.status)}
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-2">Catatan Admin</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Catatan Admin</p>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   placeholder="Tambah catatan..."
                   rows={3}
+                  className="dark:bg-gray-700 dark:text-white"
                 />
               </div>
             </div>
