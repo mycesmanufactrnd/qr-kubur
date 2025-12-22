@@ -138,12 +138,18 @@ export default function ManageOrganisations() {
 
   if (!hasViewPermission) {
     return (
-      <Card className="max-w-lg mx-auto mt-8">
-        <CardContent className="p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: isSuperAdmin ? 'Super Admin' : 'Admin Dashboard', page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: 'Urus Organisasi', page: 'ManageOrganisations' }
+        ]} />
+        <Card className="max-w-lg mx-auto mt-8">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
+            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
