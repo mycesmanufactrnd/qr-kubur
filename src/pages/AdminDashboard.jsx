@@ -219,7 +219,7 @@ export default function AdminDashboard() {
               { label: 'Cadangan', page: 'ManageSuggestions', icon: FileText },
               { label: 'Derma', page: 'ManageDonations', icon: Heart },
               { label: 'Organisasi', page: 'ManageOrganisations', icon: Building2 },
-              { label: 'Tahlil Request', page: 'ManageTahlilRequests', icon: BookOpen },
+              { label: 'Tahlil Request', page: 'ManageTahlilRequests', icon: Book },
               { label: 'Users', page: 'ManageUsers', icon: Users },
             ].map((action, i) => (
               <Link key={i} to={createPageUrl(action.page)}>
