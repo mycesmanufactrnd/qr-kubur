@@ -41,6 +41,14 @@ export default function ManageDonations() {
 
   const isSuperAdmin = user?.role === 'superadmin';
 
+  const { data: permissions = [] } = useQuery({
+    queryKey: ['user-permissions', user?.id],
+    queryFn: () => base44.entities.Permission.filter({ user_id: user?.id }),
+    enabled: !!user
+  });
+
+  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_donations' && p.enabled);
+
   const { data: donations = [], isLoading } = useQuery({
     queryKey: ['admin-donations', user?.organisation_id],
     queryFn: async () => {
@@ -60,7 +68,7 @@ export default function ManageDonations() {
         return false;
       });
     },
-    enabled: !!user
+    enabled: !!user && hasViewPermission
   });
 
   const { data: organisations = [] } = useQuery({
@@ -201,6 +209,23 @@ export default function ManageDonations() {
 
   if (loadingUser || isLoading) {
     return <LoadingUser />;
+  }
+
+  if (!hasViewPermission) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: 'Admin Dashboard', page: 'AdminDashboard' },
+          { label: 'Urus Derma', page: 'ManageDonations' }
+        ]} />
+        <Card className="max-w-lg mx-auto">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
+            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
