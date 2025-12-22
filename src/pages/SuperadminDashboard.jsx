@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Shield, Users, Database, CheckCircle, XCircle, Clock, 
-  Eye, Terminal, Copy, AlertCircle
+  Eye, Terminal, Copy, AlertCircle, Book, Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -372,12 +372,12 @@ export default function SuperadminDashboard() {
                 </CardContent>
               </Card>
             </Link>
-            <Link to={createPageUrl('Icon Library')}>
+            <Link to={createPageUrl('IconLibrary')}>
               <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Icon Library</h3>
