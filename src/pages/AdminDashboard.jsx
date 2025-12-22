@@ -154,16 +154,30 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {quickStats.map((stat, i) => (
           <Link key={i} to={createPageUrl(stat.page)}>
-            <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className={`w-10 h-10 rounded-xl bg-${stat.color}-100 flex items-center justify-center mb-2`}>
-                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
-                </div>
-                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500 truncate">{stat.label}</p>
-              </CardContent>
-            </Card>
-          </Link>
+  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+    <CardContent className="p-3">
+      <div className="flex items-center gap-3">
+        {/* Icon */}
+        <div
+          className={`w-10 h-10 rounded-xl bg-${stat.color}-100 flex items-center justify-center shrink-0`}
+        >
+          <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+        </div>
+
+        {/* Text */}
+        <div className="flex flex-col leading-tight">
+          <p className="text-lg font-bold text-gray-900">
+            {stat.value}
+          </p>
+          <p className="text-xs text-gray-500 truncate">
+            {stat.label}
+          </p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+</Link>
+
         ))}
       </div>
 
