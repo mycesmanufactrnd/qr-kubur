@@ -369,7 +369,8 @@ export default function ManageUsers() {
           view: checked,
           create: checked,
           edit: checked,
-          delete: checked
+          delete: checked,
+          approval: checked,
         }
       }
     });
