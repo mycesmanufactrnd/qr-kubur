@@ -343,7 +343,15 @@ export default function ManageTahlilRequests() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Jenis Perkhidmatan</p>
-                <Badge>{SERVICE_LABELS[selectedRequest.service_type] || selectedRequest.service_type}</Badge>
+                <Badge>
+                {(selectedRequest.service_type || '')
+                    .split(',')
+                    .filter(Boolean)
+                    .map(type => SERVICE_LABELS[type] || type)
+                    .join(', ')
+                }
+                // {SERVICE_LABELS[selectedRequest.service_type] || selectedRequest.service_type}
+                </Badge>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Pusat Tahfiz</p>
