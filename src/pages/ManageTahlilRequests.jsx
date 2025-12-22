@@ -293,7 +293,13 @@ export default function ManageTahlilRequests() {
                     <TableCell>{request.deceased_name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {SERVICE_LABELS[request.service_type] || request.service_type}
+                        {(request.service_type || '')
+                            .split(',')
+                            .filter(Boolean)
+                            .map(type => SERVICE_LABELS[type] || type)
+                            .join(', ')
+                        }
+                        // {SERVICE_LABELS[request.service_type] || request.service_type}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
