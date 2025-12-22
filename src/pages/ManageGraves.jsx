@@ -201,17 +201,22 @@ export default function ManageGraves() {
       const headers = Object.keys(schema.properties).join(',');
       
       const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', 'grave_template.csv');
-      link.style.visibility = 'hidden';
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'grave_template.csv';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
       toast.success('Template CSV berjaya dimuat turun');
     } catch (error) {
-      toast.error('Gagal memuat turun template');
+      console.error('Download error:', error);
+      toast.error('Gagal memuat turun template: ' + error.message);
     }
   };
 
