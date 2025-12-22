@@ -178,7 +178,7 @@ export default function SuperadminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="add">
             <Database className="w-4 h-4 mr-2" />
-            Tambah
+            Pengurusan Sistem
           </TabsTrigger>
         </TabsList>
 
