@@ -88,9 +88,11 @@ export default function ManageSuggestions() {
     }
   });
 
-  const filteredSuggestions = suggestions.filter(s => {
-    return filterStatus === 'all' || s.status === filterStatus;
-  });
+  const filteredSuggestions = useMemo(() => {
+    return suggestions.filter(s => {
+      return filterStatus === 'all' || s.status === filterStatus;
+    });
+  }, [suggestions, filterStatus]);
 
   const openDetailDialog = (suggestion) => {
     setSelectedSuggestion(suggestion);
