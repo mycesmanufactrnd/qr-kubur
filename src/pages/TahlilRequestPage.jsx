@@ -170,7 +170,8 @@ export default function TahlilRequestPage() {
                 <div className="flex flex-wrap gap-2">
                   {selectedCenter.services_offered.map(service => (
                     <Badge key={service} variant="secondary" className="bg-violet-100 text-violet-700">
-                      {SERVICE_TYPES.find(s => s.value === service)?.label || service}
+                    //   {SERVICE_TYPES.find(s => s.value === service)?.label || service}
+                    {service}
                     </Badge>
                   ))}
                 </div>
