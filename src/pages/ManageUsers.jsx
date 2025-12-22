@@ -202,7 +202,7 @@ export default function ManageUsers() {
         donations: { view: false, create: false, edit: false, delete: false },
         organisations: { view: false, create: false, edit: false, delete: false },
         users: { view: false, create: false, edit: false, delete: false },
-        tahlilrequests: { view: false, create: false, edit: false, delete: false },
+        tahlil_requests: { view: false, create: false, edit: false, delete: false },
       }
     });
     setDialogOpen(true);
@@ -223,7 +223,7 @@ export default function ManageUsers() {
         donations: { view: false, create: false, edit: false, delete: false },
         organisations: { view: false, create: false, edit: false, delete: false },
         users: { view: false, create: false, edit: false, delete: false },
-        tahlilrequests: { view: false, create: false, edit: false, delete: false },
+        tahlil_requests: { view: false, create: false, edit: false, delete: false },
       }
     });
     setDialogOpen(true);
