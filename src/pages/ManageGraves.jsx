@@ -196,9 +196,7 @@ export default function ManageGraves() {
   };
 
   const downloadTemplate = () => {
-    const csvContent = `cemetery_name,state,block,lot,gps_lat,gps_lng,organisation_id,qr_code,status,total_graves
-Tanah Perkuburan Islam,Selangor,A,01,3.1390,101.6869,,QRK-001,active,100
-Tanah Perkuburan Bukit Kiara,Kuala Lumpur,B,02,3.1694,101.6515,,QRK-002,active,50`;
+    const csvContent = `cemetery_name,state,block,lot,gps_lat,gps_lng,organisation_id,qr_code,status,total_graves`;
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
