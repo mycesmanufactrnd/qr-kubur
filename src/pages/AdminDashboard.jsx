@@ -172,7 +172,7 @@ export default function AdminDashboard() {
         <CardHeader className="p-3 pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Clock className="w-4 h-4 text-orange-500" />
-            Menunggu
+            Menunggu Kelulusan
           </CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
