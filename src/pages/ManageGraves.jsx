@@ -195,19 +195,24 @@ export default function ManageGraves() {
     setGraveToDelete(null);
   };
 
-  const downloadTemplate = () => {
-    const csvContent = `cemetery_name,state,block,lot,gps_lat,gps_lng,organisation_id,qr_code,status,total_graves`;
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'grave_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Template CSV berjaya dimuat turun');
+  const downloadTemplate = async () => {
+    try {
+      const schema = await base44.entities.Grave.schema();
+      const headers = Object.keys(schema.properties).join(',');
+      
+      const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'grave_template.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Template CSV berjaya dimuat turun');
+    } catch (error) {
+      toast.error('Gagal memuat turun template');
+    }
   };
 
   const handleFileChange = (e) => {
