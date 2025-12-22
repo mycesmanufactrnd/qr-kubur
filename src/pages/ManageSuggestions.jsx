@@ -127,21 +127,34 @@ export default function ManageSuggestions() {
   const getEntityDetails = (suggestion) => {
     if (suggestion.entity_type === 'grave' && suggestion.grave_id) {
       const grave = graves.find(g => g.id === suggestion.grave_id);
-      return grave ? `${grave.cemetery_name} - ${grave.state}` : 'Tidak dijumpai';
+      return {
+        main: grave ? `${grave.cemetery_name} - ${grave.state}` : 'Tidak dijumpai',
+        secondary: null
+      };
     }
     if (suggestion.entity_type === 'person' && suggestion.dead_person_id) {
       const person = persons.find(p => p.id === suggestion.dead_person_id);
-      return person ? `${person.name} (${person.ic_number || 'Tiada IC'})` : 'Tidak dijumpai';
+      const grave = suggestion.grave_id ? graves.find(g => g.id === suggestion.grave_id) : null;
+      return {
+        main: person ? `${person.name} (${person.ic_number || 'Tiada IC'})` : 'Tidak dijumpai',
+        secondary: grave ? `Lokasi: ${grave.cemetery_name}, ${grave.block || ''} ${grave.lot || ''} - ${grave.state}` : null
+      };
     }
     if (suggestion.entity_type === 'organisation' && suggestion.organisation_id) {
       const org = organisations.find(o => o.id === suggestion.organisation_id);
-      return org ? `${org.name} - ${Array.isArray(org.state) ? org.state.join(', ') : org.state}` : 'Tidak dijumpai';
+      return {
+        main: org ? `${org.name} - ${Array.isArray(org.state) ? org.state.join(', ') : org.state}` : 'Tidak dijumpai',
+        secondary: null
+      };
     }
     if (suggestion.entity_type === 'tahfiz' && suggestion.tahfiz_center_id) {
       const tahfiz = tahfizCenters.find(t => t.id === suggestion.tahfiz_center_id);
-      return tahfiz ? `${tahfiz.name} - ${tahfiz.state}` : 'Tidak dijumpai';
+      return {
+        main: tahfiz ? `${tahfiz.name} - ${tahfiz.state}` : 'Tidak dijumpai',
+        secondary: null
+      };
     }
-    return '-';
+    return { main: '-', secondary: null };
   };
 
   const openDetailDialog = (suggestion) => {
@@ -382,8 +395,11 @@ export default function ManageSuggestions() {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Butiran Rekod</p>
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mt-1">
-                  <p className="font-medium dark:text-white">{getEntityDetails(selectedSuggestion)}</p>
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mt-1 space-y-2">
+                  <p className="font-medium dark:text-white">{getEntityDetails(selectedSuggestion).main}</p>
+                  {getEntityDetails(selectedSuggestion).secondary && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{getEntityDetails(selectedSuggestion).secondary}</p>
+                  )}
                 </div>
               </div>
               <div>
