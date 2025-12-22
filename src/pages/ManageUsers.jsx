@@ -56,7 +56,7 @@ export default function ManageUsers() {
   const [userToDelete, setUserToDelete] = useState(null);
   const queryClient = useQueryClient();
 
-  const MODULES = ['graves', 'dead_persons', 'tahfiz', 'suggestions', 'donations', 'organisations', 'users', 'tahlilrequests'];
+  const MODULES = ['graves', 'dead_persons', 'tahfiz', 'suggestions', 'donations', 'organisations', 'users', 'tahlil_requests'];
   const PERMISSIONS = ['view', 'create', 'edit', 'delete', 'approval'];
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
