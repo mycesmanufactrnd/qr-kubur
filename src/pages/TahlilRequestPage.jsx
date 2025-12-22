@@ -36,6 +36,7 @@ export default function TahlilRequestPage() {
   const [preferredDate, setPreferredDate] = useState('');
   const [notes, setNotes] = useState('');
   const [customService, setCustomService] = useState('');
+  const [referenceId, setReferenceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const queryClient = useQueryClient();
@@ -75,6 +76,10 @@ export default function TahlilRequestPage() {
       toast.error('Sila masukkan nama arwah');
       return;
     }
+    if (!referenceId) {
+      toast.error('Sila masukkan ID rujukan transaksi');
+      return;
+    }
 
     const finalNotes = serviceTypes.includes('custom') && customService
       ? `${notes}\n\nPerkhidmatan Khas: ${customService}`.trim()
@@ -89,6 +94,7 @@ export default function TahlilRequestPage() {
       deceased_name: deceasedName,
       preferred_date: preferredDate,
       notes: finalNotes,
+      reference_id: referenceId,
       status: 'pending'
     });
   };
@@ -122,6 +128,7 @@ export default function TahlilRequestPage() {
                 setDeceasedName('');
                 setNotes('');
                 setPreferredDate('');
+                setReferenceId('');
               }}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
@@ -336,11 +343,41 @@ export default function TahlilRequestPage() {
           </CardContent>
         </Card>
 
+        {/* Transaction Details */}
+        <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
+          <CardHeader>
+            <CardTitle className="text-lg dark:text-white flex items-center gap-2">
+              <span className="text-amber-600 dark:text-amber-400">💰</span>
+              Butiran Transaksi
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                <strong>Penting:</strong> Selepas membuat pembayaran melalui FPX, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="referenceId" className="dark:text-gray-300">
+                ID Rujukan Transaksi (Reference ID) <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="referenceId"
+                placeholder="Masukkan ID rujukan dari transaksi FPX"
+                value={referenceId}
+                onChange={(e) => setReferenceId(e.target.value)}
+                required
+                className="font-mono"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Submit */}
         <Button 
           type="submit"
           className="w-full h-14 text-lg bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg shadow-violet-200"
-          disabled={createRequest.isPending || !selectedTahfiz || !requesterName || !deceasedName || !requesterPhone}
+          disabled={createRequest.isPending || !selectedTahfiz || !requesterName || !deceasedName || !requesterPhone || !referenceId}
         >
           {createRequest.isPending ? 'Menghantar...' : 'Hantar Permohonan'}
         </Button>
