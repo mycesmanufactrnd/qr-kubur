@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,9 @@ export default function ManageGraves() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [graveToDelete, setGraveToDelete] = useState(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -192,6 +195,100 @@ export default function ManageGraves() {
     setGraveToDelete(null);
   };
 
+  const downloadTemplate = () => {
+    const csvContent = `cemetery_name,state,block,lot,gps_lat,gps_lng,organisation_id,qr_code,status,total_graves
+Tanah Perkuburan Islam,Selangor,A,01,3.1390,101.6869,,QRK-001,active,100
+Tanah Perkuburan Bukit Kiara,Kuala Lumpur,B,02,3.1694,101.6515,,QRK-002,active,50`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'grave_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Template CSV berjaya dimuat turun');
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'text/csv') {
+      setCsvFile(file);
+    } else {
+      toast.error('Sila pilih fail CSV yang sah');
+    }
+  };
+
+  const handleCSVUpload = async () => {
+    if (!csvFile) {
+      toast.error('Sila pilih fail CSV');
+      return;
+    }
+
+    setUploading(true);
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: csvFile });
+      
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  cemetery_name: { type: 'string' },
+                  state: { type: 'string' },
+                  block: { type: 'string' },
+                  lot: { type: 'string' },
+                  gps_lat: { type: 'number' },
+                  gps_lng: { type: 'number' },
+                  organisation_id: { type: 'string' },
+                  qr_code: { type: 'string' },
+                  status: { type: 'string' },
+                  total_graves: { type: 'number' }
+                },
+                required: ['cemetery_name', 'state']
+              }
+            }
+          }
+        }
+      });
+
+      if (result.status === 'success' && result.output?.data) {
+        const gravesData = result.output.data.map(item => ({
+          cemetery_name: item.cemetery_name,
+          state: item.state,
+          block: item.block || '',
+          lot: item.lot || '',
+          gps_lat: item.gps_lat || null,
+          gps_lng: item.gps_lng || null,
+          organisation_id: item.organisation_id || '',
+          qr_code: item.qr_code || '',
+          status: item.status || 'active',
+          total_graves: item.total_graves || 0
+        }));
+
+        await base44.entities.Grave.bulkCreate(gravesData);
+        queryClient.invalidateQueries(['admin-graves']);
+        toast.success(`${gravesData.length} kubur berjaya diimport`);
+        setImportDialogOpen(false);
+        setCsvFile(null);
+      } else {
+        toast.error(result.details || 'Gagal memproses fail CSV');
+      }
+    } catch (error) {
+      toast.error('Ralat semasa mengimport CSV: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
@@ -207,10 +304,20 @@ export default function ManageGraves() {
             Urus Tanah Perkuburan
           </h1>
         </div>
-        <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Kubur
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setImportDialogOpen(true)} 
+            variant="outline"
+            className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import CSV
+          </Button>
+          <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Kubur
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -535,6 +642,95 @@ export default function ManageGraves() {
         confirmText="Padam"
         variant="destructive"
       />
+
+      {/* Import CSV Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="dark:text-white">Import Data Kubur dari CSV</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Download Template Button */}
+            <div className="p-4 bg-emerald-50 dark:bg-emerald-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                Muat turun template CSV untuk format yang betul
+              </p>
+              <Button 
+                onClick={downloadTemplate} 
+                variant="outline"
+                className="w-full"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Muat Turun Template CSV
+              </Button>
+            </div>
+
+            {/* File Upload */}
+            <div>
+              <Label className="dark:text-gray-200">Pilih Fail CSV</Label>
+              <div className="mt-2">
+                <div 
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('csv-upload').click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add('border-emerald-500');
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove('border-emerald-500');
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('border-emerald-500');
+                    const file = e.dataTransfer.files?.[0];
+                    if (file && file.type === 'text/csv') {
+                      setCsvFile(file);
+                    } else {
+                      toast.error('Sila pilih fail CSV yang sah');
+                    }
+                  }}
+                >
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {csvFile ? csvFile.name : 'Klik untuk pilih atau seret fail ke sini'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    Format: CSV sahaja
+                  </p>
+                </div>
+                <input
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setImportDialogOpen(false);
+                setCsvFile(null);
+              }}
+            >
+              Batal
+            </Button>
+            <Button 
+              onClick={handleCSVUpload}
+              disabled={!csvFile || uploading}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {uploading ? 'Mengimport...' : 'Import'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
