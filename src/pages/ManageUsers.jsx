@@ -56,8 +56,8 @@ export default function ManageUsers() {
   const [userToDelete, setUserToDelete] = useState(null);
   const queryClient = useQueryClient();
 
-  const MODULES = ['graves', 'dead_persons', 'organisations', 'tahfiz', 'donations', 'users'];
-  const PERMISSIONS = ['view', 'create', 'edit', 'delete'];
+  const MODULES = ['graves', 'dead_persons', 'tahfiz', 'suggestions', 'donations', 'organisations', 'users', 'tahlilrequests'];
+  const PERMISSIONS = ['view', 'create', 'edit', 'delete', 'approval'];
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
@@ -218,10 +218,12 @@ export default function ManageUsers() {
       permissions: user.permissions || {
         graves: { view: false, create: false, edit: false, delete: false },
         dead_persons: { view: false, create: false, edit: false, delete: false },
-        organisations: { view: false, create: false, edit: false, delete: false },
         tahfiz: { view: false, create: false, edit: false, delete: false },
+        suggestions: { view: false, create: false, edit: false, delete: false },
         donations: { view: false, create: false, edit: false, delete: false },
-        users: { view: false, create: false, edit: false, delete: false }
+        organisations: { view: false, create: false, edit: false, delete: false },
+        users: { view: false, create: false, edit: false, delete: false },
+        tahlilrequests: { view: false, create: false, edit: false, delete: false },
       }
     });
     setDialogOpen(true);
