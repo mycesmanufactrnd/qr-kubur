@@ -37,66 +37,55 @@ export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats', user?.id],
     queryFn: async () => {
-      const [graves, persons, orgs, tahfiz, donations, suggestions, tahlilRequests] = await Promise.all([
-        base44.entities.Grave.list(),
-        base44.entities.DeadPerson.list(),
-        base44.entities.Organisation.list(),
-        base44.entities.TahfizCenter.list(),
-        base44.entities.Donation.list(),
-        base44.entities.Suggestion.list(),
-        base44.entities.TahlilRequest.list()
-      ]);
-      
       const isSuperAdmin = user?.role === 'superadmin';
       const userStates = Array.isArray(user?.state) ? user.state : [];
       
-      const filterByState = (items, stateField = 'state') => {
-        if (isSuperAdmin) return items;
-        return items.filter(item => {
-          const itemState = item[stateField];
-          if (Array.isArray(itemState)) {
-            return itemState.some(s => userStates.includes(s));
-          }
-          return userStates.includes(itemState);
-        });
-      };
+      // Build filter queries
+      const stateFilter = isSuperAdmin ? {} : { state: { $in: userStates } };
       
-      const filteredGraves = filterByState(graves);
-      const filteredPersons = persons.filter(p => {
-        if (isSuperAdmin) return true;
-        const grave = graves.find(g => g.id === p.grave_id);
-        return grave && userStates.includes(grave.state);
-      });
-      const filteredOrgs = filterByState(orgs);
-      const filteredTahfiz = filterByState(tahfiz);
-      const filteredDonations = donations.filter(d => {
-        if (isSuperAdmin) return true;
-        if (d.recipient_type === 'organisation') {
-          const org = orgs.find(o => o.id === d.organisation_id);
-          return org && filterByState([org]).length > 0;
-        }
-        if (d.recipient_type === 'tahfiz') {
-          const tahfizCenter = tahfiz.find(t => t.id === d.tahfiz_center_id);
-          return tahfizCenter && userStates.includes(tahfizCenter.state);
-        }
-        return false;
-      });
-      const filteredSuggestions = suggestions;
-      const filteredTahlilRequests = tahlilRequests.filter(t => {
-        if (isSuperAdmin) return true;
-        const tahfizCenter = tahfiz.find(tc => tc.id === t.tahfiz_center_id);
-        return tahfizCenter && userStates.includes(tahfizCenter.state);
-      });
+      const [graves, orgs, tahfiz, donations, suggestions] = await Promise.all([
+        base44.entities.Grave.filter(stateFilter),
+        base44.entities.Organisation.filter(stateFilter),
+        base44.entities.TahfizCenter.filter(stateFilter),
+        base44.entities.Donation.list(),
+        base44.entities.Suggestion.list()
+      ]);
+
+      // Fetch persons based on graves in user's states
+      const graveIds = graves.map(g => g.id);
+      const persons = isSuperAdmin 
+        ? await base44.entities.DeadPerson.list()
+        : await base44.entities.DeadPerson.filter({ grave_id: { $in: graveIds } });
+
+      // Fetch tahlil requests based on tahfiz centers in user's states
+      const tahfizIds = tahfiz.map(t => t.id);
+      const tahlilRequests = isSuperAdmin
+        ? await base44.entities.TahlilRequest.list()
+        : await base44.entities.TahlilRequest.filter({ tahfiz_center_id: { $in: tahfizIds } });
+      
+      // Filter donations by organization/tahfiz
+      const orgIds = orgs.map(o => o.id);
+      const filteredDonations = isSuperAdmin 
+        ? donations 
+        : donations.filter(d => {
+            if (d.recipient_type === 'organisation') {
+              return orgIds.includes(d.organisation_id);
+            }
+            if (d.recipient_type === 'tahfiz') {
+              return tahfizIds.includes(d.tahfiz_center_id);
+            }
+            return false;
+          });
       
       return {
-        graves: filteredGraves.length,
-        persons: filteredPersons.length,
-        organisations: filteredOrgs.length,
-        tahfiz: filteredTahfiz.length,
+        graves: graves.length,
+        persons: persons.length,
+        organisations: orgs.length,
+        tahfiz: tahfiz.length,
         totalDonations: filteredDonations.filter(d => d.status === 'verified').reduce((sum, d) => sum + (d.amount || 0), 0),
         pendingDonations: filteredDonations.filter(d => d.status === 'pending').length,
-        pendingSuggestions: filteredSuggestions.filter(s => s.status === 'pending').length,
-        pendingTahlil: filteredTahlilRequests.filter(r => r.status === 'pending').length
+        pendingSuggestions: suggestions.filter(s => s.status === 'pending').length,
+        pendingTahlil: tahlilRequests.filter(r => r.status === 'pending').length
       };
     },
     enabled: !!user

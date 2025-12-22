@@ -17,12 +17,62 @@ export default function ManageDonations() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        setUser(JSON.parse(appUserAuth));
+      }
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
+  const isSuperAdmin = user?.role === 'superadmin';
+
   const { data: donations = [], isLoading } = useQuery({
-    queryKey: ['admin-donations'],
-    queryFn: () => base44.entities.Donation.list('-created_date')
+    queryKey: ['admin-donations', user?.organisation_id],
+    queryFn: async () => {
+      const allDonations = await base44.entities.Donation.list('-created_date');
+      
+      // If superadmin, return all
+      if (isSuperAdmin) return allDonations;
+      
+      // Filter by organization
+      if (!user?.organisation_id) return [];
+      
+      const orgsInUserStates = await base44.entities.Organisation.filter({ 
+        id: user.organisation_id 
+      });
+      const tahfizInUserStates = await base44.entities.TahfizCenter.filter({
+        state: { $in: user?.state || [] }
+      });
+      
+      const orgIds = orgsInUserStates.map(o => o.id);
+      const tahfizIds = tahfizInUserStates.map(t => t.id);
+      
+      return allDonations.filter(d => {
+        if (d.recipient_type === 'organisation') {
+          return orgIds.includes(d.organisation_id);
+        }
+        if (d.recipient_type === 'tahfiz') {
+          return tahfizIds.includes(d.tahfiz_center_id);
+        }
+        return false;
+      });
+    },
+    enabled: !!user
   });
 
   const { data: organisations = [] } = useQuery({
@@ -98,6 +148,10 @@ export default function ManageDonations() {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  if (loadingUser || isLoading) {
+    return <LoadingUser />;
+  }
 
   return (
     <div className="space-y-6">

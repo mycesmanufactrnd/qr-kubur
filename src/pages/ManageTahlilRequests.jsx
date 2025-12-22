@@ -25,12 +25,50 @@ export default function ManageTahlilRequests() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      if (appUserAuth) {
+        setUser(JSON.parse(appUserAuth));
+      }
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
+  const isSuperAdmin = user?.role === 'superadmin';
+
   const { data: requests = [], isLoading } = useQuery({
-    queryKey: ['admin-tahlil-requests'],
-    queryFn: () => base44.entities.TahlilRequest.list('-created_date')
+    queryKey: ['admin-tahlil-requests', user?.state],
+    queryFn: async () => {
+      if (isSuperAdmin) {
+        return await base44.entities.TahlilRequest.list('-created_date');
+      }
+      
+      // Get tahfiz centers in user's states
+      const userStates = Array.isArray(user?.state) ? user.state : [];
+      const tahfizInUserStates = await base44.entities.TahfizCenter.filter({
+        state: { $in: userStates }
+      });
+      const tahfizIds = tahfizInUserStates.map(t => t.id);
+      
+      // Filter tahlil requests by tahfiz center
+      return await base44.entities.TahlilRequest.filter({
+        tahfiz_center_id: { $in: tahfizIds }
+      });
+    },
+    enabled: !!user
   });
 
   const { data: tahfizCenters = [] } = useQuery({
@@ -84,6 +122,10 @@ export default function ManageTahlilRequests() {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  if (loadingUser || isLoading) {
+    return <LoadingUser />;
+  }
 
   return (
     <div className="space-y-6">
