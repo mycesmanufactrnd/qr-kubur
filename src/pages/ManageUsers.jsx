@@ -74,6 +74,11 @@ export default function ManageUsers() {
     queryFn: () => base44.entities.Organisation.list()
   });
 
+  const { data: tahfizCenters = [] } = useQuery({
+    queryKey: ['tahfiz-centers'],
+    queryFn: () => base44.entities.TahfizCenter.list()
+  });
+
   const isLoading = usersLoading || appUsersLoading;
   const allUsers = [...users, ...appUsers];
 
@@ -147,8 +152,10 @@ export default function ManageUsers() {
   const accessibleUsers = allUsers.filter(u => {
     if (isSuperAdmin) return true;
     if (isAdmin) {
-      // Admin can see users in their organisation
-      if (u.organisation_id !== currentUser.organisation_id) return false;
+      // Admin can see users in their organisation or tahfiz center
+      const sameOrg = u.organisation_id === currentUser.organisation_id;
+      const sameTahfiz = u.tahfiz_center_id === currentUser.tahfiz_center_id;
+      if (!sameOrg && !sameTahfiz) return false;
       // Admin can only see admin and employee
       if (u.role !== 'admin' && u.role !== 'employee') return false;
       // Must share at least one state
@@ -170,6 +177,16 @@ export default function ManageUsers() {
     return false;
   });
 
+  // Filter tahfiz centers based on admin state
+  const accessibleTahfizCenters = tahfizCenters.filter(center => {
+    if (isSuperAdmin) return true;
+    if (isAdmin) {
+      const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+      return adminStates.includes(center.state);
+    }
+    return false;
+  });
+
   // Get admin's accessible states
   const adminAccessibleStates = isAdmin && !isSuperAdmin
     ? (Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean))
@@ -187,12 +204,14 @@ export default function ManageUsers() {
     setIsAddMode(true);
     const defaultState = isAdmin && !isSuperAdmin ? adminAccessibleStates : [];
     const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation_id : '';
+    const defaultTahfizId = isAdmin && !isSuperAdmin ? currentUser.tahfiz_center_id : '';
     setEditUser({
       full_name: '',
       email: '',
       password: '',
       role: 'employee',
-      organisation_id: defaultOrgId,
+      organisation_id: defaultOrgId || '',
+      tahfiz_center_id: defaultTahfizId || '',
       state: defaultState,
       permissions: {
         graves: { view: false, create: false, edit: false, delete: false },
@@ -245,8 +264,8 @@ export default function ManageUsers() {
       toast.error('Sila masukkan password');
       return;
     }
-    if (!editUser.organisation_id) {
-      toast.error('Sila pilih organisasi');
+    if (!editUser.organisation_id && !editUser.tahfiz_center_id) {
+      toast.error('Sila pilih organisasi atau pusat tahfiz');
       return;
     }
     if (!editUser.state || editUser.state.length === 0) {
@@ -381,8 +400,10 @@ export default function ManageUsers() {
     if (isAdmin) {
       // Admin can only edit admin and employee
       if (user.role !== 'admin' && user.role !== 'employee') return false;
-      // Must be in same organisation
-      if (user.organisation_id !== currentUser.organisation_id) return false;
+      // Must be in same organisation or tahfiz center
+      const sameOrg = user.organisation_id === currentUser.organisation_id;
+      const sameTahfiz = user.tahfiz_center_id === currentUser.tahfiz_center_id;
+      if (!sameOrg && !sameTahfiz) return false;
       // Must share at least one state
       const userStates = user.state || [];
       const adminStates = currentUser.state || [];
@@ -394,9 +415,11 @@ export default function ManageUsers() {
   const canDeleteUser = (user) => {
     if (isSuperAdmin) return true;
     if (isAdmin) {
-      // Admin can only delete admin and employee under their organisation
+      // Admin can only delete admin and employee under their organisation or tahfiz center
       if (user.role !== 'admin' && user.role !== 'employee') return false;
-      if (user.organisation_id !== currentUser.organisation_id) return false;
+      const sameOrg = user.organisation_id === currentUser.organisation_id;
+      const sameTahfiz = user.tahfiz_center_id === currentUser.tahfiz_center_id;
+      if (!sameOrg && !sameTahfiz) return false;
       return true;
     }
     return false;
@@ -627,18 +650,38 @@ export default function ManageUsers() {
                   </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Organisasi <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium mb-2 block">Organisasi</label>
                 <Select 
                   value={editUser.organisation_id || ''} 
-                  onValueChange={(v) => setEditUser({...editUser, organisation_id: v})}
-                  disabled={isAdmin && !isSuperAdmin}
+                  onValueChange={(v) => setEditUser({...editUser, organisation_id: v, tahfiz_center_id: ''})}
+                  disabled={isAdmin && !isSuperAdmin && currentUser.organisation_id}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={null}>Tiada</SelectItem>
                     {accessibleOrganisations.map(org => (
                       <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Pusat Tahfiz</label>
+                <Select 
+                  value={editUser.tahfiz_center_id || ''} 
+                  onValueChange={(v) => setEditUser({...editUser, tahfiz_center_id: v, organisation_id: ''})}
+                  disabled={isAdmin && !isSuperAdmin && currentUser.tahfiz_center_id}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih pusat tahfiz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Tiada</SelectItem>
+                    {accessibleTahfizCenters.map(center => (
+                      <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
