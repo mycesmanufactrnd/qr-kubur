@@ -50,14 +50,18 @@ export default function ManageTahlilRequests() {
   const isSuperAdmin = user?.role === 'superadmin';
 
   const { data: requests = [], isLoading } = useQuery({
-    queryKey: ['admin-tahlil-requests', user?.state],
+    queryKey: ['admin-tahlil-requests', user?.tahfiz_center_id],
     queryFn: async () => {
       if (isSuperAdmin) {
         return await base44.entities.TahlilRequest.list('-created_date');
       }
       
-      // Organization admins cannot see tahlil requests
-      // Only superadmin can manage tahlil requests
+      // Tahfiz center admins can only see requests for their center
+      if (user?.tahfiz_center_id) {
+        const allRequests = await base44.entities.TahlilRequest.list('-created_date');
+        return allRequests.filter(r => r.tahfiz_center_id === user.tahfiz_center_id);
+      }
+      
       return [];
     },
     enabled: !!user
