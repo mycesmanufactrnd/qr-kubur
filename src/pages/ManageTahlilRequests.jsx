@@ -56,17 +56,9 @@ export default function ManageTahlilRequests() {
         return await base44.entities.TahlilRequest.list('-created_date');
       }
       
-      // Get tahfiz centers in user's states
-      const userStates = Array.isArray(user?.state) ? user.state : [];
-      const tahfizInUserStates = await base44.entities.TahfizCenter.filter({
-        state: { $in: userStates }
-      });
-      const tahfizIds = tahfizInUserStates.map(t => t.id);
-      
-      // Filter tahlil requests by tahfiz center
-      return await base44.entities.TahlilRequest.filter({
-        tahfiz_center_id: { $in: tahfizIds }
-      });
+      // Organization admins cannot see tahlil requests
+      // Only superadmin can manage tahlil requests
+      return [];
     },
     enabled: !!user
   });
