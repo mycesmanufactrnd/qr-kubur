@@ -38,14 +38,15 @@ export default function AdminDashboard() {
     queryKey: ['admin-stats', user?.id],
     queryFn: async () => {
       const isSuperAdmin = user?.role === 'superadmin';
+      const isTahfizAdmin = !!user?.tahfiz_center_id;
       const userStates = Array.isArray(user?.state) ? user.state : [];
       
       // Build filter queries
       const stateFilter = isSuperAdmin ? {} : { state: { $in: userStates } };
       
       const [graves, orgs, tahfiz, donations, suggestions] = await Promise.all([
-        base44.entities.Grave.filter(stateFilter),
-        base44.entities.Organisation.filter(stateFilter),
+        isTahfizAdmin ? [] : base44.entities.Grave.filter(stateFilter),
+        isTahfizAdmin ? [] : base44.entities.Organisation.filter(stateFilter),
         base44.entities.TahfizCenter.filter(stateFilter),
         base44.entities.Donation.list(),
         base44.entities.Suggestion.list()
@@ -53,37 +54,41 @@ export default function AdminDashboard() {
 
       // Fetch persons based on graves in user's states
       const graveIds = graves.map(g => g.id);
-      const persons = isSuperAdmin 
-        ? await base44.entities.DeadPerson.list()
-        : await base44.entities.DeadPerson.filter({ grave_id: { $in: graveIds } });
+      const persons = isTahfizAdmin 
+        ? []
+        : isSuperAdmin 
+          ? await base44.entities.DeadPerson.list()
+          : await base44.entities.DeadPerson.filter({ grave_id: { $in: graveIds } });
 
-      // Tahlil requests - only superadmin can see
+      // Tahlil requests
+      const allTahlilRequests = await base44.entities.TahlilRequest.list();
       const tahlilRequests = isSuperAdmin
-        ? await base44.entities.TahlilRequest.list()
-        : [];
+        ? allTahlilRequests
+        : isTahfizAdmin
+          ? allTahlilRequests.filter(r => r.tahfiz_center_id === user.tahfiz_center_id)
+          : [];
       
-      // Filter donations - only show donations to admin's own organization
+      // Filter donations
       const filteredDonations = isSuperAdmin 
         ? donations 
-        : donations.filter(d => {
-            return d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id;
-          });
+        : isTahfizAdmin
+          ? donations.filter(d => d.recipient_type === 'tahfiz' && d.tahfiz_center_id === user.tahfiz_center_id)
+          : donations.filter(d => d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id);
 
       // Filter suggestions based on role
       const filteredSuggestions = isSuperAdmin 
         ? suggestions 
-        : suggestions.filter(s => {
-            if (s.entity_type === 'organisation' && s.organisation_id) {
-              return s.organisation_id === user.organisation_id;
-            }
-            if (s.entity_type === 'tahfiz' && s.tahfiz_center_id) {
-              return s.tahfiz_center_id === user.tahfiz_center_id;
-            }
-            if ((s.entity_type === 'grave' || s.entity_type === 'person') && s.state_id) {
-              return userStates.includes(s.state_id);
-            }
-            return false;
-          });
+        : isTahfizAdmin
+          ? suggestions.filter(s => s.entity_type === 'tahfiz' && s.tahfiz_center_id === user.tahfiz_center_id)
+          : suggestions.filter(s => {
+              if (s.entity_type === 'organisation' && s.organisation_id) {
+                return s.organisation_id === user.organisation_id;
+              }
+              if ((s.entity_type === 'grave' || s.entity_type === 'person') && s.state_id) {
+                return userStates.includes(s.state_id);
+              }
+              return false;
+            });
       
       return {
         graves: graves.length,
