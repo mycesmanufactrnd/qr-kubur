@@ -197,10 +197,12 @@ export default function ManageUsers() {
       permissions: {
         graves: { view: false, create: false, edit: false, delete: false },
         dead_persons: { view: false, create: false, edit: false, delete: false },
-        organisations: { view: false, create: false, edit: false, delete: false },
         tahfiz: { view: false, create: false, edit: false, delete: false },
+        suggestions: { view: false, create: false, edit: false, delete: false },
         donations: { view: false, create: false, edit: false, delete: false },
-        users: { view: false, create: false, edit: false, delete: false }
+        organisations: { view: false, create: false, edit: false, delete: false },
+        users: { view: false, create: false, edit: false, delete: false },
+        tahlilrequests: { view: false, create: false, edit: false, delete: false },
       }
     });
     setDialogOpen(true);
