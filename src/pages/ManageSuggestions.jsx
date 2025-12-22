@@ -74,10 +74,6 @@ export default function ManageSuggestions() {
     });
   }, [allSuggestions, user, isSuperAdmin]);
 
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Suggestion.update(id, data),
     onSuccess: () => {
@@ -93,6 +89,10 @@ export default function ManageSuggestions() {
       return filterStatus === 'all' || s.status === filterStatus;
     });
   }, [suggestions, filterStatus]);
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
 
   const openDetailDialog = (suggestion) => {
     setSelectedSuggestion(suggestion);
