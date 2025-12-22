@@ -68,6 +68,22 @@ export default function AdminDashboard() {
         : donations.filter(d => {
             return d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id;
           });
+
+      // Filter suggestions based on role
+      const filteredSuggestions = isSuperAdmin 
+        ? suggestions 
+        : suggestions.filter(s => {
+            if (s.entity_type === 'organisation' && s.organisation_id) {
+              return s.organisation_id === user.organisation_id;
+            }
+            if (s.entity_type === 'tahfiz' && s.tahfiz_center_id) {
+              return s.tahfiz_center_id === user.tahfiz_center_id;
+            }
+            if ((s.entity_type === 'grave' || s.entity_type === 'person') && s.state_id) {
+              return userStates.includes(s.state_id);
+            }
+            return false;
+          });
       
       return {
         graves: graves.length,
@@ -76,7 +92,7 @@ export default function AdminDashboard() {
         tahfiz: tahfiz.length,
         totalDonations: filteredDonations.filter(d => d.status === 'verified').reduce((sum, d) => sum + (d.amount || 0), 0),
         pendingDonations: filteredDonations.filter(d => d.status === 'pending').length,
-        pendingSuggestions: suggestions.filter(s => s.status === 'pending').length,
+        pendingSuggestions: filteredSuggestions.filter(s => s.status === 'pending').length,
         pendingTahlil: tahlilRequests.filter(r => r.status === 'pending').length
       };
     },
