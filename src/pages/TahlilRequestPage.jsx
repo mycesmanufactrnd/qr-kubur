@@ -163,15 +163,14 @@ export default function TahlilRequestPage() {
                 ))}
               </SelectContent>
             </Select>
-{selectedCenter.services_offered}
+
             {selectedCenter && selectedCenter.services_offered?.length > 0 && (
               <div className="mt-4 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
                 <p className="text-sm text-violet-800 dark:text-violet-300 font-semibold mb-2">Perkhidmatan tersedia:</p>
                 <div className="flex flex-wrap gap-2">
                   {selectedCenter.services_offered.map(service => (
                     <Badge key={service} variant="secondary" className="bg-violet-100 text-violet-700">
-                    //   {SERVICE_TYPES.find(s => s.value === service)?.label || service}
-                    {service}
+                      {SERVICE_TYPES.find(s => s.value === service)?.label || service}
                     </Badge>
                   ))}
                 </div>
@@ -181,33 +180,35 @@ export default function TahlilRequestPage() {
         </Card>
 
         {/* Service Type */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Jenis Perkhidmatan (Boleh pilih lebih dari satu)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              {SERVICE_TYPES.map(service => (
-                <Label 
-                  key={service.value}
-                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                    serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'dark:border-gray-600'
-                  }`}
-                >
-                  <Checkbox 
-                    checked={serviceTypes.includes(service.value)}
-                    onCheckedChange={() => toggleServiceType(service.value)}
-                    className="mt-1"
-                  />
-                  <div>
-                    <span className="font-semibold dark:text-white">{service.label}</span>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
-                  </div>
-                </Label>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {selectedCenter && selectedCenter.services_offered?.length > 0 && (
+            <Card className="border-0 shadow-md dark:bg-gray-800">
+            <CardHeader>
+                <CardTitle className="text-lg dark:text-white">Jenis Perkhidmatan (Boleh pilih lebih dari satu)</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-3">
+                {SERVICE_TYPES.map(service => (
+                    <Label 
+                    key={service.value}
+                    className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                        serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'dark:border-gray-600'
+                    }`}
+                    >
+                    <Checkbox 
+                        checked={serviceTypes.includes(service.value)}
+                        onCheckedChange={() => toggleServiceType(service.value)}
+                        className="mt-1"
+                    />
+                    <div>
+                        <span className="font-semibold dark:text-white">{service.label}</span>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
+                    </div>
+                    </Label>
+                ))}
+                </div>
+            </CardContent>
+            </Card>
+        )}
 
         {/* Deceased Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
