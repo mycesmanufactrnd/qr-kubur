@@ -29,6 +29,7 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
+import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
+    "CheckTahlilStatus": CheckTahlilStatus,
 }
 
 export const pagesConfig = {

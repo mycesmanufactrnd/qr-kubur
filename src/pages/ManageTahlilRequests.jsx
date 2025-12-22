@@ -5,6 +5,7 @@ import { BookOpen, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -27,6 +28,7 @@ export default function ManageTahlilRequests() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -83,7 +85,26 @@ export default function ManageTahlilRequests() {
   });
 
   const filteredRequests = requests.filter(r => {
-    return filterStatus === 'all' || r.status === filterStatus;
+    const statusMatch = filterStatus === 'all' || r.status === filterStatus;
+    
+    if (!searchTerm) return statusMatch;
+    
+    const search = searchTerm.toLowerCase();
+    const centerName = getCenterName(r.tahfiz_center_id).toLowerCase();
+    const serviceLabel = (r.service_type || '')
+      .split(',')
+      .filter(Boolean)
+      .map(type => SERVICE_LABELS[type] || type)
+      .join(', ')
+      .toLowerCase();
+    
+    return statusMatch && (
+      r.requester_name?.toLowerCase().includes(search) ||
+      r.deceased_name?.toLowerCase().includes(search) ||
+      centerName.includes(search) ||
+      serviceLabel.includes(search) ||
+      r.reference_id?.toLowerCase().includes(search)
+    );
   });
 
   const getCenterName = (centerId) => {
@@ -197,22 +218,32 @@ export default function ManageTahlilRequests() {
         ))}
       </div>
 
-      {/* Filter */}
+      {/* Search and Filter */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-48">
-              <Filter className="w-4 h-4 mr-2 text-gray-400" />
-              <SelectValue placeholder="Semua Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="pending">Menunggu</SelectItem>
-              <SelectItem value="accepted">Diterima</SelectItem>
-              <SelectItem value="completed">Selesai</SelectItem>
-              <SelectItem value="rejected">Ditolak</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Input
+                placeholder="Cari pemohon, arwah, perkhidmatan, pusat tahfiz, atau ID rujukan..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full sm:w-48">
+                <Filter className="w-4 h-4 mr-2 text-gray-400" />
+                <SelectValue placeholder="Semua Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="pending">Menunggu</SelectItem>
+                <SelectItem value="accepted">Diterima</SelectItem>
+                <SelectItem value="completed">Selesai</SelectItem>
+                <SelectItem value="rejected">Ditolak</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
@@ -241,6 +272,9 @@ export default function ManageTahlilRequests() {
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{request.requester_name}</h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Arwah: {request.deceased_name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{getCenterName(request.tahfiz_center_id)}</p>
+                    {request.reference_id && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">ID: {request.reference_id}</p>
+                    )}
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
                         {(request.service_type || '')
@@ -273,6 +307,7 @@ export default function ManageTahlilRequests() {
                 <TableHead>Arwah</TableHead>
                 <TableHead>Perkhidmatan</TableHead>
                 <TableHead>Pusat Tahfiz</TableHead>
+                <TableHead>ID Rujukan</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Tindakan</TableHead>
               </TableRow>
@@ -280,11 +315,11 @@ export default function ManageTahlilRequests() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8">Memuatkan...</TableCell>
                 </TableRow>
               ) : filteredRequests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">Tiada permohonan</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">Tiada permohonan</TableCell>
                 </TableRow>
               ) : (
                 filteredRequests.map(request => (
@@ -303,6 +338,9 @@ export default function ManageTahlilRequests() {
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {getCenterName(request.tahfiz_center_id)}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {request.reference_id || '-'}
                     </TableCell>
                     <TableCell>{getStatusBadge(request.status)}</TableCell>
                     <TableCell className="text-right">
@@ -361,6 +399,12 @@ export default function ManageTahlilRequests() {
                 <p className="text-sm text-gray-500">Pusat Tahfiz</p>
                 <p>{getCenterName(selectedRequest.tahfiz_center_id)}</p>
               </div>
+              {selectedRequest.reference_id && (
+                <div>
+                  <p className="text-sm text-gray-500">ID Rujukan</p>
+                  <p className="font-mono font-semibold">{selectedRequest.reference_id}</p>
+                </div>
+              )}
               {selectedRequest.preferred_date && (
                 <div>
                   <p className="text-sm text-gray-500">Tarikh Pilihan</p>
