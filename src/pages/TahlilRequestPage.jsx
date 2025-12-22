@@ -35,6 +35,7 @@ export default function TahlilRequestPage() {
   const [deceasedName, setDeceasedName] = useState(preSelectedDeceased || '');
   const [preferredDate, setPreferredDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [customService, setCustomService] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const queryClient = useQueryClient();
@@ -75,6 +76,10 @@ export default function TahlilRequestPage() {
       return;
     }
 
+    const finalNotes = serviceTypes.includes('custom') && customService
+      ? `${notes}\n\nPerkhidmatan Khas: ${customService}`.trim()
+      : notes;
+
     createRequest.mutate({
       tahfiz_center_id: selectedTahfiz,
       service_type: serviceTypes.join(','),
@@ -83,7 +88,7 @@ export default function TahlilRequestPage() {
       requester_email: requesterEmail,
       deceased_name: deceasedName,
       preferred_date: preferredDate,
-      notes: notes,
+      notes: finalNotes,
       status: 'pending'
     });
   };
@@ -188,7 +193,10 @@ export default function TahlilRequestPage() {
             <CardContent>
                 <div className="grid gap-3">
                 {SERVICE_TYPES
-                  .filter(serviceType => selectedCenter.services_offered.includes(serviceType.value))
+                  .filter(serviceType => 
+                    selectedCenter.services_offered.includes(serviceType.value) || 
+                    serviceType.value === 'custom'
+                  )
                   .map(service => (
                     <Label 
                     key={service.value}
@@ -208,6 +216,21 @@ export default function TahlilRequestPage() {
                     </Label>
                 ))}
                 </div>
+
+                {serviceTypes.includes('custom') && (
+                  <div className="mt-4">
+                    <Label htmlFor="customService" className="dark:text-gray-300">
+                      Nyatakan Perkhidmatan Khas <span className="text-red-500">*</span>
+                    </Label>
+                    <Textarea
+                      id="customService"
+                      placeholder="Jelaskan perkhidmatan khas yang anda perlukan..."
+                      value={customService}
+                      onChange={(e) => setCustomService(e.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                )}
             </CardContent>
             </Card>
         )}
