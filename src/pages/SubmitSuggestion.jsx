@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FileText, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { FileText, CheckCircle, ArrowLeft, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,11 +20,74 @@ export default function SubmitSuggestion() {
 
   const [entityType, setEntityType] = useState(preType);
   const [entityId, setEntityId] = useState(preId);
+  const [selectedGrave, setSelectedGrave] = useState('');
   const [suggestedChanges, setSuggestedChanges] = useState('');
   const [reason, setReason] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        () => setUserLocation(null)
+      );
+    }
+  }, []);
+
+  const { data: graves = [] } = useQuery({
+    queryKey: ['graves-nearby'],
+    queryFn: () => base44.entities.Grave.list(),
+    enabled: entityType === 'grave' || entityType === 'person'
+  });
+
+  const { data: persons = [] } = useQuery({
+    queryKey: ['persons-by-grave', selectedGrave],
+    queryFn: () => base44.entities.DeadPerson.filter({ grave_id: selectedGrave }),
+    enabled: entityType === 'person' && !!selectedGrave
+  });
+
+  const { data: organisations = [] } = useQuery({
+    queryKey: ['organisations-nearby'],
+    queryFn: () => base44.entities.Organisation.list(),
+    enabled: entityType === 'organisation'
+  });
+
+  const { data: tahfizCenters = [] } = useQuery({
+    queryKey: ['tahfiz-nearby'],
+    queryFn: () => base44.entities.TahfizCenter.list(),
+    enabled: entityType === 'tahfiz'
+  });
+
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const sortedGraves = userLocation 
+    ? graves.map(g => ({
+        ...g,
+        distance: g.gps_lat && g.gps_lng 
+          ? calculateDistance(userLocation.lat, userLocation.lng, g.gps_lat, g.gps_lng)
+          : Infinity
+      })).sort((a, b) => a.distance - b.distance)
+    : graves;
+
+  const sortedOrganisations = organisations;
+  const sortedTahfiz = tahfizCenters;
 
   const createSuggestion = useMutation({
     mutationFn: (data) => base44.entities.Suggestion.create(data),
@@ -35,11 +98,15 @@ export default function SubmitSuggestion() {
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!entityType) {
       toast.error('Sila pilih jenis rekod');
+      return;
+    }
+    if (!entityId) {
+      toast.error('Sila pilih rekod yang ingin dicadangkan');
       return;
     }
     if (!suggestedChanges) {
@@ -54,6 +121,23 @@ export default function SubmitSuggestion() {
       reason: reason,
       status: 'pending'
     });
+
+    // Create notification for admin
+    try {
+      const admins = await base44.entities.AppUser.filter({ role: { $in: ['admin', 'superadmin'] } });
+      for (const admin of admins) {
+        await base44.entities.Notification.create({
+          user_email: admin.email,
+          type: 'suggestion',
+          title: 'Cadangan Baru',
+          message: `Cadangan baru untuk ${entityType}: ${suggestedChanges.substring(0, 50)}...`,
+          related_id: entityId,
+          status: 'pending'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to create notification:', err);
+    }
   };
 
   if (submitted) {
@@ -95,7 +179,11 @@ export default function SubmitSuggestion() {
           <CardContent className="p-4 space-y-4">
             <div>
               <Label htmlFor="entityType" className="dark:text-gray-300">Jenis Rekod</Label>
-              <Select value={entityType} onValueChange={setEntityType}>
+              <Select value={entityType} onValueChange={(val) => {
+                setEntityType(val);
+                setEntityId('');
+                setSelectedGrave('');
+              }}>
                 <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                   <SelectValue placeholder="Pilih jenis rekod" />
                 </SelectTrigger>
@@ -108,7 +196,115 @@ export default function SubmitSuggestion() {
               </Select>
             </div>
 
+            {/* Grave Selection for Person */}
+            {entityType === 'person' && (
+              <div>
+                <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
+                <Select value={selectedGrave} onValueChange={(val) => {
+                  setSelectedGrave(val);
+                  setEntityId('');
+                }}>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <SelectValue placeholder="Pilih kubur berdekatan" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-700">
+                    {sortedGraves.slice(0, 20).map(g => (
+                      <SelectItem key={g.id} value={g.id}>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3 h-3" />
+                          {g.cemetery_name} - {g.state}
+                          {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
+            {/* Person Selection */}
+            {entityType === 'person' && selectedGrave && (
+              <div>
+                <Label className="dark:text-gray-300">Pilih Si Mati <span className="text-red-500">*</span></Label>
+                <Select value={entityId} onValueChange={setEntityId}>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <SelectValue placeholder="Pilih si mati" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-700">
+                    {persons.length === 0 ? (
+                      <SelectItem value="none" disabled>Tiada rekod dijumpai</SelectItem>
+                    ) : (
+                      persons.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} ({p.ic_number || 'Tiada IC'})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Grave Selection */}
+            {entityType === 'grave' && (
+              <div>
+                <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
+                <Select value={entityId} onValueChange={setEntityId}>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <SelectValue placeholder="Pilih kubur berdekatan" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-700">
+                    {sortedGraves.slice(0, 20).map(g => (
+                      <SelectItem key={g.id} value={g.id}>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3 h-3" />
+                          {g.cemetery_name} - {g.state}
+                          {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Organisation Selection */}
+            {entityType === 'organisation' && (
+              <div>
+                <Label className="dark:text-gray-300">Pilih Organisasi <span className="text-red-500">*</span></Label>
+                <Select value={entityId} onValueChange={setEntityId}>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <SelectValue placeholder="Pilih organisasi" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-700">
+                    {sortedOrganisations.map(o => (
+                      <SelectItem key={o.id} value={o.id}>
+                        {o.name} - {Array.isArray(o.state) ? o.state.join(', ') : o.state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Tahfiz Selection */}
+            {entityType === 'tahfiz' && (
+              <div>
+                <Label className="dark:text-gray-300">Pilih Pusat Tahfiz <span className="text-red-500">*</span></Label>
+                <Select value={entityId} onValueChange={setEntityId}>
+                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <SelectValue placeholder="Pilih pusat tahfiz" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-700">
+                    {sortedTahfiz.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name} - {t.state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="suggestedChanges" className="dark:text-gray-300">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
@@ -139,7 +335,7 @@ export default function SubmitSuggestion() {
             <Button 
               type="submit"
               className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
-              disabled={createSuggestion.isPending || !entityType || !suggestedChanges}
+              disabled={createSuggestion.isPending || !entityType || !suggestedChanges || !entityId}
             >
               {createSuggestion.isPending ? 'Menghantar...' : 'Hantar Cadangan'}
             </Button>

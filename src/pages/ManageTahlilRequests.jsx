@@ -92,12 +92,49 @@ export default function ManageTahlilRequests() {
     setIsDialogOpen(true);
   };
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     if (!selectedRequest) return;
     updateMutation.mutate({
       id: selectedRequest.id,
       data: { status: newStatus }
     });
+
+    // Create notification if requester has email
+    if (selectedRequest.requester_email) {
+      const statusMessages = {
+        accepted: 'Permohonan tahlil anda telah diterima.',
+        rejected: 'Permohonan tahlil anda telah ditolak.',
+        completed: 'Permohonan tahlil anda telah selesai.'
+      };
+
+      try {
+        await base44.entities.Notification.create({
+          user_email: selectedRequest.requester_email,
+          type: 'tahlil_request',
+          title: `Permohonan Tahlil ${newStatus === 'accepted' ? 'Diterima' : newStatus === 'rejected' ? 'Ditolak' : 'Selesai'}`,
+          message: statusMessages[newStatus],
+          related_id: selectedRequest.id,
+          status: newStatus
+        });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+    }
+
+    // Log activity
+    try {
+      await base44.entities.LogActivity.create({
+        activity_type: 'tahlil_request_update',
+        function_name: 'ManageTahlilRequests',
+        user_email: user?.email,
+        level: 'info',
+        summary: `Permohonan tahlil: ${newStatus}`,
+        details: { request_id: selectedRequest.id, status: newStatus, requester: selectedRequest.requester_name },
+        success: true
+      });
+    } catch (err) {
+      console.error('Failed to log activity:', err);
+    }
   };
 
   const getStatusBadge = (status) => {

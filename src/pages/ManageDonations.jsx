@@ -96,20 +96,82 @@ export default function ManageDonations() {
     setIsDialogOpen(true);
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!selectedDonation) return;
     updateMutation.mutate({
       id: selectedDonation.id,
       data: { status: 'verified' }
     });
+
+    // Create notification if donor has email
+    if (selectedDonation.donor_email) {
+      try {
+        await base44.entities.Notification.create({
+          user_email: selectedDonation.donor_email,
+          type: 'donation',
+          title: 'Derma Disahkan',
+          message: `Derma anda sebanyak RM${selectedDonation.amount?.toFixed(2)} telah disahkan.`,
+          related_id: selectedDonation.id,
+          status: 'verified'
+        });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+    }
+
+    // Log activity
+    try {
+      await base44.entities.LogActivity.create({
+        activity_type: 'donation_verify',
+        function_name: 'ManageDonations',
+        user_email: user?.email,
+        level: 'info',
+        summary: `Derma disahkan: RM${selectedDonation.amount}`,
+        details: { donation_id: selectedDonation.id, amount: selectedDonation.amount },
+        success: true
+      });
+    } catch (err) {
+      console.error('Failed to log activity:', err);
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!selectedDonation) return;
     updateMutation.mutate({
       id: selectedDonation.id,
       data: { status: 'rejected' }
     });
+
+    // Create notification if donor has email
+    if (selectedDonation.donor_email) {
+      try {
+        await base44.entities.Notification.create({
+          user_email: selectedDonation.donor_email,
+          type: 'donation',
+          title: 'Derma Ditolak',
+          message: `Derma anda sebanyak RM${selectedDonation.amount?.toFixed(2)} telah ditolak.`,
+          related_id: selectedDonation.id,
+          status: 'rejected'
+        });
+      } catch (err) {
+        console.error('Failed to create notification:', err);
+      }
+    }
+
+    // Log activity
+    try {
+      await base44.entities.LogActivity.create({
+        activity_type: 'donation_reject',
+        function_name: 'ManageDonations',
+        user_email: user?.email,
+        level: 'warn',
+        summary: `Derma ditolak: RM${selectedDonation.amount}`,
+        details: { donation_id: selectedDonation.id, amount: selectedDonation.amount },
+        success: true
+      });
+    } catch (err) {
+      console.error('Failed to log activity:', err);
+    }
   };
 
   const getRecipientName = (donation) => {

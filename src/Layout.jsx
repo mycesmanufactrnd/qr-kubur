@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { 
   Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
   Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
-  Shield, Bell
+  Shield, Bell, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -343,10 +343,16 @@ export default function Layout({ children, currentPageName }) {
                             </Link>
                           </DropdownMenuItem>
                         ))}
-                      </>
-                    )}
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('ViewLogs')} className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Log Aktiviti
+                          </Link>
+                        </DropdownMenuItem>
+                        </>
+                        )}
 
-                    <DropdownMenuSeparator />
+                        <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to={createPageUrl('SettingsPage')} className="flex items-center gap-2">
                         <Settings className="w-4 h-4" />
