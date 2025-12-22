@@ -325,7 +325,6 @@ export default function SuperadminDashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Urus Pengguna</h3>
-                      <p className="text-xs text-gray-500">Pengguna sistem</p>
                     </div>
                   </div>
                 </CardContent>
@@ -340,7 +339,6 @@ export default function SuperadminDashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Urus Organisasi</h3>
-                      <p className="text-xs text-gray-500">Organisasi sistem</p>
                     </div>
                   </div>
                 </CardContent>
@@ -355,7 +353,34 @@ export default function SuperadminDashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Log Aktiviti</h3>
-                      <p className="text-xs text-gray-500">Rekod sistem</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to={createPageUrl('Documentation')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Book className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Documentation</h3>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to={createPageUrl('Icon Library')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Icon Library</h3>
                     </div>
                   </div>
                 </CardContent>
