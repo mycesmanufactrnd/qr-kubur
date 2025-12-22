@@ -316,7 +316,7 @@ export default function ManageUsers() {
 
   const handleOpenPermissions = (user) => {
     const defaultPermissions = MODULES.reduce((acc, module) => {
-      acc[module] = { view: true, create: true, edit: true, delete: true };
+      acc[module] = { view: true, create: true, edit: true, delete: true, approval: true };
       return acc;
     }, {});
     
