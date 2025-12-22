@@ -63,14 +63,7 @@ export default function ManageDeadPersons() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['user-permissions', currentUser?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: currentUser?.id }),
-    enabled: !!currentUser
-  });
-
-  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_dead_persons' && p.enabled);
+  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.dead_persons?.view;
 
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],

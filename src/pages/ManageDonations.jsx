@@ -40,14 +40,7 @@ export default function ManageDonations() {
   };
 
   const isSuperAdmin = user?.role === 'superadmin';
-
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['user-permissions', user?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: user?.id }),
-    enabled: !!user
-  });
-
-  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_donations' && p.enabled);
+  const hasViewPermission = isSuperAdmin || user?.permissions?.donations?.view;
 
   const { data: donations = [], isLoading } = useQuery({
     queryKey: ['admin-donations', user?.organisation_id],

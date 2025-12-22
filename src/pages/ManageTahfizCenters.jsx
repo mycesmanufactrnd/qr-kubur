@@ -83,14 +83,8 @@ export default function ManageTahfizCenters() {
     }
   };
 
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['user-permissions', currentUser?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: currentUser?.id }),
-    enabled: !!currentUser
-  });
-
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_tahfiz' && p.enabled);
+  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.tahfiz?.view;
 
   const { data: centers = [], isLoading } = useQuery({
     queryKey: ['admin-tahfiz'],

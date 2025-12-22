@@ -77,14 +77,7 @@ export default function ManageOrganisations() {
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const isAdmin = currentUser?.role === 'admin';
-
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['user-permissions', currentUser?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: currentUser?.id }),
-    enabled: !!currentUser
-  });
-
-  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_organisations' && p.enabled);
+  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.organisations?.view;
 
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],

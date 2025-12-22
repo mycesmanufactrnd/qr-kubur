@@ -68,14 +68,7 @@ export default function ManageGraves() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['user-permissions', currentUser?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: currentUser?.id }),
-    enabled: !!currentUser
-  });
-
-  const hasViewPermission = isSuperAdmin || permissions.some(p => p.slug === 'view_graves' && p.enabled);
+  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.graves?.view;
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],
