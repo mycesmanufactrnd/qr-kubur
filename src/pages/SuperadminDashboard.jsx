@@ -315,40 +315,49 @@ export default function SuperadminDashboard() {
 
         {/* Add Tab */}
         <TabsContent value="add" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <Link to={createPageUrl('ManageUsers') + '?action=add'}>
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <Users className="w-10 h-10 text-amber-600 mb-3" />
-                  <h3 className="font-bold text-lg mb-2">Tambah Pengguna</h3>
-                  <p className="text-sm text-gray-600">Tambah pengguna pengurusan baharu</p>
+          <div className="grid md:grid-cols-3 gap-3">
+            <Link to={createPageUrl('ManageUsers')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Urus Pengguna</h3>
+                      <p className="text-xs text-gray-500">Pengguna sistem</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
-            <Link to={createPageUrl('ManageOrganisations') + '?action=add'}>
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <Database className="w-10 h-10 text-emerald-600 mb-3" />
-                  <h3 className="font-bold text-lg mb-2">Tambah Organisasi</h3>
-                  <p className="text-sm text-gray-600">Tambah organisasi pengurusan baharu</p>
+            <Link to={createPageUrl('ManageOrganisations')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <Database className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Urus Organisasi</h3>
+                      <p className="text-xs text-gray-500">Organisasi sistem</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
-            <Link to={createPageUrl('Documentation')}>
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <Terminal className="w-10 h-10 text-purple-600 mb-3" />
-                  <h3 className="font-bold text-lg mb-2">Dokumentasi Sistem</h3>
-                  <p className="text-sm text-gray-600">Muat turun SRS dokumen (PDF)</p>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link to={createPageUrl('Documentation')}>
-              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <Terminal className="w-10 h-10 text-purple-600 mb-3" />
-                  <h3 className="font-bold text-lg mb-2">Icon Library</h3>
-                  <p className="text-sm text-gray-600">All Icon Library </p>
+            <Link to={createPageUrl('ViewLogs')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Terminal className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Log Aktiviti</h3>
+                      <p className="text-xs text-gray-500">Rekod sistem</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </Link>
