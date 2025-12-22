@@ -142,6 +142,7 @@ export default function ManageUsers() {
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const isAdmin = currentUser?.role === 'admin';
+  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.users?.view;
 
   const accessibleUsers = allUsers.filter(u => {
     if (isSuperAdmin) return true;
