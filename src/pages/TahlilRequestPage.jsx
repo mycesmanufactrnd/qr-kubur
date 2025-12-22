@@ -163,7 +163,7 @@ export default function TahlilRequestPage() {
                 ))}
               </SelectContent>
             </Select>
-
+{selectedCenter.services_offered}
             {selectedCenter && selectedCenter.services_offered?.length > 0 && (
               <div className="mt-4 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
                 <p className="text-sm text-violet-800 dark:text-violet-300 font-semibold mb-2">Perkhidmatan tersedia:</p>
