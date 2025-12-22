@@ -43,23 +43,28 @@ export default function ManageDonations() {
   const hasViewPermission = isSuperAdmin || user?.permissions?.donations?.view;
 
   const { data: donations = [], isLoading } = useQuery({
-    queryKey: ['admin-donations', user?.organisation_id],
+    queryKey: ['admin-donations', user?.organisation_id, user?.tahfiz_center_id],
     queryFn: async () => {
       const allDonations = await base44.entities.Donation.list('-created_date');
       
       // If superadmin, return all
       if (isSuperAdmin) return allDonations;
       
-      // Filter by exact organization ID match only
-      if (!user?.organisation_id) return [];
+      // Tahfiz center admin - filter by tahfiz center
+      if (user?.tahfiz_center_id) {
+        return allDonations.filter(d => 
+          d.recipient_type === 'tahfiz' && d.tahfiz_center_id === user.tahfiz_center_id
+        );
+      }
       
-      return allDonations.filter(d => {
-        // Only show donations where recipient is this admin's organization
-        if (d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id) {
-          return true;
-        }
-        return false;
-      });
+      // Organization admin - filter by organization
+      if (user?.organisation_id) {
+        return allDonations.filter(d => 
+          d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id
+        );
+      }
+      
+      return [];
     },
     enabled: !!user && hasViewPermission
   });
