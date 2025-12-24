@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import SlidingPuzzleCaptcha from '../components/SlidingPuzzleCaptcha';
 
 export default function SubmitSuggestion() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function SubmitSuggestion() {
   const [reason, setReason] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -100,6 +102,11 @@ export default function SubmitSuggestion() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!isCaptchaVerified) {
+      toast.error('Sila sahkan captcha terlebih dahulu');
+      return;
+    }
     
     if (!entityType) {
       toast.error('Sila pilih jenis rekod');
@@ -354,10 +361,12 @@ export default function SubmitSuggestion() {
               />
             </div>
 
+            <SlidingPuzzleCaptcha onVerified={setIsCaptchaVerified} />
+
             <Button 
               type="submit"
               className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
-              disabled={createSuggestion.isPending || !entityType || !suggestedChanges || !entityId}
+              disabled={createSuggestion.isPending || !entityType || !suggestedChanges || !entityId || !isCaptchaVerified}
             >
               {createSuggestion.isPending ? 'Menghantar...' : 'Hantar Cadangan'}
             </Button>
