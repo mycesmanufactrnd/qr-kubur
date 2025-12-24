@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
 import ImageTextCaptcha from '../components/ImageTextCaptcha';
+import { showSuccess, showError, showWarning } from '../components/ToastrNotification';
 
 export default function SubmitSuggestion() {
   const navigate = useNavigate();
@@ -97,7 +97,11 @@ export default function SubmitSuggestion() {
     onSuccess: () => {
       setSubmitted(true);
       queryClient.invalidateQueries(['suggestions']);
-      toast.success('Cadangan telah dihantar!');
+      showSuccess('Cadangan telah dihantar!');
+    },
+    onError: (error) => {
+      showError('Gagal menghantar cadangan. Sila cuba lagi.');
+      console.error('Suggestion error:', error);
     }
   });
 
@@ -105,16 +109,35 @@ export default function SubmitSuggestion() {
     e.preventDefault();
     
     if (!entityType) {
-      toast.error('Sila pilih jenis rekod');
+      showError('Sila pilih jenis rekod');
       return;
     }
     if (!entityId) {
-      toast.error('Sila pilih rekod yang ingin dicadangkan');
+      showError('Sila pilih rekod yang ingin dicadangkan');
       return;
     }
     if (!suggestedChanges) {
-      toast.error('Sila masukkan cadangan pembetulan');
+      showError('Sila masukkan cadangan pembetulan');
       return;
+    }
+
+    try {
+      // Get visitor IP
+      const { ip } = await base44.functions.invoke('getClientIp');
+      
+      // Check rate limiting: 3 suggestions per hour per IP
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const recentSuggestions = await base44.entities.Suggestion.filter({
+        visitor_ip: ip,
+        created_date: { $gte: oneHourAgo }
+      });
+
+      if (recentSuggestions.length >= 3) {
+        showWarning('Anda telah mencapai had cadangan (3 kali sejam). Sila cuba lagi kemudian.', 'Had Dicapai');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking rate limit:', error);
     }
 
     const suggestionData = {
@@ -152,7 +175,20 @@ export default function SubmitSuggestion() {
   const handleCaptchaVerified = async () => {
     if (!pendingSubmission) return;
 
-    createSuggestion.mutate(pendingSubmission);
+    try {
+      // Get visitor IP and add to submission data
+      const { ip } = await base44.functions.invoke('getClientIp');
+      const dataWithIp = {
+        ...pendingSubmission,
+        visitor_ip: ip
+      };
+
+      createSuggestion.mutate(dataWithIp);
+    } catch (error) {
+      console.error('Error getting IP:', error);
+      // Continue with submission even if IP fetch fails
+      createSuggestion.mutate(pendingSubmission);
+    }
 
     // Create notification for admin
     try {
@@ -175,7 +211,7 @@ export default function SubmitSuggestion() {
   };
 
   const handleCaptchaFailed = () => {
-    toast.error('Captcha gagal. Sila isi semula borang.');
+    showError('Captcha gagal. Sila isi semula borang.');
     setEntityType(preType);
     setEntityId(preId);
     setSelectedGrave('');
