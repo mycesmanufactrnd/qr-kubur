@@ -215,6 +215,17 @@ export default function ManageDeadPersons() {
       return;
     }
 
+    // Check QR code uniqueness
+    if (formData.qr_code) {
+      const qrExists = persons.some(p => 
+        p.qr_code === formData.qr_code && p.id !== editingPerson?.id
+      );
+      if (qrExists) {
+        toast.error('Kod QR ini sudah digunakan. Sila gunakan kod yang berbeza.');
+        return;
+      }
+    }
+
     const data = {
       ...formData,
       gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
