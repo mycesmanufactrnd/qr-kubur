@@ -38,6 +38,9 @@ const emptyGrave = {
 export default function ManageGraves() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterBlock, setFilterBlock] = useState('');
+  const [filterLot, setFilterLot] = useState('');
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -135,10 +138,22 @@ export default function ManageGraves() {
   });
 
   const filteredGraves = accessibleGraves.filter(grave => {
+    // Enhanced multi-field search
     const matchesSearch = !searchQuery || 
-      grave.cemetery_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      grave.cemetery_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.block?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.lot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.state?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      `${grave.block} ${grave.lot}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.qr_code?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Individual filters
     const matchesState = filterState === 'all' || grave.state === filterState;
-    return matchesSearch && matchesState;
+    const matchesStatus = filterStatus === 'all' || grave.status === filterStatus;
+    const matchesBlock = !filterBlock || grave.block?.toLowerCase().includes(filterBlock.toLowerCase());
+    const matchesLot = !filterLot || grave.lot?.toLowerCase().includes(filterLot.toLowerCase());
+    
+    return matchesSearch && matchesState && matchesStatus && matchesBlock && matchesLot;
   });
 
   const paginatedGraves = filteredGraves.slice((page - 1) * itemsPerPage, page * itemsPerPage);
@@ -326,23 +341,25 @@ export default function ManageGraves() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Cari nama kubur..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <CardContent className="p-4 space-y-3">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Cari nama kubur, blok, lot, negeri, atau kod QR..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          {/* Filters Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <Select value={filterState} onValueChange={setFilterState}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder="Semua Negeri" />
+              <SelectTrigger>
+                <SelectValue placeholder="Negeri" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Negeri</SelectItem>
@@ -351,7 +368,83 @@ export default function ManageGraves() {
                 ))}
               </SelectContent>
             </Select>
+            
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="active">Aktif</SelectItem>
+                <SelectItem value="full">Penuh</SelectItem>
+                <SelectItem value="maintenance">Penyelenggaraan</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Input
+              placeholder="Blok..."
+              value={filterBlock}
+              onChange={(e) => setFilterBlock(e.target.value)}
+            />
+            
+            <Input
+              placeholder="Lot..."
+              value={filterLot}
+              onChange={(e) => setFilterLot(e.target.value)}
+            />
+            
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery('');
+                setFilterState('all');
+                setFilterStatus('all');
+                setFilterBlock('');
+                setFilterLot('');
+              }}
+              className="w-full"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
           </div>
+          
+          {/* Active Filters Display */}
+          {(searchQuery || filterState !== 'all' || filterStatus !== 'all' || filterBlock || filterLot) && (
+            <div className="flex flex-wrap gap-2 pt-2 border-t">
+              <span className="text-sm text-gray-500">Aktif:</span>
+              {searchQuery && (
+                <Badge variant="secondary" className="gap-1">
+                  Carian: {searchQuery}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchQuery('')} />
+                </Badge>
+              )}
+              {filterState !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Negeri: {filterState}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterState('all')} />
+                </Badge>
+              )}
+              {filterStatus !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Status: {filterStatus === 'active' ? 'Aktif' : filterStatus === 'full' ? 'Penuh' : 'Penyelenggaraan'}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterStatus('all')} />
+                </Badge>
+              )}
+              {filterBlock && (
+                <Badge variant="secondary" className="gap-1">
+                  Blok: {filterBlock}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterBlock('')} />
+                </Badge>
+              )}
+              {filterLot && (
+                <Badge variant="secondary" className="gap-1">
+                  Lot: {filterLot}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterLot('')} />
+                </Badge>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
