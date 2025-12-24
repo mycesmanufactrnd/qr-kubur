@@ -361,18 +361,20 @@ export default function ManageGraves() {
           </div>
           
           {/* Filters Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <Select value={filterState} onValueChange={setFilterState}>
-              <SelectTrigger>
-                <SelectValue placeholder="Negeri" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Negeri</SelectItem>
-                {STATES.map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className={`grid gap-3 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'}`}>
+            {isSuperAdmin && (
+              <Select value={filterState} onValueChange={setFilterState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Negeri" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  {STATES.map(state => (
+                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger>
@@ -415,7 +417,7 @@ export default function ManageGraves() {
           </div>
           
           {/* Active Filters Display */}
-          {(searchQuery || filterState !== 'all' || filterStatus !== 'all' || filterBlock || filterLot) && (
+          {(searchQuery || (isSuperAdmin && filterState !== 'all') || filterStatus !== 'all' || filterBlock || filterLot) && (
             <div className="flex flex-wrap gap-2 pt-2 border-t">
               <span className="text-sm text-gray-500">Aktif:</span>
               {searchQuery && (
@@ -424,7 +426,7 @@ export default function ManageGraves() {
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchQuery('')} />
                 </Badge>
               )}
-              {filterState !== 'all' && (
+              {isSuperAdmin && filterState !== 'all' && (
                 <Badge variant="secondary" className="gap-1">
                   Negeri: {filterState}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterState('all')} />
