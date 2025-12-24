@@ -184,6 +184,18 @@ export default function ManageGraves() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Check QR code uniqueness
+    if (formData.qr_code) {
+      const qrExists = graves.some(g => 
+        g.qr_code === formData.qr_code && g.id !== editingGrave?.id
+      );
+      if (qrExists) {
+        toast.error('Kod QR ini sudah digunakan. Sila gunakan kod yang berbeza.');
+        return;
+      }
+    }
+    
     const data = {
       ...formData,
       gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
