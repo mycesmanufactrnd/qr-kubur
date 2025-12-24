@@ -25,10 +25,12 @@ export default function Layout({ children, currentPageName }) {
   const [loading, setLoading] = useState(true);
   const [lang, setLang] = useState('ms');
 
+  const isAdminOrSuperAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
     queryFn: () => base44.entities.Notification.filter({ user_email: user?.email, is_read: false }),
-    enabled: !!user?.email && !user?.isAppUser
+    enabled: !!user?.email && !user?.isAppUser && isAdminOrSuperAdmin
   });
 
   const unreadCount = notifications.length;
@@ -286,7 +288,7 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
-              {user && !user.isAppUser && (
+              {user && !user.isAppUser && isAdminOrSuperAdmin && (
                 <Link to={createPageUrl('NotificationPage')} className="relative">
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-5 h-5" />

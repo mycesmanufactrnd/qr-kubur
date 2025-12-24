@@ -124,28 +124,6 @@ export default function ManageTahlilRequests() {
       data: { status: newStatus }
     });
 
-    // Create notification if requester has email
-    if (selectedRequest.requester_email) {
-      const statusMessages = {
-        accepted: 'Permohonan tahlil anda telah diterima.',
-        rejected: 'Permohonan tahlil anda telah ditolak.',
-        completed: 'Permohonan tahlil anda telah selesai.'
-      };
-
-      try {
-        await base44.entities.Notification.create({
-          user_email: selectedRequest.requester_email,
-          type: 'tahlil_request',
-          title: `Permohonan Tahlil ${newStatus === 'accepted' ? 'Diterima' : newStatus === 'rejected' ? 'Ditolak' : 'Selesai'}`,
-          message: statusMessages[newStatus],
-          related_id: selectedRequest.id,
-          status: newStatus
-        });
-      } catch (err) {
-        console.error('Failed to create notification:', err);
-      }
-    }
-
     // Log activity
     try {
       await base44.entities.LogActivity.create({

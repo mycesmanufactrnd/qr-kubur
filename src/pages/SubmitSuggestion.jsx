@@ -176,24 +176,6 @@ export default function SubmitSuggestion() {
     if (!pendingSubmission) return;
 
     createSuggestion.mutate(pendingSubmission);
-
-    // Create notification for admin
-    try {
-      const admins = await base44.entities.AppUser.filter({ role: { $in: ['admin', 'superadmin'] } });
-      for (const admin of admins) {
-        await base44.entities.Notification.create({
-          user_email: admin.email,
-          type: 'suggestion',
-          title: 'Cadangan Baru',
-          message: `Cadangan baru untuk ${pendingSubmission.entity_type}: ${pendingSubmission.suggested_changes.substring(0, 50)}...`,
-          related_id: pendingSubmission.entity_id,
-          status: 'pending'
-        });
-      }
-    } catch (err) {
-      console.error('Failed to create notification:', err);
-    }
-
     setPendingSubmission(null);
   };
 
