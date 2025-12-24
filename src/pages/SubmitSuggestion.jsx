@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import SlidingPuzzleCaptcha from '../components/SlidingPuzzleCaptcha';
+import ImageTextCaptcha from '../components/ImageTextCaptcha';
 
 export default function SubmitSuggestion() {
   const navigate = useNavigate();
@@ -26,7 +26,8 @@ export default function SubmitSuggestion() {
   const [reason, setReason] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
-  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -103,11 +104,6 @@ export default function SubmitSuggestion() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!isCaptchaVerified) {
-      toast.error('Sila sahkan captcha terlebih dahulu');
-      return;
-    }
-    
     if (!entityType) {
       toast.error('Sila pilih jenis rekod');
       return;
@@ -149,7 +145,14 @@ export default function SubmitSuggestion() {
       suggestionData.state_id = tahfiz?.state;
     }
 
-    createSuggestion.mutate(suggestionData);
+    setPendingSubmission(suggestionData);
+    setShowCaptcha(true);
+  };
+
+  const handleCaptchaVerified = async () => {
+    if (!pendingSubmission) return;
+
+    createSuggestion.mutate(pendingSubmission);
 
     // Create notification for admin
     try {
@@ -159,14 +162,26 @@ export default function SubmitSuggestion() {
           user_email: admin.email,
           type: 'suggestion',
           title: 'Cadangan Baru',
-          message: `Cadangan baru untuk ${entityType}: ${suggestedChanges.substring(0, 50)}...`,
-          related_id: entityId,
+          message: `Cadangan baru untuk ${pendingSubmission.entity_type}: ${pendingSubmission.suggested_changes.substring(0, 50)}...`,
+          related_id: pendingSubmission.entity_id,
           status: 'pending'
         });
       }
     } catch (err) {
       console.error('Failed to create notification:', err);
     }
+
+    setPendingSubmission(null);
+  };
+
+  const handleCaptchaFailed = () => {
+    toast.error('Captcha gagal. Sila isi semula borang.');
+    setEntityType(preType);
+    setEntityId(preId);
+    setSelectedGrave('');
+    setSuggestedChanges('');
+    setReason('');
+    setPendingSubmission(null);
   };
 
   if (submitted) {
@@ -361,18 +376,23 @@ export default function SubmitSuggestion() {
               />
             </div>
 
-            <SlidingPuzzleCaptcha onVerified={setIsCaptchaVerified} />
-
             <Button 
               type="submit"
               className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
-              disabled={createSuggestion.isPending || !entityType || !suggestedChanges || !entityId || !isCaptchaVerified}
+              disabled={createSuggestion.isPending || !entityType || !suggestedChanges || !entityId}
             >
               {createSuggestion.isPending ? 'Menghantar...' : 'Hantar Cadangan'}
             </Button>
           </CardContent>
         </Card>
       </form>
+
+      <ImageTextCaptcha
+        open={showCaptcha}
+        onOpenChange={setShowCaptcha}
+        onVerified={handleCaptchaVerified}
+        onFailed={handleCaptchaFailed}
+      />
     </div>
   );
 }
