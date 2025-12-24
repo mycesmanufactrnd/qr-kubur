@@ -10,11 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
+import { showSuccess, showError, showInfo, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 
 const emptyPerson = {
   name: '',
@@ -82,7 +82,10 @@ export default function ManageDeadPersons() {
       queryClient.invalidateQueries(['admin-persons']);
       setIsDialogOpen(false);
       setFormData(emptyPerson);
-      toast.success('Rekod berjaya ditambah');
+      showApiSuccess('create');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -93,7 +96,10 @@ export default function ManageDeadPersons() {
       setIsDialogOpen(false);
       setEditingPerson(null);
       setFormData(emptyPerson);
-      toast.success('Rekod berjaya dikemaskini');
+      showApiSuccess('update');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -101,7 +107,10 @@ export default function ManageDeadPersons() {
     mutationFn: (id) => base44.entities.DeadPerson.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-persons']);
-      toast.success('Rekod berjaya dipadam');
+      showApiSuccess('delete');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -174,15 +183,20 @@ export default function ManageDeadPersons() {
     if (!file) return;
 
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setFormData({...formData, photo_url: file_url});
-    setUploading(false);
-    toast.success('Gambar berjaya dimuat naik');
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({...formData, photo_url: file_url});
+      showApiSuccess('upload');
+    } catch (error) {
+      showApiError(error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
-      toast.info('Mendapatkan lokasi...');
+      showInfo('Mendapatkan lokasi...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setFormData({
@@ -190,15 +204,15 @@ export default function ManageDeadPersons() {
             gps_lat: position.coords.latitude.toFixed(8),
             gps_lng: position.coords.longitude.toFixed(8)
           });
-          toast.success('Lokasi berjaya diperolehi');
+          showSuccess('Lokasi berjaya diperolehi');
         },
         (error) => {
-          toast.error('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
+          showError('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
         },
         { enableHighAccuracy: true }
       );
     } else {
-      toast.error('GPS tidak disokong oleh pelayar ini');
+      showError('GPS tidak disokong oleh pelayar ini');
     }
   };
 
@@ -207,11 +221,11 @@ export default function ManageDeadPersons() {
 
     // Validation
     if (!formData.name?.trim()) {
-      toast.error('Sila masukkan nama penuh');
+      showError('Sila masukkan nama penuh', 'Medan Diperlukan');
       return;
     }
     if (!formData.grave_id) {
-      toast.error('Sila pilih tanah perkuburan');
+      showError('Sila pilih tanah perkuburan', 'Medan Diperlukan');
       return;
     }
 
@@ -221,21 +235,25 @@ export default function ManageDeadPersons() {
         p.qr_code === formData.qr_code && p.id !== editingPerson?.id
       );
       if (qrExists) {
-        toast.error('Kod QR ini sudah digunakan. Sila gunakan kod yang berbeza.');
+        showUniqueError('Kod QR', formData.qr_code);
         return;
       }
     }
 
-    const data = {
-      ...formData,
-      gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-      gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null
-    };
+    try {
+      const data = {
+        ...formData,
+        gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
+        gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null
+      };
 
-    if (editingPerson) {
-      updateMutation.mutate({ id: editingPerson.id, data });
-    } else {
-      createMutation.mutate(data);
+      if (editingPerson) {
+        updateMutation.mutate({ id: editingPerson.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      showApiError(error);
     }
   };
 

@@ -10,11 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
+import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -93,7 +93,10 @@ export default function ManageGraves() {
       queryClient.invalidateQueries(['admin-graves']);
       setIsDialogOpen(false);
       setFormData(emptyGrave);
-      toast.success('Kubur berjaya ditambah');
+      showApiSuccess('create');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -104,7 +107,10 @@ export default function ManageGraves() {
       setIsDialogOpen(false);
       setEditingGrave(null);
       setFormData(emptyGrave);
-      toast.success('Kubur berjaya dikemaskini');
+      showApiSuccess('update');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -112,7 +118,10 @@ export default function ManageGraves() {
     mutationFn: (id) => base44.entities.Grave.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-graves']);
-      toast.success('Kubur berjaya dipadam');
+      showApiSuccess('delete');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -185,28 +194,43 @@ export default function ManageGraves() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Validation
+    if (!formData.cemetery_name?.trim()) {
+      showError('Sila masukkan nama tanah perkuburan', 'Medan Diperlukan');
+      return;
+    }
+    
+    if (!formData.state) {
+      showError('Sila pilih negeri', 'Medan Diperlukan');
+      return;
+    }
+    
     // Check QR code uniqueness
     if (formData.qr_code) {
       const qrExists = graves.some(g => 
         g.qr_code === formData.qr_code && g.id !== editingGrave?.id
       );
       if (qrExists) {
-        toast.error('Kod QR ini sudah digunakan. Sila gunakan kod yang berbeza.');
+        showUniqueError('Kod QR', formData.qr_code);
         return;
       }
     }
     
-    const data = {
-      ...formData,
-      gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-      gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
-      total_graves: parseInt(formData.total_graves) || 0
-    };
+    try {
+      const data = {
+        ...formData,
+        gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
+        gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
+        total_graves: parseInt(formData.total_graves) || 0
+      };
 
-    if (editingGrave) {
-      updateMutation.mutate({ id: editingGrave.id, data });
-    } else {
-      createMutation.mutate(data);
+      if (editingGrave) {
+        updateMutation.mutate({ id: editingGrave.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      showApiError(error);
     }
   };
 
@@ -247,10 +271,10 @@ export default function ManageGraves() {
         URL.revokeObjectURL(url);
       }, 100);
       
-      toast.success('Template CSV berjaya dimuat turun');
+      showSuccess('Template CSV berjaya dimuat turun');
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Gagal memuat turun template: ' + error.message);
+      showError('Gagal memuat turun template: ' + error.message);
     }
   };
 
@@ -258,18 +282,20 @@ export default function ManageGraves() {
     const file = e.target.files?.[0];
     if (file && file.type === 'text/csv') {
       setCsvFile(file);
+      showInfo('Fail CSV dipilih: ' + file.name);
     } else {
-      toast.error('Sila pilih fail CSV yang sah');
+      showError('Sila pilih fail CSV yang sah');
     }
   };
 
   const handleCSVUpload = async () => {
     if (!csvFile) {
-      toast.error('Sila pilih fail CSV');
+      showError('Sila pilih fail CSV');
       return;
     }
 
     setUploading(true);
+    showInfo('Sedang memuat naik dan memproses fail...');
     
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: csvFile });
@@ -318,14 +344,14 @@ export default function ManageGraves() {
 
         await base44.entities.Grave.bulkCreate(gravesData);
         queryClient.invalidateQueries(['admin-graves']);
-        toast.success(`${gravesData.length} kubur berjaya diimport`);
+        showSuccess(`${gravesData.length} kubur berjaya diimport`, 'Import Berjaya');
         setImportDialogOpen(false);
         setCsvFile(null);
       } else {
-        toast.error(result.details || 'Gagal memproses fail CSV');
+        showError(result.details || 'Gagal memproses fail CSV');
       }
     } catch (error) {
-      toast.error('Ralat semasa mengimport CSV: ' + error.message);
+      showApiError(error);
     } finally {
       setUploading(false);
     }
@@ -674,7 +700,7 @@ export default function ManageGraves() {
               variant="outline"
               onClick={() => {
                 if (navigator.geolocation) {
-                  toast.info('Mendapatkan lokasi...');
+                  showInfo('Mendapatkan lokasi...');
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
                       setFormData({
@@ -682,15 +708,15 @@ export default function ManageGraves() {
                         gps_lat: position.coords.latitude.toFixed(8),
                         gps_lng: position.coords.longitude.toFixed(8)
                       });
-                      toast.success('Lokasi berjaya diperolehi');
+                      showSuccess('Lokasi berjaya diperolehi');
                     },
                     (error) => {
-                      toast.error('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
+                      showError('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
                     },
                     { enableHighAccuracy: true }
                   );
                 } else {
-                  toast.error('GPS tidak disokong oleh pelayar ini');
+                  showError('GPS tidak disokong oleh pelayar ini');
                 }
               }}
               className="w-full"
@@ -808,8 +834,9 @@ export default function ManageGraves() {
                     const file = e.dataTransfer.files?.[0];
                     if (file && file.type === 'text/csv') {
                       setCsvFile(file);
+                      showInfo('Fail CSV dipilih: ' + file.name);
                     } else {
-                      toast.error('Sila pilih fail CSV yang sah');
+                      showError('Sila pilih fail CSV yang sah');
                     }
                   }}
                 >
