@@ -330,6 +330,20 @@ export default function SuperadminDashboard() {
                 </CardContent>
               </Card>
             </Link>
+            <Link to={createPageUrl('ManageOrganisationTypes')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <List className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Icon Library</h3>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
             <Link to={createPageUrl('ManageOrganisations')}>
               <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-4">
@@ -349,7 +363,7 @@ export default function SuperadminDashboard() {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <Terminal className="w-5 h-5 text-blue-600" />
+                      <Terminal className="w-5 h-5 text-teal-600" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Log Aktiviti</h3>
