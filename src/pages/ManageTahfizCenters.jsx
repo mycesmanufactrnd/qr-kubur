@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Plus, Edit, Trash2, Search, Save, Filter } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Search, Save, Filter, MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -527,6 +527,32 @@ export default function ManageTahfizCenters() {
                 />
               </div>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (navigator.geolocation) {
+                  toast.info('Mendapatkan lokasi...');
+                  navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                      setValue('gps_lat', position.coords.latitude.toFixed(8));
+                      setValue('gps_lng', position.coords.longitude.toFixed(8));
+                      toast.success('Lokasi berjaya diperolehi');
+                    },
+                    (error) => {
+                      toast.error('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                  );
+                } else {
+                  toast.error('GPS tidak disokong oleh pelayar ini');
+                }
+              }}
+              className="w-full"
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Dapatkan Lokasi Semasa
+            </Button>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Batal
