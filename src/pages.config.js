@@ -30,6 +30,7 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
+import ManageOrganisationTypes from './pages/ManageOrganisationTypes';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
+    "ManageOrganisationTypes": ManageOrganisationTypes,
 }
 
 export const pagesConfig = {

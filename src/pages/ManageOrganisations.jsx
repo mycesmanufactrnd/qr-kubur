@@ -26,7 +26,7 @@ const STATES = [
 
 const emptyOrg = {
   name: '',
-  type: 'majlis_agama',
+  organisation_type_id: '',
   state: '',
   address: '',
   phone: '',
@@ -79,6 +79,11 @@ export default function ManageOrganisations() {
     queryKey: ['admin-organisations'],
     queryFn: () => base44.entities.Organisation.list('-created_date'),
     enabled: hasViewPermission
+  });
+
+  const { data: organisationTypes = [] } = useQuery({
+    queryKey: ['organisation-types'],
+    queryFn: () => base44.entities.OrganisationType.filter({ status: 'active' })
   });
 
   const createMutation = useMutation({
@@ -194,7 +199,7 @@ export default function ManageOrganisations() {
     setEditingOrg(org);
     reset({
       name: org.name || '',
-      type: org.type || 'majlis_agama',
+      organisation_type_id: org.organisation_type_id || '',
       state: Array.isArray(org.state) ? org.state[0] : org.state || '',
       address: org.address || '',
       phone: org.phone || '',
@@ -209,6 +214,10 @@ export default function ManageOrganisations() {
       toast.error('Sila masukkan nama organisasi');
       return;
     }
+    if (!data.organisation_type_id) {
+      toast.error('Sila pilih jenis organisasi');
+      return;
+    }
     if (!data.state) {
       toast.error('Sila pilih negeri');
       return;
@@ -216,7 +225,7 @@ export default function ManageOrganisations() {
     
     const submitData = {
       name: data.name,
-      type: data.type || 'majlis_agama',
+      organisation_type_id: data.organisation_type_id,
       state: Array.isArray(data.state) ? data.state : [data.state],
       address: data.address || '',
       phone: data.phone || '',
@@ -247,10 +256,9 @@ export default function ManageOrganisations() {
     setOrgToDelete(null);
   };
 
-  const typeLabels = {
-    majlis_agama: 'Majlis Agama',
-    majlis_daerah: 'Majlis Daerah',
-    other: 'Lain-lain'
+  const getTypeName = (typeId) => {
+    const type = organisationTypes.find(t => t.id === typeId);
+    return type?.name || '-';
   };
 
   return (
@@ -331,7 +339,7 @@ export default function ManageOrganisations() {
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{typeLabels[org.type] || org.type}</Badge>
+                      <Badge variant="secondary">{getTypeName(org.organisation_type_id)}</Badge>
                     </TableCell>
                     <TableCell>{Array.isArray(org.state) ? org.state.join(', ') : org.state}</TableCell>
                     <TableCell className="text-right">
@@ -394,17 +402,18 @@ export default function ManageOrganisations() {
             <div>
               <Label>Jenis <span className="text-red-500">*</span></Label>
               <Controller
-                name="type"
+                name="organisation_type_id"
                 control={control}
+                rules={{ required: 'Jenis organisasi diperlukan' }}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Pilih jenis organisasi" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="majlis_agama">Majlis Agama</SelectItem>
-                      <SelectItem value="majlis_daerah">Majlis Daerah</SelectItem>
-                      <SelectItem value="other">Lain-lain</SelectItem>
+                      {organisationTypes.map(type => (
+                        <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}

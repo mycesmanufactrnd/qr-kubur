@@ -349,6 +349,12 @@ export default function Layout({ children, currentPageName }) {
                             Log Aktiviti
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('ManageOrganisationTypes')} className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Jenis Organisasi
+                          </Link>
+                        </DropdownMenuItem>
                         </>
                         )}
 
