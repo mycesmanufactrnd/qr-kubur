@@ -195,9 +195,10 @@ export default function ManageGraves() {
     setGraveToDelete(null);
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     try {
-      const headers = 'cemetery_name,state,block,lot,gps_lat,gps_lng,organisation_id,qr_code,status,total_graves';
+      const schema = await base44.entities.Grave.schema();
+      const headers = Object.keys(schema.properties).join(',');
       const exampleRow = '\nMasjid Al-Falah,Selangor,A,101,3.1390,101.6869,,QRK-001,active,100';
       const csvContent = headers + exampleRow;
       
