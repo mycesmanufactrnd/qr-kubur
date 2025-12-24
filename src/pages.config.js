@@ -1,6 +1,7 @@
 import AboutSystem from './pages/AboutSystem';
 import AdminDashboard from './pages/AdminDashboard';
 import AppUserLogin from './pages/AppUserLogin';
+import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import DeadPersonDetails from './pages/DeadPersonDetails';
 import Documentation from './pages/Documentation';
 import DonationPage from './pages/DonationPage';
@@ -29,7 +30,6 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
-import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import __Layout from './Layout.jsx';
 
 
@@ -37,6 +37,7 @@ export const PAGES = {
     "AboutSystem": AboutSystem,
     "AdminDashboard": AdminDashboard,
     "AppUserLogin": AppUserLogin,
+    "CheckTahlilStatus": CheckTahlilStatus,
     "DeadPersonDetails": DeadPersonDetails,
     "Documentation": Documentation,
     "DonationPage": DonationPage,
@@ -65,7 +66,6 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
-    "CheckTahlilStatus": CheckTahlilStatus,
 }
 
 export const pagesConfig = {
