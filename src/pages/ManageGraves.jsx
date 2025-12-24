@@ -210,10 +210,15 @@ export default function ManageGraves() {
     setGraveToDelete(null);
   };
 
-  const downloadTemplate = async () => {
+  const downloadTemplate = () => {
     try {
-      const schema = await base44.entities.Grave.schema();
-      const headers = Object.keys(schema.properties).join(',');
+      // Get fields from the first grave as reference, or use default fields
+      const sampleGrave = graves[0];
+      const fields = sampleGrave 
+        ? Object.keys(sampleGrave).filter(key => !['id', 'created_date', 'updated_date', 'created_by'].includes(key))
+        : ['cemetery_name', 'state', 'block', 'lot', 'gps_lat', 'gps_lng', 'organisation_id', 'qr_code', 'status', 'total_graves'];
+      
+      const headers = fields.join(',');
       const exampleRow = '\nMasjid Al-Falah,Selangor,A,101,3.1390,101.6869,,QRK-001,active,100';
       const csvContent = headers + exampleRow;
       
