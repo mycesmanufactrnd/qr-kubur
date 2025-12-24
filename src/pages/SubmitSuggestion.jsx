@@ -121,14 +121,14 @@ export default function SubmitSuggestion() {
       return;
     }
 
+    let visitorIp = 'unknown';
     try {
-      // Get visitor IP
       const { ip } = await base44.functions.invoke('getClientIp');
-      
-      // Check rate limiting: 3 suggestions per hour per IP
+      visitorIp = ip;
+
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const recentSuggestions = await base44.entities.Suggestion.filter({
-        visitor_ip: ip,
+        visitor_ip: visitorIp,
         created_date: { $gte: oneHourAgo }
       });
 
@@ -137,7 +137,7 @@ export default function SubmitSuggestion() {
         return;
       }
     } catch (error) {
-      console.error('Error checking rate limit:', error);
+      console.error('Error getting IP or checking rate limit:', error);
     }
 
     const suggestionData = {
@@ -145,10 +145,10 @@ export default function SubmitSuggestion() {
       entity_id: entityId,
       suggested_changes: suggestedChanges,
       reason: reason,
-      status: 'pending'
+      status: 'pending',
+      visitor_ip: visitorIp
     };
 
-    // Add specific IDs and state based on entity type
     if (entityType === 'person') {
       suggestionData.grave_id = selectedGrave;
       suggestionData.dead_person_id = entityId;
@@ -175,20 +175,7 @@ export default function SubmitSuggestion() {
   const handleCaptchaVerified = async () => {
     if (!pendingSubmission) return;
 
-    try {
-      // Get visitor IP and add to submission data
-      const { ip } = await base44.functions.invoke('getClientIp');
-      const dataWithIp = {
-        ...pendingSubmission,
-        visitor_ip: ip
-      };
-
-      createSuggestion.mutate(dataWithIp);
-    } catch (error) {
-      console.error('Error getting IP:', error);
-      // Continue with submission even if IP fetch fails
-      createSuggestion.mutate(pendingSubmission);
-    }
+    createSuggestion.mutate(pendingSubmission);
 
     // Create notification for admin
     try {
