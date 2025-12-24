@@ -33,45 +33,57 @@ export default function ScanQR() {
 
       const qrCode = data.text || data;
       
-      // Check graves first
-      const graves = await base44.entities.Grave.filter({ qr_code: qrCode });
-      
-      if (graves.length > 0) {
-        await base44.entities.VisitLog.create({
-          grave_id: graves[0].id,
-          visit_type: 'qr_scan'
-        });
-        setResult({ type: 'grave', data: graves[0] });
-      } else {
-        const gravesById = await base44.entities.Grave.filter({ id: qrCode });
-        if (gravesById.length > 0) {
+      try {
+        // Get visitor IP
+        const { ip } = await base44.functions.invoke('getClientIp');
+        
+        // Check graves first
+        const graves = await base44.entities.Grave.filter({ qr_code: qrCode });
+        
+        if (graves.length > 0) {
           await base44.entities.VisitLog.create({
-            grave_id: gravesById[0].id,
+            grave_id: graves[0].id,
+            visitor_ip: ip,
             visit_type: 'qr_scan'
           });
-          setResult({ type: 'grave', data: gravesById[0] });
+          setResult({ type: 'grave', data: graves[0] });
         } else {
-          // Check dead persons
-          const persons = await base44.entities.DeadPerson.filter({ qr_code: qrCode });
-          if (persons.length > 0) {
+          const gravesById = await base44.entities.Grave.filter({ id: qrCode });
+          if (gravesById.length > 0) {
             await base44.entities.VisitLog.create({
-              dead_person_id: persons[0].id,
+              grave_id: gravesById[0].id,
+              visitor_ip: ip,
               visit_type: 'qr_scan'
             });
-            setResult({ type: 'person', data: persons[0] });
+            setResult({ type: 'grave', data: gravesById[0] });
           } else {
-            const personsById = await base44.entities.DeadPerson.filter({ id: qrCode });
-            if (personsById.length > 0) {
+            // Check dead persons
+            const persons = await base44.entities.DeadPerson.filter({ qr_code: qrCode });
+            if (persons.length > 0) {
               await base44.entities.VisitLog.create({
-                dead_person_id: personsById[0].id,
+                dead_person_id: persons[0].id,
+                visitor_ip: ip,
                 visit_type: 'qr_scan'
               });
-              setResult({ type: 'person', data: personsById[0] });
+              setResult({ type: 'person', data: persons[0] });
             } else {
-              setError('Kod QR tidak dijumpai dalam sistem.');
+              const personsById = await base44.entities.DeadPerson.filter({ id: qrCode });
+              if (personsById.length > 0) {
+                await base44.entities.VisitLog.create({
+                  dead_person_id: personsById[0].id,
+                  visitor_ip: ip,
+                  visit_type: 'qr_scan'
+                });
+                setResult({ type: 'person', data: personsById[0] });
+              } else {
+                setError('Kod QR tidak dijumpai dalam sistem.');
+              }
             }
           }
         }
+      } catch (error) {
+        console.error('Error logging visit:', error);
+        setError('Kod QR tidak dijumpai dalam sistem.');
       }
       
       setLoading(false);
@@ -91,44 +103,56 @@ export default function ScanQR() {
     setError(null);
     setResult(null);
 
-    const graves = await base44.entities.Grave.filter({ qr_code: manualCode.trim() });
-    
-    if (graves.length > 0) {
-      await base44.entities.VisitLog.create({
-        grave_id: graves[0].id,
-        visit_type: 'qr_scan'
-      });
-      setResult({ type: 'grave', data: graves[0] });
-    } else {
-      const gravesById = await base44.entities.Grave.filter({ id: manualCode.trim() });
-      if (gravesById.length > 0) {
+    try {
+      // Get visitor IP
+      const { ip } = await base44.functions.invoke('getClientIp');
+      
+      const graves = await base44.entities.Grave.filter({ qr_code: manualCode.trim() });
+      
+      if (graves.length > 0) {
         await base44.entities.VisitLog.create({
-          grave_id: gravesById[0].id,
+          grave_id: graves[0].id,
+          visitor_ip: ip,
           visit_type: 'qr_scan'
         });
-        setResult({ type: 'grave', data: gravesById[0] });
+        setResult({ type: 'grave', data: graves[0] });
       } else {
-        // Check dead persons
-        const persons = await base44.entities.DeadPerson.filter({ qr_code: manualCode.trim() });
-        if (persons.length > 0) {
+        const gravesById = await base44.entities.Grave.filter({ id: manualCode.trim() });
+        if (gravesById.length > 0) {
           await base44.entities.VisitLog.create({
-            dead_person_id: persons[0].id,
+            grave_id: gravesById[0].id,
+            visitor_ip: ip,
             visit_type: 'qr_scan'
           });
-          setResult({ type: 'person', data: persons[0] });
+          setResult({ type: 'grave', data: gravesById[0] });
         } else {
-          const personsById = await base44.entities.DeadPerson.filter({ id: manualCode.trim() });
-          if (personsById.length > 0) {
+          // Check dead persons
+          const persons = await base44.entities.DeadPerson.filter({ qr_code: manualCode.trim() });
+          if (persons.length > 0) {
             await base44.entities.VisitLog.create({
-              dead_person_id: personsById[0].id,
+              dead_person_id: persons[0].id,
+              visitor_ip: ip,
               visit_type: 'qr_scan'
             });
-            setResult({ type: 'person', data: personsById[0] });
+            setResult({ type: 'person', data: persons[0] });
           } else {
-            setError(t('codeNotFound'));
+            const personsById = await base44.entities.DeadPerson.filter({ id: manualCode.trim() });
+            if (personsById.length > 0) {
+              await base44.entities.VisitLog.create({
+                dead_person_id: personsById[0].id,
+                visitor_ip: ip,
+                visit_type: 'qr_scan'
+              });
+              setResult({ type: 'person', data: personsById[0] });
+            } else {
+              setError(t('codeNotFound'));
+            }
           }
         }
       }
+    } catch (error) {
+      console.error('Error:', error);
+      setError(t('codeNotFound'));
     }
     
     setLoading(false);
