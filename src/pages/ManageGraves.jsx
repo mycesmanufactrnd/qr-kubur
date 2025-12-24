@@ -265,29 +265,33 @@ export default function ManageGraves() {
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url,
         json_schema: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              cemetery_name: { type: 'string' },
-              state: { type: 'string' },
-              block: { type: 'string' },
-              lot: { type: 'string' },
-              gps_lat: { type: 'number' },
-              gps_lng: { type: 'number' },
-              organisation_id: { type: 'string' },
-              qr_code: { type: 'string' },
-              status: { type: 'string' },
-              total_graves: { type: 'number' }
-            },
-            required: ['cemetery_name', 'state']
+          type: 'object',
+          properties: {
+            graves: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  cemetery_name: { type: 'string' },
+                  state: { type: 'string' },
+                  block: { type: 'string' },
+                  lot: { type: 'string' },
+                  gps_lat: { type: 'number' },
+                  gps_lng: { type: 'number' },
+                  organisation_id: { type: 'string' },
+                  qr_code: { type: 'string' },
+                  status: { type: 'string' },
+                  total_graves: { type: 'number' }
+                },
+                required: ['cemetery_name', 'state']
+              }
+            }
           }
         }
       });
 
-      if (result.status === 'success' && result.output) {
-        const csvData = Array.isArray(result.output) ? result.output : [result.output];
-        const gravesData = csvData.map(item => ({
+      if (result.status === 'success' && result.output?.graves) {
+        const gravesData = result.output.graves.map(item => ({
           cemetery_name: item.cemetery_name,
           state: item.state,
           block: item.block || '',
