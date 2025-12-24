@@ -26,16 +26,12 @@ const STATES = [
 
 const emptyOrg = {
   name: '',
-  description: '',
-  type: 'government',
+  type: 'majlis_agama',
   state: '',
   address: '',
   phone: '',
   email: '',
-  bank_name: '',
-  bank_account: '',
-  gps_lat: '',
-  gps_lng: ''
+  status: 'active'
 };
 
 export default function ManageOrganisations() {
@@ -198,16 +194,12 @@ export default function ManageOrganisations() {
     setEditingOrg(org);
     reset({
       name: org.name || '',
-      description: org.description || '',
-      type: org.type || 'government',
-      state: org.state || '',
+      type: org.type || 'majlis_agama',
+      state: Array.isArray(org.state) ? org.state[0] : org.state || '',
       address: org.address || '',
       phone: org.phone || '',
       email: org.email || '',
-      bank_name: org.bank_name || '',
-      bank_account: org.bank_account || '',
-      gps_lat: org.gps_lat || '',
-      gps_lng: org.gps_lng || ''
+      status: org.status || 'active'
     });
     setIsDialogOpen(true);
   };
@@ -223,9 +215,13 @@ export default function ManageOrganisations() {
     }
     
     const submitData = {
-      ...data,
-      gps_lat: data.gps_lat ? parseFloat(data.gps_lat) : null,
-      gps_lng: data.gps_lng ? parseFloat(data.gps_lng) : null
+      name: data.name,
+      type: data.type || 'majlis_agama',
+      state: Array.isArray(data.state) ? data.state : [data.state],
+      address: data.address || '',
+      phone: data.phone || '',
+      email: data.email || '',
+      status: data.status || 'active'
     };
 
     if (editingOrg) {
@@ -252,10 +248,9 @@ export default function ManageOrganisations() {
   };
 
   const typeLabels = {
-    government: 'Kerajaan',
-    grave_manager: 'Pengurus Kubur',
-    tahfiz: 'Tahfiz',
-    NGO: 'NGO'
+    majlis_agama: 'Majlis Agama',
+    majlis_daerah: 'Majlis Daerah',
+    other: 'Lain-lain'
   };
 
   return (
@@ -338,7 +333,7 @@ export default function ManageOrganisations() {
                     <TableCell>
                       <Badge variant="secondary">{typeLabels[org.type] || org.type}</Badge>
                     </TableCell>
-                    <TableCell>{org.state}</TableCell>
+                    <TableCell>{Array.isArray(org.state) ? org.state.join(', ') : org.state}</TableCell>
                     <TableCell className="text-right">
                       <Button 
                         variant="ghost" 
@@ -397,7 +392,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>Jenis</Label>
+              <Label>Jenis <span className="text-red-500">*</span></Label>
               <Controller
                 name="type"
                 control={control}
@@ -407,10 +402,9 @@ export default function ManageOrganisations() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="government">Kerajaan</SelectItem>
-                      <SelectItem value="grave_manager">Pengurus Kubur</SelectItem>
-                      <SelectItem value="tahfiz">Tahfiz</SelectItem>
-                      <SelectItem value="NGO">NGO</SelectItem>
+                      <SelectItem value="majlis_agama">Majlis Agama</SelectItem>
+                      <SelectItem value="majlis_daerah">Majlis Daerah</SelectItem>
+                      <SelectItem value="other">Lain-lain</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -466,41 +460,23 @@ export default function ManageOrganisations() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Nama Bank</Label>
-                <Controller
-                  name="bank_name"
-                  control={control}
-                  render={({ field }) => <Input {...field} />}
-                />
-              </div>
-              <div>
-                <Label>No. Akaun</Label>
-                <Controller
-                  name="bank_account"
-                  control={control}
-                  render={({ field }) => <Input {...field} />}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>GPS Latitude</Label>
-                <Controller
-                  name="gps_lat"
-                  control={control}
-                  render={({ field }) => <Input type="number" step="any" {...field} />}
-                />
-              </div>
-              <div>
-                <Label>GPS Longitude</Label>
-                <Controller
-                  name="gps_lng"
-                  control={control}
-                  render={({ field }) => <Input type="number" step="any" {...field} />}
-                />
-              </div>
+            <div>
+              <Label>Status</Label>
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Aktif</SelectItem>
+                      <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
