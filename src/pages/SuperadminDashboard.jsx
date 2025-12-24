@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Shield, Users, Database, CheckCircle, XCircle, Clock, 
-  Eye, Terminal, Copy, AlertCircle, Book, Sparkles
+  Eye, Terminal, Copy, AlertCircle, Book, Sparkles, List
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -335,10 +335,10 @@ export default function SuperadminDashboard() {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                      <List className="w-5 h-5 text-red-600" />
+                      <List className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">Icon Library</h3>
+                      <h3 className="font-semibold text-sm">Jenis Organisasi</h3>
                     </div>
                   </div>
                 </CardContent>
