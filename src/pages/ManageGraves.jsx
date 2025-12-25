@@ -365,7 +365,7 @@ export default function ManageGraves() {
     <div className="space-y-6">
       <Breadcrumb items={[
         { label: t('adminDashboard'), page: 'AdminDashboard' },
-        { label: t('manageGraves'), page: 'ManageGraves' }
+        { label: t('manageGravesTitle'), page: 'ManageGraves' }
       ]} />
       
       {/* Header */}
@@ -373,7 +373,7 @@ export default function ManageGraves() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <MapPin className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            {t('manageGraves')}
+            {t('manageGravesTitle')}
           </h1>
         </div>
         <div className="flex gap-2">
@@ -387,7 +387,7 @@ export default function ManageGraves() {
           </Button>
           <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
             <Plus className="w-4 h-4 mr-2" />
-            {t('addNew')}
+            {t('addGrave')}
           </Button>
         </div>
       </div>
@@ -399,7 +399,7 @@ export default function ManageGraves() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder={t('searchPlaceholder')}
+              placeholder={t('searchGravesPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -411,7 +411,7 @@ export default function ManageGraves() {
             {isSuperAdmin && (
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('state')} />
+                  <SelectValue placeholder="Negeri" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('allStates')}</SelectItem>
@@ -424,7 +424,7 @@ export default function ManageGraves() {
             
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger>
-                <SelectValue placeholder={t('status')} />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('allStatus')}</SelectItem>
@@ -435,13 +435,13 @@ export default function ManageGraves() {
             </Select>
             
             <Input
-              placeholder="Blok..."
+              placeholder={t('block') + '...'}
               value={filterBlock}
               onChange={(e) => setFilterBlock(e.target.value)}
             />
             
             <Input
-              placeholder="Lot..."
+              placeholder={t('lot') + '...'}
               value={filterLot}
               onChange={(e) => setFilterLot(e.target.value)}
             />
@@ -465,34 +465,34 @@ export default function ManageGraves() {
           {/* Active Filters Display */}
           {(searchQuery || (isSuperAdmin && filterState !== 'all') || filterStatus !== 'all' || filterBlock || filterLot) && (
             <div className="flex flex-wrap gap-2 pt-2 border-t">
-              <span className="text-sm text-gray-500">Aktif:</span>
+              <span className="text-sm text-gray-500">{t('activeFilters')}:</span>
               {searchQuery && (
                 <Badge variant="secondary" className="gap-1">
-                  Carian: {searchQuery}
+                  {t('search')}: {searchQuery}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchQuery('')} />
                 </Badge>
               )}
               {isSuperAdmin && filterState !== 'all' && (
                 <Badge variant="secondary" className="gap-1">
-                  Negeri: {filterState}
+                  {t('state')}: {filterState}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterState('all')} />
                 </Badge>
               )}
               {filterStatus !== 'all' && (
                 <Badge variant="secondary" className="gap-1">
-                  Status: {filterStatus === 'active' ? 'Aktif' : filterStatus === 'full' ? 'Penuh' : 'Penyelenggaraan'}
+                  {t('status')}: {filterStatus === 'active' ? t('active') : filterStatus === 'full' ? t('full') : t('maintenance')}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterStatus('all')} />
                 </Badge>
               )}
               {filterBlock && (
                 <Badge variant="secondary" className="gap-1">
-                  Blok: {filterBlock}
+                  {t('block')}: {filterBlock}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterBlock('')} />
                 </Badge>
               )}
               {filterLot && (
                 <Badge variant="secondary" className="gap-1">
-                  Lot: {filterLot}
+                  {t('lot')}: {filterLot}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => setFilterLot('')} />
                 </Badge>
               )}
@@ -529,9 +529,9 @@ export default function ManageGraves() {
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{grave.cemetery_name}</h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {grave.block && `Blok ${grave.block}`}
+                      {grave.block && `${t('block')} ${grave.block}`}
                       {grave.block && grave.lot && ', '}
-                      {grave.lot && `Lot ${grave.lot}`}
+                      {grave.lot && `${t('lot')} ${grave.lot}`}
                     </p>
                   </div>
                   <div className="flex gap-1">
@@ -570,7 +570,7 @@ export default function ManageGraves() {
               <TableRow>
                 <TableHead>{t('cemeteryName')}</TableHead>
                 <TableHead>{t('state')}</TableHead>
-                <TableHead>{t('blockLot')}</TableHead>
+                <TableHead>{t('block')}/{t('lot')}</TableHead>
                 <TableHead>{t('status')}</TableHead>
                 <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
@@ -590,9 +590,9 @@ export default function ManageGraves() {
                     <TableCell className="font-medium">{grave.cemetery_name}</TableCell>
                     <TableCell>{grave.state}</TableCell>
                     <TableCell>
-                      {grave.block && `Blok ${grave.block}`}
+                      {grave.block && `${t('block')} ${grave.block}`}
                       {grave.block && grave.lot && ', '}
-                      {grave.lot && `Lot ${grave.lot}`}
+                      {grave.lot && `${t('lot')} ${grave.lot}`}
                     </TableCell>
                     <TableCell>
                       <Badge variant={
@@ -637,7 +637,7 @@ export default function ManageGraves() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingGrave ? t('edit') : t('addNew')}
+              {editingGrave ? t('editGrave') : t('addGrave')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -652,7 +652,7 @@ export default function ManageGraves() {
               <Label>{t('state')} <span className="text-red-500">*</span></Label>
               <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('selectState')} />
+                  <SelectValue placeholder={t('state')} />
                 </SelectTrigger>
                 <SelectContent>
                   {STATES.map(state => (
@@ -663,14 +663,14 @@ export default function ManageGraves() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Blok</Label>
+                <Label>{t('block')}</Label>
                 <Input
                   value={formData.block}
                   onChange={(e) => setFormData({...formData, block: e.target.value})}
                 />
               </div>
               <div>
-                <Label>Lot</Label>
+                <Label>{t('lot')}</Label>
                 <Input
                   value={formData.lot}
                   onChange={(e) => setFormData({...formData, lot: e.target.value})}
@@ -679,7 +679,7 @@ export default function ManageGraves() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>GPS Latitude</Label>
+                <Label>{t('gpsLat')}</Label>
                 <Input
                   type="number"
                   step="any"
@@ -689,7 +689,7 @@ export default function ManageGraves() {
                 />
               </div>
               <div>
-                <Label>GPS Longitude</Label>
+                <Label>{t('gpsLng')}</Label>
                 <Input
                   type="number"
                   step="any"
@@ -702,37 +702,17 @@ export default function ManageGraves() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                if (navigator.geolocation) {
-                  showInfo('Mendapatkan lokasi...');
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      setFormData({
-                        ...formData,
-                        gps_lat: position.coords.latitude.toFixed(8),
-                        gps_lng: position.coords.longitude.toFixed(8)
-                      });
-                      showSuccess('Lokasi berjaya diperolehi');
-                    },
-                    (error) => {
-                      showError('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
-                    },
-                    { enableHighAccuracy: true }
-                  );
-                } else {
-                  showError('GPS tidak disokong oleh pelayar ini');
-                }
-              }}
+...
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Dapatkan Lokasi Semasa
+              {t('getCurrentLocation')}
             </Button>
             <div>
-              <Label>Organisasi Pengurusan</Label>
+              <Label>{t('managingOrg')}</Label>
               <Select value={formData.organisation_id} onValueChange={(v) => setFormData({...formData, organisation_id: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih organisasi" />
+                  <SelectValue placeholder={t('managingOrg')} />
                 </SelectTrigger>
                 <SelectContent>
                   {organisations.map(org => (
@@ -743,7 +723,7 @@ export default function ManageGraves() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Kod QR</Label>
+                <Label>{t('qrCode')}</Label>
                 <Input
                   value={formData.qr_code}
                   onChange={(e) => setFormData({...formData, qr_code: e.target.value})}
@@ -751,7 +731,7 @@ export default function ManageGraves() {
                 />
               </div>
               <div>
-                <Label>Jumlah Kubur</Label>
+                <Label>{t('totalGravesCount')}</Label>
                 <Input
                   type="number"
                   value={formData.total_graves}
@@ -788,8 +768,8 @@ export default function ManageGraves() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={t('delete')}
-        description={`${t('confirmDelete')} "${graveToDelete?.cemetery_name}"?`}
+        title={t('delete') + ' ' + t('manageGravesTitle')}
+        description={`${t('delete')} "${graveToDelete?.cemetery_name}"?`}
         onConfirm={confirmDelete}
         confirmText={t('delete')}
         variant="destructive"
@@ -806,7 +786,7 @@ export default function ManageGraves() {
             {/* Download Template Button */}
             <div className="p-4 bg-emerald-50 dark:bg-emerald-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
               <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                Muat turun template CSV untuk format yang betul
+                {t('downloadTemplate')}
               </p>
               <Button 
                 onClick={downloadTemplate} 
@@ -814,13 +794,13 @@ export default function ManageGraves() {
                 className="w-full"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Muat Turun Template CSV
+                {t('downloadTemplate')}
               </Button>
             </div>
 
             {/* File Upload */}
             <div>
-              <Label className="dark:text-gray-200">Pilih Fail CSV</Label>
+              <Label className="dark:text-gray-200">{t('importCSV')}</Label>
               <div className="mt-2">
                 <div 
                   className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors cursor-pointer"
@@ -872,14 +852,14 @@ export default function ManageGraves() {
                 setCsvFile(null);
               }}
             >
-              Batal
+              {t('cancel')}
             </Button>
             <Button 
               onClick={handleCSVUpload}
               disabled={!csvFile || uploading}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
-              {uploading ? 'Mengimport...' : 'Import'}
+              {uploading ? t('loading') : t('importCSV')}
             </Button>
           </DialogFooter>
         </DialogContent>
