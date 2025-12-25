@@ -702,7 +702,27 @@ export default function ManageGraves() {
             <Button
               type="button"
               variant="outline"
-...
+              onClick={() => {
+                if (navigator.geolocation) {
+                  showInfo('Mendapatkan lokasi...');
+                  navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                      setFormData({
+                        ...formData,
+                        gps_lat: position.coords.latitude.toFixed(8),
+                        gps_lng: position.coords.longitude.toFixed(8)
+                      });
+                      showSuccess('Lokasi berjaya diperolehi');
+                    },
+                    (error) => {
+                      showError('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
+                    },
+                    { enableHighAccuracy: true }
+                  );
+                } else {
+                  showError('GPS tidak disokong oleh pelayar ini');
+                }
+              }}
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
