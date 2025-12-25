@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -338,17 +339,107 @@ export default function ManageTahlilRequests() {
       </Card>
 
       {/* Detail Dialog */}
-export default function ManageTahlilRequests() {
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [lang, setLang] = useState('ms');
-
-  const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="dark:text-white">{t('details')}</DialogTitle>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">{t('requesterName')}</p>
+                  <p className="font-semibold">{selectedRequest.requester_name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{t('phoneNumber')}</p>
+                  <p className="font-semibold">{selectedRequest.requester_phone}</p>
+                </div>
+              </div>
+              {selectedRequest.requester_email && (
+                <div>
+                  <p className="text-sm text-gray-500">{t('email')}</p>
+                  <p>{selectedRequest.requester_email}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-gray-500">{t('deceasedName')}</p>
+                <p className="font-semibold">{selectedRequest.deceased_name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{t('serviceType')}</p>
+                <Badge>
+                {(selectedRequest.service_type || '')
+                    .split(',')
+                    .filter(Boolean)
+                    .map(type => SERVICE_LABELS[type] || type)
+                    .join(', ')
+                }
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{t('tahfizCenter')}</p>
+                <p>{getCenterName(selectedRequest.tahfiz_center_id)}</p>
+              </div>
+              {selectedRequest.reference_id && (
+                <div>
+                  <p className="text-sm text-gray-500">{t('referenceId')}</p>
+                  <p className="font-mono font-semibold">{selectedRequest.reference_id}</p>
+                </div>
+              )}
+              {selectedRequest.preferred_date && (
+                <div>
+                  <p className="text-sm text-gray-500">{t('preferredDate')}</p>
+                  <p>{new Date(selectedRequest.preferred_date).toLocaleDateString('ms-MY')}</p>
+                </div>
+              )}
+              {selectedRequest.notes && (
+                <div>
+                  <p className="text-sm text-gray-500">{t('notes')}</p>
+                  <p>{selectedRequest.notes}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-gray-500">{t('status')}</p>
+                {getStatusBadge(selectedRequest.status)}
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              {t('close')}
+            </Button>
+            {selectedRequest?.status === 'pending' && (
+              <>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleStatusChange('rejected')}
+                  disabled={updateMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {t('reject')}
+                </Button>
+                <Button 
+                  onClick={() => handleStatusChange('accepted')}
+                  disabled={updateMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {t('approve')}
+                </Button>
+              </>
+            )}
+            {selectedRequest?.status === 'accepted' && (
+              <Button 
+                onClick={() => handleStatusChange('completed')}
+                disabled={updateMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {t('markCompleted')}
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
