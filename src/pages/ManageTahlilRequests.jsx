@@ -29,8 +29,10 @@ export default function ManageTahlilRequests() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
@@ -163,8 +165,8 @@ export default function ManageTahlilRequests() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
-        { label: 'Urus Permohonan Tahlil', page: 'ManageTahlilRequests' }
+        { label: t('adminDashboard'), page: 'AdminDashboard' },
+        { label: t('manageTahlilTitle'), page: 'ManageTahlilRequests' }
       ]} />
       
       {/* Header */}
@@ -172,10 +174,10 @@ export default function ManageTahlilRequests() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            Urus Permohonan Tahlil
+            {t('manageTahlilTitle')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            {requests.filter(r => r.status === 'pending').length} menunggu tindakan
+            {requests.filter(r => r.status === 'pending').length} {t('awaitingAction')}
           </p>
         </div>
       </div>
@@ -183,10 +185,10 @@ export default function ManageTahlilRequests() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Menunggu', value: requests.filter(r => r.status === 'pending').length, color: 'yellow' },
-          { label: 'Diterima', value: requests.filter(r => r.status === 'accepted').length, color: 'blue' },
-          { label: 'Selesai', value: requests.filter(r => r.status === 'completed').length, color: 'green' },
-          { label: 'Ditolak', value: requests.filter(r => r.status === 'rejected').length, color: 'red' }
+          { label: t('pending'), value: requests.filter(r => r.status === 'pending').length, color: 'yellow' },
+          { label: t('accepted'), value: requests.filter(r => r.status === 'accepted').length, color: 'blue' },
+          { label: t('completed'), value: requests.filter(r => r.status === 'completed').length, color: 'green' },
+          { label: t('rejected'), value: requests.filter(r => r.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -203,7 +205,7 @@ export default function ManageTahlilRequests() {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <Input
-                placeholder="Cari pemohon, arwah, perkhidmatan, pusat tahfiz, atau ID rujukan..."
+                placeholder={t('searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -212,14 +214,14 @@ export default function ManageTahlilRequests() {
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full sm:w-48">
                 <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder="Semua Status" />
+                <SelectValue placeholder={t('allStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="pending">Menunggu</SelectItem>
-                <SelectItem value="accepted">Diterima</SelectItem>
-                <SelectItem value="completed">Selesai</SelectItem>
-                <SelectItem value="rejected">Ditolak</SelectItem>
+                <SelectItem value="all">{t('allStatus')}</SelectItem>
+                <SelectItem value="pending">{t('pending')}</SelectItem>
+                <SelectItem value="accepted">{t('accepted')}</SelectItem>
+                <SelectItem value="completed">{t('completed')}</SelectItem>
+                <SelectItem value="rejected">{t('rejected')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -282,13 +284,13 @@ export default function ManageTahlilRequests() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Pemohon</TableHead>
-                <TableHead>Arwah</TableHead>
-                <TableHead>Perkhidmatan</TableHead>
-                <TableHead>Pusat Tahfiz</TableHead>
-                <TableHead>ID Rujukan</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{t('requesterName')}</TableHead>
+                <TableHead>{t('deceasedName')}</TableHead>
+                <TableHead>{t('serviceType')}</TableHead>
+                <TableHead>{t('tahfizCenter')}</TableHead>
+                <TableHead>{t('referenceId')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -336,107 +338,17 @@ export default function ManageTahlilRequests() {
       </Card>
 
       {/* Detail Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="dark:text-white">Butiran Permohonan Tahlil</DialogTitle>
-          </DialogHeader>
-          {selectedRequest && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Pemohon</p>
-                  <p className="font-semibold">{selectedRequest.requester_name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">No. Telefon</p>
-                  <p className="font-semibold">{selectedRequest.requester_phone}</p>
-                </div>
-              </div>
-              {selectedRequest.requester_email && (
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p>{selectedRequest.requester_email}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-gray-500">Nama Arwah</p>
-                <p className="font-semibold">{selectedRequest.deceased_name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Jenis Perkhidmatan</p>
-                <Badge>
-                {(selectedRequest.service_type || '')
-                    .split(',')
-                    .filter(Boolean)
-                    .map(type => SERVICE_LABELS[type] || type)
-                    .join(', ')
-                }
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Pusat Tahfiz</p>
-                <p>{getCenterName(selectedRequest.tahfiz_center_id)}</p>
-              </div>
-              {selectedRequest.reference_id && (
-                <div>
-                  <p className="text-sm text-gray-500">ID Rujukan</p>
-                  <p className="font-mono font-semibold">{selectedRequest.reference_id}</p>
-                </div>
-              )}
-              {selectedRequest.preferred_date && (
-                <div>
-                  <p className="text-sm text-gray-500">Tarikh Pilihan</p>
-                  <p>{new Date(selectedRequest.preferred_date).toLocaleDateString('ms-MY')}</p>
-                </div>
-              )}
-              {selectedRequest.notes && (
-                <div>
-                  <p className="text-sm text-gray-500">Catatan</p>
-                  <p>{selectedRequest.notes}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-gray-500">Status Semasa</p>
-                {getStatusBadge(selectedRequest.status)}
-              </div>
-            </div>
-          )}
-          <DialogFooter className="flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Tutup
-            </Button>
-            {selectedRequest?.status === 'pending' && (
-              <>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => handleStatusChange('rejected')}
-                  disabled={updateMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Tolak
-                </Button>
-                <Button 
-                  onClick={() => handleStatusChange('accepted')}
-                  disabled={updateMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Terima
-                </Button>
-              </>
-            )}
-            {selectedRequest?.status === 'accepted' && (
-              <Button 
-                onClick={() => handleStatusChange('completed')}
-                disabled={updateMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Tandakan Selesai
-              </Button>
-            )}
-          </DialogFooter>
+export default function ManageTahlilRequests() {
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [lang, setLang] = useState('ms');
+
+  const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
         </DialogContent>
       </Dialog>
     </div>
