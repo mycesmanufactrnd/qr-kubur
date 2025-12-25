@@ -7,6 +7,7 @@ import {
   Shield, Users, Database, CheckCircle, XCircle, Clock, 
   Eye, Terminal, Copy, AlertCircle, Book, Sparkles, List
 } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +24,14 @@ export default function SuperadminDashboard() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -116,10 +120,10 @@ export default function SuperadminDashboard() {
         <Card className="border-0 shadow-lg">
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600 mb-4">Anda tidak mempunyai akses superadmin.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600 mb-4">{t('noPermission')}</p>
             <Link to={createPageUrl('Dashboard')}>
-              <Button>Kembali ke Utama</Button>
+              <Button>{getAdminTranslation('back', lang)}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -136,23 +140,23 @@ export default function SuperadminDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            Super Admin Dashboard
+            {t('superadminDashboard')}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">Pengurusan sistem penuh</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('systemStats')}</p>
         </div>
         <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
           <Shield className="w-4 h-4 mr-1" />
-          Super Admin
+          {t('superadminDashboard')}
         </Badge>
       </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Pengguna', value: users.length, icon: Users },
-          { label: 'Kubur', value: stats?.graves || 0, icon: Database },
-          { label: 'Rekod Si Mati', value: stats?.persons || 0, icon: Database },
-          { label: 'Derma', value: stats?.donations || 0, icon: Database },
+          { label: t('manageUsers'), value: users.length, icon: Users },
+          { label: t('totalGraves'), value: stats?.graves || 0, icon: Database },
+          { label: t('totalPersons'), value: stats?.persons || 0, icon: Database },
+          { label: t('totalDonations'), value: stats?.donations || 0, icon: Database },
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4">
@@ -174,11 +178,11 @@ export default function SuperadminDashboard() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="users">
             <Users className="w-4 h-4 mr-2" />
-            Pengguna
+            {t('manageUsers')}
           </TabsTrigger>
           <TabsTrigger value="add">
             <Database className="w-4 h-4 mr-2" />
-            Pengurusan Sistem
+            {t('systemStats')}
           </TabsTrigger>
         </TabsList>
 
@@ -190,7 +194,7 @@ export default function SuperadminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                   <Clock className="w-5 h-5" />
-                  Permohonan Admin ({pendingAdmins.length})
+                  {t('pendingAdmins')} ({pendingAdmins.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -200,7 +204,7 @@ export default function SuperadminDashboard() {
                       <div>
                         <p className="font-semibold">{pendingUser.full_name || pendingUser.email}</p>
                         <p className="text-sm text-gray-500">{pendingUser.email}</p>
-                        <p className="text-sm text-gray-500">Negeri: {pendingUser.state || '-'}</p>
+                        <p className="text-sm text-gray-500">{t('state')}: {pendingUser.state || '-'}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button 
@@ -210,7 +214,7 @@ export default function SuperadminDashboard() {
                           disabled={rejectAdminMutation.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
-                          Tolak
+                          {t('reject')}
                         </Button>
                         <Button 
                           size="sm"
@@ -219,7 +223,7 @@ export default function SuperadminDashboard() {
                           disabled={approveAdminMutation.isPending}
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
-                          Luluskan
+                          {t('approve')}
                         </Button>
                       </div>
                     </div>
@@ -232,7 +236,7 @@ export default function SuperadminDashboard() {
           {/* All Users */}
           <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="dark:text-white">Senarai Pengguna</CardTitle>
+              <CardTitle className="dark:text-white">{t('manageUsers')}</CardTitle>
             </CardHeader>
             
             {/* Mobile Cards */}
@@ -242,7 +246,7 @@ export default function SuperadminDashboard() {
                   <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 ))
               ) : users.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Tiada pengguna</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">{t('noRecords')}</p>
               ) : (
                 users.map(u => (
                   <div key={u.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -250,10 +254,10 @@ export default function SuperadminDashboard() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                        {u.role === 'admin' ? 'Admin' : 'Pengguna'}
+                        {u.role === 'admin' ? 'Admin' : t('manageUsers')}
                       </Badge>
                       {u.admin_status === 'pending' && (
-                        <Badge className="bg-yellow-100 text-yellow-700 text-xs">Menunggu</Badge>
+                        <Badge className="bg-yellow-100 text-yellow-700 text-xs">{t('pending')}</Badge>
                       )}
                     </div>
                   </div>
@@ -266,21 +270,21 @@ export default function SuperadminDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Peranan</TableHead>
-                    <TableHead>Negeri</TableHead>
-                    <TableHead>Status Admin</TableHead>
+                    <TableHead>{t('fullName')}</TableHead>
+                    <TableHead>{t('email')}</TableHead>
+                    <TableHead>{t('status')}</TableHead>
+                    <TableHead>{t('state')}</TableHead>
+                    <TableHead>{t('status')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loadingUsers ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">Memuatkan...</TableCell>
+                      <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
                     </TableRow>
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada pengguna</TableCell>
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                     </TableRow>
                   ) : (
                     users.map(u => (
@@ -295,10 +299,10 @@ export default function SuperadminDashboard() {
                         <TableCell>{u.state || '-'}</TableCell>
                         <TableCell>
                           {u.admin_status === 'pending' && (
-                            <Badge className="bg-yellow-100 text-yellow-700">Menunggu</Badge>
+                            <Badge className="bg-yellow-100 text-yellow-700">{t('pending')}</Badge>
                           )}
                           {u.admin_status === 'approved' && (
-                            <Badge className="bg-green-100 text-green-700">Diluluskan</Badge>
+                            <Badge className="bg-green-100 text-green-700">{t('approved')}</Badge>
                           )}
                           {(!u.admin_status || u.admin_status === 'none') && (
                             <span className="text-gray-400">-</span>
@@ -324,7 +328,7 @@ export default function SuperadminDashboard() {
                       <Users className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">Urus Pengguna</h3>
+                      <h3 className="font-semibold text-sm">{t('manageUsers')}</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -338,7 +342,7 @@ export default function SuperadminDashboard() {
                       <List className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">Jenis Organisasi</h3>
+                      <h3 className="font-semibold text-sm">{t('orgType')}</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -352,7 +356,7 @@ export default function SuperadminDashboard() {
                       <Database className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">Urus Organisasi</h3>
+                      <h3 className="font-semibold text-sm">{t('manageOrgs')}</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -366,7 +370,7 @@ export default function SuperadminDashboard() {
                       <Terminal className="w-5 h-5 text-teal-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">Log Aktiviti</h3>
+                      <h3 className="font-semibold text-sm">{t('viewLogs')}</h3>
                     </div>
                   </div>
                 </CardContent>

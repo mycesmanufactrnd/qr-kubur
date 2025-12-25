@@ -7,6 +7,7 @@ import {
   MapPin, Users, Building2, Heart, FileText, TrendingUp, 
   ArrowRight, BookOpen, Clock, CheckCircle, AlertCircle, Book
 } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,13 @@ import Breadcrumb from '../components/Breadcrumb';
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [lang, setLang] = useState('ms');
+
+  const t = (key) => getAdminTranslation(key, lang);
 
   useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -105,16 +110,16 @@ export default function AdminDashboard() {
   });
 
   const quickStats = [
-    { label: 'Tanah Perkuburan', value: stats?.graves || 0, icon: MapPin, color: 'emerald', page: 'ManageGraves' },
-    { label: 'Rekod Si Mati', value: stats?.persons || 0, icon: Users, color: 'blue', page: 'ManageDeadPersons' },
-    { label: 'Organisasi', value: stats?.organisations || 0, icon: Building2, color: 'violet', page: 'ManageOrganisations' },
-    { label: 'Pusat Tahfiz', value: stats?.tahfiz || 0, icon: BookOpen, color: 'amber', page: 'ManageTahfizCenters' },
+    { label: t('totalGraves'), value: stats?.graves || 0, icon: MapPin, color: 'emerald', page: 'ManageGraves' },
+    { label: t('totalPersons'), value: stats?.persons || 0, icon: Users, color: 'blue', page: 'ManageDeadPersons' },
+    { label: t('totalOrgs'), value: stats?.organisations || 0, icon: Building2, color: 'violet', page: 'ManageOrganisations' },
+    { label: t('totalTahfiz'), value: stats?.tahfiz || 0, icon: BookOpen, color: 'amber', page: 'ManageTahfizCenters' },
   ];
 
   const pendingItems = [
-    { label: 'Cadangan Menunggu', value: stats?.pendingSuggestions || 0, page: 'ManageSuggestions', color: 'orange' },
-    { label: 'Derma Menunggu', value: stats?.pendingDonations || 0, page: 'ManageDonations', color: 'pink' },
-    { label: 'Permohonan Tahlil', value: stats?.pendingTahlil || 0, page: 'ManageTahlilRequests', color: 'blue' },
+    { label: t('totalSuggestions'), value: stats?.pendingSuggestions || 0, page: 'ManageSuggestions', color: 'orange' },
+    { label: t('totalDonations'), value: stats?.pendingDonations || 0, page: 'ManageDonations', color: 'pink' },
+    { label: t('totalTahlilRequests'), value: stats?.pendingTahlil || 0, page: 'ManageTahlilRequests', color: 'blue' },
   ];
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
@@ -129,10 +134,10 @@ export default function AdminDashboard() {
         <Card className="border-0 shadow-lg">
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600 mb-4">Anda tidak mempunyai akses kepada halaman ini.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600 mb-4">{t('noPermission')}</p>
             <Link to={createPageUrl('AppUserLogin')}>
-              <Button>Log Masuk</Button>
+              <Button>{t('adminLogin')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -147,7 +152,7 @@ export default function AdminDashboard() {
       {/* Compact Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('adminDashboard')}</h1>
           <p className="text-xs text-gray-500">{user?.full_name || 'Admin'}</p>
         </div>
         <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200 bg-emerald-50">
@@ -190,7 +195,7 @@ export default function AdminDashboard() {
         <CardHeader className="p-3 pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Clock className="w-4 h-4 text-orange-500" />
-            Menunggu Kelulusan
+            {t('pendingItems')}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
@@ -214,7 +219,7 @@ export default function AdminDashboard() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100 text-xs">Derma Terkumpul</p>
+              <p className="text-emerald-100 text-xs">{t('totalVerified')}</p>
               <p className="text-xl font-bold">RM {(stats?.totalDonations || 0).toLocaleString()}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-emerald-200" />
@@ -225,19 +230,19 @@ export default function AdminDashboard() {
       {/* Compact Actions */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="p-3 pb-2">
-          <CardTitle className="text-sm">Aksi Pantas</CardTitle>
+          <CardTitle className="text-sm">{t('quickActions')}</CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: 'Kubur', page: 'ManageGraves', icon: MapPin },
-              { label: 'Si Mati', page: 'ManageDeadPersons', icon: Users },
-              { label: 'Tahfiz', page: 'ManageTahfizCenters', icon: BookOpen },
-              { label: 'Cadangan', page: 'ManageSuggestions', icon: FileText },
-              { label: 'Derma', page: 'ManageDonations', icon: Heart },
-              { label: 'Organisasi', page: 'ManageOrganisations', icon: Building2 },
-              { label: 'Tahlil Request', page: 'ManageTahlilRequests', icon: Book },
-              { label: 'Users', page: 'ManageUsers', icon: Users },
+              { label: t('manageGraves'), page: 'ManageGraves', icon: MapPin },
+              { label: t('managePersons'), page: 'ManageDeadPersons', icon: Users },
+              { label: t('manageTahfiz'), page: 'ManageTahfizCenters', icon: BookOpen },
+              { label: t('manageSuggestions'), page: 'ManageSuggestions', icon: FileText },
+              { label: t('manageDonations'), page: 'ManageDonations', icon: Heart },
+              { label: t('manageOrgs'), page: 'ManageOrganisations', icon: Building2 },
+              { label: t('manageTahlil'), page: 'ManageTahlilRequests', icon: Book },
+              { label: t('manageUsers'), page: 'ManageUsers', icon: Users },
             ].map((action, i) => (
               <Link key={i} to={createPageUrl(action.page)}>
                 <Button variant="outline" size="sm" className="w-full justify-start text-xs h-9">
