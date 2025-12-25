@@ -323,6 +323,7 @@ export const adminTranslations = {
     // Dashboards
     superadminDashboard: 'Super Admin Dashboard', adminDashboard: 'Admin Dashboard',
     systemStats: 'Statistik Sistem', quickStats: 'Statistik Pantas', pendingItems: 'Item Menunggu',
+    pendingApproval: 'Kelulusan Menunggu',
     quickActions: 'Tindakan Pantas', totalGraves: 'Jumlah Kubur', totalPersons: 'Jumlah Si Mati',
     totalOrgs: 'Jumlah Organisasi', totalTahfiz: 'Jumlah Tahfiz', totalDonations: 'Jumlah Derma',
     totalSuggestions: 'Cadangan', totalTahlilRequests: 'Permohonan Tahlil', pendingAdmins: 'Admin Menunggu',
@@ -364,6 +365,9 @@ export const adminTranslations = {
     suggestedChanges: 'Cadangan Perubahan', reason: 'Sebab / Justifikasi', adminNotes: 'Catatan Admin',
     recordDetails: 'Butiran Rekod', awaitingReview: 'menunggu semakan', recordPerson: 'Rekod Si Mati',
     recordGrave: 'Tanah Perkuburan', recordOrg: 'Organisasi', recordTahfiz: 'Pusat Tahfiz',
+    name: 'Nama', addNew: 'Tambah Baru', type: 'Jenis', allTypes: 'Semua Jenis',
+    services: 'Perkhidmatan', upload: 'Muat Naik', confirmDelete: 'Adakah anda pasti untuk memadam',
+    searchPlaceholder: 'Cari...',
     
     // Donations
     manageDonationsTitle: 'Urus Derma', donor: 'Penderma', recipient: 'Penerima', amount: 'Jumlah',
@@ -389,6 +393,7 @@ export const adminTranslations = {
     // Dashboards
     superadminDashboard: 'Super Admin Dashboard', adminDashboard: 'Admin Dashboard',
     systemStats: 'System Statistics', quickStats: 'Quick Stats', pendingItems: 'Pending Items',
+    pendingApproval: 'Pending Approvals',
     quickActions: 'Quick Actions', totalGraves: 'Total Graves', totalPersons: 'Total Deceased',
     totalOrgs: 'Total Organisations', totalTahfiz: 'Total Tahfiz', totalDonations: 'Total Donations',
     totalSuggestions: 'Suggestions', totalTahlilRequests: 'Tahlil Requests', pendingAdmins: 'Pending Admins',
@@ -430,6 +435,9 @@ export const adminTranslations = {
     suggestedChanges: 'Suggested Changes', reason: 'Reason / Justification', adminNotes: 'Admin Notes',
     recordDetails: 'Record Details', awaitingReview: 'awaiting review', recordPerson: 'Deceased Record',
     recordGrave: 'Grave', recordOrg: 'Organisation', recordTahfiz: 'Tahfiz Center',
+    name: 'Name', addNew: 'Add New', type: 'Type', allTypes: 'All Types',
+    services: 'Services', upload: 'Upload', confirmDelete: 'Are you sure you want to delete',
+    searchPlaceholder: 'Search...',
     
     // Donations
     manageDonationsTitle: 'Manage Donations', donor: 'Donor', recipient: 'Recipient', amount: 'Amount',
@@ -455,6 +463,7 @@ export const adminTranslations = {
     // Dashboards
     superadminDashboard: 'لوحة المشرف العام', adminDashboard: 'لوحة الإدارة',
     systemStats: 'إحصائيات النظام', quickStats: 'إحصائيات سريعة', pendingItems: 'العناصر المعلقة',
+    pendingApproval: 'الموافقات المعلقة',
     quickActions: 'إجراءات سريعة', totalGraves: 'إجمالي القبور', totalPersons: 'إجمالي المتوفين',
     totalOrgs: 'إجمالي المنظمات', totalTahfiz: 'إجمالي التحفيظ', totalDonations: 'إجمالي التبرعات',
     totalSuggestions: 'الاقتراحات', totalTahlilRequests: 'طلبات التهليل', pendingAdmins: 'المشرفون المعلقون',
@@ -496,6 +505,9 @@ export const adminTranslations = {
     suggestedChanges: 'التغييرات المقترحة', reason: 'السبب / التبرير', adminNotes: 'ملاحظات المشرف',
     recordDetails: 'تفاصيل السجل', awaitingReview: 'في انتظار المراجعة', recordPerson: 'سجل المتوفى',
     recordGrave: 'القبر', recordOrg: 'المنظمة', recordTahfiz: 'مركز التحفيظ',
+    name: 'الاسم', addNew: 'إضافة جديد', type: 'النوع', allTypes: 'جميع الأنواع',
+    services: 'الخدمات', upload: 'تحميل', confirmDelete: 'هل أنت متأكد من حذف',
+    searchPlaceholder: 'بحث...',
     
     // Donations
     manageDonationsTitle: 'إدارة التبرعات', donor: 'المتبرع', recipient: 'المستفيد', amount: 'المبلغ',
