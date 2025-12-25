@@ -309,8 +309,215 @@ export const translations = {
   }
 };
 
+// Admin panel translations - comprehensive coverage for all admin pages
+export const adminTranslations = {
+  ms: {
+    // Common actions
+    loading: 'Memuatkan...', search: 'Cari', filter: 'Tapis', add: 'Tambah', edit: 'Edit', delete: 'Padam',
+    save: 'Simpan', cancel: 'Batal', close: 'Tutup', actions: 'Tindakan', status: 'Status', date: 'Tarikh',
+    details: 'Butiran', notes: 'Catatan', approve: 'Luluskan', reject: 'Tolak', verify: 'Sahkan',
+    pending: 'Menunggu', approved: 'Diluluskan', rejected: 'Ditolak', verified: 'Disahkan',
+    active: 'Aktif', inactive: 'Tidak Aktif', noRecords: 'Tiada rekod', accessDenied: 'Akses Ditolak',
+    noPermission: 'Anda tidak mempunyai kebenaran untuk mengakses halaman ini.',
+    
+    // Dashboards
+    superadminDashboard: 'Super Admin Dashboard', adminDashboard: 'Admin Dashboard',
+    systemStats: 'Statistik Sistem', quickStats: 'Statistik Pantas', pendingItems: 'Item Menunggu',
+    quickActions: 'Tindakan Pantas', totalGraves: 'Jumlah Kubur', totalPersons: 'Jumlah Si Mati',
+    totalOrgs: 'Jumlah Organisasi', totalTahfiz: 'Jumlah Tahfiz', totalDonations: 'Jumlah Derma',
+    totalSuggestions: 'Cadangan', totalTahlilRequests: 'Permohonan Tahlil', pendingAdmins: 'Admin Menunggu',
+    
+    // Navigation
+    manageUsers: 'Urus Pengguna', manageGraves: 'Urus Kubur', managePersons: 'Urus Si Mati',
+    manageOrgs: 'Urus Organisasi', manageTahfiz: 'Urus Tahfiz', manageSuggestions: 'Urus Cadangan',
+    manageDonations: 'Urus Derma', manageTahlil: 'Urus Tahlil', viewLogs: 'Log Aktiviti',
+    
+    // Graves
+    manageGravesTitle: 'Urus Tanah Perkuburan', addGrave: 'Tambah Kubur', editGrave: 'Edit Kubur',
+    importCSV: 'Import CSV', downloadTemplate: 'Muat Turun Template CSV', cemeteryName: 'Nama Tanah Perkuburan',
+    state: 'Negeri', block: 'Blok', lot: 'Lot', gpsLat: 'GPS Latitude', gpsLng: 'GPS Longitude',
+    getCurrentLocation: 'Dapatkan Lokasi Semasa', managingOrg: 'Organisasi Pengurusan', qrCode: 'Kod QR',
+    totalGravesCount: 'Jumlah Kubur', full: 'Penuh', maintenance: 'Penyelenggaraan',
+    allStates: 'Semua Negeri', allStatus: 'Semua Status', reset: 'Reset', activeFilters: 'Aktif',
+    searchGravesPlaceholder: 'Cari nama kubur, blok, lot, negeri, atau kod QR...',
+    
+    // Dead Persons
+    managePersonsTitle: 'Urus Rekod Si Mati', addPerson: 'Tambah Rekod', editPerson: 'Edit Rekod',
+    fullName: 'Nama Penuh', icNumber: 'No. IC', dateOfBirth: 'Tarikh Lahir', dateOfDeath: 'Tarikh Meninggal',
+    causeOfDeath: 'Sebab Kematian', graveLocation: 'Tanah Perkuburan', biography: 'Biografi',
+    photo: 'Gambar', uploadPhoto: 'Muat Naik', selectGrave: 'Pilih kubur',
+    searchPersonsPlaceholder: 'Cari nama atau No. IC...',
+    
+    // Organisations
+    manageOrgsTitle: 'Urus Organisasi', addOrg: 'Tambah Organisasi', editOrg: 'Edit Organisasi',
+    orgName: 'Nama Organisasi', orgType: 'Jenis Organisasi', address: 'Alamat', phone: 'No. Telefon',
+    email: 'Email', statesCovered: 'Negeri Diliputi', selectType: 'Pilih jenis organisasi',
+    selectStates: 'Pilih negeri', searchOrgsPlaceholder: 'Cari nama organisasi...',
+    
+    // Tahfiz Centers
+    manageTahfizTitle: 'Urus Pusat Tahfiz', addTahfiz: 'Tambah Pusat Tahfiz', editTahfiz: 'Edit Pusat Tahfiz',
+    tahfizName: 'Nama Pusat Tahfiz', description: 'Keterangan', servicesOffered: 'Perkhidmatan Ditawarkan',
+    bankName: 'Nama Bank', bankAccount: 'No. Akaun Bank', searchTahfizPlaceholder: 'Cari nama pusat tahfiz...',
+    
+    // Suggestions
+    manageSuggestionsTitle: 'Urus Cadangan', suggestionType: 'Jenis', suggestion: 'Cadangan',
+    suggestedChanges: 'Cadangan Perubahan', reason: 'Sebab / Justifikasi', adminNotes: 'Catatan Admin',
+    recordDetails: 'Butiran Rekod', awaitingReview: 'menunggu semakan', recordPerson: 'Rekod Si Mati',
+    recordGrave: 'Tanah Perkuburan', recordOrg: 'Organisasi', recordTahfiz: 'Pusat Tahfiz',
+    
+    // Donations
+    manageDonationsTitle: 'Urus Derma', donor: 'Penderma', recipient: 'Penerima', amount: 'Jumlah',
+    totalVerified: 'Jumlah Disahkan', awaitingVerification: 'menunggu pengesahan', donorName: 'Penderma',
+    paymentMethod: 'Kaedah Pembayaran', receipt: 'Resit', viewReceipt: 'Lihat Resit', anonymous: 'Tanpa Nama',
+    
+    // Tahlil Requests
+    manageTahlilTitle: 'Urus Permohonan Tahlil', requester: 'Pemohon', deceased: 'Arwah',
+    service: 'Perkhidmatan', tahfizCenter: 'Pusat Tahfiz', referenceId: 'ID Rujukan',
+    awaitingAction: 'menunggu tindakan', requesterName: 'Pemohon', phoneNumber: 'No. Telefon',
+    deceasedName: 'Nama Arwah', serviceType: 'Jenis Perkhidmatan', preferredDate: 'Tarikh Pilihan',
+    accepted: 'Diterima', completed: 'Selesai', markCompleted: 'Tandakan Selesai',
+  },
+  en: {
+    // Common actions
+    loading: 'Loading...', search: 'Search', filter: 'Filter', add: 'Add', edit: 'Edit', delete: 'Delete',
+    save: 'Save', cancel: 'Cancel', close: 'Close', actions: 'Actions', status: 'Status', date: 'Date',
+    details: 'Details', notes: 'Notes', approve: 'Approve', reject: 'Reject', verify: 'Verify',
+    pending: 'Pending', approved: 'Approved', rejected: 'Rejected', verified: 'Verified',
+    active: 'Active', inactive: 'Inactive', noRecords: 'No records', accessDenied: 'Access Denied',
+    noPermission: 'You do not have permission to access this page.',
+    
+    // Dashboards
+    superadminDashboard: 'Super Admin Dashboard', adminDashboard: 'Admin Dashboard',
+    systemStats: 'System Statistics', quickStats: 'Quick Stats', pendingItems: 'Pending Items',
+    quickActions: 'Quick Actions', totalGraves: 'Total Graves', totalPersons: 'Total Deceased',
+    totalOrgs: 'Total Organisations', totalTahfiz: 'Total Tahfiz', totalDonations: 'Total Donations',
+    totalSuggestions: 'Suggestions', totalTahlilRequests: 'Tahlil Requests', pendingAdmins: 'Pending Admins',
+    
+    // Navigation
+    manageUsers: 'Manage Users', manageGraves: 'Manage Graves', managePersons: 'Manage Deceased',
+    manageOrgs: 'Manage Organisations', manageTahfiz: 'Manage Tahfiz', manageSuggestions: 'Manage Suggestions',
+    manageDonations: 'Manage Donations', manageTahlil: 'Manage Tahlil', viewLogs: 'Activity Logs',
+    
+    // Graves
+    manageGravesTitle: 'Manage Graves', addGrave: 'Add Grave', editGrave: 'Edit Grave',
+    importCSV: 'Import CSV', downloadTemplate: 'Download CSV Template', cemeteryName: 'Cemetery Name',
+    state: 'State', block: 'Block', lot: 'Lot', gpsLat: 'GPS Latitude', gpsLng: 'GPS Longitude',
+    getCurrentLocation: 'Get Current Location', managingOrg: 'Managing Organisation', qrCode: 'QR Code',
+    totalGravesCount: 'Total Graves', full: 'Full', maintenance: 'Maintenance',
+    allStates: 'All States', allStatus: 'All Status', reset: 'Reset', activeFilters: 'Active',
+    searchGravesPlaceholder: 'Search cemetery name, block, lot, state, or QR code...',
+    
+    // Dead Persons
+    managePersonsTitle: 'Manage Deceased Records', addPerson: 'Add Record', editPerson: 'Edit Record',
+    fullName: 'Full Name', icNumber: 'IC Number', dateOfBirth: 'Date of Birth', dateOfDeath: 'Date of Death',
+    causeOfDeath: 'Cause of Death', graveLocation: 'Grave Location', biography: 'Biography',
+    photo: 'Photo', uploadPhoto: 'Upload', selectGrave: 'Select grave',
+    searchPersonsPlaceholder: 'Search name or IC number...',
+    
+    // Organisations
+    manageOrgsTitle: 'Manage Organisations', addOrg: 'Add Organisation', editOrg: 'Edit Organisation',
+    orgName: 'Organisation Name', orgType: 'Organisation Type', address: 'Address', phone: 'Phone Number',
+    email: 'Email', statesCovered: 'States Covered', selectType: 'Select organisation type',
+    selectStates: 'Select states', searchOrgsPlaceholder: 'Search organisation name...',
+    
+    // Tahfiz Centers
+    manageTahfizTitle: 'Manage Tahfiz Centers', addTahfiz: 'Add Tahfiz Center', editTahfiz: 'Edit Tahfiz Center',
+    tahfizName: 'Tahfiz Center Name', description: 'Description', servicesOffered: 'Services Offered',
+    bankName: 'Bank Name', bankAccount: 'Account Number', searchTahfizPlaceholder: 'Search tahfiz center name...',
+    
+    // Suggestions
+    manageSuggestionsTitle: 'Manage Suggestions', suggestionType: 'Type', suggestion: 'Suggestion',
+    suggestedChanges: 'Suggested Changes', reason: 'Reason / Justification', adminNotes: 'Admin Notes',
+    recordDetails: 'Record Details', awaitingReview: 'awaiting review', recordPerson: 'Deceased Record',
+    recordGrave: 'Grave', recordOrg: 'Organisation', recordTahfiz: 'Tahfiz Center',
+    
+    // Donations
+    manageDonationsTitle: 'Manage Donations', donor: 'Donor', recipient: 'Recipient', amount: 'Amount',
+    totalVerified: 'Total Verified', awaitingVerification: 'awaiting verification', donorName: 'Donor',
+    paymentMethod: 'Payment Method', receipt: 'Receipt', viewReceipt: 'View Receipt', anonymous: 'Anonymous',
+    
+    // Tahlil Requests
+    manageTahlilTitle: 'Manage Tahlil Requests', requester: 'Requester', deceased: 'Deceased',
+    service: 'Service', tahfizCenter: 'Tahfiz Center', referenceId: 'Reference ID',
+    awaitingAction: 'awaiting action', requesterName: 'Requester', phoneNumber: 'Phone Number',
+    deceasedName: 'Deceased Name', serviceType: 'Service Type', preferredDate: 'Preferred Date',
+    accepted: 'Accepted', completed: 'Completed', markCompleted: 'Mark Completed',
+  },
+  ar: {
+    // Common actions
+    loading: 'جاري التحميل...', search: 'بحث', filter: 'تصفية', add: 'إضافة', edit: 'تعديل', delete: 'حذف',
+    save: 'حفظ', cancel: 'إلغاء', close: 'إغلاق', actions: 'إجراءات', status: 'الحالة', date: 'التاريخ',
+    details: 'التفاصيل', notes: 'ملاحظات', approve: 'موافقة', reject: 'رفض', verify: 'تحقق',
+    pending: 'قيد الانتظار', approved: 'تمت الموافقة', rejected: 'مرفوض', verified: 'تم التحقق',
+    active: 'نشط', inactive: 'غير نشط', noRecords: 'لا توجد سجلات', accessDenied: 'تم رفض الوصول',
+    noPermission: 'ليس لديك إذن للوصول إلى هذه الصفحة.',
+    
+    // Dashboards
+    superadminDashboard: 'لوحة المشرف العام', adminDashboard: 'لوحة الإدارة',
+    systemStats: 'إحصائيات النظام', quickStats: 'إحصائيات سريعة', pendingItems: 'العناصر المعلقة',
+    quickActions: 'إجراءات سريعة', totalGraves: 'إجمالي القبور', totalPersons: 'إجمالي المتوفين',
+    totalOrgs: 'إجمالي المنظمات', totalTahfiz: 'إجمالي التحفيظ', totalDonations: 'إجمالي التبرعات',
+    totalSuggestions: 'الاقتراحات', totalTahlilRequests: 'طلبات التهليل', pendingAdmins: 'المشرفون المعلقون',
+    
+    // Navigation
+    manageUsers: 'إدارة المستخدمين', manageGraves: 'إدارة القبور', managePersons: 'إدارة المتوفين',
+    manageOrgs: 'إدارة المنظمات', manageTahfiz: 'إدارة التحفيظ', manageSuggestions: 'إدارة الاقتراحات',
+    manageDonations: 'إدارة التبرعات', manageTahlil: 'إدارة التهليل', viewLogs: 'سجلات النشاط',
+    
+    // Graves
+    manageGravesTitle: 'إدارة القبور', addGrave: 'إضافة قبر', editGrave: 'تعديل القبر',
+    importCSV: 'استيراد CSV', downloadTemplate: 'تنزيل قالب CSV', cemeteryName: 'اسم المقبرة',
+    state: 'الولاية', block: 'القطعة', lot: 'الموقع', gpsLat: 'خط العرض', gpsLng: 'خط الطول',
+    getCurrentLocation: 'الحصول على الموقع الحالي', managingOrg: 'المنظمة المشرفة', qrCode: 'رمز QR',
+    totalGravesCount: 'إجمالي القبور', full: 'ممتلئ', maintenance: 'صيانة',
+    allStates: 'جميع الولايات', allStatus: 'جميع الحالات', reset: 'إعادة تعيين', activeFilters: 'نشط',
+    searchGravesPlaceholder: 'البحث عن اسم المقبرة أو القطعة أو الموقع أو الولاية أو رمز QR...',
+    
+    // Dead Persons
+    managePersonsTitle: 'إدارة سجلات المتوفين', addPerson: 'إضافة سجل', editPerson: 'تعديل السجل',
+    fullName: 'الاسم الكامل', icNumber: 'رقم الهوية', dateOfBirth: 'تاريخ الميلاد', dateOfDeath: 'تاريخ الوفاة',
+    causeOfDeath: 'سبب الوفاة', graveLocation: 'موقع القبر', biography: 'السيرة الذاتية',
+    photo: 'الصورة', uploadPhoto: 'تحميل', selectGrave: 'اختر القبر',
+    searchPersonsPlaceholder: 'البحث عن الاسم أو رقم الهوية...',
+    
+    // Organisations
+    manageOrgsTitle: 'إدارة المنظمات', addOrg: 'إضافة منظمة', editOrg: 'تعديل المنظمة',
+    orgName: 'اسم المنظمة', orgType: 'نوع المنظمة', address: 'العنوان', phone: 'رقم الهاتف',
+    email: 'البريد الإلكتروني', statesCovered: 'الولايات المشمولة', selectType: 'اختر نوع المنظمة',
+    selectStates: 'اختر الولايات', searchOrgsPlaceholder: 'البحث عن اسم المنظمة...',
+    
+    // Tahfiz Centers
+    manageTahfizTitle: 'إدارة مراكز التحفيظ', addTahfiz: 'إضافة مركز تحفيظ', editTahfiz: 'تعديل مركز التحفيظ',
+    tahfizName: 'اسم مركز التحفيظ', description: 'الوصف', servicesOffered: 'الخدمات المقدمة',
+    bankName: 'اسم البنك', bankAccount: 'رقم الحساب', searchTahfizPlaceholder: 'البحث عن اسم مركز التحفيظ...',
+    
+    // Suggestions
+    manageSuggestionsTitle: 'إدارة الاقتراحات', suggestionType: 'النوع', suggestion: 'الاقتراح',
+    suggestedChanges: 'التغييرات المقترحة', reason: 'السبب / التبرير', adminNotes: 'ملاحظات المشرف',
+    recordDetails: 'تفاصيل السجل', awaitingReview: 'في انتظار المراجعة', recordPerson: 'سجل المتوفى',
+    recordGrave: 'القبر', recordOrg: 'المنظمة', recordTahfiz: 'مركز التحفيظ',
+    
+    // Donations
+    manageDonationsTitle: 'إدارة التبرعات', donor: 'المتبرع', recipient: 'المستفيد', amount: 'المبلغ',
+    totalVerified: 'إجمالي المتحقق', awaitingVerification: 'في انتظار التحقق', donorName: 'المتبرع',
+    paymentMethod: 'طريقة الدفع', receipt: 'الإيصال', viewReceipt: 'عرض الإيصال', anonymous: 'مجهول',
+    
+    // Tahlil Requests
+    manageTahlilTitle: 'إدارة طلبات التهليل', requester: 'مقدم الطلب', deceased: 'المتوفى',
+    service: 'الخدمة', tahfizCenter: 'مركز التحفيظ', referenceId: 'معرف المرجع',
+    awaitingAction: 'في انتظار الإجراء', requesterName: 'اسم مقدم الطلب', phoneNumber: 'رقم الهاتف',
+    deceasedName: 'اسم المتوفى', serviceType: 'نوع الخدمة', preferredDate: 'التاريخ المفضل',
+    accepted: 'مقبول', completed: 'مكتمل', markCompleted: 'وضع علامة مكتمل',
+  }
+};
+
 export function getTranslation(key, lang = 'ms') {
   return translations[lang]?.[key] || translations.ms[key] || key;
+}
+
+export function getAdminTranslation(key, lang = null) {
+  const language = lang || getCurrentLanguage();
+  return adminTranslations[language]?.[key] || adminTranslations['ms'][key] || key;
 }
 
 export function getCurrentLanguage() {
