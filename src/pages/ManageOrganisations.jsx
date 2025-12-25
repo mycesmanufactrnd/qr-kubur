@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, Plus, Edit, Trash2, Search, Save, Filter } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ export default function ManageOrganisations() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
+  const [lang, setLang] = useState('ms');
   
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
     defaultValues: emptyOrg
@@ -51,6 +53,7 @@ export default function ManageOrganisations() {
   const [orgToDelete, setOrgToDelete] = useState(null);
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -69,6 +72,7 @@ export default function ManageOrganisations() {
       }
     };
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -141,13 +145,13 @@ export default function ManageOrganisations() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: isSuperAdmin ? 'Super Admin' : 'Admin Dashboard', page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-          { label: 'Urus Organisasi', page: 'ManageOrganisations' }
+          { label: isSuperAdmin ? t('superadminDashboard') : t('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: t('manageOrgs'), page: 'ManageOrganisations' }
         ]} />
         <Card className="max-w-lg mx-auto mt-8">
           <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600">{t('noPermission')}</p>
           </CardContent>
         </Card>
       </div>
@@ -264,8 +268,8 @@ export default function ManageOrganisations() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: isSuperAdmin ? 'Super Admin' : 'Admin Dashboard', page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-        { label: 'Urus Organisasi', page: 'ManageOrganisations' }
+        { label: isSuperAdmin ? t('superadminDashboard') : t('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+        { label: t('manageOrgs'), page: 'ManageOrganisations' }
       ]} />
       
       {/* Header */}
@@ -273,12 +277,12 @@ export default function ManageOrganisations() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-violet-600" />
-            Urus Organisasi
+            {t('manageOrgs')}
           </h1>
         </div>
         <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
           <Plus className="w-4 h-4 mr-2" />
-          Tambah Organisasi
+          {t('addNew')}
         </Button>
       </div>
 
@@ -289,7 +293,7 @@ export default function ManageOrganisations() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Cari organisasi..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -299,10 +303,10 @@ export default function ManageOrganisations() {
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger className="w-full sm:w-48">
                   <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder="Semua Negeri" />
+                  <SelectValue placeholder={t('allStates')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  <SelectItem value="all">{t('allStates')}</SelectItem>
                   {STATES.map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -319,20 +323,20 @@ export default function ManageOrganisations() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Jenis</TableHead>
-                <TableHead>Negeri</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{t('name')}</TableHead>
+                <TableHead>{t('orgType')}</TableHead>
+                <TableHead>{t('state')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : paginatedOrgs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 paginatedOrgs.map(org => (
@@ -386,12 +390,12 @@ export default function ManageOrganisations() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingOrg ? 'Edit Organisasi' : 'Tambah Organisasi Baru'}
+              {editingOrg ? t('edit') : t('addNew')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label>Nama <span className="text-red-500">*</span></Label>
+              <Label>{t('name')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="name"
                 control={control}
@@ -400,7 +404,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>Jenis <span className="text-red-500">*</span></Label>
+              <Label>{t('orgType')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="organisation_type_id"
                 control={control}
@@ -420,7 +424,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>Negeri <span className="text-red-500">*</span></Label>
+              <Label>{t('state')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="state"
                 control={control}
@@ -444,7 +448,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>Alamat</Label>
+              <Label>{t('address')}</Label>
               <Controller
                 name="address"
                 control={control}
@@ -453,7 +457,7 @@ export default function ManageOrganisations() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Telefon</Label>
+                <Label>{t('phone')}</Label>
                 <Controller
                   name="phone"
                   control={control}
@@ -461,7 +465,7 @@ export default function ManageOrganisations() {
                 />
               </div>
               <div>
-                <Label>Email</Label>
+                <Label>{t('email')}</Label>
                 <Controller
                   name="email"
                   control={control}
@@ -470,7 +474,7 @@ export default function ManageOrganisations() {
               </div>
             </div>
             <div>
-              <Label>Status</Label>
+              <Label>{t('status')}</Label>
               <Controller
                 name="status"
                 control={control}
@@ -480,8 +484,8 @@ export default function ManageOrganisations() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Aktif</SelectItem>
-                      <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                      <SelectItem value="active">{t('active')}</SelectItem>
+                      <SelectItem value="inactive">{t('inactive')}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -489,11 +493,11 @@ export default function ManageOrganisations() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Batal
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                Simpan
+                {t('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -503,10 +507,10 @@ export default function ManageOrganisations() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Organisasi"
-        description={`Adakah anda pasti ingin memadam "${orgToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        title={t('delete')}
+        description={`${t('confirmDelete')} "${orgToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText="Padam"
+        confirmText={t('delete')}
         variant="destructive"
       />
     </div>

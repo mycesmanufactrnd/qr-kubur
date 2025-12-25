@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,11 +43,14 @@ export default function ManageDeadPersons() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
+  const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -122,13 +126,13 @@ export default function ManageDeadPersons() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Admin Dashboard', page: 'AdminDashboard' },
-          { label: 'Urus Rekod Si Mati', page: 'ManageDeadPersons' }
+          { label: t('adminDashboard'), page: 'AdminDashboard' },
+          { label: t('managePersons'), page: 'ManageDeadPersons' }
         ]} />
         <Card className="max-w-lg mx-auto mt-8">
           <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600">{t('noPermission')}</p>
           </CardContent>
         </Card>
       </div>
@@ -277,8 +281,8 @@ export default function ManageDeadPersons() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
-        { label: 'Urus Rekod Si Mati', page: 'ManageDeadPersons' }
+        { label: t('adminDashboard'), page: 'AdminDashboard' },
+        { label: t('managePersons'), page: 'ManageDeadPersons' }
       ]} />
       
       {/* Header */}
@@ -286,12 +290,12 @@ export default function ManageDeadPersons() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            Urus Rekod Si Mati
+            {t('managePersons')}
           </h1>
         </div>
         <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
           <Plus className="w-4 h-4 mr-2" />
-          Tambah Rekod
+          {t('addNew')}
         </Button>
       </div>
 
@@ -301,7 +305,7 @@ export default function ManageDeadPersons() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Cari nama atau No. IC..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -323,7 +327,7 @@ export default function ManageDeadPersons() {
         ) : paginatedPersons.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada rekod</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -373,21 +377,21 @@ export default function ManageDeadPersons() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>No. IC</TableHead>
-                <TableHead>Tarikh Meninggal</TableHead>
-                <TableHead>Kubur</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{t('fullName')}</TableHead>
+                <TableHead>{t('icNumber')}</TableHead>
+                <TableHead>{t('dateOfDeath')}</TableHead>
+                <TableHead>{t('cemeteryName')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : paginatedPersons.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 paginatedPersons.map(person => (
@@ -435,19 +439,19 @@ export default function ManageDeadPersons() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingPerson ? 'Edit Rekod' : 'Tambah Rekod Baru'}
+              {editingPerson ? t('edit') : t('addNew')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama Penuh <span className="text-red-500">*</span></Label>
+              <Label>{t('fullName')} <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
             </div>
             <div>
-              <Label>No. IC</Label>
+              <Label>{t('icNumber')}</Label>
               <Input
                 value={formData.ic_number}
                 onChange={(e) => setFormData({...formData, ic_number: e.target.value})}
@@ -456,7 +460,7 @@ export default function ManageDeadPersons() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Tarikh Lahir</Label>
+                <Label>{t('dateOfBirth')}</Label>
                 <Input
                   type="date"
                   value={formData.date_of_birth}
@@ -464,7 +468,7 @@ export default function ManageDeadPersons() {
                 />
               </div>
               <div>
-                <Label>Tarikh Meninggal</Label>
+                <Label>{t('dateOfDeath')}</Label>
                 <Input
                   type="date"
                   value={formData.date_of_death}
@@ -473,17 +477,17 @@ export default function ManageDeadPersons() {
               </div>
             </div>
             <div>
-              <Label>Sebab Kematian</Label>
+              <Label>{t('causeOfDeath')}</Label>
               <Input
                 value={formData.cause_of_death}
                 onChange={(e) => setFormData({...formData, cause_of_death: e.target.value})}
               />
             </div>
             <div>
-              <Label>Tanah Perkuburan <span className="text-red-500">*</span></Label>
+              <Label>{t('cemeteryName')} <span className="text-red-500">*</span></Label>
               <Select value={formData.grave_id} onValueChange={(v) => setFormData({...formData, grave_id: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih kubur" />
+                  <SelectValue placeholder={t('selectGrave')} />
                 </SelectTrigger>
                 <SelectContent>
                   {accessibleGraves.map(grave => (
@@ -523,10 +527,10 @@ export default function ManageDeadPersons() {
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Dapatkan Lokasi Semasa
+              {t('getCurrentLocation')}
             </Button>
             <div>
-              <Label>Kod QR</Label>
+              <Label>{t('qrCode')}</Label>
               <Input
                 value={formData.qr_code}
                 onChange={(e) => setFormData({...formData, qr_code: e.target.value})}
@@ -534,7 +538,7 @@ export default function ManageDeadPersons() {
               />
             </div>
             <div>
-              <Label>Biografi</Label>
+              <Label>{t('biography')}</Label>
               <Textarea
                 value={formData.biography}
                 onChange={(e) => setFormData({...formData, biography: e.target.value})}
@@ -542,7 +546,7 @@ export default function ManageDeadPersons() {
               />
             </div>
             <div>
-              <Label>Gambar</Label>
+              <Label>{t('photo')}</Label>
               <div className="flex items-center gap-3">
                 {formData.photo_url && (
                   <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover" />
@@ -559,7 +563,7 @@ export default function ManageDeadPersons() {
                     <Button type="button" variant="outline" asChild disabled={uploading}>
                       <span>
                         <Upload className="w-4 h-4 mr-2" />
-                        {uploading ? 'Memuat naik...' : 'Muat Naik'}
+                        {uploading ? t('loading') : t('upload')}
                       </span>
                     </Button>
                   </label>
@@ -568,11 +572,11 @@ export default function ManageDeadPersons() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Batal
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                Simpan
+                {t('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -582,10 +586,10 @@ export default function ManageDeadPersons() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Rekod"
-        description={`Adakah anda pasti ingin memadam rekod "${personToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        title={t('delete')}
+        description={`${t('confirmDelete')} "${personToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText="Padam"
+        confirmText={t('delete')}
         variant="destructive"
       />
     </div>

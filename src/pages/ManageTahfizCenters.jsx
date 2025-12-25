@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Plus, Edit, Trash2, Search, Save, Filter, MapPin } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,7 @@ export default function ManageTahfizCenters() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCenter, setEditingCenter] = useState(null);
+  const [lang, setLang] = useState('ms');
   
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
     defaultValues: emptyCenter
@@ -65,9 +67,11 @@ export default function ManageTahfizCenters() {
   const [centerToDelete, setCenterToDelete] = useState(null);
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -129,13 +133,13 @@ export default function ManageTahfizCenters() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Admin Dashboard', page: 'AdminDashboard' },
-          { label: 'Urus Pusat Tahfiz', page: 'ManageTahfizCenters' }
+          { label: t('adminDashboard'), page: 'AdminDashboard' },
+          { label: t('manageTahfiz'), page: 'ManageTahfizCenters' }
         ]} />
         <Card className="max-w-lg mx-auto mt-8">
           <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600">{t('noPermission')}</p>
           </CardContent>
         </Card>
       </div>
@@ -232,8 +236,8 @@ export default function ManageTahfizCenters() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
-        { label: 'Urus Pusat Tahfiz', page: 'ManageTahfizCenters' }
+        { label: t('adminDashboard'), page: 'AdminDashboard' },
+        { label: t('manageTahfiz'), page: 'ManageTahfizCenters' }
       ]} />
       
       {/* Header */}
@@ -241,12 +245,12 @@ export default function ManageTahfizCenters() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-            Urus Pusat Tahfiz
+            {t('manageTahfiz')}
           </h1>
         </div>
         <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800">
           <Plus className="w-4 h-4 mr-2" />
-          Tambah Pusat Tahfiz
+          {t('addNew')}
         </Button>
       </div>
 
@@ -257,7 +261,7 @@ export default function ManageTahfizCenters() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Cari pusat tahfiz..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -267,10 +271,10 @@ export default function ManageTahfizCenters() {
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger className="w-full sm:w-48">
                   <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder="Semua Negeri" />
+                  <SelectValue placeholder={t('allStates')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  <SelectItem value="all">{t('allStates')}</SelectItem>
                   {STATES.map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -294,7 +298,7 @@ export default function ManageTahfizCenters() {
         ) : paginatedCenters.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada rekod</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -347,20 +351,20 @@ export default function ManageTahfizCenters() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Negeri</TableHead>
-                <TableHead>Perkhidmatan</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{t('name')}</TableHead>
+                <TableHead>{t('state')}</TableHead>
+                <TableHead>{t('services')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : paginatedCenters.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 paginatedCenters.map(center => (
@@ -415,12 +419,12 @@ export default function ManageTahfizCenters() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingCenter ? 'Edit Pusat Tahfiz' : 'Tambah Pusat Tahfiz Baru'}
+              {editingCenter ? t('edit') : t('addNew')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label>Nama Pusat <span className="text-red-500">*</span></Label>
+              <Label>{t('name')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="name"
                 control={control}
@@ -429,7 +433,7 @@ export default function ManageTahfizCenters() {
               />
             </div>
             <div>
-              <Label>Negeri <span className="text-red-500">*</span></Label>
+              <Label>{t('state')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="state"
                 control={control}
@@ -449,7 +453,7 @@ export default function ManageTahfizCenters() {
               />
             </div>
             <div>
-              <Label>Perkhidmatan</Label>
+              <Label>{t('services')}</Label>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {SERVICES.map(service => (
                   <Label 
@@ -466,7 +470,7 @@ export default function ManageTahfizCenters() {
               </div>
             </div>
             <div>
-              <Label>Alamat</Label>
+              <Label>{t('address')}</Label>
               <Controller
                 name="address"
                 control={control}
@@ -475,7 +479,7 @@ export default function ManageTahfizCenters() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Telefon</Label>
+                <Label>{t('phone')}</Label>
                 <Controller
                   name="phone"
                   control={control}
@@ -483,7 +487,7 @@ export default function ManageTahfizCenters() {
                 />
               </div>
               <div>
-                <Label>Email</Label>
+                <Label>{t('email')}</Label>
                 <Controller
                   name="email"
                   control={control}
@@ -532,34 +536,34 @@ export default function ManageTahfizCenters() {
               variant="outline"
               onClick={() => {
                 if (navigator.geolocation) {
-                  toast.info('Mendapatkan lokasi...');
+                  toast.info(t('loading'));
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
                       setValue('gps_lat', position.coords.latitude.toFixed(8));
                       setValue('gps_lng', position.coords.longitude.toFixed(8));
-                      toast.success('Lokasi berjaya diperolehi');
+                      toast.success(t('getCurrentLocation'));
                     },
                     (error) => {
-                      toast.error('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
+                      toast.error(t('getCurrentLocation'));
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                   );
                 } else {
-                  toast.error('GPS tidak disokong oleh pelayar ini');
+                  toast.error('GPS not supported');
                 }
               }}
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Dapatkan Lokasi Semasa
+              {t('getCurrentLocation')}
             </Button>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Batal
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                Simpan
+                {t('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -569,10 +573,10 @@ export default function ManageTahfizCenters() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Pusat Tahfiz"
-        description={`Adakah anda pasti ingin memadam "${centerToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        title={t('delete')}
+        description={`${t('confirmDelete')} "${centerToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText="Padam"
+        confirmText={t('delete')}
         variant="destructive"
       />
     </div>
