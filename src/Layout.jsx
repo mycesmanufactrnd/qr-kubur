@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
-import { getTranslation, getCurrentLanguage } from './components/translations';
+import { getTranslation, getCurrentLanguage } from './components/translations.jsx';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
