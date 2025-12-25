@@ -16,6 +16,11 @@ import Breadcrumb from '../components/Breadcrumb';
 
 export default function ManageDonations() {
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterRecipientType, setFilterRecipientType] = useState('all');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -94,7 +99,41 @@ export default function ManageDonations() {
   });
 
   const filteredDonations = donations.filter(d => {
-    return filterStatus === 'all' || d.status === filterStatus;
+    // Status filter
+    const statusMatch = filterStatus === 'all' || d.status === filterStatus;
+    
+    // Recipient type filter
+    const recipientMatch = filterRecipientType === 'all' || d.recipient_type === filterRecipientType;
+    
+    // Payment method filter
+    const paymentMatch = filterPaymentMethod === 'all' || d.payment_method === filterPaymentMethod;
+    
+    // Search term filter (donor name or recipient name)
+    let searchMatch = true;
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const donorName = (d.donor_name || '').toLowerCase();
+      const recipientName = getRecipientName(d).toLowerCase();
+      searchMatch = donorName.includes(search) || recipientName.includes(search);
+    }
+    
+    // Date range filter
+    let dateMatch = true;
+    if (dateFrom || dateTo) {
+      const donationDate = new Date(d.created_date);
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        dateMatch = dateMatch && donationDate >= fromDate;
+      }
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        dateMatch = dateMatch && donationDate <= toDate;
+      }
+    }
+    
+    return statusMatch && recipientMatch && paymentMatch && searchMatch && dateMatch;
   });
 
   const totalVerified = donations
@@ -272,23 +311,121 @@ export default function ManageDonations() {
         ))}
       </div>
 
-      {/* Filter */}
+      {/* Advanced Search & Filter */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-48">
-              <Filter className="w-4 h-4 mr-2 text-gray-400" />
-              <SelectValue placeholder={t('allStatus')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allStatus')}</SelectItem>
-              <SelectItem value="pending">{t('pending')}</SelectItem>
-              <SelectItem value="verified">{t('verified')}</SelectItem>
-              <SelectItem value="rejected">{t('rejected')}</SelectItem>
-            </SelectContent>
-          </Select>
+        <CardContent className="p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Filter className="w-5 h-5 text-gray-500" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
+          </div>
+          
+          {/* Search by name */}
+          <div>
+            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Cari Penderma/Penerima</label>
+            <input
+              type="text"
+              placeholder="Masukkan nama penderma atau penerima..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+
+          {/* Date range */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Dari</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Hingga</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+          </div>
+
+          {/* Filters row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Status</label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('allStatus')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('allStatus')}</SelectItem>
+                  <SelectItem value="pending">{t('pending')}</SelectItem>
+                  <SelectItem value="verified">{t('verified')}</SelectItem>
+                  <SelectItem value="rejected">{t('rejected')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Jenis Penerima</label>
+              <Select value={filterRecipientType} onValueChange={setFilterRecipientType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Jenis" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Jenis</SelectItem>
+                  <SelectItem value="organisation">Organisasi</SelectItem>
+                  <SelectItem value="tahfiz">Pusat Tahfiz</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Kaedah Pembayaran</label>
+              <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Kaedah" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kaedah</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="duitnow">DuitNow</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Reset filters button */}
+          {(searchTerm || dateFrom || dateTo || filterStatus !== 'all' || filterRecipientType !== 'all' || filterPaymentMethod !== 'all') && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm('');
+                  setDateFrom('');
+                  setDateTo('');
+                  setFilterStatus('all');
+                  setFilterRecipientType('all');
+                  setFilterPaymentMethod('all');
+                }}
+              >
+                Reset Semua Carian
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Results count */}
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        Menunjukkan {filteredDonations.length} daripada {donations.length} derma
+      </div>
 
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-3">
