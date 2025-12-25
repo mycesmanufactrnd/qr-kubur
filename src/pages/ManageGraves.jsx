@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tantml:react-query';
 import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/ToastrNotification';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,11 +54,14 @@ export default function ManageGraves() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -134,8 +137,8 @@ export default function ManageGraves() {
     return (
       <Card className="max-w-lg mx-auto mt-8">
         <CardContent className="p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+          <p className="text-gray-600">{t('noPermission')}</p>
         </CardContent>
       </Card>
     );
