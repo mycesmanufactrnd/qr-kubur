@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
+import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,11 +21,14 @@ export default function ManageSuggestions() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -212,11 +216,11 @@ export default function ManageSuggestions() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Menunggu</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>;
       case 'approved':
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Diluluskan</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{t('approved')}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{t('rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -224,10 +228,10 @@ export default function ManageSuggestions() {
 
   const getEntityTypeLabel = (type) => {
     const labels = {
-      person: 'Rekod Si Mati',
-      grave: 'Tanah Perkuburan',
-      organisation: 'Organisasi',
-      tahfiz: 'Pusat Tahfiz'
+      person: t('recordPerson'),
+      grave: t('recordGrave'),
+      organisation: t('recordOrg'),
+      tahfiz: t('recordTahfiz')
     };
     return labels[type] || type;
   };
@@ -235,8 +239,8 @@ export default function ManageSuggestions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
-        { label: 'Urus Cadangan', page: 'ManageSuggestions' }
+        { label: t('adminDashboard'), page: 'AdminDashboard' },
+        { label: t('manageSuggestionsTitle'), page: 'ManageSuggestions' }
       ]} />
       
       {/* Header */}
@@ -244,10 +248,10 @@ export default function ManageSuggestions() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-            Urus Cadangan
+            {t('manageSuggestionsTitle')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            {suggestions.filter(s => s.status === 'pending').length} menunggu semakan
+            {suggestions.filter(s => s.status === 'pending').length} {t('awaitingReview')}
           </p>
         </div>
       </div>
@@ -255,9 +259,9 @@ export default function ManageSuggestions() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Menunggu', value: suggestions.filter(s => s.status === 'pending').length, color: 'yellow' },
-          { label: 'Diluluskan', value: suggestions.filter(s => s.status === 'approved').length, color: 'green' },
-          { label: 'Ditolak', value: suggestions.filter(s => s.status === 'rejected').length, color: 'red' }
+          { label: t('pending'), value: suggestions.filter(s => s.status === 'pending').length, color: 'yellow' },
+          { label: t('approved'), value: suggestions.filter(s => s.status === 'approved').length, color: 'green' },
+          { label: t('rejected'), value: suggestions.filter(s => s.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -274,13 +278,13 @@ export default function ManageSuggestions() {
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="w-4 h-4 mr-2 text-gray-400" />
-              <SelectValue placeholder="Semua Status" />
+              <SelectValue placeholder={t('allStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="pending">Menunggu</SelectItem>
-              <SelectItem value="approved">Diluluskan</SelectItem>
-              <SelectItem value="rejected">Ditolak</SelectItem>
+              <SelectItem value="all">{t('allStatus')}</SelectItem>
+              <SelectItem value="pending">{t('pending')}</SelectItem>
+              <SelectItem value="approved">{t('approved')}</SelectItem>
+              <SelectItem value="rejected">{t('rejected')}</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -299,7 +303,7 @@ export default function ManageSuggestions() {
         ) : filteredSuggestions.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada cadangan</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -337,21 +341,21 @@ export default function ManageSuggestions() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Jenis</TableHead>
-                <TableHead>Cadangan</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tarikh</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{t('suggestionType')}</TableHead>
+                <TableHead>{t('suggestion')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead>{t('date')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : filteredSuggestions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada cadangan</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 filteredSuggestions.map(suggestion => (
@@ -385,16 +389,16 @@ export default function ManageSuggestions() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Butiran Cadangan</DialogTitle>
+            <DialogTitle className="dark:text-white">{t('details')}</DialogTitle>
           </DialogHeader>
           {selectedSuggestion && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Jenis Rekod</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('suggestionType')}</p>
                 <p className="font-semibold dark:text-white">{getEntityTypeLabel(selectedSuggestion.entity_type)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Butiran Rekod</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('recordDetails')}</p>
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mt-1 space-y-2">
                   <p className="font-medium dark:text-white">{getEntityDetails(selectedSuggestion).main}</p>
                   {getEntityDetails(selectedSuggestion).secondary && (
@@ -403,27 +407,27 @@ export default function ManageSuggestions() {
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Cadangan Perubahan</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('suggestedChanges')}</p>
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mt-1">
                   <p className="whitespace-pre-wrap dark:text-gray-200">{selectedSuggestion.suggested_changes}</p>
                 </div>
               </div>
               {selectedSuggestion.reason && (
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Sebab / Justifikasi</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reason')}</p>
                   <p className="dark:text-gray-200">{selectedSuggestion.reason}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Status Semasa</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('status')}</p>
                 {getStatusBadge(selectedSuggestion.status)}
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Catatan Admin</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('adminNotes')}</p>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Tambah catatan..."
+                  placeholder={t('notes')}
                   rows={3}
                   className="dark:bg-gray-700 dark:text-white"
                 />
@@ -432,7 +436,7 @@ export default function ManageSuggestions() {
           )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Tutup
+              {t('close')}
             </Button>
             {selectedSuggestion?.status === 'pending' && (
               <>
@@ -442,7 +446,7 @@ export default function ManageSuggestions() {
                   disabled={updateMutation.isPending}
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  Tolak
+                  {t('reject')}
                 </Button>
                 <Button 
                   onClick={handleApprove}
@@ -450,7 +454,7 @@ export default function ManageSuggestions() {
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Luluskan
+                  {t('approve')}
                 </Button>
               </>
             )}
