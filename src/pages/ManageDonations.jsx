@@ -327,7 +327,7 @@ export default function ManageDonations() {
               placeholder="Masukkan nama penderma atau penerima..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
@@ -339,7 +339,7 @@ export default function ManageDonations() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -348,7 +348,7 @@ export default function ManageDonations() {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function ManageDonations() {
             <div>
               <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Status</label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder={t('allStatus')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -373,7 +373,7 @@ export default function ManageDonations() {
             <div>
               <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Jenis Penerima</label>
               <Select value={filterRecipientType} onValueChange={setFilterRecipientType}>
-                <SelectTrigger>
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="Semua Jenis" />
                 </SelectTrigger>
                 <SelectContent>
@@ -387,7 +387,7 @@ export default function ManageDonations() {
             <div>
               <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Kaedah Pembayaran</label>
               <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
-                <SelectTrigger>
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="Semua Kaedah" />
                 </SelectTrigger>
                 <SelectContent>

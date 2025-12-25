@@ -40,6 +40,7 @@ export default function ManageOrganisations() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
+  const [filterType, setFilterType] = useState('all');
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -172,8 +173,13 @@ export default function ManageOrganisations() {
   const filteredOrgs = accessibleOrgs.filter(org => {
     const matchesSearch = !searchQuery || 
       org.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesState = filterState === 'all' || org.state === filterState;
-    return matchesSearch && matchesState;
+    
+    const matchesState = filterState === 'all' || 
+      (Array.isArray(org.state) ? org.state.includes(filterState) : org.state === filterState);
+    
+    const matchesType = filterType === 'all' || org.organisation_type_id === filterType;
+    
+    return matchesSearch && matchesState && matchesType;
   });
 
   const paginatedOrgs = filteredOrgs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
@@ -286,36 +292,78 @@ export default function ManageOrganisations() {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Advanced Search & Filters */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={t('searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            {isSuperAdmin && (
-              <Select value={filterState} onValueChange={setFilterState}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                  <SelectValue placeholder={t('allStates')} />
+        <CardContent className="p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Search className="w-5 h-5 text-gray-500" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
+          </div>
+
+          <div>
+            <Label className="text-sm text-gray-600 dark:text-gray-400">Nama Organisasi</Label>
+            <Input
+              placeholder="Cari nama organisasi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">Jenis Organisasi</Label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
+                  <SelectValue placeholder="Semua Jenis" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('allStates')}</SelectItem>
-                  {STATES.map(state => (
+                  <SelectItem value="all">Semua Jenis</SelectItem>
+                  {organisationTypes.map(type => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">Negeri</Label>
+              <Select value={filterState} onValueChange={setFilterState}>
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
+                  <SelectValue placeholder="Pilih negeri" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  {(isSuperAdmin ? STATES : STATES.filter(s => adminStates.includes(s))).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
+            </div>
           </div>
+
+          {(searchQuery || filterType !== 'all' || filterState !== 'all') && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterType('all');
+                  setFilterState('all');
+                }}
+              >
+                Reset Semua Carian
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Results count */}
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        Menunjukkan {filteredOrgs.length} daripada {accessibleOrgs.length} organisasi
+      </div>
 
       {/* Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">

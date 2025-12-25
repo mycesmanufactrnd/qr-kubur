@@ -359,38 +359,42 @@ export default function ManageDeadPersons() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm">Nama Penuh</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">Nama Penuh</Label>
               <Input
                 placeholder="Cari nama si mati..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <Label className="text-sm">No. IC</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">No. IC</Label>
               <Input
                 placeholder="XXXXXX-XX-XXXX"
                 value={searchIC}
                 onChange={(e) => setSearchIC(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm">Tarikh Meninggal Dari</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">Tarikh Meninggal Dari</Label>
               <Input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white"
               />
             </div>
             <div>
-              <Label className="text-sm">Tarikh Meninggal Hingga</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">Tarikh Meninggal Hingga</Label>
               <Input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white"
               />
             </div>
           </div>
@@ -398,12 +402,12 @@ export default function ManageDeadPersons() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {isSuperAdmin && (
               <div>
-                <Label className="text-sm">Negeri</Label>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">Negeri</Label>
                 <Select value={filterState} onValueChange={(v) => {
                   setFilterState(v);
                   setFilterGrave('all');
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                     <SelectValue placeholder="Pilih negeri" />
                   </SelectTrigger>
                   <SelectContent>
@@ -416,9 +420,9 @@ export default function ManageDeadPersons() {
               </div>
             )}
             <div>
-              <Label className="text-sm">Tanah Perkuburan</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">Tanah Perkuburan</Label>
               <Select value={filterGrave} onValueChange={setFilterGrave}>
-                <SelectTrigger>
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="Pilih tanah perkuburan" />
                 </SelectTrigger>
                 <SelectContent>
