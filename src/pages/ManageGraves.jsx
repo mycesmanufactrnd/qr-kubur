@@ -364,8 +364,8 @@ export default function ManageGraves() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
-        { label: 'Urus Tanah Perkuburan', page: 'ManageGraves' }
+        { label: t('adminDashboard'), page: 'AdminDashboard' },
+        { label: t('manageGraves'), page: 'ManageGraves' }
       ]} />
       
       {/* Header */}
@@ -373,7 +373,7 @@ export default function ManageGraves() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <MapPin className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            Urus Tanah Perkuburan
+            {t('manageGraves')}
           </h1>
         </div>
         <div className="flex gap-2">
@@ -383,11 +383,11 @@ export default function ManageGraves() {
             className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950"
           >
             <Upload className="w-4 h-4 mr-2" />
-            Import CSV
+            {t('importCSV')}
           </Button>
           <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
             <Plus className="w-4 h-4 mr-2" />
-            Tambah Kubur
+            {t('addNew')}
           </Button>
         </div>
       </div>
@@ -399,7 +399,7 @@ export default function ManageGraves() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Cari nama kubur, blok, lot, negeri, atau kod QR..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -411,10 +411,10 @@ export default function ManageGraves() {
             {isSuperAdmin && (
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Negeri" />
+                  <SelectValue placeholder={t('state')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  <SelectItem value="all">{t('allStates')}</SelectItem>
                   {STATES.map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -424,13 +424,13 @@ export default function ManageGraves() {
             
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="active">Aktif</SelectItem>
-                <SelectItem value="full">Penuh</SelectItem>
-                <SelectItem value="maintenance">Penyelenggaraan</SelectItem>
+                <SelectItem value="all">{t('allStatus')}</SelectItem>
+                <SelectItem value="active">{t('active')}</SelectItem>
+                <SelectItem value="full">{t('full')}</SelectItem>
+                <SelectItem value="maintenance">{t('maintenance')}</SelectItem>
               </SelectContent>
             </Select>
             
@@ -458,7 +458,7 @@ export default function ManageGraves() {
               className="w-full"
             >
               <X className="w-4 h-4 mr-2" />
-              Reset
+              {t('reset')}
             </Button>
           </div>
           
@@ -514,7 +514,7 @@ export default function ManageGraves() {
         ) : paginatedGraves.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada rekod</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -568,21 +568,21 @@ export default function ManageGraves() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Negeri</TableHead>
-                <TableHead>Blok/Lot</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{t('cemeteryName')}</TableHead>
+                <TableHead>{t('state')}</TableHead>
+                <TableHead>{t('blockLot')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : paginatedGraves.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 paginatedGraves.map(grave => (
@@ -599,8 +599,8 @@ export default function ManageGraves() {
                         grave.status === 'active' ? 'default' : 
                         grave.status === 'full' ? 'destructive' : 'secondary'
                       }>
-                        {grave.status === 'active' ? 'Aktif' : 
-                         grave.status === 'full' ? 'Penuh' : 'Penyelenggaraan'}
+                        {grave.status === 'active' ? t('active') : 
+                         grave.status === 'full' ? t('full') : t('maintenance')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -637,22 +637,22 @@ export default function ManageGraves() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingGrave ? 'Edit Kubur' : 'Tambah Kubur Baru'}
+              {editingGrave ? t('edit') : t('addNew')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama Tanah Perkuburan <span className="text-red-500">*</span></Label>
+              <Label>{t('cemeteryName')} <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.cemetery_name}
                 onChange={(e) => setFormData({...formData, cemetery_name: e.target.value})}
               />
             </div>
             <div>
-              <Label>Negeri <span className="text-red-500">*</span></Label>
+              <Label>{t('state')} <span className="text-red-500">*</span></Label>
               <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih negeri" />
+                  <SelectValue placeholder={t('selectState')} />
                 </SelectTrigger>
                 <SelectContent>
                   {STATES.map(state => (
@@ -760,25 +760,25 @@ export default function ManageGraves() {
               </div>
             </div>
             <div>
-              <Label>Status</Label>
+              <Label>{t('status')}</Label>
               <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Aktif</SelectItem>
-                  <SelectItem value="full">Penuh</SelectItem>
-                  <SelectItem value="maintenance">Penyelenggaraan</SelectItem>
+                  <SelectItem value="active">{t('active')}</SelectItem>
+                  <SelectItem value="full">{t('full')}</SelectItem>
+                  <SelectItem value="maintenance">{t('maintenance')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Batal
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                Simpan
+                {t('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -788,10 +788,10 @@ export default function ManageGraves() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Kubur"
-        description={`Adakah anda pasti ingin memadam "${graveToDelete?.cemetery_name}"? Tindakan ini tidak boleh dibatalkan.`}
+        title={t('delete')}
+        description={`${t('confirmDelete')} "${graveToDelete?.cemetery_name}"?`}
         onConfirm={confirmDelete}
-        confirmText="Padam"
+        confirmText={t('delete')}
         variant="destructive"
       />
 
@@ -799,7 +799,7 @@ export default function ManageGraves() {
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="max-w-md dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Import Data Kubur dari CSV</DialogTitle>
+            <DialogTitle className="dark:text-white">{t('importCSV')}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
