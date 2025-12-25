@@ -19,11 +19,14 @@ export default function ManageDonations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -274,13 +277,13 @@ export default function ManageDonations() {
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="w-4 h-4 mr-2 text-gray-400" />
-              <SelectValue placeholder="Semua Status" />
+              <SelectValue placeholder={t('allStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="pending">Menunggu</SelectItem>
-              <SelectItem value="verified">Disahkan</SelectItem>
-              <SelectItem value="rejected">Ditolak</SelectItem>
+              <SelectItem value="all">{t('allStatus')}</SelectItem>
+              <SelectItem value="pending">{t('pending')}</SelectItem>
+              <SelectItem value="verified">{t('verified')}</SelectItem>
+              <SelectItem value="rejected">{t('rejected')}</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -299,7 +302,7 @@ export default function ManageDonations() {
         ) : filteredDonations.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada derma</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -309,7 +312,7 @@ export default function ManageDonations() {
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {donation.donor_name || 'Tanpa Nama'}
+                      {donation.donor_name || t('anonymous')}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{getRecipientName(donation)}</p>
                     <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">
@@ -349,11 +352,11 @@ export default function ManageDonations() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={6} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : filteredDonations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">Tiada derma</TableCell>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 filteredDonations.map(donation => (
@@ -388,7 +391,7 @@ export default function ManageDonations() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Butiran Derma</DialogTitle>
+            <DialogTitle className="dark:text-white">{t('details')}</DialogTitle>
           </DialogHeader>
           {selectedDonation && (
             <div className="space-y-4">

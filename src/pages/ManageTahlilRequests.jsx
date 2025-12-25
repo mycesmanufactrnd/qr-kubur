@@ -34,6 +34,7 @@ export default function ManageTahlilRequests() {
 
   React.useEffect(() => {
     loadUser();
+    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -143,13 +144,13 @@ export default function ManageTahlilRequests() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Menunggu</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>;
       case 'accepted':
-        return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />Diterima</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />{t('accepted')}</Badge>;
       case 'completed':
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Selesai</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{t('completed')}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{t('rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -238,7 +239,7 @@ export default function ManageTahlilRequests() {
         ) : filteredRequests.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tiada permohonan</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -293,11 +294,11 @@ export default function ManageTahlilRequests() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8">{t('loading')}</TableCell>
                 </TableRow>
               ) : filteredRequests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">Tiada permohonan</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 filteredRequests.map(request => (
