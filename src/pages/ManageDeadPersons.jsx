@@ -33,6 +33,11 @@ const emptyPerson = {
 
 export default function ManageDeadPersons() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchIC, setSearchIC] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [filterGrave, setFilterGrave] = useState('all');
+  const [filterState, setFilterState] = useState('all');
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -148,11 +153,56 @@ export default function ManageDeadPersons() {
     return grave && adminStates.includes(grave.state);
   });
 
+  const malaysianStates = [
+    'Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 
+    'Pahang', 'Perak', 'Perlis', 'Pulau Pinang', 'Sabah', 
+    'Sarawak', 'Selangor', 'Terengganu', 'Wilayah Persekutuan'
+  ];
+
+  const stateFilteredGraves = filterState === 'all' 
+    ? accessibleGraves 
+    : accessibleGraves.filter(g => g.state === filterState);
+
   const filteredPersons = accessiblePersons.filter(person => {
-    const matchesSearch = !searchQuery || 
-      person.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      person.ic_number?.includes(searchQuery);
-    return matchesSearch;
+    // Name search
+    const matchesName = !searchQuery || 
+      person.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // IC search
+    const matchesIC = !searchIC || 
+      person.ic_number?.includes(searchIC);
+    
+    // Date of death range
+    let matchesDate = true;
+    if (dateFrom || dateTo) {
+      if (person.date_of_death) {
+        const deathDate = new Date(person.date_of_death);
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          fromDate.setHours(0, 0, 0, 0);
+          matchesDate = matchesDate && deathDate >= fromDate;
+        }
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          toDate.setHours(23, 59, 59, 999);
+          matchesDate = matchesDate && deathDate <= toDate;
+        }
+      } else {
+        matchesDate = false;
+      }
+    }
+    
+    // Grave filter
+    const matchesGrave = filterGrave === 'all' || person.grave_id === filterGrave;
+    
+    // State filter (through grave)
+    let matchesState = true;
+    if (filterState !== 'all') {
+      const grave = graves.find(g => g.id === person.grave_id);
+      matchesState = grave && grave.state === filterState;
+    }
+    
+    return matchesName && matchesIC && matchesDate && matchesGrave && matchesState;
   });
 
   const paginatedPersons = filteredPersons.slice((page - 1) * itemsPerPage, page * itemsPerPage);
@@ -299,20 +349,115 @@ export default function ManageDeadPersons() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* Advanced Search */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder={t('searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <CardContent className="p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Search className="w-5 h-5 text-gray-500" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm">Nama Penuh</Label>
+              <Input
+                placeholder="Cari nama si mati..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-sm">No. IC</Label>
+              <Input
+                placeholder="XXXXXX-XX-XXXX"
+                value={searchIC}
+                onChange={(e) => setSearchIC(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm">Tarikh Meninggal Dari</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Tarikh Meninggal Hingga</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {isSuperAdmin && (
+              <div>
+                <Label className="text-sm">Negeri</Label>
+                <Select value={filterState} onValueChange={(v) => {
+                  setFilterState(v);
+                  setFilterGrave('all');
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih negeri" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Negeri</SelectItem>
+                    {malaysianStates.map(state => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div>
+              <Label className="text-sm">Tanah Perkuburan</Label>
+              <Select value={filterGrave} onValueChange={setFilterGrave}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih tanah perkuburan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Tanah Perkuburan</SelectItem>
+                  {stateFilteredGraves.map(grave => (
+                    <SelectItem key={grave.id} value={grave.id}>
+                      {grave.cemetery_name} - {grave.state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {(searchQuery || searchIC || dateFrom || dateTo || filterGrave !== 'all' || filterState !== 'all') && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSearchIC('');
+                  setDateFrom('');
+                  setDateTo('');
+                  setFilterGrave('all');
+                  setFilterState('all');
+                }}
+              >
+                Reset Semua Carian
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Results count */}
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        Menunjukkan {filteredPersons.length} daripada {accessiblePersons.length} rekod
+      </div>
 
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-3">
