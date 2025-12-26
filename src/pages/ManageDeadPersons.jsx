@@ -16,7 +16,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { usePermissions } from '../components/PermissionsContext.js';
+import { usePermissions } from '../components/PermissionsContext';
 
 const emptyPerson = {
   name: '',

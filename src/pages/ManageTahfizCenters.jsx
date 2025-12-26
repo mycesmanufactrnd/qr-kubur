@@ -19,7 +19,7 @@ import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
-import { usePermissions } from '../components/PermissionsContext.js';
+import { usePermissions } from '../components/PermissionsContext';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 

@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { useForm, Controller } from "react-hook-form";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
-import { usePermissions } from '../components/PermissionsContext.js';
+import { usePermissions } from '../components/PermissionsContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { hasPermission } from '../components/permissions';
