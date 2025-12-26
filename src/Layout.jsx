@@ -357,6 +357,12 @@ export default function Layout({ children, currentPageName }) {
                             Jenis Organisasi
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('ManagePermissions')} className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            Urus Kebenaran
+                          </Link>
+                        </DropdownMenuItem>
                         </>
                         )}
 
