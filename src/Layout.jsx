@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { PermissionsProvider, usePermissions } from './components/PermissionsContext';
+import { PermissionsProvider, usePermissions } from './components/PermissionsContext.js';
 import { 
         Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
         Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,

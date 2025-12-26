@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
-import { usePermissions } from '../components/PermissionsContext';
+import { usePermissions } from '../components/PermissionsContext.js';
 
 const SERVICE_LABELS = {
   'tahlil_ringkas': 'Tahlil Ringkas',
