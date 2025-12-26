@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Shield, Users, Database, CheckCircle, XCircle, Clock, 
-  Eye, Terminal, Copy, AlertCircle, Book, Sparkles, List
+  Eye, Terminal, Copy, AlertCircle, Book, Sparkles, List, CreditCard, Settings
 } from 'lucide-react';
 import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,151 +174,17 @@ export default function SuperadminDashboard() {
         ))}
       </div>
 
-      <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="users">
-            <Users className="w-4 h-4 mr-2" />
-            {t('manageUsers')}
-          </TabsTrigger>
-          <TabsTrigger value="add">
+      <Tabs defaultValue="system" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-1">
+          <TabsTrigger value="system">
             <Database className="w-4 h-4 mr-2" />
-            {t('systemStats')}
+            Pengurusan Sistem
           </TabsTrigger>
         </TabsList>
 
-        {/* Users Tab */}
-        <TabsContent value="users" className="space-y-6">
-          {/* Pending Admin Approvals */}
-          {pendingAdmins.length > 0 && (
-            <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700 border-l-4 border-l-orange-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                  <Clock className="w-5 h-5" />
-                  {t('pendingAdmins')} ({pendingAdmins.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pendingAdmins.map(pendingUser => (
-                    <div key={pendingUser.id} className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
-                      <div>
-                        <p className="font-semibold">{pendingUser.full_name || pendingUser.email}</p>
-                        <p className="text-sm text-gray-500">{pendingUser.email}</p>
-                        <p className="text-sm text-gray-500">{t('state')}: {pendingUser.state || '-'}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => rejectAdminMutation.mutate(pendingUser.id)}
-                          disabled={rejectAdminMutation.isPending}
-                        >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          {t('reject')}
-                        </Button>
-                        <Button 
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => approveAdminMutation.mutate(pendingUser.id)}
-                          disabled={approveAdminMutation.isPending}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          {t('approve')}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        {/* System Management Tab */}
+        <TabsContent value="system" className="space-y-6">
 
-          {/* All Users */}
-          <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="dark:text-white">{t('manageUsers')}</CardTitle>
-            </CardHeader>
-            
-            {/* Mobile Cards */}
-            <div className="lg:hidden px-4 pb-4 space-y-3">
-              {loadingUsers ? (
-                [1, 2, 3].map(i => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                ))
-              ) : users.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">{t('noRecords')}</p>
-              ) : (
-                users.map(u => (
-                  <div key={u.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{u.full_name || '-'}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{u.email}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
-                        {u.role === 'admin' ? 'Admin' : t('manageUsers')}
-                      </Badge>
-                      {u.admin_status === 'pending' && (
-                        <Badge className="bg-yellow-100 text-yellow-700 text-xs">{t('pending')}</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Desktop Table */}
-            <CardContent className="hidden lg:block p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('fullName')}</TableHead>
-                    <TableHead>{t('email')}</TableHead>
-                    <TableHead>{t('status')}</TableHead>
-                    <TableHead>{t('state')}</TableHead>
-                    <TableHead>{t('status')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loadingUsers ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
-                    </TableRow>
-                  ) : users.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
-                    </TableRow>
-                  ) : (
-                    users.map(u => (
-                      <TableRow key={u.id}>
-                        <TableCell className="font-medium">{u.full_name || '-'}</TableCell>
-                        <TableCell>{u.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                            {u.role === 'admin' ? 'Admin' : 'Pengguna'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{u.state || '-'}</TableCell>
-                        <TableCell>
-                          {u.admin_status === 'pending' && (
-                            <Badge className="bg-yellow-100 text-yellow-700">{t('pending')}</Badge>
-                          )}
-                          {u.admin_status === 'approved' && (
-                            <Badge className="bg-green-100 text-green-700">{t('approved')}</Badge>
-                          )}
-                          {(!u.admin_status || u.admin_status === 'none') && (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Add Tab */}
-        <TabsContent value="add" className="space-y-4">
           <div className="grid md:grid-cols-3 gap-3">
             <Link to={createPageUrl('ManageUsers')}>
               <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
@@ -328,7 +194,7 @@ export default function SuperadminDashboard() {
                       <Users className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{t('manageUsers')}</h3>
+                      <h3 className="font-semibold text-sm">Urus Pengguna</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -342,7 +208,7 @@ export default function SuperadminDashboard() {
                       <List className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{t('orgType')}</h3>
+                      <h3 className="font-semibold text-sm">Jenis Organisasi</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -356,7 +222,7 @@ export default function SuperadminDashboard() {
                       <Database className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{t('manageOrgs')}</h3>
+                      <h3 className="font-semibold text-sm">Urus Organisasi</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -370,7 +236,7 @@ export default function SuperadminDashboard() {
                       <Terminal className="w-5 h-5 text-teal-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{t('viewLogs')}</h3>
+                      <h3 className="font-semibold text-sm">Log Aktiviti</h3>
                     </div>
                   </div>
                 </CardContent>
@@ -399,6 +265,34 @@ export default function SuperadminDashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Icon Library</h3>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to={createPageUrl('ManagePaymentPlatforms')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <CreditCard className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Payment Platforms</h3>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to={createPageUrl('ManagePaymentFields')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                      <Settings className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Payment Fields</h3>
                     </div>
                   </div>
                 </CardContent>
