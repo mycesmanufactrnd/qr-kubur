@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, Building2, Upload, CheckCircle, CreditCard, Smartphone, QrCode, ArrowLeft } from 'lucide-react';
+import { Heart, Building2, CheckCircle, CreditCard, Smartphone, QrCode, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,7 @@ export default function DonationPage() {
   const [donorName, setDonorName] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
   const [notes, setNotes] = useState('');
-  const [receiptFile, setReceiptFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [referenceId, setReferenceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const navigate = useNavigate();
@@ -66,13 +65,10 @@ export default function DonationPage() {
       toast.error('Sila lengkapkan maklumat derma');
       return;
     }
-
-    let receiptUrl = null;
-    if (receiptFile) {
-      setUploading(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: receiptFile });
-      receiptUrl = file_url;
-      setUploading(false);
+    
+    if (!referenceId) {
+      toast.error('Sila masukkan ID rujukan transaksi');
+      return;
     }
 
     createDonation.mutate({
@@ -83,7 +79,7 @@ export default function DonationPage() {
       organisation_id: recipientType === 'organisation' ? selectedRecipient : null,
       tahfiz_center_id: recipientType === 'tahfiz' ? selectedRecipient : null,
       payment_method: paymentMethod,
-      receipt_url: receiptUrl,
+      reference_id: referenceId,
       notes: notes,
       status: 'pending'
     });
@@ -107,7 +103,7 @@ export default function DonationPage() {
                 setSubmitted(false);
                 setAmount('');
                 setCustomAmount('');
-                setReceiptFile(null);
+                setReferenceId('');
               }}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
@@ -301,28 +297,32 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        {/* Receipt Upload */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
+        {/* Transaction Details */}
+        <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Muat Naik Resit</CardTitle>
+            <CardTitle className="text-lg dark:text-white flex items-center gap-2">
+              <span className="text-amber-600 dark:text-amber-400">💰</span>
+              Butiran Transaksi
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="border-2 border-dashed dark:border-gray-600 rounded-xl p-6 text-center">
-              <input
-                type="file"
-                id="receipt"
-                accept="image/*,.pdf"
-                onChange={(e) => setReceiptFile(e.target.files?.[0])}
-                className="hidden"
+          <CardContent className="space-y-4">
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                <strong>Penting:</strong> Selepas membuat pembayaran melalui FPX, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="referenceId" className="dark:text-gray-300">
+                ID Rujukan Transaksi (Reference ID) <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="referenceId"
+                placeholder="Masukkan ID rujukan dari transaksi FPX"
+                value={referenceId}
+                onChange={(e) => setReferenceId(e.target.value)}
+                required
+                className="font-mono"
               />
-              <label htmlFor="receipt" className="cursor-pointer">
-                <Upload className="w-10 h-10 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
-                {receiptFile ? (
-                  <p className="text-emerald-600 dark:text-emerald-400 font-semibold">{receiptFile.name}</p>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400">Klik untuk muat naik resit pembayaran</p>
-                )}
-              </label>
             </div>
           </CardContent>
         </Card>
@@ -331,9 +331,9 @@ export default function DonationPage() {
         <Button 
           type="submit"
           className="w-full h-14 text-lg bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 shadow-lg shadow-pink-200"
-          disabled={createDonation.isPending || uploading || !selectedRecipient || (!amount && !customAmount)}
+          disabled={createDonation.isPending || !selectedRecipient || (!amount && !customAmount) || !referenceId}
         >
-          {uploading ? 'Memuat naik...' : createDonation.isPending ? 'Menghantar...' : 'Hantar Derma'}
+          {createDonation.isPending ? 'Menghantar...' : 'Hantar Derma'}
         </Button>
       </form>
     </div>
