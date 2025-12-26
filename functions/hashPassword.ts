@@ -1,39 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import bcrypt from 'npm:bcryptjs';
 
 Deno.serve(async (req) => {
     try {
-        const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
-
-        if (!user || user.role !== 'admin') {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        const { password } = await req.json();
+        
+        if (!password) {
+            return Response.json({ error: 'Password is required' }, { status: 400 });
         }
 
-        // Hash default password: "password"
-        const hashedPassword = await bcrypt.hash("password", 10);
-
-        // Get all AppUsers
-        const appUsers = await base44.asServiceRole.entities.AppUser.list();
-
-        // Update all AppUsers with hashed password
-        const updates = [];
-        for (const appUser of appUsers) {
-            if (!appUser.password) {
-                updates.push(
-                    base44.asServiceRole.entities.AppUser.update(appUser.id, {
-                        password: hashedPassword
-                    })
-                );
-            }
-        }
-
-        await Promise.all(updates);
+        // Use crypto SHA-256 for hashing
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashed = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
         return Response.json({ 
-            success: true, 
-            message: `Updated ${updates.length} users with default password`,
-            hashedPassword: hashedPassword
+            success: true,
+            hashed: hashed
         });
     } catch (error) {
         return Response.json({ error: error.message }, { status: 500 });

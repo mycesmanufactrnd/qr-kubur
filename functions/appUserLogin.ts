@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import bcrypt from 'npm:bcryptjs';
 
 Deno.serve(async (req) => {
     const logDetails = {};
