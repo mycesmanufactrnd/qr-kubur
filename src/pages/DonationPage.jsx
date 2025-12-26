@@ -280,14 +280,14 @@ export default function DonationPage() {
             <CardContent>
               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                 <div className="grid gap-3">
-                  {availablePlatforms.map(platform => (
+                  {availablePlatforms.filter(p => p?.code).map(platform => (
                     <Label 
                       key={platform.code}
                       className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20"
                     >
                       <RadioGroupItem value={platform.code} />
                       <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                      <span className="dark:text-gray-300">{platform.name}</span>
+                      <span className="dark:text-gray-300">{platform.name || 'Unknown'}</span>
                     </Label>
                   ))}
                 </div>
