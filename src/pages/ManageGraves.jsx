@@ -179,14 +179,8 @@ export default function ManageGraves() {
     );
   }
 
-  const accessibleGraves = graves.filter(grave => {
-    if (isSuperAdmin) return true;
-    const adminStates = currentUser?.state || [];
-    return adminStates.includes(grave.state);
-  });
-
-  const filteredGraves = accessibleGraves.filter(grave => {
-    // Enhanced multi-field search
+  // Client-side filtering for search, block, lot (applied to server-paginated results)
+  const clientFilteredGraves = graves.filter(grave => {
     const matchesSearch = !searchQuery || 
       grave.cemetery_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       grave.block?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,17 +189,30 @@ export default function ManageGraves() {
       `${grave.block} ${grave.lot}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
       grave.qr_code?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Individual filters
-    const matchesState = filterState === 'all' || grave.state === filterState;
-    const matchesStatus = filterStatus === 'all' || grave.status === filterStatus;
     const matchesBlock = !filterBlock || grave.block?.toLowerCase().includes(filterBlock.toLowerCase());
     const matchesLot = !filterLot || grave.lot?.toLowerCase().includes(filterLot.toLowerCase());
     
-    return matchesSearch && matchesState && matchesStatus && matchesBlock && matchesLot;
+    return matchesSearch && matchesBlock && matchesLot;
   });
 
-  const paginatedGraves = filteredGraves.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredGraves.length / itemsPerPage);
+  // For total count, also apply client-side filters to allGraves
+  const totalFilteredGraves = allGraves.filter(grave => {
+    const matchesSearch = !searchQuery || 
+      grave.cemetery_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.block?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.lot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.state?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      `${grave.block} ${grave.lot}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grave.qr_code?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesBlock = !filterBlock || grave.block?.toLowerCase().includes(filterBlock.toLowerCase());
+    const matchesLot = !filterLot || grave.lot?.toLowerCase().includes(filterLot.toLowerCase());
+    
+    return matchesSearch && matchesBlock && matchesLot;
+  });
+
+  const paginatedGraves = clientFilteredGraves;
+  const totalPages = Math.ceil(totalFilteredGraves.length / itemsPerPage);
 
   const openAddDialog = () => {
     setEditingGrave(null);
