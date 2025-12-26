@@ -88,7 +88,11 @@ export default function ManageTahfizCenters() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.tahfiz?.view;
+  const { hasPermission } = require('../components/permissions');
+  const hasViewPermission = hasPermission(currentUser, 'tahfiz_view');
+  const hasCreatePermission = hasPermission(currentUser, 'tahfiz_create');
+  const hasEditPermission = hasPermission(currentUser, 'tahfiz_edit');
+  const hasDeletePermission = hasPermission(currentUser, 'tahfiz_delete');
 
   const { data: centers = [], isLoading } = useQuery({
     queryKey: ['admin-tahfiz'],
@@ -248,10 +252,12 @@ export default function ManageTahfizCenters() {
             {t('manageTahfiz')}
           </h1>
         </div>
-        <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800">
-          <Plus className="w-4 h-4 mr-2" />
-          {t('addNew')}
-        </Button>
+        {hasCreatePermission && (
+          <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800">
+            <Plus className="w-4 h-4 mr-2" />
+            {t('addNew')}
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -318,12 +324,16 @@ export default function ManageTahfizCenters() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)} className="h-8 w-8 p-0">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(center)} className="h-8 w-8 p-0">
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                    {hasEditPermission && (
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)} className="h-8 w-8 p-0">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {hasDeletePermission && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(center)} className="h-8 w-8 p-0">
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -386,12 +396,16 @@ export default function ManageTahfizCenters() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(center)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
+                      {hasEditPermission && (
+                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {hasDeletePermission && (
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(center)}>
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

@@ -72,7 +72,11 @@ export default function ManageDeadPersons() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.dead_persons?.view;
+  const { hasPermission } = require('../components/permissions');
+  const hasViewPermission = hasPermission(currentUser, 'dead_persons_view');
+  const hasCreatePermission = hasPermission(currentUser, 'dead_persons_create');
+  const hasEditPermission = hasPermission(currentUser, 'dead_persons_edit');
+  const hasDeletePermission = hasPermission(currentUser, 'dead_persons_delete');
 
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],

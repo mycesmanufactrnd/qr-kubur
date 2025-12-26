@@ -46,11 +46,15 @@ export default function ManageSuggestions() {
 
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin';
+  const { hasPermission } = require('../components/permissions');
+  const hasViewPermission = hasPermission(user, 'suggestions_view');
+  const hasApprovePermission = hasPermission(user, 'suggestions_approve');
+  const hasRejectPermission = hasPermission(user, 'suggestions_reject');
 
   const { data: allSuggestions = [], isLoading } = useQuery({
     queryKey: ['admin-suggestions'],
     queryFn: () => base44.entities.Suggestion.list('-created_date'),
-    enabled: !!user
+    enabled: !!user && hasViewPermission
   });
 
   const { data: graves = [] } = useQuery({
@@ -126,6 +130,23 @@ export default function ManageSuggestions() {
 
   if (loadingUser) {
     return <LoadingUser />;
+  }
+
+  if (!hasViewPermission) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: t('adminDashboard'), page: 'AdminDashboard' },
+          { label: t('manageSuggestionsTitle'), page: 'ManageSuggestions' }
+        ]} />
+        <Card className="max-w-lg mx-auto mt-8">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600">{t('noPermission')}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const getEntityDetails = (suggestion) => {
@@ -440,22 +461,26 @@ export default function ManageSuggestions() {
             </Button>
             {selectedSuggestion?.status === 'pending' && (
               <>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleReject}
-                  disabled={updateMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  {t('reject')}
-                </Button>
-                <Button 
-                  onClick={handleApprove}
-                  disabled={updateMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {t('approve')}
-                </Button>
+                {hasRejectPermission && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleReject}
+                    disabled={updateMutation.isPending}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    {t('reject')}
+                  </Button>
+                )}
+                {hasApprovePermission && (
+                  <Button 
+                    onClick={handleApprove}
+                    disabled={updateMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {t('approve')}
+                  </Button>
+                )}
               </>
             )}
           </DialogFooter>

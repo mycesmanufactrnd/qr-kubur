@@ -78,7 +78,11 @@ export default function ManageGraves() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.graves?.view;
+  const { hasPermission } = require('../components/permissions');
+  const hasViewPermission = hasPermission(currentUser, 'graves_view');
+  const hasCreatePermission = hasPermission(currentUser, 'graves_create');
+  const hasEditPermission = hasPermission(currentUser, 'graves_edit');
+  const hasDeletePermission = hasPermission(currentUser, 'graves_delete');
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],
@@ -377,18 +381,22 @@ export default function ManageGraves() {
           </h1>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setImportDialogOpen(true)} 
-            variant="outline"
-            className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {t('importCSV')}
-          </Button>
-          <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
-            <Plus className="w-4 h-4 mr-2" />
-            {t('addGrave')}
-          </Button>
+          {hasCreatePermission && (
+            <>
+              <Button 
+                onClick={() => setImportDialogOpen(true)} 
+                variant="outline"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {t('importCSV')}
+              </Button>
+              <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
+                <Plus className="w-4 h-4 mr-2" />
+                {t('addGrave')}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -535,12 +543,16 @@ export default function ManageGraves() {
                     </p>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(grave)} className="h-8 w-8 p-0">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(grave)} className="h-8 w-8 p-0">
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                    {hasEditPermission && (
+                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(grave)} className="h-8 w-8 p-0">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {hasDeletePermission && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(grave)} className="h-8 w-8 p-0">
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -604,12 +616,16 @@ export default function ManageGraves() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(grave)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(grave)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
+                      {hasEditPermission && (
+                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(grave)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {hasDeletePermission && (
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(grave)}>
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
