@@ -79,10 +79,22 @@ export default function ManageGraves() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = hasPermission(currentUser, 'graves_view');
-  const hasCreatePermission = hasPermission(currentUser, 'graves_create');
-  const hasEditPermission = hasPermission(currentUser, 'graves_edit');
-  const hasDeletePermission = hasPermission(currentUser, 'graves_delete');
+  const [hasViewPermission, setHasViewPermission] = useState(false);
+  const [hasCreatePermission, setHasCreatePermission] = useState(false);
+  const [hasEditPermission, setHasEditPermission] = useState(false);
+  const [hasDeletePermission, setHasDeletePermission] = useState(false);
+
+  React.useEffect(() => {
+    const checkPermissions = async () => {
+      if (currentUser) {
+        setHasViewPermission(await hasPermission(currentUser, 'graves_view'));
+        setHasCreatePermission(await hasPermission(currentUser, 'graves_create'));
+        setHasEditPermission(await hasPermission(currentUser, 'graves_edit'));
+        setHasDeletePermission(await hasPermission(currentUser, 'graves_delete'));
+      }
+    };
+    checkPermissions();
+  }, [currentUser]);
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],

@@ -89,13 +89,7 @@ export default function ManagePermissions() {
         await updatePermissionMutation.mutateAsync({ slug, enabled });
       }
       
-      // Update AppUser permissions field
-      await base44.entities.AppUser.update(selectedUser.id, {
-        permissions: Object.entries(userPermissions).map(([slug, enabled]) => ({
-          slug,
-          enabled
-        }))
-      });
+
       
       toast.success('Kebenaran berjaya dikemaskini');
     } catch (error) {

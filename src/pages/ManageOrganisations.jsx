@@ -18,6 +18,7 @@ import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
+import { hasPermission } from '../components/permissions';
 
 const STATES = [
   "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -78,7 +79,16 @@ export default function ManageOrganisations() {
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const isAdmin = currentUser?.role === 'admin';
-  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.organisations?.view;
+  const [hasViewPermission, setHasViewPermission] = useState(false);
+
+  React.useEffect(() => {
+    const checkPermissions = async () => {
+      if (currentUser) {
+        setHasViewPermission(await hasPermission(currentUser, 'organisations_view'));
+      }
+    };
+    checkPermissions();
+  }, [currentUser]);
 
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],
