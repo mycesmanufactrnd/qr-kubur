@@ -226,25 +226,39 @@ export default function ManageUsers() {
   const handleSaveUser = () => {
     if (!editUser) return;
     
-    // Validation
+    // Validation - Required fields
     if (!editUser.full_name?.trim()) {
-      toast.error('Sila masukkan nama penuh');
+      toast.error('Sila masukkan nama penuh', { description: 'Medan Diperlukan' });
       return;
     }
     if (!editUser.email?.trim()) {
-      toast.error('Sila masukkan email');
+      toast.error('Sila masukkan email', { description: 'Medan Diperlukan' });
       return;
     }
     if (isAddMode && !editUser.password?.trim()) {
-      toast.error('Sila masukkan password');
+      toast.error('Sila masukkan password', { description: 'Medan Diperlukan' });
       return;
     }
     if (!editUser.organisation_id && !editUser.tahfiz_center_id) {
-      toast.error('Sila pilih organisasi atau pusat tahfiz');
+      toast.error('Sila pilih organisasi atau pusat tahfiz', { description: 'Medan Diperlukan' });
       return;
     }
     if (!editUser.state || editUser.state.length === 0) {
-      toast.error('Sila pilih sekurang-kurangnya satu negeri');
+      toast.error('Sila pilih sekurang-kurangnya satu negeri', { description: 'Medan Diperlukan' });
+      return;
+    }
+
+    // Additional validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editUser.email)) {
+      toast.error('Format email tidak sah', { description: 'Format Tidak Sah' });
+      return;
+    }
+    if (isAddMode && editUser.password.length < 6) {
+      toast.error('Password mesti sekurang-kurangnya 6 aksara', { description: 'Password Terlalu Pendek' });
+      return;
+    }
+    if (!isAddMode && editUser.password && editUser.password.length < 6) {
+      toast.error('Password mesti sekurang-kurangnya 6 aksara', { description: 'Password Terlalu Pendek' });
       return;
     }
     

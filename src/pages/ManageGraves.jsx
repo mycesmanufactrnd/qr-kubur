@@ -240,7 +240,7 @@ export default function ManageGraves() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validation
+    // Validation - Required fields
     if (!formData.cemetery_name?.trim()) {
       showError('Sila masukkan nama tanah perkuburan', 'Medan Diperlukan');
       return;
@@ -248,6 +248,20 @@ export default function ManageGraves() {
     
     if (!formData.state) {
       showError('Sila pilih negeri', 'Medan Diperlukan');
+      return;
+    }
+
+    // Additional validation
+    if (formData.gps_lat && (isNaN(formData.gps_lat) || formData.gps_lat < -90 || formData.gps_lat > 90)) {
+      showError('GPS Latitude mesti antara -90 hingga 90', 'Nilai Tidak Sah');
+      return;
+    }
+    if (formData.gps_lng && (isNaN(formData.gps_lng) || formData.gps_lng < -180 || formData.gps_lng > 180)) {
+      showError('GPS Longitude mesti antara -180 hingga 180', 'Nilai Tidak Sah');
+      return;
+    }
+    if (formData.total_graves && (isNaN(formData.total_graves) || formData.total_graves < 0)) {
+      showError('Jumlah kubur mesti nombor positif', 'Nilai Tidak Sah');
       return;
     }
     
