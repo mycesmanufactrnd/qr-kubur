@@ -95,10 +95,32 @@ export default function ManageTahfizCenters() {
   const hasEditPermission = hasPermission('tahfiz_edit');
   const hasDeletePermission = hasPermission('tahfiz_delete');
 
+  const skip = (page - 1) * itemsPerPage;
+
+  const buildFilterQuery = () => {
+    const query = {};
+    if (!isSuperAdmin && currentUser?.state) {
+      const userStates = Array.isArray(currentUser.state) ? currentUser.state : [];
+      if (userStates.length > 0) {
+        query.state = { $in: userStates };
+      }
+    }
+    if (filterState !== 'all') {
+      query.state = filterState;
+    }
+    return query;
+  };
+
+  const { data: allCenters = [] } = useQuery({
+    queryKey: ['admin-tahfiz-all', filterState, currentUser?.state],
+    queryFn: () => base44.entities.TahfizCenter.filter(buildFilterQuery()),
+    enabled: hasViewPermission && !!currentUser
+  });
+
   const { data: centers = [], isLoading } = useQuery({
-    queryKey: ['admin-tahfiz'],
-    queryFn: () => base44.entities.TahfizCenter.list('-created_date'),
-    enabled: hasViewPermission
+    queryKey: ['admin-tahfiz-paginated', page, itemsPerPage, filterState, currentUser?.state],
+    queryFn: () => base44.entities.TahfizCenter.filter(buildFilterQuery(), '-created_date', itemsPerPage, skip),
+    enabled: hasViewPermission && !!currentUser
   });
 
   const createMutation = useMutation({
@@ -151,22 +173,21 @@ export default function ManageTahfizCenters() {
     );
   }
 
-  const userStates = Array.isArray(currentUser?.state) ? currentUser.state : [];
-
-  const accessibleCenters = centers.filter(center => {
-    if (isSuperAdmin) return true;
-    return userStates.includes(center.state);
+  const allFilteredCenters = allCenters.filter(center => {
+    const matchesSearch = !searchQuery || 
+      center.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
-  const filteredCenters = accessibleCenters.filter(center => {
+  const filteredCenters = centers.filter(center => {
     const matchesSearch = !searchQuery || 
       center.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesState = filterState === 'all' || center.state === filterState;
     return matchesSearch && matchesState;
   });
 
-  const paginatedCenters = filteredCenters.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredCenters.length / itemsPerPage);
+  const paginatedCenters = filteredCenters;
+  const totalPages = Math.ceil(allFilteredCenters.length / itemsPerPage);
 
   const openAddDialog = () => {
     setEditingCenter(null);
@@ -351,7 +372,7 @@ export default function ManageTahfizCenters() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredCenters.length}
+            totalItems={allFilteredCenters.length}
           />
         )}
       </div>
@@ -424,7 +445,7 @@ export default function ManageTahfizCenters() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredCenters.length}
+            totalItems={allFilteredCenters.length}
           />
         )}
       </Card>

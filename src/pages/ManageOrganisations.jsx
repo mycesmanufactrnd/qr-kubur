@@ -83,10 +83,30 @@ export default function ManageOrganisations() {
   const isAdmin = currentUser?.role === 'admin';
   const hasViewPermission = hasPermission('organisations_view');
 
+  const skip = (page - 1) * itemsPerPage;
+
+  const buildFilterQuery = () => {
+    const query = {};
+    if (!isSuperAdmin && currentUser?.state?.length > 0) {
+      const adminStates = Array.isArray(currentUser.state) ? currentUser.state : [currentUser.state].filter(Boolean);
+      query.state = { $in: adminStates };
+    }
+    if (filterType !== 'all') {
+      query.organisation_type_id = filterType;
+    }
+    return query;
+  };
+
+  const { data: allOrganisations = [] } = useQuery({
+    queryKey: ['admin-organisations-all', filterType, currentUser?.state],
+    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery()),
+    enabled: hasViewPermission && !!currentUser
+  });
+
   const { data: organisations = [], isLoading } = useQuery({
-    queryKey: ['admin-organisations'],
-    queryFn: () => base44.entities.Organisation.list('-created_date'),
-    enabled: hasViewPermission
+    queryKey: ['admin-organisations-paginated', page, itemsPerPage, filterType, currentUser?.state],
+    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery(), '-created_date', itemsPerPage, skip),
+    enabled: hasViewPermission && !!currentUser
   });
 
   const { data: organisationTypes = [] } = useQuery({
@@ -162,18 +182,19 @@ export default function ManageOrganisations() {
     );
   }
 
-  // Filter by admin state access
   const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
-  
-  const accessibleOrgs = organisations.filter(org => {
-    if (isSuperAdmin) return true;
+
+  const allFilteredOrgs = allOrganisations.filter(org => {
+    const matchesSearch = !searchQuery || 
+      org.name?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Admin can only see orgs in their state(s)
-    const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
-    return adminStates.some(s => orgStates.includes(s));
+    const matchesState = filterState === 'all' || 
+      (Array.isArray(org.state) ? org.state.includes(filterState) : org.state === filterState);
+    
+    return matchesSearch && matchesState;
   });
 
-  const filteredOrgs = accessibleOrgs.filter(org => {
+  const filteredOrgs = organisations.filter(org => {
     const matchesSearch = !searchQuery || 
       org.name?.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -185,8 +206,8 @@ export default function ManageOrganisations() {
     return matchesSearch && matchesState && matchesType;
   });
 
-  const paginatedOrgs = filteredOrgs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredOrgs.length / itemsPerPage);
+  const paginatedOrgs = filteredOrgs;
+  const totalPages = Math.ceil(allFilteredOrgs.length / itemsPerPage);
 
   const canManageOrg = (org) => {
     if (isSuperAdmin) return true;
@@ -365,7 +386,7 @@ export default function ManageOrganisations() {
 
       {/* Results count */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        Menunjukkan {filteredOrgs.length} daripada {accessibleOrgs.length} organisasi
+        Menunjukkan {allFilteredOrgs.length} organisasi
       </div>
 
       {/* Table */}
@@ -431,7 +452,7 @@ export default function ManageOrganisations() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredOrgs.length}
+            totalItems={allFilteredOrgs.length}
           />
         )}
       </Card>

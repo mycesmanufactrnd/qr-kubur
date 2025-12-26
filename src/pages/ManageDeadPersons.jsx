@@ -79,9 +79,17 @@ export default function ManageDeadPersons() {
   const hasEditPermission = hasPermission('dead_persons_edit');
   const hasDeletePermission = hasPermission('dead_persons_delete');
 
+  const skip = (page - 1) * itemsPerPage;
+
+  const { data: allPersons = [] } = useQuery({
+    queryKey: ['admin-persons-all'],
+    queryFn: () => base44.entities.DeadPerson.list(),
+    enabled: hasViewPermission
+  });
+
   const { data: persons = [], isLoading } = useQuery({
-    queryKey: ['admin-persons'],
-    queryFn: () => base44.entities.DeadPerson.list('-created_date'),
+    queryKey: ['admin-persons-paginated', page, itemsPerPage],
+    queryFn: () => base44.entities.DeadPerson.filter({}, '-created_date', itemsPerPage, skip),
     enabled: hasViewPermission
   });
 
@@ -151,6 +159,12 @@ export default function ManageDeadPersons() {
 
   const adminStates = currentUser?.state || [];
   const accessibleGraves = isSuperAdmin ? graves : graves.filter(g => adminStates.includes(g.state));
+
+  const allAccessiblePersons = allPersons.filter(person => {
+    if (isSuperAdmin) return true;
+    const grave = graves.find(g => g.id === person.grave_id);
+    return grave && adminStates.includes(grave.state);
+  });
 
   const accessiblePersons = persons.filter(person => {
     if (isSuperAdmin) return true;
@@ -290,7 +304,7 @@ export default function ManageDeadPersons() {
 
     // Check QR code uniqueness
     if (formData.qr_code) {
-      const qrExists = persons.some(p => 
+      const qrExists = allPersons.some(p => 
         p.qr_code === formData.qr_code && p.id !== editingPerson?.id
       );
       if (qrExists) {
@@ -465,7 +479,7 @@ export default function ManageDeadPersons() {
 
       {/* Results count */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        Menunjukkan {filteredPersons.length} daripada {accessiblePersons.length} rekod
+        Menunjukkan {filteredPersons.length} daripada {allAccessiblePersons.length} rekod
       </div>
 
       {/* Mobile Cards */}
