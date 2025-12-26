@@ -295,7 +295,7 @@ export default function ManageGraves() {
   const downloadTemplate = () => {
     try {
       // Get fields from the first grave as reference, or use default fields
-      const sampleGrave = graves[0];
+      const sampleGrave = allGraves[0] || graves[0];
       const fields = sampleGrave 
         ? Object.keys(sampleGrave).filter(key => !['id', 'created_date', 'updated_date', 'created_by'].includes(key))
         : ['cemetery_name', 'state', 'block', 'lot', 'gps_lat', 'gps_lng', 'organisation_id', 'qr_code', 'status', 'total_graves'];
