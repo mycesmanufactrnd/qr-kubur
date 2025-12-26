@@ -47,12 +47,14 @@ export default function PaymentConfigDialog({
   React.useEffect(() => {
     if (existingConfigs.length > 0) {
       const values = {};
-      const platforms = new Set();
+      const platformSet = new Set();
       existingConfigs.forEach(config => {
-        platforms.add(config.payment_platform_code);
-        values[`${config.payment_platform_code}_${config.key}`] = config.value;
+        if (config?.payment_platform_code && config?.key) {
+          platformSet.add(config.payment_platform_code);
+          values[`${config.payment_platform_code}_${config.key}`] = config.value;
+        }
       });
-      setSelectedPlatforms(Array.from(platforms));
+      setSelectedPlatforms(Array.from(platformSet));
       setConfigValues(values);
     }
   }, [existingConfigs]);
@@ -69,16 +71,18 @@ export default function PaymentConfigDialog({
       // Create new configs
       const configs = [];
       for (const platformCode of selectedPlatforms) {
-        const fields = platformFields.filter(f => f.payment_platform_code === platformCode);
+        const fields = platformFields.filter(f => f?.payment_platform_code === platformCode);
         for (const field of fields) {
-          const value = configValues[`${platformCode}_${field.key}`];
-          if (value) {
-            configs.push({
-              [entityKey]: entityId,
-              payment_platform_code: platformCode,
-              key: field.key,
-              value: value
-            });
+          if (field?.key) {
+            const value = configValues[`${platformCode}_${field.key}`];
+            if (value) {
+              configs.push({
+                [entityKey]: entityId,
+                payment_platform_code: platformCode,
+                key: field.key,
+                value: value
+              });
+            }
           }
         }
       }
@@ -120,13 +124,16 @@ export default function PaymentConfigDialog({
   const validateConfig = () => {
     for (const platformCode of selectedPlatforms) {
       const fields = platformFields.filter(f => 
-        f.payment_platform_code === platformCode && f.required
+        f?.payment_platform_code === platformCode && f?.required
       );
       for (const field of fields) {
-        const value = configValues[`${platformCode}_${field.key}`];
-        if (!value || value.trim() === '') {
-          toast.error(`${field.label || field.key} is required for ${platforms.find(p => p.code === platformCode)?.name}`);
-          return false;
+        if (field?.key) {
+          const value = configValues[`${platformCode}_${field.key}`];
+          if (!value || value.trim() === '') {
+            const platformName = platforms.find(p => p?.code === platformCode)?.name || 'platform';
+            toast.error(`${field.label || field.key} is required for ${platformName}`);
+            return false;
+          }
         }
       }
     }
@@ -212,7 +219,7 @@ export default function PaymentConfigDialog({
           <div>
             <Label className="text-base font-semibold mb-3 block">Select Payment Platforms</Label>
             <div className="grid gap-3">
-              {platforms.map(platform => (
+              {platforms.filter(p => p?.code).map(platform => (
                 <Label 
                   key={platform.code}
                   className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
@@ -233,15 +240,15 @@ export default function PaymentConfigDialog({
           </div>
 
           {selectedPlatforms.map(platformCode => {
-            const platform = platforms.find(p => p.code === platformCode);
-            const fields = platformFields.filter(f => f.payment_platform_code === platformCode);
+            const platform = platforms.find(p => p?.code === platformCode);
+            const fields = platformFields.filter(f => f?.payment_platform_code === platformCode);
             
-            if (fields.length === 0) return null;
+            if (!platform || fields.length === 0) return null;
 
             return (
               <div key={platformCode} className="border rounded-lg p-4 bg-gray-50">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  {platform?.name} Configuration
+                  {platform.name} Configuration
                 </h3>
                 <div className="space-y-4">
                   {fields.map(field => (
