@@ -44,7 +44,6 @@ export function PermissionsProvider({ children }) {
   const hasPermission = (permissionSlug) => {
     if (!user) return false;
     if (user.role === 'superadmin') return true;
-    if (user.role === 'admin') return true;
     return permissions.includes(permissionSlug);
   };
 
