@@ -88,7 +88,7 @@ export default function ManageTahfizCenters() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const { hasPermission } = require('../components/permissions');
+  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(currentUser, 'tahfiz_view');
   const hasCreatePermission = hasPermission(currentUser, 'tahfiz_create');
   const hasEditPermission = hasPermission(currentUser, 'tahfiz_edit');

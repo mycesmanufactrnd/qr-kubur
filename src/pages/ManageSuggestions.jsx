@@ -46,7 +46,7 @@ export default function ManageSuggestions() {
 
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin';
-  const { hasPermission } = require('../components/permissions');
+  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(user, 'suggestions_view');
   const hasApprovePermission = hasPermission(user, 'suggestions_approve');
   const hasRejectPermission = hasPermission(user, 'suggestions_reject');

@@ -78,7 +78,7 @@ export default function ManageGraves() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const { hasPermission } = require('../components/permissions');
+  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(currentUser, 'graves_view');
   const hasCreatePermission = hasPermission(currentUser, 'graves_create');
   const hasEditPermission = hasPermission(currentUser, 'graves_edit');

@@ -72,7 +72,7 @@ export default function ManageDeadPersons() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const { hasPermission } = require('../components/permissions');
+  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(currentUser, 'dead_persons_view');
   const hasCreatePermission = hasPermission(currentUser, 'dead_persons_create');
   const hasEditPermission = hasPermission(currentUser, 'dead_persons_edit');
