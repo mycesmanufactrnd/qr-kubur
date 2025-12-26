@@ -408,7 +408,7 @@ function LayoutContent({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6">
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6 w-full">
         {children}
       </main>
 
