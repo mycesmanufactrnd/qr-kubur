@@ -44,8 +44,6 @@ const emptyCenter = {
   address: '',
   phone: '',
   email: '',
-  bank_name: '',
-  bank_account: '',
   gps_lat: '',
   gps_lng: ''
 };
@@ -207,8 +205,6 @@ export default function ManageTahfizCenters() {
       address: center.address || '',
       phone: center.phone || '',
       email: center.email || '',
-      bank_name: center.bank_name || '',
-      bank_account: center.bank_account || '',
       gps_lat: center.gps_lat || '',
       gps_lng: center.gps_lng || ''
     });
@@ -575,24 +571,7 @@ export default function ManageTahfizCenters() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Nama Bank</Label>
-                <Controller
-                  name="bank_name"
-                  control={control}
-                  render={({ field }) => <Input {...field} />}
-                />
-              </div>
-              <div>
-                <Label>No. Akaun</Label>
-                <Controller
-                  name="bank_account"
-                  control={control}
-                  render={({ field }) => <Input {...field} />}
-                />
-              </div>
-            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>GPS Latitude</Label>

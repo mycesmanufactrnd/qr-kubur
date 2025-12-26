@@ -32,6 +32,8 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
+import ManagePaymentPlatforms from './pages/ManagePaymentPlatforms';
+import ManagePaymentFields from './pages/ManagePaymentFields';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +72,8 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
+    "ManagePaymentPlatforms": ManagePaymentPlatforms,
+    "ManagePaymentFields": ManagePaymentFields,
 }
 
 export const pagesConfig = {
