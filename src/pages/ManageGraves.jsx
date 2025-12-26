@@ -16,6 +16,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
+import { hasPermission } from '../components/permissions';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -78,7 +79,6 @@ export default function ManageGraves() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(currentUser, 'graves_view');
   const hasCreatePermission = hasPermission(currentUser, 'graves_create');
   const hasEditPermission = hasPermission(currentUser, 'graves_edit');

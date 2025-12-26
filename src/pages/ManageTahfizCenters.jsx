@@ -19,6 +19,7 @@ import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
+import { hasPermission } from '../components/permissions';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -88,7 +89,6 @@ export default function ManageTahfizCenters() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(currentUser, 'tahfiz_view');
   const hasCreatePermission = hasPermission(currentUser, 'tahfiz_create');
   const hasEditPermission = hasPermission(currentUser, 'tahfiz_edit');

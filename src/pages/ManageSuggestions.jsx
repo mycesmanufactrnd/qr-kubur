@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import { hasPermission } from '../components/permissions';
 
 export default function ManageSuggestions() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -46,7 +47,6 @@ export default function ManageSuggestions() {
 
   const isSuperAdmin = user?.role === 'superadmin';
   const isAdmin = user?.role === 'admin';
-  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(user, 'suggestions_view');
   const hasApprovePermission = hasPermission(user, 'suggestions_approve');
   const hasRejectPermission = hasPermission(user, 'suggestions_reject');

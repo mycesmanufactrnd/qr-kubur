@@ -16,6 +16,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
+import { hasPermission } from '../components/permissions';
 
 const emptyPerson = {
   name: '',
@@ -72,7 +73,6 @@ export default function ManageDeadPersons() {
   };
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  import { hasPermission } from '../components/permissions';
   const hasViewPermission = hasPermission(currentUser, 'dead_persons_view');
   const hasCreatePermission = hasPermission(currentUser, 'dead_persons_create');
   const hasEditPermission = hasPermission(currentUser, 'dead_persons_edit');
