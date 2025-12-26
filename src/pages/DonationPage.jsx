@@ -302,8 +302,7 @@ export default function DonationPage() {
         {/* Transaction Details */}
         <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white flex items-center gap-2">
-              <span className="text-amber-600 dark:text-amber-400">💰</span>
+            <CardTitle className="text-lg dark:text-white">
               Butiran Transaksi
             </CardTitle>
           </CardHeader>

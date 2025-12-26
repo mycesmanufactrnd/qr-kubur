@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2, ArrowLeft } from 'lucide-react';
+import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ export default function TahlilRequestPage() {
   const [requesterName, setRequesterName] = useState('');
   const [requesterPhone, setRequesterPhone] = useState('');
   const [requesterEmail, setRequesterEmail] = useState('');
-  const [deceasedName, setDeceasedName] = useState(preSelectedDeceased || '');
+  const [deceasedNames, setDeceasedNames] = useState([preSelectedDeceased || '']);
   const [preferredDate, setPreferredDate] = useState('');
   const [notes, setNotes] = useState('');
   const [customService, setCustomService] = useState('');
@@ -57,6 +57,22 @@ export default function TahlilRequestPage() {
     }
   });
 
+  const addDeceasedName = () => {
+    setDeceasedNames([...deceasedNames, '']);
+  };
+
+  const removeDeceasedName = (index) => {
+    if (deceasedNames.length > 1) {
+      setDeceasedNames(deceasedNames.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateDeceasedName = (index, value) => {
+    const updated = [...deceasedNames];
+    updated[index] = value;
+    setDeceasedNames(updated);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -72,8 +88,8 @@ export default function TahlilRequestPage() {
       toast.error('Sila masukkan nombor telefon');
       return;
     }
-    if (!deceasedName) {
-      toast.error('Sila masukkan nama arwah');
+    if (deceasedNames.filter(n => n.trim()).length === 0) {
+      toast.error('Sila masukkan sekurang-kurangnya satu nama arwah');
       return;
     }
     if (!referenceId) {
@@ -85,13 +101,21 @@ export default function TahlilRequestPage() {
       ? `${notes}\n\nPerkhidmatan Khas: ${customService}`.trim()
       : notes;
 
+    // Convert array to object with indices as keys
+    const deceasedNamesObject = {};
+    deceasedNames.forEach((name, index) => {
+      if (name.trim()) {
+        deceasedNamesObject[index] = name.trim();
+      }
+    });
+
     createRequest.mutate({
       tahfiz_center_id: selectedTahfiz,
       service_type: serviceTypes.join(','),
       requester_name: requesterName,
       requester_phone: requesterPhone,
       requester_email: requesterEmail,
-      deceased_name: deceasedName,
+      deceased_names: deceasedNamesObject,
       preferred_date: preferredDate,
       notes: finalNotes,
       reference_id: referenceId,
@@ -117,7 +141,7 @@ export default function TahlilRequestPage() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Permohonan Dihantar!</h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Permohonan tahlil untuk <span className="font-bold dark:text-emerald-300">{deceasedName}</span> telah dihantar kepada pusat tahfiz.
+              Permohonan tahlil untuk <span className="font-bold dark:text-emerald-300">{Object.values(deceasedNames).filter(n => n).join(', ')}</span> telah dihantar kepada pusat tahfiz.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Pihak pusat tahfiz akan menghubungi anda untuk pengesahan.
@@ -125,7 +149,7 @@ export default function TahlilRequestPage() {
             <Button 
               onClick={() => {
                 setSubmitted(false);
-                setDeceasedName('');
+                setDeceasedNames(['']);
                 setNotes('');
                 setPreferredDate('');
                 setReferenceId('');
@@ -167,7 +191,7 @@ export default function TahlilRequestPage() {
               <SelectContent className="bg-white dark:bg-gray-700">
                 {tahfizCenters.map(center => (
                   <SelectItem key={center.id} value={center.id}>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col items-start">
                       <span>{center.name}</span>
                       <span className="text-xs text-gray-500">{center.state}</span>
                     </div>
@@ -191,24 +215,30 @@ export default function TahlilRequestPage() {
                     selectedCenter.services_offered.includes(serviceType.value) || 
                     serviceType.value === 'custom'
                   )
-                  .map(service => (
-                    <Label 
-                    key={service.value}
-                    className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                        serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'dark:border-gray-600'
-                    }`}
-                    >
-                    <Checkbox 
-                        checked={serviceTypes.includes(service.value)}
-                        onCheckedChange={() => toggleServiceType(service.value)}
-                        className="mt-1"
-                    />
-                    <div>
-                        <span className="font-semibold dark:text-white">{service.label}</span>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
-                    </div>
-                    </Label>
-                ))}
+                  .map(service => {
+                    const price = selectedCenter?.service_prices?.[service.value];
+                    return (
+                      <Label 
+                      key={service.value}
+                      className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                          serviceTypes.includes(service.value) ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'dark:border-gray-600'
+                      }`}
+                      >
+                      <Checkbox 
+                          checked={serviceTypes.includes(service.value)}
+                          onCheckedChange={() => toggleServiceType(service.value)}
+                          className="mt-1"
+                      />
+                      <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold dark:text-white">{service.label}</span>
+                            {price && <span className="text-violet-600 dark:text-violet-400 font-bold">RM {price}</span>}
+                          </div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
+                      </div>
+                      </Label>
+                    );
+                  })}
                 </div>
 
                 {serviceTypes.includes('custom') && (
@@ -231,20 +261,47 @@ export default function TahlilRequestPage() {
 
         {/* Deceased Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg dark:text-white">Maklumat Arwah</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addDeceasedName}
+              className="h-8"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Tambah
+            </Button>
           </CardHeader>
-          <CardContent>
-            <div>
-              <Label htmlFor="deceasedName" className="dark:text-gray-300">Nama Arwah <span className="text-red-500">*</span></Label>
-              <Input
-                id="deceasedName"
-                placeholder="Nama penuh arwah"
-                value={deceasedName}
-                onChange={(e) => setDeceasedName(e.target.value)}
-                required
-              />
-            </div>
+          <CardContent className="space-y-3">
+            {deceasedNames.map((name, index) => (
+              <div key={index} className="flex gap-2">
+                <div className="flex-1">
+                  <Label htmlFor={`deceased-${index}`} className="dark:text-gray-300">
+                    Nama Arwah {deceasedNames.length > 1 ? `${index + 1}` : ''} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id={`deceased-${index}`}
+                    placeholder="Nama penuh arwah"
+                    value={name}
+                    onChange={(e) => updateDeceasedName(index, e.target.value)}
+                    required
+                  />
+                </div>
+                {deceasedNames.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeDeceasedName(index)}
+                    className="mt-7 h-10 w-10 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -333,8 +390,7 @@ export default function TahlilRequestPage() {
         {/* Transaction Details */}
         <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white flex items-center gap-2">
-              <span className="text-amber-600 dark:text-amber-400">💰</span>
+            <CardTitle className="text-lg dark:text-white">
               Butiran Transaksi
             </CardTitle>
           </CardHeader>
@@ -364,7 +420,7 @@ export default function TahlilRequestPage() {
         <Button 
           type="submit"
           className="w-full h-14 text-lg bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg shadow-violet-200"
-          disabled={createRequest.isPending || !selectedTahfiz || !requesterName || !deceasedName || !requesterPhone || !referenceId}
+          disabled={createRequest.isPending || !selectedTahfiz || !requesterName || deceasedNames.filter(n => n.trim()).length === 0 || !requesterPhone || !referenceId}
         >
           {createRequest.isPending ? 'Menghantar...' : 'Hantar Permohonan'}
         </Button>
