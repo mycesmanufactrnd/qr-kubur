@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tantml:react-query';
+import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2, ArrowLeft, Plus, Trash2, CreditCard } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export default function TahlilRequestPage() {
   const [customService, setCustomService] = useState('');
   const [referenceId, setReferenceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -46,7 +48,51 @@ export default function TahlilRequestPage() {
     queryFn: () => base44.entities.TahfizCenter.list()
   });
 
+  const { data: paymentPlatforms = [] } = useQuery({
+    queryKey: ['payment-platforms-active'],
+    queryFn: () => base44.entities.PaymentPlatform.filter({ status: 'active' })
+  });
+
+  const { data: paymentFields = [] } = useQuery({
+    queryKey: ['payment-fields'],
+    queryFn: () => base44.entities.PaymentPlatformField.list()
+  });
+
+  const { data: paymentConfigs = [] } = useQuery({
+    queryKey: ['tahfiz-payment-config', selectedTahfiz],
+    queryFn: async () => {
+      if (!selectedTahfiz) return [];
+      return base44.entities.TahfizPaymentConfig.filter({ tahfiz_id: selectedTahfiz });
+    },
+    enabled: !!selectedTahfiz
+  });
+
   const selectedCenter = tahfizCenters.find(c => c.id === selectedTahfiz);
+
+  // Get available payment platforms for selected tahfiz
+  const availablePlatforms = React.useMemo(() => {
+    if (!paymentConfigs.length) return [];
+    
+    const platformCodes = [...new Set(paymentConfigs.map(c => c.payment_platform_code))];
+    return paymentPlatforms.filter(p => platformCodes.includes(p.code));
+  }, [paymentConfigs, paymentPlatforms]);
+
+  // Get payment details for selected method
+  const getPaymentDetails = (platformCode) => {
+    const configs = paymentConfigs.filter(c => c.payment_platform_code === platformCode);
+    const details = {};
+    configs.forEach(config => {
+      details[config.key] = config.value;
+    });
+    return details;
+  };
+
+  // Reset payment method when tahfiz changes
+  React.useEffect(() => {
+    if (availablePlatforms.length > 0 && !availablePlatforms.find(p => p.code === paymentMethod)) {
+      setPaymentMethod(availablePlatforms[0]?.code || '');
+    }
+  }, [availablePlatforms, selectedTahfiz]);
 
   const createRequest = useMutation({
     mutationFn: (data) => base44.entities.TahlilRequest.create(data),
@@ -387,6 +433,68 @@ export default function TahlilRequestPage() {
           </CardContent>
         </Card>
 
+        {/* Payment Method */}
+        {availablePlatforms.length > 0 && (
+          <Card className="border-0 shadow-md dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="text-lg dark:text-white">Kaedah Pembayaran</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                <div className="grid gap-3">
+                  {availablePlatforms.map(platform => (
+                    <Label 
+                      key={platform.code}
+                      className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-violet-500 [&:has(:checked)]:bg-violet-50 dark:[&:has(:checked)]:bg-violet-900/20"
+                    >
+                      <RadioGroupItem value={platform.code} />
+                      <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                      <span className="dark:text-gray-300">{platform.name}</span>
+                    </Label>
+                  ))}
+                </div>
+              </RadioGroup>
+
+              {/* Payment Details */}
+              {paymentMethod && (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">Maklumat Pembayaran</h4>
+                  {(() => {
+                    const details = getPaymentDetails(paymentMethod);
+                    const fields = paymentFields.filter(f => f.payment_platform_code === paymentMethod);
+                    
+                    return (
+                      <div className="space-y-2">
+                        {fields.map(field => {
+                          const value = details[field.key];
+                          if (!value) return null;
+
+                          if (field.field_type === 'image') {
+                            return (
+                              <div key={field.key}>
+                                <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+                                  {field.label || field.key}
+                                </p>
+                                <img src={value} alt={field.label} className="max-w-xs rounded border" />
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <p key={field.key} className="text-sm text-blue-800 dark:text-blue-300">
+                              <span className="font-medium">{field.label || field.key}:</span> {value}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Transaction Details */}
         <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
@@ -397,7 +505,7 @@ export default function TahlilRequestPage() {
           <CardContent className="space-y-4">
             <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
               <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Penting:</strong> Selepas membuat pembayaran melalui FPX, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
+                <strong>Penting:</strong> Selepas membuat pembayaran, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
               </p>
             </div>
             <div>
@@ -406,7 +514,7 @@ export default function TahlilRequestPage() {
               </Label>
               <Input
                 id="referenceId"
-                placeholder="Masukkan ID rujukan dari transaksi FPX"
+                placeholder="Masukkan ID rujukan dari transaksi"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 required
