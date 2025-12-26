@@ -93,8 +93,9 @@ export default function TahlilRequestPage() {
   // Reset payment method when tahfiz changes
   React.useEffect(() => {
     if (availablePlatforms.length > 0) {
-      if (!paymentMethod || !availablePlatforms.find(p => p.code === paymentMethod)) {
-        setPaymentMethod(availablePlatforms[0]?.code || '');
+      const firstPlatform = availablePlatforms.find(p => p?.code);
+      if (!paymentMethod || !availablePlatforms.find(p => p?.code === paymentMethod)) {
+        setPaymentMethod(firstPlatform?.code || '');
       }
     } else {
       setPaymentMethod('');
