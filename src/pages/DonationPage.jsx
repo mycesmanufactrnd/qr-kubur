@@ -88,10 +88,13 @@ export default function DonationPage() {
 
   // Get payment details for selected method
   const getPaymentDetails = (platformCode) => {
-    const configs = paymentConfigs.filter(c => c.payment_platform_code === platformCode);
+    if (!platformCode || !paymentConfigs) return {};
+    const configs = paymentConfigs.filter(c => c?.payment_platform_code === platformCode);
     const details = {};
     configs.forEach(config => {
-      details[config.key] = config.value;
+      if (config?.key) {
+        details[config.key] = config.value;
+      }
     });
     return details;
   };
@@ -299,11 +302,12 @@ export default function DonationPage() {
                   <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">Maklumat Pembayaran</h4>
                   {(() => {
                     const details = getPaymentDetails(paymentMethod);
-                    const fields = paymentFields.filter(f => f.payment_platform_code === paymentMethod);
+                    const fields = (paymentFields || []).filter(f => f?.payment_platform_code === paymentMethod);
                     
                     return (
                       <div className="space-y-2">
                         {fields.map(field => {
+                          if (!field?.key) return null;
                           const value = details[field.key];
                           if (!value) return null;
 
@@ -313,7 +317,7 @@ export default function DonationPage() {
                                 <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
                                   {field.label || field.key}
                                 </p>
-                                <img src={value} alt={field.label} className="max-w-xs rounded border" />
+                                <img src={value} alt={field.label || 'Payment'} className="max-w-xs rounded border" />
                               </div>
                             );
                           }
