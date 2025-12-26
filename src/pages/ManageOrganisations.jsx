@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, Plus, Edit, Trash2, Search, Save, Filter } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Search, Save, Filter, CreditCard } from 'lucide-react';
 import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { usePermissions } from '../components/PermissionsContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { hasPermission } from '../components/permissions';
+import PaymentConfigDialog from '../components/PaymentConfigDialog';
 
 const STATES = [
   "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -54,6 +55,8 @@ export default function ManageOrganisations() {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
+  const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
+  const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
 
   const queryClient = useQueryClient();
   const t = (key) => getAdminTranslation(key, lang);
@@ -441,6 +444,18 @@ export default function ManageOrganisations() {
                       <Button 
                         variant="ghost" 
                         size="sm" 
+                        onClick={() => {
+                          setSelectedOrgForPayment(org);
+                          setPaymentConfigOpen(true);
+                        }}
+                        disabled={!canManageOrg(org)}
+                        title="Payment Config"
+                      >
+                        <CreditCard className="w-4 h-4 text-green-600" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
                         onClick={() => handleDelete(org)}
                         disabled={!canManageOrg(org)}
                       >
@@ -595,6 +610,13 @@ export default function ManageOrganisations() {
         onConfirm={confirmDelete}
         confirmText={t('delete')}
         variant="destructive"
+      />
+
+      <PaymentConfigDialog
+        open={paymentConfigOpen}
+        onOpenChange={setPaymentConfigOpen}
+        entityId={selectedOrgForPayment?.id}
+        entityType="organisation"
       />
     </div>
   );

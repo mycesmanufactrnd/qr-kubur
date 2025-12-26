@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Plus, Edit, Trash2, Search, Save, Filter, MapPin } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Search, Save, Filter, MapPin, CreditCard } from 'lucide-react';
 import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { usePermissions } from '../components/PermissionsContext';
+import PaymentConfigDialog from '../components/PaymentConfigDialog';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -65,6 +66,8 @@ export default function ManageTahfizCenters() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [centerToDelete, setCenterToDelete] = useState(null);
+  const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
+  const [selectedCenterForPayment, setSelectedCenterForPayment] = useState(null);
 
   const queryClient = useQueryClient();
   const t = (key) => getAdminTranslation(key, lang);
@@ -364,9 +367,23 @@ export default function ManageTahfizCenters() {
                   </div>
                   <div className="flex gap-1">
                     {hasEditPermission && (
-                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)} className="h-8 w-8 p-0">
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                      <>
+                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)} className="h-8 w-8 p-0">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedCenterForPayment(center);
+                            setPaymentConfigOpen(true);
+                          }} 
+                          className="h-8 w-8 p-0"
+                          title="Payment Config"
+                        >
+                          <CreditCard className="w-4 h-4 text-green-600" />
+                        </Button>
+                      </>
                     )}
                     {hasDeletePermission && (
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(center)} className="h-8 w-8 p-0">
@@ -436,9 +453,22 @@ export default function ManageTahfizCenters() {
                     </TableCell>
                     <TableCell className="text-right">
                       {hasEditPermission && (
-                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
+                              setSelectedCenterForPayment(center);
+                              setPaymentConfigOpen(true);
+                            }}
+                            title="Payment Config"
+                          >
+                            <CreditCard className="w-4 h-4 text-green-600" />
+                          </Button>
+                        </>
                       )}
                       {hasDeletePermission && (
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(center)}>
@@ -637,6 +667,13 @@ export default function ManageTahfizCenters() {
         onConfirm={confirmDelete}
         confirmText={t('delete')}
         variant="destructive"
+      />
+
+      <PaymentConfigDialog
+        open={paymentConfigOpen}
+        onOpenChange={setPaymentConfigOpen}
+        entityId={selectedCenterForPayment?.id}
+        entityType="tahfiz"
       />
     </div>
   );
