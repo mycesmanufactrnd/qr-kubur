@@ -77,18 +77,10 @@ export default function ManageOrganisations() {
     setLang(getCurrentLanguage());
   }, []);
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const isAdmin = currentUser?.role === 'admin';
-  const [hasViewPermission, setHasViewPermission] = useState(false);
-
-  React.useEffect(() => {
-    const checkPermissions = async () => {
-      if (currentUser) {
-        setHasViewPermission(await hasPermission(currentUser, 'organisations_view'));
-      }
-    };
-    checkPermissions();
-  }, [currentUser]);
+  const hasViewPermission = hasPermission('organisations_view');
 
   const { data: organisations = [], isLoading } = useQuery({
     queryKey: ['admin-organisations'],

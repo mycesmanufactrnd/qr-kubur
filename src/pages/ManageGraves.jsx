@@ -16,7 +16,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { hasPermission } from '../components/permissions';
+import { usePermissions } from '../components/PermissionsContext';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -78,23 +78,12 @@ export default function ManageGraves() {
     }
   };
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const [hasViewPermission, setHasViewPermission] = useState(false);
-  const [hasCreatePermission, setHasCreatePermission] = useState(false);
-  const [hasEditPermission, setHasEditPermission] = useState(false);
-  const [hasDeletePermission, setHasDeletePermission] = useState(false);
-
-  React.useEffect(() => {
-    const checkPermissions = async () => {
-      if (currentUser) {
-        setHasViewPermission(await hasPermission(currentUser, 'graves_view'));
-        setHasCreatePermission(await hasPermission(currentUser, 'graves_create'));
-        setHasEditPermission(await hasPermission(currentUser, 'graves_edit'));
-        setHasDeletePermission(await hasPermission(currentUser, 'graves_delete'));
-      }
-    };
-    checkPermissions();
-  }, [currentUser]);
+  const hasViewPermission = hasPermission('graves_view');
+  const hasCreatePermission = hasPermission('graves_create');
+  const hasEditPermission = hasPermission('graves_edit');
+  const hasDeletePermission = hasPermission('graves_delete');
 
   const { data: graves = [], isLoading } = useQuery({
     queryKey: ['admin-graves'],

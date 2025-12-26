@@ -16,7 +16,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { hasPermission } from '../components/permissions';
+import { usePermissions } from '../components/PermissionsContext';
 
 const emptyPerson = {
   name: '',
@@ -72,11 +72,12 @@ export default function ManageDeadPersons() {
     }
   };
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = hasPermission(currentUser, 'dead_persons_view');
-  const hasCreatePermission = hasPermission(currentUser, 'dead_persons_create');
-  const hasEditPermission = hasPermission(currentUser, 'dead_persons_edit');
-  const hasDeletePermission = hasPermission(currentUser, 'dead_persons_delete');
+  const hasViewPermission = hasPermission('dead_persons_view');
+  const hasCreatePermission = hasPermission('dead_persons_create');
+  const hasEditPermission = hasPermission('dead_persons_edit');
+  const hasDeletePermission = hasPermission('dead_persons_delete');
 
   const { data: persons = [], isLoading } = useQuery({
     queryKey: ['admin-persons'],

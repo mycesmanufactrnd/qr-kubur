@@ -19,7 +19,7 @@ import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
-import { hasPermission } from '../components/permissions';
+import { usePermissions } from '../components/PermissionsContext';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -88,23 +88,12 @@ export default function ManageTahfizCenters() {
     }
   };
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = currentUser?.role === 'superadmin';
-  const [hasViewPermission, setHasViewPermission] = useState(false);
-  const [hasCreatePermission, setHasCreatePermission] = useState(false);
-  const [hasEditPermission, setHasEditPermission] = useState(false);
-  const [hasDeletePermission, setHasDeletePermission] = useState(false);
-
-  React.useEffect(() => {
-    const checkPermissions = async () => {
-      if (currentUser) {
-        setHasViewPermission(await hasPermission(currentUser, 'tahfiz_view'));
-        setHasCreatePermission(await hasPermission(currentUser, 'tahfiz_create'));
-        setHasEditPermission(await hasPermission(currentUser, 'tahfiz_edit'));
-        setHasDeletePermission(await hasPermission(currentUser, 'tahfiz_delete'));
-      }
-    };
-    checkPermissions();
-  }, [currentUser]);
+  const hasViewPermission = hasPermission('tahfiz_view');
+  const hasCreatePermission = hasPermission('tahfiz_create');
+  const hasEditPermission = hasPermission('tahfiz_edit');
+  const hasDeletePermission = hasPermission('tahfiz_delete');
 
   const { data: centers = [], isLoading } = useQuery({
     queryKey: ['admin-tahfiz'],

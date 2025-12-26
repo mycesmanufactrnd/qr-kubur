@@ -138,20 +138,12 @@ export const PERMISSION_CATEGORIES = {
 };
 
 // Helper to check if user has permission
+// Note: This is a fallback. Use usePermissions() hook for better performance
 export const hasPermission = (user, permissionSlug) => {
   if (!user) return false;
-  
-  // Superadmin has all permissions
   if (user.role === 'superadmin') return true;
-  
-  // Admin has all permissions by default
   if (user.role === 'admin') return true;
-  
-  // Check permissions array for employees
-  if (!user.permissions || !Array.isArray(user.permissions)) return false;
-  
-  const permission = user.permissions.find(p => p.slug === permissionSlug);
-  return permission && permission.enabled;
+  return false;
 };
 
 // Helper to check multiple permissions (user needs at least one)

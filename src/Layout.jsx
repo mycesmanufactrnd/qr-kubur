@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
+import { PermissionsProvider, usePermissions } from './components/PermissionsContext';
 import { 
         Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
         Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
@@ -75,6 +76,145 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('appUserAuth');
+    // Note: PermissionsContext will also clear when component unmounts
+    window.location.href = createPageUrl('AppUserLogin');
+  };
+
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
+
+  // Redirect admin away from user pages
+  const userPages = ['UserDashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
+  const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
+  
+  useEffect(() => {
+    if (loading) return;
+    
+    // Redirect logged-in admin to admin dashboard if on login page or user pages
+    if (isAdmin && (currentPageName === 'AppUserLogin' || userPages.includes(currentPageName))) {
+      window.location.href = createPageUrl('AdminDashboard');
+    }
+    
+    // Redirect non-logged-in users to login if accessing admin pages
+    if (!user && adminPages.includes(currentPageName)) {
+      window.location.href = createPageUrl('AppUserLogin');
+    }
+  }, [isAdmin, currentPageName, user, loading]);
+
+  const userNavItems = [
+    { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
+    { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
+    { name: 'Cari Tahfiz', icon: Map, page: 'SearchTahfiz' },
+    { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
+    { name: 'Derma', icon: Heart, page: 'DonationPage' },
+    { name: 'Surah & Doa', icon: BookOpen, page: 'SurahPage' },
+    { name: 'Tentang Sistem', icon: Settings, page: 'AboutSystem' },
+  ];
+
+  const organizationNavItems = [
+    { name: 'Manage Employees', icon: Users, page: 'ManageEmployees' },
+  ];
+
+  const adminNavItems = [
+    { name: 'Admin Dashboard', icon: Settings, page: 'AdminDashboard' },
+    { name: 'Urus Kubur', icon: MapPin, page: 'ManageGraves' },
+    { name: 'Urus Si Mati', icon: Users, page: 'ManageDeadPersons' },
+    { name: 'Urus Organisasi', icon: Building2, page: 'ManageOrganisations' },
+    { name: 'Urus Tahfiz', icon: BookOpen, page: 'ManageTahfizCenters' },
+    { name: 'Urus Cadangan', icon: Heart, page: 'ManageSuggestions' },
+  ];
+
+  const superAdminNavItems = [
+    { name: 'Super Admin', icon: Shield, page: 'SuperadminDashboard' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center">
+        <div className="animate-pulse text-emerald-600">Memuatkan...</div>
+      </div>
+    );
+  }
+
+  const t = (key) => getTranslation(key, lang);
+
+  // Bottom navbar items - Main navigation for mobile
+  const bottomNavItems = [
+    { name: t('main'), icon: Home, page: 'UserDashboard' },
+    { name: t('searchNav'), icon: Search, page: 'SearchGrave' },
+    { name: t('scanNav'), icon: QrCode, page: 'ScanQR' },
+    { name: t('settingsNav'), icon: Settings, page: 'SettingsPage' },
+  ];
+
+  return (
+    <PermissionsProvider>
+      <LayoutContent 
+        children={children} 
+        currentPageName={currentPageName}
+      />
+    </PermissionsProvider>
+  );
+}
+
+function LayoutContent({ children, currentPageName }) {
+  const [user, setUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [lang, setLang] = useState('ms');
+  const { clearPermissions } = usePermissions();
+
+  const isAdminOrSuperAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications', user?.email],
+    queryFn: () => base44.entities.Notification.filter({ user_email: user?.email, is_read: false }),
+    enabled: !!user?.email && !user?.isAppUser && isAdminOrSuperAdmin
+  });
+
+  const unreadCount = notifications.length;
+
+  useEffect(() => {
+    loadUser();
+    setLang(getCurrentLanguage());
+    
+    // Apply theme on load
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+  }, []);
+
+  const applyTheme = (theme) => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  };
+
+  const loadUser = async () => {
+    try {
+      const appUserAuth = localStorage.getItem('appUserAuth');
+      
+      if (appUserAuth) {
+        const appUser = JSON.parse(appUserAuth);
+        setUser({
+          ...appUser,
+          isAppUser: true
+        });
+        setLoading(false);
+        return;
+      }
+
+      setUser(null);
+    } catch (e) {
+      setUser(null);
+    }
+    setLoading(false);
+  };
+
+  const handleLogout = () => {
+    clearPermissions();
     localStorage.removeItem('appUserAuth');
     window.location.href = createPageUrl('AppUserLogin');
   };

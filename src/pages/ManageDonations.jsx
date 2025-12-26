@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import { usePermissions } from '../components/PermissionsContext';
 
 export default function ManageDonations() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -48,8 +49,9 @@ export default function ManageDonations() {
     }
   };
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = user?.role === 'superadmin';
-  const hasViewPermission = isSuperAdmin || user?.permissions?.donations?.view;
+  const hasViewPermission = hasPermission('donations_view');
 
   const { data: donations = [], isLoading } = useQuery({
     queryKey: ['admin-donations', user?.organisation_id, user?.tahfiz_center_id],

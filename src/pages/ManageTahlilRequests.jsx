@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
+import { usePermissions } from '../components/PermissionsContext';
 
 const SERVICE_LABELS = {
   'tahlil_ringkas': 'Tahlil Ringkas',
@@ -53,7 +54,10 @@ export default function ManageTahlilRequests() {
     }
   };
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = user?.role === 'superadmin';
+  const hasViewPermission = hasPermission('tahlil_view');
+  const hasEditPermission = hasPermission('tahlil_accept') || hasPermission('tahlil_reject');
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['admin-tahlil-requests', user?.tahfiz_center_id],
