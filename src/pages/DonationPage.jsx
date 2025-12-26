@@ -24,7 +24,7 @@ export default function DonationPage() {
   const [selectedRecipient, setSelectedRecipient] = useState(preSelectedOrg || preSelectedTahfiz || '');
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('online');
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [donorName, setDonorName] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
   const [notes, setNotes] = useState('');
