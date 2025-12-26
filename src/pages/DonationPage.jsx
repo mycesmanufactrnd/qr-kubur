@@ -24,7 +24,7 @@ export default function DonationPage() {
   const [selectedRecipient, setSelectedRecipient] = useState(preSelectedOrg || preSelectedTahfiz || '');
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
+  const [paymentMethod, setPaymentMethod] = useState('online');
   const [donorName, setDonorName] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
   const [notes, setNotes] = useState('');
@@ -240,21 +240,21 @@ export default function DonationPage() {
           <CardContent>
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
               <div className="grid gap-3">
-                <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
-                  <RadioGroupItem value="bank_transfer" />
-                  <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="dark:text-gray-300">Pemindahan Bank</span>
-                </Label>
-                <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
-                  <RadioGroupItem value="duitnow" />
-                  <QrCode className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="dark:text-gray-300">DuitNow QR</span>
-                </Label>
+                // <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
+                //   <RadioGroupItem value="bank_transfer" />
+                //   <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                //   <span className="dark:text-gray-300">Pemindahan Bank</span>
+                // </Label>
                 <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
                   <RadioGroupItem value="online" />
                   <Smartphone className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <span className="dark:text-gray-300">Online Banking</span>
                 </Label>
+                <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
+                  <RadioGroupItem value="duitnow" />
+                  <QrCode className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <span className="dark:text-gray-300">DuitNow QR</span>
+                </Label>                
               </div>
             </RadioGroup>
           </CardContent>
