@@ -98,8 +98,12 @@ export default function DonationPage() {
 
   // Reset payment method when recipient changes
   React.useEffect(() => {
-    if (availablePlatforms.length > 0 && !availablePlatforms.find(p => p.code === paymentMethod)) {
-      setPaymentMethod(availablePlatforms[0]?.code || '');
+    if (availablePlatforms.length > 0) {
+      if (!paymentMethod || !availablePlatforms.find(p => p.code === paymentMethod)) {
+        setPaymentMethod(availablePlatforms[0]?.code || '');
+      }
+    } else {
+      setPaymentMethod('');
     }
   }, [availablePlatforms, selectedRecipient]);
 
