@@ -162,17 +162,20 @@ export default function CheckTahlilStatus() {
                   <p className="font-mono font-semibold text-lg">{request.reference_id}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {request.requester_name && (
                   <div>
                     <p className="text-sm text-gray-500">Pemohon</p>
                     <p className="font-semibold">{request.requester_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Nama Arwah</p>
-                    <p className="font-semibold">{request.deceased_name}</p>
-                  </div>
-                </div>
+                )}
 
+                {request.deceased_name && (
+                    <div>
+                      <p className="text-sm text-gray-500">Nama Arwah</p>
+                      <p className="font-semibold">{request.deceased_name}</p>
+                    </div>
+                )}
+                
                 <div>
                   <p className="text-sm text-gray-500">Jenis Perkhidmatan</p>
                   <p className="font-semibold">
