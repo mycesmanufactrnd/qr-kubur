@@ -607,7 +607,7 @@ export default function ManageGraves() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredGraves.length}
+            totalItems={totalFilteredGraves.length}
           />
         )}
       </div>
@@ -681,7 +681,7 @@ export default function ManageGraves() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredGraves.length}
+            totalItems={totalFilteredGraves.length}
           />
         )}
       </Card>
