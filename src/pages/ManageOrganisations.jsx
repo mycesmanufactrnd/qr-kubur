@@ -244,16 +244,27 @@ export default function ManageOrganisations() {
   };
 
   const onSubmit = (data) => {
+    // Validation - Required fields
     if (!data.name?.trim()) {
-      toast.error('Sila masukkan nama organisasi');
+      toast.error('Sila masukkan nama organisasi', { description: 'Medan Diperlukan' });
       return;
     }
     if (!data.organisation_type_id) {
-      toast.error('Sila pilih jenis organisasi');
+      toast.error('Sila pilih jenis organisasi', { description: 'Medan Diperlukan' });
       return;
     }
     if (!data.state) {
-      toast.error('Sila pilih negeri');
+      toast.error('Sila pilih negeri', { description: 'Medan Diperlukan' });
+      return;
+    }
+
+    // Additional validation
+    if (data.email && data.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      toast.error('Format email tidak sah', { description: 'Format Tidak Sah' });
+      return;
+    }
+    if (data.phone && data.phone.trim() && !/^[0-9\-\+\(\)\s]+$/.test(data.phone)) {
+      toast.error('Format telefon tidak sah', { description: 'Format Tidak Sah' });
       return;
     }
     

@@ -292,13 +292,31 @@ export default function ManageDeadPersons() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validation
+    // Validation - Required fields
     if (!formData.name?.trim()) {
       showError('Sila masukkan nama penuh', 'Medan Diperlukan');
       return;
     }
     if (!formData.grave_id) {
       showError('Sila pilih tanah perkuburan', 'Medan Diperlukan');
+      return;
+    }
+
+    // Additional validation
+    if (formData.ic_number && formData.ic_number.trim() && !/^\d{6}-\d{2}-\d{4}$/.test(formData.ic_number)) {
+      showError('Format No. IC tidak sah (contoh: 900101-01-1234)', 'Format Tidak Sah');
+      return;
+    }
+    if (formData.email && formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      showError('Format email tidak sah', 'Format Tidak Sah');
+      return;
+    }
+    if (formData.gps_lat && (isNaN(formData.gps_lat) || formData.gps_lat < -90 || formData.gps_lat > 90)) {
+      showError('GPS Latitude mesti antara -90 hingga 90', 'Nilai Tidak Sah');
+      return;
+    }
+    if (formData.gps_lng && (isNaN(formData.gps_lng) || formData.gps_lng < -180 || formData.gps_lng > 180)) {
+      showError('GPS Longitude mesti antara -180 hingga 180', 'Nilai Tidak Sah');
       return;
     }
 

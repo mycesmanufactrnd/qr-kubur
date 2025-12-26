@@ -225,12 +225,31 @@ export default function ManageTahfizCenters() {
   };
 
   const onSubmit = (data) => {
+    // Validation - Required fields
     if (!data.name?.trim()) {
-      toast.error('Sila masukkan nama pusat tahfiz');
+      toast.error('Sila masukkan nama pusat tahfiz', { description: 'Medan Diperlukan' });
       return;
     }
     if (!data.state) {
-      toast.error('Sila pilih negeri');
+      toast.error('Sila pilih negeri', { description: 'Medan Diperlukan' });
+      return;
+    }
+
+    // Additional validation
+    if (data.email && data.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      toast.error('Format email tidak sah', { description: 'Format Tidak Sah' });
+      return;
+    }
+    if (data.phone && data.phone.trim() && !/^[0-9\-\+\(\)\s]+$/.test(data.phone)) {
+      toast.error('Format telefon tidak sah', { description: 'Format Tidak Sah' });
+      return;
+    }
+    if (data.gps_lat && (isNaN(data.gps_lat) || data.gps_lat < -90 || data.gps_lat > 90)) {
+      toast.error('GPS Latitude mesti antara -90 hingga 90', { description: 'Nilai Tidak Sah' });
+      return;
+    }
+    if (data.gps_lng && (isNaN(data.gps_lng) || data.gps_lng < -180 || data.gps_lng > 180)) {
+      toast.error('GPS Longitude mesti antara -180 hingga 180', { description: 'Nilai Tidak Sah' });
       return;
     }
 
