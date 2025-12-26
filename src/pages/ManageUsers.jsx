@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Plus, Edit, Trash2, Shield, Search, Check, X } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import Breadcrumb from '../components/Breadcrumb';
@@ -50,14 +50,9 @@ export default function ManageUsers() {
   const [editUser, setEditUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
-  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-  const [permissionUser, setPermissionUser] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const queryClient = useQueryClient();
-
-  const MODULES = ['graves', 'dead_persons', 'tahfiz', 'suggestions', 'donations', 'organisations', 'users', 'tahlil_requests'];
-  const PERMISSIONS = ['view', 'create', 'edit', 'delete', 'approval'];
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
@@ -212,17 +207,7 @@ export default function ManageUsers() {
       role: 'employee',
       organisation_id: defaultOrgId || '',
       tahfiz_center_id: defaultTahfizId || '',
-      state: defaultState,
-      permissions: {
-        graves: { view: false, create: false, edit: false, delete: false },
-        dead_persons: { view: false, create: false, edit: false, delete: false },
-        tahfiz: { view: false, create: false, edit: false, delete: false },
-        suggestions: { view: false, create: false, edit: false, delete: false },
-        donations: { view: false, create: false, edit: false, delete: false },
-        organisations: { view: false, create: false, edit: false, delete: false },
-        users: { view: false, create: false, edit: false, delete: false },
-        tahlil_requests: { view: false, create: false, edit: false, delete: false },
-      }
+      state: defaultState
     });
     setDialogOpen(true);
   };
@@ -233,17 +218,7 @@ export default function ManageUsers() {
       ...user,
       password: '', // Empty for edit mode
       isAppUser: appUsers.some(u => u.id === user.id),
-      state: user.state || [],
-      permissions: user.permissions || {
-        graves: { view: false, create: false, edit: false, delete: false },
-        dead_persons: { view: false, create: false, edit: false, delete: false },
-        tahfiz: { view: false, create: false, edit: false, delete: false },
-        suggestions: { view: false, create: false, edit: false, delete: false },
-        donations: { view: false, create: false, edit: false, delete: false },
-        organisations: { view: false, create: false, edit: false, delete: false },
-        users: { view: false, create: false, edit: false, delete: false },
-        tahlil_requests: { view: false, create: false, edit: false, delete: false },
-      }
+      state: user.state || []
     });
     setDialogOpen(true);
   };
@@ -302,20 +277,6 @@ export default function ManageUsers() {
     setEditUser({ ...editUser, state: newStates });
   };
 
-  const handlePermissionToggle = (module, action) => {
-    if (!editUser) return;
-    setEditUser({
-      ...editUser,
-      permissions: {
-        ...editUser.permissions,
-        [module]: {
-          ...editUser.permissions[module],
-          [action]: !editUser.permissions[module][action]
-        }
-      }
-    });
-  };
-
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
@@ -333,67 +294,7 @@ export default function ManageUsers() {
     setUserToDelete(null);
   };
 
-  const handleOpenPermissions = (user) => {
-    const defaultPermissions = MODULES.reduce((acc, module) => {
-      acc[module] = { view: true, create: true, edit: true, delete: true, approval: true };
-      return acc;
-    }, {});
-    
-    setPermissionUser({
-      ...user,
-      permissions: user.permissions || defaultPermissions
-    });
-    setPermissionDialogOpen(true);
-  };
 
-  const handleSavePermissions = () => {
-    if (!permissionUser) return;
-    const isAppUser = appUsers.some(u => u.id === permissionUser.id);
-    if (isAppUser) {
-      updateAppUserMutation.mutate({ 
-        id: permissionUser.id, 
-        data: { permissions: permissionUser.permissions } 
-      });
-    } else {
-      updateUserMutation.mutate({ 
-        id: permissionUser.id, 
-        data: { permissions: permissionUser.permissions } 
-      });
-    }
-    setPermissionDialogOpen(false);
-    setPermissionUser(null);
-  };
-
-  const handlePermissionToggleInDialog = (module, action) => {
-    if (!permissionUser) return;
-    setPermissionUser({
-      ...permissionUser,
-      permissions: {
-        ...permissionUser.permissions,
-        [module]: {
-          ...permissionUser.permissions[module],
-          [action]: !permissionUser.permissions[module][action]
-        }
-      }
-    });
-  };
-
-  const handleModuleToggle = (module, checked) => {
-    if (!permissionUser) return;
-    setPermissionUser({
-      ...permissionUser,
-      permissions: {
-        ...permissionUser.permissions,
-        [module]: {
-          view: checked,
-          create: checked,
-          edit: checked,
-          delete: checked,
-          approval: checked,
-        }
-      }
-    });
-  };
 
   const canEditUser = (user) => {
     if (isSuperAdmin) return true;
@@ -537,14 +438,6 @@ export default function ManageUsers() {
                         className="flex-shrink-0"
                       >
                         <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleOpenPermissions(user)}
-                        className="flex-shrink-0"
-                      >
-                        <Shield className="w-4 h-4" />
                       </Button>
                       {canDeleteUser(user) && (
                         <Button
@@ -704,33 +597,6 @@ export default function ManageUsers() {
                 </div>
               </div>
 
-              {editUser.role === 'employee' && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Permissions</label>
-                  <div className="space-y-3 border rounded p-3 max-h-60 overflow-y-auto">
-                    {Object.keys(editUser.permissions || {}).map(module => (
-                      <div key={module} className="space-y-2">
-                        <p className="text-sm font-medium capitalize">{module.replace('_', ' ')}</p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {['view', 'create', 'edit', 'delete'].map(action => (
-                            <div key={action} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`${module}-${action}`}
-                                checked={editUser.permissions[module]?.[action]}
-                                onCheckedChange={() => handlePermissionToggle(module, action)}
-                              />
-                              <label htmlFor={`${module}-${action}`} className="text-xs capitalize">
-                                {action}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
                   Batal
@@ -743,73 +609,6 @@ export default function ManageUsers() {
           )}
         </DialogContent>
       </Dialog>
-
-      <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Urus Kebenaran Pengguna</DialogTitle>
-          </DialogHeader>
-          
-          {permissionUser && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="font-semibold">{permissionUser.full_name || permissionUser.email}</p>
-                <p className="text-sm text-gray-500">{permissionUser.email}</p>
-              </div>
-
-              <div className="space-y-4">
-                {MODULES.map(module => {
-                  const allChecked = PERMISSIONS.every(p => permissionUser.permissions[module]?.[p]);
-                  return (
-                    <Card key={module} className="border">
-                      <CardHeader className="p-3 bg-gray-50">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm capitalize">
-                            {module.replace('_', ' ')}
-                          </CardTitle>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleModuleToggle(module, !allChecked)}
-                          >
-                            {allChecked ? <X className="w-4 h-4 mr-1" /> : <Check className="w-4 h-4 mr-1" />}
-                            {allChecked ? 'Nyahpilih' : 'Pilih Semua'}
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-3">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {PERMISSIONS.map(action => (
-                            <div key={action} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`${module}-${action}`}
-                                checked={permissionUser.permissions[module]?.[action] || false}
-                                onCheckedChange={() => handlePermissionToggleInDialog(module, action)}
-                              />
-                              <label htmlFor={`${module}-${action}`} className="text-sm capitalize cursor-pointer">
-                                {action}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              <div className="flex gap-2 justify-end pt-4 border-t">
-                <Button variant="outline" onClick={() => setPermissionDialogOpen(false)}>
-                  Batal
-                </Button>
-                <Button onClick={handleSavePermissions} className="bg-emerald-600 hover:bg-emerald-700">
-                  Simpan Kebenaran
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-        </Dialog>
 
         <ConfirmDialog
         open={deleteDialogOpen}
