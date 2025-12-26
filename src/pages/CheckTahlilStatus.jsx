@@ -63,34 +63,34 @@ export default function CheckTahlilStatus() {
     switch (status) {
       case 'pending':
         return (
-          <Badge className="bg-yellow-100 text-yellow-700 text-lg px-4 py-2">
-            <Clock className="w-5 h-5 mr-2" />
+          <Badge className="bg-yellow-100 text-yellow-700 text-sm px-3 py-1">
+            <Clock className="w-4 h-4 mr-1" />
             Menunggu
           </Badge>
         );
       case 'accepted':
         return (
-          <Badge className="bg-blue-100 text-blue-700 text-lg px-4 py-2">
-            <CheckCircle className="w-5 h-5 mr-2" />
+          <Badge className="bg-blue-100 text-blue-700 text-sm px-3 py-1">
+            <CheckCircle className="w-4 h-4 mr-1" />
             Diterima
           </Badge>
         );
       case 'completed':
         return (
-          <Badge className="bg-green-100 text-green-700 text-lg px-4 py-2">
-            <CheckCircle className="w-5 h-5 mr-2" />
+          <Badge className="bg-green-100 text-green-700 text-sm px-3 py-1">
+            <CheckCircle className="w-4 h-4 mr-1" />
             Selesai
           </Badge>
         );
       case 'rejected':
         return (
-          <Badge className="bg-red-100 text-red-700 text-lg px-4 py-2">
-            <XCircle className="w-5 h-5 mr-2" />
+          <Badge className="bg-red-100 text-red-700 text-sm px-3 py-1">
+            <XCircle className="w-4 h-4 mr-1" />
             Ditolak
           </Badge>
         );
       default:
-        return <Badge variant="secondary" className="text-lg px-4 py-2">{status}</Badge>;
+        return <Badge variant="secondary" className="text-sm px-3 py-1">{status}</Badge>;
     }
   };
 
@@ -146,30 +146,30 @@ export default function CheckTahlilStatus() {
 
       {/* Status Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-lg p-0">
+          <DialogHeader className="p-6 pb-4">
             <DialogTitle className="text-center text-xl">Status Permohonan Tahlil</DialogTitle>
           </DialogHeader>
           {request && (
-            <div className="space-y-6">
-              <div className="text-center py-4">
+            <div className="space-y-4 px-6 pb-6">
+              <div className="text-center py-2">
                 {getStatusBadge(request.status)}
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">ID Rujukan</p>
-                  <p className="font-mono font-semibold text-lg">{request.reference_id}</p>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">ID Rujukan</p>
+                  <p className="font-mono font-semibold text-sm break-all">{request.reference_id}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-sm text-gray-500">Pemohon</p>
-                    <p className="font-semibold">{request.requester_name}</p>
+                    <p className="text-xs text-gray-500 mb-1">Pemohon</p>
+                    <p className="font-semibold text-sm truncate">{request.requester_name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Nama Arwah</p>
-                    <p className="font-semibold">{request.deceased_name}</p>
+                    <p className="text-xs text-gray-500 mb-1">Nama Arwah</p>
+                    <p className="font-semibold text-sm truncate">{request.deceased_name}</p>
                   </div>
                 </div>
 
