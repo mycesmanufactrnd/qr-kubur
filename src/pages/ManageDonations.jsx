@@ -567,18 +567,12 @@ export default function ManageDonations() {
                   <p>{selectedDonation.notes}</p>
                 </div>
               )}
-              {selectedDonation.receipt_url && (
+              {selectedDonation.reference_id && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">Resit</p>
-                  <a 
-                    href={selectedDonation.receipt_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-blue-600 hover:underline"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Lihat Resit
-                  </a>
+                  <p className="text-sm text-gray-500 mb-1">ID Rujukan</p>
+                  <p className="font-mono font-semibold text-sm break-all bg-gray-50 p-2 rounded">
+                    {selectedDonation.reference_id}
+                  </p>
                 </div>
               )}
               <div>
