@@ -251,9 +251,9 @@ export default function ManageGraves() {
       return;
     }
     
-    // Check QR code uniqueness
+    // Check QR code uniqueness (check against all graves, not just current page)
     if (formData.qr_code) {
-      const qrExists = graves.some(g => 
+      const qrExists = allGraves.some(g => 
         g.qr_code === formData.qr_code && g.id !== editingGrave?.id
       );
       if (qrExists) {
