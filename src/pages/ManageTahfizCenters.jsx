@@ -39,6 +39,7 @@ const emptyCenter = {
   name: '',
   description: '',
   services_offered: [],
+  service_prices: {},
   state: '',
   address: '',
   phone: '',
@@ -201,6 +202,7 @@ export default function ManageTahfizCenters() {
       name: center.name || '',
       description: center.description || '',
       services_offered: center.services_offered || [],
+      service_prices: center.service_prices || {},
       state: center.state || '',
       address: center.address || '',
       phone: center.phone || '',
@@ -509,18 +511,41 @@ export default function ManageTahfizCenters() {
             </div>
             <div>
               <Label>{t('services')}</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="space-y-3 mt-2">
                 {SERVICES.map(service => (
-                  <Label 
-                    key={service.value}
-                    className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-gray-50"
-                  >
-                    <Checkbox
-                      checked={selectedServices.includes(service.value)}
-                      onCheckedChange={() => toggleService(service.value)}
-                    />
-                    {service.label}
-                  </Label>
+                  <div key={service.value} className="space-y-2">
+                    <Label className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-gray-50">
+                      <Checkbox
+                        checked={selectedServices.includes(service.value)}
+                        onCheckedChange={() => toggleService(service.value)}
+                      />
+                      <span className="flex-1">{service.label}</span>
+                    </Label>
+                    {selectedServices.includes(service.value) && (
+                      <div className="ml-8">
+                        <Label className="text-xs text-gray-600">Harga (RM) - Pilihan</Label>
+                        <Controller
+                          name={`service_prices.${service.value}`}
+                          control={control}
+                          render={({ field }) => (
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Contoh: 50.00"
+                              {...field}
+                              onChange={(e) => {
+                                const prices = watch('service_prices') || {};
+                                setValue('service_prices', {
+                                  ...prices,
+                                  [service.value]: e.target.value ? parseFloat(e.target.value) : null
+                                });
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
