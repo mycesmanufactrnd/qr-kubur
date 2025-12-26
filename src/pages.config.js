@@ -13,6 +13,7 @@ import ManageDonations from './pages/ManageDonations';
 import ManageGraves from './pages/ManageGraves';
 import ManageOrganisationTypes from './pages/ManageOrganisationTypes';
 import ManageOrganisations from './pages/ManageOrganisations';
+import ManagePermissions from './pages/ManagePermissions';
 import ManageSuggestions from './pages/ManageSuggestions';
 import ManageTahfizCenters from './pages/ManageTahfizCenters';
 import ManageTahlilRequests from './pages/ManageTahlilRequests';
@@ -31,7 +32,6 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
-import ManagePermissions from './pages/ManagePermissions';
 import __Layout from './Layout.jsx';
 
 
@@ -51,6 +51,7 @@ export const PAGES = {
     "ManageGraves": ManageGraves,
     "ManageOrganisationTypes": ManageOrganisationTypes,
     "ManageOrganisations": ManageOrganisations,
+    "ManagePermissions": ManagePermissions,
     "ManageSuggestions": ManageSuggestions,
     "ManageTahfizCenters": ManageTahfizCenters,
     "ManageTahlilRequests": ManageTahlilRequests,
@@ -69,7 +70,6 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
-    "ManagePermissions": ManagePermissions,
 }
 
 export const pagesConfig = {
