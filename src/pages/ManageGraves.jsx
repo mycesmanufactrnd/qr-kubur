@@ -85,10 +85,40 @@ export default function ManageGraves() {
   const hasEditPermission = hasPermission('graves_edit');
   const hasDeletePermission = hasPermission('graves_delete');
 
+  // Calculate skip for pagination
+  const skip = (page - 1) * itemsPerPage;
+
+  // Build filter query
+  const buildFilterQuery = () => {
+    const query = {};
+    
+    // State filter (for non-superadmin)
+    if (!isSuperAdmin && currentUser?.state?.length > 0) {
+      query.state = { $in: currentUser.state };
+    } else if (isSuperAdmin && filterState !== 'all') {
+      query.state = filterState;
+    }
+    
+    // Status filter
+    if (filterStatus !== 'all') {
+      query.status = filterStatus;
+    }
+
+    return query;
+  };
+
+  // Fetch total count for pagination
+  const { data: allGraves = [] } = useQuery({
+    queryKey: ['admin-graves-all', filterState, filterStatus, currentUser?.state],
+    queryFn: () => base44.entities.Grave.filter(buildFilterQuery()),
+    enabled: hasViewPermission && !!currentUser
+  });
+
+  // Fetch paginated data
   const { data: graves = [], isLoading } = useQuery({
-    queryKey: ['admin-graves'],
-    queryFn: () => base44.entities.Grave.list('-created_date'),
-    enabled: hasViewPermission
+    queryKey: ['admin-graves-paginated', page, itemsPerPage, filterState, filterStatus, currentUser?.state],
+    queryFn: () => base44.entities.Grave.filter(buildFilterQuery(), '-created_date', itemsPerPage, skip),
+    enabled: hasViewPermission && !!currentUser
   });
 
   const { data: organisations = [] } = useQuery({
