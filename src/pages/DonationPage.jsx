@@ -80,10 +80,10 @@ export default function DonationPage() {
 
   // Get available payment platforms for selected recipient
   const availablePlatforms = React.useMemo(() => {
-    if (!paymentConfigs.length) return [];
+    if (!paymentConfigs.length || !paymentPlatforms.length) return [];
     
-    const platformCodes = [...new Set(paymentConfigs.map(c => c.payment_platform_code))];
-    return paymentPlatforms.filter(p => platformCodes.includes(p.code));
+    const platformCodes = [...new Set(paymentConfigs.map(c => c.payment_platform_code).filter(Boolean))];
+    return paymentPlatforms.filter(p => p && p.code && platformCodes.includes(p.code));
   }, [paymentConfigs, paymentPlatforms]);
 
   // Get payment details for selected method
