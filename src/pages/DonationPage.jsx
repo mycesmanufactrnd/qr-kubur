@@ -44,6 +44,27 @@ export default function DonationPage() {
     queryFn: () => base44.entities.TahfizCenter.list()
   });
 
+  const { data: paymentPlatforms = [] } = useQuery({
+    queryKey: ['payment-platforms-active'],
+    queryFn: () => base44.entities.PaymentPlatform.filter({ status: 'active' })
+  });
+
+  const { data: paymentFields = [] } = useQuery({
+    queryKey: ['payment-fields'],
+    queryFn: () => base44.entities.PaymentPlatformField.list()
+  });
+
+  const { data: paymentConfigs = [] } = useQuery({
+    queryKey: ['payment-config', recipientType, selectedRecipient],
+    queryFn: async () => {
+      if (!selectedRecipient) return [];
+      const entityType = recipientType === 'tahfiz' ? 'TahfizPaymentConfig' : 'OrganisationPaymentConfig';
+      const entityKey = recipientType === 'tahfiz' ? 'tahfiz_id' : 'organisation_id';
+      return base44.entities[entityType].filter({ [entityKey]: selectedRecipient });
+    },
+    enabled: !!selectedRecipient
+  });
+
   const createDonation = useMutation({
     mutationFn: (data) => base44.entities.Donation.create(data),
     onSuccess: () => {
@@ -56,6 +77,31 @@ export default function DonationPage() {
   const selectedOrg = recipientType === 'organisation' 
     ? organisations.find(o => o.id === selectedRecipient)
     : tahfizCenters.find(t => t.id === selectedRecipient);
+
+  // Get available payment platforms for selected recipient
+  const availablePlatforms = React.useMemo(() => {
+    if (!paymentConfigs.length) return [];
+    
+    const platformCodes = [...new Set(paymentConfigs.map(c => c.payment_platform_code))];
+    return paymentPlatforms.filter(p => platformCodes.includes(p.code));
+  }, [paymentConfigs, paymentPlatforms]);
+
+  // Get payment details for selected method
+  const getPaymentDetails = (platformCode) => {
+    const configs = paymentConfigs.filter(c => c.payment_platform_code === platformCode);
+    const details = {};
+    configs.forEach(config => {
+      details[config.key] = config.value;
+    });
+    return details;
+  };
+
+  // Reset payment method when recipient changes
+  React.useEffect(() => {
+    if (availablePlatforms.length > 0 && !availablePlatforms.find(p => p.code === paymentMethod)) {
+      setPaymentMethod(availablePlatforms[0]?.code || '');
+    }
+  }, [availablePlatforms, selectedRecipient]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -178,18 +224,7 @@ export default function DonationPage() {
               </TabsContent>
             </Tabs>
 
-            {/* Bank Info */}
-            {selectedOrg && (selectedOrg.bank_name || selectedOrg.bank_account) && (
-              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Maklumat Bank</h4>
-                {selectedOrg.bank_name && (
-                  <p className="text-sm text-blue-800 dark:text-blue-300">Bank: {selectedOrg.bank_name}</p>
-                )}
-                {selectedOrg.bank_account && (
-                  <p className="text-sm text-blue-800 dark:text-blue-300">No. Akaun: {selectedOrg.bank_account}</p>
-                )}
-              </div>
-            )}
+
           </CardContent>
         </Card>
 
@@ -233,34 +268,66 @@ export default function DonationPage() {
         </Card>
 
         {/* Payment Method */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Kaedah Pembayaran</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-              <div className="grid gap-3">
-                {/*
-                  <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
-                    <RadioGroupItem value="bank_transfer" />
-                    <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                    <span className="dark:text-gray-300">Pemindahan Bank</span>
-                  </Label>
-                */}
-                <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
-                  <RadioGroupItem value="online" />
-                  <Smartphone className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="dark:text-gray-300">Online Banking</span>
-                </Label>
-                <Label className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
-                  <RadioGroupItem value="duitnow" />
-                  <QrCode className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="dark:text-gray-300">DuitNow QR</span>
-                </Label>                
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
+        {availablePlatforms.length > 0 && (
+          <Card className="border-0 shadow-md dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="text-lg dark:text-white">Kaedah Pembayaran</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                <div className="grid gap-3">
+                  {availablePlatforms.map(platform => (
+                    <Label 
+                      key={platform.code}
+                      className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20"
+                    >
+                      <RadioGroupItem value={platform.code} />
+                      <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                      <span className="dark:text-gray-300">{platform.name}</span>
+                    </Label>
+                  ))}
+                </div>
+              </RadioGroup>
+
+              {/* Payment Details */}
+              {paymentMethod && (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">Maklumat Pembayaran</h4>
+                  {(() => {
+                    const details = getPaymentDetails(paymentMethod);
+                    const fields = paymentFields.filter(f => f.payment_platform_code === paymentMethod);
+                    
+                    return (
+                      <div className="space-y-2">
+                        {fields.map(field => {
+                          const value = details[field.key];
+                          if (!value) return null;
+
+                          if (field.field_type === 'image') {
+                            return (
+                              <div key={field.key}>
+                                <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+                                  {field.label || field.key}
+                                </p>
+                                <img src={value} alt={field.label} className="max-w-xs rounded border" />
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <p key={field.key} className="text-sm text-blue-800 dark:text-blue-300">
+                              <span className="font-medium">{field.label || field.key}:</span> {value}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Donor Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
