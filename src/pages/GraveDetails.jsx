@@ -196,7 +196,7 @@ export default function GraveDetails() {
                             className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
                           >
                             <Navigation className="w-3 h-3 mr-1" />
-                            Arah
+                            
                           </Button>
                           <Button
                             size="sm"
