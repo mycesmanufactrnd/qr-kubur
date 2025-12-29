@@ -111,7 +111,7 @@ export default function CheckTahlilStatus() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-500 mb-2">
                 ID Rujukan
               </label>
               <Input
@@ -138,7 +138,7 @@ export default function CheckTahlilStatus() {
         <Card className="border-0 shadow-md bg-blue-50">
           <CardContent className="p-4">
             <p className="text-sm text-gray-600 text-center">
-              💡 <strong>Tip:</strong> ID rujukan boleh didapati daripada resit pembayaran FPX anda.
+              💡 <strong>Tip:</strong> ID rujukan boleh didapati daripada resit pembayaran anda.
             </p>
           </CardContent>
         </Card>
