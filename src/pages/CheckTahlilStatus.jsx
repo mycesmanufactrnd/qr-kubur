@@ -112,14 +112,14 @@ export default function CheckTahlilStatus() {
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                ID Rujukan (Reference ID)
+                ID Rujukan
               </label>
               <Input
-                placeholder="Masukkan ID rujukan dari transaksi FPX"
+                placeholder="ID Rujukan"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="text-lg"
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
 
