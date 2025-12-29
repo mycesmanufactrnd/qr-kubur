@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/server.ts",
+    "dev:db": "concurrently \"tsx src/server.ts\" \"npx drizzle-kit studio\"",
     "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@fastify/rate-limit": "^10.3.0",
     "@trpc/server": "^11.8.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",

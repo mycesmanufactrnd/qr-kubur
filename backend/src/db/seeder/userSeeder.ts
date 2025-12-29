@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 
 const adminExists = await db.select().from(users).limit(1);
 if (adminExists.length) {
-  console.log("⏩ Users already seeded");
+  console.log("Users already seeded");
   process.exit(0);
 }
 
@@ -18,4 +18,4 @@ await db.insert(users).values({
     state: ["Johor"],
 });
 
-console.log("✔ Users seeded");
+console.log("Users seeded");
