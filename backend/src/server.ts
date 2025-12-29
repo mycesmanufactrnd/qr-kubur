@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
-import { createContext, router as trpcRouter } from "./trpc.js";
-import { usersRouter } from "./routers/usersRouter.js";
+import { createContext, router as trpcRouter } from "./trpc.ts";
+import { usersRouter } from "./routers/usersRouter.ts";
 
 const app = Fastify();
 

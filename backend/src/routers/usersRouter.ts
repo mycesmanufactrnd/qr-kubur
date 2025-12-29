@@ -1,7 +1,7 @@
-import { router, protectedProcedure, publicProcedure } from "../trpc.js";
+import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import { z } from "zod";
-import { db } from "../db/index.js";
-import { users } from "../db/schema.js";
+import { db } from "../db/index.ts";
+import { users } from "../db/schema.ts";
 import { eq } from "drizzle-orm";
 
 // Zod is like DTO (Class Validator)

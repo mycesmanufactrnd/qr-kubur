@@ -1,3 +1,3 @@
-export * from "./schemas/users.js";
-export * from "./schemas/organisations.js";
-export * from "./schemas/tahfizCenters.js";
+export * from "./schemas/users.ts";
+export * from "./schemas/organisations.ts";
+export * from "./schemas/tahfizCenters.ts";

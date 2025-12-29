@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { verifyToken } from "./auth.js";
+import { verifyToken } from "./auth.ts";
 
 export const createContext = ({ req }: { req: any }) => {
   const token = req.headers.authorization?.replace("Bearer ", "");

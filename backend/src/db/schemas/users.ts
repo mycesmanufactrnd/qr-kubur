@@ -1,6 +1,6 @@
 import { pgTable, integer, varchar, text, timestamp, serial } from "drizzle-orm/pg-core";
-import { organisations } from "./organisations.js";
-import { tahfizCenters } from "./tahfizCenters.js";
+import { organisations } from "./organisations.ts";
+import { tahfizCenters } from "./tahfizCenters.ts";
 
 export const users = pgTable("users", {
     id: serial("id").primaryKey(), 

@@ -27,4 +27,13 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
+# Drizzle ORM
+backend/drizzle/
+backend/.drizzle/
+backend/drizzle.config.ts
+backend/src/db/drizzle/
+backend/src/db/_journal.json
+
+# Postgres local data
+backend/database/
+backend/.env

@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx src/server.ts"
+    "dev": "tsx src/server.ts",
+    "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
     "@trpc/server": "^11.8.1",
     "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "fastify": "^5.6.2",
     "ioredis": "^5.8.2",

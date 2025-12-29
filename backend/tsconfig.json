@@ -7,8 +7,17 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
+
+    // Enables Node ESM module resolution for .ts and .js
     "module": "nodenext",
+
     "target": "esnext",
+
+    //Matches Node’s module resolution logic
+    "moduleResolution": "nodenext",
+    
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": [],
     // For nodejs:
     // "lib": ["esnext"],
