@@ -269,7 +269,7 @@ export default function DonationPage() {
                   setCustomAmount(e.target.value);
                   setAmount('');
                 }}
-                className="pl-12 text-lg"
+                className="pl-12 text-md dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
           </CardContent>
@@ -351,6 +351,7 @@ export default function DonationPage() {
                 placeholder="Nama anda (boleh kosongkan untuk derma tanpa nama)"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
             <div>
@@ -361,6 +362,7 @@ export default function DonationPage() {
                 placeholder="Email untuk pengesahan"
                 value={donorEmail}
                 onChange={(e) => setDonorEmail(e.target.value)}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
             <div>
@@ -370,6 +372,7 @@ export default function DonationPage() {
                 placeholder="Sebarang catatan..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
           </CardContent>
@@ -390,7 +393,7 @@ export default function DonationPage() {
             </div>
             <div>
               <Label htmlFor="referenceId" className="dark:text-gray-300">
-                ID Rujukan Transaksi (Reference ID) <span className="text-red-500">*</span>
+                ID Rujukan Transaksi <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="referenceId"
@@ -398,7 +401,7 @@ export default function DonationPage() {
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 required
-                className="font-mono"
+                className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
           </CardContent>
