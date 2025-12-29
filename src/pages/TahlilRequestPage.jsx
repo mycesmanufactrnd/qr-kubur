@@ -341,6 +341,7 @@ export default function TahlilRequestPage() {
                     value={name}
                     onChange={(e) => updateDeceasedName(index, e.target.value)}
                     required
+                    className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   />
                 </div>
                 {deceasedNames.length > 1 && (
@@ -374,7 +375,7 @@ export default function TahlilRequestPage() {
                   placeholder="Nama anda"
                   value={requesterName}
                   onChange={(e) => setRequesterName(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   required
                 />
               </div>
@@ -388,7 +389,7 @@ export default function TahlilRequestPage() {
                   placeholder="01X-XXXXXXX"
                   value={requesterPhone}
                   onChange={(e) => setRequesterPhone(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   required
                 />
               </div>
@@ -403,7 +404,7 @@ export default function TahlilRequestPage() {
                   placeholder="email@contoh.com"
                   value={requesterEmail}
                   onChange={(e) => setRequesterEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                 />
               </div>
             </div>
@@ -425,7 +426,7 @@ export default function TahlilRequestPage() {
                   type="date"
                   value={preferredDate}
                   onChange={(e) => setPreferredDate(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                 />
               </div>
             </div>
@@ -436,6 +437,7 @@ export default function TahlilRequestPage() {
                 placeholder="Sebarang maklumat tambahan..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
           </CardContent>
@@ -523,11 +525,11 @@ export default function TahlilRequestPage() {
               </Label>
               <Input
                 id="referenceId"
-                placeholder="Masukkan ID rujukan dari transaksi"
+                placeholder="ID Rujukan Transaksi"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 required
-                className="font-mono"
+                className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
           </CardContent>
