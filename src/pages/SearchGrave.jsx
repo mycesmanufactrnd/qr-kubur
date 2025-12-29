@@ -107,7 +107,7 @@ export default function SearchGrave() {
             placeholder={t('graveName')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus-visible:ring-white dark:focus-visible:ring-2 dark:focus-visible:ring-offset-0 h-9"
+            className="dark:bg-gray-700 dark:text-white dark:border-white-600 h-9"
           />
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
