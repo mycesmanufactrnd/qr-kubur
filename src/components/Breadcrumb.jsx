@@ -22,7 +22,37 @@ export default function Breadcrumb({ items }) {
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           
-          return (
+          return (            
+            <span
+              key={item.page || item.label || index}
+              className="flex items-center gap-2"
+            >
+              {/* Chevron separator (not shown for first item) */}
+              {index > 0 && (
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              )}
+
+              {/* Last item = current page (not clickable) */}
+              {isLast ? (
+                <span
+                  className="text-gray-900 dark:text-white font-medium"
+                  aria-current="page"
+                >
+                  {item.label}
+                </span>
+              ) : (
+                /* Intermediate items = links */
+                <Link
+                  to={createPageUrl(item.page)}
+                  className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  {item.label}
+                </Link>
+              )}
+            </span>
+          );
+
+          {/*
             <React.Fragment key={index}>
               {index > 0 && (
                 <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -39,7 +69,7 @@ export default function Breadcrumb({ items }) {
                 </Link>
               )}
             </React.Fragment>
-          );
+          */}
         })}
       </nav>
     </div>
