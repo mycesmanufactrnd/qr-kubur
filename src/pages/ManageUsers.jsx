@@ -271,6 +271,7 @@ export default function ManageUsers() {
     if (isAddMode) {
       createUserMutation.mutate(dataToSave);
     } else {
+      console.log('editUser', editUser)
       if (editUser.isAppUser) {
         updateAppUserMutation.mutate({ id: editUser.id, data: dataToSave });
       } else {
