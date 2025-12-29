@@ -242,7 +242,7 @@ export default function ScanQR() {
                 placeholder={t('enterQRCode')}
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
-                className="text-center"
+                className="text-center dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <Button 
                 type="submit" 
