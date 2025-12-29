@@ -32,7 +32,7 @@ export default function UserDashboard() {
     <div className="space-y-4 pb-2">
       {/* Header */}
       <div className="pt-2">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">QR Kubur</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">QR Kuburs</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">Sistem Pengurusan Kubur</p>
       </div>
 
