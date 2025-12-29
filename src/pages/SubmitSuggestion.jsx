@@ -364,6 +364,7 @@ export default function SubmitSuggestion() {
                 placeholder="Nyatakan maklumat yang perlu diperbetulkan dan maklumat yang betul..."
                 rows={5}
                 required
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Contoh: "Nama sepatutnya Ahmad bin Abu, bukan Ahmad bin Bakar"
@@ -378,6 +379,7 @@ export default function SubmitSuggestion() {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Nyatakan sebab atau bukti untuk pembetulan ini..."
                 rows={3}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
 
