@@ -5,7 +5,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Shield, Users, Database, CheckCircle, XCircle, Clock, 
-  Eye, Terminal, Copy, AlertCircle, Book, Sparkles, List, CreditCard, Settings
+  Eye, Terminal, Copy, AlertCircle, Book, Sparkles, List, CreditCard, Settings,
+  User,
+  UserCheck
 } from 'lucide-react';
 import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -293,6 +295,20 @@ export default function SuperadminDashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">Payment Fields</h3>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to={createPageUrl('ManagePermissions')}>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                      <UserCheck className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Manage Permission</h3>
                     </div>
                   </div>
                 </CardContent>

@@ -170,12 +170,18 @@ export default function ManageGraves() {
 
   if (!hasViewPermission) {
     return (
-      <Card className="max-w-lg mx-auto mt-8">
-        <CardContent className="p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
-          <p className="text-gray-600">{t('noPermission')}</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: t('adminDashboard'), page: 'AdminDashboard' },
+          { label: t('manageGravesTitle'), page: 'ManageGraves' }
+        ]} />
+        <Card className="max-w-lg mx-auto mt-8">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
+            <p className="text-gray-600">{t('noPermission')}</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

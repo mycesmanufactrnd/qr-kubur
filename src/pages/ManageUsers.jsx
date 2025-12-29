@@ -20,8 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import Breadcrumb from '../components/Breadcrumb';
-import { toast } from 'sonner';
-
+import { useToast } from "@/components/ui/use-toast";
 
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
 
@@ -30,6 +29,7 @@ export default function ManageUsers() {
   const [userLoading, setUserLoading] = React.useState(true);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -79,12 +79,24 @@ export default function ManageUsers() {
 
   const createUserMutation = useMutation({
     mutationFn: async (data) => {
-      // Hash password if provided
-      if (data.password) {
-        const hashResponse = await base44.functions.invoke('hashPassword', { password: data.password });
-        data.password = hashResponse.data.hashed;
+      try {
+        // Hash password
+        if (data.password) {
+          const hashResponse = await base44.functions.invoke(
+            'hashPassword',
+            { password: data.password }
+          );
+
+          console.log('hashResponse', hashResponse);
+
+          data.password = hashResponse.data.hashed;
+        }
+
+        return await base44.entities.AppUser.create(data);
+      } catch (err) {
+        console.error('Create user failed:', err);
+        throw err;
       }
-      return base44.entities.AppUser.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -228,37 +240,63 @@ export default function ManageUsers() {
     
     // Validation - Required fields
     if (!editUser.full_name?.trim()) {
-      toast.error('Sila masukkan nama penuh', { description: 'Medan Diperlukan' });
+      toast({
+        variant: "destructive",
+        title: "Medan Diperlukan",
+        description: "Sila masukkan nama penuh",
+      });
       return;
     }
     if (!editUser.email?.trim()) {
-      toast.error('Sila masukkan email', { description: 'Medan Diperlukan' });
+      toast({
+        variant: "destructive",
+        title: "Medan Diperlukan",
+        description: "Sila masukkan email",
+      });
       return;
     }
+    
     if (isAddMode && !editUser.password?.trim()) {
-      toast.error('Sila masukkan password', { description: 'Medan Diperlukan' });
+      toast({
+        variant: "destructive",
+        title: "Medan Diperlukan",
+        description: "Sila masukkan password",
+      });
       return;
     }
-    if (!editUser.organisation_id && !editUser.tahfiz_center_id) {
-      toast.error('Sila pilih organisasi atau pusat tahfiz', { description: 'Medan Diperlukan' });
-      return;
-    }
+
     if (!editUser.state || editUser.state.length === 0) {
-      toast.error('Sila pilih sekurang-kurangnya satu negeri', { description: 'Medan Diperlukan' });
+      toast({
+        variant: "destructive",
+        title: "Medan Diperlukan",
+        description: "Sila pilih sekurang-kurangnya satu negeri",
+      });
       return;
     }
 
     // Additional validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editUser.email)) {
-      toast.error('Format email tidak sah', { description: 'Format Tidak Sah' });
+      toast({
+        variant: "destructive",
+        title: "Format Tidak Sah",
+        description: "Format email tidak sah",
+      });
       return;
     }
     if (isAddMode && editUser.password.length < 6) {
-      toast.error('Password mesti sekurang-kurangnya 6 aksara', { description: 'Password Terlalu Pendek' });
+      toast({
+        variant: "destructive",
+        title: "Password Terlalu Pendek",
+        description: "Password mesti sekurang-kurangnya 6 aksara",
+      });
       return;
     }
     if (!isAddMode && editUser.password && editUser.password.length < 6) {
-      toast.error('Password mesti sekurang-kurangnya 6 aksara', { description: 'Password Terlalu Pendek' });
+      toast({
+        variant: "destructive",
+        title: "Password Terlalu Pendek",
+        description: "Password mesti sekurang-kurangnya 6 aksara",
+      });
       return;
     }
     
@@ -267,6 +305,8 @@ export default function ManageUsers() {
     if (!isAddMode && !dataToSave.password) {
       delete dataToSave.password;
     }
+
+
     
     if (isAddMode) {
       createUserMutation.mutate(dataToSave);
@@ -488,7 +528,11 @@ export default function ManageUsers() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent 
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        >
           <DialogHeader>
             <DialogTitle>{isAddMode ? 'Tambah Pengguna' : 'Edit Pengguna'}</DialogTitle>
           </DialogHeader>
