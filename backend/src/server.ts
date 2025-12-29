@@ -7,6 +7,19 @@ import { usersRouter } from "./routers/usersRouter.ts";
 // const app = Fastify({ logger: true });
 const app = Fastify();
 
+{/*
+BackEnd Architecture
+
+| Component   | Role                                     |
+| ----------- | ---------------------------------------- |
+| Fastify     | Web server (receives HTTP requests)      |
+| tRPC Router | Controller layer (routes calls to logic) |
+| Drizzle ORM | Service/repository layer (queries DB)    |
+| Zod         | DTO/validation layer (checks input)      |
+| JWT/Auth    | Auth layer (check who can call what)     |
+
+*/}
+
 await app.register(rateLimit, {
   global: true,
   max: 120, // max request

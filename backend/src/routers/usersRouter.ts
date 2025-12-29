@@ -5,6 +5,10 @@ import { users } from "../db/schema.ts";
 import { eq } from "drizzle-orm";
 
 // Zod is like DTO (Class Validator)
+// .validation() method on a procedure just tells tRPC how to validate the input
+// tRPC itself does not include a validation library, still need a schema validator
+// .input(zodSchema) is just shorthand for .validation(zodSchema)
+
 export const usersRouter = router({
   getUserById: publicProcedure
     .input(
