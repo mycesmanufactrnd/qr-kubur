@@ -144,7 +144,7 @@ export default function GraveDetails() {
                 placeholder="Cari nama..."
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
-                className="h-9"
+                className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -153,7 +153,7 @@ export default function GraveDetails() {
                     type="date"
                     value={searchDate}
                     onChange={(e) => setSearchDate(e.target.value)}
-                    className="h-9"
+                    className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   />
                 </div>
                 <Button onClick={handleSearch} size="sm" className="h-9 mt-5 bg-emerald-600 hover:bg-emerald-700">
