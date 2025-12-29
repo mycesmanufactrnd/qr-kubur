@@ -120,7 +120,7 @@ export default function SearchTahfiz() {
             placeholder={t('tahfizName')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9"
+            className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
           />
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
