@@ -1,7 +1,7 @@
 import { router, publicProcedure } from "../trpc.ts";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { db } from "../db/index.ts";
+import { db } from "../datasource.ts";
 import { users } from "../db/schema.ts";
 import { signToken } from "../auth.ts";
 import { assertRole } from "../helpers/authHelper.ts";

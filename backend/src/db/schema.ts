@@ -1,3 +1,3 @@
-export * from "./schemas/users.ts";
-export * from "./schemas/organisations.ts";
-export * from "./schemas/tahfizCenters.ts";
+export * from "./entities/User.entity.ts";
+export * from "./entities/Organisation.entity.ts";
+export * from "./entities/TahfizCenter.entity.ts";

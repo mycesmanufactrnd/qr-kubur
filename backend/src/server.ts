@@ -1,20 +1,23 @@
+import "reflect-metadata";
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext, router as trpcRouter } from "./trpc.ts";
 import { usersRouter } from "./routers/usersRouter.ts";
+import { AppDataSource } from "./datasource.ts";
 
 // const app = Fastify({ logger: true });
 const app = Fastify();
 
 {/*
+
 BackEnd Architecture
 
 | Component   | Role                                     |
 | ----------- | ---------------------------------------- |
 | Fastify     | Web server (receives HTTP requests)      |
 | tRPC Router | Controller layer (routes calls to logic) |
-| Drizzle ORM | Service/repository layer (queries DB)    |
+| Type ORM    | Service/repository layer (queries DB)    |
 | Zod         | DTO/validation layer (checks input)      |
 | JWT/Auth    | Auth layer (check who can call what)     |
 
@@ -31,17 +34,6 @@ await app.register(rateLimit, {
   ]
 });
 
-// [GET BY ID]
-// trpc.users.getUserById.query({ id: 1 }); 
-
-// [CREATE]
-// trpc.users.createUser.mutate({
-//   fullName: "John Doe",
-//   email: "john@example.com",
-//   password: "hashed_password",
-//   role: "admin"
-// });
-
 const appRouter = trpcRouter({
   users: usersRouter
 });
@@ -49,7 +41,6 @@ const appRouter = trpcRouter({
 // In tRPC, the HTTP method is always POST by default
 // if get error (Unsupported POST-request to query procedure)
 // but to check with Postman interchangeable POST with GET
-// http://localhost:4000/trpc/users.getUserById?input={"id":1}
 
 app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
@@ -60,8 +51,14 @@ app.get("/", async () => {
   return { message: "tRPC backend is running" };
 });
 
-app.listen({ port: 4000 }, () => {
+async function bootstrap() {
+  await AppDataSource.initialize();
+  console.log("Database connected and synchronized!");
+
+  await app.listen({ port: 4000 });
   console.log("tRPC backend running on http://localhost:4000");
-});
+}
+
+bootstrap();
 
 export type AppRouter = typeof appRouter;

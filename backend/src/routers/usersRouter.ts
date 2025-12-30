@@ -1,8 +1,21 @@
 import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
+import bcrypt from "bcrypt"; 
 import { z } from "zod";
-import { db } from "../db/index.ts";
-import { users } from "../db/schema.ts";
-import { eq } from "drizzle-orm";
+import { AppDataSource } from "../datasource.ts";
+import { User } from "../db/schema.ts";
+
+const userRepo = AppDataSource.getRepository(User);
+
+// [GET BY ID]
+// trpc.users.getUserById.query({ id: 1 }); 
+
+// [CREATE]
+// trpc.users.createUser.mutate({
+//   fullName: "John Doe",
+//   email: "john@example.com",
+//   password: "hashed_password",
+//   role: "admin"
+// });
 
 // Zod is like DTO (Class Validator)
 // .validation() method on a procedure just tells tRPC how to validate the input
@@ -17,12 +30,16 @@ export const usersRouter = router({
         id: z.number(),
       })
     )
-    .query(({ input }) => {
-      return db.select()
-        .from(users)
-        .where(
-          eq(users.id, input.id)
-        );
+    .query(async ({ input }) => {
+      const user = await userRepo.findOne({
+        where: { id: input.id },
+      });
+
+      if (!user) {
+        throw new Error(`User with id ${input.id} not found`);
+      }
+
+      return user;
     }),
   
   createUser: protectedProcedure
@@ -34,6 +51,12 @@ export const usersRouter = router({
         role: z.string(),
       })
     )
-    .mutation(({ input }) => db.insert(users).values(input)),
+    .mutation(async ({ input }) => {
+      const user = userRepo.create({
+        ...input,
+        password: await bcrypt.hash(input.password, 10),
+      });
+      return await userRepo.save(user);
+    }),
 });
 

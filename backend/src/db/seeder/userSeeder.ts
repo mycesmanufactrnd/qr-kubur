@@ -1,21 +1,53 @@
-import { db } from "../index.ts";
-import { users } from "../schemas/users.ts";
-import bcrypt from "bcrypt";
+{/*
 
-const adminExists = await db.select().from(users).limit(1);
-if (adminExists.length) {
+  What reflect-metadata does?
+
+  It allows TypeORM to read this at runtime:
+
+  class User {
+    @Column()
+    name: string;
+  }
+
+  Without reflect-metadata, JavaScript sees:
+
+  class User {
+    name;   // no type info exists
+  }
+
+*/}
+
+import "reflect-metadata";
+import { AppDataSource } from "../../datasource.ts";
+import bcrypt from "bcrypt";
+import { User } from "../entities/User.entity.ts";
+import type { DeepPartial } from "typeorm"; 
+
+await AppDataSource.initialize();
+
+const userRepo = AppDataSource.getRepository(User);
+
+const adminExists = await userRepo.findOne({
+  where: { email: "admin@qr-kubur.com" },
+});
+
+if (adminExists) {
   console.log("Users already seeded");
   process.exit(0);
 }
 
-await db.insert(users).values({
-    fullName: "Super Admin",
-    email: "admin@qr-kubur.com",
-    password: await bcrypt.hash("password", 10),
-    role: "superadmin",
-    organisationId: null,
-    tahfizCenterId: null,
-    state: ["Johor"],
-});
+const superadmin: DeepPartial<User> = {
+  fullname: "Super Admin",
+  email: "admin@qr-kubur.com",
+  password: await bcrypt.hash("password", 10),
+  role: "superadmin",
+  state: ["Johor", "Selangor"],
+  organisation: null,
+  tahfizcenter: null,
+};
 
-console.log("Users seeded");
+const adminEntity = userRepo.create(superadmin);
+await userRepo.save(adminEntity);
+
+console.log("✔ Users seeded");
+process.exit(0);
