@@ -13,5 +13,5 @@ export class TahfizCenter {
   user!: User[];
 
   @CreateDateColumn({ name: "createdat" })
-  createdAt!: Date;
+  createdat!: Date;
 }

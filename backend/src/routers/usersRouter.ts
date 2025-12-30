@@ -2,7 +2,7 @@ import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import bcrypt from "bcrypt"; 
 import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
-import { User } from "../db/schema.ts";
+import { User } from "../db/entities.ts";
 
 const userRepo = AppDataSource.getRepository(User);
 

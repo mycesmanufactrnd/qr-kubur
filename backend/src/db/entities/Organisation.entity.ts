@@ -13,5 +13,5 @@ export class Organisation {
   user!: User[];
 
   @CreateDateColumn({ name: "createdat" })
-  createdAt!: Date;
+  createdat!: Date;
 }
