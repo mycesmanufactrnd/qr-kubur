@@ -1,29 +1,39 @@
 import { router, publicProcedure } from "../trpc.ts";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { db } from "../datasource.ts";
-import { users } from "../db/schema.ts";
+import { User } from "../db/entities/User.entity.ts";
 import { signToken } from "../auth.ts";
 import { assertRole } from "../helpers/authHelper.ts";
-import { eq } from "drizzle-orm";
+import { AppDataSource } from "../datasource.ts";
+
+const userRepo = AppDataSource.getRepository(User);
 
 export const authRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
     .mutation(async ({ input }) => {
-      const [user] = await db.select().from(users).where(eq(users.email, input.email));
+      const user = await userRepo.findOne({
+        where: { email: input.email },
+      });
 
       if (!user) throw new Error("Invalid credentials");
       if (!user.password) throw new Error("No password given");
       if (!user.role) throw new Error("No role given");
-      
+
       const valid = await bcrypt.compare(input.password, user.password);
       if (!valid) throw new Error("Invalid credentials");
-      
+
       const role = user.role;
       assertRole(role);
 
-      const token = signToken({ id: user.id.toString(), role: role });
-      return { token, user: { id: user.id, fullName: user.fullName, role: user.role } };
+      const token = signToken({ id: user.id.toString(), role });
+      return {
+        token,
+        user: {
+          id: user.id,
+          fullname: user.fullname,
+          role: user.role,
+        },
+      };
     }),
 });
