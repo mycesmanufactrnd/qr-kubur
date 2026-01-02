@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { trpc } from '@/trpc'; // Use the alias to the file we just creat
 
 export default function AppUserLogin() {
   const [email, setEmail] = useState('');
@@ -12,29 +13,49 @@ export default function AppUserLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 1. Define the Supabase login mutation using tRPC
+  const supabaseLogin = trpc.auth.login.useMutation();
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    // 2. Control which database to hit via environment variable
+    const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
+
     try {
-      const response = await base44.functions.invoke('appUserLogin', { email, password });
-      
-      if (response.data.success) {
-        // Store user data in localStorage
-        localStorage.setItem('appUserAuth', JSON.stringify(response.data.user));
+      if (isSupabaseMode) {
+        // --- NEW SUPABASE FLOW ---
+        const response = await supabaseLogin.mutateAsync({ email, password });
+        
+        localStorage.setItem('appUserAuth', JSON.stringify(response.user));
         localStorage.setItem('roleOverride', JSON.stringify({ 
-          role: 'admin', 
-          state: response.data.user.state[0] 
+          role: response.user.role, 
+          state: response.user.state?.[0] || null 
         }));
         
-        // Redirect to admin dashboard
         window.location.href = '/AdminDashboard';
       } else {
-        setError(response.data.message || 'Login failed');
+        // --- ORIGINAL BASE44 FLOW ---
+        const response = await base44.functions.invoke('appUserLogin', { email, password });
+        
+        if (response.data.success) {
+          localStorage.setItem('appUserAuth', JSON.stringify(response.data.user));
+          localStorage.setItem('roleOverride', JSON.stringify({ 
+            role: 'admin', 
+            state: response.data.user.state[0] 
+          }));
+          
+          window.location.href = '/AdminDashboard';
+        } else {
+          setError(response.data.message || 'Login failed');
+        }
       }
     } catch (err) {
-      setError('Invalid email or password');
+      // 3. Centralized error handling for both auth methods
+      console.error("Login error:", err);
+      setError(err.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }

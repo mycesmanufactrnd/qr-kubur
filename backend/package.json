@@ -30,6 +30,7 @@
     "@types/node": "^25.0.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
+    "typeorm-ts-node-esm": "^0.3.20",
     "typescript": "^5.9.3"
   }
 }

@@ -9,10 +9,18 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { supabase } from '@/api/supabaseClient';
+import { useEffect } from 'react';
+import { trpc } from './trpc'; 
+import { httpBatchLink } from '@trpc/client';
+import { useState } from 'react';
+
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -67,19 +75,46 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      links: [
+        httpBatchLink({
+          url: 'http://localhost:3000/trpc', 
+        }),
+      ],
+    }),
+  );
+
+  useEffect(() => {
+    const testSupabase = async () => {
+      console.log("Checking Supabase connection...");
+      const { data, error } = await supabase.from('users').select('*').limit(1);
+
+      if (error) {
+        console.error("❌ Supabase Error:", error.message);
+      } else {
+        console.log("✅ Supabase successfully reached! Data:", data);
+      }
+    };
+    testSupabase();
+  }, []);
 
   return (
-    <AuthProvider>
+    // 1. Add trpc.Provider as the outermost wrapper
+    <trpc.Provider client={trpcClient} queryClient={queryClientInstance}>
+      {/* 2. Reuse your existing queryClientInstance */}
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-        <VisualEditAgent />
+        <AuthProvider>
+          <Router>
+            <NavigationTracker />
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+          <VisualEditAgent />
+        </AuthProvider>
       </QueryClientProvider>
-    </AuthProvider>
-  )
+    </trpc.Provider>
+  );
 }
 
 export default App
