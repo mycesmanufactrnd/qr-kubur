@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 

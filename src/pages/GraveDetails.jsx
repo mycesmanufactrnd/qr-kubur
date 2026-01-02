@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index.jsx';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, Navigation, Share2, ArrowLeft, Search } from 'lucide-react';

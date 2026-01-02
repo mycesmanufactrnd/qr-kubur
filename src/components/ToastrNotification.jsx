@@ -1,7 +1,6 @@
 import toastr from 'toastr';
 import 'toastr/build/toastr.min.css';
 
-// Configure toastr globally
 toastr.options = {
   closeButton: true,
   debug: false,
@@ -10,17 +9,17 @@ toastr.options = {
   positionClass: 'toast-top-right',
   preventDuplicates: false,
   onclick: null,
-  showDuration: '300',
-  hideDuration: '1000',
-  timeOut: '5000',
-  extendedTimeOut: '1000',
+  showDuration: 300,
+  hideDuration: 1000,
+  timeOut: 5000,
+  extendedTimeOut: 1000,
   showEasing: 'swing',
   hideEasing: 'linear',
   showMethod: 'fadeIn',
   hideMethod: 'fadeOut'
 };
 
-export const showSuccess = (message, title = '') => {
+export const showSuccess = (message, title = 'Success') => {
   toastr.success(message, title);
 };
 
@@ -28,7 +27,7 @@ export const showError = (message, title = 'Ralat') => {
   toastr.error(message, title);
 };
 
-export const showInfo = (message, title = '') => {
+export const showInfo = (message, title = 'Info') => {
   toastr.info(message, title);
 };
 

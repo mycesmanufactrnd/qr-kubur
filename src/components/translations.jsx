@@ -322,7 +322,7 @@ export const adminTranslations = {
     
     // Dashboards
     superadminDashboard: 'Super Admin Dashboard', adminDashboard: 'Admin Dashboard',
-    systemStats: 'Statistik Sistem', quickStats: 'Statistik Pantas', pendingItems: 'Item Menunggu',
+    quickStats: 'Statistik Pantas', pendingItems: 'Item Menunggu',
     pendingApproval: 'Kelulusan Menunggu',
     quickActions: 'Tindakan Pantas', totalGraves: 'Jumlah Kubur', totalPersons: 'Jumlah Si Mati',
     totalOrgs: 'Jumlah Organisasi', totalTahfiz: 'Jumlah Tahfiz', totalDonations: 'Jumlah Derma',
@@ -392,7 +392,7 @@ export const adminTranslations = {
     
     // Dashboards
     superadminDashboard: 'Super Admin Dashboard', adminDashboard: 'Admin Dashboard',
-    systemStats: 'System Statistics', quickStats: 'Quick Stats', pendingItems: 'Pending Items',
+    quickStats: 'Quick Stats', pendingItems: 'Pending Items',
     pendingApproval: 'Pending Approvals',
     quickActions: 'Quick Actions', totalGraves: 'Total Graves', totalPersons: 'Total Deceased',
     totalOrgs: 'Total Organisations', totalTahfiz: 'Total Tahfiz', totalDonations: 'Total Donations',
@@ -462,7 +462,7 @@ export const adminTranslations = {
     
     // Dashboards
     superadminDashboard: 'لوحة المشرف العام', adminDashboard: 'لوحة الإدارة',
-    systemStats: 'إحصائيات النظام', quickStats: 'إحصائيات سريعة', pendingItems: 'العناصر المعلقة',
+    quickStats: 'إحصائيات سريعة', pendingItems: 'العناصر المعلقة',
     pendingApproval: 'الموافقات المعلقة',
     quickActions: 'إجراءات سريعة', totalGraves: 'إجمالي القبور', totalPersons: 'إجمالي المتوفين',
     totalOrgs: 'إجمالي المنظمات', totalTahfiz: 'إجمالي التحفيظ', totalDonations: 'إجمالي التبرعات',

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index.jsx';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Search, MapPin, QrCode, Heart, BookOpen, FileText, Map, LogIn, BookText, Compass } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { getTranslation, getCurrentLanguage } from '../components/Translations';
 
 export default function UserDashboard() {
   const [lang, setLang] = useState('ms');

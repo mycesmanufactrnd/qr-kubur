@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { getTranslation, getCurrentLanguage } from '../components/Translations';
 
 export default function NotificationPage() {
   const navigate = useNavigate();

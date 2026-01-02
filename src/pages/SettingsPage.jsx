@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index.jsx';
 import { ArrowLeft, HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { getTranslation, getCurrentLanguage } from '../components/Translations';
 
 export default function SettingsPage() {
   const navigate = useNavigate();

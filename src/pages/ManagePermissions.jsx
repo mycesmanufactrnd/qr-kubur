@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
-import { PERMISSION_CATEGORIES } from '../components/permissions';
+import { PERMISSION_CATEGORIES } from '../components/Permissions';
+import { usePermissions } from '@/components/PermissionsContext';
+import { getAdminTranslation } from '@/components/Translations';
 
 export default function ManagePermissions() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -19,7 +21,9 @@ export default function ManagePermissions() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userPermissions, setUserPermissions] = useState({});
+  const [lang, setLang] = useState('ms');
 
+  const t = (key) => getAdminTranslation(key, lang);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -38,18 +42,35 @@ export default function ManagePermissions() {
     loadUser();
   }, []);
 
+  const { hasPermission } = usePermissions();
   const isSuperAdmin = currentUser?.role === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin';
+  const hasViewPermission = isSuperAdmin || (isAdmin && hasPermission('permissions_view'));
+  const hasEditPermission = isSuperAdmin || (isAdmin && hasPermission('permissions_edit'));
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['app-users'],
-    queryFn: () => base44.entities.AppUser.list('-created_date'),
-    enabled: isSuperAdmin
+    // queryKey: ['app-users'],
+    // queryFn: () => base44.entities.AppUser.list('-created_date'),
+
+    queryKey: ['app-users', currentUser?.organisation_id],
+    queryFn: () => {
+      const entities = base44.entities;
+
+      if (!entities) return [];
+
+      if (isSuperAdmin) return entities.AppUser.list('-created_date');
+
+      if (isAdmin) return entities.AppUser.filter({ organisation_id: currentUser.organisation_id });
+
+      return [];
+    },
+    enabled: !!currentUser && hasViewPermission
   });
 
   const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
     queryKey: ['user-permissions', selectedUser?.id],
     queryFn: () => base44.entities.Permission.filter({ user_id: selectedUser.id }),
-    enabled: !!selectedUser
+    enabled: !!selectedUser && hasViewPermission,
   });
 
   React.useEffect(() => {
@@ -101,11 +122,11 @@ export default function ManagePermissions() {
     return <LoadingUser />;
   }
 
-  if (!isSuperAdmin) {
+  if (!hasViewPermission) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: isSuperAdmin ? t('superadminDashboard') : t('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
           { label: 'Urus Kebenaran', page: 'ManagePermissions' }
         ]} />
         <Card className="max-w-lg mx-auto mt-8">
@@ -136,7 +157,7 @@ export default function ManagePermissions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Super Admin', page: 'SuperadminDashboard' },
+        { label: isSuperAdmin ? t('superadminDashboard') : t('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
         { label: 'Urus Kebenaran', page: 'ManagePermissions' }
       ]} />
 
@@ -205,10 +226,12 @@ export default function ManagePermissions() {
                     <h3 className="font-semibold text-gray-900 dark:text-white">{selectedUser.full_name}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{selectedUser.email}</p>
                   </div>
-                  <Button onClick={saveAllPermissions} disabled={updatePermissionMutation.isPending}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Simpan
-                  </Button>
+                  { hasEditPermission && (
+                    <Button onClick={saveAllPermissions} disabled={updatePermissionMutation.isPending}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Simpan
+                    </Button>
+                  )}
                 </div>
 
                 <div className="space-y-6 max-h-[600px] overflow-y-auto">

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
+import { getAdminTranslation, getCurrentLanguage } from '../components/Translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
 

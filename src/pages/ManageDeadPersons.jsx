@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +10,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { translate } from '@/utils/translations';
+import { getLabelFromId, getParentAndChildOrgs, useAdminAccess } from '@/utils';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { STATES_MY } from '@/utils/enums';
 
 const emptyPerson = {
   name: '',
@@ -33,69 +36,113 @@ const emptyPerson = {
 };
 
 export default function ManageDeadPersons() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchIC, setSearchIC] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const { 
+    currentUser, 
+    loadingUser, 
+    hasAdminAccess, 
+    isSuperAdmin, 
+    isAdmin, 
+    isEmployee, 
+    currentUserStates 
+  } = useAdminAccess();
+
+  const [filterName, setFilterName] = useState('');
+  const [filterIC, setFilterIC] = useState('');
   const [filterGrave, setFilterGrave] = useState('all');
   const [filterState, setFilterState] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
   const [formData, setFormData] = useState(emptyPerson);
   const [uploading, setUploading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
-  const [lang, setLang] = useState('ms');
-
+  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
+  const [accessibleGravesIds, setAccessibleGravesIds] = useState([]);
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
+  const {
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('dead_persons');
 
-  React.useEffect(() => {
-    loadUser();
-    setLang(getCurrentLanguage());
-  }, []);
+  useEffect(() => {
+    if (!isSuperAdmin && currentUser?.organisation_id) {
+      getParentAndChildOrgs(currentUser.organisation_id)
+        .then((orgIds) => {
+          setAccessibleOrgIds(orgIds);
+          return getAccessibleGravesIds(orgIds);
+        })
+        .then(gravesIds => setAccessibleGravesIds(gravesIds))
+        .catch(err => console.error(err));
 
-  const loadUser = async () => {
-    try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
-      if (appUserAuth) {
-        setCurrentUser(JSON.parse(appUserAuth));
-      }
-    } catch (e) {
-      setCurrentUser(null);
-    } finally {
-      setLoadingUser(false);
     }
+  }, [currentUser]);
+
+  const getAccessibleGravesIds = async (orgIds) => {
+    const graves = await base44.entities.Grave.filter({ organisation_id: { $in: orgIds } });
+    return graves.map(g => g.id);
   };
 
-  const { hasPermission } = usePermissions();
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = hasPermission('dead_persons_view');
-  const hasCreatePermission = hasPermission('dead_persons_create');
-  const hasEditPermission = hasPermission('dead_persons_edit');
-  const hasDeletePermission = hasPermission('dead_persons_delete');
+  const buildDeadPersonFilterQuery = () => {
+    const query = {};
+    if (!isSuperAdmin && currentUser?.organisation_id) {
+      query.grave_id = { $in: accessibleGravesIds };
+    }
 
-  const skip = (page - 1) * itemsPerPage;
+    if (filterState !== 'all') query.state = filterState;
+    if (filterGrave !== 'all') query.grave_id = filterGrave;
+    if (filterName) query.name = { $regex: filterName, $options: 'i' };
+    if (filterIC) query.ic_number = { $regex: filterIC, $options: 'i' };
 
-  const { data: allPersons = [] } = useQuery({
-    queryKey: ['admin-persons-all'],
-    queryFn: () => base44.entities.DeadPerson.list(),
-    enabled: hasViewPermission
+    if (dateFrom || dateTo) {
+      query.date_of_death = {};
+      if (dateFrom) query.date_of_death.$gte = dateFrom;
+      if (dateTo) query.date_of_death.$lte = dateTo;
+    }
+
+    return query;
+  };
+
+  const { data: deadPersonsList = [], isLoading } = useQuery({
+    queryKey: [
+      'dead-persons-list', 
+      page, itemsPerPage, currentUser, 
+      filterState, filterGrave, filterName, filterIC, dateFrom, dateTo,
+      accessibleGravesIds
+    ],
+    queryFn: async () => {
+      const filterQuery = buildDeadPersonFilterQuery();
+      return base44.entities.DeadPerson.filter(filterQuery, '-created_date', itemsPerPage, (page - 1) * itemsPerPage);
+    },
+    enabled: canView && !!currentUser && accessibleGravesIds.length > 0
   });
 
-  const { data: persons = [], isLoading } = useQuery({
-    queryKey: ['admin-persons-paginated', page, itemsPerPage],
-    queryFn: () => base44.entities.DeadPerson.filter({}, '-created_date', itemsPerPage, skip),
-    enabled: hasViewPermission
+  const { data: totalRows = 0 } = useQuery({
+    queryKey: [
+      'dead-persons-count', 
+      currentUser, accessibleGravesIds,
+      filterState, filterGrave, filterName, filterIC, dateFrom, dateTo
+    ],
+    queryFn: async () => {
+      const filterQuery = buildDeadPersonFilterQuery();
+      const all = await base44.entities.DeadPerson.filter(filterQuery);
+      return all.length;
+    },
+    enabled: canView && !!currentUser && accessibleGravesIds.length > 0
   });
 
-  const { data: graves = [] } = useQuery({
-    queryKey: ['graves'],
-    queryFn: () => base44.entities.Grave.list()
+  const totalPages = Math.ceil(totalRows / itemsPerPage);
+
+  const { data: gravesList = [], isLoading: gravesLoading } = useQuery({
+    queryKey: ['graves-list', accessibleOrgIds],
+    queryFn: async () => {
+      if (!accessibleOrgIds || accessibleOrgIds.length === 0) return [];
+      return await base44.entities.Grave.filter({ organisation_id: { $in: accessibleOrgIds } });
+    },
+    enabled: canView && accessibleOrgIds.length > 0
   });
 
   const createMutation = useMutation({
@@ -135,97 +182,6 @@ export default function ManageDeadPersons() {
       showApiError(error);
     }
   });
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  if (!hasViewPermission) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: t('adminDashboard'), page: 'AdminDashboard' },
-          { label: t('managePersons'), page: 'ManageDeadPersons' }
-        ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
-            <p className="text-gray-600">{t('noPermission')}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const adminStates = currentUser?.state || [];
-  const accessibleGraves = isSuperAdmin ? graves : graves.filter(g => adminStates.includes(g.state));
-
-  const allAccessiblePersons = allPersons.filter(person => {
-    if (isSuperAdmin) return true;
-    const grave = graves.find(g => g.id === person.grave_id);
-    return grave && adminStates.includes(grave.state);
-  });
-
-  const accessiblePersons = persons.filter(person => {
-    if (isSuperAdmin) return true;
-    const grave = graves.find(g => g.id === person.grave_id);
-    return grave && adminStates.includes(grave.state);
-  });
-
-  const malaysianStates = [
-    'Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 
-    'Pahang', 'Perak', 'Perlis', 'Pulau Pinang', 'Sabah', 
-    'Sarawak', 'Selangor', 'Terengganu', 'Wilayah Persekutuan'
-  ];
-
-  const stateFilteredGraves = filterState === 'all' 
-    ? accessibleGraves 
-    : accessibleGraves.filter(g => g.state === filterState);
-
-  const filteredPersons = accessiblePersons.filter(person => {
-    // Name search
-    const matchesName = !searchQuery || 
-      person.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // IC search
-    const matchesIC = !searchIC || 
-      person.ic_number?.includes(searchIC);
-    
-    // Date of death range
-    let matchesDate = true;
-    if (dateFrom || dateTo) {
-      if (person.date_of_death) {
-        const deathDate = new Date(person.date_of_death);
-        if (dateFrom) {
-          const fromDate = new Date(dateFrom);
-          fromDate.setHours(0, 0, 0, 0);
-          matchesDate = matchesDate && deathDate >= fromDate;
-        }
-        if (dateTo) {
-          const toDate = new Date(dateTo);
-          toDate.setHours(23, 59, 59, 999);
-          matchesDate = matchesDate && deathDate <= toDate;
-        }
-      } else {
-        matchesDate = false;
-      }
-    }
-    
-    // Grave filter
-    const matchesGrave = filterGrave === 'all' || person.grave_id === filterGrave;
-    
-    // State filter (through grave)
-    let matchesState = true;
-    if (filterState !== 'all') {
-      const grave = graves.find(g => g.id === person.grave_id);
-      matchesState = grave && grave.state === filterState;
-    }
-    
-    return matchesName && matchesIC && matchesDate && matchesGrave && matchesState;
-  });
-
-  const paginatedPersons = filteredPersons.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredPersons.length / itemsPerPage);
 
   const openAddDialog = () => {
     setEditingPerson(null);
@@ -274,15 +230,15 @@ export default function ManageDeadPersons() {
         (position) => {
           setFormData({
             ...formData,
-            gps_lat: position.coords.latitude.toFixed(8),
-            gps_lng: position.coords.longitude.toFixed(8)
+            gps_lat: position.coords.latitude.toFixed(16),
+            gps_lng: position.coords.longitude.toFixed(16)
           });
           showSuccess('Lokasi berjaya diperolehi');
         },
         (error) => {
           showError('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.');
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       showError('GPS tidak disokong oleh pelayar ini');
@@ -320,17 +276,6 @@ export default function ManageDeadPersons() {
       return;
     }
 
-    // Check QR code uniqueness
-    if (formData.qr_code) {
-      const qrExists = allPersons.some(p => 
-        p.qr_code === formData.qr_code && p.id !== editingPerson?.id
-      );
-      if (qrExists) {
-        showUniqueError('Kod QR', formData.qr_code);
-        return;
-      }
-    }
-
     try {
       const data = {
         ...formData,
@@ -360,33 +305,48 @@ export default function ManageDeadPersons() {
     setPersonToDelete(null);
   };
 
-  const getGraveName = (graveId) => {
-    const grave = graves.find(g => g.id === graveId);
-    return grave?.cemetery_name || '-';
-  };
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
 
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('adminDashboard'), page: 'AdminDashboard' },
+          { label: translate('managePersons'), page: 'ManageDeadPersons' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: t('adminDashboard'), page: 'AdminDashboard' },
-        { label: t('managePersons'), page: 'ManageDeadPersons' }
+        { label: translate('adminDashboard'), page: 'AdminDashboard' },
+        { label: translate('managePersons'), page: 'ManageDeadPersons' }
       ]} />
-      
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            {t('managePersons')}
+            {translate('managePersons')}
           </h1>
         </div>
         <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
           <Plus className="w-4 h-4 mr-2" />
-          {t('addNew')}
+          {translate('addNew')}
         </Button>
       </div>
-
-      {/* Advanced Search */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
@@ -399,8 +359,8 @@ export default function ManageDeadPersons() {
               <Label className="text-sm text-gray-600 dark:text-gray-400">Nama Penuh</Label>
               <Input
                 placeholder="Cari nama si mati..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
                 className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
               />
             </div>
@@ -408,8 +368,8 @@ export default function ManageDeadPersons() {
               <Label className="text-sm text-gray-600 dark:text-gray-400">No. IC</Label>
               <Input
                 placeholder="XXXXXX-XX-XXXX"
-                value={searchIC}
-                onChange={(e) => setSearchIC(e.target.value)}
+                value={filterIC}
+                onChange={(e) => setFilterIC(e.target.value)}
                 className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
               />
             </div>
@@ -449,7 +409,7 @@ export default function ManageDeadPersons() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Semua Negeri</SelectItem>
-                    {malaysianStates.map(state => (
+                    {STATES_MY.map(state => (
                       <SelectItem key={state} value={state}>{state}</SelectItem>
                     ))}
                   </SelectContent>
@@ -464,7 +424,7 @@ export default function ManageDeadPersons() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Tanah Perkuburan</SelectItem>
-                  {stateFilteredGraves.map(grave => (
+                  {gravesList.map(grave => (
                     <SelectItem key={grave.id} value={grave.id}>
                       {grave.cemetery_name} - {grave.state}
                     </SelectItem>
@@ -474,14 +434,14 @@ export default function ManageDeadPersons() {
             </div>
           </div>
 
-          {(searchQuery || searchIC || dateFrom || dateTo || filterGrave !== 'all' || filterState !== 'all') && (
+          {(filterName || filterIC || dateFrom || dateTo || filterGrave !== 'all' || filterState !== 'all') && (
             <div className="flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setSearchQuery('');
-                  setSearchIC('');
+                  setFilterName('');
+                  setFilterIC('');
                   setDateFrom('');
                   setDateTo('');
                   setFilterGrave('all');
@@ -494,13 +454,6 @@ export default function ManageDeadPersons() {
           )}
         </CardContent>
       </Card>
-
-      {/* Results count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Menunjukkan {filteredPersons.length} daripada {allAccessiblePersons.length} rekod
-      </div>
-
-      {/* Mobile Cards */}
       <div className="lg:hidden space-y-3">
         {isLoading ? (
           [1, 2, 3].map(i => (
@@ -510,14 +463,14 @@ export default function ManageDeadPersons() {
               </CardContent>
             </Card>
           ))
-        ) : paginatedPersons.length === 0 ? (
+        ) : deadPersonsList.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
-          paginatedPersons.map(person => (
+          deadPersonsList.map(person => (
             <Card key={person.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
@@ -527,7 +480,7 @@ export default function ManageDeadPersons() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {person.date_of_death ? new Date(person.date_of_death).toLocaleDateString('ms-MY') : '-'}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{getGraveName(person.grave_id)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{getLabelFromId(gravesList, person.grave_id, 'cemetery_name')}</p>
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="sm" onClick={() => openEditDialog(person)} className="h-8 w-8 p-0">
@@ -552,7 +505,7 @@ export default function ManageDeadPersons() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredPersons.length}
+            totalItems={deadPersonsList.length}
           />
         )}
       </div>
@@ -563,24 +516,24 @@ export default function ManageDeadPersons() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('fullName')}</TableHead>
-                <TableHead>{t('icNumber')}</TableHead>
-                <TableHead>{t('dateOfDeath')}</TableHead>
-                <TableHead>{t('cemeteryName')}</TableHead>
-                <TableHead className="text-right">{t('actions')}</TableHead>
+                <TableHead>{translate('fullName')}</TableHead>
+                <TableHead>{translate('icNumber')}</TableHead>
+                <TableHead>{translate('dateOfDeath')}</TableHead>
+                <TableHead>{translate('cemeteryName')}</TableHead>
+                <TableHead className="text-right">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : paginatedPersons.length === 0 ? (
+              ) : deadPersonsList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                paginatedPersons.map(person => (
+                deadPersonsList.map(person => (
                   <TableRow key={person.id}>
                     <TableCell className="font-medium">{person.name}</TableCell>
                     <TableCell>{person.ic_number || '-'}</TableCell>
@@ -590,7 +543,7 @@ export default function ManageDeadPersons() {
                         : '-'
                       }
                     </TableCell>
-                    <TableCell>{getGraveName(person.grave_id)}</TableCell>
+                    <TableCell>{getLabelFromId(gravesList, person.grave_id, 'cemetery_name')}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(person)}>
                         <Edit className="w-4 h-4" />
@@ -615,7 +568,7 @@ export default function ManageDeadPersons() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={filteredPersons.length}
+            totalItems={deadPersonsList.length}
           />
         )}
       </Card>
@@ -625,19 +578,19 @@ export default function ManageDeadPersons() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingPerson ? t('edit') : t('addNew')}
+              {editingPerson ? translate('edit') : translate('addNew')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>{t('fullName')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('fullName')} <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
             </div>
             <div>
-              <Label>{t('icNumber')}</Label>
+              <Label>{translate('icNumber')}</Label>
               <Input
                 value={formData.ic_number}
                 onChange={(e) => setFormData({...formData, ic_number: e.target.value})}
@@ -646,7 +599,7 @@ export default function ManageDeadPersons() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t('dateOfBirth')}</Label>
+                <Label>{translate('dateOfBirth')}</Label>
                 <Input
                   type="date"
                   value={formData.date_of_birth}
@@ -654,7 +607,7 @@ export default function ManageDeadPersons() {
                 />
               </div>
               <div>
-                <Label>{t('dateOfDeath')}</Label>
+                <Label>{translate('dateOfDeath')}</Label>
                 <Input
                   type="date"
                   value={formData.date_of_death}
@@ -663,20 +616,20 @@ export default function ManageDeadPersons() {
               </div>
             </div>
             <div>
-              <Label>{t('causeOfDeath')}</Label>
+              <Label>{translate('causeOfDeath')}</Label>
               <Input
                 value={formData.cause_of_death}
                 onChange={(e) => setFormData({...formData, cause_of_death: e.target.value})}
               />
             </div>
             <div>
-              <Label>{t('cemeteryName')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('cemeteryName')} <span className="text-red-500">*</span></Label>
               <Select value={formData.grave_id} onValueChange={(v) => setFormData({...formData, grave_id: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('selectGrave')} />
+                  <SelectValue placeholder={translate('selectGrave')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {accessibleGraves.map(grave => (
+                  {gravesList.map(grave => (
                     <SelectItem key={grave.id} value={grave.id}>
                       {grave.cemetery_name} - {grave.state}
                     </SelectItem>
@@ -713,10 +666,10 @@ export default function ManageDeadPersons() {
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              {t('getCurrentLocation')}
+              {translate('getCurrentLocation')}
             </Button>
             <div>
-              <Label>{t('qrCode')}</Label>
+              <Label>{translate('qrCode')}</Label>
               <Input
                 value={formData.qr_code}
                 onChange={(e) => setFormData({...formData, qr_code: e.target.value})}
@@ -724,7 +677,7 @@ export default function ManageDeadPersons() {
               />
             </div>
             <div>
-              <Label>{t('biography')}</Label>
+              <Label>{translate('biography')}</Label>
               <Textarea
                 value={formData.biography}
                 onChange={(e) => setFormData({...formData, biography: e.target.value})}
@@ -732,7 +685,7 @@ export default function ManageDeadPersons() {
               />
             </div>
             <div>
-              <Label>{t('photo')}</Label>
+              <Label>{translate('photo')}</Label>
               <div className="flex items-center gap-3">
                 {formData.photo_url && (
                   <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover" />
@@ -749,7 +702,7 @@ export default function ManageDeadPersons() {
                     <Button type="button" variant="outline" asChild disabled={uploading}>
                       <span>
                         <Upload className="w-4 h-4 mr-2" />
-                        {uploading ? t('loading') : t('upload')}
+                        {uploading ? translate('loading') : translate('upload')}
                       </span>
                     </Button>
                   </label>
@@ -758,11 +711,11 @@ export default function ManageDeadPersons() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {t('cancel')}
+                {translate('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                {t('save')}
+                {translate('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -772,10 +725,10 @@ export default function ManageDeadPersons() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={t('delete')}
-        description={`${t('confirmDelete')} "${personToDelete?.name}"?`}
+        title={translate('delete')}
+        description={`${translate('confirmDelete')} "${personToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText={t('delete')}
+        confirmText={translate('delete')}
         variant="destructive"
       />
     </div>

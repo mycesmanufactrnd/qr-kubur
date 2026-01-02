@@ -1,4 +1,4 @@
-import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
+import { router, protectedProcedure, publicProcedure, adminProcedure } from "../trpc.ts";
 import bcrypt from "bcrypt"; 
 import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
@@ -23,7 +23,8 @@ const userRepo = AppDataSource.getRepository(User);
 // .input(zodSchema) is just shorthand for .validation(zodSchema)
 
 export const usersRouter = router({
-  getUserById: publicProcedure
+  // getUserById: publicProcedure
+  getUserById: adminProcedure
     .input(
       z.object({
         // validation id must be a number

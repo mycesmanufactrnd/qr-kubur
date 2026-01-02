@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index.jsx';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, Edit, Trash2, Search, Shield } from 'lucide-react';
@@ -20,7 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import Breadcrumb from '../components/Breadcrumb';
-import { useToast } from "@/components/ui/use-toast";
+import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
+import { usePermissions } from '@/components/PermissionsContext';
 
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
 
@@ -29,39 +30,75 @@ export default function ManageUsers() {
   const [userLoading, setUserLoading] = React.useState(true);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const { toast } = useToast();
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-    loadUser();
-  }, []);
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
   const queryClient = useQueryClient();
+  const t = (key) => getAdminTranslation(key, lang);
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
+  
+  React.useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem('appUserAuth');
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+          setUserLoading(false);
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      }
+    };
 
-  const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
-  });
+    loadUser();
+  }, []);
+  
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  const isAdmin = currentUser?.role === 'admin';
+  const isEmployee = currentUser?.role === 'employee';
 
+  const hasViewPermission = currentUser ? hasPermission('users_view') : null;
+  const hasCreatePermission = currentUser ? hasPermission('users_create') : null;
+  const hasEditPermission = currentUser ? hasPermission('users_edit') : null;
+  const hasDeletePermission = currentUser ? hasPermission('users_delete') : null;
+
+  const buildUserFilter = () => {
+    if (!currentUser) return { id: null };
+
+    if (isSuperAdmin) return {};
+
+    if (isAdmin) {
+      const filter = {
+        role: { $in: ['admin', 'employee'] }
+      };
+
+      if (currentUser.organisation_id) {
+        filter.organisation_id = currentUser.organisation_id;
+      }
+
+      if (currentUser.tahfiz_center_id) {
+        filter.tahfiz_center_id = currentUser.tahfiz_center_id;
+      }
+
+      return filter;
+    }
+
+    if (isEmployee) {
+      return { id: currentUser.id }; 
+    }
+
+    return { id: null };
+  };
+
+  // use enabled if filter depened on currentUser
   const { data: appUsers = [], isLoading: appUsersLoading } = useQuery({
     queryKey: ['appUsers'],
-    queryFn: () => base44.entities.AppUser.list()
+    queryFn: () => base44.entities.AppUser.filter(buildUserFilter()),
+    enabled: !!currentUser
   });
 
   const { data: organisations = [] } = useQuery({
@@ -74,20 +111,15 @@ export default function ManageUsers() {
     queryFn: () => base44.entities.TahfizCenter.list()
   });
 
-  const isLoading = usersLoading || appUsersLoading;
-  const allUsers = [...users, ...appUsers];
 
   const createUserMutation = useMutation({
     mutationFn: async (data) => {
       try {
-        // Hash password
         if (data.password) {
           const hashResponse = await base44.functions.invoke(
             'hashPassword',
             { password: data.password }
           );
-
-          console.log('hashResponse', hashResponse);
 
           data.password = hashResponse.data.hashed;
         }
@@ -104,17 +136,8 @@ export default function ManageUsers() {
       setDialogOpen(false);
       setEditUser(null);
       setIsAddMode(false);
-    }
-  });
 
-  const updateUserMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
-      setDialogOpen(false);
-      setEditUser(null);
-      setIsAddMode(false);
+      showSuccess('User Successfully Created');
     }
   });
 
@@ -133,14 +156,7 @@ export default function ManageUsers() {
       setDialogOpen(false);
       setEditUser(null);
       setIsAddMode(false);
-    }
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: (id) => base44.entities.User.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
+      showSuccess('User Successfully Updated', 'Success');
     }
   });
 
@@ -149,38 +165,24 @@ export default function ManageUsers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['appUsers'] });
+      showSuccess('User Successfully Deleted');
     }
-  });
-
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin';
-  const hasViewPermission = isSuperAdmin || currentUser?.permissions?.users?.view;
-
-  const accessibleUsers = allUsers.filter(u => {
-    if (isSuperAdmin) return true;
-    if (isAdmin) {
-      // Admin can see users in their organisation or tahfiz center
-      const sameOrg = u.organisation_id === currentUser.organisation_id;
-      const sameTahfiz = u.tahfiz_center_id === currentUser.tahfiz_center_id;
-      if (!sameOrg && !sameTahfiz) return false;
-      // Admin can only see admin and employee
-      if (u.role !== 'admin' && u.role !== 'employee') return false;
-      // Must share at least one state
-      const userStates = Array.isArray(u.state) ? u.state : [u.state].filter(Boolean);
-      const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
-      return userStates.some(s => adminStates.includes(s));
-    }
-    return false;
   });
 
   // Filter organisations based on admin state
   const accessibleOrganisations = organisations.filter(org => {
     if (isSuperAdmin) return true;
+
     if (isAdmin) {
       const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
       const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
       return adminStates.some(s => orgStates.includes(s));
     }
+
+    if (isEmployee) {
+      return currentUser.organisation_id == org.id;
+    }
+
     return false;
   });
 
@@ -191,15 +193,34 @@ export default function ManageUsers() {
       const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
       return adminStates.includes(center.state);
     }
+
+    if (isEmployee) {
+      return currentUser.tahfiz_center_id == center.id;
+    }
+
     return false;
   });
+  
+  const isLoading = appUsersLoading;
 
-  // Get admin's accessible states
-  const adminAccessibleStates = isAdmin && !isSuperAdmin
-    ? (Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean))
-    : STATES;
+  const adminAccessibleStates = (() => {
+    if (isSuperAdmin) {
+      return STATES;
+    }
 
-  const filteredUsers = accessibleUsers.filter(u => 
+    if (isAdmin || isEmployee) {
+      return Array.isArray(currentUser?.state)
+        ? currentUser.state
+        : currentUser?.state
+          ? [currentUser.state]
+          : [];
+    }
+
+    return [];
+  })();
+
+
+  const filteredUsers = appUsers.filter(u => 
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
@@ -240,63 +261,35 @@ export default function ManageUsers() {
     
     // Validation - Required fields
     if (!editUser.full_name?.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Medan Diperlukan",
-        description: "Sila masukkan nama penuh",
-      });
+      showError("Sila masukkan nama penuh", "Medan Diperlukan");
       return;
     }
     if (!editUser.email?.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Medan Diperlukan",
-        description: "Sila masukkan email",
-      });
+      showError("Sila masukkan email", "Medan Diperlukan");
       return;
     }
     
     if (isAddMode && !editUser.password?.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Medan Diperlukan",
-        description: "Sila masukkan password",
-      });
+      showError("Sila masukkan password", "Medan Diperlukan");
       return;
     }
 
     if (!editUser.state || editUser.state.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Medan Diperlukan",
-        description: "Sila pilih sekurang-kurangnya satu negeri",
-      });
+      showError("Sila pilih sekurang-kurangnya satu negeri", "Medan Diperlukan");
       return;
     }
 
     // Additional validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editUser.email)) {
-      toast({
-        variant: "destructive",
-        title: "Format Tidak Sah",
-        description: "Format email tidak sah",
-      });
+      showError("Format Tidak Sah", "Medan Diperlukan");
       return;
     }
     if (isAddMode && editUser.password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "Password Terlalu Pendek",
-        description: "Password mesti sekurang-kurangnya 6 aksara",
-      });
+      showError("Password mesti sekurang-kurangnya 6 aksara", "Password Terlalu Pendek");
       return;
     }
     if (!isAddMode && editUser.password && editUser.password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "Password Terlalu Pendek",
-        description: "Password mesti sekurang-kurangnya 6 aksara",
-      });
+      showError("Password mesti sekurang-kurangnya 6 aksara", "Password Terlalu Pendek");
       return;
     }
     
@@ -311,11 +304,8 @@ export default function ManageUsers() {
     if (isAddMode) {
       createUserMutation.mutate(dataToSave);
     } else {
-      console.log('editUser', editUser)
       if (editUser.isAppUser) {
         updateAppUserMutation.mutate({ id: editUser.id, data: dataToSave });
-      } else {
-        updateUserMutation.mutate({ id: editUser.id, data: dataToSave });
       }
     }
   };
@@ -342,46 +332,20 @@ export default function ManageUsers() {
     const isAppUser = appUsers.some(u => u.id === userToDelete.id);
     if (isAppUser) {
       deleteAppUserMutation.mutate(userToDelete.id);
-    } else {
-      deleteUserMutation.mutate(userToDelete.id);
     }
     setDeleteDialogOpen(false);
     setUserToDelete(null);
   };
 
+  if (userLoading || permissionsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
 
-
-  const canEditUser = (user) => {
-    if (isSuperAdmin) return true;
-    if (isAdmin) {
-      // Admin can only edit admin and employee
-      if (user.role !== 'admin' && user.role !== 'employee') return false;
-      // Must be in same organisation or tahfiz center
-      const sameOrg = user.organisation_id === currentUser.organisation_id;
-      const sameTahfiz = user.tahfiz_center_id === currentUser.tahfiz_center_id;
-      if (!sameOrg && !sameTahfiz) return false;
-      // Must share at least one state
-      const userStates = user.state || [];
-      const adminStates = currentUser.state || [];
-      return userStates.some(s => adminStates.includes(s));
-    }
-    return false;
-  };
-
-  const canDeleteUser = (user) => {
-    if (isSuperAdmin) return true;
-    if (isAdmin) {
-      // Admin can only delete admin and employee under their organisation or tahfiz center
-      if (user.role !== 'admin' && user.role !== 'employee') return false;
-      const sameOrg = user.organisation_id === currentUser.organisation_id;
-      const sameTahfiz = user.tahfiz_center_id === currentUser.tahfiz_center_id;
-      if (!sameOrg && !sameTahfiz) return false;
-      return true;
-    }
-    return false;
-  };
-
-  if (!isSuperAdmin && !isAdmin) {
+  if (!isSuperAdmin && !isAdmin && !isEmployee) {
     return (
       <div className="space-y-4">
         <Breadcrumb items={[
@@ -425,10 +389,12 @@ export default function ManageUsers() {
       
       <div className="flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold">Urus Pengguna</h1>
-        <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Pengguna
-        </Button>
+        { hasCreatePermission && (
+          <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Pengguna
+          </Button>
+        )}
       </div>
 
       <Card className="border-0 shadow-sm">
@@ -484,7 +450,7 @@ export default function ManageUsers() {
                       </div>
                     </div>
                   </div>
-                  {canEditUser(user) && (
+                  {hasEditPermission && (
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -494,7 +460,7 @@ export default function ManageUsers() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      {canDeleteUser(user) && (
+                      {hasDeletePermission && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -612,7 +578,6 @@ export default function ManageUsers() {
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Tiada</SelectItem>
                     {accessibleOrganisations.map(org => (
                       <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                     ))}
@@ -625,13 +590,12 @@ export default function ManageUsers() {
                 <Select 
                   value={editUser.tahfiz_center_id || ''} 
                   onValueChange={(v) => setEditUser({...editUser, tahfiz_center_id: v, organisation_id: ''})}
-                  disabled={isAdmin && !isSuperAdmin && currentUser.tahfiz_center_id}
+                  disabled={(isAdmin && !isSuperAdmin && currentUser.tahfiz_center_id) || currentUser.organisation_id}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih pusat tahfiz" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Tiada</SelectItem>
                     {accessibleTahfizCenters.map(center => (
                       <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
                     ))}

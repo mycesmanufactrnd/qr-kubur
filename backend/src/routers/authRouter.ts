@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { router, publicProcedure } from "../trpc.ts";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -20,13 +21,17 @@ export const authRouter = router({
       if (!user.password) throw new Error("No password given");
       if (!user.role) throw new Error("No role given");
 
-      const valid = await bcrypt.compare(input.password, user.password);
-      if (!valid) throw new Error("Invalid credentials");
+      const hashedInput = crypto.createHash("sha256").update(input.password).digest("hex");
+      if (hashedInput !== user.password) throw new Error("Invalid credentials");
 
       const role = user.role;
       assertRole(role);
 
-      const token = signToken({ id: user.id.toString(), role });
+      const token = signToken({
+        id: user.id.toString(), 
+        role 
+      });
+      
       return {
         token,
         user: {

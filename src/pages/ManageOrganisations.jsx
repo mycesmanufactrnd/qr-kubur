@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { translate } from '@/utils/translations';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, Plus, Edit, Trash2, Search, Save, Filter, CreditCard } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
+import { getAdminTranslation, getCurrentLanguage } from '../components/Translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,35 +13,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import { useForm, Controller } from "react-hook-form";
-import LoadingUser from '../components/LoadingUser';
+import PageLoadingComponent from '../components/PageLoadingComponent';
+import AccessDeniedComponent from '../components/AccessDeniedComponent';
 import Breadcrumb from '../components/Breadcrumb';
-import { usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
-import { hasPermission } from '../components/permissions';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
-
-const STATES = [
-  "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
-  "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", 
-  "Terengganu", "Wilayah Persekutuan"
-];
+import { showApiError, showError, showSuccess } from '@/components/ToastrNotification';
+import { getLabelFromId, useAdminAccess } from '@/utils/index';
+import { STATES_MY } from '@/utils/enums';
 
 const emptyOrg = {
   name: '',
+  parent_organisation_id: '',
   organisation_type_id: '',
   state: '',
   address: '',
   phone: '',
   email: '',
+  url: '',
   status: 'active'
 };
 
 export default function ManageOrganisations() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const { 
+    loadingUser, 
+    currentUser, 
+    hasAdminAccess, 
+    isSuperAdmin, isAdmin, isEmployee, 
+    currentUserStates 
+  } = useAdminAccess();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -48,8 +52,6 @@ export default function ManageOrganisations() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
-  const [lang, setLang] = useState('ms');
-  
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
     defaultValues: emptyOrg
   });
@@ -57,73 +59,80 @@ export default function ManageOrganisations() {
   const [orgToDelete, setOrgToDelete] = useState(null);
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
-
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-        } else {
-          const userData = await base44.auth.me();
-          setCurrentUser(userData);
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    loadUser();
-    setLang(getCurrentLanguage());
-  }, []);
-
-  const { hasPermission } = usePermissions();
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin';
-  const hasViewPermission = hasPermission('organisations_view');
-
-  const skip = (page - 1) * itemsPerPage;
+  const {
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('organisations');
 
   const buildFilterQuery = () => {
     const query = {};
-    if (!isSuperAdmin && currentUser?.state?.length > 0) {
-      const adminStates = Array.isArray(currentUser.state) ? currentUser.state : [currentUser.state].filter(Boolean);
-      query.state = { $in: adminStates };
+
+    if (!isSuperAdmin && currentUser?.organisation_id) {
+      if (isAdmin) {
+        // Admin (own + children)
+        query.$or = [
+          { id: currentUser.organisation_id },
+          { parent_organisation_id: currentUser.organisation_id }
+        ];
+      } else if (isEmployee) {
+        // Employee (own)
+        query.id = currentUser.organisation_id;
+      }
     }
-    if (filterType !== 'all') {
-      query.organisation_type_id = filterType;
-    }
+
+    if (filterType !== 'all') query.organisation_type_id = filterType;
+    if (filterState !== 'all') query.state = filterState;
+
     return query;
   };
 
-  const { data: allOrganisations = [] } = useQuery({
-    queryKey: ['admin-organisations-all', filterType, currentUser?.state],
-    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery()),
-    enabled: hasViewPermission && !!currentUser
+  const { data: organisationsList = [], isLoading } = useQuery({
+    queryKey: ['admin-organisations-paginated', page, itemsPerPage, filterType, currentUser],
+    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery(), '-created_date', itemsPerPage, (page - 1) * itemsPerPage),
+    enabled: canView && !!currentUser
   });
 
-  const { data: organisations = [], isLoading } = useQuery({
-    queryKey: ['admin-organisations-paginated', page, itemsPerPage, filterType, currentUser?.state],
-    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery(), '-created_date', itemsPerPage, skip),
-    enabled: hasViewPermission && !!currentUser
+  const { data: totalRows = 0 } = useQuery({
+    queryKey: ['admin-organisations-count', filterType, filterState, currentUser],
+    queryFn: async () => {
+      const all = await base44.entities.Organisation.filter(buildFilterQuery());
+      return all.length;
+    },
+    enabled: canView && !!currentUser
   });
 
-  const { data: organisationTypes = [] } = useQuery({
+  const totalPages = Math.ceil(totalRows / itemsPerPage);
+
+  const { data: parentOrgOptions = [] } = useQuery({
+    queryKey: ['parent-org-options', currentUser, isSuperAdmin, isAdmin],
+    queryFn: () => {
+      if (isSuperAdmin) {
+        return base44.entities.Organisation.filter({}, 'name');
+      }
+
+      return base44.entities.Organisation.filter({ id: currentUser.organisation_id });
+    },
+    enabled: !!currentUser
+  });
+
+  // organisation type list
+  const { data: organisationTypeList = [] } = useQuery({
     queryKey: ['organisation-types'],
     queryFn: () => base44.entities.OrganisationType.filter({ status: 'active' })
   });
 
+  // CRUD Mutation
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Organisation.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-organisations']);
       setIsDialogOpen(false);
       reset(emptyOrg);
-      toast.success('Organisasi berjaya ditambah');
+      showSuccess('Organisation Created Successfully');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -134,7 +143,10 @@ export default function ManageOrganisations() {
       setIsDialogOpen(false);
       setEditingOrg(null);
       reset(emptyOrg);
-      toast.success('Organisasi berjaya dikemaskini');
+      showSuccess('Organisation Updated Successfully');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
@@ -142,142 +154,68 @@ export default function ManageOrganisations() {
     mutationFn: (id) => base44.entities.Organisation.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-organisations']);
-      toast.success('Organisasi berjaya dipadam');
+      showSuccess('Organisation Deleted Successfully');
+    },
+    onError: (error) => {
+      showApiError(error);
     }
   });
 
-  if (loadingUser) {
-    return (
-      <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 text-center">
-          <p className="text-gray-600">Loading...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!currentUser || (!isSuperAdmin && !isAdmin)) {
-    return (
-      <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 text-center">
-          <Building2 className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-          <p className="text-gray-600">Only admins can access this page</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!hasViewPermission) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: isSuperAdmin ? t('superadminDashboard') : t('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-          { label: t('manageOrgs'), page: 'ManageOrganisations' }
-        ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
-            <p className="text-gray-600">{t('noPermission')}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
-
-  const allFilteredOrgs = allOrganisations.filter(org => {
-    const matchesSearch = !searchQuery || 
-      org.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesState = filterState === 'all' || 
-      (Array.isArray(org.state) ? org.state.includes(filterState) : org.state === filterState);
-    
-    return matchesSearch && matchesState;
-  });
-
-  const filteredOrgs = organisations.filter(org => {
-    const matchesSearch = !searchQuery || 
-      org.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesState = filterState === 'all' || 
-      (Array.isArray(org.state) ? org.state.includes(filterState) : org.state === filterState);
-    
-    const matchesType = filterType === 'all' || org.organisation_type_id === filterType;
-    
-    return matchesSearch && matchesState && matchesType;
-  });
-
-  const paginatedOrgs = filteredOrgs;
-  const totalPages = Math.ceil(allFilteredOrgs.length / itemsPerPage);
-
-  const canManageOrg = (org) => {
-    if (isSuperAdmin) return true;
-    
-    // Admin can only manage orgs in their state(s)
-    const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
-    return adminStates.some(s => orgStates.includes(s));
-  };
-
   const openAddDialog = () => {
     setEditingOrg(null);
-    // For state admin, pre-set their state
-    const defaultState = isSuperAdmin ? '' : (adminStates[0] || '');
+    const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
     reset({...emptyOrg, state: defaultState});
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (org) => {
-    if (!canManageOrg(org)) {
-      toast.error('Anda tidak mempunyai kebenaran untuk edit organisasi ini');
-      return;
-    }
     setEditingOrg(org);
     reset({
       name: org.name || '',
+      parent_organisation_id: org.parent_organisation_id || '',
       organisation_type_id: org.organisation_type_id || '',
       state: Array.isArray(org.state) ? org.state[0] : org.state || '',
       address: org.address || '',
       phone: org.phone || '',
       email: org.email || '',
+      url: org.url || '',
       status: org.status || 'active'
     });
     setIsDialogOpen(true);
   };
 
   const onSubmit = (data) => {
-    // Validation - Required fields
     if (!data.name?.trim()) {
-      toast.error('Sila masukkan nama organisasi', { description: 'Medan Diperlukan' });
+      showError('Sila masukkan nama organisasi', 'Medan diperlukan');
       return;
     }
     if (!data.organisation_type_id) {
-      toast.error('Sila pilih jenis organisasi', { description: 'Medan Diperlukan' });
+      showError('Sila masukkan jenis organisasi', 'Medan diperlukan');
       return;
     }
     if (!data.state) {
-      toast.error('Sila pilih negeri', { description: 'Medan Diperlukan' });
+      showError('Sila pilih negeri', 'Medan diperlukan');
       return;
     }
 
-    // Additional validation
     if (data.email && data.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      toast.error('Format email tidak sah', { description: 'Format Tidak Sah' });
+      showError('Format email tidak sah', 'Format Tidak Sah');
       return;
     }
     if (data.phone && data.phone.trim() && !/^[0-9\-\+\(\)\s]+$/.test(data.phone)) {
-      toast.error('Format telefon tidak sah', { description: 'Format Tidak Sah' });
+      showError('Format telefon tidak sah', 'Format Tidak Sah');
       return;
     }
     
     const submitData = {
       name: data.name,
+      parent_organisation_id: data.parent_organisation_id,
       organisation_type_id: data.organisation_type_id,
       state: Array.isArray(data.state) ? data.state : [data.state],
       address: data.address || '',
       phone: data.phone || '',
       email: data.email || '',
+      url: data.url || '',
       status: data.status || 'active'
     };
 
@@ -289,10 +227,6 @@ export default function ManageOrganisations() {
   };
 
   const handleDelete = (org) => {
-    if (!canManageOrg(org)) {
-      toast.error('Anda tidak mempunyai kebenaran untuk padam organisasi ini');
-      return;
-    }
     setOrgToDelete(org);
     setDeleteDialogOpen(true);
   };
@@ -304,40 +238,56 @@ export default function ManageOrganisations() {
     setOrgToDelete(null);
   };
 
-  const getTypeName = (typeId) => {
-    const type = organisationTypes.find(t => t.id === typeId);
-    return type?.name || '-';
-  };
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: translate('manageOrgs'), page: 'ManageOrganisations' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: isSuperAdmin ? t('superadminDashboard') : t('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-        { label: t('manageOrgs'), page: 'ManageOrganisations' }
+        { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+        { label: translate('manageOrgs'), page: 'ManageOrganisations' }
       ]} />
-      
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-violet-600" />
-            {t('manageOrgs')}
+            {translate('manageOrgs')}
           </h1>
         </div>
-        <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
-          <Plus className="w-4 h-4 mr-2" />
-          {t('addNew')}
-        </Button>
+        { canCreate && (
+          <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
+            <Plus className="w-4 h-4 mr-2" />
+            {translate('addNew')}
+          </Button>
+        )}
       </div>
-
-      {/* Advanced Search & Filters */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-5 h-5 text-gray-500" />
             <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
           </div>
-
           <div>
             <Label className="text-sm text-gray-600 dark:text-gray-400">Nama Organisasi</Label>
             <Input
@@ -347,7 +297,6 @@ export default function ManageOrganisations() {
               className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
             />
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label className="text-sm text-gray-600 dark:text-gray-400">Jenis Organisasi</Label>
@@ -357,13 +306,12 @@ export default function ManageOrganisations() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Jenis</SelectItem>
-                  {organisationTypes.map(type => (
+                  {organisationTypeList.map(type => (
                     <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
+            </div>            
             <div>
               <Label className="text-sm text-gray-600 dark:text-gray-400">Negeri</Label>
               <Select value={filterState} onValueChange={setFilterState}>
@@ -372,14 +320,13 @@ export default function ManageOrganisations() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Negeri</SelectItem>
-                  {(isSuperAdmin ? STATES : STATES.filter(s => adminStates.includes(s))).map(state => (
+                  {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
-
           {(searchQuery || filterType !== 'all' || filterState !== 'all') && (
             <div className="flex justify-end">
               <Button
@@ -397,70 +344,68 @@ export default function ManageOrganisations() {
           )}
         </CardContent>
       </Card>
-
-      {/* Results count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Menunjukkan {allFilteredOrgs.length} organisasi
-      </div>
-
-      {/* Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('name')}</TableHead>
-                <TableHead>{t('orgType')}</TableHead>
-                <TableHead>{t('state')}</TableHead>
-                <TableHead className="text-right">{t('actions')}</TableHead>
+                <TableHead>{translate('name')}</TableHead>
+                <TableHead className="text-center">{translate('orgType')}</TableHead>
+                <TableHead className="text-center">{translate('state')}</TableHead>
+                 { (canEdit || canDelete) && (
+                   <TableHead  className="text-center">{translate('actions')}</TableHead>
+                 ) }
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">{t('loading')}</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : paginatedOrgs.length === 0 ? (
+              ) : organisationsList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                paginatedOrgs.map(org => (
+                organisationsList.map(org => (
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{getTypeName(org.organisation_type_id)}</Badge>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary">{getLabelFromId(organisationTypeList, org.organisation_type_id)}</Badge>
                     </TableCell>
-                    <TableCell>{Array.isArray(org.state) ? org.state.join(', ') : org.state}</TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => openEditDialog(org)}
-                        disabled={!canManageOrg(org)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => {
-                          setSelectedOrgForPayment(org);
-                          setPaymentConfigOpen(true);
-                        }}
-                        disabled={!canManageOrg(org)}
-                        title="Payment Config"
-                      >
-                        <CreditCard className="w-4 h-4 text-green-600" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleDelete(org)}
-                        disabled={!canManageOrg(org)}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
+                    <TableCell className="text-center">{Array.isArray(org.state) ? org.state.join(', ') : org.state}</TableCell>
+                    <TableCell className="text-center">
+                      { canEdit && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => openEditDialog(org)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
+                              setSelectedOrgForPayment(org);
+                              setPaymentConfigOpen(true);
+                            }}
+                            title="Payment Config"
+                          >
+                            <CreditCard className="w-4 h-4 text-green-600" />
+                          </Button>
+                        </>
+                      )}
+                      { canDelete && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDelete(org)}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      ) }
                     </TableCell>
                   </TableRow>
                 ))
@@ -478,22 +423,20 @@ export default function ManageOrganisations() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={allFilteredOrgs.length}
+            totalItems={organisationsList.length}
           />
         )}
       </Card>
-
-      {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingOrg ? t('edit') : t('addNew')}
+              {editingOrg ? translate('edit') : translate('addNew')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label>{t('name')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('name')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="name"
                 control={control}
@@ -502,7 +445,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{t('orgType')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('orgType')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="organisation_type_id"
                 control={control}
@@ -513,7 +456,7 @@ export default function ManageOrganisations() {
                       <SelectValue placeholder="Pilih jenis organisasi" />
                     </SelectTrigger>
                     <SelectContent>
-                      {organisationTypes.map(type => (
+                      {organisationTypeList.map(type => (
                         <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -522,7 +465,26 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{t('state')} <span className="text-red-500">*</span></Label>
+              <Label>Parent Organisation</Label>
+              <Controller
+                name="parent_organisation_id"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose parent organisation" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {parentOrgOptions.map(type => (
+                        <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div>
+              <Label>{translate('state')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="state"
                 control={control}
@@ -531,13 +493,12 @@ export default function ManageOrganisations() {
                   <Select 
                     value={field.value} 
                     onValueChange={field.onChange}
-                    disabled={!isSuperAdmin && adminStates.length === 1}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih negeri" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(isSuperAdmin ? STATES : STATES.filter(s => adminStates.includes(s))).map(state => (
+                      {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
                         <SelectItem key={state} value={state}>{state}</SelectItem>
                       ))}
                     </SelectContent>
@@ -546,7 +507,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{t('address')}</Label>
+              <Label>{translate('address')}</Label>
               <Controller
                 name="address"
                 control={control}
@@ -555,7 +516,7 @@ export default function ManageOrganisations() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t('phone')}</Label>
+                <Label>{translate('phone')}</Label>
                 <Controller
                   name="phone"
                   control={control}
@@ -563,7 +524,7 @@ export default function ManageOrganisations() {
                 />
               </div>
               <div>
-                <Label>{t('email')}</Label>
+                <Label>{translate('email')}</Label>
                 <Controller
                   name="email"
                   control={control}
@@ -572,7 +533,15 @@ export default function ManageOrganisations() {
               </div>
             </div>
             <div>
-              <Label>{t('status')}</Label>
+                <Label>URL</Label>
+                <Controller
+                  name="url"
+                  control={control}
+                  render={({ field }) => <Input {...field} />}
+                />
+              </div>
+            <div>
+              <Label>{translate('status')}</Label>
               <Controller
                 name="status"
                 control={control}
@@ -582,8 +551,8 @@ export default function ManageOrganisations() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">{t('active')}</SelectItem>
-                      <SelectItem value="inactive">{t('inactive')}</SelectItem>
+                      <SelectItem value="active">{translate('active')}</SelectItem>
+                      <SelectItem value="inactive">{translate('inactive')}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -591,11 +560,11 @@ export default function ManageOrganisations() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {t('cancel')}
+                {translate('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                {t('save')}
+                {translate('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -605,10 +574,10 @@ export default function ManageOrganisations() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={t('delete')}
-        description={`${t('confirmDelete')} "${orgToDelete?.name}"?`}
+        title={translate('delete')}
+        description={`${translate('confirmDelete')} "${orgToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText={t('delete')}
+        confirmText={translate('delete')}
         variant="destructive"
       />
 

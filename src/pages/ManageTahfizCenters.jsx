@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Plus, Edit, Trash2, Search, Save, Filter, MapPin, CreditCard } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
+import { getAdminTranslation, getCurrentLanguage } from '../components/Translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { useForm, Controller } from "react-hook-form";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
@@ -628,8 +628,8 @@ export default function ManageTahfizCenters() {
                   toast.info(t('loading'));
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
-                      setValue('gps_lat', position.coords.latitude.toFixed(8));
-                      setValue('gps_lng', position.coords.longitude.toFixed(8));
+                      setValue('gps_lat', position.coords.latitude.toFixed(16));
+                      setValue('gps_lng', position.coords.longitude.toFixed(16));
                       toast.success(t('getCurrentLocation'));
                     },
                     (error) => {
