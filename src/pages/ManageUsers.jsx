@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils/index.jsx';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, Edit, Trash2, Search, Shield } from 'lucide-react';
@@ -21,13 +19,24 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import Breadcrumb from '../components/Breadcrumb';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { usePermissions } from '@/components/PermissionsContext';
+import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
+import { useAdminAccess } from '@/utils';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
 
 export default function ManageUsers() {
-  const [currentUser, setCurrentUser] = React.useState(null);
-  const [userLoading, setUserLoading] = React.useState(true);
+  const { 
+    currentUser, 
+    loadingUser, 
+    hasAdminAccess, 
+    isSuperAdmin, 
+    isAdmin, 
+    isEmployee, 
+    currentUserStates 
+  } = useAdminAccess();
+
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [search, setSearch] = useState('');
@@ -38,33 +47,11 @@ export default function ManageUsers() {
   const [userToDelete, setUserToDelete] = useState(null);
 
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
-  const { hasPermission, loading: permissionsLoading } = usePermissions();
-  
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-          setUserLoading(false);
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      }
-    };
 
-    loadUser();
-  }, []);
-  
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const isAdmin = currentUser?.role === 'admin';
-  const isEmployee = currentUser?.role === 'employee';
-
-  const hasViewPermission = currentUser ? hasPermission('users_view') : null;
-  const hasCreatePermission = currentUser ? hasPermission('users_create') : null;
-  const hasEditPermission = currentUser ? hasPermission('users_edit') : null;
-  const hasDeletePermission = currentUser ? hasPermission('users_delete') : null;
+  const {
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('users');
 
   const buildUserFilter = () => {
     if (!currentUser) return { id: null };
@@ -94,7 +81,6 @@ export default function ManageUsers() {
     return { id: null };
   };
 
-  // use enabled if filter depened on currentUser
   const { data: appUsers = [], isLoading: appUsersLoading } = useQuery({
     queryKey: ['appUsers'],
     queryFn: () => base44.entities.AppUser.filter(buildUserFilter()),
@@ -110,7 +96,6 @@ export default function ManageUsers() {
     queryKey: ['tahfiz-centers'],
     queryFn: () => base44.entities.TahfizCenter.list()
   });
-
 
   const createUserMutation = useMutation({
     mutationFn: async (data) => {
@@ -143,7 +128,6 @@ export default function ManageUsers() {
 
   const updateAppUserMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      // Hash password if provided
       if (data.password) {
         const hashResponse = await base44.functions.invoke('hashPassword', { password: data.password });
         data.password = hashResponse.data.hashed;
@@ -169,7 +153,6 @@ export default function ManageUsers() {
     }
   });
 
-  // Filter organisations based on admin state
   const accessibleOrganisations = organisations.filter(org => {
     if (isSuperAdmin) return true;
 
@@ -337,45 +320,26 @@ export default function ManageUsers() {
     setUserToDelete(null);
   };
 
-  if (userLoading || permissionsLoading) {
+  if (loadingUser || permissionsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-      </div>
+      <PageLoadingComponent/>
     );
   }
 
-  if (!isSuperAdmin && !isAdmin && !isEmployee) {
+  if (!hasAdminAccess) {
     return (
-      <div className="space-y-4">
-        <Breadcrumb items={[
-          { label: 'Admin Dashboard', page: 'AdminDashboard' },
-          { label: 'Urus Pengguna', page: 'ManageUsers' }
-        ]} />
-        <Card className="max-w-lg mx-auto">
-          <CardContent className="p-8 text-center">
-            <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Hanya admin boleh akses halaman ini</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AccessDeniedComponent/>
     );
   }
 
-  if (!hasViewPermission) {
+  if (!canView) {
     return (
       <div className="space-y-4">
         <Breadcrumb items={[
           { label: isSuperAdmin ? 'Super Admin' : 'Admin Dashboard', page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
           { label: 'Urus Pengguna', page: 'ManageUsers' }
         ]} />
-        <Card className="max-w-lg mx-auto">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
-          </CardContent>
-        </Card>
+        <AccessDeniedComponent/>
       </div>
     );
   }
@@ -389,7 +353,7 @@ export default function ManageUsers() {
       
       <div className="flex items-center justify-between">
         <h1 className="text-xl lg:text-2xl font-bold">Urus Pengguna</h1>
-        { hasCreatePermission && (
+        { canCreate && (
           <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="w-4 h-4 mr-2" />
             Tambah Pengguna
@@ -450,7 +414,7 @@ export default function ManageUsers() {
                       </div>
                     </div>
                   </div>
-                  {hasEditPermission && (
+                  {canEdit && (
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -460,7 +424,7 @@ export default function ManageUsers() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      {hasDeletePermission && (
+                      {canDelete && (
                         <Button
                           size="sm"
                           variant="outline"

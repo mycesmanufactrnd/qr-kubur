@@ -10,10 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
+import { showSuccess } from '@/components/ToastrNotification';
 
 export default function ManageDonations() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -96,7 +96,7 @@ export default function ManageDonations() {
       queryClient.invalidateQueries(['admin-donations']);
       setIsDialogOpen(false);
       setSelectedDonation(null);
-      toast.success('Status derma telah dikemaskini');
+      showSuccess('Status derma telah dikemaskini')
     }
   });
 

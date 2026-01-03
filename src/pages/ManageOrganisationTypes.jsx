@@ -11,10 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManageOrganisationTypes() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -57,7 +57,7 @@ export default function ManageOrganisationTypes() {
       queryClient.invalidateQueries(['organisation-types']);
       setIsDialogOpen(false);
       setFormData({ name: '', description: '', status: 'active' });
-      toast.success('Jenis organisasi berjaya ditambah');
+      showSuccess('Jenis organisasi berjaya ditambah');
     }
   });
 
@@ -68,7 +68,7 @@ export default function ManageOrganisationTypes() {
       setIsDialogOpen(false);
       setEditingType(null);
       setFormData({ name: '', description: '', status: 'active' });
-      toast.success('Jenis organisasi berjaya dikemaskini');
+      showSuccess('Jenis organisasi berjaya dikemaskini');
     }
   });
 
@@ -76,7 +76,7 @@ export default function ManageOrganisationTypes() {
     mutationFn: (id) => base44.entities.OrganisationType.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['organisation-types']);
-      toast.success('Jenis organisasi berjaya dipadam');
+      showSuccess('Jenis organisasi berjaya dipadam');
     }
   });
 
@@ -114,7 +114,7 @@ export default function ManageOrganisationTypes() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name?.trim()) {
-      toast.error('Sila masukkan nama jenis organisasi');
+      showError('Sila masukkan nama jenis organisasi');
       return;
     }
 

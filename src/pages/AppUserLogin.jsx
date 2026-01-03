@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { handleLogin } from '@/utils/auth';
 
 export default function AppUserLogin() {
   const [email, setEmail] = useState('');
@@ -12,32 +12,9 @@ export default function AppUserLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await base44.functions.invoke('appUserLogin', { email, password });
-      
-      if (response.data.success) {
-        // Store user data in localStorage
-        localStorage.setItem('appUserAuth', JSON.stringify(response.data.user));
-        localStorage.setItem('roleOverride', JSON.stringify({ 
-          role: 'admin', 
-          state: response.data.user.state[0] 
-        }));
-        
-        // Redirect to admin dashboard
-        window.location.href = '/AdminDashboard';
-      } else {
-        setError(response.data.message || 'Login failed');
-      }
-    } catch (err) {
-      setError('Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
+    handleLogin({ email, password, setLoading, setError });
   };
 
   return (
@@ -51,7 +28,7 @@ export default function AppUserLogin() {
           <p className="text-sm text-gray-500">Log masuk untuk akses admin dashboard</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />

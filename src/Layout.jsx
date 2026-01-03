@@ -7,7 +7,8 @@ import {
   Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
   Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
   Bell, FileText, Shield,
-  User
+  User,
+  UserX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -87,6 +88,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminNavItems = [
     { name: 'Admin Dashboard', icon: User, page: 'AdminDashboard' },
+    { name: 'Impersonate User', icon: UserX, page: 'ImpersonateUser' },
     { name: 'Settings', icon: Settings, page: 'SettingsPage' },
   ];
 

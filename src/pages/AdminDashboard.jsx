@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl, getParentAndChildOrgs, useAdminAccess } from '../utils/index.jsx';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
   MapPin, Users, Building2, Heart, FileText, TrendingUp, 
-  ArrowRight, BookOpen, Clock, CheckCircle, AlertCircle, Book,
-  UserCheck
+  BookOpen, Clock, Book, UserCheck
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

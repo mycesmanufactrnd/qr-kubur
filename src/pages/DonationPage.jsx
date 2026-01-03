@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 const SUGGESTED_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
@@ -70,7 +70,7 @@ export default function DonationPage() {
     onSuccess: () => {
       setSubmitted(true);
       queryClient.invalidateQueries(['donations']);
-      toast.success('Terima kasih! Derma anda telah direkodkan.');
+      showSuccess('Terima kasih! Derma anda telah direkodkan.');
     }
   });
 
@@ -116,12 +116,12 @@ export default function DonationPage() {
     
     const finalAmount = customAmount || amount;
     if (!finalAmount || !selectedRecipient) {
-      toast.error('Sila lengkapkan maklumat derma');
+      showError('Sila lengkapkan maklumat derma');
       return;
     }
     
     if (!referenceId) {
-      toast.error('Sila masukkan ID rujukan transaksi');
+      showError('Sila masukkan ID rujukan transaksi');
       return;
     }
 

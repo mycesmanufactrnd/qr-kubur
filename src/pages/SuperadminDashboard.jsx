@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl, useAdminAccess } from '../utils/index.jsx';
 import { 
-  Shield, Users, Database, Terminal, Book, Sparkles, List, CreditCard, Settings, UserCheck
+  Shield, Users, Database, Terminal, Book, Sparkles, List, CreditCard, Settings, UserCheck,
+  UserX
 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ export default function SuperadminDashboard() {
       value: "users",
       title: "Pengurusan Pengguna",
       items: [
+        { name: 'Impersonate User', page: 'ImpersonateUser', icon: UserX, color: 'red' },
         { name: translate('manageUsers'), page: 'ManageUsers', icon: Users, color: 'amber' },
         { name: 'Manage Permissions', page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
       ]
@@ -46,7 +48,6 @@ export default function SuperadminDashboard() {
       title: "Pengurusan Sistem",
       items: [
         { name: 'Log Aktiviti', page: 'ViewLogs', icon: Terminal, color: 'teal' },
-        { name: 'Documentation', page: 'Documentation', icon: Book, color: 'blue' },
         { name: 'Icon Library', page: 'IconLibrary', icon: Sparkles, color: 'purple' },
       ]
     },

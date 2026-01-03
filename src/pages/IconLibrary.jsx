@@ -27,8 +27,8 @@ import {
   Terminal, GitBranch, Github, Gitlab, Coffee, Pizza, Beer, Utensils,
   QrCode, Scan, Cpu, HardDriveDownload, HardDriveUpload, Shield as ShieldIcon
 } from 'lucide-react';
-import { toast } from "sonner";
 import Breadcrumb from '../components/Breadcrumb';
+import { showSuccess } from '@/components/ToastrNotification';
 
 // Icon collection with categories
 const ICON_CATEGORIES = {
@@ -142,7 +142,7 @@ export default function IconLibrary() {
     const importStatement = `import { ${iconName} } from 'lucide-react';`;
     navigator.clipboard.writeText(importStatement);
     setCopiedIcon(iconName);
-    toast.success(`Copied: ${iconName}`);
+    showSuccess(`Copied: ${iconName}`)
     setTimeout(() => setCopiedIcon(null), 2000);
   };
 
