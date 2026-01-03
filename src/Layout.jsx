@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
-import { translate } from './utils/translations.jsx';
-import { handleLogout } from './utils/auth.jsx';
+import { translate } from '@/utils/translations.jsx';
+import { handleLogout, removeImpersonation } from './utils/auth.jsx';
 import PageLoadingComponent from './components/PageLoadingComponent.jsx';
 
 export default function Layout({ children, currentPageName }) {
@@ -46,6 +46,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const { clearPermissions } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isImpersonating, setIsImpersonating] = useState('false');
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', currentUser?.email],
@@ -57,6 +58,10 @@ function LayoutContent({ children, currentPageName }) {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
+    const isImpersonating = localStorage.getItem('isImpersonating');
+    
+    setIsImpersonating(isImpersonating);
+
     applyTheme(savedTheme);
   }, []);
 
@@ -88,13 +93,13 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminNavItems = [
     { name: 'Admin Dashboard', icon: User, page: 'AdminDashboard' },
-    { name: 'Impersonate User', icon: UserX, page: 'ImpersonateUser' },
     { name: 'Settings', icon: Settings, page: 'SettingsPage' },
   ];
-
+  
   const superAdminNavItems = [
     ...adminNavItems,
     { name: 'Super Admin', icon: Shield, page: 'SuperadminDashboard' },
+    { name: 'Impersonate User', icon: UserX, page: 'ImpersonateUser' },
   ];
 
   if (loadingUser) {
@@ -296,6 +301,7 @@ function LayoutContent({ children, currentPageName }) {
 
                     {isSuperAdmin && (
                       <>
+                        <DropdownMenuSeparator />
                         {superAdminNavItems.map((item) => (
                           <DropdownMenuItem key={item.page} asChild>
                             <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
@@ -306,12 +312,18 @@ function LayoutContent({ children, currentPageName }) {
                         ))}
                       </>
                     )}
-
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Log Keluar
-                    </DropdownMenuItem>
+                    {isImpersonating === "true" ? (
+                      <DropdownMenuItem onClick={removeImpersonation} className="text-red-600">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Leave Impersonating
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Log Keluar
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (

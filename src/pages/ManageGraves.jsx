@@ -3,7 +3,6 @@ import { translate } from '@/utils/translations';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/Translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -2,18 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/Translations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
+import { translate } from '@/utils/translations';
 
 export default function ManageSuggestions() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -25,11 +23,9 @@ export default function ManageSuggestions() {
   const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
 
   useEffect(() => {
     loadUser();
-    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -137,13 +133,13 @@ export default function ManageSuggestions() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: t('adminDashboard'), page: 'AdminDashboard' },
-          { label: t('manageSuggestionsTitle'), page: 'ManageSuggestions' }
+          { label: translate('adminDashboard'), page: 'AdminDashboard' },
+          { label: translate('manageSuggestionsTitle'), page: 'ManageSuggestions' }
         ]} />
         <Card className="max-w-lg mx-auto mt-8">
           <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('accessDenied')}</h2>
-            <p className="text-gray-600">{t('noPermission')}</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{translate('accessDenied')}</h2>
+            <p className="text-gray-600">{translate('noPermission')}</p>
           </CardContent>
         </Card>
       </div>
@@ -238,11 +234,11 @@ export default function ManageSuggestions() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('pending')}</Badge>;
       case 'approved':
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{t('approved')}</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('approved')}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{t('rejected')}</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -250,10 +246,10 @@ export default function ManageSuggestions() {
 
   const getEntityTypeLabel = (type) => {
     const labels = {
-      person: t('recordPerson'),
-      grave: t('recordGrave'),
-      organisation: t('recordOrg'),
-      tahfiz: t('recordTahfiz')
+      person: translate('recordPerson'),
+      grave: translate('recordGrave'),
+      organisation: translate('recordOrg'),
+      tahfiz: translate('recordTahfiz')
     };
     return labels[type] || type;
   };
@@ -261,8 +257,8 @@ export default function ManageSuggestions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: t('adminDashboard'), page: 'AdminDashboard' },
-        { label: t('manageSuggestionsTitle'), page: 'ManageSuggestions' }
+        { label: translate('adminDashboard'), page: 'AdminDashboard' },
+        { label: translate('manageSuggestionsTitle'), page: 'ManageSuggestions' }
       ]} />
       
       {/* Header */}
@@ -270,10 +266,10 @@ export default function ManageSuggestions() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-            {t('manageSuggestionsTitle')}
+            {translate('manageSuggestionsTitle')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            {suggestions.filter(s => s.status === 'pending').length} {t('awaitingReview')}
+            {suggestions.filter(s => s.status === 'pending').length} {translate('awaitingReview')}
           </p>
         </div>
       </div>
@@ -281,9 +277,9 @@ export default function ManageSuggestions() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: t('pending'), value: suggestions.filter(s => s.status === 'pending').length, color: 'yellow' },
-          { label: t('approved'), value: suggestions.filter(s => s.status === 'approved').length, color: 'green' },
-          { label: t('rejected'), value: suggestions.filter(s => s.status === 'rejected').length, color: 'red' }
+          { label: translate('pending'), value: suggestions.filter(s => s.status === 'pending').length, color: 'yellow' },
+          { label: translate('approved'), value: suggestions.filter(s => s.status === 'approved').length, color: 'green' },
+          { label: translate('rejected'), value: suggestions.filter(s => s.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -300,13 +296,13 @@ export default function ManageSuggestions() {
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="w-4 h-4 mr-2 text-gray-400" />
-              <SelectValue placeholder={t('allStatus')} />
+              <SelectValue placeholder={translate('allStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('allStatus')}</SelectItem>
-              <SelectItem value="pending">{t('pending')}</SelectItem>
-              <SelectItem value="approved">{t('approved')}</SelectItem>
-              <SelectItem value="rejected">{t('rejected')}</SelectItem>
+              <SelectItem value="all">{translate('allStatus')}</SelectItem>
+              <SelectItem value="pending">{translate('pending')}</SelectItem>
+              <SelectItem value="approved">{translate('approved')}</SelectItem>
+              <SelectItem value="rejected">{translate('rejected')}</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -325,7 +321,7 @@ export default function ManageSuggestions() {
         ) : filteredSuggestions.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -363,21 +359,21 @@ export default function ManageSuggestions() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('suggestionType')}</TableHead>
-                <TableHead>{t('suggestion')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                <TableHead>{t('date')}</TableHead>
-                <TableHead className="text-right">{t('actions')}</TableHead>
+                <TableHead>{translate('suggestionType')}</TableHead>
+                <TableHead>{translate('suggestion')}</TableHead>
+                <TableHead>{translate('status')}</TableHead>
+                <TableHead>{translate('date')}</TableHead>
+                <TableHead className="text-right">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">{t('loading')}</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
               ) : filteredSuggestions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 filteredSuggestions.map(suggestion => (
@@ -411,16 +407,16 @@ export default function ManageSuggestions() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">{t('details')}</DialogTitle>
+            <DialogTitle className="dark:text-white">{translate('details')}</DialogTitle>
           </DialogHeader>
           {selectedSuggestion && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('suggestionType')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('suggestionType')}</p>
                 <p className="font-semibold dark:text-white">{getEntityTypeLabel(selectedSuggestion.entity_type)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('recordDetails')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('recordDetails')}</p>
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg mt-1 space-y-2">
                   <p className="font-medium dark:text-white">{getEntityDetails(selectedSuggestion).main}</p>
                   {getEntityDetails(selectedSuggestion).secondary && (
@@ -429,27 +425,27 @@ export default function ManageSuggestions() {
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('suggestedChanges')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('suggestedChanges')}</p>
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mt-1">
                   <p className="whitespace-pre-wrap dark:text-gray-200">{selectedSuggestion.suggested_changes}</p>
                 </div>
               </div>
               {selectedSuggestion.reason && (
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reason')}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{translate('reason')}</p>
                   <p className="dark:text-gray-200">{selectedSuggestion.reason}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('status')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('status')}</p>
                 {getStatusBadge(selectedSuggestion.status)}
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('adminNotes')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{translate('adminNotes')}</p>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder={t('notes')}
+                  placeholder={translate('notes')}
                   rows={3}
                   className="dark:bg-gray-700 dark:text-white"
                 />
@@ -458,7 +454,7 @@ export default function ManageSuggestions() {
           )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {t('close')}
+              {translate('close')}
             </Button>
             {selectedSuggestion?.status === 'pending' && (
               <>
@@ -469,7 +465,7 @@ export default function ManageSuggestions() {
                     disabled={updateMutation.isPending}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
-                    {t('reject')}
+                    {translate('reject')}
                   </Button>
                 )}
                 {hasApprovePermission && (
@@ -479,7 +475,7 @@ export default function ManageSuggestions() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {t('approve')}
+                    {translate('approve')}
                   </Button>
                 )}
               </>

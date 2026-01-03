@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, CheckCircle, XCircle, Clock, Eye, Filter, ExternalLink } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/Translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,14 +25,10 @@ export default function ManageDonations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [lang, setLang] = useState('ms');
-
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
-    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {

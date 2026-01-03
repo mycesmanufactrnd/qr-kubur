@@ -29,18 +29,37 @@ export async function handleLogin({
 }
 
 export function handleLogout(clearPermissions) {
-    if (typeof clearPermissions === 'function') {
-        clearPermissions();
-    }
+    clearPermissions?.();
     
     localStorage.removeItem('appUserAuth');
+    localStorage.removeItem('superAdminAuth');
+    localStorage.removeItem('isImpersonating');
     window.location.href = createPageUrl('AppUserLogin');
 }
 
-export function impersonateUser(user = {}) {
-  if (user) {
-    localStorage.setItem('appUserAuth', JSON.stringify(user));
-      
-    window.location.href = createPageUrl('AdminDashboard');
+export function removeImpersonation() {
+  const superAdminAuth = localStorage.getItem("superAdminAuth");
+  if (!superAdminAuth) {
+    handleLogout();
+    return;
   }
+
+  localStorage.setItem("appUserAuth", superAdminAuth);
+  localStorage.removeItem("superAdminAuth");
+  localStorage.removeItem("isImpersonating");
+
+  location.href = createPageUrl("ImpersonateUser");
+}
+
+export function impersonateUser(user = {}) {
+  if (!user || !user.id) return;
+
+  const currentAuth = localStorage.getItem("appUserAuth");
+  if (!currentAuth) return;
+
+  localStorage.setItem("superAdminAuth", currentAuth);
+  localStorage.setItem("isImpersonating", "true");
+  localStorage.setItem("appUserAuth", JSON.stringify(user));
+
+  location.href = createPageUrl("AdminDashboard");
 }

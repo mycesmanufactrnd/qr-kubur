@@ -6,14 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getTranslation, getCurrentLanguage } from '../components/Translations';
+import { translate } from '@/utils/translations.jsx';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [fontSize, setFontSize] = useState('medium');
   const [language, setLanguage] = useState('ms');
   const [theme, setTheme] = useState('light');
-  const [lang, setLang] = useState('ms');
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -24,19 +23,15 @@ export default function SettingsPage() {
     setFontSize(savedSize);
     setLanguage(savedLanguage);
     setTheme(savedTheme);
-    setLang(savedLanguage);
     
     applyFontSize(savedSize);
     applyTheme(savedTheme);
 
-    // Check if user is admin
     const appUserAuth = localStorage.getItem('appUserAuth');
     if (appUserAuth) {
       setIsAdmin(true);
     }
   }, []);
-
-  const t = (key) => getTranslation(key, lang);
 
   const applyFontSize = (size) => {
     const root = document.documentElement;
@@ -72,7 +67,6 @@ export default function SettingsPage() {
 
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
-    setLang(newLang);
     localStorage.setItem('language', newLang);
     window.location.reload();
   };
@@ -85,7 +79,7 @@ export default function SettingsPage() {
 
   const settingsSections = [
     {
-      title: t('display'),
+      title: translate('display'),
       items: [
         { type: 'fontSize' },
         { type: 'language' },
@@ -93,24 +87,24 @@ export default function SettingsPage() {
       ]
     },
     {
-      title: t('support'),
+      title: translate('support'),
       items: [
-        { icon: HelpCircle, label: t('faq'), action: () => alert('FAQ coming soon') },
-        { icon: FileText, label: t('contactFeedback'), action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Maklum Balas QR Kubur' },
-        { icon: Shield, label: t('reportBug'), action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Laporan Pepijat' },
+        { icon: HelpCircle, label: translate('faq'), action: () => alert('FAQ coming soon') },
+        { icon: FileText, label: translate('contactFeedback'), action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Maklum Balas QR Kubur' },
+        { icon: Shield, label: translate('reportBug'), action: () => window.location.href = 'mailto:support@qrkubur.com?subject=Laporan Pepijat' },
       ]
     },
     {
-      title: t('information'),
+      title: translate('information'),
       items: [
-        { icon: FileText, label: t('termsConditions'), page: 'TermsAndConditions' },
-        { icon: Shield, label: t('privacyPolicy'), page: 'PrivacyPolicy' },
+        { icon: FileText, label: translate('termsConditions'), page: 'TermsAndConditions' },
+        { icon: Shield, label: translate('privacyPolicy'), page: 'PrivacyPolicy' },
         ...(isAdmin 
           ? [{ icon: LogIn, label: 'Log Keluar', action: () => {
               localStorage.removeItem('appUserAuth');
               window.location.href = createPageUrl('AppUserLogin');
             }}] 
-          : [{ icon: LogIn, label: t('adminLogin'), page: 'AppUserLogin' }]
+          : [{ icon: LogIn, label: translate('adminLogin'), page: 'AppUserLogin' }]
         ),
       ]
     }
@@ -122,7 +116,7 @@ export default function SettingsPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('settings')}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('settings')}</h1>
       </div>
       
       {settingsSections.map((section, idx) => (
@@ -139,15 +133,15 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-3">
                         <Type className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <div className="flex-1">
-                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{t('fontSize')}</Label>
+                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{translate('fontSize')}</Label>
                           <Select value={fontSize} onValueChange={handleFontSizeChange}>
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-white dark:bg-gray-700">
-                              <SelectItem value="small">{t('small')}</SelectItem>
-                              <SelectItem value="medium">{t('medium')}</SelectItem>
-                              <SelectItem value="large">{t('large')}</SelectItem>
+                              <SelectItem value="small">{translate('small')}</SelectItem>
+                              <SelectItem value="medium">{translate('medium')}</SelectItem>
+                              <SelectItem value="large">{translate('large')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -160,7 +154,7 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-3">
                         <Globe className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <div className="flex-1">
-                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{t('language')}</Label>
+                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{translate('language')}</Label>
                           <Select value={language} onValueChange={handleLanguageChange}>
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
@@ -181,14 +175,14 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-3">
                         <Palette className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         <div className="flex-1">
-                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{t('theme')}</Label>
+                          <Label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">{translate('theme')}</Label>
                           <Select value={theme} onValueChange={handleThemeChange}>
                             <SelectTrigger className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-white dark:bg-gray-700">
-                              <SelectItem value="light">{t('light')}</SelectItem>
-                              <SelectItem value="dark">{t('dark')}</SelectItem>
+                              <SelectItem value="light">{translate('light')}</SelectItem>
+                              <SelectItem value="dark">{translate('dark')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

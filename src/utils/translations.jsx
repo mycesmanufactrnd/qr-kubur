@@ -1,11 +1,24 @@
-import { getAdminTranslation, getCurrentLanguage } from '@/components/Translations';
+import ms from "@/i18n/ms.json";
+import en from "@/i18n/en.json";
+import ar from "@/i18n/ar.json";
 
-let currentLang = getCurrentLanguage();
+const packs = { ms, en, ar };
 
-window.addEventListener('storage', () => {
-  currentLang = getCurrentLanguage();
+let currentLang = localStorage.getItem("language") || "ms";
+
+window.addEventListener("storage", () => {
+  currentLang = localStorage.getItem("language") || "ms";
 });
 
+export function getCurrentLanguage() {
+  return currentLang;
+}
+
+/**
+ * Translate a key
+ * @param {string} key
+ * @returns string
+ */
 export const translate = (key) => {
-  return getAdminTranslation(key, currentLang);
+  return packs[currentLang]?.[key] || packs.ms?.[key] || key;
 };
