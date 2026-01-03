@@ -11,10 +11,10 @@ import Breadcrumb from '../components/Breadcrumb';
 import { PERMISSION_CATEGORIES } from '../components/Permissions';
 import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
 import { translate } from '@/utils/translations';
-import { useAdminAccess } from '@/utils';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
 
 export default function ManagePermissions() {
   const { 

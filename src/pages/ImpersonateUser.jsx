@@ -12,13 +12,12 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useAdminAccess } from "@/utils/index.jsx";
 import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { Search, UserX, UserSearch, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { translate } from "@/utils/translations";
-import { impersonateUser } from "@/utils/auth.jsx";
+import { impersonateUser, useAdminAccess } from "@/utils/auth.jsx";
 
 export default function ImpersonateUser() {
   const [searchQuery, setSearchQuery] = useState('');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils/index.jsx';
+import { createPageUrl } from '../utils/index';
 import { 
   QrCode, Search, MapPin, Map, Heart, BookOpen, FileText, 
   Users, Building2, Shield, Clock, CheckCircle, Smartphone,

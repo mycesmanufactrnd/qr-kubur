@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils/index.jsx';
+import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
 import { QrCode, Camera, X, AlertCircle, CheckCircle, Keyboard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";

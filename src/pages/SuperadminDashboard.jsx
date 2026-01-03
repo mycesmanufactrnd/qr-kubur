@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { createPageUrl, useAdminAccess } from '../utils/index.jsx';
+import { createPageUrl } from '../utils/index';
 import { 
   Shield, Users, Database, Terminal, Book, Sparkles, List, CreditCard, Settings, UserCheck,
   UserX
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { translate } from '@/utils/translations.jsx';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
+import { useAdminAccess } from '@/utils/auth';
 
 export default function SuperadminDashboard() {
   const { 

@@ -17,9 +17,10 @@ import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
-import { getParentAndChildOrgs, useAdminAccess } from '@/utils/index';
+import { getParentAndChildOrgs } from '@/utils/helpers';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import { useAdminAccess } from '@/utils/auth';
 
 const emptyGrave = {
   cemetery_name: '',

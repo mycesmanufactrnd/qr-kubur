@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils/index.jsx';
+import { createPageUrl } from '../utils/index';
 import { ArrowLeft, HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -20,9 +20,9 @@ import Pagination from '../components/Pagination';
 import Breadcrumb from '../components/Breadcrumb';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
-import { useAdminAccess } from '@/utils';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import { useAdminAccess } from '@/utils/auth';
 
 const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
 
@@ -34,7 +34,6 @@ export default function ManageUsers() {
     isSuperAdmin, 
     isAdmin, 
     isEmployee, 
-    currentUserStates 
   } = useAdminAccess();
 
   const [page, setPage] = useState(1);

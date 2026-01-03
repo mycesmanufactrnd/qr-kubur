@@ -16,10 +16,11 @@ import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
-import { getLabelFromId, getParentAndChildOrgs, useAdminAccess } from '@/utils';
+import { getLabelFromId, getParentAndChildOrgs } from '@/utils/helpers';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { STATES_MY } from '@/utils/enums';
+import { useAdminAccess } from '@/utils/auth';
 
 const emptyPerson = {
   name: '',

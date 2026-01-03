@@ -1,5 +1,6 @@
 import { base44 } from '@/api/base44Client';
-import { createPageUrl } from '.';
+import { createPageUrl } from './index';
+import { useEffect, useState } from 'react';
 
 export async function handleLogin({ 
   email, 
@@ -62,4 +63,40 @@ export function impersonateUser(user = {}) {
   localStorage.setItem("appUserAuth", JSON.stringify(user));
 
   location.href = createPageUrl("AdminDashboard");
+}
+
+export function useAdminAccess() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const appUserAuth = localStorage.getItem("appUserAuth");
+        if (appUserAuth) {
+          setCurrentUser(JSON.parse(appUserAuth));
+        } else {
+          const userData = await base44.auth.me();
+          setCurrentUser(userData);
+        }
+      } catch (e) {
+        setCurrentUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  const isSuperAdmin = currentUser?.role === "superadmin";
+  const isAdmin = currentUser?.role === "admin";
+  const isEmployee = currentUser?.role === "employee";
+  const isTahfizAdmin = isAdmin && !!currentUser?.tahfiz_center_id;
+
+  const hasAdminAccess = isSuperAdmin || isAdmin || isEmployee;
+
+  const currentUserStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+
+  return { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, currentUserStates };
 }

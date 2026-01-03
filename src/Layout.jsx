@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl, useAdminAccess } from './utils/index.jsx';
+import { createPageUrl } from '@/utils/index';
 import { base44 } from '@/api/base44Client';
 import { PermissionsProvider, usePermissions } from './components/PermissionsContext';
 import { 
@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
 import { translate } from '@/utils/translations.jsx';
-import { handleLogout, removeImpersonation } from './utils/auth.jsx';
+import { handleLogout, removeImpersonation, useAdminAccess } from './utils/auth.jsx';
 import PageLoadingComponent from './components/PageLoadingComponent.jsx';
 
 export default function Layout({ children, currentPageName }) {

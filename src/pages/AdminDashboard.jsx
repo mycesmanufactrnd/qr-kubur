@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { createPageUrl, getParentAndChildOrgs, useAdminAccess } from '../utils/index.jsx';
+import { createPageUrl } from '../utils/index';
+import { getParentAndChildOrgs } from '../utils/helpers';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { translate } from '@/utils/translations.jsx';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
+import { useAdminAccess } from '@/utils/auth';
 
 export default function AdminDashboard() {
   const { 

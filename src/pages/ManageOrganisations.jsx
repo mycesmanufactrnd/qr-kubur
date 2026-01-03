@@ -21,8 +21,9 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
 import { showApiError, showError, showSuccess } from '@/components/ToastrNotification';
-import { getLabelFromId, useAdminAccess } from '@/utils/index';
+import { getLabelFromId } from '@/utils/helpers';
 import { STATES_MY } from '@/utils/enums';
+import { useAdminAccess } from '@/utils/auth';
 
 const emptyOrg = {
   name: '',
