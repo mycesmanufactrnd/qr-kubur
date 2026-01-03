@@ -1,10 +1,4 @@
 
-import AlFatihah from "@/assets/surah/1.json";
-import Yaasin from "@/assets/surah/36.json";
-import AlIkhlas from "@/assets/surah/112.json";
-import AlFalaq from "@/assets/surah/113.json";
-import AnNas from "@/assets/surah/114.json";
-
 export const LANG = [ "en", "ms", "ar" ];
 
 export const STATES_MY = [
@@ -13,8 +7,8 @@ export const STATES_MY = [
     "Terengganu", "Wilayah Persekutuan"
 ];
 
-const surahId = 1;
-export const QURAN_API = `https://alquran-api.pages.dev/api/quran/surah/${surahId}`;
+const defaultSurahId = 1;
+export const QURAN_API = `https://alquran-api.pages.dev/api/quran/surah/${defaultSurahId}`;
 
 export const SURAH_DATA = {
   1: {
