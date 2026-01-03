@@ -23,8 +23,6 @@ export default function ManagePermissions() {
     hasAdminAccess, 
     isSuperAdmin, 
     isAdmin, 
-    isEmployee, 
-    currentUserStates 
   } = useAdminAccess();
 
   const {
