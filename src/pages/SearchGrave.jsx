@@ -4,11 +4,11 @@ import { createPageUrl } from '../utils/index.jsx';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Search, MapPin, Navigation, ArrowLeft, Share2 } from 'lucide-react';
-import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { showSuccess } from '@/components/ToastrNotification.jsx';
 
 const NEARBY_STATES = ["Selangor", "Kuala Lumpur", "Putrajaya", "Negeri Sembilan", "Melaka"];
 
@@ -185,7 +185,7 @@ export default function SearchGrave() {
                             navigator.share({ title: grave.cemetery_name, url });
                           } else {
                             navigator.clipboard.writeText(url);
-                            toast.success('Pautan disalin');
+                            showSuccess('Pautan disalin');
                           }
                         }}
                         className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"

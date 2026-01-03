@@ -9,18 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
-
-const SERVICE_LABELS = {
-  'tahlil_ringkas': 'Tahlil Ringkas',
-  'tahlil_panjang': 'Tahlil Panjang',
-  'yasin': 'Bacaan Yasin',
-  'doa_arwah': 'Doa Arwah',
-  'custom': 'Perkhidmatan Khas'
-};
+import { showSuccess } from '@/components/ToastrNotification';
+import { SERVICE_LABELS } from '@/utils/enums';
 
 export default function ManageTahlilRequests() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -84,7 +77,7 @@ export default function ManageTahlilRequests() {
       queryClient.invalidateQueries(['admin-tahlil-requests']);
       setIsDialogOpen(false);
       setSelectedRequest(null);
-      toast.success('Status permohonan telah dikemaskini');
+      showSuccess('Status permohonan telah dikemaskini');
     }
   });
 

@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import { useForm, Controller } from "react-hook-form";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
@@ -21,6 +20,7 @@ import Pagination from '../components/Pagination';
 import { usePermissions } from '../components/PermissionsContext';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 const STATES = [
   "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
@@ -129,10 +129,10 @@ export default function ManageTahfizCenters() {
       queryClient.invalidateQueries(['admin-tahfiz']);
       setIsDialogOpen(false);
       setFormData(emptyCenter);
-      toast.success('Pusat tahfiz berjaya ditambah');
+      showSuccess('Tahfiz Center Successfully Created');
     }
   });
-
+  
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TahfizCenter.update(id, data),
     onSuccess: () => {
@@ -140,15 +140,15 @@ export default function ManageTahfizCenters() {
       setIsDialogOpen(false);
       setEditingCenter(null);
       setFormData(emptyCenter);
-      toast.success('Pusat tahfiz berjaya dikemaskini');
+      showSuccess('Tahfiz Center Successfully Edited');
     }
   });
-
+  
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.TahfizCenter.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-tahfiz']);
-      toast.success('Pusat tahfiz berjaya dipadam');
+      showSuccess('Tahfiz Center Successfully Deleted');
     }
   });
 
@@ -226,29 +226,29 @@ export default function ManageTahfizCenters() {
   const onSubmit = (data) => {
     // Validation - Required fields
     if (!data.name?.trim()) {
-      toast.error('Sila masukkan nama pusat tahfiz', { description: 'Medan Diperlukan' });
+      showError('Sila masukkan nama pusat tahfiz', 'Medan Diperlukan');
       return;
     }
     if (!data.state) {
-      toast.error('Sila pilih negeri', { description: 'Medan Diperlukan' });
+      showError('Sila pilih negeri', 'Medan Diperlukan');
       return;
     }
-
+    
     // Additional validation
     if (data.email && data.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      toast.error('Format email tidak sah', { description: 'Format Tidak Sah' });
+      showError('Format email tidak sah', 'Format Tidak Sah');
       return;
     }
     if (data.phone && data.phone.trim() && !/^[0-9\-\+\(\)\s]+$/.test(data.phone)) {
-      toast.error('Format telefon tidak sah', { description: 'Format Tidak Sah' });
+      showError('Format telefon tidak sah', 'Format Tidak Sah');
       return;
     }
     if (data.gps_lat && (isNaN(data.gps_lat) || data.gps_lat < -90 || data.gps_lat > 90)) {
-      toast.error('GPS Latitude mesti antara -90 hingga 90', { description: 'Nilai Tidak Sah' });
+      showError('GPS Latitude mesti antara -90 hingga 90', 'Nilai Tidak Sah');
       return;
     }
     if (data.gps_lng && (isNaN(data.gps_lng) || data.gps_lng < -180 || data.gps_lng > 180)) {
-      toast.error('GPS Longitude mesti antara -180 hingga 180', { description: 'Nilai Tidak Sah' });
+      showError('GPS Longitude mesti antara -180 hingga 180', 'Nilai Tidak Sah');
       return;
     }
 
@@ -623,20 +623,18 @@ export default function ManageTahfizCenters() {
               variant="outline"
               onClick={() => {
                 if (navigator.geolocation) {
-                  toast.info(translate('loading'));
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
                       setValue('gps_lat', position.coords.latitude.toFixed(16));
                       setValue('gps_lng', position.coords.longitude.toFixed(16));
-                      toast.success(translate('getCurrentLocation'));
                     },
                     (error) => {
-                      toast.error(translate('getCurrentLocation'));
+                      showError('Error getting coordinated');
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                   );
                 } else {
-                  toast.error('GPS not supported');
+                  showError('GPS Not Supported');
                 }
               }}
               className="w-full"

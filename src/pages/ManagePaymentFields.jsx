@@ -6,16 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import LoadingUser from '../components/PageLoadingComponent';
-import Breadcrumb from '../components/Breadcrumb';
+import LoadingUser from '@/components/PageLoadingComponent';
+import Breadcrumb from '@/components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManagePaymentFields() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,10 +73,10 @@ export default function ManagePaymentFields() {
       queryClient.invalidateQueries(['payment-fields']);
       setIsDialogOpen(false);
       setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
-      toast.success('Field berjaya ditambah');
+      showSuccess('Payment Field Successfully Created');
     }
   });
-
+  
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PaymentPlatformField.update(id, data),
     onSuccess: () => {
@@ -85,15 +84,15 @@ export default function ManagePaymentFields() {
       setIsDialogOpen(false);
       setEditingField(null);
       setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
-      toast.success('Field berjaya dikemaskini');
+      showSuccess('Payment Field Successfully Edited');
     }
   });
-
+  
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.PaymentPlatformField.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['payment-fields']);
-      toast.success('Field berjaya dipadam');
+      showSuccess('Payment Field Successfully Deleted');
     }
   });
 
@@ -149,11 +148,11 @@ export default function ManagePaymentFields() {
     e.preventDefault();
     
     if (!formData.payment_platform_code) {
-      toast.error('Sila pilih platform');
+      showError('Sila pilih platform');
       return;
     }
     if (!formData.key?.trim()) {
-      toast.error('Sila masukkan field key');
+      showError('Sila masukkan field key');
       return;
     }
 

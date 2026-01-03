@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { PERMISSION_CATEGORIES } from '../components/Permissions';
 import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
@@ -16,6 +14,7 @@ import { translate } from '@/utils/translations';
 import { useAdminAccess } from '@/utils';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManagePermissions() {
   const { 
@@ -93,10 +92,9 @@ export default function ManagePermissions() {
       for (const [slug, enabled] of Object.entries(userPermissions)) {
         await updatePermissionMutation.mutateAsync({ slug, enabled });
       }
-      
-      toast.success('Kebenaran berjaya dikemaskini');
+      showSuccess('Kebenaran berjaya dikemaskini')
     } catch (error) {
-      toast.error('Ralat mengemaskini kebenaran');
+      showError('Ralat mengemaskini kebenaran');
     }
   };
 

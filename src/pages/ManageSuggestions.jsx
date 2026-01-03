@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
+import { showSuccess } from '@/components/ToastrNotification';
 
 export default function ManageSuggestions() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -115,7 +115,7 @@ export default function ManageSuggestions() {
       queryClient.invalidateQueries(['admin-suggestions']);
       setIsDialogOpen(false);
       setSelectedSuggestion(null);
-      toast.success('Cadangan telah dikemaskini');
+      showSuccess('Cadangan telah dikemaskini');
     }
   });
 
