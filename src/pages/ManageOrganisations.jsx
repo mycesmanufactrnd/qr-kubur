@@ -64,7 +64,7 @@ export default function ManageOrganisations() {
     loading: permissionsLoading,
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('organisations');
-
+  
   const buildFilterQuery = () => {
     const query = {};
 
@@ -116,7 +116,6 @@ export default function ManageOrganisations() {
     enabled: !!currentUser
   });
 
-  // organisation type list
   const { data: organisationTypeList = [] } = useQuery({
     queryKey: ['organisation-types'],
     queryFn: () => base44.entities.OrganisationType.filter({ status: 'active' })
@@ -129,7 +128,7 @@ export default function ManageOrganisations() {
       queryClient.invalidateQueries(['admin-organisations']);
       setIsDialogOpen(false);
       reset(emptyOrg);
-      showSuccess('Organisation Created Successfully');
+      showSuccess('create', 'Organisation');
     },
     onError: (error) => {
       showApiError(error);
@@ -143,7 +142,7 @@ export default function ManageOrganisations() {
       setIsDialogOpen(false);
       setEditingOrg(null);
       reset(emptyOrg);
-      showSuccess('Organisation Updated Successfully');
+      showSuccess('edit', 'Organisation');
     },
     onError: (error) => {
       showApiError(error);

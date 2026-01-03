@@ -4,11 +4,13 @@
 
 import { router as trpcRouter } from "../trpc.ts";
 import { authRouter } from "./authRouter.ts";
+import { surahRouter } from "./surahRouter.ts";
 import { usersRouter } from "./usersRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
-  users: usersRouter
+  users: usersRouter,
+  surah: surahRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -75,9 +75,6 @@ export function useAdminAccess() {
         const appUserAuth = localStorage.getItem("appUserAuth");
         if (appUserAuth) {
           setCurrentUser(JSON.parse(appUserAuth));
-        } else {
-          const userData = await base44.auth.me();
-          setCurrentUser(userData);
         }
       } catch (e) {
         setCurrentUser(null);

@@ -34,12 +34,18 @@ await app.register(rateLimit, {
   ]
 });
 
+await app.register(import('@fastify/cors'), {
+  // origin: "*",
+  origin: "http://localhost:5173",
+});
+
 app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
   trpcOptions: { 
     router: appRouter, 
     createContext, 
-    allowPostForQueries: true 
+    allowPostForQueries: true,
+    allowGetForQueries: true,
   }
 });
 

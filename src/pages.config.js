@@ -1,4 +1,3 @@
-import AboutSystem from './pages/AboutSystem';
 import AdminDashboard from './pages/AdminDashboard';
 import AppUserLogin from './pages/AppUserLogin';
 import CheckTahlilStatus from './pages/CheckTahlilStatus';
@@ -37,7 +36,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AboutSystem": AboutSystem,
     "AdminDashboard": AdminDashboard,
     "AppUserLogin": AppUserLogin,
     "CheckTahlilStatus": CheckTahlilStatus,
