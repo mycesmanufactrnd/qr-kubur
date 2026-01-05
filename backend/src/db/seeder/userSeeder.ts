@@ -36,3 +36,6 @@ export async function runUserSeeder() {
 
   console.log("✔ Users seeded");
 }
+
+// after login into supabase_db psql run this to create role super admin
+// CREATE ROLE supabase_admin WITH LOGIN PASSWORD 'postgres' SUPERUSER;

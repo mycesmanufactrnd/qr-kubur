@@ -59,6 +59,88 @@ services:
       db:
         condition: service_healthy
 
+  # --- KONG (API Gateway for Studio) ---
+  kong:
+    image: kong:2.8.1
+    container_name: supabase_kong
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    volumes:
+      - ./kong.yml:/home/kong/kong.yml:ro,z
+
+  # --- POSTGRES META ---
+  meta:
+    image: supabase/postgres-meta:v0.95.1
+    container_name: supabase_meta
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_DB_HOST: ${POSTGRES_HOST}
+      PG_META_DB_PORT: ${POSTGRES_PORT}
+      PG_META_DB_NAME: ${POSTGRES_DB}
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+
+  # --- POSTGREST (REST API) ---
+  rest:
+    image: postgrest/postgrest:v14.1
+    container_name: supabase_rest
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+
+  # --- STUDIO (Dashboard) ---
+  studio:
+    image: supabase/studio:2025.12.17-sha-43f4f7f
+    container_name: supabase_studio
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      kong:
+        condition: service_healthy
+      auth:
+        condition: service_started
+      meta:
+        condition: service_started
+      rest:
+        condition: service_started
+    environment:
+      HOSTNAME: "::"
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: http://localhost:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
+      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
+
   # Backend
   backend:
     build:

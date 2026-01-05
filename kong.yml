@@ -1,0 +1,30 @@
+_format_version: "2.1"
+
+services:
+  - name: studio-service
+    url: http://studio:3000
+    routes:
+      - name: studio-route
+        paths:
+          - /
+
+  - name: auth
+    url: http://auth:9999
+    routes:
+      - name: auth-route
+        paths:
+          - /auth
+
+  - name: storage
+    url: http://storage:5000
+    routes:
+      - name: storage-route
+        paths:
+          - /storage
+
+  - name: realtime
+    url: http://realtime:4000
+    routes:
+      - name: realtime-route
+        paths:
+          - /realtime
