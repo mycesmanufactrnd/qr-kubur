@@ -7,7 +7,7 @@ export const trpc = createTRPCReact<AppRouter>();
 export const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: 'http://localhost:4000/trpc',
+      url: 'http://localhost:8000/trpc',
       headers() {
         const token = localStorage.getItem('jwt');
         return token ? { Authorization: `Bearer ${token}` } : {};

@@ -1,7 +1,9 @@
 console.log("🌱 Starting database seed...");
 
-await import("./seeder/userSeeder.ts");
+const { runUserSeeder } = await import("./seeder/userSeeder.ts");
 
-console.log("✅ Database seeded successfully");
+await runUserSeeder();
+
+console.log("✅ Database seed operation completed");
 
 process.exit(0);

@@ -13,5 +13,14 @@ export default defineConfig({
       legacySDKImports: process.env.BASE44_LEGACY_SDK_IMPORTS === 'true'
     }),
     react(),
-  ]
+  ],
+  envDir: './',
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+  },
 });

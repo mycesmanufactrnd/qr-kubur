@@ -7,7 +7,7 @@ import { handleLoginBase44, handleLoginTRPC } from '@/utils/auth';
 
 export default function AppUserLogin() {
   const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
-
+  console.log('import.meta.env.VITE_DB_MODE', import.meta.env.VITE_DB_MODE)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -17,8 +17,7 @@ export default function AppUserLogin() {
   const onSubmit = (e) => {
     e.preventDefault();
 
-    // if (isSupabaseMode) {
-    if (!isSupabaseMode) {
+    if (isSupabaseMode) {
       login(email, password);
     } else {
       handleLoginBase44({ email, password, setLoading: () => {}, setError });

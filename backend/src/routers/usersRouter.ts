@@ -23,11 +23,9 @@ const userRepo = AppDataSource.getRepository(User);
 // .input(zodSchema) is just shorthand for .validation(zodSchema)
 
 export const usersRouter = router({
-  // getUserById: publicProcedure
-  getUserById: adminProcedure
+  getUserById: protectedProcedure
     .input(
       z.object({
-        // validation id must be a number
         id: z.number(),
       })
     )

@@ -8,16 +8,12 @@ import { DataSource } from "typeorm";
 import * as entities from "./db/entities.ts";
 
 console.log("Checking Database URL:", process.env.DATABASE_URL ? "FOUND" : "MISSING");
-console.log("Checking Database Type:", process.env.DATABASE_TYPE, "\n");
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error("DATABASE_URL environment variable is not set");
 
-type DatabaseType = "postgres" | "mysql" | "mariadb";
-const dbType = process.env.DATABASE_TYPE as DatabaseType || "postgres";
-
 export const AppDataSource = new DataSource({
-  type: dbType,
+  type: "postgres",
   url: databaseUrl,
   synchronize: process.env.DATABASE_SYNC === "true",
   logging: false,

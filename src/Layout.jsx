@@ -302,6 +302,7 @@ function LayoutContent({ children, currentPageName }) {
                         ))}
                       </>
                     )}
+                    
                     <DropdownMenuSeparator />
                     {isImpersonating === "true" ? (
                       <DropdownMenuItem onClick={removeImpersonation} className="text-red-600">

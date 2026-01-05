@@ -13,7 +13,7 @@ export const authRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
     .mutation(async ({ input }) => {
-      const user = await userRepo.findOne({
+      let user = await userRepo.findOne({
         where: { email: input.email },
       });
 
@@ -31,14 +31,12 @@ export const authRouter = router({
         id: user.id.toString(), 
         role 
       });
-      
+
+      const { password, ...userWithoutPassword } = user;
+
       return {
         token,
-        user: {
-          id: user.id,
-          fullname: user.fullname,
-          role: user.role,
-        },
+        ...userWithoutPassword,
       };
     }),
 });

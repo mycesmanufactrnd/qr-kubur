@@ -2,7 +2,7 @@ import requests
 import urllib.parse
 import time
 
-base_url = "http://localhost:4000/trpc/users.getUserById"
+base_url = "http://localhost:8000/trpc/users.getUserById"
 
 input_obj = {"id": 1}
 encoded_input = urllib.parse.quote_plus(str(input_obj).replace("'", '"'))

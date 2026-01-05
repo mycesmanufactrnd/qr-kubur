@@ -68,8 +68,12 @@ async function bootstrap() {
     console.log("✅ Database connected and synchronized!");
 
     // Start Fastify
-    await app.listen({ port: 4000 });
-    console.log("🚀 tRPC backend running on http://localhost:4000");
+    // await app.listen({ port: 8000 });
+    // console.log("🚀 tRPC backend running on http://localhost:8000");
+    const PORT = Number(process.env.BACKEND_PORT ?? 8000)
+
+    await app.listen({ port: PORT, host: '0.0.0.0' })
+    console.log(`🚀 tRPC backend running on http://localhost:${PORT}`)
 
   } catch (err) {
     console.error("❌ Server failed to start");

@@ -3,7 +3,7 @@ import json
 import urllib.parse
 
 # change the procedure for testing role
-URL = "http://localhost:4000/trpc/users.getUserById"
+URL = "http://localhost:8000/trpc/users.getUserById"
 
 # change the JWT
 JWT_TOKENS = {

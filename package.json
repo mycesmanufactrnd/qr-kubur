@@ -4,12 +4,24 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+
+    "docker:up": "docker compose --env-file .env up -d",
+    "docker:down": "docker compose --env-file .env down",
+    "docker:restart:dev": "docker compose up -d --force-recreate backend frontend",
+
+    "docker:rebuild:dev": "docker compose build backend frontend && docker compose up -d backend frontend",
+
+    "docker:logs": "docker compose --env-file .env logs -f",
+    "docker:logs:backend": "docker compose --env-file .env logs -f backend",
+    "docker:logs:frontend": "docker compose --env-file .env logs -f frontend",
+
+    "docker:seed": "docker compose exec backend npm run seed"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.3",
@@ -58,6 +70,7 @@
     "framer-motion": "^11.16.4",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
+    "jsonwebtoken": "^9.0.3",
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",

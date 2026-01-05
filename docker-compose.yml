@@ -1,0 +1,102 @@
+services:
+  # --- DATABASE ---
+  db:
+    image: supabase/postgres:15.14.1.067
+    container_name: supabase_db
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    # Enable logical replication for Realtime
+    command: postgres -c wal_level=logical -c max_replication_slots=10 -c max_wal_senders=10 -c listen_addresses='*'
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "supabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # --- AUTH ---
+  auth:
+    image: supabase/gotrue:v2.185.0-rc.12
+    container_name: supabase_auth
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "9999:9999"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # --- STORAGE ---
+  storage:
+    image: supabase/storage-api:latest
+    container_name: supabase_storage
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "${STORAGE_PORT}:5000"
+    volumes:
+      - storage_data:${FILE_STORAGE_BACKEND_PATH}
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_started
+
+  # --- REALTIME ---
+  realtime:
+    image: supabase/realtime:latest
+    container_name: supabase_realtime
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - "${REALTIME_PORT}:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../dockerfiles/backend.dockerfile
+    container_name: backend
+    env_file: .env
+    ports:
+      - "${BACKEND_PORT}:8000"
+    volumes:
+      - ./backend:/usr/src/app 
+      - backend_node_modules:/usr/src/app/node_modules
+    depends_on:
+      - db
+      - auth
+      - storage
+      - realtime
+
+  # --- FRONTEND ---
+  frontend:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/frontend.dockerfile
+    container_name: frontend
+    env_file: .env
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - .:/usr/src/frontend
+      - frontend_node_modules:/usr/src/frontend/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    depends_on:
+      auth:
+        condition: service_started
+
+volumes:
+  db_data:
+  storage_data:
+  frontend_node_modules:
+  backend_node_modules:

@@ -12,6 +12,7 @@
     "migration:revert": "npm run typeorm -- migration:revert --dataSource src/datasource.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
     "@fastify/rate-limit": "^10.3.0",
     "@supabase/supabase-js": "^2.89.0",
     "@trpc/server": "^11.8.1",
