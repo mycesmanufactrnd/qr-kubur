@@ -2,27 +2,18 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
-
-const SERVICE_LABELS = {
-  'tahlil_ringkas': 'Tahlil Ringkas',
-  'tahlil_panjang': 'Tahlil Panjang',
-  'yasin': 'Bacaan Yasin',
-  'doa_arwah': 'Doa Arwah',
-  'custom': 'Perkhidmatan Khas'
-};
+import { showSuccess } from '@/components/ToastrNotification';
+import { SERVICE_LABELS } from '@/utils/enums';
 
 export default function ManageTahlilRequests() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -34,11 +25,9 @@ export default function ManageTahlilRequests() {
   const [lang, setLang] = useState('ms');
 
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
-    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -88,7 +77,7 @@ export default function ManageTahlilRequests() {
       queryClient.invalidateQueries(['admin-tahlil-requests']);
       setIsDialogOpen(false);
       setSelectedRequest(null);
-      toast.success('Status permohonan telah dikemaskini');
+      showSuccess('Status permohonan telah dikemaskini');
     }
   });
 
@@ -100,7 +89,7 @@ export default function ManageTahlilRequests() {
     const search = searchTerm.toLowerCase();
     const centerName = getCenterName(r.tahfiz_center_id).toLowerCase();
     const serviceLabel = (r.service_type || '')
-      .split(',')
+      .splitranslate(',')
       .filter(Boolean)
       .map(type => SERVICE_LABELS[type] || type)
       .join(', ')
@@ -151,13 +140,13 @@ export default function ManageTahlilRequests() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('pending')}</Badge>;
       case 'accepted':
-        return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />{t('accepted')}</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('accepted')}</Badge>;
       case 'completed':
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{t('completed')}</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('completed')}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{t('rejected')}</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -170,8 +159,8 @@ export default function ManageTahlilRequests() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: t('adminDashboard'), page: 'AdminDashboard' },
-        { label: t('manageTahlilTitle'), page: 'ManageTahlilRequests' }
+        { label: translate('adminDashboard'), page: 'AdminDashboard' },
+        { label: translate('manageTahlilTitle'), page: 'ManageTahlilRequests' }
       ]} />
       
       {/* Header */}
@@ -179,10 +168,10 @@ export default function ManageTahlilRequests() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            {t('manageTahlilTitle')}
+            {translate('manageTahlilTitle')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            {requests.filter(r => r.status === 'pending').length} {t('awaitingAction')}
+            {requests.filter(r => r.status === 'pending').length} {translate('awaitingAction')}
           </p>
         </div>
       </div>
@@ -190,10 +179,10 @@ export default function ManageTahlilRequests() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: t('pending'), value: requests.filter(r => r.status === 'pending').length, color: 'yellow' },
-          { label: t('accepted'), value: requests.filter(r => r.status === 'accepted').length, color: 'blue' },
-          { label: t('completed'), value: requests.filter(r => r.status === 'completed').length, color: 'green' },
-          { label: t('rejected'), value: requests.filter(r => r.status === 'rejected').length, color: 'red' }
+          { label: translate('pending'), value: requests.filter(r => r.status === 'pending').length, color: 'yellow' },
+          { label: translate('accepted'), value: requests.filter(r => r.status === 'accepted').length, color: 'blue' },
+          { label: translate('completed'), value: requests.filter(r => r.status === 'completed').length, color: 'green' },
+          { label: translate('rejected'), value: requests.filter(r => r.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -210,7 +199,7 @@ export default function ManageTahlilRequests() {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <Input
-                placeholder={t('searchPlaceholder')}
+                placeholder={translate('searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -219,14 +208,14 @@ export default function ManageTahlilRequests() {
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full sm:w-48">
                 <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder={t('allStatus')} />
+                <SelectValue placeholder={translate('allStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('allStatus')}</SelectItem>
-                <SelectItem value="pending">{t('pending')}</SelectItem>
-                <SelectItem value="accepted">{t('accepted')}</SelectItem>
-                <SelectItem value="completed">{t('completed')}</SelectItem>
-                <SelectItem value="rejected">{t('rejected')}</SelectItem>
+                <SelectItem value="all">{translate('allStatus')}</SelectItem>
+                <SelectItem value="pending">{translate('pending')}</SelectItem>
+                <SelectItem value="accepted">{translate('accepted')}</SelectItem>
+                <SelectItem value="completed">{translate('completed')}</SelectItem>
+                <SelectItem value="rejected">{translate('rejected')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -246,7 +235,7 @@ export default function ManageTahlilRequests() {
         ) : filteredRequests.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -264,7 +253,7 @@ export default function ManageTahlilRequests() {
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
                         {(request.service_type || '')
-                          .split(',')
+                          .splitranslate(',')
                           .filter(Boolean)
                           .map(type => SERVICE_LABELS[type] || type)
                           .join(', ')
@@ -289,23 +278,23 @@ export default function ManageTahlilRequests() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('requesterName')}</TableHead>
-                <TableHead>{t('deceasedName')}</TableHead>
-                <TableHead>{t('serviceType')}</TableHead>
-                <TableHead>{t('tahfizCenter')}</TableHead>
-                <TableHead>{t('referenceId')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                <TableHead className="text-right">{t('actions')}</TableHead>
+                <TableHead>{translate('requesterName')}</TableHead>
+                <TableHead>{translate('deceasedName')}</TableHead>
+                <TableHead>{translate('serviceType')}</TableHead>
+                <TableHead>{translate('tahfizCenter')}</TableHead>
+                <TableHead>{translate('referenceId')}</TableHead>
+                <TableHead>{translate('status')}</TableHead>
+                <TableHead className="text-right">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">{t('loading')}</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
               ) : filteredRequests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 filteredRequests.map(request => (
@@ -315,7 +304,7 @@ export default function ManageTahlilRequests() {
                     <TableCell>
                       <Badge variant="outline">
                         {(request.service_type || '')
-                            .split(',')
+                            .splitranslate(',')
                             .filter(Boolean)
                             .map(type => SERVICE_LABELS[type] || type)
                             .join(', ')
@@ -346,35 +335,35 @@ export default function ManageTahlilRequests() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">{t('details')}</DialogTitle>
+            <DialogTitle className="dark:text-white">{translate('details')}</DialogTitle>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">{t('requesterName')}</p>
+                  <p className="text-sm text-gray-500">{translate('requesterName')}</p>
                   <p className="font-semibold">{selectedRequest.requester_name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">{t('phoneNumber')}</p>
+                  <p className="text-sm text-gray-500">{translate('phoneNumber')}</p>
                   <p className="font-semibold">{selectedRequest.requester_phone}</p>
                 </div>
               </div>
               {selectedRequest.requester_email && (
                 <div>
-                  <p className="text-sm text-gray-500">{t('email')}</p>
+                  <p className="text-sm text-gray-500">{translate('email')}</p>
                   <p>{selectedRequest.requester_email}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">{t('deceasedName')}</p>
+                <p className="text-sm text-gray-500">{translate('deceasedName')}</p>
                 <p className="font-semibold">{selectedRequest.deceased_name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">{t('serviceType')}</p>
+                <p className="text-sm text-gray-500">{translate('serviceType')}</p>
                 <Badge>
                 {(selectedRequest.service_type || '')
-                    .split(',')
+                    .splitranslate(',')
                     .filter(Boolean)
                     .map(type => SERVICE_LABELS[type] || type)
                     .join(', ')
@@ -382,36 +371,36 @@ export default function ManageTahlilRequests() {
                 </Badge>
               </div>
               <div>
-                <p className="text-sm text-gray-500">{t('tahfizCenter')}</p>
+                <p className="text-sm text-gray-500">{translate('tahfizCenter')}</p>
                 <p>{getCenterName(selectedRequest.tahfiz_center_id)}</p>
               </div>
               {selectedRequest.reference_id && (
                 <div>
-                  <p className="text-sm text-gray-500">{t('referenceId')}</p>
+                  <p className="text-sm text-gray-500">{translate('referenceId')}</p>
                   <p className="font-mono font-semibold">{selectedRequest.reference_id}</p>
                 </div>
               )}
               {selectedRequest.preferred_date && (
                 <div>
-                  <p className="text-sm text-gray-500">{t('preferredDate')}</p>
+                  <p className="text-sm text-gray-500">{translate('preferredDate')}</p>
                   <p>{new Date(selectedRequest.preferred_date).toLocaleDateString('ms-MY')}</p>
                 </div>
               )}
               {selectedRequest.notes && (
                 <div>
-                  <p className="text-sm text-gray-500">{t('notes')}</p>
+                  <p className="text-sm text-gray-500">{translate('notes')}</p>
                   <p>{selectedRequest.notes}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">{t('status')}</p>
+                <p className="text-sm text-gray-500">{translate('status')}</p>
                 {getStatusBadge(selectedRequest.status)}
               </div>
             </div>
           )}
           <DialogFooter className="flex-wrap gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {t('close')}
+              {translate('close')}
             </Button>
             {selectedRequest?.status === 'pending' && (
               <>
@@ -421,7 +410,7 @@ export default function ManageTahlilRequests() {
                   disabled={updateMutation.isPending}
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  {t('reject')}
+                  {translate('reject')}
                 </Button>
                 <Button 
                   onClick={() => handleStatusChange('accepted')}
@@ -429,7 +418,7 @@ export default function ManageTahlilRequests() {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  {t('approve')}
+                  {translate('approve')}
                 </Button>
               </>
             )}
@@ -440,7 +429,7 @@ export default function ManageTahlilRequests() {
                 className="bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {t('markCompleted')}
+                {translate('markCompleted')}
               </Button>
             )}
           </DialogFooter>

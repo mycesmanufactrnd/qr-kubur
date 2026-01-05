@@ -45,13 +45,16 @@ export const PERMISSIONS = {
   USERS_CREATE: 'users_create',
   USERS_EDIT: 'users_edit',
   USERS_DELETE: 'users_delete',
-  USERS_MANAGE_PERMISSIONS: 'users_manage_permissions',
   
   // Employees
   EMPLOYEES_VIEW: 'employees_view',
   EMPLOYEES_CREATE: 'employees_create',
   EMPLOYEES_EDIT: 'employees_edit',
   EMPLOYEES_DELETE: 'employees_delete',
+
+  // Permission
+  PERMISSIONS_VIEW: 'permissions_view',
+  PERMISSIONS_EDIT: 'permissions_edit',
 };
 
 export const PERMISSION_CATEGORIES = {
@@ -123,7 +126,6 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.USERS_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.USERS_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.USERS_DELETE, label: 'Padam' },
-      { slug: PERMISSIONS.USERS_MANAGE_PERMISSIONS, label: 'Urus Kebenaran' },
     ]
   },
   employees: {
@@ -133,6 +135,13 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.EMPLOYEES_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.EMPLOYEES_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.EMPLOYEES_DELETE, label: 'Padam' },
+    ]
+  },
+  permissions: {
+    label: 'Permissions',
+    permissions: [
+      { slug: PERMISSIONS.PERMISSIONS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.PERMISSIONS_EDIT, label: 'Edit' },
     ]
   },
 };

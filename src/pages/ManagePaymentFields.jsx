@@ -6,18 +6,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
-import Breadcrumb from '../components/Breadcrumb';
+import Breadcrumb from '@/components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { showError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 
 export default function ManagePaymentFields() {
+  const { 
+    loadingUser, 
+    isSuperAdmin, 
+  } = useAdminAccess();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,31 +36,10 @@ export default function ManagePaymentFields() {
     required: false,
     placeholder: ''
   });
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState(null);
 
   const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
-      if (appUserAuth) {
-        setCurrentUser(JSON.parse(appUserAuth));
-      }
-    } catch (e) {
-      setCurrentUser(null);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
-  const isSuperAdmin = currentUser?.role === 'superadmin';
 
   const { data: fields = [], isLoading } = useQuery({
     queryKey: ['payment-fields'],
@@ -74,10 +59,10 @@ export default function ManagePaymentFields() {
       queryClient.invalidateQueries(['payment-fields']);
       setIsDialogOpen(false);
       setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
-      toast.success('Field berjaya ditambah');
+      showSuccess('Payment Field Successfully Created');
     }
   });
-
+  
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PaymentPlatformField.update(id, data),
     onSuccess: () => {
@@ -85,38 +70,17 @@ export default function ManagePaymentFields() {
       setIsDialogOpen(false);
       setEditingField(null);
       setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
-      toast.success('Field berjaya dikemaskini');
+      showSuccess('Payment Field Successfully Edited');
     }
   });
-
+  
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.PaymentPlatformField.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['payment-fields']);
-      toast.success('Field berjaya dipadam');
+      showSuccess('Payment Field Successfully Deleted');
     }
   });
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  if (!isSuperAdmin) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
-          { label: 'Payment Fields', page: 'ManagePaymentFields' }
-        ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const filteredFields = fields.filter(f => {
     const matchesSearch = !searchQuery || 
@@ -149,11 +113,11 @@ export default function ManagePaymentFields() {
     e.preventDefault();
     
     if (!formData.payment_platform_code) {
-      toast.error('Sila pilih platform');
+      showError('Sila pilih platform');
       return;
     }
     if (!formData.key?.trim()) {
-      toast.error('Sila masukkan field key');
+      showError('Sila masukkan field key');
       return;
     }
 
@@ -179,6 +143,24 @@ export default function ManagePaymentFields() {
   const getPlatformName = (code) => {
     return platforms.find(p => p.code === code)?.name || code;
   };
+
+  if (loadingUser) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: 'Payment Fields', page: 'ManagePaymentFields' }
+        ]} />
+        <AccessDeniedComponent/> 
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

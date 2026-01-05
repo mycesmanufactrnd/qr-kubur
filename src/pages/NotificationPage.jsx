@@ -8,13 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { translate } from '@/utils/translations';
 
 export default function NotificationPage() {
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState(null);
   const queryClient = useQueryClient();
-  const [lang, setLang] = useState('ms');
 
   useEffect(() => {
     const appUserAuth = localStorage.getItem('appUserAuth');
@@ -22,10 +21,7 @@ export default function NotificationPage() {
       const appUser = JSON.parse(appUserAuth);
       setUserEmail(appUser.email);
     }
-    setLang(getCurrentLanguage());
   }, []);
-
-  const t = (key) => getTranslation(key, lang);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', userEmail],
@@ -78,7 +74,7 @@ export default function NotificationPage() {
       {items.length === 0 ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
-            {t('noNotifications')}
+            {translate('noNotifications')}
           </CardContent>
         </Card>
       ) : (
@@ -129,7 +125,7 @@ export default function NotificationPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('notifications')}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('notifications')}</h1>
         {unreadNotifications.length > 0 && (
           <Badge className="bg-red-500">{unreadNotifications.length}</Badge>
         )}
@@ -138,13 +134,13 @@ export default function NotificationPage() {
       <Tabs defaultValue="unread" className="w-full">
         <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
           <TabsTrigger value="unread" className="relative dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
-            {t('unread')}
+            {translate('unread')}
             {unreadNotifications.length > 0 && (
               <Badge className="ml-2 bg-red-500">{unreadNotifications.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="read" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
-            {t('read')}
+            {translate('read')}
           </TabsTrigger>
         </TabsList>
 

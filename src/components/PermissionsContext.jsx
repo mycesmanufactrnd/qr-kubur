@@ -52,6 +52,7 @@ export function PermissionsProvider({ children }) {
       {children}
     </PermissionsContext.Provider>
   );
+  
 }
 
 export function usePermissions() {
@@ -60,4 +61,17 @@ export function usePermissions() {
     throw new Error('usePermissions must be used within PermissionsProvider');
   }
   return context;
+}
+
+export function useCrudPermissions(prefix) {
+  const { hasPermission, loading } = usePermissions();
+
+  return {
+    loading,
+    canView: hasPermission(`${prefix}_view`),
+    canApprove: hasPermission(`${prefix}_approve`),
+    canCreate: hasPermission(`${prefix}_create`),
+    canEdit: hasPermission(`${prefix}_edit`),
+    canDelete: hasPermission(`${prefix}_delete`)
+  };
 }

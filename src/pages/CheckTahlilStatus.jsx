@@ -6,15 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { toast } from "sonner";
-
-const SERVICE_LABELS = {
-  'tahlil_ringkas': 'Tahlil Ringkas',
-  'tahlil_panjang': 'Tahlil Panjang',
-  'yasin': 'Bacaan Yasin',
-  'doa_arwah': 'Doa Arwah',
-  'custom': 'Perkhidmatan Khas'
-};
+import { showError } from '@/components/ToastrNotification';
+import { SERVICE_LABELS } from '@/utils/enums';
 
 export default function CheckTahlilStatus() {
   const [referenceId, setReferenceId] = useState('');
@@ -25,7 +18,7 @@ export default function CheckTahlilStatus() {
 
   const handleSearch = async () => {
     if (!referenceId.trim()) {
-      toast.error('Sila masukkan ID rujukan');
+      showError('Sila Masukkan ID Rujukan')
       return;
     }
 
@@ -34,7 +27,7 @@ export default function CheckTahlilStatus() {
       const requests = await base44.entities.TahlilRequest.filter({ reference_id: referenceId.trim() });
       
       if (requests.length === 0) {
-        toast.error('Permohonan tidak dijumpai');
+        showError('Permohonan Tidak Dijumpa')
         setSearching(false);
         return;
       }
@@ -53,7 +46,7 @@ export default function CheckTahlilStatus() {
       setIsDialogOpen(true);
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Ralat semasa mencari permohonan');
+      showError('Ralat Semasa Mencari Permohonan')
     } finally {
       setSearching(false);
     }

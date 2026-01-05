@@ -11,8 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 const SERVICE_TYPES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas', description: 'Bacaan tahlil ringkas untuk arwah' },
@@ -107,7 +106,7 @@ export default function TahlilRequestPage() {
     onSuccess: () => {
       setSubmitted(true);
       queryClient.invalidateQueries(['tahlil-requests']);
-      toast.success('Permohonan tahlil telah dihantar!');
+      showSuccess('Permohonan tahlil telah dihantar!')
     }
   });
 
@@ -131,23 +130,23 @@ export default function TahlilRequestPage() {
     e.preventDefault();
     
     if (!selectedTahfiz) {
-      toast.error('Sila pilih pusat tahfiz');
+      showError('Sila pilih pusat tahfiz');
       return;
     }
     if (!requesterName) {
-      toast.error('Sila masukkan nama pemohon');
+      showError('Sila masukkan nama pemohon')
       return;
     }
     if (!requesterPhone) {
-      toast.error('Sila masukkan nombor telefon');
+      showError('Sila masukkan nombor telefon')
       return;
     }
     if (deceasedNames.filter(n => n.trim()).length === 0) {
-      toast.error('Sila masukkan sekurang-kurangnya satu nama arwah');
+      showError('Sila masukkan sekurang-kurangnya satu nama arwah')
       return;
     }
     if (!referenceId) {
-      toast.error('Sila masukkan ID rujukan transaksi');
+      showError('Sila masukkan ID rujukan transaksi')
       return;
     }
 

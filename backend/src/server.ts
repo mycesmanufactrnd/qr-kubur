@@ -5,6 +5,8 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext, router as trpcRouter } from "./trpc.ts";
 import { usersRouter } from "./routers/usersRouter.ts";
 import { AppDataSource } from "./datasource.ts";
+import { authRouter } from "./routers/authRouter.ts";
+import { appRouter } from "./routers/appRouter.ts";
 
 // const app = Fastify({ logger: true });
 const app = Fastify();
@@ -25,26 +27,26 @@ BackEnd Architecture
 
 await app.register(rateLimit, {
   global: true,
-  max: 120, // max request
+  max: 15, // max request
   timeWindow: "1 minute", //Each IP is allowed max X requests per 1 minute sliding window
-  ban: 2, // if IP exceed limit 2 times in a row, temporary banned
   allowList: [
     "127.0.0.1",
-    "http://localhost:5173/"
   ]
 });
 
-const appRouter = trpcRouter({
-  users: usersRouter
+await app.register(import('@fastify/cors'), {
+  // origin: "*",
+  origin: "http://localhost:5173",
 });
-
-// In tRPC, the HTTP method is always POST by default
-// if get error (Unsupported POST-request to query procedure)
-// but to check with Postman interchangeable POST with GET
 
 app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
-  trpcOptions: { router: appRouter, createContext, allowPostForQueries: true }
+  trpcOptions: { 
+    router: appRouter, 
+    createContext, 
+    allowPostForQueries: true,
+    allowGetForQueries: true,
+  }
 });
 
 app.get("/", async () => {

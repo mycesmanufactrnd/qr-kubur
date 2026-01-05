@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
 import { QrCode, Camera, X, AlertCircle, CheckCircle, Keyboard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QrScanner from 'react-qr-scanner';
-import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { translate } from '@/utils/translations.jsx';
 
 export default function ScanQR() {
   const [manualCode, setManualCode] = useState('');
@@ -17,13 +17,6 @@ export default function ScanQR() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showManual, setShowManual] = useState(false);
-  const [lang, setLang] = useState('ms');
-
-  useEffect(() => {
-    setLang(getCurrentLanguage());
-  }, []);
-
-  const t = (key) => getTranslation(key, lang);
 
   const handleScan = async (data) => {
     if (data && !loading) {
@@ -92,7 +85,7 @@ export default function ScanQR() {
 
   const handleError = (err) => {
     console.error(err);
-    setError(t('cameraError'));
+    setError(translate('cameraError'));
   };
 
   const handleManualSearch = async (e) => {
@@ -145,14 +138,14 @@ export default function ScanQR() {
               });
               setResult({ type: 'person', data: personsById[0] });
             } else {
-              setError(t('codeNotFound'));
+              setError(translate('codeNotFound'));
             }
           }
         }
       }
     } catch (error) {
       console.error('Error:', error);
-      setError(t('codeNotFound'));
+      setError(translate('codeNotFound'));
     }
     
     setLoading(false);
@@ -170,8 +163,8 @@ export default function ScanQR() {
     <div className="max-w-2xl mx-auto space-y-3 pb-2">
       {/* Header */}
       <div className="text-center pt-2">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('scanQRCode')}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('useCamera')}</p>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('scanQRCode')}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{translate('useCamera')}</p>
       </div>
 
       {/* Camera Scanner */}
@@ -206,8 +199,8 @@ export default function ScanQR() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
                   <Camera className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('scanWithCamera')}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t('pointCamera')}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{translate('scanWithCamera')}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{translate('pointCamera')}</p>
                 <div className="flex gap-2 justify-center">
                   <Button 
                     onClick={() => setScanning(true)}
@@ -215,7 +208,7 @@ export default function ScanQR() {
                     disabled={loading}
                   >
                     <Camera className="w-4 h-4 mr-2" />
-                    {t('openCamera')}
+                    {translate('openCamera')}
                   </Button>
                   <Button 
                     variant="outline"
@@ -223,7 +216,7 @@ export default function ScanQR() {
                     className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                   >
                     <Keyboard className="w-4 h-4 mr-2" />
-                    {t('typeCode')}
+                    {translate('typeCode')}
                   </Button>
                 </div>
               </div>
@@ -239,7 +232,7 @@ export default function ScanQR() {
             <form onSubmit={handleManualSearch} className="space-y-3">
               <Input
                 type="text"
-                placeholder={t('enterQRCode')}
+                placeholder={translate('enterQRCode')}
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
                 className="text-center dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -249,7 +242,7 @@ export default function ScanQR() {
                 className="w-full bg-emerald-600 hover:bg-emerald-700"
                 disabled={loading || !manualCode.trim()}
               >
-                {loading ? t('searching') : t('search')}
+                {loading ? translate('searching') : translate('search')}
               </Button>
             </form>
           </CardContent>
@@ -273,7 +266,7 @@ export default function ScanQR() {
                 <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('recordFound')}</p>
+                <p className="font-semibold text-emerald-700 dark:text-emerald-300">{translate('recordFound')}</p>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white mt-1">
                   {result.type === 'grave' ? result.data.cemetery_name : result.data.name}
                 </h3>
@@ -296,7 +289,7 @@ export default function ScanQR() {
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                 onClick={navigateToResult}
               >
-                {t('viewDetails')}
+                {translate('viewDetails')}
               </Button>
               <Button 
                 variant="outline"
@@ -307,7 +300,7 @@ export default function ScanQR() {
                 }}
                 className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
-                {t('scanAgain')}
+                {translate('scanAgain')}
               </Button>
             </div>
           </CardContent>

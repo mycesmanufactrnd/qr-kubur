@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { showError, showSuccess } from './ToastrNotification';
 
 export default function PaymentConfigDialog({ 
   open, 
@@ -93,7 +93,7 @@ export default function PaymentConfigDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['payment-config']);
-      toast.success('Payment configuration saved');
+      showSuccess('Payment Configuration Saved');
       onOpenChange(false);
     }
   });
@@ -105,9 +105,9 @@ export default function PaymentConfigDialog({
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setConfigValues({ ...configValues, [`${platformCode}_${fieldKey}`]: file_url });
-      toast.success('File uploaded');
+      showSuccess('File Uploaded');
     } catch (error) {
-      toast.error('Failed to upload file');
+      showError("Failed To Upload File");
     } finally {
       setUploadingFiles({ ...uploadingFiles, [uploadKey]: false });
     }
@@ -131,7 +131,7 @@ export default function PaymentConfigDialog({
           const value = configValues[`${platformCode}_${field.key}`];
           if (!value || value.trim() === '') {
             const platformName = platforms.find(p => p?.code === platformCode)?.name || 'platform';
-            toast.error(`${field.label || field.key} is required for ${platformName}`);
+            showError(`${field.label || field.key} is required for ${platformName}`);
             return false;
           }
         }

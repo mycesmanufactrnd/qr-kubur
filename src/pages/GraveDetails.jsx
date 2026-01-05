@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { MapPin, Navigation, Share2, ArrowLeft, Search } from 'lucide-react';
-import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { showSuccess } from '@/components/ToastrNotification.jsx';
 
 export default function GraveDetails() {
   const navigate = useNavigate();
@@ -208,7 +208,7 @@ export default function GraveDetails() {
                                 navigator.share({ title: person.name, url });
                               } else {
                                 navigator.clipboard.writeText(url);
-                                toast.success('Pautan disalin');
+                                showSuccess('Pautan disalin');
                               }
                             }}
                             className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"

@@ -1,7 +1,8 @@
+import { ACTION_FAILURE_MAPS, ACTION_MAPS } from '@/utils/enums';
+import { translate } from '@/utils/translations';
 import toastr from 'toastr';
 import 'toastr/build/toastr.min.css';
 
-// Configure toastr globally
 toastr.options = {
   closeButton: true,
   debug: false,
@@ -10,25 +11,37 @@ toastr.options = {
   positionClass: 'toast-top-right',
   preventDuplicates: false,
   onclick: null,
-  showDuration: '300',
-  hideDuration: '1000',
-  timeOut: '5000',
-  extendedTimeOut: '1000',
+  showDuration: 300,
+  hideDuration: 1000,
+  timeOut: 3000,
+  extendedTimeOut: 1000,
   showEasing: 'swing',
   hideEasing: 'linear',
   showMethod: 'fadeIn',
   hideMethod: 'fadeOut'
 };
 
-export const showSuccess = (message, title = '') => {
-  toastr.success(message, title);
+export const showSuccess = (successType = null, message = '', title = 'Success') => {
+  let translatedMessage = translate(message);
+
+  if (ACTION_MAPS[successType]) {
+    translatedMessage += ` ${translate(ACTION_MAPS[successType])}`;
+  }
+
+  toastr.success(translatedMessage, translate(title));
 };
 
-export const showError = (message, title = 'Ralat') => {
-  toastr.error(message, title);
+export const showError = (errorType = null, message = '', title = 'Ralat') => {
+  let translatedMessage = translate(message);
+
+  if (ACTION_FAILURE_MAPS[errorType]) {
+    translatedMessage += ` ${translate(ACTION_FAILURE_MAPS[errorType])}`;
+  }
+  
+  toastr.error(translatedMessage, title);
 };
 
-export const showInfo = (message, title = '') => {
+export const showInfo = (message, title = 'Info') => {
   toastr.info(message, title);
 };
 

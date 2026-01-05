@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils';
+import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Building2, Navigation, ArrowLeft, MapPin } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getTranslation, getCurrentLanguage } from '../components/translations';
+import { translate } from '@/utils/translations.jsx';
 
 const NEARBY_STATES = ["Selangor", "Kuala Lumpur", "Putrajaya", "Negeri Sembilan", "Melaka"];
 
@@ -19,9 +19,6 @@ export default function SearchTahfiz() {
   const [userLocation, setUserLocation] = useState(null);
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
-  const [lang, setLang] = useState('ms');
-
-  const t = (key) => getTranslation(key, lang);
 
   const { data: tahfizCenters = [], isLoading } = useQuery({
     queryKey: ['tahfiz-search'],
@@ -29,7 +26,6 @@ export default function SearchTahfiz() {
   });
 
   useEffect(() => {
-    setLang(getCurrentLanguage());
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -110,14 +106,14 @@ export default function SearchTahfiz() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('searchTahfizCenter')}</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('searchTahfizCenter')}</h1>
       </div>
 
       {/* Search Controls */}
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
-            placeholder={t('tahfizName')}
+            placeholder={translate('tahfizName')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -125,10 +121,10 @@ export default function SearchTahfiz() {
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
               <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                <SelectValue placeholder={t('state')} />
+                <SelectValue placeholder={translate('state')} />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-700">
-                <SelectItem value="nearby">{t('nearby')}</SelectItem>
+                <SelectItem value="nearby">{translate('nearby')}</SelectItem>
                 <SelectItem value="Johor">Johor</SelectItem>
                 <SelectItem value="Kedah">Kedah</SelectItem>
                 <SelectItem value="Kelantan">Kelantan</SelectItem>
@@ -147,7 +143,7 @@ export default function SearchTahfiz() {
             </Select>
             <Button onClick={handleSearch} className="h-9 bg-violet-600 hover:bg-violet-700">
               <Search className="w-4 h-4 mr-1" />
-              {t('search')}
+              {translate('search')}
             </Button>
           </div>
         </CardContent>
@@ -167,7 +163,7 @@ export default function SearchTahfiz() {
       ) : displayedCenters.length === 0 ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('noTahfizFound')}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noTahfizFound')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -205,7 +201,7 @@ export default function SearchTahfiz() {
                         className="h-7 text-xs bg-violet-600 hover:bg-violet-700"
                       >
                         <Navigation className="w-3 h-3 mr-1" />
-                        {t('direction')}
+                        {translate('direction')}
                       </Button>
                     )}
                     <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${center.id}`}>
@@ -214,7 +210,7 @@ export default function SearchTahfiz() {
                         variant="outline"
                         className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                       >
-                        {t('request')}
+                        {translate('request')}
                       </Button>
                     </Link>
                   </div>
@@ -225,7 +221,7 @@ export default function SearchTahfiz() {
           {displayedCount < filteredCenters.length && (
             <div className="text-center py-2">
               <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)} className="dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600">
-                {t('loadMore')}
+                {translate('loadMore')}
               </Button>
             </div>
           )}

@@ -1,9 +1,7 @@
-import AboutSystem from './pages/AboutSystem';
 import AdminDashboard from './pages/AdminDashboard';
 import AppUserLogin from './pages/AppUserLogin';
 import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import DeadPersonDetails from './pages/DeadPersonDetails';
-import Documentation from './pages/Documentation';
 import DonationPage from './pages/DonationPage';
 import GraveDetails from './pages/GraveDetails';
 import Home from './pages/Home';
@@ -19,10 +17,10 @@ import ManagePermissions from './pages/ManagePermissions';
 import ManageSuggestions from './pages/ManageSuggestions';
 import ManageTahfizCenters from './pages/ManageTahfizCenters';
 import ManageTahlilRequests from './pages/ManageTahlilRequests';
+import ImpersonateUser from './pages/ImpersonateUser';
 import ManageUsers from './pages/ManageUsers';
 import NotificationPage from './pages/NotificationPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import QiblaCompass from './pages/QiblaCompass';
 import ScanQR from './pages/ScanQR';
 import SearchGrave from './pages/SearchGrave';
 import SearchTahfiz from './pages/SearchTahfiz';
@@ -38,12 +36,10 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AboutSystem": AboutSystem,
     "AdminDashboard": AdminDashboard,
     "AppUserLogin": AppUserLogin,
     "CheckTahlilStatus": CheckTahlilStatus,
     "DeadPersonDetails": DeadPersonDetails,
-    "Documentation": Documentation,
     "DonationPage": DonationPage,
     "GraveDetails": GraveDetails,
     "Home": Home,
@@ -59,10 +55,10 @@ export const PAGES = {
     "ManageSuggestions": ManageSuggestions,
     "ManageTahfizCenters": ManageTahfizCenters,
     "ManageTahlilRequests": ManageTahlilRequests,
+    "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,
     "PrivacyPolicy": PrivacyPolicy,
-    "QiblaCompass": QiblaCompass,
     "ScanQR": ScanQR,
     "SearchGrave": SearchGrave,
     "SearchTahfiz": SearchTahfiz,

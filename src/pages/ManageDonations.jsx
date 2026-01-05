@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, CheckCircle, XCircle, Clock, Eye, Filter, ExternalLink } from 'lucide-react';
-import { getAdminTranslation, getCurrentLanguage } from '../components/translations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
+import { showSuccess } from '@/components/ToastrNotification';
+import { translate } from '@/utils/translations';
 
 export default function ManageDonations() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -26,14 +26,10 @@ export default function ManageDonations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [lang, setLang] = useState('ms');
-
   const queryClient = useQueryClient();
-  const t = (key) => getAdminTranslation(key, lang);
 
   React.useEffect(() => {
     loadUser();
-    setLang(getCurrentLanguage());
   }, []);
 
   const loadUser = async () => {
@@ -96,7 +92,7 @@ export default function ManageDonations() {
       queryClient.invalidateQueries(['admin-donations']);
       setIsDialogOpen(false);
       setSelectedDonation(null);
-      toast.success('Status derma telah dikemaskini');
+      showSuccess('Status derma telah dikemaskini')
     }
   });
 
@@ -361,13 +357,13 @@ export default function ManageDonations() {
               <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Status</label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder={t('allStatus')} />
+                  <SelectValue placeholder={translate('allStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('allStatus')}</SelectItem>
-                  <SelectItem value="pending">{t('pending')}</SelectItem>
-                  <SelectItem value="verified">{t('verified')}</SelectItem>
-                  <SelectItem value="rejected">{t('rejected')}</SelectItem>
+                  <SelectItem value="all">{translate('allStatus')}</SelectItem>
+                  <SelectItem value="pending">{translate('pending')}</SelectItem>
+                  <SelectItem value="verified">{translate('verified')}</SelectItem>
+                  <SelectItem value="rejected">{translate('rejected')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -442,7 +438,7 @@ export default function ManageDonations() {
         ) : filteredDonations.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('noRecords')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -452,7 +448,7 @@ export default function ManageDonations() {
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {donation.donor_name || t('anonymous')}
+                      {donation.donor_name || translate('anonymous')}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{getRecipientName(donation)}</p>
                     <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">
@@ -492,11 +488,11 @@ export default function ManageDonations() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">{t('loading')}</TableCell>
+                  <TableCell colSpan={6} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
               ) : filteredDonations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">{t('noRecords')}</TableCell>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 filteredDonations.map(donation => (
@@ -531,7 +527,7 @@ export default function ManageDonations() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">{t('details')}</DialogTitle>
+            <DialogTitle className="dark:text-white">{translate('details')}</DialogTitle>
           </DialogHeader>
           {selectedDonation && (
             <div className="space-y-4">

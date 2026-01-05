@@ -7,49 +7,51 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
 import Breadcrumb from '../components/Breadcrumb';
-import { PERMISSION_CATEGORIES } from '../components/permissions';
+import { PERMISSION_CATEGORIES } from '../components/Permissions';
+import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
+import { translate } from '@/utils/translations';
+import PageLoadingComponent from '../components/PageLoadingComponent';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import { showError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
 
 export default function ManagePermissions() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const { 
+    currentUser, 
+    loadingUser, 
+    hasAdminAccess, 
+    isSuperAdmin, 
+    isAdmin, 
+  } = useAdminAccess();
+
+  const {
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('permissions');
+
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userPermissions, setUserPermissions] = useState({});
 
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    loadUser();
-  }, []);
-
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-
   const { data: users = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['app-users'],
-    queryFn: () => base44.entities.AppUser.list('-created_date'),
-    enabled: isSuperAdmin
+    queryKey: ['app-users', currentUser?.organisation_id],
+    queryFn: () => {
+      if (isSuperAdmin) return base44.entities.AppUser.list('-created_date');
+
+      if (isAdmin) return base44.entities.AppUser.filter({ organisation_id: currentUser.organisation_id });
+
+      return [];
+    },
+    enabled: !!currentUser && canView
   });
 
   const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
     queryKey: ['user-permissions', selectedUser?.id],
     queryFn: () => base44.entities.Permission.filter({ user_id: selectedUser.id }),
-    enabled: !!selectedUser
+    enabled: !!selectedUser && canView,
   });
 
   React.useEffect(() => {
@@ -88,32 +90,31 @@ export default function ManagePermissions() {
       for (const [slug, enabled] of Object.entries(userPermissions)) {
         await updatePermissionMutation.mutateAsync({ slug, enabled });
       }
-      
-
-      
-      toast.success('Kebenaran berjaya dikemaskini');
+      showSuccess('Kebenaran berjaya dikemaskini')
     } catch (error) {
-      toast.error('Ralat mengemaskini kebenaran');
+      showError('Ralat mengemaskini kebenaran');
     }
   };
 
-  if (loadingUser) {
-    return <LoadingUser />;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
   }
 
-  if (!isSuperAdmin) {
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+  if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
           { label: 'Urus Kebenaran', page: 'ManagePermissions' }
         ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Hanya Super Admin boleh mengakses halaman ini.</p>
-          </CardContent>
-        </Card>
+        <AccessDeniedComponent/>
       </div>
     );
   }
@@ -136,7 +137,7 @@ export default function ManagePermissions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Super Admin', page: 'SuperadminDashboard' },
+        { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
         { label: 'Urus Kebenaran', page: 'ManagePermissions' }
       ]} />
 
@@ -205,10 +206,12 @@ export default function ManagePermissions() {
                     <h3 className="font-semibold text-gray-900 dark:text-white">{selectedUser.full_name}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{selectedUser.email}</p>
                   </div>
-                  <Button onClick={saveAllPermissions} disabled={updatePermissionMutation.isPending}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Simpan
-                  </Button>
+                  { canEdit && (
+                    <Button onClick={saveAllPermissions} disabled={updatePermissionMutation.isPending}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Simpan
+                    </Button>
+                  )}
                 </div>
 
                 <div className="space-y-6 max-h-[600px] overflow-y-auto">

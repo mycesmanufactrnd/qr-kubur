@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
+import { createPageUrl } from '@/utils/index';
 import { base44 } from '@/api/base44Client';
 import { PermissionsProvider, usePermissions } from './components/PermissionsContext';
 import { 
-        Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
-        Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
-        Bell, FileText, Shield
-      } from 'lucide-react';
+  Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
+  Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
+  Bell, FileText, Shield,
+  User,
+  UserX
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,7 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
-import { getTranslation, getCurrentLanguage } from './components/translations';
+import { translate } from '@/utils/translations.jsx';
+import { handleLogout, removeImpersonation, useAdminAccess } from './utils/auth.jsx';
+import PageLoadingComponent from './components/PageLoadingComponent.jsx';
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -32,28 +36,32 @@ export default function Layout({ children, currentPageName }) {
 }
 
 function LayoutContent({ children, currentPageName }) {
-  const [user, setUser] = useState(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [lang, setLang] = useState('ms');
-  const { clearPermissions } = usePermissions();
+  const { 
+    currentUser, 
+    loadingUser, 
+    hasAdminAccess, 
+    isSuperAdmin, 
+    isAdmin, 
+  } = useAdminAccess();
 
-  const isAdminOrSuperAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const { clearPermissions } = usePermissions();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isImpersonating, setIsImpersonating] = useState('false');
 
   const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', user?.email],
-    queryFn: () => base44.entities.Notification.filter({ user_email: user?.email, is_read: false }),
-    enabled: !!user?.email && !user?.isAppUser && isAdminOrSuperAdmin
+    queryKey: ['notifications', currentUser?.email],
+    queryFn: () => base44.entities.Notification.filter({ user_email: currentUser?.email, is_read: false }),
+    enabled: !!currentUser,
   });
 
   const unreadCount = notifications.length;
 
   useEffect(() => {
-    loadUser();
-    setLang(getCurrentLanguage());
-    
-    // Apply theme on load
     const savedTheme = localStorage.getItem('theme') || 'light';
+    const isImpersonating = localStorage.getItem('isImpersonating');
+    
+    setIsImpersonating(isImpersonating);
+
     applyTheme(savedTheme);
   }, []);
 
@@ -66,97 +74,45 @@ function LayoutContent({ children, currentPageName }) {
     }
   };
 
-  const loadUser = async () => {
-    try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
-      
-      if (appUserAuth) {
-        const appUser = JSON.parse(appUserAuth);
-        setUser({
-          ...appUser,
-          isAppUser: true
-        });
-        setLoading(false);
-        return;
-      }
-
-      setUser(null);
-    } catch (e) {
-      setUser(null);
-    }
-    setLoading(false);
-  };
-
-  const handleLogout = () => {
-    clearPermissions();
-    localStorage.removeItem('appUserAuth');
-    window.location.href = createPageUrl('AppUserLogin');
-  };
-
-  const isSuperAdmin = user?.role === 'superadmin';
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'employee';
-
-  // Redirect admin away from user pages
-  const userPages = ['UserDashboard', 'SearchGrave', 'SearchTahfiz', 'ScanQR', 'DonationPage', 'SurahPage', 'AboutSystem', 'GraveDetails', 'DeadPersonDetails', 'TahlilRequestPage', 'SubmitSuggestion'];
-  const adminPages = ['AdminDashboard', 'ManageGraves', 'ManageDeadPersons', 'ManageOrganisations', 'ManageTahfizCenters', 'ManageSuggestions', 'ManageDonations', 'ManageTahlilRequests', 'ManageEmployees', 'SuperadminDashboard', 'ManageUsers', 'ManagePermissions', 'ViewLogs'];
-  
   useEffect(() => {
-    if (loading) return;
+    if (loadingUser) return;
     
-    // Redirect logged-in admin to admin dashboard if on login page or user pages
-    if (isAdmin && (currentPageName === 'AppUserLogin' || userPages.includes(currentPageName))) {
+    if (isAdmin && (currentPageName === 'AppUserLogin' )) {
       window.location.href = createPageUrl('AdminDashboard');
     }
-    
-    // Redirect non-logged-in users to login if accessing admin pages
-    if (!user && adminPages.includes(currentPageName)) {
-      window.location.href = createPageUrl('AppUserLogin');
+
+    if (isSuperAdmin && (currentPageName === 'AppUserLogin' )) {
+      window.location.href = createPageUrl('SuperadminDashboard');
     }
-  }, [isAdmin, currentPageName, user, loading]);
+    
+  }, [isAdmin, currentPageName, currentUser, loadingUser]);
 
-  const userNavItems = [
-    { name: 'Dashboard', icon: Home, page: 'UserDashboard' },
-    { name: 'Cari Kubur', icon: Search, page: 'SearchGrave' },
-    { name: 'Cari Tahfiz', icon: Map, page: 'SearchTahfiz' },
-    { name: 'Imbas QR', icon: QrCode, page: 'ScanQR' },
-    { name: 'Derma', icon: Heart, page: 'DonationPage' },
-    { name: 'Surah & Doa', icon: BookOpen, page: 'SurahPage' },
-    { name: 'Tentang Sistem', icon: Settings, page: 'AboutSystem' },
-  ];
-
-  const organizationNavItems = [
-    { name: 'Manage Employees', icon: Users, page: 'ManageEmployees' },
-  ];
+  const onLogoutClick = () => {
+    handleLogout(clearPermissions);
+  };
 
   const adminNavItems = [
-    { name: 'Admin Dashboard', icon: Settings, page: 'AdminDashboard' },
-    { name: 'Urus Kubur', icon: MapPin, page: 'ManageGraves' },
-    { name: 'Urus Si Mati', icon: Users, page: 'ManageDeadPersons' },
-    { name: 'Urus Organisasi', icon: Building2, page: 'ManageOrganisations' },
-    { name: 'Urus Tahfiz', icon: BookOpen, page: 'ManageTahfizCenters' },
-    { name: 'Urus Cadangan', icon: Heart, page: 'ManageSuggestions' },
+    { name: 'Admin Dashboard', icon: User, page: 'AdminDashboard' },
+    { name: 'Settings', icon: Settings, page: 'SettingsPage' },
   ];
-
+  
   const superAdminNavItems = [
+    ...adminNavItems,
     { name: 'Super Admin', icon: Shield, page: 'SuperadminDashboard' },
+    { name: 'Impersonate User', icon: UserX, page: 'ImpersonateUser' },
   ];
 
-  if (loading) {
+  if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center">
-        <div className="animate-pulse text-emerald-600">Memuatkan...</div>
-      </div>
+      <PageLoadingComponent/>
     );
   }
 
-  const t = (key) => getTranslation(key, lang);
-
-  // Bottom navbar items - Main navigation for mobile
   const bottomNavItems = [
-    { name: t('main'), icon: Home, page: 'UserDashboard' },
-    { name: t('searchNav'), icon: Search, page: 'SearchGrave' },
-    { name: t('scanNav'), icon: QrCode, page: 'ScanQR' },
-    { name: t('settingsNav'), icon: Settings, page: 'SettingsPage' },
+    { name: translate('main'), icon: Home, page: 'UserDashboard' },
+    { name: translate('searchNav'), icon: Search, page: 'SearchGrave' },
+    { name: translate('scanNav'), icon: QrCode, page: 'ScanQR' },
+    { name: translate('settingsNav'), icon: Settings, page: 'SettingsPage' },
   ];
 
   return (
@@ -192,18 +148,18 @@ function LayoutContent({ children, currentPageName }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                    {user?.full_name?.[0] || user?.email?.[0]?.toUpperCase()}
+                    {currentUser?.full_name?.[0] || currentUser?.email?.[0]?.toUpperCase()}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2 border-b">
-                  <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                  <p className="text-xs text-emerald-600 capitalize">{user?.role}</p>
+                  <p className="text-sm font-medium">{currentUser?.full_name || 'User'}</p>
+                  <p className="text-xs text-gray-500">{currentUser?.email}</p>
+                  <p className="text-xs text-emerald-600 capitalize">{currentUser?.role}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
                   <LogOut className="w-4 h-4 mr-2" />
                   Log Keluar
                 </DropdownMenuItem>
@@ -216,7 +172,6 @@ function LayoutContent({ children, currentPageName }) {
       {/* Mobile Drawer - Admin Only */}
       {isAdmin && (
         <>
-          {/* Overlay */}
           {isMenuOpen && (
             <div
               className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -224,7 +179,6 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          {/* Drawer */}
           <div
             className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 lg:hidden ${
               isMenuOpen ? 'translate-x-0' : '-translate-x-full'
@@ -287,7 +241,6 @@ function LayoutContent({ children, currentPageName }) {
       <header className="hidden lg:block sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <Link to={createPageUrl(isSuperAdmin ? 'SuperadminDashboard' : isAdmin ? 'AdminDashboard' : 'UserDashboard')} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
@@ -299,10 +252,9 @@ function LayoutContent({ children, currentPageName }) {
                 <p className="text-xs text-gray-500">Smart Grave Management</p>
               </div>
             </Link>
-
-            {/* Right Side */}
             <div className="flex items-center gap-3">
-              {user && !user.isAppUser && isAdminOrSuperAdmin && (
+              {/* Notification */}
+              {hasAdminAccess && (
                 <Link to={createPageUrl('NotificationPage')} className="relative">
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-5 h-5" />
@@ -314,29 +266,28 @@ function LayoutContent({ children, currentPageName }) {
                   </Button>
                 </Link>
               )}
-              {user ? (
+              {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                        {user.full_name?.[0] || user.email?.[0]?.toUpperCase()}
+                        {currentUser.full_name?.[0] || currentUser.email?.[0]?.toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-gray-700">
-                        {user.full_name || user.email?.split('@')[0]}
+                        {currentUser.full_name || currentUser.email?.split('@')[0]}
                       </span>
                       <ChevronDown className="w-4 h-4 text-gray-400" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-3 py-2 border-b">
-                      <p className="text-sm font-medium">{user.full_name || 'User'}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                      <p className="text-xs text-emerald-600 capitalize">{user.role}</p>
+                      <p className="text-sm font-medium">{currentUser.full_name || 'User'}</p>
+                      <p className="text-xs text-gray-500">{currentUser.email}</p>
+                      <p className="text-xs text-emerald-600 capitalize">{currentUser.role}</p>
                     </div>
 
                     {isAdmin && (
                       <>
-                        <DropdownMenuSeparator />
                         {adminNavItems.map((item) => (
                           <DropdownMenuItem key={item.page} asChild>
                             <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
@@ -347,7 +298,7 @@ function LayoutContent({ children, currentPageName }) {
                         ))}
                       </>
                     )}
-                    
+
                     {isSuperAdmin && (
                       <>
                         <DropdownMenuSeparator />
@@ -359,38 +310,20 @@ function LayoutContent({ children, currentPageName }) {
                             </Link>
                           </DropdownMenuItem>
                         ))}
-                        <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('ViewLogs')} className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            Log Aktiviti
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('ManageOrganisationTypes')} className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            Jenis Organisasi
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('ManagePermissions')} className="flex items-center gap-2">
-                            <Shield className="w-4 h-4" />
-                            Urus Kebenaran
-                          </Link>
-                        </DropdownMenuItem>
-                        </>
-                        )}
-
-                        <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('SettingsPage')} className="flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        Tetapan
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Log Keluar
-                    </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    {isImpersonating === "true" ? (
+                      <DropdownMenuItem onClick={removeImpersonation} className="text-red-600">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Leave Impersonating
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Log Keluar
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -452,7 +385,7 @@ function LayoutContent({ children, currentPageName }) {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <QrCode className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm text-gray-600">© 2024 QR Kubur. Hak Cipta Terpelihara.</span>
+              <span className="text-sm text-gray-600">© {new Date().getFullYear()} QR Kubur. Hak Cipta Terpelihara.</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <Link to={createPageUrl('UserDashboard')} className="hover:text-emerald-600 transition-colors">Utama</Link>

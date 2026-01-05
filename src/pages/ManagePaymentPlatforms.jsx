@@ -10,10 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import LoadingUser from '../components/LoadingUser';
+import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManagePaymentPlatforms() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,10 +64,10 @@ export default function ManagePaymentPlatforms() {
       queryClient.invalidateQueries(['payment-platforms']);
       setIsDialogOpen(false);
       setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
-      toast.success('Platform berjaya ditambah');
+      showSuccess('Payment Platform Successfully Created');
     }
   });
-
+  
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PaymentPlatform.update(id, data),
     onSuccess: () => {
@@ -75,15 +75,15 @@ export default function ManagePaymentPlatforms() {
       setIsDialogOpen(false);
       setEditingPlatform(null);
       setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
-      toast.success('Platform berjaya dikemaskini');
+      showSuccess('Payment Platform Successfully Updated');
     }
   });
-
+  
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.PaymentPlatform.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['payment-platforms']);
-      toast.success('Platform berjaya dipadam');
+      showSuccess('Payment Platform Successfully Deleted');
     }
   });
 
@@ -136,11 +136,11 @@ export default function ManagePaymentPlatforms() {
     e.preventDefault();
     
     if (!formData.code?.trim()) {
-      toast.error('Sila masukkan kod platform');
+      showError('Sila masukkan kod platform');
       return;
     }
     if (!formData.name?.trim()) {
-      toast.error('Sila masukkan nama platform');
+      showError('Sila masukkan nama platform');
       return;
     }
 

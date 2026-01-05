@@ -1,0 +1,57 @@
+{
+  "language": "en",
+  "audio": {
+    "1": {
+      "reciter": "Mishary Rashid Al-Afasy",
+      "url": "https://server8.mp3quran.net/afs/112.mp3",
+      "originalUrl": "https://server8.mp3quran.net/afs/112.mp3",
+      "type": "complete_surah"
+    },
+    "2": {
+      "reciter": "Abu Bakr Al-Shatri",
+      "url": "https://server11.mp3quran.net/shatri/112.mp3",
+      "originalUrl": "https://server11.mp3quran.net/shatri/112.mp3",
+      "type": "complete_surah"
+    },
+    "3": {
+      "reciter": "Nasser Al-Qatami",
+      "url": "https://server6.mp3quran.net/qtm/112.mp3",
+      "originalUrl": "https://server6.mp3quran.net/qtm/112.mp3",
+      "type": "complete_surah"
+    },
+    "4": {
+      "reciter": "Yasser Al-Dosari",
+      "url": "https://server11.mp3quran.net/yasser/112.mp3",
+      "originalUrl": "https://server11.mp3quran.net/yasser/112.mp3",
+      "type": "complete_surah"
+    }
+  },
+  "id": 112,
+  "name": "الإخلاص",
+  "transliteration": "Al-Ikhlas",
+  "translation": "The Sincerity",
+  "type": "meccan",
+  "total_verses": 4,
+  "verses": [
+    {
+      "id": 1,
+      "text": "قُلۡ هُوَ ٱللَّهُ أَحَدٌ",
+      "translation": "Say, \"He is Allah, [who is] One"
+    },
+    {
+      "id": 2,
+      "text": "ٱللَّهُ ٱلصَّمَدُ",
+      "translation": "Allah, the Eternal Refuge"
+    },
+    {
+      "id": 3,
+      "text": "لَمۡ يَلِدۡ وَلَمۡ يُولَدۡ",
+      "translation": "He neither begets nor is born"
+    },
+    {
+      "id": 4,
+      "text": "وَلَمۡ يَكُن لَّهُۥ كُفُوًا أَحَدُۢ",
+      "translation": "Nor is there to Him any equivalent"
+    }
+  ]
+}
