@@ -3,60 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { trpc } from '@/trpc'; // Use the alias to the file we just creat
+import { handleLoginBase44, handleLoginTRPC } from '@/utils/auth';
 
 export default function AppUserLogin() {
+  const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  // 1. Define the Supabase login mutation using tRPC
-  const supabaseLogin = trpc.auth.login.useMutation();
+  const { login, loading, error, setError } = handleLoginTRPC();
 
-  const handleLogin = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
 
-    // 2. Control which database to hit via environment variable
-    const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
-
-    try {
-      if (isSupabaseMode) {
-        // --- NEW SUPABASE FLOW ---
-        const response = await supabaseLogin.mutateAsync({ email, password });
-        
-        localStorage.setItem('appUserAuth', JSON.stringify(response.user));
-        localStorage.setItem('roleOverride', JSON.stringify({ 
-          role: response.user.role, 
-          state: response.user.state?.[0] || null 
-        }));
-        
-        window.location.href = '/AdminDashboard';
-      } else {
-        // --- ORIGINAL BASE44 FLOW ---
-        const response = await base44.functions.invoke('appUserLogin', { email, password });
-        
-        if (response.data.success) {
-          localStorage.setItem('appUserAuth', JSON.stringify(response.data.user));
-          localStorage.setItem('roleOverride', JSON.stringify({ 
-            role: 'admin', 
-            state: response.data.user.state[0] 
-          }));
-          
-          window.location.href = '/AdminDashboard';
-        } else {
-          setError(response.data.message || 'Login failed');
-        }
-      }
-    } catch (err) {
-      // 3. Centralized error handling for both auth methods
-      console.error("Login error:", err);
-      setError(err.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
+    // if (isSupabaseMode) {
+    if (!isSupabaseMode) {
+      login(email, password);
+    } else {
+      handleLoginBase44({ email, password, setLoading: () => {}, setError });
     }
   };
 

@@ -1,8 +1,34 @@
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
+import { trpc } from './trpc';
 
-export async function handleLogin({ 
+export function handleLoginTRPC() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (user) => {
+      localStorage.setItem("appUserAuth", JSON.stringify(user));
+      window.location.href = createPageUrl("AdminDashboard");
+    },
+    onError: (err) => {
+      console.error(err);
+      setError(err.message || "Login failed");
+      setLoading(false);
+    },
+  });
+
+  const login = (email, password) => {
+    setError("");
+    setLoading(true);
+    loginMutation.mutate({ email, password });
+  };
+
+  return { login, loading, error, setError };
+}
+
+export async function handleLoginBase44({ 
   email, 
   password, 
   setLoading, 
