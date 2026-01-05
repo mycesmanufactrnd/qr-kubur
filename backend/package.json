@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fastify/rate-limit": "^10.3.0",
+    "@supabase/supabase-js": "^2.89.0",
     "@trpc/server": "^11.8.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",

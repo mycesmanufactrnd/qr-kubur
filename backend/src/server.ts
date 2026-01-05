@@ -7,6 +7,7 @@ import { usersRouter } from "./routers/usersRouter.ts";
 import { AppDataSource } from "./datasource.ts";
 import { authRouter } from "./routers/authRouter.ts";
 import { appRouter } from "./routers/appRouter.ts";
+import { supabaseClient } from "./supabase.ts";
 
 // const app = Fastify({ logger: true });
 const app = Fastify();
@@ -54,13 +55,36 @@ app.get("/", async () => {
 });
 
 async function bootstrap() {
-  await AppDataSource.initialize();
-  console.log("Database connected and synchronized!");
+  try {
+    // Supabase Connection
+    const { error } = await supabaseClient.auth.getSession();
+    if (error) {
+      throw error;
+    }
+    console.log("✅ Supabase connected");
 
-  await app.listen({ port: 4000 });
-  console.log("tRPC backend running on http://localhost:4000");
+    // Database (TypeORM)
+    await AppDataSource.initialize();
+    console.log("✅ Database connected and synchronized!");
+
+    // Start Fastify
+    await app.listen({ port: 4000 });
+    console.log("🚀 tRPC backend running on http://localhost:4000");
+
+  } catch (err) {
+    console.error("❌ Server failed to start");
+
+    if (err instanceof Error) {
+      console.error(err.message);
+    } else {
+      console.error(err);
+    }
+
+    process.exit(1);
+  }
 }
 
 bootstrap();
+
 
 export type AppRouter = typeof appRouter;
