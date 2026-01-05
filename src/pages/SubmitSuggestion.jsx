@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageTextCaptcha from '../components/ImageTextCaptcha';
 import { showSuccess, showError, showWarning } from '../components/ToastrNotification';
+import BackNavigation from '@/components/BackNavigation';
 
 export default function SubmitSuggestion() {
   const navigate = useNavigate();
@@ -214,14 +215,7 @@ export default function SubmitSuggestion() {
   
   return (
     <div className="max-w-lg mx-auto space-y-4 pb-2">
-      {/* Header with Back */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Cadangan</h1>
-      </div>
-
+      <BackNavigation title="Suggestion" />
       <form onSubmit={handleSubmit}>
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">

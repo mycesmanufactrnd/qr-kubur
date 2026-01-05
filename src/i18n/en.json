@@ -23,7 +23,9 @@
   "Request Tahlil": "Request Tahlil",
   "Donate": "Donate",
   "Suggestion": "Suggestion",
-  "Surah & Dua": "Surah & Dua",
+  "Surah & Prayer": "Surah & Prayer",
+  "Grave Search System": "Grave Search System",
+  "Grave Management System": "Grave Management System",
 
   "Settings": "Settings",
   "Display": "Display",
@@ -44,7 +46,8 @@
   "Terms & Conditions": "Terms & Conditions",
   "Privacy Policy": "Privacy Policy",
   "Admin Login": "Admin Login",
-
+  "Log Out": "Log Out",
+  "Log In": "Log In",
   "Qibla Direction": "Qibla Direction",
   "Calibrate": "Calibrate",
   "Arrow": "Arrow",

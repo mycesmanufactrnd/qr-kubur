@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations.jsx';
+import BackNavigation from '@/components/BackNavigation';
 
 const NEARBY_STATES = ["Selangor", "Kuala Lumpur", "Putrajaya", "Negeri Sembilan", "Melaka"];
 
@@ -101,15 +102,7 @@ export default function SearchTahfiz() {
 
   return (
     <div className="space-y-3 pb-2">
-      {/* Header with Back */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('searchTahfizCenter')}</h1>
-      </div>
-
-      {/* Search Controls */}
+      <BackNavigation title="Search Tahfiz Center"/>
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input

@@ -23,7 +23,9 @@
   "Request Tahlil": "Mohon Tahlil",
   "Donate": "Derma",
   "Suggestion": "Cadangan",
-  "Surah & Dua": "Surah & Doa",
+  "Surah & Prayer": "Surah & Doa",
+  "Grave Search System": "Sistem Pencarian Kubur",
+  "Grave Management System": "Sistem Pengurusan Kubur",
 
   "Settings": "Tetapan",
   "Display": "Paparan",
@@ -43,8 +45,9 @@
   "Information": "Maklumat",
   "Terms & Conditions": "Terma & Syarat",
   "Privacy Policy": "Dasar Privasi",
-  "Admin Login": "Admin Login",
-
+  "Admin Login": "Admin Log Masuk",
+  "Log Out": "Log Masuk",
+  "Log In": "Log Masuk",
   "Qibla Direction": "Arah Kiblat",
   "Calibrate": "Kalibrasi",
   "Arrow": "Anak Panah",

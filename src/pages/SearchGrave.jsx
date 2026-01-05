@@ -10,14 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showSuccess } from '@/components/ToastrNotification.jsx';
 import { translate } from '@/utils/translations';
-
-const NEARBY_STATES = ["Selangor", "Kuala Lumpur", "Putrajaya", "Negeri Sembilan", "Melaka"];
+import BackNavigation from '@/components/BackNavigation';
+import { STATES_MY } from '@/utils/enums';
 
 export default function SearchGrave() {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
   const [userLocation, setUserLocation] = useState(null);
+  const [radiusKm, setRadiusKm] = useState(5);
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -34,7 +34,8 @@ export default function SearchGrave() {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
-        }
+        },
+        (err) => console.error(err)
       );
     }
   }, []);
@@ -91,9 +92,7 @@ export default function SearchGrave() {
 
   return (
     <div className="space-y-3 pb-2">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white pt-2">{translate('searchGrave')}</h1>
-      
-      {/* Search Controls */}
+      <BackNavigation title="Search Graves" />
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
@@ -109,7 +108,7 @@ export default function SearchGrave() {
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-700">
                 <SelectItem value="nearby">{translate('nearby')}</SelectItem>
-                {NEARBY_STATES.map(state => (
+                {STATES_MY.map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
               </SelectContent>

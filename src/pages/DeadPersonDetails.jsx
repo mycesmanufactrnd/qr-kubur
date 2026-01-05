@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import BackNavigation from '@/components/BackNavigation';
 
 export default function DeadPersonDetails() {
   const navigate = useNavigate();
@@ -97,15 +98,7 @@ export default function DeadPersonDetails() {
 
   return (
     <div className="space-y-3 pb-2">
-      {/* Header with Back */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-white">{person.name}</h1>
-      </div>
-
-      {/* Person Info */}
+      <BackNavigation title={person.name} />
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           {person.ic_number && (

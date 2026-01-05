@@ -36,3 +36,5 @@ backend/src/db/_journal.json
 # Postgres local data
 backend/database/
 backend/.env
+
+package-lock.json

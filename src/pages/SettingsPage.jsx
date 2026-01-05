@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations.jsx';
+import BackNavigation from '@/components/BackNavigation';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -112,13 +113,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 pb-2">
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('settings')}</h1>
-      </div>
-      
+      <BackNavigation title="Settings" />
       {settingsSections.map((section, idx) => (
         <Card key={idx} className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-0">

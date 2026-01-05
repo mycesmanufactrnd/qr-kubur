@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import TahlilPdf from "@/assets/Tahlil.pdf";
 import DoaTahlilPdf from "@/assets/DoaTahlil.pdf";
+import BackNavigation from "@/components/BackNavigation";
 
 export default function SurahPage() {
   const [surahId, setSurahId] = useState(36);
@@ -26,12 +27,8 @@ export default function SurahPage() {
   }, [surahId]);
 
   return (
-    <div className="max-w-3xl mx-auto py-6 space-y-6">
-      <header className="text-center space-y-1">
-        <h1 className="text-2xl font-bold">Bacaan Surah & Tahlil</h1>
-        <p className="text-gray-600">Untuk arwah yang telah meninggal dunia</p>
-      </header>
-
+    <div className="max-w-3xl mx-auto space-y-6">
+      <BackNavigation title="Surah & Tahlil" />
       <Tabs defaultValue="surah" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="tahlil">Tahlil</TabsTrigger>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { showError } from '@/components/ToastrNotification';
 import { SERVICE_LABELS } from '@/utils/enums';
+import BackNavigation from '@/components/BackNavigation';
 
 export default function CheckTahlilStatus() {
   const [referenceId, setReferenceId] = useState('');
@@ -35,7 +36,6 @@ export default function CheckTahlilStatus() {
       const foundRequest = requests[0];
       setRequest(foundRequest);
 
-      // Fetch tahfiz center details
       if (foundRequest.tahfiz_center_id) {
         const centers = await base44.entities.TahfizCenter.filter({ id: foundRequest.tahfiz_center_id });
         if (centers.length > 0) {
@@ -88,8 +88,9 @@ export default function CheckTahlilStatus() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 p-4">
-      <div className="max-w-2xl mx-auto space-y-6 py-8 bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
+    <div className="min-h-screen">
+      <BackNavigation title="Tahlil Status" />
+      <div className="max-w-2xl mx-auto space-y-6 py-8">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-600 mb-4">
             <BookOpen className="w-8 h-8 text-white" />
@@ -137,7 +138,6 @@ export default function CheckTahlilStatus() {
         </Card>
       </div>
 
-      {/* Status Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-full max-h-full w-full h-full">
           <DialogHeader>

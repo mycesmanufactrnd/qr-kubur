@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import BackNavigation from "@/components/BackNavigation";
 
 const SERVICE_TYPES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas', description: 'Bacaan tahlil ringkas untuk arwah' },
@@ -89,7 +90,6 @@ export default function TahlilRequestPage() {
     return details;
   };
 
-  // Reset payment method when tahfiz changes
   React.useEffect(() => {
     const validPlatforms = availablePlatforms.filter(p => p?.code);
     if (validPlatforms.length > 0) {
@@ -154,7 +154,6 @@ export default function TahlilRequestPage() {
       ? `${notes}\n\nPerkhidmatan Khas: ${customService}`.trim()
       : notes;
 
-    // Convert array to object with indices as keys
     const deceasedNamesObject = {};
     deceasedNames.forEach((name, index) => {
       if (name.trim()) {
@@ -219,16 +218,9 @@ export default function TahlilRequestPage() {
   
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
-      {/* Header with Back */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Mohon Servis</h1>
-      </div>
+      <BackNavigation title="Mohon Servis" />
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Select Tahfiz Center */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 dark:text-white">
@@ -312,7 +304,6 @@ export default function TahlilRequestPage() {
             </Card>
         )}
 
-        {/* Deceased Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg dark:text-white">Maklumat Arwah</CardTitle>

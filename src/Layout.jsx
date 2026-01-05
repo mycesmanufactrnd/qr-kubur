@@ -2,14 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
 import { base44 } from '@/api/base44Client';
-import { PermissionsProvider, usePermissions } from './components/PermissionsContext';
-import { 
-  Home, Search, Map, MapPin, Heart, BookOpen, Settings, 
-  Users, Building2, Menu, X, LogOut, QrCode, ChevronDown,
-  Bell, FileText, Shield,
-  User,
-  UserX
-} from 'lucide-react';
+import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
+import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,8 +15,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
 import { translate } from '@/utils/translations.jsx';
-import { handleLogout, removeImpersonation, useAdminAccess } from './utils/auth.jsx';
-import PageLoadingComponent from './components/PageLoadingComponent.jsx';
+import { handleLogout, removeImpersonation, useAdminAccess } from '@/utils/auth.jsx';
+import PageLoadingComponent from '@/components/PageLoadingComponent.jsx';
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -109,10 +103,10 @@ function LayoutContent({ children, currentPageName }) {
   }
 
   const bottomNavItems = [
-    { name: translate('main'), icon: Home, page: 'UserDashboard' },
-    { name: translate('searchNav'), icon: Search, page: 'SearchGrave' },
-    { name: translate('scanNav'), icon: QrCode, page: 'ScanQR' },
-    { name: translate('settingsNav'), icon: Settings, page: 'SettingsPage' },
+    { name: translate('Main'), icon: Home, page: 'UserDashboard' },
+    { name: translate('Search'), icon: Search, page: 'SearchGrave' },
+    { name: translate('QR Code'), icon: QrCode, page: 'ScanQR' },
+    { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
   ];
 
   return (
@@ -121,7 +115,6 @@ function LayoutContent({ children, currentPageName }) {
       {isAdmin && (
         <header className="lg:hidden sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
           <div className="flex items-center justify-between h-14 px-4">
-            {/* Burger Menu */}
             <Button
               variant="ghost"
               size="icon"
@@ -131,7 +124,6 @@ function LayoutContent({ children, currentPageName }) {
               <Menu className="w-6 h-6" />
             </Button>
 
-            {/* Logo */}
             <Link to={createPageUrl(isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard')} className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-4 h-4 text-white" />
@@ -143,7 +135,6 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </Link>
 
-            {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -161,7 +152,7 @@ function LayoutContent({ children, currentPageName }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
                   <LogOut className="w-4 h-4 mr-2" />
-                  Log Keluar
+                  {translate('Log Out')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -249,11 +240,10 @@ function LayoutContent({ children, currentPageName }) {
                 <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                   QR Kubur
                 </h1>
-                <p className="text-xs text-gray-500">Smart Grave Management</p>
+                <p className="text-xs text-gray-500">{translate('Grave Management System')}</p>
               </div>
             </Link>
             <div className="flex items-center gap-3">
-              {/* Notification */}
               {hasAdminAccess && (
                 <Link to={createPageUrl('NotificationPage')} className="relative">
                   <Button variant="ghost" size="icon" className="relative">
@@ -321,7 +311,7 @@ function LayoutContent({ children, currentPageName }) {
                     ) : (
                       <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
                         <LogOut className="w-4 h-4 mr-2" />
-                        Log Keluar
+                        {translate('Log Out')}
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>
@@ -331,7 +321,7 @@ function LayoutContent({ children, currentPageName }) {
                   <Button 
                     className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200"
                   >
-                    Log Masuk
+                    {translate('Log In')}
                   </Button>
                 </Link>
               )}
@@ -340,7 +330,6 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6 w-full">
         {children}
       </main>
@@ -388,9 +377,9 @@ function LayoutContent({ children, currentPageName }) {
               <span className="text-sm text-gray-600">© {new Date().getFullYear()} QR Kubur. Hak Cipta Terpelihara.</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <Link to={createPageUrl('UserDashboard')} className="hover:text-emerald-600 transition-colors">Utama</Link>
-              <Link to={createPageUrl('SurahPage')} className="hover:text-emerald-600 transition-colors">Surah & Doa</Link>
-              <Link to={createPageUrl('DonationPage')} className="hover:text-emerald-600 transition-colors">Derma</Link>
+              <Link to={createPageUrl('UserDashboard')} className="hover:text-emerald-600 transition-colors">{translate('Main')}</Link>
+              <Link to={createPageUrl('SurahPage')} className="hover:text-emerald-600 transition-colors">{translate('Surah & Prayer')}</Link>
+              <Link to={createPageUrl('DonationPage')} className="hover:text-emerald-600 transition-colors">{translate('Donate')}</Link>
             </div>
           </div>
         </div>

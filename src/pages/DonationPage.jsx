@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import BackNavigation from '@/components/BackNavigation';
 
 const SUGGESTED_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
@@ -171,16 +172,8 @@ export default function DonationPage() {
   
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
-      {/* Header with Back */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Derma</h1>
-      </div>
-
+      <BackNavigation title="Donation" />
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Recipient Type */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-lg dark:text-white">Penerima Derma</CardTitle>
@@ -297,7 +290,6 @@ export default function DonationPage() {
                 </div>
               </RadioGroup>
 
-              {/* Payment Details */}
               {paymentMethod && (
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                   <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">Maklumat Pembayaran</h4>
@@ -337,8 +329,6 @@ export default function DonationPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* Donor Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-lg dark:text-white">Maklumat Penderma (Pilihan)</CardTitle>
@@ -348,7 +338,7 @@ export default function DonationPage() {
               <Label htmlFor="donorName" className="dark:text-gray-300">Nama</Label>
               <Input
                 id="donorName"
-                placeholder="Nama anda (boleh kosongkan untuk derma tanpa nama)"
+                placeholder="Nama"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
                 className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -377,8 +367,6 @@ export default function DonationPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Transaction Details */}
         <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
             <CardTitle className="text-lg dark:text-white">
@@ -388,7 +376,7 @@ export default function DonationPage() {
           <CardContent className="space-y-4">
             <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
               <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Penting:</strong> Selepas membuat pembayaran melalui FPX, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
+                <strong>Penting:</strong> Selepas membuat pembayaran, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
               </p>
             </div>
             <div>
@@ -397,7 +385,7 @@ export default function DonationPage() {
               </Label>
               <Input
                 id="referenceId"
-                placeholder="Masukkan ID rujukan dari transaksi FPX"
+                placeholder="ID Rujukan Transaksi"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
                 required

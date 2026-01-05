@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QrScanner from 'react-qr-scanner';
 import { translate } from '@/utils/translations.jsx';
+import BackNavigation from '@/components/BackNavigation';
 
 export default function ScanQR() {
   const [manualCode, setManualCode] = useState('');
@@ -161,13 +162,7 @@ export default function ScanQR() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-3 pb-2">
-      {/* Header */}
-      <div className="text-center pt-2">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('scanQRCode')}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{translate('useCamera')}</p>
-      </div>
-
-      {/* Camera Scanner */}
+      <BackNavigation title="Scan QR" />
       {!result && (
         <Card className="border-0 shadow-lg overflow-hidden dark:bg-gray-800">
           <CardContent className="p-0">
