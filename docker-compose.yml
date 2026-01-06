@@ -8,16 +8,29 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
+      - ./volumes/db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:Z
+      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/01-roles.sql:Z
+      - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/02-jwt.sql:Z
+      - ./volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/03-_supabase.sql:Z
+      - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/04-realtime.sql:Z
       - db_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
-    # Enable logical replication for Realtime
-    command: postgres -c wal_level=logical -c max_replication_slots=10 -c max_wal_senders=10 -c listen_addresses='*'
+    command: postgres -c wal_level=logical -c max_replication_slots=10 -c max_wal_senders=10 -c listen_addresses=* -c log_min_messages=fatal
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-d", "supabase"]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 60s
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      PGPORT: ${POSTGRES_PORT}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: ${JWT_EXPIRY}
 
   # --- AUTH ---
   auth:
@@ -27,9 +40,43 @@ services:
     restart: unless-stopped
     ports:
       - "9999:9999"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9999/health"
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: ${GOTRUE_API_HOST}
+      GOTRUE_API_PORT: ${GOTRUE_API_PORT}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+
+      GOTRUE_DB_DRIVER: ${GOTRUE_DB_DRIVER}
+      GOTRUE_DB_DATABASE_URL: ${GOTRUE_DB_DATABASE_URL}
+
+      GOTRUE_SITE_URL: ${GOTRUE_SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${GOTRUE_URI_ALLOW_LIST}
+      GOTRUE_DISABLE_SIGNUP: ${GOTRUE_DISABLE_SIGNUP}
+
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${GOTRUE_JWT_EXP}
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP}
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS}
+      GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM}
 
   # --- STORAGE ---
   storage:
@@ -41,11 +88,44 @@ services:
       - "${STORAGE_PORT}:5000"
     volumes:
       - storage_data:${FILE_STORAGE_BACKEND_PATH}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://storage:5000/status"
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
     depends_on:
       db:
         condition: service_healthy
       auth:
         condition: service_started
+      rest:
+        condition: service_started
+      # imgproxy:
+        # condition: service_started
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      REQUEST_ALLOW_X_FORWARDED_PATH: "true"
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      # TODO: https://github.com/supabase/storage-api/issues/55
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://imgproxy:5001
 
   # --- REALTIME ---
   realtime:
@@ -58,7 +138,57 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sSfL --head -o /dev/null -H \"Authorization: Bearer ${ANON_KEY}\" http://localhost:4000/api/tenants/realtime-dev/health"
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      PORT: ${REALTIME_PORT}
+      DB_HOST: ${POSTGRES_HOST}
+      DB_PORT: ${POSTGRES_PORT}
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: "''"
+      RLIMIT_NOFILE: "10000"
+      APP_NAME: realtime
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
 
+  # --- IMAGE PROXY ---
+  # handles image resizing, cropping, and format conversion
+  imgproxy:
+    container_name: supabase_imgproxy
+    image: darthsim/imgproxy:v3.8.0
+    restart: unless-stopped
+    volumes:
+      - ./volumes/storage:${FILE_STORAGE_BACKEND_PATH}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "imgproxy",
+          "health"
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
+  
   # --- KONG (API Gateway for Studio) ---
   kong:
     image: kong:2.8.1
@@ -69,12 +199,20 @@ services:
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      # Controls how Kong resolves DNS for upstream services
+      # LAST → use the last IP returned by the resolver (default)
+      # A → standard A record
+      # CNAME → canonical name record
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
     volumes:
-      - ./kong.yml:/home/kong/kong.yml:ro,z
+      - ./volumes/api/kong.yml:/home/kong/kong.yml:ro,z
 
   # --- POSTGRES META ---
   meta:
@@ -86,6 +224,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      PG_META_PORT: 8080
       PG_META_DB_HOST: ${POSTGRES_HOST}
       PG_META_DB_PORT: ${POSTGRES_PORT}
       PG_META_DB_NAME: ${POSTGRES_DB}
@@ -93,6 +232,32 @@ services:
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
       CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
 
+  # --- FUNCTIONS ---
+  # Edge Functions are serverless functions (powered by Deno)
+  functions:
+    container_name: supabase_edge_functions
+    image: supabase/edge-runtime:v1.69.28
+    restart: unless-stopped
+    volumes:
+      - ./volumes/functions:/home/deno/functions:Z
+    # depends_on:
+    #   analytics:
+    #     condition: service_healthy
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # TODO: Allow configuring VERIFY_JWT per function. This PR might help: https://github.com/supabase/cli/pull/786
+      VERIFY_JWT: "${FUNCTIONS_VERIFY_JWT}"
+    command:
+      [
+        "start",
+        "--main-service",
+        "/home/deno/functions/main"
+      ]
+  
   # --- POSTGREST (REST API) ---
   rest:
     image: postgrest/postgrest:v14.1
@@ -103,10 +268,15 @@ services:
       db:
         condition: service_healthy
     environment:
-      # PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
+      PGRST_DB_ANON_ROLE: ${PGRST_DB_ANON_ROLE}
       PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
+    command: ["postgrest"]
 
   # --- STUDIO (Dashboard) ---
   studio:
@@ -116,6 +286,17 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://studio:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})"
+        ]
+      timeout: 10s
+      interval: 5s
+      retries: 3
     depends_on:
       kong:
         condition: service_healthy
@@ -126,20 +307,25 @@ services:
       rest:
         condition: service_started
     environment:
+      # Binds nestjs listener to both IPv4 and IPv6 network interfaces
       HOSTNAME: "::"
-      SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: http://localhost:8000
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      AUTH_JWT_SECRET: ${JWT_SECRET}
+
       STUDIO_PG_META_URL: http://meta:8080
-      POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
 
   # Backend
   backend:
