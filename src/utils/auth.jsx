@@ -3,13 +3,16 @@ import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
 import { trpc } from './trpc';
 
+export const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
+
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (user) => {
-      localStorage.setItem("appUserAuth", JSON.stringify(user));
+    onSuccess: (data) => {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("appUserAuth", JSON.stringify(data));
       window.location.href = createPageUrl("AdminDashboard");
     },
     onError: (err) => {

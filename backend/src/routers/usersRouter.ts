@@ -57,5 +57,40 @@ export const usersRouter = router({
       });
       return await userRepo.save(user);
     }),
+
+  getUsers: protectedProcedure
+    .input(
+      z.object({
+        currentUserId: z.number(),
+        isSuperAdmin: z.boolean(),
+        isAdmin: z.boolean(),
+        isEmployee: z.boolean(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { currentUserId, isSuperAdmin, isAdmin, isEmployee } = input;
+
+      const currentUser = await userRepo.findOne({
+        where: { id: currentUserId },
+      });
+      
+      if (!currentUser) return [];
+
+      let where: any = {};
+
+      if (!isSuperAdmin) {
+        if (isAdmin) {
+          where.role = ["admin", "employee"];
+          // if (currentUser.organisationId) where.organisation_id = currentUser.organisationId;
+          // if (currentUser.tahfizcenterId) where.tahfiz_center_id = currentUser.tahfizcenterId;
+        } else if (isEmployee) {
+          where.id = currentUserId;
+        } else {
+          return []; // neither admin nor employee
+        }
+      }
+
+      return await userRepo.find({ where });
+    }),
 });
 

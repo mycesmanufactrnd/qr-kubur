@@ -9,7 +9,7 @@ export const trpcClient = trpc.createClient({
     httpBatchLink({
       url: 'http://localhost:8000/trpc',
       headers() {
-        const token = localStorage.getItem('jwt');
+        const token = localStorage.getItem('token');
         return token ? { Authorization: `Bearer ${token}` } : {};
       },
     }),

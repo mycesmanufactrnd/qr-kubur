@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -22,9 +21,9 @@ import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuc
 import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import { useAdminAccess } from '@/utils/auth';
-
-const STATES = ["Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", "Terengganu", "Wilayah Persekutuan"];
+import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
+import { STATES_MY } from '@/utils/enums';
+import { trpc } from '@/utils/trpc';
 
 export default function ManageUsers() {
   const { 
@@ -79,8 +78,15 @@ export default function ManageUsers() {
 
     return { id: null };
   };
-
-  const { data: appUsers = [], isLoading: appUsersLoading } = useQuery({
+  
+  const { data: appUsers = [], isLoading: appUsersLoading } = isSupabaseMode
+  ? trpc.users.getUsers.useQuery({
+    currentUserId: currentUser?.id,
+    isSuperAdmin,
+    isAdmin,
+    isEmployee,
+  })
+  : useQuery({
     queryKey: ['appUsers'],
     queryFn: () => base44.entities.AppUser.filter(buildUserFilter()),
     enabled: !!currentUser
@@ -187,7 +193,7 @@ export default function ManageUsers() {
 
   const adminAccessibleStates = (() => {
     if (isSuperAdmin) {
-      return STATES;
+      return STATES_MY;
     }
 
     if (isAdmin || isEmployee) {

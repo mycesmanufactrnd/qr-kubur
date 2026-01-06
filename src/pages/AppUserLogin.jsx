@@ -3,11 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { handleLoginBase44, handleLoginTRPC } from '@/utils/auth';
+import { isSupabaseMode, handleLoginBase44, handleLoginTRPC } from '@/utils/auth';
 
 export default function AppUserLogin() {
-  const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
-  console.log('import.meta.env.VITE_DB_MODE', import.meta.env.VITE_DB_MODE)
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
