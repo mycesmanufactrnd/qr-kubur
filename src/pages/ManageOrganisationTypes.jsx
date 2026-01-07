@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Tag, Plus, Edit, Trash2, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,16 +11,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { showError, showSuccess } from '@/components/ToastrNotification';
-import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
-import { trpc } from '@/utils/trpc';
+import { showError } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '../components/PageLoadingComponent';
-import { useCreateOrganisationType, useUpdateOrganisationType, useDeleteOrganisationType } from '@/hooks/useOrganisationTypeMutations';
+import { 
+  useGetOrganisationType, 
+  useCreateOrganisationType, 
+  useUpdateOrganisationType, 
+  useDeleteOrganisationType 
+} from '@/hooks/useOrganisationTypeMutations';
 
 export default function ManageOrganisationTypes() {
-  const trpcUtils = trpc.useUtils();
-
   const {
     loadingUser, 
     isSuperAdmin, 
@@ -34,22 +34,14 @@ export default function ManageOrganisationTypes() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
 
+  const { 
+    data: types, 
+    isLoading: typesLoading, 
+    refetch: refetchTypes 
+  } = useGetOrganisationType(isSuperAdmin);
   const createMutation = useCreateOrganisationType();
   const updateMutation = useUpdateOrganisationType();
   const deleteMutation = useDeleteOrganisationType();
-
-  const trpcRes = trpc.organisationType.getTypes.useQuery(undefined,
-    { enabled: isSupabaseMode && isSuperAdmin }
-  );
-
-  const base44Res = useQuery({
-    queryKey: ['organisationTypes'],
-    queryFn: () => base44.entities.OrganisationType.list('-created_date'),
-    enabled: !isSupabaseMode && isSuperAdmin
-  });
-
-  const types = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
-  const typesLoading = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
 
   const openAddDialog = () => {
     setEditingType(null);
@@ -117,7 +109,13 @@ export default function ManageOrganisationTypes() {
 
   if (!isSuperAdmin) {
     return (
-      <AccessDeniedComponent/>
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: 'Jenis Organisasi', page: 'ManageOrganisationTypes' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
     );
   }
 

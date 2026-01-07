@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import { Organisation } from "./Organisation.entity.ts";
 
 export enum OrganisationStatus {
   ACTIVE = "active",
@@ -9,6 +10,9 @@ export enum OrganisationStatus {
 export class OrganisationType {
   @PrimaryGeneratedColumn()
   id!: number;
+
+  @OneToMany(() => Organisation, (organisation) => organisation.organisationtype)
+  organisation!: Organisation[];
 
   @Column("varchar", { length: 255 })
   name!: string;

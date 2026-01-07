@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { translate } from '@/utils/translations';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, Plus, Edit, Trash2, Search, Save, Filter, CreditCard } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,14 +16,15 @@ import { useForm, Controller } from "react-hook-form";
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '../components/AccessDeniedComponent';
 import Breadcrumb from '../components/Breadcrumb';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions } from '../components/PermissionsContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
 import { showApiError, showError, showSuccess } from '@/components/ToastrNotification';
 import { getLabelFromId } from '@/utils/helpers';
 import { STATES_MY } from '@/utils/enums';
-import { useAdminAccess } from '@/utils/auth';
+import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
 
 const emptyOrg = {
   name: '',
@@ -87,12 +88,20 @@ export default function ManageOrganisations() {
     return query;
   };
 
-  const { data: organisationsList = [], isLoading } = useQuery({
-    queryKey: ['admin-organisations-paginated', page, itemsPerPage, filterType, currentUser],
-    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery(), '-created_date', itemsPerPage, (page - 1) * itemsPerPage),
-    enabled: canView && !!currentUser
-  });
-
+  // const { data: organisationsList = [], isLoading } = useQuery({
+  //   queryKey: ['admin-organisations-paginated', page, itemsPerPage, filterType, currentUser],
+  //   queryFn: () => base44.entities.Organisation.filter(buildFilterQuery(), '-created_date', itemsPerPage, (page - 1) * itemsPerPage),
+  //   enabled: canView && !!currentUser
+  // });
+  
+  const { data: organisationsList = {}, isLoading } = trpc.organisation.getPaginated.useQuery({
+    page,
+    pageSize: itemsPerPage,
+    search: searchQuery,
+    filterType,
+    filterState,
+  }, { enabled: isSupabaseMode && isSuperAdmin && !!currentUser });
+  
   const { data: totalRows = 0 } = useQuery({
     queryKey: ['admin-organisations-count', filterType, filterState, currentUser],
     queryFn: async () => {
@@ -361,12 +370,12 @@ export default function ManageOrganisations() {
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : organisationsList.length === 0 ? (
+              ) : organisationsList?.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                organisationsList.map(org => (
+                organisationsList?.items.map(org => (
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
                     <TableCell className="text-center">
@@ -422,7 +431,7 @@ export default function ManageOrganisations() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={organisationsList.length}
+            totalItems={organisationsList.total}
           />
         )}
       </Card>
