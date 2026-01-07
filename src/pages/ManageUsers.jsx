@@ -32,7 +32,8 @@ export default function ManageUsers() {
     hasAdminAccess, 
     isSuperAdmin, 
     isAdmin, 
-    isEmployee, 
+    isEmployee,
+    checkRole
   } = useAdminAccess();
 
   const [page, setPage] = useState(1);
@@ -78,19 +79,20 @@ export default function ManageUsers() {
 
     return { id: null };
   };
-  
-  const { data: appUsers = [], isLoading: appUsersLoading } = isSupabaseMode
-  ? trpc.users.getUsers.useQuery({
-    currentUserId: currentUser?.id,
-    isSuperAdmin,
-    isAdmin,
-    isEmployee,
-  })
-  : useQuery({
+
+  const trpcRes = trpc.users.getUsers.useQuery(
+    { currentUser, checkRole },
+    { enabled: isSupabaseMode && !!currentUser && canView }
+  );
+
+  const base44Res = useQuery({
     queryKey: ['appUsers'],
     queryFn: () => base44.entities.AppUser.filter(buildUserFilter()),
-    enabled: !!currentUser
+    enabled: !isSupabaseMode && !!currentUser
   });
+
+  const appUsers = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
+  const appUsersLoading = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
 
   const { data: organisations = [] } = useQuery({
     queryKey: ['organisations'],
@@ -105,7 +107,7 @@ export default function ManageUsers() {
   const createUserMutation = useMutation({
     mutationFn: async (data) => {
       try {
-        if (data.password) {
+        if (data?.password) {
           const hashResponse = await base44.functions.invoke(
             'hashPassword',
             { password: data.password }
@@ -189,8 +191,6 @@ export default function ManageUsers() {
     return false;
   });
   
-  const isLoading = appUsersLoading;
-
   const adminAccessibleStates = (() => {
     if (isSuperAdmin) {
       return STATES_MY;
@@ -383,7 +383,7 @@ export default function ManageUsers() {
       </Card>
 
       <div className="space-y-2">
-        {isLoading ? (
+        {appUsersLoading ? (
           [1, 2, 3].map(i => (
             <Card key={i} className="border-0 shadow-sm animate-pulse">
               <CardContent className="p-4">

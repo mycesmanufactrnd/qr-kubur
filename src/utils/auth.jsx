@@ -115,6 +115,8 @@ export function useAdminAccess() {
     loadUser();
   }, []);
 
+  const role = currentUser?.role;
+
   const isSuperAdmin = currentUser?.role === "superadmin";
   const isAdmin = currentUser?.role === "admin";
   const isEmployee = currentUser?.role === "employee";
@@ -124,5 +126,12 @@ export function useAdminAccess() {
 
   const currentUserStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
 
-  return { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, currentUserStates };
+  const checkRole = {
+    superadmin: isSuperAdmin,
+    admin: isAdmin,
+    employee: isEmployee,
+    tahfiz: isTahfizAdmin,
+  }
+
+  return { role, currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, checkRole, currentUserStates };
 }

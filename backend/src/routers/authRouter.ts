@@ -7,14 +7,16 @@ import { signToken } from "../auth.ts";
 import { assertRole } from "../helpers/authHelper.ts";
 import { AppDataSource } from "../datasource.ts";
 
-const userRepo = AppDataSource.getRepository(User);
 
 export const authRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
     .mutation(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+
       let user = await userRepo.findOne({
         where: { email: input.email },
+        relations: ['organisation', 'tahfizcenter']
       });
 
       if (!user) throw new Error("Invalid credentials");
@@ -32,10 +34,12 @@ export const authRouter = router({
         role 
       });
 
-      const { password, ...userWithoutPassword } = user;
+      const { password, organisation, tahfizcenter, ...userWithoutPassword } = user;
 
       return {
         token,
+        organisation,
+        tahfizcenter,
         ...userWithoutPassword,
       };
     }),

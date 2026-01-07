@@ -15,10 +15,19 @@ import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import PageLoadingComponent from '../components/PageLoadingComponent';
 
 export default function ManageOrganisationTypes() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const trpcUtils = trpc.useUtils();
+
+  const {
+    loadingUser, 
+    isSuperAdmin, 
+  } = useAdminAccess();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', status: 'active' });
@@ -27,34 +36,49 @@ export default function ManageOrganisationTypes() {
 
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    loadUser();
-  }, []);
+  const trpcRes = trpc.organisationType.getTypes.useQuery(undefined,
+    { enabled: isSupabaseMode && isSuperAdmin }
+  );
 
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-
-  const { data: types = [], isLoading } = useQuery({
-    queryKey: ['organisation-types'],
+  const base44Res = useQuery({
+    queryKey: ['organisationTypes'],
     queryFn: () => base44.entities.OrganisationType.list('-created_date'),
-    enabled: isSuperAdmin
+    enabled: !isSupabaseMode && isSuperAdmin
+  });
+
+  const types = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
+  const typesLoading = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
+
+  const createTypeTrpc = trpc.organisationType.createType.useMutation({
+    onSuccess: () => {
+      trpcUtils.organisationType.getTypes.invalidate();
+      setIsDialogOpen(false);
+      setFormData({ name: '', description: '', status: 'active' });
+      showSuccess('Jenis organisasi berjaya ditambah');
+    },
+  });
+
+  const updateTypeTrpc = trpc.organisationType.updateType.useMutation({
+    onSuccess: () => {
+      trpcUtils.organisationType.getTypes.invalidate();
+      setIsDialogOpen(false);
+      setEditingType(null);
+      setFormData({ name: '', description: '', status: 'active' });
+      showSuccess('Jenis organisasi berjaya dikemaskini');
+    },
+  });
+
+  const deleteTypeTrpc = trpc.organisationType.deleteType.useMutation({
+    onSuccess: () => {
+      trpcUtils.organisationType.getTypes.invalidate();
+      showSuccess('Jenis organisasi berjaya dipadam');
+    },
   });
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.OrganisationType.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['organisation-types']);
+      queryClient.invalidateQueries(['organisationTypes']);
       setIsDialogOpen(false);
       setFormData({ name: '', description: '', status: 'active' });
       showSuccess('Jenis organisasi berjaya ditambah');
@@ -64,7 +88,7 @@ export default function ManageOrganisationTypes() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.OrganisationType.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['organisation-types']);
+      queryClient.invalidateQueries(['organisationTypes']);
       setIsDialogOpen(false);
       setEditingType(null);
       setFormData({ name: '', description: '', status: 'active' });
@@ -75,25 +99,10 @@ export default function ManageOrganisationTypes() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.OrganisationType.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['organisation-types']);
+      queryClient.invalidateQueries(['organisationTypes']);
       showSuccess('Jenis organisasi berjaya dipadam');
     }
   });
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  if (!isSuperAdmin) {
-    return (
-      <Card className="max-w-lg mx-auto mt-8">
-        <CardContent className="p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Hanya superadmin boleh mengurus jenis organisasi.</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const openAddDialog = () => {
     setEditingType(null);
@@ -119,9 +128,17 @@ export default function ManageOrganisationTypes() {
     }
 
     if (editingType) {
-      updateMutation.mutate({ id: editingType.id, data: formData });
+      if (isSupabaseMode) {
+        updateTypeTrpc.mutate({ id: editingType.id, ...formData });
+      } else {
+        updateMutation.mutate({ id: editingType.id, data: formData });
+      }
     } else {
-      createMutation.mutate(formData);
+      if (isSupabaseMode) {
+        createTypeTrpc.mutate(formData);
+      } else {
+        createMutation.mutate(formData);
+      }
     }
   };
 
@@ -132,10 +149,27 @@ export default function ManageOrganisationTypes() {
 
   const confirmDelete = () => {
     if (!typeToDelete) return;
-    deleteMutation.mutate(typeToDelete.id);
+    if (isSupabaseMode) {
+      deleteTypeTrpc.mutate({ id: typeToDelete.id });
+    } else {
+      deleteMutation.mutate(typeToDelete.id);
+    }
+
     setDeleteDialogOpen(false);
     setTypeToDelete(null);
   };
+
+  if (loadingUser) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -169,7 +203,7 @@ export default function ManageOrganisationTypes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {typesLoading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">Memuatkan...</TableCell>
                 </TableRow>

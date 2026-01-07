@@ -14,7 +14,8 @@ import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { showError, showSuccess } from '@/components/ToastrNotification';
-import { useAdminAccess } from '@/utils/auth';
+import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
 
 export default function ManagePermissions() {
   const { 
@@ -23,6 +24,7 @@ export default function ManagePermissions() {
     hasAdminAccess, 
     isSuperAdmin, 
     isAdmin, 
+    checkRole
   } = useAdminAccess();
 
   const {
@@ -36,8 +38,13 @@ export default function ManagePermissions() {
 
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['app-users', currentUser?.organisation_id],
+  const trpcRes = trpc.users.getUsers.useQuery(
+    { currentUser, checkRole },
+    { enabled: isSupabaseMode && !!currentUser && canView }
+  );
+
+  const base44Res = useQuery({
+    queryKey: ['appUsers'],
     queryFn: () => {
       if (isSuperAdmin) return base44.entities.AppUser.list('-created_date');
 
@@ -45,8 +52,12 @@ export default function ManagePermissions() {
 
       return [];
     },
-    enabled: !!currentUser && canView
+    enabled: !isSupabaseMode && !!currentUser && canView
   });
+  
+
+  const users = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
+  const loadingUsers = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
 
   const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
     queryKey: ['user-permissions', selectedUser?.id],

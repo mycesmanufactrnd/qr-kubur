@@ -4,8 +4,6 @@ import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
 import { User } from "../db/entities.ts";
 
-const userRepo = AppDataSource.getRepository(User);
-
 // [GET BY ID]
 // trpc.users.getUserById.query({ id: 1 }); 
 
@@ -30,6 +28,8 @@ export const usersRouter = router({
       })
     )
     .query(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+
       const user = await userRepo.findOne({
         where: { id: input.id },
       });
@@ -51,6 +51,8 @@ export const usersRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+
       const user = userRepo.create({
         ...input,
         password: await bcrypt.hash(input.password, 10),
@@ -61,32 +63,44 @@ export const usersRouter = router({
   getUsers: protectedProcedure
     .input(
       z.object({
-        currentUserId: z.number(),
-        isSuperAdmin: z.boolean(),
-        isAdmin: z.boolean(),
-        isEmployee: z.boolean(),
+        currentUser: z.object({
+          id: z.number(),
+          organisation: z.object({ id: z.number() }).nullable(),
+          tahfizcenter: z.object({ id: z.number() }).nullable(),
+        }),
+        checkRole: z.object({
+          superadmin: z.boolean(),
+          admin: z.boolean(),
+          employee: z.boolean(),
+          tahfiz: z.boolean(),
+        }),
       })
     )
     .query(async ({ input }) => {
-      const { currentUserId, isSuperAdmin, isAdmin, isEmployee } = input;
-
-      const currentUser = await userRepo.findOne({
-        where: { id: currentUserId },
-      });
+      const userRepo = AppDataSource.getRepository(User);
       
+      const { currentUser, checkRole } = input;
+
       if (!currentUser) return [];
 
       let where: any = {};
 
-      if (!isSuperAdmin) {
-        if (isAdmin) {
+      if (!checkRole.superadmin) {
+        if (checkRole.admin) {
           where.role = ["admin", "employee"];
-          // if (currentUser.organisationId) where.organisation_id = currentUser.organisationId;
-          // if (currentUser.tahfizcenterId) where.tahfiz_center_id = currentUser.tahfizcenterId;
-        } else if (isEmployee) {
-          where.id = currentUserId;
+
+          if (currentUser.organisation) {
+            where.organisationId = currentUser.organisation.id;
+          }
+
+          if (currentUser.tahfizcenter) {
+            where.tahfiz_centerId = currentUser.tahfizcenter.id;
+          }
+
+        } else if (checkRole.employee) {
+          where.id = currentUser.id;
         } else {
-          return []; // neither admin nor employee
+          return [];
         }
       }
 
