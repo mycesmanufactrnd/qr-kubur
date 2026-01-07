@@ -9,7 +9,7 @@ export const organisationTypeRouter = router({
       .getRepository(OrganisationType)
       .find();
   }),
-
+  
   createType: superAdminProcedure
     .input(
       z.object({

@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { showError, showSuccess } from '@/components/ToastrNotification';
@@ -19,6 +18,7 @@ import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '../components/PageLoadingComponent';
+import { useCreateOrganisationType, useUpdateOrganisationType, useDeleteOrganisationType } from '@/hooks/useOrganisationTypeMutations';
 
 export default function ManageOrganisationTypes() {
   const trpcUtils = trpc.useUtils();
@@ -34,7 +34,9 @@ export default function ManageOrganisationTypes() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
 
-  const queryClient = useQueryClient();
+  const createMutation = useCreateOrganisationType();
+  const updateMutation = useUpdateOrganisationType();
+  const deleteMutation = useDeleteOrganisationType();
 
   const trpcRes = trpc.organisationType.getTypes.useQuery(undefined,
     { enabled: isSupabaseMode && isSuperAdmin }
@@ -48,61 +50,6 @@ export default function ManageOrganisationTypes() {
 
   const types = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
   const typesLoading = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
-
-  const createTypeTrpc = trpc.organisationType.createType.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationType.getTypes.invalidate();
-      setIsDialogOpen(false);
-      setFormData({ name: '', description: '', status: 'active' });
-      showSuccess('Jenis organisasi berjaya ditambah');
-    },
-  });
-
-  const updateTypeTrpc = trpc.organisationType.updateType.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationType.getTypes.invalidate();
-      setIsDialogOpen(false);
-      setEditingType(null);
-      setFormData({ name: '', description: '', status: 'active' });
-      showSuccess('Jenis organisasi berjaya dikemaskini');
-    },
-  });
-
-  const deleteTypeTrpc = trpc.organisationType.deleteType.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationType.getTypes.invalidate();
-      showSuccess('Jenis organisasi berjaya dipadam');
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.OrganisationType.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organisationTypes']);
-      setIsDialogOpen(false);
-      setFormData({ name: '', description: '', status: 'active' });
-      showSuccess('Jenis organisasi berjaya ditambah');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.OrganisationType.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organisationTypes']);
-      setIsDialogOpen(false);
-      setEditingType(null);
-      setFormData({ name: '', description: '', status: 'active' });
-      showSuccess('Jenis organisasi berjaya dikemaskini');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.OrganisationType.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organisationTypes']);
-      showSuccess('Jenis organisasi berjaya dipadam');
-    }
-  });
 
   const openAddDialog = () => {
     setEditingType(null);
@@ -128,17 +75,24 @@ export default function ManageOrganisationTypes() {
     }
 
     if (editingType) {
-      if (isSupabaseMode) {
-        updateTypeTrpc.mutate({ id: editingType.id, ...formData });
-      } else {
-        updateMutation.mutate({ id: editingType.id, data: formData });
-      }
+      updateMutation.mutateAsync({ 
+        id: editingType.id, 
+        ...formData 
+      }).then((res) => {
+        if(res) {
+          setIsDialogOpen(false);
+          setEditingType(null);
+          setFormData({ name: '', description: '', status: 'active' });          
+        }
+      });
     } else {
-      if (isSupabaseMode) {
-        createTypeTrpc.mutate(formData);
-      } else {
-        createMutation.mutate(formData);
-      }
+      createMutation.mutateAsync(formData)
+      .then((res) => {
+        if(res) {
+          setIsDialogOpen(false);
+          setFormData({ name: '', description: '', status: 'active' });
+        }
+      });
     }
   };
 
@@ -149,11 +103,7 @@ export default function ManageOrganisationTypes() {
 
   const confirmDelete = () => {
     if (!typeToDelete) return;
-    if (isSupabaseMode) {
-      deleteTypeTrpc.mutate({ id: typeToDelete.id });
-    } else {
-      deleteMutation.mutate(typeToDelete.id);
-    }
+    deleteMutation.mutate({ id: typeToDelete.id });
 
     setDeleteDialogOpen(false);
     setTypeToDelete(null);
