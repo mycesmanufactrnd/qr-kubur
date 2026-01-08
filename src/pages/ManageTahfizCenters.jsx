@@ -611,6 +611,7 @@ export default function ManageTahfizCenters() {
               </div>
               <div>
                 <Label>{translate('gpsLng')}</Label>
+                <Label>{translate('gpsLng')}</Label>
                 <Controller
                   name="gps_lng"
                   control={control}
