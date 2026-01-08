@@ -285,12 +285,12 @@ export default function ManageOrganisations() {
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
           </div>
           <div>
-            <Label className="text-sm text-gray-600 dark:text-gray-400">Nama Organisasi</Label>
+            <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('orgName')}</Label>
             <Input
-              placeholder="Cari nama organisasi..."
+              placeholder={translate('searchOrgName')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
@@ -298,13 +298,13 @@ export default function ManageOrganisations() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">Jenis Organisasi</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('orgType')}</Label>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder="Semua Jenis" />
+                  <SelectValue placeholder={translate('allTypes')}/>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Jenis</SelectItem>
+                  <SelectItem value="all">{translate('allTypes')}</SelectItem>
                   {organisationTypeList.map(type => (
                     <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
@@ -312,13 +312,13 @@ export default function ManageOrganisations() {
               </Select>
             </div>            
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">Negeri</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('state')}</Label>
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="Pilih negeri" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Negeri</SelectItem>
+                  <SelectItem value="all">{translate('allStates')}</SelectItem>
                   {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -452,7 +452,7 @@ export default function ManageOrganisations() {
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih jenis organisasi" />
+                      <SelectValue placeholder={translate('selectOrgType')} />
                     </SelectTrigger>
                     <SelectContent>
                       {organisationTypeList.map(type => (
@@ -464,14 +464,14 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>Parent Organisation</Label>
+              <Label>{translate('parentOrg')}</Label>
               <Controller
                 name="parent_organisation_id"
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose parent organisation" />
+                      <SelectValue placeholder={translate('selectParentOrg')}/>
                     </SelectTrigger>
                     <SelectContent>
                         {parentOrgOptions.map(type => (
@@ -494,7 +494,7 @@ export default function ManageOrganisations() {
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih negeri" />
+                      <SelectValue placeholder={translate('selectStates')} />
                     </SelectTrigger>
                     <SelectContent>
                       {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (

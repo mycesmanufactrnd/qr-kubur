@@ -101,7 +101,7 @@ export default function SettingsPage() {
         { icon: FileText, label: translate('termsConditions'), page: 'TermsAndConditions' },
         { icon: Shield, label: translate('privacyPolicy'), page: 'PrivacyPolicy' },
         ...(isAdmin 
-          ? [{ icon: LogIn, label: 'Log Keluar', action: () => {
+          ? [{ icon: LogIn, label: translate('logOut'), action: () => {
               localStorage.removeItem('appUserAuth');
               window.location.href = createPageUrl('AppUserLogin');
             }}] 

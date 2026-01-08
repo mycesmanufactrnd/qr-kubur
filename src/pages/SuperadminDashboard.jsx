@@ -21,35 +21,35 @@ export default function SuperadminDashboard() {
   const superadminConfig = [
     {
       value: "users",
-      title: "Pengurusan Pengguna",
+      title: translate('userManagement'),
       items: [
-        { name: 'Impersonate User', page: 'ImpersonateUser', icon: UserX, color: 'red' },
+        { name: translate('impersonateUser'), page: 'ImpersonateUser', icon: UserX, color: 'red' }, 
         { name: translate('manageUsers'), page: 'ManageUsers', icon: Users, color: 'amber' },
-        { name: 'Manage Permissions', page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
+        { name: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
       ]
     },
     {
       value: "organisation",
-      title: "Pengurusan Organisasi",
+      title: translate('organisationManagement'),
       items: [
-        { name: 'Jenis Organisasi', page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
-        { name: 'Urus Organisasi', page: 'ManageOrganisations', icon: Database, color: 'emerald' },
+        { name: translate('orgType'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
+        { name: translate('manageOrgs'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
       ]
     },
     {
       value: "payment",
-      title: "Pengurusan Pembayaran",
+      title: translate('paymentManagement'), 
       items: [
-        { name: 'Payment Platforms', page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
-        { name: 'Payment Fields', page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
+        { name: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
+        { name: translate('paymentFields'), page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
       ]
     },
     {
       value: "system",
-      title: "Pengurusan Sistem",
+      title: translate('systemManagement'),
       items: [
-        { name: 'Log Aktiviti', page: 'ViewLogs', icon: Terminal, color: 'teal' },
-        { name: 'Icon Library', page: 'IconLibrary', icon: Sparkles, color: 'purple' },
+        { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
+        { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
       ]
     },
   ];

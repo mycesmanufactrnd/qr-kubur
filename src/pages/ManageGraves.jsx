@@ -324,7 +324,7 @@ export default function ManageGraves() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder={translate('Grave Name')}
+              placeholder={translate('cemetery')}
               value={filterName}
               onChange={(e) => setFilterName(e.target.value)}
               className="pl-10"
@@ -629,7 +629,7 @@ export default function ManageGraves() {
               <Label>{translate('managingOrg')}</Label>
               <Select value={formData.organisation_id} onValueChange={(v) => setFormData({...formData, organisation_id: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder={translate('managingOrg')} />
+                  <SelectValue placeholder={translate('allManagingOrg')} />
                 </SelectTrigger>
                 <SelectContent>
                   {organisationsList.map(org => (

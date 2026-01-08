@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
+import { translate } from '@/utils/translations';
 
 export default function PaymentConfigDialog({ 
   open, 
@@ -211,13 +212,13 @@ export default function PaymentConfigDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
-            Payment Configuration
+            {translate('paymentConfig')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <div>
-            <Label className="text-base font-semibold mb-3 block">Select Payment Platforms</Label>
+            <Label className="text-base font-semibold mb-3 block">{translate('selectPaymentPlatforms')}</Label>
             <div className="grid gap-3">
               {platforms.filter(p => p?.code).map(platform => (
                 <Label 
@@ -248,7 +249,7 @@ export default function PaymentConfigDialog({
             return (
               <div key={platformCode} className="border rounded-lg p-4 bg-gray-50">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  {platform.name} Configuration
+                  {platform.name} {translate('config')}
                 </h3>
                 <div className="space-y-4">
                   {fields.map(field => (
@@ -264,7 +265,7 @@ export default function PaymentConfigDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {translate('cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saveMutation.isPending || selectedPlatforms.length === 0}>
             <Save className="w-4 h-4 mr-2" />

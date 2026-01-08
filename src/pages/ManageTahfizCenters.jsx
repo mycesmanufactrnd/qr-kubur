@@ -307,7 +307,7 @@ export default function ManageTahfizCenters() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('searchPlaceholder')}
+                placeholder={translate('search...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -522,7 +522,7 @@ export default function ManageTahfizCenters() {
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih negeri" />
+                      <SelectValue placeholder={translate('selectStates')} />
                     </SelectTrigger>
                     <SelectContent>
                       {(isSuperAdmin ? STATES : userStates).map(state => (
@@ -547,7 +547,7 @@ export default function ManageTahfizCenters() {
                     </Label>
                     {selectedServices.includes(service.value) && (
                       <div className="ml-8">
-                        <Label className="text-xs text-gray-600">Harga (RM) - Pilihan</Label>
+                        <Label className="text-xs text-gray-600"> {translate('price')} (RM) - {translate('option')}</Label>
                         <Controller
                           name={`service_prices.${service.value}`}
                           control={control}
@@ -555,7 +555,7 @@ export default function ManageTahfizCenters() {
                             <Input
                               type="number"
                               step="0.01"
-                              placeholder="Contoh: 50.00"
+                              placeholder= {`${translate('example')}: 50.00`}
                               {...field}
                               onChange={(e) => {
                                 const prices = watch('service_prices') || {};
@@ -602,7 +602,7 @@ export default function ManageTahfizCenters() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>GPS Latitude</Label>
+                <Label>{translate('gpsLat')}</Label> 
                 <Controller
                   name="gps_lat"
                   control={control}
@@ -610,7 +610,7 @@ export default function ManageTahfizCenters() {
                 />
               </div>
               <div>
-                <Label>GPS Longitude</Label>
+                <Label>{translate('gpsLng')}</Label>
                 <Controller
                   name="gps_lng"
                   control={control}
