@@ -19,12 +19,8 @@ export function PermissionsProvider({ children }) {
         const userData = JSON.parse(appUserAuth);
         setUser(userData);
         
-        // Fetch all permissions for this user
         if (userData.id) {
-          const userPermissions = await base44.entities.Permission.filter({ 
-            user_id: userData.id,
-            enabled: true
-          });
+          const userPermissions = JSON.parse(localStorage.getItem("permissions"));
           setPermissions(userPermissions.map(p => p.slug));
         }
       }

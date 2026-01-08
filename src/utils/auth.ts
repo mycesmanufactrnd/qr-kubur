@@ -1,17 +1,21 @@
-import { base44 } from '@/api/base44Client';
 import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
-import { trpc } from './trpc';
+import { trpc, trpcClient } from './trpc';
 
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("clientIP", data.clientIp);
       localStorage.setItem("appUserAuth", JSON.stringify(data));
+
+      const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
+
+      localStorage.setItem("permissions", JSON.stringify(permissions));
+
       window.location.href = createPageUrl("AdminDashboard");
     },
     onError: (err) => {

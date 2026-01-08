@@ -15,6 +15,8 @@ import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
 import { useGetPermission, useUpsertPermission } from '@/hooks/usePermissionMutations';
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
+import { useGetUserPaginated } from '@/hooks/useUserMutations';
+import Pagination from '@/components/Pagination';
 
 export default function ManagePermissions() {
   const { 
@@ -31,17 +33,17 @@ export default function ManagePermissions() {
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('permissions');
 
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userPermissions, setUserPermissions] = useState({});
 
-  const trpcRes = trpc.users.getUsers.useQuery(
-    { currentUser, checkRole },
-    { enabled: !!currentUser && canView }
-  );
-
-  const users = trpcRes.data ?? [];
-  const loadingUsers = trpcRes.isLoading;
+  const { userList: users, totalPages, isLoading: loadingUsers } = useGetUserPaginated({
+    page,
+    pageSize: itemsPerPage,
+    search: searchQuery,
+  });
 
   const upsertPermission = useUpsertPermission();
   const { data: permissions = [], isLoading: loadingPermissions } = useGetPermission(selectedUser?.id, canView);
@@ -73,14 +75,6 @@ export default function ManagePermissions() {
       showApiError();
     }
   };
-
-  const filteredUsers = users.filter(u => 
-    u.role !== 'superadmin' && (
-      !searchQuery ||
-      u.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
 
   const togglePermission = (slug) => {
     setUserPermissions(prev => ({
@@ -127,7 +121,6 @@ export default function ManagePermissions() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User Selection */}
         <Card className="lg:col-span-1 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4 space-y-4">
             <div>
@@ -146,10 +139,10 @@ export default function ManagePermissions() {
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {loadingUsers ? (
                 <p className="text-sm text-gray-500 text-center py-4">Memuatkan...</p>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.items.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">Tiada pengguna dijumpai</p>
               ) : (
-                filteredUsers.map(user => (
+                users.items.map(user => (
                   <button
                     key={user.id}
                     onClick={() => setSelectedUser(user)}
@@ -167,11 +160,9 @@ export default function ManagePermissions() {
                   </button>
                 ))
               )}
-            </div>
+            </div>            
           </CardContent>
         </Card>
-
-        {/* Permissions */}
         <Card className="lg:col-span-2 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4">
             {!selectedUser ? (
@@ -222,7 +213,21 @@ export default function ManagePermissions() {
             )}
           </CardContent>
         </Card>
+
       </div>
+        {users.total > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={users.total}
+          />
+        )}
     </div>
   );
 }
