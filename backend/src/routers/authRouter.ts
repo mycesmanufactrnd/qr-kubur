@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import { router, publicProcedure } from "../trpc.ts";
 import { z } from "zod";
-import bcrypt from "bcrypt";
 import { User } from "../db/entities/User.entity.ts";
 import { signToken } from "../auth.ts";
 import { assertRole } from "../helpers/authHelper.ts";
@@ -11,8 +10,10 @@ import { AppDataSource } from "../datasource.ts";
 export const authRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx  }) => {
       const userRepo = AppDataSource.getRepository(User);
+
+      let clientIp = ctx.req.ip;
 
       let user = await userRepo.findOne({
         where: { email: input.email },
@@ -38,6 +39,7 @@ export const authRouter = router({
 
       return {
         token,
+        clientIp,
         organisation,
         tahfizcenter,
         ...userWithoutPassword,

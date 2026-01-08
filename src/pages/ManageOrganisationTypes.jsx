@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { showError } from '@/components/ToastrNotification';
 import { useAdminAccess } from '@/utils/auth';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '../components/PageLoadingComponent';
@@ -21,11 +20,13 @@ import {
   useUpdateOrganisationType, 
   useDeleteOrganisationType 
 } from '@/hooks/useOrganisationTypeMutations';
+import { validateFields } from '@/utils/validations';
 
 export default function ManageOrganisationTypes() {
   const {
     loadingUser, 
-    isSuperAdmin, 
+    isSuperAdmin,
+    hasAdminAccess,
   } = useAdminAccess();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -37,8 +38,7 @@ export default function ManageOrganisationTypes() {
   const { 
     data: types, 
     isLoading: typesLoading, 
-    refetch: refetchTypes 
-  } = useGetOrganisationType(isSuperAdmin);
+  } = useGetOrganisationType(hasAdminAccess);
   const createMutation = useCreateOrganisationType();
   const updateMutation = useUpdateOrganisationType();
   const deleteMutation = useDeleteOrganisationType();
@@ -61,10 +61,12 @@ export default function ManageOrganisationTypes() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name?.trim()) {
-      showError('Sila masukkan nama jenis organisasi');
-      return;
-    }
+
+    const isValid = validateFields(formData, [
+      { field: 'name', label: 'Name', type: 'text' },
+    ]);
+
+    if (!isValid) return;
 
     if (editingType) {
       updateMutation.mutateAsync({ 

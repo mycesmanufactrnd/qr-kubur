@@ -8,7 +8,7 @@ import { verifyToken } from "./auth.ts";
 export const createContext = ({ req }: { req: any }) => {
   const token = req.headers.authorization?.replace("Bearer ", "");
   const user = token ? verifyToken(token) : null;
-  return { user };
+  return { user, req };
 };
 
 const t = initTRPC.context<typeof createContext>().create();

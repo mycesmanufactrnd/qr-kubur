@@ -1,58 +1,112 @@
-import { router, superAdminProcedure } from '../trpc.ts';
-import { Organisation, OrganisationType } from '../db/entities.ts';
+import { protectedProcedure, router } from '../trpc.ts';
+import { Organisation } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
+import { organisationSchema } from '../schemas/organisationSchema.ts';
+
+async function getOrganisationTreeIds(rootId: number) {
+  const result = await AppDataSource.query(`
+    WITH RECURSIVE org_tree AS (
+      SELECT id FROM organisation WHERE id = $1
+      UNION ALL
+      SELECT o.id
+      FROM organisation o
+      INNER JOIN org_tree ot ON ot.id = o.parentorganisationId
+    )
+    SELECT id FROM org_tree
+  `, [rootId]);
+
+  return result.map((r: any) => r.id);
+}
 
 export const organisationRouter = router({
-    getTypes: superAdminProcedure.query(async () => {
-        return AppDataSource
-        .getRepository(Organisation)
-        .find();
-    }),
-
-    getPaginated: superAdminProcedure
+  getPaginated: protectedProcedure
     .input(
       z.object({
-        page: z.number().min(1),
-        pageSize: z.number().min(1),
+        page: z.number().min(1).optional(),
+        pageSize: z.number().min(1).optional(),
         search: z.string().optional(),
-        filterType: z.string().optional(),
+        filterType: z.number().optional(),
         filterState: z.string().optional(),
-        isSuperAdmin: z.boolean().optional(),
-        isAdmin: z.boolean().optional(),
+        currentUserOrganisation: z.number().optional(),
+        checkRole: z.object({
+          superadmin: z.boolean(),
+          admin: z.boolean(),
+          employee: z.boolean(),
+          tahfiz: z.boolean(),
+        }).optional(),
       })
     )
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterType, filterState } = input;
-      const repo = AppDataSource.getRepository(Organisation);
+      const { page, pageSize, search, filterType, filterState, checkRole, currentUserOrganisation } = input;
+      const organisationRepo = AppDataSource.getRepository(Organisation);
 
-      const query = repo.createQueryBuilder('org');
+      const query = organisationRepo.createQueryBuilder('organisation')
+        .leftJoinAndSelect('organisation.parentorganisation', 'parent')
+        .leftJoinAndSelect('organisation.organisationtype', 'type');
 
-      // Join organisation type if needed
-      query.leftJoinAndSelect('org.organisationtype', 'type');
+      if (checkRole?.superadmin) {}
+      else if (checkRole?.admin && currentUserOrganisation) {
+        const allowedIds = await getOrganisationTreeIds(currentUserOrganisation);
+        query.andWhere('organisation.id IN (:...allowedIds)', { allowedIds });
+      }
+      else if (checkRole?.employee && currentUserOrganisation) {
+        query.andWhere('organisation.id = :orgId', { orgId: currentUserOrganisation });
+      }
 
-      // Search filter
       if (search) {
-        query.andWhere('org.name ILIKE :search', { search: `%${search}%` });
+        query.andWhere('organisation.name ILIKE :search', {
+          search: `%${search}%`,
+        });
       }
 
-      // Type filter
-      if (filterType && filterType !== 'all') {
-        query.andWhere('org.organisation_type_id = :typeId', { typeId: filterType });
+      if (typeof filterType === 'number') {
+        query.andWhere(
+          'organisation.organisationtypeId = :typeId',
+          { typeId: filterType }
+        );
       }
 
-      // State filter
-      if (filterState && filterState !== 'all') {
-        query.andWhere(':state = ANY(org.states)', { state: filterState });
+      if (filterState) {
+        query.andWhere(
+          ':state = ANY(organisation.states)',
+          { state: filterState }
+        );
       }
 
-      // Pagination
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize);
+      }
+
       const [items, total] = await query
-        .orderBy('org.createdat', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
+        .orderBy('organisation.createdat', 'DESC')
         .getManyAndCount();
 
       return { items, total };
+    }),
+
+  create: protectedProcedure
+    .input(organisationSchema)
+    .mutation(async ({ input }) => {
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+
+      const organisation = organisationRepo.create(input);
+      return await organisationRepo.save(organisation);
+    }),
+
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), data: organisationSchema }))
+    .mutation(async ({ input }) => {
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      const organisation = await organisationRepo.findOneByOrFail({ id: input.id });
+      organisationRepo.merge(organisation, input.data);
+      return organisationRepo.save(organisation);
+    }),
+
+  delete: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ input }) => {
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      return organisationRepo.delete(input);
     }),
 });

@@ -3,8 +3,6 @@ import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
 import { trpc } from './trpc';
 
-export const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
-
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -12,6 +10,7 @@ export function handleLoginTRPC() {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("clientIP", data.clientIp);
       localStorage.setItem("appUserAuth", JSON.stringify(data));
       window.location.href = createPageUrl("AdminDashboard");
     },
@@ -31,34 +30,7 @@ export function handleLoginTRPC() {
   return { login, loading, error, setError };
 }
 
-export async function handleLoginBase44({ 
-  email, 
-  password, 
-  setLoading, 
-  setError, 
-  // navigate // if use react-router navigate instead of window.location
-}) {
-  setError('');
-  setLoading(true);
-
-  try {
-    const response = await base44.functions.invoke('appUserLogin', { email, password });
-    
-    if (response.data.success) {
-      localStorage.setItem('appUserAuth', JSON.stringify(response.data.user));
-      
-      window.location.href = createPageUrl('AdminDashboard');
-    } else {
-      setError(response.data.message || 'Login failed');
-    }
-  } catch (err) {
-    setError('Invalid email or password');
-  } finally {
-    setLoading(false);
-  }
-}
-
-export function handleLogout(clearPermissions) {
+export function handleLogout(clearPermissions?: () => void) {
     clearPermissions?.();
     
     localStorage.removeItem('appUserAuth');
@@ -81,7 +53,7 @@ export function removeImpersonation() {
   location.href = createPageUrl("ImpersonateUser");
 }
 
-export function impersonateUser(user = {}) {
+export function impersonateUser(user: { id: any; }) {
   if (!user || !user.id) return;
 
   const currentAuth = localStorage.getItem("appUserAuth");

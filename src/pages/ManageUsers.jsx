@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, Edit, Trash2, Search, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,13 +15,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import Breadcrumb from '../components/Breadcrumb';
-import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
+import { useCrudPermissions } from '@/components/PermissionsContext';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
+import { useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
-import { trpc } from '@/utils/trpc';
+import { validateFields } from '@/utils/validations';
+import { 
+  useCreateUser,
+  useDeleteUser,
+  useGetUserPaginated,
+  useUpdateUser, 
+} from '@/hooks/useUserMutations';
+import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
+import { useGetTahfizPaginated } from '@/hooks/useTahfizMutations';
+import { hashPassword } from '@/utils/helpers';
 
 export default function ManageUsers() {
   const { 
@@ -33,7 +39,7 @@ export default function ManageUsers() {
     isSuperAdmin, 
     isAdmin, 
     isEmployee,
-    checkRole
+    currentUserStates,
   } = useAdminAccess();
 
   const [page, setPage] = useState(1);
@@ -45,269 +51,135 @@ export default function ManageUsers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const queryClient = useQueryClient();
-
   const {
     loading: permissionsLoading,
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('users');
 
-  const buildUserFilter = () => {
-    if (!currentUser) return { id: null };
-
-    if (isSuperAdmin) return {};
-
-    if (isAdmin) {
-      const filter = {
-        role: { $in: ['admin', 'employee'] }
-      };
-
-      if (currentUser.organisation_id) {
-        filter.organisation_id = currentUser.organisation_id;
-      }
-
-      if (currentUser.tahfiz_center_id) {
-        filter.tahfiz_center_id = currentUser.tahfiz_center_id;
-      }
-
-      return filter;
-    }
-
-    if (isEmployee) {
-      return { id: currentUser.id }; 
-    }
-
-    return { id: null };
-  };
-
-  const trpcRes = trpc.users.getUsers.useQuery(
-    { currentUser, checkRole },
-    { enabled: isSupabaseMode && !!currentUser && canView }
-  );
-
-  const base44Res = useQuery({
-    queryKey: ['appUsers'],
-    queryFn: () => base44.entities.AppUser.filter(buildUserFilter()),
-    enabled: !isSupabaseMode && !!currentUser
+  const { userList: appUsers, totalPages, isLoading: appUsersLoading } = useGetUserPaginated({
+    page,
+    pageSize: itemsPerPage,
+    search: search,
   });
+  const { organisationsList: organisations } = useGetOrganisationPaginated({});
+  const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
-  const appUsers = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
-  const appUsersLoading = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
+  const createMutation = useCreateUser();
+  const updateMutation = useUpdateUser();
+  const deleteMutation = useDeleteUser();
 
-  const { data: organisations = [] } = useQuery({
-    queryKey: ['organisations'],
-    queryFn: () => base44.entities.Organisation.list()
-  });
-
-  const { data: tahfizCenters = [] } = useQuery({
-    queryKey: ['tahfiz-centers'],
-    queryFn: () => base44.entities.TahfizCenter.list()
-  });
-
-  const createUserMutation = useMutation({
-    mutationFn: async (data) => {
-      try {
-        if (data?.password) {
-          const hashResponse = await base44.functions.invoke(
-            'hashPassword',
-            { password: data.password }
-          );
-
-          data.password = hashResponse.data.hashed;
-        }
-
-        return await base44.entities.AppUser.create(data);
-      } catch (err) {
-        console.error('Create user failed:', err);
-        throw err;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
-      setDialogOpen(false);
-      setEditUser(null);
-      setIsAddMode(false);
-
-      showSuccess('User Successfully Created');
-    }
-  });
-
-  const updateAppUserMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      if (data.password) {
-        const hashResponse = await base44.functions.invoke('hashPassword', { password: data.password });
-        data.password = hashResponse.data.hashed;
-      }
-      return base44.entities.AppUser.update(id, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
-      setDialogOpen(false);
-      setEditUser(null);
-      setIsAddMode(false);
-      showSuccess('User Successfully Updated', 'Success');
-    }
-  });
-
-  const deleteAppUserMutation = useMutation({
-    mutationFn: (id) => base44.entities.AppUser.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['appUsers'] });
-      showSuccess('User Successfully Deleted');
-    }
-  });
-
-  const accessibleOrganisations = organisations.filter(org => {
-    if (isSuperAdmin) return true;
-
-    if (isAdmin) {
-      const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
-      const orgStates = Array.isArray(org.state) ? org.state : [org.state].filter(Boolean);
-      return adminStates.some(s => orgStates.includes(s));
-    }
-
-    if (isEmployee) {
-      return currentUser.organisation_id == org.id;
-    }
-
-    return false;
-  });
-
-  // Filter tahfiz centers based on admin state
-  const accessibleTahfizCenters = tahfizCenters.filter(center => {
-    if (isSuperAdmin) return true;
-    if (isAdmin) {
-      const adminStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
-      return adminStates.includes(center.state);
-    }
-
-    if (isEmployee) {
-      return currentUser.tahfiz_center_id == center.id;
-    }
-
-    return false;
-  });
-  
   const adminAccessibleStates = (() => {
     if (isSuperAdmin) {
       return STATES_MY;
     }
 
     if (isAdmin || isEmployee) {
-      return Array.isArray(currentUser?.state)
-        ? currentUser.state
-        : currentUser?.state
-          ? [currentUser.state]
-          : [];
+      return currentUserStates;
     }
 
     return [];
   })();
 
-
-  const filteredUsers = appUsers.filter(u => 
-    u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const paginatedUsers = filteredUsers.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-
   const handleAddUser = () => {
     setIsAddMode(true);
     const defaultState = isAdmin && !isSuperAdmin ? adminAccessibleStates : [];
-    const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation_id : '';
-    const defaultTahfizId = isAdmin && !isSuperAdmin ? currentUser.tahfiz_center_id : '';
+    const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation.id : null;
+    const defaultTahfizId = isAdmin && !isSuperAdmin ? currentUser.tahfizcenter.id : null;
+
     setEditUser({
-      full_name: '',
+      fullname: '',
       email: '',
+      phoneno: '',
       password: '',
       role: 'employee',
-      organisation_id: defaultOrgId || '',
-      tahfiz_center_id: defaultTahfizId || '',
-      state: defaultState
+      organisation: defaultOrgId || null,
+      tahfizcenter: defaultTahfizId || null,
+      states: defaultState
     });
+
     setDialogOpen(true);
   };
 
   const handleEditUser = (user) => {
     setIsAddMode(false);
+
     setEditUser({
       ...user,
-      password: '', // Empty for edit mode
-      isAppUser: appUsers.some(u => u.id === user.id),
-      state: user.state || []
+      phoneno: user.phoneno || '',
+      password: '',
+      organisation: user.organisation?.id ?? null,
+      tahfizcenter: user.tahfizcenter?.id ?? null,
+      isAppUser: appUsers.items.some(u => u.id === user.id),
+      states: user.states || []
     });
+
     setDialogOpen(true);
   };
 
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!editUser) return;
+
+    const isValid = validateFields(editUser, [
+      { field: 'fullname', label: 'Full Name', type: 'text' },
+      { field: 'email', label: 'Email', type: 'email' },
+      { field: 'phoneno', label: 'Phone No.', type: 'phone', required: false },
+      { field: 'states', label: 'State', type: 'array' },
+      { field: 'password', label: 'Password', type: 'password', minLength: 6, onlyIfExists: true },
+    ]);
+
+    if (!isValid) return;
     
-    // Validation - Required fields
-    if (!editUser.full_name?.trim()) {
-      showError("Sila masukkan nama penuh", "Medan Diperlukan");
-      return;
-    }
-    if (!editUser.email?.trim()) {
-      showError("Sila masukkan email", "Medan Diperlukan");
-      return;
-    }
-    
-    if (isAddMode && !editUser.password?.trim()) {
-      showError("Sila masukkan password", "Medan Diperlukan");
-      return;
+    const submitData = { 
+      ...editUser,
+      organisation: editUser.organisation
+        ? { id: Number(editUser.organisation) }
+        : null,
+      tahfizcenter: editUser.tahfizcenter
+        ? { id: Number(editUser.tahfizcenter) }
+        : null,
+      ...(editUser.password
+        ? { password: await hashPassword(editUser.password) }
+        : {}),
+    };
+
+    if (!isAddMode && !submitData.password) {
+      delete submitData.password;
     }
 
-    if (!editUser.state || editUser.state.length === 0) {
-      showError("Sila pilih sekurang-kurangnya satu negeri", "Medan Diperlukan");
-      return;
-    }
-
-    // Additional validation
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editUser.email)) {
-      showError("Format Tidak Sah", "Medan Diperlukan");
-      return;
-    }
-    if (isAddMode && editUser.password.length < 6) {
-      showError("Password mesti sekurang-kurangnya 6 aksara", "Password Terlalu Pendek");
-      return;
-    }
-    if (!isAddMode && editUser.password && editUser.password.length < 6) {
-      showError("Password mesti sekurang-kurangnya 6 aksara", "Password Terlalu Pendek");
-      return;
-    }
-    
-    // Remove password field if empty in edit mode
-    const dataToSave = { ...editUser };
-    if (!isAddMode && !dataToSave.password) {
-      delete dataToSave.password;
-    }
-
-
-    
     if (isAddMode) {
-      createUserMutation.mutate(dataToSave);
+      createMutation.mutateAsync(submitData)
+      .then((res) => {
+        console.log('res', res)
+        if (res) {
+          setDialogOpen(false);
+          setEditUser(null);
+          setIsAddMode(false);
+        }
+      });
     } else {
       if (editUser.isAppUser) {
-        updateAppUserMutation.mutate({ id: editUser.id, data: dataToSave });
+        updateMutation.mutateAsync({ id: editUser.id, data: submitData })
+        .then((res) => {
+          if (res) {
+            setDialogOpen(false);
+            setEditUser(null);
+            setIsAddMode(false);
+          }
+        })
       }
     }
   };
 
-  const handleStateToggle = (state) => {
+  const handleStateToggle = (states) => {
     if (!editUser) return;
     // For state admin, don't allow deselecting their own states
     if (isAdmin && !isSuperAdmin) return;
     
-    const currentStates = editUser.state || [];
-    const newStates = currentStates.includes(state)
-      ? currentStates.filter(s => s !== state)
-      : [...currentStates, state];
-    setEditUser({ ...editUser, state: newStates });
+    const currentStates = editUser.states || [];
+    const newStates = currentStates.includes(states)
+      ? currentStates.filter(s => s !== states)
+      : [...currentStates, states];
+    setEditUser({ ...editUser, states: newStates });
   };
 
   const handleDeleteUser = (user) => {
@@ -317,9 +189,9 @@ export default function ManageUsers() {
 
   const confirmDelete = () => {
     if (!userToDelete) return;
-    const isAppUser = appUsers.some(u => u.id === userToDelete.id);
+    const isAppUser = appUsers.items.some(u => u.id === userToDelete.id);
     if (isAppUser) {
-      deleteAppUserMutation.mutate(userToDelete.id);
+      deleteMutation.mutate(userToDelete.id);
     }
     setDeleteDialogOpen(false);
     setUserToDelete(null);
@@ -391,7 +263,7 @@ export default function ManageUsers() {
               </CardContent>
             </Card>
           ))
-        ) : paginatedUsers.length === 0 ? (
+        ) : appUsers.items.length === 0 ? (
           <Card className="border-0 shadow-sm">
             <CardContent className="p-8 text-center">
               <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -399,18 +271,18 @@ export default function ManageUsers() {
             </CardContent>
           </Card>
         ) : (
-          paginatedUsers.map(user => (
+          appUsers.items.map(user => (
             <Card key={user.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-3 lg:p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-sm font-medium text-emerald-700">
-                        {user.full_name?.[0] || user.email?.[0]?.toUpperCase()}
+                        {user.fullname?.[0] || user.email?.[0]?.toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{user.full_name || user.email}</p>
+                      <p className="font-semibold text-gray-900 truncate">{user.fullname || user.email}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       <div className="flex gap-2 mt-1 flex-wrap">
                         <Badge variant="secondary" className="text-xs capitalize">
@@ -448,7 +320,7 @@ export default function ManageUsers() {
         )}
       </div>
 
-      {totalPages > 0 && (
+      {appUsers.total > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}
@@ -458,7 +330,7 @@ export default function ManageUsers() {
             setItemsPerPage(value);
             setPage(1);
           }}
-          totalItems={filteredUsers.length}
+          totalItems={appUsers.total}
         />
       )}
 
@@ -474,51 +346,43 @@ export default function ManageUsers() {
           
           {editUser && (
             <div className="space-y-4">
-              {isAddMode && (
-                <>
-                  <div>
-                   <label className="text-sm font-medium mb-2 block">Nama Penuh <span className="text-red-500">*</span></label>
-                   <Input
-                     value={editUser.full_name}
-                     onChange={(e) => setEditUser({...editUser, full_name: e.target.value})}
-                     placeholder="Masukkan nama penuh"
-                   />
-                  </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Nama Penuh <span className="text-red-500">*</span></label>
+                <Input
+                  value={editUser.fullname}
+                  onChange={(e) => setEditUser({...editUser, fullname: e.target.value})}
+                  placeholder="Masukkan nama penuh"
+                />
+              </div>
 
-                  <div>
-                   <label className="text-sm font-medium mb-2 block">Email <span className="text-red-500">*</span></label>
-                  <Input
-                    type="email"
-                    value={editUser.email}
-                    onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                    placeholder="Masukkan email"
-                  />
-                  </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Email <span className="text-red-500">*</span></label>
+              <Input
+                type="email"
+                value={editUser.email}
+                onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                placeholder="Masukkan email"
+              />
+              </div>
 
-                  <div>
-                   <label className="text-sm font-medium mb-2 block">Password <span className="text-red-500">*</span></label>
-                  <Input
-                    type="password"
-                    value={editUser.password}
-                    onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-                    placeholder="Masukkan kata laluan"
-                  />
-                  </div>
-                  </>
-                  )}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Phone No. </label>
+              <Input
+                value={editUser.phoneno}
+                onChange={(e) => setEditUser({...editUser, phoneno: e.target.value})}
+                placeholder="Enter Phone No."
+              />
+              </div>
 
-                  {!isAddMode && (
-                  <div>
-                  <label className="text-sm font-medium mb-2 block">Password (kosongkan jika tidak tukar)</label>
-                  <Input
-                   type="password"
-                   value={editUser.password}
-                   onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-                   placeholder="Kosongkan jika tidak tukar"
-                  />
-                  </div>
-                  )}
-
+              <div>
+                <label className="text-sm font-medium mb-2 block">Password <span className="text-red-500">*</span></label>
+              <Input
+                type="password"
+                value={editUser.password}
+                onChange={(e) => setEditUser({...editUser, password: e.target.value})}
+                placeholder="Masukkan kata laluan"
+              />
+              </div>
                   <div>
                   <label className="text-sm font-medium mb-2 block">Role</label>
                   <Select 
@@ -539,15 +403,15 @@ export default function ManageUsers() {
               <div>
                 <label className="text-sm font-medium mb-2 block">Organisasi</label>
                 <Select 
-                  value={editUser.organisation_id || ''} 
-                  onValueChange={(v) => setEditUser({...editUser, organisation_id: v, tahfiz_center_id: ''})}
-                  disabled={isAdmin && !isSuperAdmin && currentUser.organisation_id}
+                  value={editUser.organisation || ''} 
+                  onValueChange={(v) => setEditUser({...editUser, organisation: v, tahfizcenter: null})}
+                  disabled={isAdmin && !isSuperAdmin && currentUser.organisation}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
-                    {accessibleOrganisations.map(org => (
+                    {organisations.items.map(org => (
                       <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -565,7 +429,7 @@ export default function ManageUsers() {
                     <SelectValue placeholder="Pilih pusat tahfiz" />
                   </SelectTrigger>
                   <SelectContent>
-                    {accessibleTahfizCenters.map(center => (
+                    {tahfizCenters.items.map(center => (
                       <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -575,15 +439,15 @@ export default function ManageUsers() {
               <div>
                 <label className="text-sm font-medium mb-2 block">Negeri <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
-                  {adminAccessibleStates.map(state => (
-                    <div key={state} className="flex items-center space-x-2">
+                  {adminAccessibleStates.map(states => (
+                    <div key={states} className="flex items-center space-x-2">
                       <Checkbox
-                        id={state}
-                        checked={editUser.state?.includes(state)}
-                        onCheckedChange={() => handleStateToggle(state)}
+                        id={states}
+                        checked={editUser.states?.includes(states)}
+                        onCheckedChange={() => handleStateToggle(states)}
                         disabled={isAdmin && !isSuperAdmin}
                       />
-                      <label htmlFor={state} className="text-sm">{state}</label>
+                      <label htmlFor={states} className="text-sm">{states}</label>
                     </div>
                   ))}
                 </div>
@@ -602,15 +466,15 @@ export default function ManageUsers() {
         </DialogContent>
       </Dialog>
 
-        <ConfirmDialog
+      <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Padam Pengguna"
-        description={`Adakah anda pasti ingin memadam pengguna ${userToDelete?.full_name || userToDelete?.email}? Tindakan ini tidak boleh dibatalkan.`}
+        description={`Adakah anda pasti ingin memadam pengguna ${userToDelete?.fullname || userToDelete?.email}? Tindakan ini tidak boleh dibatalkan.`}
         onConfirm={confirmDelete}
         confirmText="Padam"
         variant="destructive"
         />
-        </div>
-        );
-        }
+    </div>
+  );
+}

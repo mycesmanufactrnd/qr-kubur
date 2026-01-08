@@ -3,22 +3,7 @@ import bcrypt from "bcrypt";
 import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
 import { User } from "../db/entities.ts";
-
-// [GET BY ID]
-// trpc.users.getUserById.query({ id: 1 }); 
-
-// [CREATE]
-// trpc.users.createUser.mutate({
-//   fullName: "John Doe",
-//   email: "john@example.com",
-//   password: "hashed_password",
-//   role: "admin"
-// });
-
-// Zod is like DTO (Class Validator)
-// .validation() method on a procedure just tells tRPC how to validate the input
-// tRPC itself does not include a validation library, still need a schema validator
-// .input(zodSchema) is just shorthand for .validation(zodSchema)
+import { updateUserSchema, userSchema } from "../schemas/userSchema.ts";
 
 export const usersRouter = router({
   getUserById: protectedProcedure
@@ -38,28 +23,11 @@ export const usersRouter = router({
         throw new Error(`User with id ${input.id} not found`);
       }
 
-      return user;
+      const { password, ...userWithoutPassword } = user;
+
+      return userWithoutPassword;
     }),
   
-  createUser: protectedProcedure
-    .input(
-      z.object({
-        fullName: z.string(),
-        email: z.string(),
-        password: z.string(),
-        role: z.string(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const userRepo = AppDataSource.getRepository(User);
-
-      const user = userRepo.create({
-        ...input,
-        password: await bcrypt.hash(input.password, 10),
-      });
-      return await userRepo.save(user);
-    }),
-
   getUsers: protectedProcedure
     .input(
       z.object({
@@ -94,7 +62,7 @@ export const usersRouter = router({
           }
 
           if (currentUser.tahfizcenter) {
-            where.tahfiz_centerId = currentUser.tahfizcenter.id;
+            where.tahfizcenterId = currentUser.tahfizcenter.id;
           }
 
         } else if (checkRole.employee) {
@@ -104,7 +72,111 @@ export const usersRouter = router({
         }
       }
 
-      return await userRepo.find({ where });
+      const users = await userRepo.find({ where });
+
+      const sanitizedUsers = users.map(({ password, ...rest }) => rest);
+
+      return sanitizedUsers;
+
+    }),
+
+  getPaginated: protectedProcedure
+    .input(
+        z.object({
+        page: z.number().min(1).optional(),
+        pageSize: z.number().min(1).optional(),
+        search: z.string().optional(),
+        currentUser: z.object({
+          id: z.number(),
+          organisation: z.object({ id: z.number() }).nullable(),
+          tahfizcenter: z.object({ id: z.number() }).nullable(),
+        }),
+        checkRole: z.object({
+            superadmin: z.boolean(),
+            admin: z.boolean(),
+            employee: z.boolean(),
+            tahfiz: z.boolean(),
+        }).optional(),
+        })
+    )
+    .query(async ({ input }) => {
+        const { page, pageSize, search, currentUser, checkRole } = input;
+
+        const userRepo = AppDataSource.getRepository(User);
+
+        const query = userRepo.createQueryBuilder("user")
+        .leftJoinAndSelect("user.organisation", "organisation")
+        .leftJoinAndSelect("user.tahfizcenter", "tahfizcenter");
+
+        if (!checkRole?.superadmin) {
+          if (checkRole?.admin) {
+            query.andWhere("user.role IN (:...roles)", { roles: ["admin", "employee"] });
+
+            if (currentUser.organisation) {
+              query.andWhere("user.organisationId = :orgId", { orgId: currentUser.organisation.id });
+            }
+
+            if (currentUser.tahfizcenter) {
+              query.andWhere("user.tahfizcenterId = :tahfizId", { tahfizId: currentUser.tahfizcenter.id });
+            }
+
+          } else if (checkRole?.employee) {
+            query.andWhere("user.id = :id", { id: currentUser.id });
+          } else {
+            return { items: [], total: 0 };
+          }
+        }
+
+        if (search) {
+            query.andWhere("user.fullname ILIKE :search", { search: `%${search}%` });
+        }
+
+        if (page && pageSize) {
+            query.skip((page - 1) * pageSize).take(pageSize);
+        }
+
+        const [items, total] = await query
+            .orderBy("user.createdat", "DESC")
+            .getManyAndCount();
+
+        const sanitizedItems = items.map(({ password, ...rest }) => rest);
+
+        return { items: sanitizedItems, total };
+    }),
+
+  create: protectedProcedure
+    .input(userSchema)
+    .mutation(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+
+      const user = userRepo.create(input);
+
+      const savedUser = await userRepo.save(user);
+
+      const { password, ...userWithoutPassword } = savedUser;
+
+      return userWithoutPassword;
+    }),
+
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), data: updateUserSchema }))
+    .mutation(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+      const user = await userRepo.findOneByOrFail({ id: input.id });
+
+      userRepo.merge(user, input.data);
+
+      const savedUser = await userRepo.save(user);
+      const { password, ...userWithoutPassword } = savedUser;
+
+      return userWithoutPassword;
+    }),
+
+  delete: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+      return userRepo.delete(input);
     }),
 });
 

@@ -1,10 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
-
-export enum OrganisationStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-}
+import { OrganisationStatus } from "../enums/organisation.enums.ts";
 
 @Entity("organisationtype")
 export class OrganisationType {

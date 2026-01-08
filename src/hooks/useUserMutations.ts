@@ -2,57 +2,67 @@ import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 
-type useGetOrganisationPaginatedParams = {
+type useGetUserPaginatedParams = {
   page?: number;
   pageSize?: number;
   search?: string;
-  filterType?: number;
-  filterState?: string;
 };
 
-const titleMessage = 'Organisation';
+const titleMessage = 'User';
 
-export function useGetOrganisationPaginated({
+export function useGetUsers(canView: boolean) {
+  const { 
+    currentUser, 
+    checkRole
+  } = useAdminAccess();
+
+  const trpcRes = trpc.users.getUsers.useQuery(
+    { currentUser, checkRole },
+    { enabled: !!currentUser && canView }
+  );
+  return {
+    data: trpcRes.data ?? [],
+    isLoading: trpcRes.isLoading,
+    refetch: trpcRes.refetch,
+  };
+}
+
+export function useGetUserPaginated({
   page,
   pageSize,
   search,
-  filterType,
-  filterState,
-}: useGetOrganisationPaginatedParams) {
+}: useGetUserPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
-  const currentUserOrganisationId = currentUser?.organisation?.id ?? undefined;
 
   const { data, isLoading, refetch, error } =
-    trpc.organisation.getPaginated.useQuery(
+    trpc.users.getPaginated.useQuery(
       {
         page,
         pageSize,
         search,
-        filterType,
-        filterState,
-        currentUserOrganisation: currentUserOrganisationId,
+        currentUser,
         checkRole,
       },
       { enabled: hasAdminAccess && !!currentUser }
     );
 
-  const organisationsList = {
+  const userList = {
     items: data?.items ?? [],
     total: data?.total ?? 0,
   };
 
-  const totalPages = Math.ceil(organisationsList.total / pageSize);
+  const totalPages = pageSize ? Math.ceil(userList.total / pageSize) : 1;
 
-  return { organisationsList, totalPages, isLoading, refetch, error };
+  return { userList, totalPages, isLoading, refetch, error };
 }
 
-export function useCreateOrganisation() {
+export function useCreateUser() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.organisation.create.useMutation({
+  return trpc.users.create.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'create');
-      trpcUtils.organisation.getPaginated.invalidate();
+      trpcUtils.users.getPaginated.invalidate();
     },
     onError: (err) => {
       showApiError(err);
@@ -60,13 +70,13 @@ export function useCreateOrganisation() {
   });
 }
 
-export function useUpdateOrganisation() {
+export function useUpdateUser() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.organisation.update.useMutation({
+  return trpc.users.update.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'update');
-      trpcUtils.organisation.getPaginated.invalidate();
+      trpcUtils.users.getPaginated.invalidate();
     },
     onError: (err) => {
       showApiError(err);
@@ -74,13 +84,13 @@ export function useUpdateOrganisation() {
   });
 }
 
-export function useDeleteOrganisation() {
+export function useDeleteUser() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.organisation.delete.useMutation({
+  return trpc.users.delete.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'delete');
-      trpcUtils.organisation.getPaginated.invalidate();
+      trpcUtils.users.getPaginated.invalidate();
     },
     onError: (err) => {
       showApiError(err);

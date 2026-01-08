@@ -1,10 +1,10 @@
-import { router, superAdminProcedure } from '../trpc.ts';
+import { protectedProcedure, router, superAdminProcedure } from '../trpc.ts';
 import { OrganisationType } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
 export const organisationTypeRouter = router({
-  getTypes: superAdminProcedure.query(async () => {
+  getTypes: protectedProcedure.query(async () => {
     return AppDataSource
       .getRepository(OrganisationType)
       .find();

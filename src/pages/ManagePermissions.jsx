@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Shield, Save, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,9 +11,10 @@ import { useCrudPermissions, usePermissions } from '@/components/PermissionsCont
 import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import { showError, showSuccess } from '@/components/ToastrNotification';
-import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
+import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
+import { useGetPermission, useUpsertPermission } from '@/hooks/usePermissionMutations';
+import { showApiError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManagePermissions() {
   const { 
@@ -36,36 +35,18 @@ export default function ManagePermissions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userPermissions, setUserPermissions] = useState({});
 
-  const queryClient = useQueryClient();
-
   const trpcRes = trpc.users.getUsers.useQuery(
     { currentUser, checkRole },
-    { enabled: isSupabaseMode && !!currentUser && canView }
+    { enabled: !!currentUser && canView }
   );
 
-  const base44Res = useQuery({
-    queryKey: ['appUsers'],
-    queryFn: () => {
-      if (isSuperAdmin) return base44.entities.AppUser.list('-created_date');
+  const users = trpcRes.data ?? [];
+  const loadingUsers = trpcRes.isLoading;
 
-      if (isAdmin) return base44.entities.AppUser.filter({ organisation_id: currentUser.organisation_id });
-
-      return [];
-    },
-    enabled: !isSupabaseMode && !!currentUser && canView
-  });
+  const upsertPermission = useUpsertPermission();
+  const { data: permissions = [], isLoading: loadingPermissions } = useGetPermission(selectedUser?.id, canView);
   
-
-  const users = isSupabaseMode ? (trpcRes.data ?? []) : (base44Res.data ?? []);
-  const loadingUsers = isSupabaseMode ? trpcRes.isLoading : base44Res.isLoading;
-
-  const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
-    queryKey: ['user-permissions', selectedUser?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: selectedUser.id }),
-    enabled: !!selectedUser && canView,
-  });
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (permissions.length > 0) {
       const permMap = {};
       permissions.forEach(p => {
@@ -77,36 +58,38 @@ export default function ManagePermissions() {
     }
   }, [permissions, selectedUser]);
 
-  const updatePermissionMutation = useMutation({
-    mutationFn: async ({ slug, enabled }) => {
-      const existing = permissions.find(p => p.slug === slug);
-      
-      if (existing) {
-        return base44.entities.Permission.update(existing.id, { enabled });
-      } else {
-        return base44.entities.Permission.create({
-          user_id: selectedUser.id,
-          slug,
-          enabled
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['user-permissions', selectedUser?.id]);
-    }
-  });
-
   const saveAllPermissions = async () => {
     try {
       for (const [slug, enabled] of Object.entries(userPermissions)) {
-        await updatePermissionMutation.mutateAsync({ slug, enabled });
+        await upsertPermission.mutateAsync({
+          userId: selectedUser.id,
+          slug,
+          enabled
+        })
       }
-      showSuccess('Kebenaran berjaya dikemaskini')
-    } catch (error) {
-      showError('Ralat mengemaskini kebenaran');
+
+      showSuccess('Permission', 'update');
+    } catch {
+      showApiError();
     }
   };
 
+  const filteredUsers = users.filter(u => 
+    u.role !== 'superadmin' && (
+      !searchQuery ||
+      u.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+
+  const togglePermission = (slug) => {
+    setUserPermissions(prev => ({
+      ...prev,
+      [slug]: !prev[slug]
+    }));
+  };
+
+  
   if (loadingUser || permissionsLoading) {
     return (
       <PageLoadingComponent/>
@@ -118,6 +101,7 @@ export default function ManagePermissions() {
       <AccessDeniedComponent/>
     );
   }
+
   if (!canView) {
     return (
       <div className="space-y-6">
@@ -129,21 +113,6 @@ export default function ManagePermissions() {
       </div>
     );
   }
-
-  const filteredUsers = users.filter(u => 
-    u.role !== 'superadmin' && (
-      !searchQuery ||
-      u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
-
-  const togglePermission = (slug) => {
-    setUserPermissions(prev => ({
-      ...prev,
-      [slug]: !prev[slug]
-    }));
-  };
 
   return (
     <div className="space-y-6">
@@ -190,7 +159,7 @@ export default function ManagePermissions() {
                         : 'bg-white border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
                     }`}
                   >
-                    <p className="font-medium text-sm text-gray-900 dark:text-white">{user.full_name}</p>
+                    <p className="font-medium text-sm text-gray-900 dark:text-white">{user.fullname}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                     <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300">
                       {user.role}
@@ -214,11 +183,11 @@ export default function ManagePermissions() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b dark:border-gray-700">
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedUser.full_name}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedUser.fullname}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{selectedUser.email}</p>
                   </div>
                   { canEdit && (
-                    <Button onClick={saveAllPermissions} disabled={updatePermissionMutation.isPending}>
+                    <Button onClick={saveAllPermissions} disabled={upsertPermission.isPending}>
                       <Save className="w-4 h-4 mr-2" />
                       Simpan
                     </Button>
