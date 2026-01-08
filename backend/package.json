@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "type": "module",
+  "type": "module", 
   "scripts": {
     "dev": "tsx watch src/server.ts --poll 1000",
     "seed": "tsx src/db/seed.ts",
@@ -17,6 +17,7 @@
     "@supabase/supabase-js": "^2.89.0",
     "@trpc/server": "^11.8.1",
     "bcrypt": "^6.0.0",
+    "chokidar": "^5.0.0",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
     "ioredis": "^5.8.2",

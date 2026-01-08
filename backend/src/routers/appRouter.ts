@@ -6,6 +6,8 @@ import { router as trpcRouter } from "../trpc.ts";
 import { authRouter } from "./authRouter.ts";
 import { organisationRouter } from "./organisationRouter.ts";
 import { organisationTypeRouter } from "./organisationTypeRouter.ts";
+import { paymentFieldRouter } from "./paymentFieldRouter.ts";
+import { paymentPlatformRouter } from "./paymentPlatformRouter.ts";
 import { permissionRouter } from "./permissionRouter.ts";
 import { surahRouter } from "./surahRouter.ts";
 import { tahfizRouter } from "./tahfizRouter.ts";
@@ -15,6 +17,8 @@ export const appRouter = trpcRouter({
   auth: authRouter,
   users: usersRouter,
   permission: permissionRouter,
+  paymentPlatform: paymentPlatformRouter, 
+  paymentField: paymentFieldRouter, 
   surah: surahRouter,
   tahfiz: tahfizRouter,
   organisation: organisationRouter,

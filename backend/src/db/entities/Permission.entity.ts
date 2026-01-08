@@ -6,7 +6,6 @@ export class Permission {
     @PrimaryGeneratedColumn()
     id!: number;
 
-
     @ManyToOne(() => User, (user) => user.permission, {
         nullable: true,
         onDelete: "SET NULL",

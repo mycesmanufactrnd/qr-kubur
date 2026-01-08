@@ -14,9 +14,16 @@ import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
+import { 
+  useCreatePaymentPlatform,
+  useDeletePaymentPlatform,
+  useGetPaymentPlatform,
+  useUpdatePaymentPlatform, 
+} from '@/hooks/usePaymentPlatformMutations';
+import { validateFields } from '@/utils/validations';
 
 export default function ManagePaymentPlatforms() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlatform, setEditingPlatform] = useState(null);
   const [formData, setFormData] = useState({
@@ -26,93 +33,18 @@ export default function ManagePaymentPlatforms() {
     status: 'active',
     icon: ''
   });
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [platformToDelete, setPlatformToDelete] = useState(null);
 
-  const queryClient = useQueryClient();
+  const { 
+    loadingUser,
+    isSuperAdmin, 
+  } = useAdminAccess();
 
-  React.useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
-      if (appUserAuth) {
-        setCurrentUser(JSON.parse(appUserAuth));
-      }
-    } catch (e) {
-      setCurrentUser(null);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-
-  const { data: platforms = [], isLoading } = useQuery({
-    queryKey: ['payment-platforms'],
-    queryFn: () => base44.entities.PaymentPlatform.list(),
-    enabled: isSuperAdmin
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.PaymentPlatform.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-platforms']);
-      setIsDialogOpen(false);
-      setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
-      showSuccess('Payment Platform Successfully Created');
-    }
-  });
-  
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PaymentPlatform.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-platforms']);
-      setIsDialogOpen(false);
-      setEditingPlatform(null);
-      setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
-      showSuccess('Payment Platform Successfully Updated');
-    }
-  });
-  
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.PaymentPlatform.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-platforms']);
-      showSuccess('Payment Platform Successfully Deleted');
-    }
-  });
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  if (!isSuperAdmin) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
-          { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
-        ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const filteredPlatforms = platforms.filter(p => 
-    !searchQuery || 
-    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.code?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { data: platforms, isLoading } = useGetPaymentPlatform(isSuperAdmin);
+  const createMutation = useCreatePaymentPlatform();
+  const updateMutation = useUpdatePaymentPlatform();
+  const deleteMutation = useDeletePaymentPlatform();
 
   const openAddDialog = () => {
     setEditingPlatform(null);
@@ -134,20 +66,31 @@ export default function ManagePaymentPlatforms() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!formData.code?.trim()) {
-      showError('Sila masukkan kod platform');
-      return;
-    }
-    if (!formData.name?.trim()) {
-      showError('Sila masukkan nama platform');
-      return;
-    }
 
+    const isValid = validateFields(formData, [
+      { field: 'code', label: 'Code', type: 'text' },
+      { field: 'name', label: 'Name', type: 'text' },
+    ]);
+
+    if (!isValid) return;
+    
     if (editingPlatform) {
-      updateMutation.mutate({ id: editingPlatform.id, data: formData });
+      updateMutation.mutateAsync({ id: editingPlatform.id, data: formData })
+      .then((res) => {
+        if (res) {
+          setIsDialogOpen(false);
+          setEditingPlatform(null);
+          setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+        }
+      })
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutateAsync(formData)
+      .then((res) => {
+        if (res) {
+          setIsDialogOpen(false);
+          setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+        }
+      });
     }
   };
 
@@ -177,6 +120,27 @@ export default function ManagePaymentPlatforms() {
     );
   };
 
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
+        ]} />
+        <Card className="max-w-lg mx-auto mt-8">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
+            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
@@ -197,20 +161,6 @@ export default function ManagePaymentPlatforms() {
         </Button>
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Search platforms..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-3">
         {isLoading ? (
@@ -221,14 +171,14 @@ export default function ManagePaymentPlatforms() {
               </CardContent>
             </Card>
           ))
-        ) : filteredPlatforms.length === 0 ? (
+        ) : platforms.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
               <p className="text-sm text-gray-500">No platforms found</p>
             </CardContent>
           </Card>
         ) : (
-          filteredPlatforms.map(platform => (
+          platforms.map(platform => (
             <Card key={platform.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
@@ -273,12 +223,12 @@ export default function ManagePaymentPlatforms() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">Loading...</TableCell>
                 </TableRow>
-              ) : filteredPlatforms.length === 0 ? (
+              ) : platforms.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">No platforms found</TableCell>
                 </TableRow>
               ) : (
-                filteredPlatforms.map(platform => (
+                platforms.map(platform => (
                   <TableRow key={platform.id}>
                     <TableCell className="font-mono">{platform.code}</TableCell>
                     <TableCell className="font-medium">{platform.name}</TableCell>

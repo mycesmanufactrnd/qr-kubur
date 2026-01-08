@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
-import { OrganisationStatus } from "../enums/organisation.enums.ts";
+import { ActiveInactiveStatus } from "../enums.js";
 
 @Entity("organisationtype")
 export class OrganisationType {
@@ -18,10 +18,10 @@ export class OrganisationType {
 
   @Column({
     type: "enum",
-    enum: OrganisationStatus,
-    default: OrganisationStatus.ACTIVE,
+    enum: ActiveInactiveStatus,
+    default: ActiveInactiveStatus.ACTIVE,
   })
-  status!: OrganisationStatus;
+  status!: ActiveInactiveStatus;
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
