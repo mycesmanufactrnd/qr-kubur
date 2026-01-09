@@ -23,7 +23,7 @@ export default function CheckTahlilStatus() {
     isLoading,
     isError,
   } = trpc.tahlilRequest.getByReferenceNo.useQuery(
-    searchKey ? { referenceno: searchKey } : undefined,
+    searchKey ? { referenceno: searchKey } : null,
     { enabled: !!searchKey }
   );
 
@@ -153,7 +153,17 @@ export default function CheckTahlilStatus() {
         </Card>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setSearchKey(null);
+            setRequest(null);
+            setTahfizCenter(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-3xl w-full max-h-[95vh] overflow-y-auto rounded-2xl p-0">
           <DialogHeader className="border-b px-6 py-4">
             <DialogTitle className="text-center text-xl font-bold tracking-wide">
@@ -229,7 +239,10 @@ export default function CheckTahlilStatus() {
                 </div>
               )}
               <Button
-                onClick={() => setIsDialogOpen(false)}
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setSearchKey(null);
+                }}
                 className="w-full h-12 text-lg rounded-xl"
                 variant="outline"
               >
