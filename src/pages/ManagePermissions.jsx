@@ -139,7 +139,7 @@ export default function ManagePermissions() {
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {loadingUsers ? (
                 <p className="text-sm text-gray-500 text-center py-4">{translate('loading...')}</p>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.items.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">{translate('noUserFound')}</p>
               ) : (
                 users.items.map(user => (

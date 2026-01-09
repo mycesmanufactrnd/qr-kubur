@@ -19,6 +19,7 @@ import { useState } from "react";
 import { impersonateUser, useAdminAccess } from "@/utils/auth";
 import { useGetUserPaginated } from "@/hooks/useUserMutations";
 import Pagination from "@/components/Pagination";
+import { translate } from "@/utils/translations";
 
 export default function ImpersonateUser() {
   const [page, setPage] = useState(1);

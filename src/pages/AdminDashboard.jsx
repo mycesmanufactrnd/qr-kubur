@@ -100,7 +100,7 @@ export default function AdminDashboard() {
       icon: BookOpen, 
       color: 'amber', 
       page: 'ManageTahfizCenters',
-      disabled: !isTahfizAdmin,
+      disabled: !isTahfizAdmin && !isSuperAdmin,
     },
   ];
 
