@@ -10,15 +10,11 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-
     "docker:rebuild:all": "docker compose --env-file .env down -v --remove-orphans && docker compose --env-file .env up -d --build",
-
     "docker:up": "docker compose --env-file .env up -d",
     "docker:down": "docker compose --env-file .env down",
-    
     "docker:up:build": "docker compose --env-file .env down --build -d",
     "docker:down:volume": "docker compose --env-file .env down -v",
-    
     "docker:restart:dev": "docker compose up -d --force-recreate backend frontend",
     "docker:rebuild:dev": "docker compose build backend frontend && docker compose up -d backend frontend",
     "docker:rebuild:backend": "docker compose stop backend && docker compose rm -f backend && docker volume rm qr-kubur_backend_node_modules && docker compose build backend && docker compose up -d backend && docker compose logs -f backend",
@@ -106,6 +102,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "@playwright/test": "^1.57.0",
     "@types/node": "^22.13.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",

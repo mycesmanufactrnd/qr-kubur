@@ -21,6 +21,9 @@ import {
   useDeleteOrganisationType 
 } from '@/hooks/useOrganisationTypeMutations';
 import { validateFields } from '@/utils/validations';
+import { showError, showSuccess } from '@/components/ToastrNotification';
+import { translate } from '@/utils/translations';
+
 
 export default function ManageOrganisationTypes() {
   const {
@@ -124,20 +127,20 @@ export default function ManageOrganisationTypes() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Super Admin', page: 'SuperadminDashboard' },
-        { label: 'Jenis Organisasi', page: 'ManageOrganisationTypes' }
+        { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
+        { label: translate('orgType'), page: 'ManageOrganisationTypes' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Tag className="w-6 h-6 text-purple-600" />
-            Urus Jenis Organisasi
+            <Tag className="w-6 h-6 text-purple-600" /> 
+            {translate('manageOrganizationTypes')}
           </h1>
         </div>
         <Button onClick={openAddDialog} className="bg-purple-600 hover:bg-purple-700">
           <Plus className="w-4 h-4 mr-2" />
-          Tambah Jenis
+          {translate('addType')}
         </Button>
       </div>
 
@@ -146,20 +149,20 @@ export default function ManageOrganisationTypes() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Deskripsi</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{translate('name')}</TableHead>
+                <TableHead>{translate('description')}</TableHead>
+                <TableHead>{translate('status')}</TableHead>
+                <TableHead className="text-right">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {typesLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8">{translate('loading...')}</TableCell>
                 </TableRow>
               ) : types.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">Tiada rekod</TableCell>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
                 types.map(type => (
@@ -168,7 +171,7 @@ export default function ManageOrganisationTypes() {
                     <TableCell>{type.description || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={type.status === 'active' ? 'default' : 'secondary'}>
-                        {type.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                        {type.status === 'active' ? translate('active') : translate('inactive')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -191,43 +194,43 @@ export default function ManageOrganisationTypes() {
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingType ? 'Edit Jenis Organisasi' : 'Tambah Jenis Organisasi Baru'}
+              {editingType ? translate('editOrganizationType') : translate('addNewOrganizationType')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label>Nama <span className="text-red-500">*</span></Label>
+              <Label>{translate('name')} <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
             </div>
             <div>
-              <Label>Deskripsi</Label>
+              <Label>{translate('description')}</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               />
             </div>
             <div>
-              <Label>Status</Label>
+              <Label>{translate('status')}</Label>
               <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Aktif</SelectItem>
-                  <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                  <SelectItem value="active">{translate('active')}</SelectItem>
+                  <SelectItem value="inactive">{translate('inactive')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Batal
+                {translate('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                Simpan
+                {translate('save')}
               </Button>
             </DialogFooter>
           </form>
@@ -236,11 +239,11 @@ export default function ManageOrganisationTypes() {
 
       <ConfirmDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Padam Jenis Organisasi"
-        description={`Adakah anda pasti ingin memadam "${typeToDelete?.name}"? Tindakan ini tidak boleh dibatalkan.`}
+        onOpenChange={setDeleteDialogOpen} 
+        title={translate('deleteOrganizationType')} 
+        description={`${translate('areYouSureYouWantToDelete')} "${typeToDelete?.name}"? ${translate('thisActionCannotBeUndone')}.`}
         onConfirm={confirmDelete}
-        confirmText="Padam"
+        confirmText={translate('delete')}
         variant="destructive"
       />
     </div>

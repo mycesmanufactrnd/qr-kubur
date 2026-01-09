@@ -254,8 +254,8 @@ export default function ManageDonations() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Admin Dashboard', page: 'AdminDashboard' },
-          { label: 'Urus Derma', page: 'ManageDonations' }
+          { label: translate('adminDashboard'), page: 'AdminDashboard' },
+          { label: translate('manageDonations'), page: 'ManageDonations' }
         ]} />
         <Card className="max-w-lg mx-auto">
           <CardContent className="p-8 text-center">
@@ -270,8 +270,8 @@ export default function ManageDonations() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Admin Dashboard', page: 'AdminDashboard' },
-        { label: 'Urus Derma', page: 'ManageDonations' }
+        { label: translate('adminDashboard'), page: 'AdminDashboard' },
+        { label: translate('manageDonations'), page: 'ManageDonations' }
       ]} />
       
       {/* Header */}
@@ -279,10 +279,10 @@ export default function ManageDonations() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-            Urus Derma
+            {translate('manageDonations')} 
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            {donations.filter(d => d.status === 'pending').length} menunggu pengesahan
+            {donations.filter(d => d.status === 'pending').length} {translate('awaitingVerification')}
           </p>
         </div>
       </div>
@@ -291,14 +291,14 @@ export default function ManageDonations() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-700 dark:to-teal-800 text-white">
           <CardContent className="p-4">
-            <p className="text-emerald-100 text-sm">Jumlah Disahkan</p>
+            <p className="text-emerald-100 text-sm">{translate('totalVerified')}</p>
             <p className="text-2xl font-bold">RM {totalVerified.toLocaleString()}</p>
           </CardContent>
         </Card>
         {[
-          { label: 'Menunggu', value: donations.filter(d => d.status === 'pending').length, color: 'yellow' },
-          { label: 'Disahkan', value: donations.filter(d => d.status === 'verified').length, color: 'green' },
-          { label: 'Ditolak', value: donations.filter(d => d.status === 'rejected').length, color: 'red' }
+          { label: translate('pending'), value: donations.filter(d => d.status === 'pending').length, color: 'yellow' },
+          { label: translate('verified'), value: donations.filter(d => d.status === 'verified').length, color: 'green' },
+          { label: translate('rejected'), value: donations.filter(d => d.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -314,15 +314,15 @@ export default function ManageDonations() {
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Filter className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
           </div>
           
           {/* Search by name */}
           <div>
-            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Cari Penderma/Penerima</label>
+            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('findDonor/Recipient')}</label>
             <input
               type="text"
-              placeholder="Masukkan nama penderma atau penerima..."
+              placeholder={translate('enterDonorOrRecipientName')}  
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
@@ -332,7 +332,7 @@ export default function ManageDonations() {
           {/* Date range */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Dari</label>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('dateFrom')} </label>
               <input
                 type="date"
                 value={dateFrom}
@@ -341,7 +341,7 @@ export default function ManageDonations() {
               />
             </div>
             <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Hingga</label>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('dateTo')} </label>
               <input
                 type="date"
                 value={dateTo}
@@ -354,7 +354,7 @@ export default function ManageDonations() {
           {/* Filters row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Status</label>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('status')} </label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder={translate('allStatus')} />
@@ -369,30 +369,30 @@ export default function ManageDonations() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Jenis Penerima</label>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('recipientType')}</label> 
               <Select value={filterRecipientType} onValueChange={setFilterRecipientType}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder="Semua Jenis" />
+                  <SelectValue placeholder={translate('allTypes')}/>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Jenis</SelectItem>
-                  <SelectItem value="organisation">Organisasi</SelectItem>
-                  <SelectItem value="tahfiz">Pusat Tahfiz</SelectItem>
+                  <SelectItem value="all">{translate('allTypes')}</SelectItem>
+                  <SelectItem value="organisation">{translate('org')}</SelectItem>
+                  <SelectItem value="tahfiz">{translate('TahfizCenter')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">Kaedah Pembayaran</label>
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('paymentMethod')}</label>
               <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="Semua Kaedah" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Kaedah</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="duitnow">DuitNow</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="all">{translate('allMethods')}</SelectItem>
+                  <SelectItem value="bank_transfer">{translate('bankTransfer')}</SelectItem>
+                  <SelectItem value="duitnow">{translate('duitNow')}</SelectItem>
+                  <SelectItem value="online">{translate('online')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -413,7 +413,7 @@ export default function ManageDonations() {
                   setFilterPaymentMethod('all');
                 }}
               >
-                Reset Semua Carian
+                {translate('resetAllSearches')}
               </Button>
             </div>
           )}
@@ -422,7 +422,7 @@ export default function ManageDonations() {
 
       {/* Results count */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        Menunjukkan {filteredDonations.length} daripada {donations.length} derma
+        {translate('show')} {filteredDonations.length} {translate('from')} {donations.length} {translate('donate')}
       </div>
 
       {/* Mobile Cards */}
@@ -477,12 +477,12 @@ export default function ManageDonations() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Penderma</TableHead>
-                <TableHead>Penerima</TableHead>
-                <TableHead>Jumlah</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tarikh</TableHead>
-                <TableHead className="text-right">Tindakan</TableHead>
+                <TableHead>{translate('donor')}</TableHead>
+                <TableHead>{translate('recipient')}</TableHead>
+                <TableHead>{translate('amount')}</TableHead>
+                <TableHead>{translate('status')}</TableHead>
+                <TableHead>{translate('date')}</TableHead>
+                <TableHead className="text-right">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

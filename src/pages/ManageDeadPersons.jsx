@@ -352,21 +352,24 @@ export default function ManageDeadPersons() {
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">Carian Lanjutan</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">Nama Penuh</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('fullName')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('fullName')}</Label>
               <Input
-                placeholder="Cari nama si mati..."
+                placeholder={translate('searchDeceasedName')} 
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
                 className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">No. IC</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('icNumber')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('icNumber')}</Label>
               <Input
                 placeholder="XXXXXX-XX-XXXX"
                 value={filterIC}
@@ -378,7 +381,8 @@ export default function ManageDeadPersons() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">Tarikh Meninggal Dari</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('dateOfBirth')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('dateOfBirth')}</Label>
               <Input
                 type="date"
                 value={dateFrom}
@@ -387,7 +391,8 @@ export default function ManageDeadPersons() {
               />
             </div>
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">Tarikh Meninggal Hingga</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('dateOfDeath')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('dateOfDeath')}</Label>
               <Input
                 type="date"
                 value={dateTo}
@@ -400,7 +405,8 @@ export default function ManageDeadPersons() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {isSuperAdmin && (
               <div>
-                <Label className="text-sm text-gray-600 dark:text-gray-400">Negeri</Label>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('state')}</Label>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('state')}</Label>
                 <Select value={filterState} onValueChange={(v) => {
                   setFilterState(v);
                   setFilterGrave('all');
@@ -409,7 +415,8 @@ export default function ManageDeadPersons() {
                     <SelectValue placeholder="Pilih negeri" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Semua Negeri</SelectItem>
+                    <SelectItem value="all">{translate('allStates')}</SelectItem>
+                    <SelectItem value="all">{translate('allStates')}</SelectItem>
                     {STATES_MY.map(state => (
                       <SelectItem key={state} value={state}>{state}</SelectItem>
                     ))}
@@ -418,13 +425,15 @@ export default function ManageDeadPersons() {
               </div>
             )}
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">Tanah Perkuburan</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('cemetery')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('cemetery')}</Label>
               <Select value={filterGrave} onValueChange={setFilterGrave}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="Pilih tanah perkuburan" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Tanah Perkuburan</SelectItem>
+                  <SelectItem value="all">{translate('allCemeteries')}</SelectItem>
+                  <SelectItem value="all">{translate('allCemeteries')}</SelectItem>
                   {gravesList.map(grave => (
                     <SelectItem key={grave.id} value={grave.id}>
                       {grave.cemetery_name} - {grave.state}
@@ -627,7 +636,7 @@ export default function ManageDeadPersons() {
               <Label>{translate('cemeteryName')} <span className="text-red-500">*</span></Label>
               <Select value={formData.grave_id} onValueChange={(v) => setFormData({...formData, grave_id: v})}>
                 <SelectTrigger>
-                  <SelectValue placeholder={translate('selectGrave')} />
+                  <SelectValue placeholder={translate('selectCemetery')} />
                 </SelectTrigger>
                 <SelectContent>
                   {gravesList.map(grave => (
@@ -640,7 +649,8 @@ export default function ManageDeadPersons() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>GPS Latitude</Label>
+                <Label>{translate('gpsLat')}</Label>
+                <Label>{translate('gpsLat')}</Label>
                 <Input
                   type="number"
                   step="any"
@@ -650,7 +660,8 @@ export default function ManageDeadPersons() {
                 />
               </div>
               <div>
-                <Label>GPS Longitude</Label>
+                <Label>{translate('gpsLng')}</Label>
+                <Label>{translate('gpsLng')}</Label>
                 <Input
                   type="number"
                   step="any"
