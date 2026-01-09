@@ -5,6 +5,17 @@ import { TahlilRequest } from "../db/entities.ts";
 import { tahlilRequestApprovalSchema, tahlilRequestSchema } from "../schemas/tahlilRequestSchema.ts";
 
 export const tahlilRequestRouter = router({
+    getByReferenceNo: publicProcedure
+        .input(z.object({ referenceno: z.string() }))
+        .query(async ({ input }) => {
+            const repo = AppDataSource.getRepository(TahlilRequest);
+
+            return await repo.findOne({
+                where: { referenceno: input.referenceno },
+                relations: ['tahfizcenter']
+            });
+        }),
+        
     getPaginated: protectedProcedure
         .input(
             z.object({

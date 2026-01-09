@@ -22,6 +22,9 @@ export class TahlilRequest {
     @Column("text", { array: true, nullable: true })
     selectedservices?: string[];
 
+    @Column({ type: "date", nullable: true })
+    preferreddate?: Date;
+
     @ManyToOne(() => TahfizCenter, (tahfizcenter) => tahfizcenter.tahlilrequests, {
         nullable: true,
         onDelete: "SET NULL",
@@ -30,6 +33,9 @@ export class TahlilRequest {
 
     @Column("varchar", { length: 255, nullable: true })
     referenceno?: string;
+
+    @Column("text", { nullable: true })
+    notes?: string;
 
     @Column({
         type: "enum",
