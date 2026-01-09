@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } f
 import { User } from "./User.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
 import { Donation } from "./Donation.entity.ts";
+import { TahlilRequest } from "./TahlilRequest.entity.js";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -49,6 +50,9 @@ export class TahfizCenter {
 
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
   donations!: Donation[];
+
+  @OneToMany(() => TahlilRequest, (tahlilrequests) => tahlilrequests.tahfizcenter)
+  tahlilrequests!: TahlilRequest[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

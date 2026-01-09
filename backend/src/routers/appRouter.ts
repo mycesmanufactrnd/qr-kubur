@@ -13,6 +13,7 @@ import { permissionRouter } from "./permissionRouter.ts";
 import { suggestionRouter } from "./suggestionRouter.ts";
 import { surahRouter } from "./surahRouter.ts";
 import { tahfizRouter } from "./tahfizRouter.ts";
+import { tahlilRequestRouter } from "./tahlilRequestRouter.ts";
 import { usersRouter } from "./usersRouter.ts";
 
 export const appRouter = trpcRouter({
@@ -27,6 +28,7 @@ export const appRouter = trpcRouter({
   organisationType: organisationTypeRouter,
   suggestion: suggestionRouter,
   donation: donationRouter,
+  tahlilRequest: tahlilRequestRouter,
 });
 
 export type AppRouter = typeof appRouter;

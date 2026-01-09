@@ -32,12 +32,12 @@ export const suggestionRouter = router({
 
             if (!checkRole?.superadmin) {
                 if (currentUser.tahfizcenter) {
-                    query.leftJoinAndSelect("suggestion.organisation", "organisation")
+                    query.leftJoinAndSelect("suggestion.tahfizcenter", "tahfizcenter")
                         .andWhere("suggestion.tahfizcenterId = :tahfizId", { tahfizId: currentUser.tahfizcenter.id });
                 }
 
                 if (currentUser.organisation) {
-                    query.leftJoinAndSelect("suggestion.tahfizcenter", "tahfizcenter")
+                    query.leftJoinAndSelect("suggestion.organisation", "organisation")
                         .andWhere("suggestion.organisationId = :orgId", { orgId: currentUser.organisation.id });
                 }
             }

@@ -110,3 +110,10 @@ export enum VerificationStatus {
   VERIFY = "verify",
   REJECTED = "rejected",
 }
+
+export enum TahlilStatus {
+  PENDING = "pending",
+  COMPLETED = "completed",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+}
