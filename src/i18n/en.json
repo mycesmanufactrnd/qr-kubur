@@ -110,7 +110,7 @@
   "active": "Active",
   "inactive": "Inactive",
   "noRecords": "No records",
-  "Access Denied": "Access Denied",
+  "accessDenied": "Access Denied",
   "You do not have permission to access this page.": "You do not have permission to access this page.",
 
   "superadminDashboard": "Super Admin Dashboard",
@@ -304,7 +304,18 @@
   "confirmDelete": "Confirm delete",
   "paymentConfig": "Payment Configuration",
   "selectPaymentPlatforms": "Select Payment Platforms",
-  "config": "Configuration"
+  "config": "Configuration",
+  "saving...": "Saving...",
+  "savingConfig": "Save Configuration",
+  "uploading...": "Upload...",
+  "doNotHavePermissionAccessPage": "You do not have permission to access this page.",
+
+  "searchPlatform": "Search platforms...",
+  "noPlatformFound": "No platforms found"
+
+
+
+
 
 
 

@@ -165,7 +165,7 @@ export default function PaymentConfigDialog({
                 }}
                 disabled={isUploading}
               />
-              {isUploading && <span className="text-sm text-gray-500">Uploading...</span>}
+              {isUploading && <span className="text-sm text-gray-500">translate('uploading...')</span>}
             </div>
             {value && (
               <img src={value} alt="Preview" className="mt-2 h-20 rounded border" />
@@ -268,7 +268,7 @@ export default function PaymentConfigDialog({
           </Button>
           <Button onClick={handleSave} disabled={saveMutation.isPending || selectedPlatforms.length === 0}>
             <Save className="w-4 h-4 mr-2" />
-            {saveMutation.isPending ? 'Saving...' : 'Save Configuration'}
+            {saveMutation.isPending ? translate('saving...') : translate('savingConfig')}
           </Button>
         </DialogFooter>
       </DialogContent>
