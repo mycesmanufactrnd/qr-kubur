@@ -21,17 +21,21 @@ toastr.options = {
   hideMethod: 'fadeOut'
 };
 
-export const showSuccess = (successType = null, message = '', title = 'Success') => {
+export const showSuccess = (message = '', successType = null) => {
+  const title = translate('Success');
+
   let translatedMessage = translate(message);
 
   if (ACTION_MAPS[successType]) {
     translatedMessage += ` ${translate(ACTION_MAPS[successType])}`;
   }
 
-  toastr.success(translatedMessage, translate(title));
+  toastr.success(translatedMessage, title);
 };
 
-export const showError = (errorType = null, message = '', title = 'Ralat') => {
+export const showError = (message = '', errorType = null) => {
+  const title = translate('Error');
+
   let translatedMessage = translate(message);
 
   if (ACTION_FAILURE_MAPS[errorType]) {
@@ -49,7 +53,7 @@ export const showWarning = (message, title = 'Amaran') => {
   toastr.warning(message, title);
 };
 
-export const showValidationError = (field) => {
+export const showRequiredError = (field) => {
   toastr.error(`Sila lengkapkan medan: ${field}`, 'Pengesahan Gagal');
 };
 

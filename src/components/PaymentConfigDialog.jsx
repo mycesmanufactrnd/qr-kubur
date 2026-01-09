@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreditCard, Save, Upload } from 'lucide-react';
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
@@ -17,7 +16,7 @@ export default function PaymentConfigDialog({
   open, 
   onOpenChange, 
   entityId, 
-  entityType // 'tahfiz' or 'organisation'
+  entityType
 }) {
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [configValues, setConfigValues] = useState({});
@@ -45,7 +44,7 @@ export default function PaymentConfigDialog({
     enabled: open && !!entityId
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (existingConfigs.length > 0) {
       const values = {};
       const platformSet = new Set();

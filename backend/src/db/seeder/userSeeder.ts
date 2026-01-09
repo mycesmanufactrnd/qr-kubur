@@ -26,7 +26,7 @@ export async function runUserSeeder() {
     email: "admin@qr-kubur.com",
     password: hashedPassword,
     role: "superadmin",
-    state: ["Johor", "Selangor"],
+    states: ["Johor", "Selangor"],
     organisation: null,
     tahfizcenter: null,
   };

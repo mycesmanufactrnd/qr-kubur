@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { isSupabaseMode, handleLoginBase44, handleLoginTRPC } from '@/utils/auth';
+import { handleLoginTRPC } from '@/utils/auth';
 
 export default function AppUserLogin() {
   
@@ -16,11 +16,7 @@ export default function AppUserLogin() {
   const onSubmit = (e) => {
     e.preventDefault();
 
-    if (isSupabaseMode) {
-      login(email, password);
-    } else {
-      handleLoginBase44({ email, password, setLoading: () => {}, setError });
-    }
+    login(email, password);
   };
 
   return (

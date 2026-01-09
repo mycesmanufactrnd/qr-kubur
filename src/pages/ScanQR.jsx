@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
 import { QrCode, Camera, X, AlertCircle, CheckCircle, Keyboard } from 'lucide-react';
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QrScanner from 'react-qr-scanner';
-import { translate } from '@/utils/translations.jsx';
+import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 
 export default function ScanQR() {
