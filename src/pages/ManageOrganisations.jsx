@@ -341,20 +341,20 @@ export default function ManageOrganisations() {
               )}
             </TableBody>
           </Table>
+          {totalPages > 0 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value);
+                setPage(1);
+              }}
+              totalItems={organisationsList.total}
+            />
+          )}
         </CardContent>
-        {totalPages > 0 && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(value) => {
-              setItemsPerPage(value);
-              setPage(1);
-            }}
-            totalItems={organisationsList.total}
-          />
-        )}
       </Card>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">

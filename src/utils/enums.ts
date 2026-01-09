@@ -93,3 +93,14 @@ export const ACTION_FAILURE_MAPS = {
   approve: 'Approval Failed',
   deny: 'Denial Failed',
 };
+
+export enum ActiveInactiveStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive"
+}
+
+export enum ApprovalStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}

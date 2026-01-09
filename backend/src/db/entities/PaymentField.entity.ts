@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("paymentfield")
 export class PaymentField {
@@ -22,4 +22,7 @@ export class PaymentField {
     
     @Column("varchar", { length: 255, nullable: true })
     placeholder?: string;
+
+    @CreateDateColumn({ name: "createdat" })
+    createdat!: Date;
 }

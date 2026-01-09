@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { User } from "./User.entity.ts";
-import { nullable } from "zod";
+import { Suggestion } from "./Suggestion.entity.ts";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -40,8 +40,11 @@ export class TahfizCenter {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @OneToMany(() => User, (user) => user.tahfizcenter)
-  user!: User[];
+  @OneToMany(() => User, (users) => users.tahfizcenter)
+  users!: User[];
+
+  @OneToMany(() => Suggestion, (suggestions) => suggestions.tahfizcenter)
+  suggestions!: Suggestion[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

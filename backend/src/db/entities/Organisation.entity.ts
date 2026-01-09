@@ -2,13 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, Ma
 import { User } from "./User.entity.ts";
 import { OrganisationType } from "./OrganisationType.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
+import { Suggestion } from "./Suggestion.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => OrganisationType, (organisationtype) => organisationtype.organisation, {
+  @ManyToOne(() => OrganisationType, (organisationtype) => organisationtype.organisations, {
     nullable: true,
     onDelete: "SET NULL",
   })
@@ -49,7 +50,10 @@ export class Organisation {
   status!: ActiveInactiveStatus;
 
   @OneToMany(() => User, (user) => user.organisation)
-  user!: User[];
+  users!: User[];
+
+  @OneToMany(() => Suggestion, (suggestions) => suggestions.tahfizcenter)
+  suggestions!: Suggestion[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

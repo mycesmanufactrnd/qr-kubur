@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   SUGGESTIONS_VIEW: 'suggestions_view',
   SUGGESTIONS_APPROVE: 'suggestions_approve',
   SUGGESTIONS_REJECT: 'suggestions_reject',
+  SUGGESTIONS_DELETE: 'suggestions_delete',
   
   // Donations
   DONATIONS_VIEW: 'donations_view',

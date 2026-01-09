@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { ActiveInactiveStatus } from "../enums.ts";
 
 @Entity("paymentplatform")
@@ -24,4 +24,7 @@ export class PaymentPlatform {
 
     @Column("varchar", { length: 50, nullable: true })
     icon?: string;
+
+    @CreateDateColumn({ name: "createdat" })
+    createdat!: Date;
 }
