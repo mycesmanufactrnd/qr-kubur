@@ -3,6 +3,7 @@
 // but to check with Postman interchangeable POST with GET
 
 import { router as trpcRouter } from "../trpc.ts";
+import { activityLogsRouter } from "./activityLogsRouter.ts";
 import { authRouter } from "./authRouter.ts";
 import { donationRouter } from "./donationRouter.ts";
 import { organisationRouter } from "./organisationRouter.ts";
@@ -29,6 +30,7 @@ export const appRouter = trpcRouter({
   suggestion: suggestionRouter,
   donation: donationRouter,
   tahlilRequest: tahlilRequestRouter,
+  activityLogs: activityLogsRouter,
 });
 
 export type AppRouter = typeof appRouter;

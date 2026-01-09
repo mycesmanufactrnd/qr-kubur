@@ -8,3 +8,4 @@ export * from "./entities/TahfizCenter.entity.ts";
 export * from "./entities/Suggestion.entity.ts";
 export * from "./entities/Donation.entity.ts";
 export * from "./entities/TahlilRequest.entity.ts";
+export * from "./entities/ActivityLog.entity.ts";
