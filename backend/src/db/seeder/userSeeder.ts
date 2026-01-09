@@ -31,7 +31,17 @@ export async function runUserSeeder() {
     tahfizcenter: null,
   };
 
-  const adminEntity = userRepo.create(superadmin);
+  const ainulUser: DeepPartial<User> = {
+  fullname: "AINUL SYUHADAH BINTI HAMDAN",
+  email: "ainulhamdans@gmail.com",
+  password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // Pre-hashed
+  role: "superadmin", // Or "admin" depending on the access you want
+  state: ["Selangor"],
+  organisation: null,
+  tahfizcenter: null,
+  };
+
+  const adminEntity = userRepo.create([superadmin, ainulUser]);
   await userRepo.save(adminEntity);
 
   console.log("✔ Users seeded");

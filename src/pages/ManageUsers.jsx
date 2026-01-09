@@ -1,3 +1,4 @@
+import { translate } from '@/utils/translations';
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,7 +25,6 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
 import { trpc } from '@/utils/trpc';
-import { translate } from '@/utils/translations';
 
 export default function ManageUsers() {
   const { 
@@ -363,6 +363,7 @@ export default function ManageUsers() {
           <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="w-4 h-4 mr-2" />
             {translate('addUser')}
+            {translate('addUser')}
           </Button>
         )}
       </div>
@@ -521,6 +522,7 @@ export default function ManageUsers() {
                   )}
 
                   <div>
+                  <label className="text-sm font-medium mb-2 block">{translate('role')}</label>
                   <label className="text-sm font-medium mb-2 block">{translate('role')}</label>
                   <Select 
                   value={editUser.role || 'employee'} 

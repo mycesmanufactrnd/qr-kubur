@@ -641,6 +641,7 @@ export default function ManageDeadPersons() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{translate('gpsLat')}</Label>
+                <Label>{translate('gpsLat')}</Label>
                 <Input
                   type="number"
                   step="any"
@@ -650,6 +651,7 @@ export default function ManageDeadPersons() {
                 />
               </div>
               <div>
+                <Label>{translate('gpsLng')}</Label>
                 <Label>{translate('gpsLng')}</Label>
                 <Input
                   type="number"
