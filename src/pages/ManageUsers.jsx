@@ -26,7 +26,6 @@ import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
 import { trpc } from '@/utils/trpc';
 
-import { translate } from '@/utils/translations';
 
 export default function ManageUsers() {
   const { 
