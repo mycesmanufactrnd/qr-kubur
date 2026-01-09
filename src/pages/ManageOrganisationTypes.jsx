@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Tag, Plus, Edit, Trash2, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,91 +9,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { useAdminAccess } from '@/utils/auth';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import PageLoadingComponent from '../components/PageLoadingComponent';
+import { 
+  useGetOrganisationType, 
+  useCreateOrganisationType, 
+  useUpdateOrganisationType, 
+  useDeleteOrganisationType 
+} from '@/hooks/useOrganisationTypeMutations';
+import { validateFields } from '@/utils/validations';
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import { translate } from '@/utils/translations';
 
 
 export default function ManageOrganisationTypes() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const {
+    loadingUser, 
+    isSuperAdmin,
+    hasAdminAccess,
+  } = useAdminAccess();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', status: 'active' });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
 
-  const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
-        if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
-        }
-      } catch (e) {
-        setCurrentUser(null);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    loadUser();
-  }, []);
-
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-
-  const { data: types = [], isLoading } = useQuery({
-    queryKey: ['organisation-types'],
-    queryFn: () => base44.entities.OrganisationType.list('-created_date'),
-    enabled: isSuperAdmin
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.OrganisationType.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organisation-types']);
-      setIsDialogOpen(false);
-      setFormData({ name: '', description: '', status: 'active' });
-      showSuccess('Jenis organisasi berjaya ditambah');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.OrganisationType.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organisation-types']);
-      setIsDialogOpen(false);
-      setEditingType(null);
-      setFormData({ name: '', description: '', status: 'active' });
-      showSuccess('Jenis organisasi berjaya dikemaskini');
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.OrganisationType.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['organisation-types']);
-      showSuccess('Jenis organisasi berjaya dipadam');
-    }
-  });
-
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  if (!isSuperAdmin) {
-    return (
-      <Card className="max-w-lg mx-auto mt-8">
-        <CardContent className="p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Hanya superadmin boleh mengurus jenis organisasi.</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const { 
+    data: types, 
+    isLoading: typesLoading, 
+  } = useGetOrganisationType(hasAdminAccess);
+  const createMutation = useCreateOrganisationType();
+  const updateMutation = useUpdateOrganisationType();
+  const deleteMutation = useDeleteOrganisationType();
 
   const openAddDialog = () => {
     setEditingType(null);
@@ -115,15 +64,32 @@ export default function ManageOrganisationTypes() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name?.trim()) {
-      showError('Sila masukkan nama jenis organisasi');
-      return;
-    }
+
+    const isValid = validateFields(formData, [
+      { field: 'name', label: 'Name', type: 'text' },
+    ]);
+
+    if (!isValid) return;
 
     if (editingType) {
-      updateMutation.mutate({ id: editingType.id, data: formData });
+      updateMutation.mutateAsync({ 
+        id: editingType.id, 
+        ...formData 
+      }).then((res) => {
+        if(res) {
+          setIsDialogOpen(false);
+          setEditingType(null);
+          setFormData({ name: '', description: '', status: 'active' });          
+        }
+      });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutateAsync(formData)
+      .then((res) => {
+        if(res) {
+          setIsDialogOpen(false);
+          setFormData({ name: '', description: '', status: 'active' });
+        }
+      });
     }
   };
 
@@ -134,10 +100,29 @@ export default function ManageOrganisationTypes() {
 
   const confirmDelete = () => {
     if (!typeToDelete) return;
-    deleteMutation.mutate(typeToDelete.id);
+    deleteMutation.mutate({ id: typeToDelete.id });
+
     setDeleteDialogOpen(false);
     setTypeToDelete(null);
   };
+
+  if (loadingUser) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: 'Jenis Organisasi', page: 'ManageOrganisationTypes' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -171,7 +156,7 @@ export default function ManageOrganisationTypes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {typesLoading ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">{translate('loading...')}</TableCell>
                 </TableRow>

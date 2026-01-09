@@ -5,9 +5,11 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  OneToMany,
 } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
 import { TahfizCenter } from "./TahfizCenter.entity.ts";
+import { Permission } from "./Permission.entity.ts";
 
 @Entity("users")
 export class User {
@@ -41,8 +43,11 @@ export class User {
   })
   tahfizcenter?: TahfizCenter | null;
 
+  @OneToMany(() => Permission, (permission) => permission.user)
+  permission!: Permission[];
+
   @Column("text", { array: true, nullable: true })
-  state?: string[];
+  states?: string[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

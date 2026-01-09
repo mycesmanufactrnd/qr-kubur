@@ -12,6 +12,9 @@ import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
 import { showSuccess } from '@/components/ToastrNotification';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select';
+import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';
+import { DialogFooter, DialogHeader } from '@/components/ui/dialog';
 
 export default function ManageSuggestions() {
   const [filterStatus, setFilterStatus] = useState('all');
@@ -403,7 +406,6 @@ export default function ManageSuggestions() {
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>

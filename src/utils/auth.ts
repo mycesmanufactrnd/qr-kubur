@@ -1,18 +1,21 @@
-import { base44 } from '@/api/base44Client';
 import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
-import { trpc } from './trpc';
-
-export const isSupabaseMode = import.meta.env.VITE_DB_MODE === 'SUPABASE';
+import { trpc, trpcClient } from './trpc';
 
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("clientIP", data.clientIp);
       localStorage.setItem("appUserAuth", JSON.stringify(data));
+
+      const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
+
+      localStorage.setItem("permissions", JSON.stringify(permissions));
+
       window.location.href = createPageUrl("AdminDashboard");
     },
     onError: (err) => {
@@ -31,34 +34,7 @@ export function handleLoginTRPC() {
   return { login, loading, error, setError };
 }
 
-export async function handleLoginBase44({ 
-  email, 
-  password, 
-  setLoading, 
-  setError, 
-  // navigate // if use react-router navigate instead of window.location
-}) {
-  setError('');
-  setLoading(true);
-
-  try {
-    const response = await base44.functions.invoke('appUserLogin', { email, password });
-    
-    if (response.data.success) {
-      localStorage.setItem('appUserAuth', JSON.stringify(response.data.user));
-      
-      window.location.href = createPageUrl('AdminDashboard');
-    } else {
-      setError(response.data.message || 'Login failed');
-    }
-  } catch (err) {
-    setError('Invalid email or password');
-  } finally {
-    setLoading(false);
-  }
-}
-
-export function handleLogout(clearPermissions) {
+export function handleLogout(clearPermissions?: () => void) {
     clearPermissions?.();
     
     localStorage.removeItem('appUserAuth');
@@ -81,7 +57,7 @@ export function removeImpersonation() {
   location.href = createPageUrl("ImpersonateUser");
 }
 
-export function impersonateUser(user = {}) {
+export function impersonateUser(user: { id: any; }) {
   if (!user || !user.id) return;
 
   const currentAuth = localStorage.getItem("appUserAuth");
@@ -115,6 +91,8 @@ export function useAdminAccess() {
     loadUser();
   }, []);
 
+  const role = currentUser?.role;
+
   const isSuperAdmin = currentUser?.role === "superadmin";
   const isAdmin = currentUser?.role === "admin";
   const isEmployee = currentUser?.role === "employee";
@@ -124,5 +102,12 @@ export function useAdminAccess() {
 
   const currentUserStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
 
-  return { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, currentUserStates };
+  const checkRole = {
+    superadmin: isSuperAdmin,
+    admin: isAdmin,
+    employee: isEmployee,
+    tahfiz: isTahfizAdmin,
+  }
+
+  return { role, currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, checkRole, currentUserStates };
 }

@@ -9,8 +9,9 @@ import { authRouter } from "./routers/authRouter.ts";
 import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
 
-// const app = Fastify({ logger: true });
-const app = Fastify();
+const app = Fastify({
+  trustProxy: true,
+});
 
 {/*
 

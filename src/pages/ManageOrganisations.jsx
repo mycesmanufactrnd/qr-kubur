@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { translate } from '@/utils/translations';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, Plus, Edit, Trash2, Search, Save, Filter, CreditCard } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,23 +11,26 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm, Controller } from "react-hook-form";
-import PageLoadingComponent from '../components/PageLoadingComponent';
-import AccessDeniedComponent from '../components/AccessDeniedComponent';
-import Breadcrumb from '../components/Breadcrumb';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
-import ConfirmDialog from '../components/ConfirmDialog';
-import Pagination from '../components/Pagination';
-import PaymentConfigDialog from '../components/PaymentConfigDialog';
-import { showApiError, showError, showSuccess } from '@/components/ToastrNotification';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import Breadcrumb from '@/components/Breadcrumb';
+import { useCrudPermissions } from '@/components/PermissionsContext';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import Pagination from '@/components/Pagination';
+import PaymentConfigDialog from '@/components/PaymentConfigDialog';
+import { showRequiredError } from '@/components/ToastrNotification';
 import { getLabelFromId } from '@/utils/helpers';
 import { STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
+import { useGetOrganisationType } from '@/hooks/useOrganisationTypeMutations';
+import { useCreateOrganisation, useDeleteOrganisation, useGetOrganisationPaginated, useUpdateOrganisation } from '@/hooks/useOrganisationMutations';
+import { validateFields } from '@/utils/validations';
 
 const emptyOrg = {
   name: '',
-  parent_organisation_id: '',
-  organisation_type_id: '',
-  state: '',
+  parentorganisation: null,
+  organisationtype: null,
+  states: '',
   address: '',
   phone: '',
   email: '',
@@ -40,14 +41,13 @@ const emptyOrg = {
 export default function ManageOrganisations() {
   const { 
     loadingUser, 
-    currentUser, 
     hasAdminAccess, 
-    isSuperAdmin, isAdmin, isEmployee, 
+    isSuperAdmin, 
     currentUserStates 
   } = useAdminAccess();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterState, setFilterState] = useState('all');
-  const [filterType, setFilterType] = useState('all');
+  const [filterState, setFilterState] = useState(undefined);
+  const [filterType, setFilterType] = useState(undefined);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -59,111 +59,36 @@ export default function ManageOrganisations() {
   const [orgToDelete, setOrgToDelete] = useState(null);
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
-  const queryClient = useQueryClient();
   const {
     loading: permissionsLoading,
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('organisations');
   
-  const buildFilterQuery = () => {
-    const query = {};
-
-    if (!isSuperAdmin && currentUser?.organisation_id) {
-      if (isAdmin) {
-        // Admin (own + children)
-        query.$or = [
-          { id: currentUser.organisation_id },
-          { parent_organisation_id: currentUser.organisation_id }
-        ];
-      } else if (isEmployee) {
-        // Employee (own)
-        query.id = currentUser.organisation_id;
-      }
-    }
-
-    if (filterType !== 'all') query.organisation_type_id = filterType;
-    if (filterState !== 'all') query.state = filterState;
-
-    return query;
-  };
-
-  const { data: organisationsList = [], isLoading } = useQuery({
-    queryKey: ['admin-organisations-paginated', page, itemsPerPage, filterType, currentUser],
-    queryFn: () => base44.entities.Organisation.filter(buildFilterQuery(), '-created_date', itemsPerPage, (page - 1) * itemsPerPage),
-    enabled: canView && !!currentUser
+  const {
+    organisationsList,
+    totalPages,
+    isLoading,
+  } = useGetOrganisationPaginated({
+    page,
+    pageSize: itemsPerPage,
+    search: searchQuery,
+    filterType,
+    filterState
   });
+  
+  const { 
+    data: organisationTypeList, 
+    isLoading: typesLoading, 
+  } = useGetOrganisationType(hasAdminAccess);
 
-  const { data: totalRows = 0 } = useQuery({
-    queryKey: ['admin-organisations-count', filterType, filterState, currentUser],
-    queryFn: async () => {
-      const all = await base44.entities.Organisation.filter(buildFilterQuery());
-      return all.length;
-    },
-    enabled: canView && !!currentUser
-  });
-
-  const totalPages = Math.ceil(totalRows / itemsPerPage);
-
-  const { data: parentOrgOptions = [] } = useQuery({
-    queryKey: ['parent-org-options', currentUser, isSuperAdmin, isAdmin],
-    queryFn: () => {
-      if (isSuperAdmin) {
-        return base44.entities.Organisation.filter({}, 'name');
-      }
-
-      return base44.entities.Organisation.filter({ id: currentUser.organisation_id });
-    },
-    enabled: !!currentUser
-  });
-
-  const { data: organisationTypeList = [] } = useQuery({
-    queryKey: ['organisation-types'],
-    queryFn: () => base44.entities.OrganisationType.filter({ status: 'active' })
-  });
-
-  // CRUD Mutation
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Organisation.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-organisations']);
-      setIsDialogOpen(false);
-      reset(emptyOrg);
-      showSuccess('create', 'Organisation');
-    },
-    onError: (error) => {
-      showApiError(error);
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Organisation.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-organisations']);
-      setIsDialogOpen(false);
-      setEditingOrg(null);
-      reset(emptyOrg);
-      showSuccess('edit', 'Organisation');
-    },
-    onError: (error) => {
-      showApiError(error);
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Organisation.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-organisations']);
-      showSuccess('Organisation Deleted Successfully');
-    },
-    onError: (error) => {
-      showApiError(error);
-    }
-  });
+  const createMutation = useCreateOrganisation();
+  const updateMutation = useUpdateOrganisation();
+  const deleteMutation = useDeleteOrganisation();
 
   const openAddDialog = () => {
     setEditingOrg(null);
     const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    reset({...emptyOrg, state: defaultState});
+    reset({...emptyOrg, states: defaultState});
     setIsDialogOpen(true);
   };
 
@@ -171,9 +96,9 @@ export default function ManageOrganisations() {
     setEditingOrg(org);
     reset({
       name: org.name || '',
-      parent_organisation_id: org.parent_organisation_id || '',
-      organisation_type_id: org.organisation_type_id || '',
-      state: Array.isArray(org.state) ? org.state[0] : org.state || '',
+      parentorganisation: org.parentorganisation?.id || '',
+      organisationtype: org.organisationtype?.id || '',
+      states: Array.isArray(org.states) ? org.states[0] : org.states || '',
       address: org.address || '',
       phone: org.phone || '',
       email: org.email || '',
@@ -184,33 +109,25 @@ export default function ManageOrganisations() {
   };
 
   const onSubmit = (data) => {
-    if (!data.name?.trim()) {
-      showError('Sila masukkan nama organisasi', 'Medan diperlukan');
-      return;
-    }
-    if (!data.organisation_type_id) {
-      showError('Sila masukkan jenis organisasi', 'Medan diperlukan');
-      return;
-    }
-    if (!data.state) {
-      showError('Sila pilih negeri', 'Medan diperlukan');
-      return;
-    }
+    const isValid = validateFields(data, [
+      { field: 'name', label: 'Organisation Name', type: 'text' },
+      { field: 'organisationtype', label: 'Organisation Type', type: 'select' },
+      { field: 'states', label: 'State', type: 'select' },
+      { field: 'email', label: 'Email', type: 'email', required: false },
+      { field: 'phone', label: 'Phone No.', type: 'phone', required: false },
+    ]);
 
-    if (data.email && data.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      showError('Format email tidak sah', 'Format Tidak Sah');
-      return;
-    }
-    if (data.phone && data.phone.trim() && !/^[0-9\-\+\(\)\s]+$/.test(data.phone)) {
-      showError('Format telefon tidak sah', 'Format Tidak Sah');
-      return;
-    }
-    
+    if (!isValid) return;
+
     const submitData = {
       name: data.name,
-      parent_organisation_id: data.parent_organisation_id,
-      organisation_type_id: data.organisation_type_id,
-      state: Array.isArray(data.state) ? data.state : [data.state],
+      parentorganisation: data.parentorganisation
+        ? { id: Number(data.parentorganisation) }
+        : null,
+      organisationtype: data.organisationtype
+        ? { id: Number(data.organisationtype) }
+        : null,
+      states: Array.isArray(data.states) ? data.states : [data.states],
       address: data.address || '',
       phone: data.phone || '',
       email: data.email || '',
@@ -219,9 +136,22 @@ export default function ManageOrganisations() {
     };
 
     if (editingOrg) {
-      updateMutation.mutate({ id: editingOrg.id, data: submitData });
+      updateMutation.mutateAsync({ id: editingOrg.id, data: submitData })
+      .then((res) => {
+        if(res) {
+          setIsDialogOpen(false);
+          setEditingOrg(null);
+          reset(emptyOrg);
+        }
+      })
     } else {
-      createMutation.mutate(submitData);
+      createMutation.mutateAsync(submitData)
+      .then((res) => {
+        if(res) {
+          setIsDialogOpen(false);
+          reset(emptyOrg);
+        }
+      });
     }
   };
 
@@ -301,10 +231,10 @@ export default function ManageOrganisations() {
               <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('orgType')}</Label>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder={translate('allTypes')}/>
+                  <SelectValue placeholder="" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('allTypes')}</SelectItem>
+                  <SelectItem value={undefined}>{translate('allTypes')}</SelectItem>
                   {organisationTypeList.map(type => (
                     <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
@@ -315,10 +245,10 @@ export default function ManageOrganisations() {
               <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('state')}</Label>
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder="Pilih negeri" />
+                  <SelectValue placeholder="" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('allStates')}</SelectItem>
+                  <SelectItem value={undefined}>{translate('allStates')}</SelectItem>
                   {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -326,15 +256,15 @@ export default function ManageOrganisations() {
               </Select>
             </div>
           </div>
-          {(searchQuery || filterType !== 'all' || filterState !== 'all') && (
+          {(searchQuery || filterType !== undefined || filterState !== undefined) && (
             <div className="flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setSearchQuery('');
-                  setFilterType('all');
-                  setFilterState('all');
+                  setFilterType(undefined);
+                  setFilterState(undefined);
                 }}
               >
                 Reset Semua Carian
@@ -361,18 +291,18 @@ export default function ManageOrganisations() {
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : organisationsList.length === 0 ? (
+              ) : organisationsList.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                organisationsList.map(org => (
+                organisationsList.items.map(org => (
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="secondary">{getLabelFromId(organisationTypeList, org.organisation_type_id)}</Badge>
+                      <Badge variant="secondary">{getLabelFromId(organisationTypeList, org.organisationtype?.id)}</Badge>
                     </TableCell>
-                    <TableCell className="text-center">{Array.isArray(org.state) ? org.state.join(', ') : org.state}</TableCell>
+                    <TableCell className="text-center">{Array.isArray(org.states) ? org.states.join(', ') : org.states}</TableCell>
                     <TableCell className="text-center">
                       { canEdit && (
                         <>
@@ -422,7 +352,7 @@ export default function ManageOrganisations() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={organisationsList.length}
+            totalItems={organisationsList.total}
           />
         )}
       </Card>
@@ -446,13 +376,15 @@ export default function ManageOrganisations() {
             <div>
               <Label>{translate('orgType')} <span className="text-red-500">*</span></Label>
               <Controller
-                name="organisation_type_id"
+                name="organisationtype"
                 control={control}
                 rules={{ required: 'Jenis organisasi diperlukan' }}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value || ''} onValueChange={(val) => field.onChange(Number(val))}>
                     <SelectTrigger>
-                      <SelectValue placeholder={translate('selectOrgType')} />
+                      <SelectValue>
+                        {organisationTypeList.find(t => t.id === field.value)?.name || translate('selectOrgType')}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {organisationTypeList.map(type => (
@@ -466,17 +398,19 @@ export default function ManageOrganisations() {
             <div>
               <Label>{translate('parentOrg')}</Label>
               <Controller
-                name="parent_organisation_id"
+                name="parentorganisation"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value || ''} onValueChange={(val) => field.onChange(Number(val))}>
                     <SelectTrigger>
-                      <SelectValue placeholder={translate('selectParentOrg')}/>
+                      <SelectValue>
+                        {organisationsList.items.find(o => o.id === field.value)?.name || translate('selectParentOrg')}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                        {parentOrgOptions.map(type => (
-                        <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                      ))}
+                        {organisationsList.items.map(type => (
+                          <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -485,7 +419,7 @@ export default function ManageOrganisations() {
             <div>
               <Label>{translate('state')} <span className="text-red-500">*</span></Label>
               <Controller
-                name="state"
+                name="states"
                 control={control}
                 rules={{ required: 'Negeri diperlukan' }}
                 render={({ field }) => (

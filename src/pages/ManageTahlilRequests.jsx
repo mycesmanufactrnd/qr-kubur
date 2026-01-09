@@ -14,6 +14,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import { usePermissions } from '../components/PermissionsContext';
 import { showSuccess } from '@/components/ToastrNotification';
 import { SERVICE_LABELS } from '@/utils/enums';
+import { translate } from '@/utils/translations';
 
 export default function ManageTahlilRequests() {
   const [filterStatus, setFilterStatus] = useState('all');
