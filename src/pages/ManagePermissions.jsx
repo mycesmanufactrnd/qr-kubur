@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { Shield, Save, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +11,12 @@ import { useCrudPermissions, usePermissions } from '@/components/PermissionsCont
 import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import { showError, showSuccess } from '@/components/ToastrNotification';
 import { useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
+import { useGetPermission, useUpsertPermission } from '@/hooks/usePermissionMutations';
+import { showApiError, showSuccess } from '@/components/ToastrNotification';
+import { useGetUserPaginated } from '@/hooks/useUserMutations';
+import Pagination from '@/components/Pagination';
 
 export default function ManagePermissions() {
   const { 
@@ -23,6 +25,7 @@ export default function ManagePermissions() {
     hasAdminAccess, 
     isSuperAdmin, 
     isAdmin, 
+    checkRole
   } = useAdminAccess();
 
   const {
@@ -30,31 +33,22 @@ export default function ManagePermissions() {
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('permissions');
 
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userPermissions, setUserPermissions] = useState({});
 
-  const queryClient = useQueryClient();
-
-  const { data: users = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['app-users', currentUser?.organisation_id],
-    queryFn: () => {
-      if (isSuperAdmin) return base44.entities.AppUser.list('-created_date');
-
-      if (isAdmin) return base44.entities.AppUser.filter({ organisation_id: currentUser.organisation_id });
-
-      return [];
-    },
-    enabled: !!currentUser && canView
+  const { userList: users, totalPages, isLoading: loadingUsers } = useGetUserPaginated({
+    page,
+    pageSize: itemsPerPage,
+    search: searchQuery,
   });
 
-  const { data: permissions = [], isLoading: loadingPermissions } = useQuery({
-    queryKey: ['user-permissions', selectedUser?.id],
-    queryFn: () => base44.entities.Permission.filter({ user_id: selectedUser.id }),
-    enabled: !!selectedUser && canView,
-  });
-
-  React.useEffect(() => {
+  const upsertPermission = useUpsertPermission();
+  const { data: permissions = [], isLoading: loadingPermissions } = useGetPermission(selectedUser?.id, canView);
+  
+  useEffect(() => {
     if (permissions.length > 0) {
       const permMap = {};
       permissions.forEach(p => {
@@ -66,36 +60,30 @@ export default function ManagePermissions() {
     }
   }, [permissions, selectedUser]);
 
-  const updatePermissionMutation = useMutation({
-    mutationFn: async ({ slug, enabled }) => {
-      const existing = permissions.find(p => p.slug === slug);
-      
-      if (existing) {
-        return base44.entities.Permission.update(existing.id, { enabled });
-      } else {
-        return base44.entities.Permission.create({
-          user_id: selectedUser.id,
-          slug,
-          enabled
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['user-permissions', selectedUser?.id]);
-    }
-  });
-
   const saveAllPermissions = async () => {
     try {
       for (const [slug, enabled] of Object.entries(userPermissions)) {
-        await updatePermissionMutation.mutateAsync({ slug, enabled });
+        await upsertPermission.mutateAsync({
+          userId: selectedUser.id,
+          slug,
+          enabled
+        })
       }
-      showSuccess('Kebenaran berjaya dikemaskini')
-    } catch (error) {
-      showError('Ralat mengemaskini kebenaran');
+
+      showSuccess('Permission', 'update');
+    } catch {
+      showApiError();
     }
   };
 
+  const togglePermission = (slug) => {
+    setUserPermissions(prev => ({
+      ...prev,
+      [slug]: !prev[slug]
+    }));
+  };
+
+  
   if (loadingUser || permissionsLoading) {
     return (
       <PageLoadingComponent/>
@@ -107,6 +95,7 @@ export default function ManagePermissions() {
       <AccessDeniedComponent/>
     );
   }
+
   if (!canView) {
     return (
       <div className="space-y-6">
@@ -118,21 +107,6 @@ export default function ManagePermissions() {
       </div>
     );
   }
-
-  const filteredUsers = users.filter(u => 
-    u.role !== 'superadmin' && (
-      !searchQuery ||
-      u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
-
-  const togglePermission = (slug) => {
-    setUserPermissions(prev => ({
-      ...prev,
-      [slug]: !prev[slug]
-    }));
-  };
 
   return (
     <div className="space-y-6">
@@ -147,7 +121,6 @@ export default function ManagePermissions() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User Selection */}
         <Card className="lg:col-span-1 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4 space-y-4">
             <div>
@@ -166,10 +139,10 @@ export default function ManagePermissions() {
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {loadingUsers ? (
                 <p className="text-sm text-gray-500 text-center py-4">{translate('loading...')}</p>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.items.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">{translate('noUserFound')}</p>
               ) : (
-                filteredUsers.map(user => (
+                users.items.map(user => (
                   <button
                     key={user.id}
                     onClick={() => setSelectedUser(user)}
@@ -179,7 +152,7 @@ export default function ManagePermissions() {
                         : 'bg-white border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
                     }`}
                   >
-                    <p className="font-medium text-sm text-gray-900 dark:text-white">{user.full_name}</p>
+                    <p className="font-medium text-sm text-gray-900 dark:text-white">{user.fullname}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                     <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300">
                       {user.role}
@@ -187,11 +160,9 @@ export default function ManagePermissions() {
                   </button>
                 ))
               )}
-            </div>
+            </div>            
           </CardContent>
         </Card>
-
-        {/* Permissions */}
         <Card className="lg:col-span-2 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4">
             {!selectedUser ? (
@@ -203,11 +174,11 @@ export default function ManagePermissions() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b dark:border-gray-700">
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedUser.full_name}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedUser.fullname}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{selectedUser.email}</p>
                   </div>
                   { canEdit && (
-                    <Button onClick={saveAllPermissions} disabled={updatePermissionMutation.isPending}>
+                    <Button onClick={saveAllPermissions} disabled={upsertPermission.isPending}>
                       <Save className="w-4 h-4 mr-2" />
                       {translate('save')}
                     </Button>
@@ -242,7 +213,21 @@ export default function ManagePermissions() {
             )}
           </CardContent>
         </Card>
+
       </div>
+        {users.total > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={users.total}
+          />
+        )}
     </div>
   );
 }

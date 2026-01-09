@@ -17,6 +17,14 @@ import { showError, showSuccess } from '@/components/ToastrNotification';
 import { useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import { 
+  useCreatePaymentField,
+  useDeletePaymentField,
+  useGetPaymentField,
+  useUpdatePaymentField,
+} from '@/hooks/usePaymentFieldMutations';
+import { useGetPaymentPlatform } from '@/hooks/usePaymentPlatformMutations';
+import { validateFields } from '@/utils/validations';
 
 export default function ManagePaymentFields() {
   const { 
@@ -29,80 +37,44 @@ export default function ManagePaymentFields() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [formData, setFormData] = useState({
-    payment_platform_code: '',
+    code: '',
     key: '',
     label: '',
-    field_type: 'text',
+    fieldtype: 'text',
     required: false,
     placeholder: ''
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState(null);
 
-  const queryClient = useQueryClient();
+  const { data: fields, isLoading } = useGetPaymentField(isSuperAdmin);
+  const { data: platforms } = useGetPaymentPlatform(isSuperAdmin);
 
-  const { data: fields = [], isLoading } = useQuery({
-    queryKey: ['payment-fields'],
-    queryFn: () => base44.entities.PaymentPlatformField.list(),
-    enabled: isSuperAdmin
-  });
-
-  const { data: platforms = [] } = useQuery({
-    queryKey: ['payment-platforms'],
-    queryFn: () => base44.entities.PaymentPlatform.list(),
-    enabled: isSuperAdmin
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.PaymentPlatformField.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-fields']);
-      setIsDialogOpen(false);
-      setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
-      showSuccess('Payment Field Successfully Created');
-    }
-  });
-  
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PaymentPlatformField.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-fields']);
-      setIsDialogOpen(false);
-      setEditingField(null);
-      setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
-      showSuccess('Payment Field Successfully Edited');
-    }
-  });
-  
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.PaymentPlatformField.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-fields']);
-      showSuccess('Payment Field Successfully Deleted');
-    }
-  });
+  const createMutation = useCreatePaymentField();
+  const updateMutation = useUpdatePaymentField();
+  const deleteMutation = useDeletePaymentField();
 
   const filteredFields = fields.filter(f => {
     const matchesSearch = !searchQuery || 
       f.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.key?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPlatform = filterPlatform === 'all' || f.payment_platform_code === filterPlatform;
+    const matchesPlatform = filterPlatform === 'all' || f.code === filterPlatform;
     return matchesSearch && matchesPlatform;
   });
 
   const openAddDialog = () => {
     setEditingField(null);
-    setFormData({ payment_platform_code: '', key: '', label: '', field_type: 'text', required: false, placeholder: '' });
+    setFormData({ code: '', key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (field) => {
     setEditingField(field);
     setFormData({
-      payment_platform_code: field.payment_platform_code || '',
+      code: field.code || '',
       key: field.key || '',
       label: field.label || '',
-      field_type: field.field_type || 'text',
+      fieldtype: field.fieldtype || 'text',
       required: field.required || false,
       placeholder: field.placeholder || ''
     });
@@ -111,20 +83,33 @@ export default function ManagePaymentFields() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!formData.payment_platform_code) {
-      showError('Sila pilih platform');
-      return;
-    }
-    if (!formData.key?.trim()) {
-      showError('Sila masukkan field key');
-      return;
-    }
+
+    const isValid = validateFields(formData, [
+      { field: 'code', label: 'Code', type: 'text' },
+      { field: 'key', label: 'Key', type: 'text' },
+      { field: 'label', label: 'Label', type: 'text' },
+      { field: 'fieldtype', label: 'Field Type', type: 'text' },
+    ]);
+
+    if (!isValid) return;
 
     if (editingField) {
-      updateMutation.mutate({ id: editingField.id, data: formData });
+      updateMutation.mutateAsync({ id: editingField.id, data: formData })
+      .then((res) => {
+        if (res) {
+          setIsDialogOpen(false);
+          setEditingField(null);
+          setFormData({ code: '', key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+        }
+      });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutateAsync(formData)
+      .then((res) => {
+        if (res) {
+          setIsDialogOpen(false);
+          setFormData({ code: '', key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+        }
+      });
     }
   };
 
@@ -135,7 +120,7 @@ export default function ManagePaymentFields() {
 
   const confirmDelete = () => {
     if (!fieldToDelete) return;
-    deleteMutation.mutate(fieldToDelete.id);
+    deleteMutation.mutateAsync(fieldToDelete.id);
     setDeleteDialogOpen(false);
     setFieldToDelete(null);
   };
@@ -236,11 +221,11 @@ export default function ManagePaymentFields() {
                 filteredFields.map(field => (
                   <TableRow key={field.id}>
                     <TableCell>
-                      <Badge variant="secondary">{getPlatformName(field.payment_platform_code)}</Badge>
+                      <Badge variant="secondary">{getPlatformName(field.code)}</Badge>
                     </TableCell>
                     <TableCell className="font-mono text-sm">{field.key}</TableCell>
                     <TableCell>{field.label || '-'}</TableCell>
-                    <TableCell className="capitalize">{field.field_type}</TableCell>
+                    <TableCell className="capitalize">{field.fieldtype}</TableCell>
                     <TableCell>
                       {field.required ? (
                         <Badge className="bg-red-100 text-red-700">Required</Badge>
@@ -264,7 +249,6 @@ export default function ManagePaymentFields() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800">
           <DialogHeader>
@@ -274,8 +258,8 @@ export default function ManagePaymentFields() {
             <div>
               <Label>Payment Platform <span className="text-red-500">*</span></Label>
               <Select 
-                value={formData.payment_platform_code} 
-                onValueChange={(value) => setFormData({ ...formData, payment_platform_code: value })}
+                value={formData.code} 
+                onValueChange={(value) => setFormData({ ...formData, code: value })}
                 disabled={!!editingField}
               >
                 <SelectTrigger>
@@ -297,7 +281,7 @@ export default function ManagePaymentFields() {
               />
             </div>
             <div>
-              <Label>Label</Label>
+              <Label>Label <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
@@ -306,7 +290,7 @@ export default function ManagePaymentFields() {
             </div>
             <div>
               <Label>Field Type <span className="text-red-500">*</span></Label>
-              <Select value={formData.field_type} onValueChange={(value) => setFormData({ ...formData, field_type: value })}>
+              <Select value={formData.fieldtype} onValueChange={(value) => setFormData({ ...formData, fieldtype: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -303,5 +303,8 @@
   "paymentConfig": "إعدادات الدفع",
   "selectPaymentPlatforms": "اختر منصات الدفع",
   "config": "التكوين",
-  "saving...": "جارٍ الحفظ..."
+  "saving...": "جارٍ الحفظ...",
+
+  "noPlatformFound": "No platforms found"
+  
 }

@@ -14,11 +14,6 @@ export function getCurrentLanguage() {
   return currentLang;
 }
 
-/**
- * Translate a key
- * @param {string} key
- * @returns string
- */
-export const translate = (key) => {
+export const translate = (key: string) => {
   return packs[currentLang]?.[key] || packs.ms?.[key] || key;
 };

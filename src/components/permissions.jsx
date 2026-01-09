@@ -119,24 +119,6 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.TAHLIL_COMPLETE, label: 'Selesai' },
     ]
   },
-  users: {
-    label: 'Pengguna',
-    permissions: [
-      { slug: PERMISSIONS.USERS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.USERS_CREATE, label: 'Tambah' },
-      { slug: PERMISSIONS.USERS_EDIT, label: 'Edit' },
-      { slug: PERMISSIONS.USERS_DELETE, label: 'Padam' },
-    ]
-  },
-  employees: {
-    label: 'Pekerja',
-    permissions: [
-      { slug: PERMISSIONS.EMPLOYEES_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.EMPLOYEES_CREATE, label: 'Tambah' },
-      { slug: PERMISSIONS.EMPLOYEES_EDIT, label: 'Edit' },
-      { slug: PERMISSIONS.EMPLOYEES_DELETE, label: 'Padam' },
-    ]
-  },
   permissions: {
     label: 'Permissions',
     permissions: [

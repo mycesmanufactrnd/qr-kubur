@@ -16,25 +16,21 @@ import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { Search, UserX, UserSearch, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { impersonateUser, useAdminAccess } from "@/utils/auth";
+import { useGetUserPaginated } from "@/hooks/useUserMutations";
+import Pagination from "@/components/Pagination";
 import { translate } from "@/utils/translations";
-import { impersonateUser, useAdminAccess } from "@/utils/auth.jsx";
 
 export default function ImpersonateUser() {
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
-  const { currentUser, isSuperAdmin } = useAdminAccess();
 
-  const { data: users = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['app-users', isSuperAdmin],
-    queryFn: () => base44.entities.AppUser.list('-created_date'),
-    enabled: !!currentUser,
-    // queryFn: () => isSuperAdmin ? base44.entities.AppUser.list('-created_date') : [],
-    // enabled: !!currentUser && isSuperAdmin,
+  const { userList: users, totalPages, isLoading: loadingUsers } = useGetUserPaginated({
+    page,
+    pageSize: itemsPerPage,
+    search: searchQuery,
   });
-
-  const filteredUsers = users.filter(u =>
-    (u.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-    (u.email?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
@@ -50,7 +46,6 @@ export default function ImpersonateUser() {
         </div>
       </div>
 
-      {/* Search Header */}
       <Card className="border-0 shadow-sm bg-white dark:bg-gray-800">
         <CardContent className="p-4">
             <Label className="text-sm font-medium mb-2 block">{translate('searchUser')}</Label>
@@ -86,21 +81,21 @@ export default function ImpersonateUser() {
                     {translate('loadingUserList...')}
                   </TableCell>
                 </TableRow>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-gray-500"> 
                     {translate('noUserFound')}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredUsers.map((user) => (
+                users.items.map((user) => (
                   <TableRow key={user.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
-                          {user.full_name?.[0] || 'U'}
+                          {user.fullname?.[0] || 'U'}
                         </div>
-                        {user.full_name || 'Tiada Nama'}
+                        {user.fullname || 'Tiada Nama'}
                       </div>
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
@@ -130,16 +125,30 @@ export default function ImpersonateUser() {
               )}
             </TableBody>
           </Table>
+          {users.total > 0 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value);
+                setPage(1);
+              }}
+              totalItems={users.total}
+            />
+          )}
         </CardContent>
       </Card>
 
+
       {/* Mobile Card View (for small screens) */}
       <div className="lg:hidden space-y-4">
-        {filteredUsers.map(user => (
+        {users.items.map(user => (
            <Card key={user.id} className="border-0 shadow-sm">
              <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-bold text-sm">{user.full_name}</p>
+                  <p className="font-bold text-sm">{user.fullname}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => impersonateUser(user)}>
@@ -148,6 +157,19 @@ export default function ImpersonateUser() {
              </CardContent>
            </Card>
         ))}
+        {users.total > 0 && (
+         <Pagination
+           currentPage={page}
+           totalPages={totalPages}
+           onPageChange={setPage}
+           itemsPerPage={itemsPerPage}
+           onItemsPerPageChange={(value) => {
+             setItemsPerPage(value);
+             setPage(1);
+           }}
+           totalItems={users.total}
+         />
+       )}
       </div>
     </div>
   );
