@@ -203,8 +203,8 @@ export default function ManagePaymentPlatforms() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
-        { label: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms' }
+        { label: 'Super Admin', page: 'SuperadminDashboard' },
+        { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
