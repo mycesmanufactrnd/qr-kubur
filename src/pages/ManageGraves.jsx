@@ -21,6 +21,9 @@ import { getParentAndChildOrgs } from '@/utils/helpers';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
+import { useGetGravePaginated, useCreateGrave, useUpdateGrave, useDeleteGrave } from '@/hooks/useGraveMutations';
+import { trpc } from '@/utils/trpc';
+import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 
 const emptyGrave = {
   cemetery_name: '',
@@ -60,125 +63,39 @@ export default function ManageGraves() {
   const [graveToDelete, setGraveToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
 
-  const queryClient = useQueryClient();
+
   const {
-    loading: permissionsLoading,
-    canView, canCreate, canEdit, canDelete
-  } = useCrudPermissions('graves');
+      loading: permissionsLoading,
+      canView, canCreate, canEdit, canDelete
+    } = useCrudPermissions('graves');
 
-  useEffect(() => {
-    if (!isSuperAdmin && currentUser?.organisation_id) {
-      getParentAndChildOrgs(currentUser.organisation_id)
-        .then(ids => setAccessibleOrgIds(ids))
-        .catch(err => console.error(err));
-    }
-  }, [currentUser]);
-
-  const buildFilterQuery = () => {
-    const query = {};
-
-    if (!isSuperAdmin && currentUser?.organisation_id) {
-      query.organisation_id = { 
-        $in: accessibleOrgIds,
-      };
-    }
-    
-    if (filterState !== 'all') query.state = filterState;
-    if (filterStatus !== 'all') query.status = filterStatus;
-    if (filterBlock) query.block = { $regex: filterBlock, $options: 'i' };
-    if (filterLot) query.lot = { $regex: filterLot, $options: 'i' };
-    if (filterName) query.cemetery_name = { $regex: filterName, $options: 'i' };
-
-    return query;
-  };
-
-  const { data: gravesList = [], isLoading } = useQuery({
-    queryKey: [
-      'graves-list',
-      page, itemsPerPage,
-      filterState, filterStatus, filterBlock, filterLot,
-      filterName,
-      currentUser, accessibleOrgIds
-    ],
-    queryFn: async () => {
-      if (!accessibleOrgIds || accessibleOrgIds.length === 0) return [];
-      return await base44.entities.Grave.filter(buildFilterQuery(), '-created_date', itemsPerPage, (page - 1) * itemsPerPage);
-    },
-    enabled: canView && !!currentUser && accessibleOrgIds.length > 0
-  });
-
-  const gravesDataReady = accessibleOrgIds.length > 0;
-
-  const { data: totalRows = 0 } = useQuery({
-    queryKey: [
-      'graves-count',
-      filterState, filterStatus, filterBlock,
-      filterLot, filterName, currentUser,
-      accessibleOrgIds
-    ],
-    queryFn: async () => {
-      if (!accessibleOrgIds || accessibleOrgIds.length === 0) return [];
-      const all = await base44.entities.Grave.filter(buildFilterQuery());
-      return all.length;
-    },
-    enabled: canView && !!currentUser && accessibleOrgIds.length > 0
-  });
-
-  const totalPages = Math.ceil(totalRows / itemsPerPage);
-
-  const { data: organisationsList = [] } = useQuery({
-    queryKey: ['organisations-list'],
-    queryFn: async () => {
-      if (isSuperAdmin) {
-        return base44.entities.Organisation.list();
+    // Load accessible organizations for non-superadmins
+    useEffect(() => {
+      if (!isSuperAdmin && currentUser?.organisation?.id) {
+        getParentAndChildOrgs(currentUser.organisation.id)
+          .then(ids => setAccessibleOrgIds(ids))
+          .catch(err => console.error(err));
       }
+    }, [currentUser, isSuperAdmin]);
 
-      if (currentUser?.organisation_id) {
-        return getParentAndChildOrgs(currentUser.organisation_id, false);
-      }
+  const {
+    gravesList,
+    totalPages,
+    isLoading,
+  } = useGetGravePaginated({
+    page,
+    pageSize: itemsPerPage,
+    search: filterName,
+    filterState: filterState === 'all' ? undefined : filterState,
+    filterStatus: filterStatus === 'all' ? undefined : filterStatus,
+    organisationIds: accessibleOrgIds
+  }); 
+  
+  const { organisationsList } = useGetOrganisationPaginated({})
 
-      return [];
-    },
-    enabled: !!currentUser,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Grave.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-graves']);
-      setIsDialogOpen(false);
-      setFormData(emptyGrave);
-      showApiSuccess('create');
-    },
-    onError: (error) => {
-      showApiError(error);
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Grave.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-graves']);
-      setIsDialogOpen(false);
-      setEditingGrave(null);
-      setFormData(emptyGrave);
-      showApiSuccess('update');
-    },
-    onError: (error) => {
-      showApiError(error);
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Grave.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-graves']);
-      showApiSuccess('delete');
-    },
-    onError: (error) => {
-      showApiError(error);
-    }
-  });
+  const createMutation = useCreateGrave();
+  const updateMutation = useUpdateGrave();
+  const deleteMutation = useDeleteGrave();
 
   const openAddDialog = () => {
     setEditingGrave(null);
@@ -189,99 +106,62 @@ export default function ManageGraves() {
   const openEditDialog = (grave) => {
     setEditingGrave(grave);
     setFormData({
-      cemetery_name: grave.cemetery_name || '',
+      cemetery_name: grave.cemeteryname || '',
       state: grave.state || '',
       block: grave.block || '',
       lot: grave.lot || '',
-      gps_lat: grave.gps_lat || '',
-      gps_lng: grave.gps_lng || '',
-      organisation_id: grave.organisation_id || '',
-      qr_code: grave.qr_code || '',
+      gps_lat: grave.latitude || '',
+      gps_lng: grave.longitude || '',
+      organisation_id: grave.organisationid || '',
+      qr_code: grave.qrcode || '',
       status: grave.status || 'active',
-      total_graves: grave.total_graves || 0
+      total_graves: grave.totalgraves || 0
     });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.cemetery_name?.trim()) {
-      showError('Sila masukkan nama tanah perkuburan', 'Medan Diperlukan');
-      return;
-    }
-    
-    if (!formData.state) {
-      showError('Sila pilih negeri', 'Medan Diperlukan');
-      return;
-    }
+    // Basic Validation
+    if (!formData.cemetery_name?.trim()) return showError('Sila masukkan nama tanah perkuburan');
+    if (!formData.state) return showError('Sila pilih negeri');
 
-    if (formData.gps_lat && (isNaN(formData.gps_lat) || formData.gps_lat < -90 || formData.gps_lat > 90)) {
-      showError('GPS Latitude mesti antara -90 hingga 90', 'Nilai Tidak Sah');
-      return;
-    }
-    if (formData.gps_lng && (isNaN(formData.gps_lng) || formData.gps_lng < -180 || formData.gps_lng > 180)) {
-      showError('GPS Longitude mesti antara -180 hingga 180', 'Nilai Tidak Sah');
-      return;
-    }
-    if (formData.total_graves && (isNaN(formData.total_graves) || formData.total_graves < 0)) {
-      showError('Jumlah kubur mesti nombor positif', 'Nilai Tidak Sah');
-      return;
-    }
-    
+    // Mapping snake_case (UI) to camelCase (API/Entity)
+    const submitData = {
+      cemeteryname: formData.cemetery_name,
+      state: formData.state,
+      block: formData.block || null,
+      lot: formData.lot || null,
+      latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
+      longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
+      organisationid: formData.organisation_id ? Number(formData.organisation_id) : null,
+      qrcode: formData.qr_code || null,
+      status: formData.status || 'active',
+      totalgraves: parseInt(formData.total_graves) || 0
+    };
+
     try {
-      const data = {
-        ...formData,
-        gps_lat: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-        gps_lng: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
-        total_graves: parseInt(formData.total_graves) || 0
-      };
-
       if (editingGrave) {
-        updateMutation.mutate({ id: editingGrave.id, data });
+        await updateMutation.mutateAsync({ id: editingGrave.id, data: submitData });
       } else {
-        createMutation.mutate(data);
+        await createMutation.mutateAsync(submitData);
       }
+      setIsDialogOpen(false);
     } catch (error) {
-      showApiError(error);
+      // Errors handled by hooks
     }
   };
 
-  const handleDelete = (grave) => {
-    setGraveToDelete(grave);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!graveToDelete) return;
-    deleteMutation.mutate(graveToDelete.id);
+    await deleteMutation.mutateAsync(graveToDelete.id);
     setDeleteDialogOpen(false);
     setGraveToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
-  }
-
-  if (!hasAdminAccess) {
-    return (
-      <AccessDeniedComponent/>
-    );
-  }
-
-  if (!canView) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: translate('adminDashboard'), page: 'AdminDashboard' },
-          { label: translate('manageGravesTitle'), page: 'ManageGraves' }
-        ]} />
-        <AccessDeniedComponent/>
-      </div>
-    );
-  }
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
+  if (!hasAdminAccess) return <AccessDeniedComponent/>;
 
   return (
     <div className="space-y-6">
@@ -397,14 +277,14 @@ export default function ManageGraves() {
               </CardContent>
             </Card>
           ))
-        ) : gravesList.length === 0 ? (
+        ) : gravesList.items.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
             </CardContent>
           </Card>
         ) : (
-          gravesList.map(grave => (
+          gravesList.items.map(grave => (
             <Card key={grave.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-3">
                 <div className="flex items-start gap-3">
@@ -447,7 +327,7 @@ export default function ManageGraves() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={gravesList.length}
+            totalItems={gravesList.items.length}
           />
         )}
       </div>
@@ -468,16 +348,16 @@ export default function ManageGraves() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading || !gravesDataReady ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : gravesList.length === 0 ? (
+              ) : gravesList.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                gravesList.map(grave => (
+                gravesList.items.map(grave => (
                   <TableRow key={grave.id}>
                     <TableCell className="font-medium">{grave.cemetery_name}</TableCell>
                     <TableCell className="text-center">{grave.total_graves}</TableCell>
@@ -525,7 +405,7 @@ export default function ManageGraves() {
               setItemsPerPage(value);
               setPage(1);
             }}
-            totalItems={gravesList.length}
+            totalItems={gravesList.items.length}
           />
         )}
       </Card>
@@ -632,7 +512,7 @@ export default function ManageGraves() {
                   <SelectValue placeholder={translate('allManagingOrg')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {organisationsList.map(org => (
+                  {organisationsList.items.map(org => (
                     <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                   ))}
                 </SelectContent>

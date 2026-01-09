@@ -1,6 +1,7 @@
 // Added ManyToOne and JoinColumn to the imports
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"; 
 import { Organisation } from "./Organisation.entity.ts";
+import { ActiveInactiveStatus } from "../enums.ts";
 
 @Entity("grave")
 export class Grave {
@@ -8,7 +9,7 @@ export class Grave {
   id!: number;
 
   @Column("varchar", { length: 255, nullable: true })
-  cemeteryname?: string;
+  name?: string;
 
   @Column("varchar", { length: 255, nullable: true })
   block?: string;
@@ -31,21 +32,20 @@ export class Grave {
   @Column("varchar", { length: 255, nullable: true })
   qrcode?: string;
 
-  // Changed "number" to "int"
   @Column("int", { nullable: true }) 
   totalgraves?: number;
 
-  @Column("varchar", { length: 255, nullable: true })
-  status?: string;
+  @Column({
+    type: "enum",
+    enum: ActiveInactiveStatus,
+    default: ActiveInactiveStatus.ACTIVE,
+  })
+  status!: ActiveInactiveStatus;
 
-  // This is the actual database column
-  @Column({ name: "organisationid", nullable: true })
-  organisationid?: number;
 
-  // This is the TypeORM relation mapping
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
+    nullable: true,
     onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "organisationid" }) 
-  organisation?: Organisation;
+  organisation?: Organisation | null;
 }

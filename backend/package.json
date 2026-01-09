@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "type": "module", 
+  "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts --poll 1000",
     "seed": "tsx src/db/seed.ts",
