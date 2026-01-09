@@ -24,7 +24,6 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { isSupabaseMode, useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
 import { trpc } from '@/utils/trpc';
-
 import { translate } from '@/utils/translations';
 
 export default function ManageUsers() {
@@ -374,7 +373,7 @@ export default function ManageUsers() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('seacrhUser')}
+                placeholder={translate('searchUser')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)} 
                 className="pl-10 h-10"

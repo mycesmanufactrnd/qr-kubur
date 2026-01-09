@@ -108,7 +108,7 @@
   "active": "Aktif",
   "inactive": "Tidak Aktif",
   "noRecords": "Tiada rekod",
-  "Access Denied": "Akses Ditolak",
+  "accessDenied": "Akses Ditolak",
   "You do not have permission to access this page.": "Anda tidak mempunyai kebenaran untuk mengakses halaman ini.",
 
   "superadminDashboard": "Super Admin Papan Pemuka",
@@ -303,8 +303,12 @@
   "paymentConfig": "Konfigurasi Pembayaran",
   "selectPaymentPlatforms": "Pilih Platform Bayaran",
   "config": "Konfigurasi",
-  "saving...": "Saving..."
+  "saving...": "Menyimpan...",
+  "savingConfig": "Simpan Konfigurasi",
+  "uploading...": "Muat Naik...",
+  "doNotHavePermissionAccessPage": "Anda tidak mempunyai kebenaran untuk mengakses halaman ini.",
 
-
+  "searchPlatform": "Cari platform...",
+  "noPlatformFound": "Tiada platform dijumpai"
 
 }

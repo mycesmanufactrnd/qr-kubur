@@ -14,6 +14,8 @@ import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import { translate } from '@/utils/translations';
+
 
 export default function ManagePaymentPlatforms() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,13 +97,13 @@ export default function ManagePaymentPlatforms() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
+          { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
           { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
         ]} />
         <Card className="max-w-lg mx-auto mt-8">
           <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{translate('accessDenied')}</h2>
+            <p className="text-gray-600">{translate('doNotHavePermissionAccessPage')}</p>
           </CardContent>
         </Card>
       </div>
@@ -180,15 +182,15 @@ export default function ManagePaymentPlatforms() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Super Admin', page: 'SuperadminDashboard' },
-        { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
+        { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
+        { label: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            Payment Platforms
+            {translate('paymentPlatforms')}
           </h1>
         </div>
         <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
@@ -202,7 +204,7 @@ export default function ManagePaymentPlatforms() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Search platforms..."
+              placeholder= {translate('searchPlatform')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -224,7 +226,7 @@ export default function ManagePaymentPlatforms() {
         ) : filteredPlatforms.length === 0 ? (
           <Card className="border-0 shadow-sm dark:bg-gray-800">
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500">No platforms found</p>
+              <p className="text-sm text-gray-500">{translate('noPlatformFound')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -275,7 +277,7 @@ export default function ManagePaymentPlatforms() {
                 </TableRow>
               ) : filteredPlatforms.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">No platforms found</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noPlatformFound')}</TableCell>
                 </TableRow>
               ) : (
                 filteredPlatforms.map(platform => (
