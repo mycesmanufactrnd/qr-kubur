@@ -50,8 +50,6 @@ export const suggestionRouter = router({
                 .orderBy("suggestion.createdat", "DESC")
                 .getManyAndCount();
 
-                console.log('items', items)
-
             return { items, total };
         }),
 

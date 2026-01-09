@@ -6,3 +6,4 @@ export * from "./entities/PaymentField.entity.ts";
 export * from "./entities/PaymentPlatform.entity.ts";
 export * from "./entities/TahfizCenter.entity.ts";
 export * from "./entities/Suggestion.entity.ts";
+export * from "./entities/Donation.entity.ts";

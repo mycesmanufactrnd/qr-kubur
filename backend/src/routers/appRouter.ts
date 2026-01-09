@@ -4,6 +4,7 @@
 
 import { router as trpcRouter } from "../trpc.ts";
 import { authRouter } from "./authRouter.ts";
+import { donationRouter } from "./donationRouter.ts";
 import { organisationRouter } from "./organisationRouter.ts";
 import { organisationTypeRouter } from "./organisationTypeRouter.ts";
 import { paymentFieldRouter } from "./paymentFieldRouter.ts";
@@ -25,6 +26,7 @@ export const appRouter = trpcRouter({
   organisation: organisationRouter,
   organisationType: organisationTypeRouter,
   suggestion: suggestionRouter,
+  donation: donationRouter,
 });
 
 export type AppRouter = typeof appRouter;
