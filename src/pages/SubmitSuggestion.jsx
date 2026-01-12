@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { FileText, CheckCircle, ArrowLeft, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,11 +83,10 @@ export default function SubmitSuggestion() {
     return { ...g, distance: Infinity };
   });
 
-  const { data: persons = [] } = useQuery({
-    queryKey: ['persons-by-grave', watchSelectedGrave],
-    queryFn: () => base44.entities.DeadPerson.filter({ grave_id: watchSelectedGrave }),
-    enabled: watchType === 'person' || !!watchSelectedGrave
-  });
+  const { data: persons, isLoading: isPersonLoading } = trpc.deadperson.getDeadPersonByGraveId.useQuery(
+    { graveId: Number(watchSelectedGrave) ?? 0 },
+    { enabled: !!watchSelectedGrave }
+  );
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
@@ -241,11 +238,11 @@ export default function SubmitSuggestion() {
               render={({ field }) => (
                   <div>
                     <Label className="dark:text-gray-300">Pilih Si Mati <span className="text-red-500">*</span></Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={String(field.value)} onValueChange={field.onChange}>
                       <SelectTrigger><SelectValue placeholder="Pilih si mati" /></SelectTrigger>
                       <SelectContent>
-                        {persons.map(p => (
-                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        {!isPersonLoading && persons.map(p => (
+                          <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

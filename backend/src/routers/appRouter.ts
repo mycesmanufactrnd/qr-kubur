@@ -20,6 +20,7 @@ import { usersRouter } from "./usersRouter.ts";
 import { graveRouter } from "./graveRouter.ts";
 import { visitLogsRouter } from "./visitLogsRouter.ts";
 import { organisationPaymentConfigRouter } from "./organisationPaymentConfigRouter.ts";
+import { deadPersonRouter } from "./deadpersonRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
@@ -39,6 +40,7 @@ export const appRouter = trpcRouter({
   activityLogs: activityLogsRouter,
   visitLogs: visitLogsRouter,
   notification: notificationRouter,
+  deadperson: deadPersonRouter,
 });
 
 export type AppRouter = typeof appRouter;

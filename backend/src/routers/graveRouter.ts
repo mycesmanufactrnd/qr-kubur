@@ -23,7 +23,6 @@ export const graveRouter = router({
       const query = graveRepo.createQueryBuilder('grave')
         .leftJoinAndSelect('grave.organisation', 'organisation');
 
-      // Access Control
       if (organisationIds && organisationIds.length > 0) {
         query.andWhere('grave.organisationid IN (:...ids)', { ids: organisationIds });
       }
@@ -55,6 +54,16 @@ export const graveRouter = router({
         .getManyAndCount();
 
       return { items, total };
+    }),
+
+  getCountGravesByOrganisation: protectedProcedure
+    .input(
+      z.object({
+        parentorganisation: z.number()
+      })
+    )
+    .query(async ({ input }) => {
+      const { parentorganisation } = input;
     }),
 
   create: protectedProcedure

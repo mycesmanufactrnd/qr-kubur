@@ -16,7 +16,6 @@ import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
-import { getParentAndChildOrgs } from '@/utils/helpers';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
@@ -63,20 +62,21 @@ export default function ManageGraves() {
   const [graveToDelete, setGraveToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
 
-
   const {
       loading: permissionsLoading,
       canView, canCreate, canEdit, canDelete
     } = useCrudPermissions('graves');
 
-    // Load accessible organizations for non-superadmins
-    useEffect(() => {
-      if (!isSuperAdmin && currentUser?.organisation?.id) {
-        getParentAndChildOrgs(currentUser.organisation.id)
-          .then(ids => setAccessibleOrgIds(ids))
-          .catch(err => console.error(err));
-      }
-    }, [currentUser, isSuperAdmin]);
+  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id },
+    { enabled: !!currentUser && !!currentUser?.organisation?.id && !isSuperAdmin }
+  );
+
+  useEffect(() => {
+    if (parentAndChildQuery.data) {
+      setAccessibleOrgIds(parentAndChildQuery.data);
+    }
+  }, [parentAndChildQuery.data]);
 
   const {
     gravesList,
@@ -94,8 +94,6 @@ export default function ManageGraves() {
   }); 
 
   const { organisationsList } = useGetOrganisationPaginated({})
-
-  console.log('organisationsList', organisationsList);
 
   const createMutation = useCreateGrave();
   const updateMutation = useUpdateGrave();

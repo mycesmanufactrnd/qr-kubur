@@ -110,4 +110,21 @@ export const organisationRouter = router({
       const organisationRepo = AppDataSource.getRepository(Organisation);
       return organisationRepo.delete(input);
     }),
+
+  getParentAndChildOrgs: protectedProcedure
+    .input(z.object({
+      organisationId: z.number(),
+      isIdOnly: z.boolean().optional(),
+    }))
+    .query(async ({ input }) => {
+      const { organisationId, isIdOnly = true } = input;
+
+      const orgs = await AppDataSource.getRepository(Organisation)
+        .createQueryBuilder('org')
+        .where('org.id = :id OR org.parentorganisation = :id', { id: organisationId })
+        .getMany();
+
+      return isIdOnly ? orgs.map(o => o.id) : orgs;
+    }),
+
 });

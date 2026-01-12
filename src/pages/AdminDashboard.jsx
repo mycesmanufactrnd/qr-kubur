@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { getParentAndChildOrgs } from '../utils/helpers';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -35,7 +34,7 @@ export default function AdminDashboard() {
       let deadPersonCount = 0;
       
       if (currentUser.organisation_id) {
-        const orgsId = await getParentAndChildOrgs(currentUser.organisation_id);
+        const orgsId = await [];
 
         const graves = await base44.entities.Grave.filter({
           organisation_id: { $in: orgsId }
