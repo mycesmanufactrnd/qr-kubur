@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
@@ -12,32 +12,57 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ImageTextCaptcha from '../components/ImageTextCaptcha';
 import { showSuccess, showError, showWarning } from '../components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
+import { Controller, useForm } from 'react-hook-form';
+import { validateFields } from '@/utils/validations';
+import { trpc } from '@/utils/trpc';
+import { useCreateSuggestion, useRecentCountSuggestion } from '@/hooks/useSuggestionMutations';
 
 export default function SubmitSuggestion() {
-  const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
-  const preType = urlParams.get('type') || '';
-  const preId = urlParams.get('id') || '';
+  const oneHourAgo = useMemo(() => new Date(Date.now() - 60 * 60 * 1000).toISOString(), []);
 
-  const [entityType, setEntityType] = useState(preType);
-  const [entityId, setEntityId] = useState(preId);
-  const [selectedGrave, setSelectedGrave] = useState('');
-  const [suggestedChanges, setSuggestedChanges] = useState('');
-  const [reason, setReason] = useState('');
+  const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const recentCount = useRecentCountSuggestion(visitorIp, oneHourAgo); 
+
+  const { 
+    control, 
+    handleSubmit: handleFormSubmit, 
+    reset: handleResetForm, setValue, watch 
+  } = useForm({
+    defaultValues: {
+      type: '',
+      watchSelectedGrave: '',
+      entityId: '',
+      suggestedchanges: '',
+      reason: ''
+    }
+  });
+  
   const [submitted, setSubmitted] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
-  const queryClient = useQueryClient();
+  const watchType = watch('type');
+  const watchSelectedGrave = watch('watchSelectedGrave');
+
+  const createMutation = useCreateSuggestion();
+
+  // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
+  // CREATE EXTENSION IF NOT EXISTS cube;
+  // CREATE EXTENSION IF NOT EXISTS earthdistance;
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
           });
         },
         () => setUserLocation(null)
@@ -48,124 +73,47 @@ export default function SubmitSuggestion() {
   const { data: graves = [] } = useQuery({
     queryKey: ['graves-nearby'],
     queryFn: () => base44.entities.Grave.list(),
-    enabled: entityType === 'grave' || entityType === 'person'
+    enabled: watchType === 'grave' || watchType === 'person'
   });
 
   const { data: persons = [] } = useQuery({
-    queryKey: ['persons-by-grave', selectedGrave],
-    queryFn: () => base44.entities.DeadPerson.filter({ grave_id: selectedGrave }),
-    enabled: entityType === 'person' && !!selectedGrave
+    queryKey: ['persons-by-grave', watchSelectedGrave],
+    queryFn: () => base44.entities.DeadPerson.filter({ grave_id: watchSelectedGrave }),
+    enabled: watchType === 'person' || !!watchSelectedGrave
   });
 
-  const { data: organisations = [] } = useQuery({
-    queryKey: ['organisations-nearby'],
-    queryFn: () => base44.entities.Organisation.list(),
-    enabled: entityType === 'organisation'
-  });
+  const onSubmit = async (formData) => {
+    const isValid = validateFields(formData, [
+      { field: 'type', label: 'Record Type', type: 'select' },
+      { field: 'entityId', label: 'Record', type: 'select' },
+      { field: 'suggestedchanges', label: 'Suggested Changes', type: 'text' },
+    ]);
 
-  const { data: tahfizCenters = [] } = useQuery({
-    queryKey: ['tahfiz-nearby'],
-    queryFn: () => base44.entities.TahfizCenter.list(),
-    enabled: entityType === 'tahfiz'
-  });
-
-  const calculateDistance = (lat1, lng1, lat2, lng2) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  const sortedGraves = userLocation 
-    ? graves.map(g => ({
-        ...g,
-        distance: g.gps_lat && g.gps_lng 
-          ? calculateDistance(userLocation.lat, userLocation.lng, g.gps_lat, g.gps_lng)
-          : Infinity
-      })).sort((a, b) => a.distance - b.distance)
-    : graves;
-
-  const sortedOrganisations = organisations;
-  const sortedTahfiz = tahfizCenters;
-
-  const createSuggestion = useMutation({
-    mutationFn: (data) => base44.entities.Suggestion.create(data),
-    onSuccess: () => {
-      setSubmitted(true);
-      queryClient.invalidateQueries(['suggestions']);
-      showSuccess('Cadangan telah dihantar!');
-    },
-    onError: (error) => {
-      showError('Gagal menghantar cadangan. Sila cuba lagi.');
-      console.error('Suggestion error:', error);
-    }
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!entityType) {
-      showError('Sila pilih jenis rekod');
-      return;
-    }
-    if (!entityId) {
-      showError('Sila pilih rekod yang ingin dicadangkan');
-      return;
-    }
-    if (!suggestedChanges) {
-      showError('Sila masukkan cadangan pembetulan');
-      return;
-    }
-
-    let visitorIp = 'unknown';
-    try {
-      const { ip } = await base44.functions.invoke('getClientIp');
-      visitorIp = ip;
-
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      const recentSuggestions = await base44.entities.Suggestion.filter({
-        visitor_ip: visitorIp,
-        created_date: { $gte: oneHourAgo }
-      });
-
-      if (recentSuggestions.length >= 3) {
-        showWarning('Anda telah mencapai had cadangan (3 kali sejam). Sila cuba lagi kemudian.', 'Had Dicapai');
-        return;
-      }
-    } catch (error) {
-      console.error('Error getting IP or checking rate limit:', error);
-    }
+    if (!isValid) return;
+      
+    const { type, entityId, watchSelectedGrave, suggestedchanges, reason } = formData;
 
     const suggestionData = {
-      entity_type: entityType,
-      entity_id: entityId,
-      suggested_changes: suggestedChanges,
-      reason: reason,
-      status: 'pending',
-      visitor_ip: visitorIp
+      type: type,
+      suggestedchanges: suggestedchanges,
+      reason,
+      status: 'pending'
     };
 
-    if (entityType === 'person') {
-      suggestionData.grave_id = selectedGrave;
-      suggestionData.dead_person_id = entityId;
-      const grave = graves.find(g => g.id === selectedGrave);
-      suggestionData.state_id = grave?.state;
-    } else if (entityType === 'grave') {
-      suggestionData.grave_id = entityId;
-      const grave = graves.find(g => g.id === entityId);
-      suggestionData.state_id = grave?.state;
-    } else if (entityType === 'organisation') {
-      suggestionData.organisation_id = entityId;
-      const org = organisations.find(o => o.id === entityId);
-      suggestionData.state_id = Array.isArray(org?.state) ? org.state[0] : org?.state;
-    } else if (entityType === 'tahfiz') {
-      suggestionData.tahfiz_center_id = entityId;
-      const tahfiz = tahfizCenters.find(t => t.id === entityId);
-      suggestionData.state_id = tahfiz?.state;
+    if (recentCount >= 3) {
+      showWarning("Anda telah mencapai had 3 cadangan sejam");
+      return;
+    }
+
+    if (type === 'person') {
+      //check apa yg diorg buat
+      suggestionData.grave = { id: watchSelectedGrave };
+      suggestionData.deadperson = { id: entityId };
+    }
+
+    if (type === 'grave') {
+      //check apa yg diorg buat
+      suggestionData.grave = { id: entityId };
     }
 
     setPendingSubmission(suggestionData);
@@ -175,17 +123,18 @@ export default function SubmitSuggestion() {
   const handleCaptchaVerified = async () => {
     if (!pendingSubmission) return;
 
-    createSuggestion.mutate(pendingSubmission);
+    createMutation.mutateAsync(pendingSubmission)
+    .then((res) => {
+      if (res) {
+        setSubmitted(true);
+      }
+    });
     setPendingSubmission(null);
   };
 
   const handleCaptchaFailed = () => {
     showError('Captcha gagal. Sila isi semula borang.');
-    setEntityType(preType);
-    setEntityId(preId);
-    setSelectedGrave('');
-    setSuggestedChanges('');
-    setReason('');
+    handleResetForm();
     setPendingSubmission(null);
   };
 
@@ -216,149 +165,121 @@ export default function SubmitSuggestion() {
   return (
     <div className="max-w-lg mx-auto space-y-4 pb-2">
       <BackNavigation title="Suggestion" />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleFormSubmit(onSubmit)}>
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label htmlFor="entityType" className="dark:text-gray-300">Jenis Rekod</Label>
-              <Select value={entityType} onValueChange={(val) => {
-                setEntityType(val);
-                setEntityId('');
-                setSelectedGrave('');
-              }}>
-                <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                  <SelectValue placeholder="Pilih jenis rekod" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-700">
-                  <SelectItem value="person">Rekod Si Mati</SelectItem>
-                  <SelectItem value="grave">Tanah Perkuburan</SelectItem>
-                  <SelectItem value="organisation">Organisasi</SelectItem>
-                  <SelectItem value="tahfiz">Pusat Tahfiz</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="type" className="dark:text-gray-300">Jenis Rekod</Label>
+              <Controller
+                name="type"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      setValue('watchSelectedGrave', '');
+                      setValue('entityId', '');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jenis rekod" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="person">Rekod Si Mati</SelectItem>
+                      <SelectItem value="grave">Tanah Perkuburan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
 
             {/* Grave Selection for Person */}
-            {entityType === 'person' && (
-              <div>
-                <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
-                <Select value={selectedGrave} onValueChange={(val) => {
-                  setSelectedGrave(val);
-                  setEntityId('');
-                }}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih kubur berdekatan" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {sortedGraves.slice(0, 20).map(g => (
-                      <SelectItem key={g.id} value={g.id}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-3 h-3" />
-                          {g.cemetery_name} - {g.state}
-                          {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {watch('type') === 'person' && (
+                <Controller
+                  name="watchSelectedGrave"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <div>
+                      <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue placeholder="Pilih kubur" /></SelectTrigger>
+                        <SelectContent>
+                          {graves.map(g => (
+                            <SelectItem key={g.id} value={g.id}>{g.cemetery_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                />
             )}
 
             {/* Person Selection */}
-            {entityType === 'person' && selectedGrave && (
-              <div>
-                <Label className="dark:text-gray-300">Pilih Si Mati <span className="text-red-500">*</span></Label>
-                <Select value={entityId} onValueChange={setEntityId}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih si mati" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {persons.length === 0 ? (
-                      <SelectItem value="none" disabled>Tiada rekod dijumpai</SelectItem>
-                    ) : (
-                      persons.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name} ({p.ic_number || 'Tiada IC'})
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+            {watch('type') === 'person' && watch('watchSelectedGrave') && (
+              <Controller
+              name="entityId"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                  <div>
+                    <Label className="dark:text-gray-300">Pilih Si Mati <span className="text-red-500">*</span></Label>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Pilih si mati" /></SelectTrigger>
+                      <SelectContent>
+                        {persons.map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
             )}
 
             {/* Grave Selection */}
-            {entityType === 'grave' && (
-              <div>
-                <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
-                <Select value={entityId} onValueChange={setEntityId}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih kubur berdekatan" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {sortedGraves.slice(0, 20).map(g => (
-                      <SelectItem key={g.id} value={g.id}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-3 h-3" />
-                          {g.cemetery_name} - {g.state}
-                          {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Organisation Selection */}
-            {entityType === 'organisation' && (
-              <div>
-                <Label className="dark:text-gray-300">Pilih Organisasi <span className="text-red-500">*</span></Label>
-                <Select value={entityId} onValueChange={setEntityId}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih organisasi" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {sortedOrganisations.map(o => (
-                      <SelectItem key={o.id} value={o.id}>
-                        {o.name} - {Array.isArray(o.state) ? o.state.join(', ') : o.state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Tahfiz Selection */}
-            {entityType === 'tahfiz' && (
-              <div>
-                <Label className="dark:text-gray-300">Pilih Pusat Tahfiz <span className="text-red-500">*</span></Label>
-                <Select value={entityId} onValueChange={setEntityId}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih pusat tahfiz" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {sortedTahfiz.map(t => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name} - {t.state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {watch('type') === 'grave' && (
+              <Controller
+                name="entityId"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <div>
+                    <Label>Pilih Kubur <span className="text-red-500">*</span></Label>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih kubur berdekatan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {graves.slice(0, 20).map(g => (
+                          <SelectItem key={g.id} value={g.id}>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3 h-3" />
+                              {g.cemetery_name} - {g.state}
+                              {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
             )}
 
             <div>
-              <Label htmlFor="suggestedChanges" className="dark:text-gray-300">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
-              <Textarea
-                id="suggestedChanges"
-                value={suggestedChanges}
-                onChange={(e) => setSuggestedChanges(e.target.value)}
-                placeholder="Nyatakan maklumat yang perlu diperbetulkan dan maklumat yang betul..."
-                rows={5}
-                required
-                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              <Label htmlFor="suggestedchanges" className="dark:text-gray-300">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
+              <Controller
+                name="suggestedchanges"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Textarea {...field} rows={5} placeholder="Nyatakan pembetulan..." />
+                )}
               />
+
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Contoh: "Nama sepatutnya Ahmad bin Abu, bukan Ahmad bin Bakar"
               </p>
@@ -366,22 +287,17 @@ export default function SubmitSuggestion() {
 
             <div>
               <Label htmlFor="reason" className="dark:text-gray-300">Sebab / Justifikasi</Label>
-              <Textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Nyatakan sebab atau bukti untuk pembetulan ini..."
-                rows={3}
-                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              <Controller
+                name="reason"
+                control={control}
+                render={({ field }) => (
+                  <Textarea {...field} rows={3} placeholder="Sebab..." />
+                )}
               />
             </div>
 
-            <Button 
-              type="submit"
-              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
-              disabled={createSuggestion.isPending || !entityType || !suggestedChanges || !entityId}
-            >
-              {createSuggestion.isPending ? 'Menghantar...' : 'Hantar Cadangan'}
+            <Button type="submit" disabled={!watch('type') || !watch('entityId') || !watch('suggestedchanges')}>
+              Hantar Cadangan
             </Button>
           </CardContent>
         </Card>

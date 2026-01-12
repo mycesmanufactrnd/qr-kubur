@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./User.entity.ts";
 
 @Entity("permission")
@@ -6,7 +6,7 @@ export class Permission {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @ManyToOne(() => User, (user) => user.permission, {
+    @ManyToOne(() => User, (user) => user.permissions, {
         nullable: true,
         onDelete: "SET NULL",
     })
@@ -17,4 +17,7 @@ export class Permission {
 
     @Column({ type: "boolean", default: true })
     enabled!: boolean;
+
+    @CreateDateColumn({ name: "createdat" })
+    createdat!: Date;
 }

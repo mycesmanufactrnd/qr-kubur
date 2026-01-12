@@ -1,22 +1,50 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { createPageUrl } from '../utils/index';
-import { base44 } from '@/api/base44Client';
-import { QrCode, Camera, X, AlertCircle, CheckCircle, Keyboard } from 'lucide-react';
+import { Camera, X, AlertCircle, CheckCircle, Keyboard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QrScanner from 'react-qr-scanner';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
+import { trpc } from '@/utils/trpc';
 
 export default function ScanQR() {
+  const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
   const [manualCode, setManualCode] = useState('');
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showManual, setShowManual] = useState(false);
+
+  const createMutation = trpc.visitLogs.create.useMutation();
+
+  const createVisitLog = async (type, id) => {
+    if (!visitorIp) return;
+
+    let graveId = null;
+    let deadpersonId = null;
+
+    if (type === 'grave') graveId = id;
+    else if (type === 'deadperson') deadpersonId = id;
+
+    try {
+      await createMutation.mutateAsync({
+        grave: graveId ? { id: graveId } : null,
+        deadperson: deadpersonId ? { id: deadpersonId } : null,
+        visitorip: visitorIp,
+      });
+    } catch (err) {
+      console.error('Failed to log visit', err);
+    }
+  };
+
 
   const handleScan = async (data) => {
     if (data && !loading) {
@@ -25,130 +53,42 @@ export default function ScanQR() {
       setScanning(false);
 
       const qrCode = data.text || data;
-      
+
       try {
-        // Get visitor IP
-        const { ip } = await base44.functions.invoke('getClientIp');
-        
-        // Check graves first
-        const graves = await base44.entities.Grave.filter({ qr_code: qrCode });
-        
-        if (graves.length > 0) {
-          await base44.entities.VisitLog.create({
-            grave_id: graves[0].id,
-            visitor_ip: ip,
-            visit_type: 'qr_scan'
-          });
-          setResult({ type: 'grave', data: graves[0] });
-        } else {
-          const gravesById = await base44.entities.Grave.filter({ id: qrCode });
-          if (gravesById.length > 0) {
-            await base44.entities.VisitLog.create({
-              grave_id: gravesById[0].id,
-              visitor_ip: ip,
-              visit_type: 'qr_scan'
-            });
-            setResult({ type: 'grave', data: gravesById[0] });
-          } else {
-            // Check dead persons
-            const persons = await base44.entities.DeadPerson.filter({ qr_code: qrCode });
-            if (persons.length > 0) {
-              await base44.entities.VisitLog.create({
-                dead_person_id: persons[0].id,
-                visitor_ip: ip,
-                visit_type: 'qr_scan'
-              });
-              setResult({ type: 'person', data: persons[0] });
-            } else {
-              const personsById = await base44.entities.DeadPerson.filter({ id: qrCode });
-              if (personsById.length > 0) {
-                await base44.entities.VisitLog.create({
-                  dead_person_id: personsById[0].id,
-                  visitor_ip: ip,
-                  visit_type: 'qr_scan'
-                });
-                setResult({ type: 'person', data: personsById[0] });
-              } else {
-                setError('Kod QR tidak dijumpai dalam sistem.');
-              }
-            }
-          }
+        const parsed = JSON.parse(qrCode);
+        const { type, id } = parsed;
+
+        if (!type || !id) {
+          setError('Kod QR tidak sah.');
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error('Error logging visit:', error);
-        setError('Kod QR tidak dijumpai dalam sistem.');
+
+        if (type === 'grave') {
+          // const grave = await base44.entities.Grave.filter({ id });
+
+          await createVisitLog(type, id);
+          setResult({ type: 'grave', data: grave[0] });
+        } else if (type === 'deadperson') {
+          // const person = await base44.entities.DeadPerson.filter({ id });
+
+          await createVisitLog(type, id);
+          setResult({ type: 'person', data: person[0] });
+        } else {
+          setError('Kod QR tidak dijumpai dalam sistem.');
+        }
+      } catch (err) {
+        console.error('Error processing QR:', err);
+        setError('Kod QR tidak sah.');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     }
   };
 
   const handleError = (err) => {
     console.error(err);
     setError(translate('cameraError'));
-  };
-
-  const handleManualSearch = async (e) => {
-    e.preventDefault();
-    if (!manualCode.trim()) return;
-    
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      // Get visitor IP
-      const { ip } = await base44.functions.invoke('getClientIp');
-      
-      const graves = await base44.entities.Grave.filter({ qr_code: manualCode.trim() });
-      
-      if (graves.length > 0) {
-        await base44.entities.VisitLog.create({
-          grave_id: graves[0].id,
-          visitor_ip: ip,
-          visit_type: 'qr_scan'
-        });
-        setResult({ type: 'grave', data: graves[0] });
-      } else {
-        const gravesById = await base44.entities.Grave.filter({ id: manualCode.trim() });
-        if (gravesById.length > 0) {
-          await base44.entities.VisitLog.create({
-            grave_id: gravesById[0].id,
-            visitor_ip: ip,
-            visit_type: 'qr_scan'
-          });
-          setResult({ type: 'grave', data: gravesById[0] });
-        } else {
-          // Check dead persons
-          const persons = await base44.entities.DeadPerson.filter({ qr_code: manualCode.trim() });
-          if (persons.length > 0) {
-            await base44.entities.VisitLog.create({
-              dead_person_id: persons[0].id,
-              visitor_ip: ip,
-              visit_type: 'qr_scan'
-            });
-            setResult({ type: 'person', data: persons[0] });
-          } else {
-            const personsById = await base44.entities.DeadPerson.filter({ id: manualCode.trim() });
-            if (personsById.length > 0) {
-              await base44.entities.VisitLog.create({
-                dead_person_id: personsById[0].id,
-                visitor_ip: ip,
-                visit_type: 'qr_scan'
-              });
-              setResult({ type: 'person', data: personsById[0] });
-            } else {
-              setError(translate('codeNotFound'));
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setError(translate('codeNotFound'));
-    }
-    
-    setLoading(false);
   };
 
   const navigateToResult = () => {
@@ -204,41 +144,9 @@ export default function ScanQR() {
                     <Camera className="w-4 h-4 mr-2" />
                     {translate('openCamera')}
                   </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowManual(!showManual)}
-                    className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-                  >
-                    <Keyboard className="w-4 h-4 mr-2" />
-                    {translate('typeCode')}
-                  </Button>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Manual Input */}
-      {showManual && !result && (
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardContent className="p-4">
-            <form onSubmit={handleManualSearch} className="space-y-3">
-              <Input
-                type="text"
-                placeholder={translate('enterQRCode')}
-                value={manualCode}
-                onChange={(e) => setManualCode(e.target.value)}
-                className="text-center dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              />
-              <Button 
-                type="submit" 
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
-                disabled={loading || !manualCode.trim()}
-              >
-                {loading ? translate('searching') : translate('search')}
-              </Button>
-            </form>
           </CardContent>
         </Card>
       )}

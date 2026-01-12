@@ -109,5 +109,16 @@ export function useAdminAccess() {
     tahfiz: isTahfizAdmin,
   }
 
-  return { role, currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, checkRole, currentUserStates };
+  const userEmail = currentUser?.email ?? null;
+
+  return { 
+    role, 
+    currentUser, 
+    loadingUser, 
+    hasAdminAccess, 
+    isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, 
+    checkRole, 
+    currentUserStates,
+    userEmail
+  };
 }

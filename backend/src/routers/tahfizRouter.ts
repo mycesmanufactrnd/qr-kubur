@@ -5,57 +5,37 @@ import { TahfizCenter } from "../db/entities.ts";
 
 export const tahfizRouter = router({
     getTahfiz: publicProcedure
-    .input(
-        z.object({
+        .input(
+            z.object({
             coordinates: z.object({
                 latitude: z.number().min(-90).max(90),
                 longitude: z.number().min(-180).max(180),
             }).optional().nullable()
-        })
-    )
-    .query(async ({ input }) => {
-        const repo = AppDataSource.getRepository(TahfizCenter);
+            })
+        )
+        .query(async ({ input }) => {
+            const repo = AppDataSource.getRepository(TahfizCenter);
 
-        if (!input.coordinates) {
-            return repo.find({ take: 100, order: { createdat: "DESC" } });
-        }
+            if (!input.coordinates) {
+                return repo.find({ take: 100, order: { createdat: "DESC" } });
+            }
 
-        const { latitude, longitude } = input.coordinates;
+            const { latitude, longitude } = input.coordinates;
 
-        const nearestAny = await repo.createQueryBuilder("t")
-            .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
+            return repo.createQueryBuilder("tahfizcenter")
+            .where("tahfizcenter.latitude IS NOT NULL AND tahfizcenter.longitude IS NOT NULL")
             .orderBy(
-            `
-            earth_distance(
-                ll_to_earth(t.latitude, t.longitude),
-                ll_to_earth(:lat, :lng)
-            )
-            `,
-            "ASC"
+                `
+                earth_distance(
+                    ll_to_earth(tahfizcenter.latitude, tahfizcenter.longitude),
+                    ll_to_earth(:lat, :lng)
+                )
+                `,
+                "ASC"
             )
             .setParameters({ lat: latitude, lng: longitude })
-            .getOne();
-
-        if (!nearestAny) return [];
-
-        const userState = nearestAny.state;
-
-        return repo.createQueryBuilder("t")
-            .where("t.state = :state", { state: userState })
-            .andWhere("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
-            .orderBy(
-            `
-            earth_distance(
-                ll_to_earth(t.latitude, t.longitude),
-                ll_to_earth(:lat, :lng)
-            )
-            `,
-            "ASC"
-            )
-            .setParameters({ lat: latitude, lng: longitude })
-            .take(10)
             .getMany();
-    }),
+        }),
 
     getPaginated: protectedProcedure
         .input(

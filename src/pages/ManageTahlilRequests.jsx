@@ -1,114 +1,47 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { BookOpen, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
-import { usePermissions } from '../components/PermissionsContext';
-import { showSuccess } from '@/components/ToastrNotification';
-import { SERVICE_LABELS } from '@/utils/enums';
+import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
 import { translate } from '@/utils/translations';
+import { useAdminAccess } from '@/utils/auth';
+import { useGetTahlilRequestPaginated, useUpdateTahlilRequest } from '@/hooks/useTahlilRequestMutations';
+import PageLoadingComponent from '../components/PageLoadingComponent';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import Pagination from '@/components/Pagination';
 
 export default function ManageTahlilRequests() {
-  const [filterStatus, setFilterStatus] = useState('all');
+  const { 
+    loadingUser,
+    currentUser,
+    isTahfizAdmin,
+    isSuperAdmin
+  } = useAdminAccess();
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [lang, setLang] = useState('ms');
 
-  const queryClient = useQueryClient();
+  const {
+    loading: permissionsLoading,
+    canView, canApprove, canReject, canDelete
+  } = useCrudPermissions('tahlil');
 
-  React.useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
-      if (appUserAuth) {
-        setUser(JSON.parse(appUserAuth));
-      }
-    } catch (e) {
-      setUser(null);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
-  const { hasPermission } = usePermissions();
-  const isSuperAdmin = user?.role === 'superadmin';
-  const hasViewPermission = hasPermission('tahlil_view');
-  const hasEditPermission = hasPermission('tahlil_accept') || hasPermission('tahlil_reject');
-
-  const { data: requests = [], isLoading } = useQuery({
-    queryKey: ['admin-tahlil-requests', user?.tahfiz_center_id],
-    queryFn: async () => {
-      if (isSuperAdmin) {
-        return await base44.entities.TahlilRequest.list('-created_date');
-      }
-      
-      // Tahfiz center admins can only see requests for their center
-      if (user?.tahfiz_center_id) {
-        const allRequests = await base44.entities.TahlilRequest.list('-created_date');
-        return allRequests.filter(r => r.tahfiz_center_id === user.tahfiz_center_id);
-      }
-      
-      return [];
-    },
-    enabled: !!user
+  const {
+      tahlilRequestList: requestList,
+      totalPages,
+      isLoading,
+  } = useGetTahlilRequestPaginated({
+      page,
+      pageSize: itemsPerPage,
   });
 
-  const { data: tahfizCenters = [] } = useQuery({
-    queryKey: ['tahfiz'],
-    queryFn: () => base44.entities.TahfizCenter.list()
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.TahlilRequest.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-tahlil-requests']);
-      setIsDialogOpen(false);
-      setSelectedRequest(null);
-      showSuccess('Status permohonan telah dikemaskini');
-    }
-  });
-
-  const filteredRequests = requests.filter(r => {
-    const statusMatch = filterStatus === 'all' || r.status === filterStatus;
-    
-    if (!searchTerm) return statusMatch;
-    
-    const search = searchTerm.toLowerCase();
-    const centerName = getCenterName(r.tahfiz_center_id).toLowerCase();
-    const serviceLabel = (r.service_type || '')
-      .splitranslate(',')
-      .filter(Boolean)
-      .map(type => SERVICE_LABELS[type] || type)
-      .join(', ')
-      .toLowerCase();
-    
-    return statusMatch && (
-      r.requester_name?.toLowerCase().includes(search) ||
-      r.deceased_name?.toLowerCase().includes(search) ||
-      centerName.includes(search) ||
-      serviceLabel.includes(search) ||
-      r.reference_id?.toLowerCase().includes(search)
-    );
-  });
-
-  const getCenterName = (centerId) => {
-    const center = tahfizCenters.find(c => c.id === centerId);
-    return center?.name || '-';
-  };
+  const updateMutation = useUpdateTahlilRequest();
 
   const openDetailDialog = (request) => {
     setSelectedRequest(request);
@@ -117,25 +50,16 @@ export default function ManageTahlilRequests() {
 
   const handleStatusChange = async (newStatus) => {
     if (!selectedRequest) return;
-    updateMutation.mutate({
+    updateMutation.mutateAsync({
       id: selectedRequest.id,
       data: { status: newStatus }
-    });
-
-    // Log activity
-    try {
-      await base44.entities.LogActivity.create({
-        activity_type: 'tahlil_request_update',
-        function_name: 'ManageTahlilRequests',
-        user_email: user?.email,
-        level: 'info',
-        summary: `Permohonan tahlil: ${newStatus}`,
-        details: { request_id: selectedRequest.id, status: newStatus, requester: selectedRequest.requester_name },
-        success: true
-      });
-    } catch (err) {
-      console.error('Failed to log activity:', err);
-    }
+    })
+    .then((res) => {
+      if (res) {
+        setIsDialogOpen(false);
+        setSelectedRequest(null);
+      }
+    })
   };
 
   const getStatusBadge = (status) => {
@@ -153,8 +77,28 @@ export default function ManageTahlilRequests() {
     }
   };
 
-  if (loadingUser || isLoading) {
-    return <LoadingUser />;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isTahfizAdmin && !isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('adminDashboard'), page: 'AdminDashboard' },
+        { label: translate('manageTahlilTitle'), page: 'ManageTahlilRequests' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
   }
 
   return (
@@ -164,26 +108,21 @@ export default function ManageTahlilRequests() {
         { label: translate('manageTahlilTitle'), page: 'ManageTahlilRequests' }
       ]} />
       
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             {translate('manageTahlilTitle')}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {requests.filter(r => r.status === 'pending').length} {translate('awaitingAction')}
-          </p>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: translate('pending'), value: requests.filter(r => r.status === 'pending').length, color: 'yellow' },
-          { label: translate('accepted'), value: requests.filter(r => r.status === 'accepted').length, color: 'blue' },
-          { label: translate('completed'), value: requests.filter(r => r.status === 'completed').length, color: 'green' },
-          { label: translate('rejected'), value: requests.filter(r => r.status === 'rejected').length, color: 'red' }
+          { label: translate('pending'), value: requestList.items.filter(r => r.status === TahlilStatus.PENDING).length, color: 'yellow' },
+          { label: translate('accepted'), value: requestList.items.filter(r => r.status === TahlilStatus.ACCEPTED).length, color: 'blue' },
+          { label: translate('completed'), value: requestList.items.filter(r => r.status === TahlilStatus.COMPLETED).length, color: 'green' },
+          { label: translate('rejected'), value: requestList.items.filter(r => r.status === TahlilStatus.REJECTED).length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -194,98 +133,18 @@ export default function ManageTahlilRequests() {
         ))}
       </div>
 
-      {/* Search and Filter */}
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <Input
-                placeholder={translate('searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2 text-gray-400" />
-                <SelectValue placeholder={translate('allStatus')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate('allStatus')}</SelectItem>
-                <SelectItem value="pending">{translate('pending')}</SelectItem>
-                <SelectItem value="accepted">{translate('accepted')}</SelectItem>
-                <SelectItem value="completed">{translate('completed')}</SelectItem>
-                <SelectItem value="rejected">{translate('rejected')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Mobile Cards */}
-      <div className="lg:hidden space-y-3">
-        {isLoading ? (
-          [1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredRequests.length === 0 ? (
-          <Card className="border-0 shadow-sm dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredRequests.map(request => (
-            <Card key={request.id} className="border-0 shadow-sm dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{request.requester_name}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Arwah: {request.deceased_name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{getCenterName(request.tahfiz_center_id)}</p>
-                    {request.reference_id && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">ID: {request.reference_id}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {(request.service_type || '')
-                          .splitranslate(',')
-                          .filter(Boolean)
-                          .map(type => SERVICE_LABELS[type] || type)
-                          .join(', ')
-                        }
-                      </Badge>
-                      {getStatusBadge(request.status)}
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => openDetailDialog(request)} className="h-8 w-8 p-0">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Desktop Table */}
       <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('requesterName')}</TableHead>
-                <TableHead>{translate('deceasedName')}</TableHead>
-                <TableHead>{translate('serviceType')}</TableHead>
-                <TableHead>{translate('tahfizCenter')}</TableHead>
-                <TableHead>{translate('referenceId')}</TableHead>
-                <TableHead>{translate('status')}</TableHead>
-                <TableHead className="text-right">{translate('actions')}</TableHead>
+                <TableHead className="text-center">{translate('deceasedName')}</TableHead>
+                <TableHead className="text-center">{translate('serviceType')}</TableHead>
+                <TableHead className="text-center">{translate('tahfizCenter')}</TableHead>
+                <TableHead className="text-center">{translate('referenceId')}</TableHead>
+                <TableHead className="text-center">{translate('status')}</TableHead>
+                <TableHead className="text-center">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -293,33 +152,36 @@ export default function ManageTahlilRequests() {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : filteredRequests.length === 0 ? (
+              ) : requestList.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                filteredRequests.map(request => (
+                requestList.items.map(request => (
                   <TableRow key={request.id}>
-                    <TableCell className="font-medium">{request.requester_name}</TableCell>
-                    <TableCell>{request.deceased_name}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium">{request.requestorname}</TableCell>
+                    <TableCell className="text-center">
+                      {(request.deceasednames || [])
+                        .map(name => name)
+                        .join(', ')
+                      }  
+                    </TableCell>
+                    <TableCell className="text-center">
                       <Badge variant="outline">
-                        {(request.service_type || '')
-                            .splitranslate(',')
-                            .filter(Boolean)
-                            .map(type => SERVICE_LABELS[type] || type)
-                            .join(', ')
-                        }
-                      </Badge>
+                      {(request.selectedservices || [])
+                        .map(type => SERVICE_LABELS[type] || type)
+                        .join(', ')
+                      }
+                    </Badge>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {getCenterName(request.tahfiz_center_id)}
+                    <TableCell className="max-w-xs text-center">
+                      {request.tahfizcenter?.name}
                     </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {request.reference_id || '-'}
+                    <TableCell className="font-mono text-sm texte-center">
+                      {request.referenceno || '-'}
                     </TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">{getStatusBadge(request.status)}</TableCell>
+                    <TableCell className="text-center">
                       <Button variant="ghost" size="sm" onClick={() => openDetailDialog(request)}>
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -329,6 +191,19 @@ export default function ManageTahlilRequests() {
               )}
             </TableBody>
           </Table>
+          {totalPages > 0 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value);
+                setPage(1);
+              }}
+              totalItems={requestList.total}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -343,7 +218,7 @@ export default function ManageTahlilRequests() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">{translate('requesterName')}</p>
-                  <p className="font-semibold">{selectedRequest.requester_name}</p>
+                  <p className="font-semibold">{selectedRequest.requestorname}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">{translate('phoneNumber')}</p>
@@ -358,27 +233,25 @@ export default function ManageTahlilRequests() {
               )}
               <div>
                 <p className="text-sm text-gray-500">{translate('deceasedName')}</p>
-                <p className="font-semibold">{selectedRequest.deceased_name}</p>
+                <p className="font-semibold">{selectedRequest.deceasednames}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">{translate('serviceType')}</p>
-                <Badge>
-                {(selectedRequest.service_type || '')
-                    .splitranslate(',')
-                    .filter(Boolean)
+                <Badge variant="outline">
+                  {(selectedRequest.selectedservices || [])
                     .map(type => SERVICE_LABELS[type] || type)
                     .join(', ')
-                }
+                  }
                 </Badge>
               </div>
               <div>
                 <p className="text-sm text-gray-500">{translate('tahfizCenter')}</p>
-                <p>{getCenterName(selectedRequest.tahfiz_center_id)}</p>
+                <p>{selectedRequest.tahfizcenter?.name}</p>
               </div>
-              {selectedRequest.reference_id && (
+              {selectedRequest.referenceno && (
                 <div>
                   <p className="text-sm text-gray-500">{translate('referenceId')}</p>
-                  <p className="font-mono font-semibold">{selectedRequest.reference_id}</p>
+                  <p className="font-mono font-semibold">{selectedRequest.referenceno}</p>
                 </div>
               )}
               {selectedRequest.preferred_date && (

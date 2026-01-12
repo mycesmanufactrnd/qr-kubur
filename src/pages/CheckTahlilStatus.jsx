@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import React, { useEffect, useState } from 'react';
 import { Search, BookOpen, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,75 +6,82 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { showError } from '@/components/ToastrNotification';
-import { SERVICE_LABELS } from '@/utils/enums';
+import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
 import BackNavigation from '@/components/BackNavigation';
+import { trpc } from '@/utils/trpc';
 
 export default function CheckTahlilStatus() {
   const [referenceId, setReferenceId] = useState('');
+  const [searchKey, setSearchKey] = useState(null);
   const [searching, setSearching] = useState(false);
   const [request, setRequest] = useState(null);
   const [tahfizCenter, setTahfizCenter] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleSearch = async () => {
+  const {
+    data: tahlilRequest,
+    isLoading,
+    isError,
+  } = trpc.tahlilRequest.getByReferenceNo.useQuery(
+    searchKey ? { referenceno: searchKey } : null,
+    { enabled: !!searchKey }
+  );
+
+  useEffect(() => {
+    if (!searchKey) return;
+
+    if (!isLoading) {
+      setSearching(false);
+
+      if (!tahlilRequest) {
+        showError('Permohonan Tidak Dijumpa');
+        return;
+      }
+
+      setRequest(tahlilRequest);
+
+      if (tahlilRequest.tahfizcenter) {
+        setTahfizCenter(tahlilRequest.tahfizcenter);
+      }
+
+      setIsDialogOpen(true);
+    }
+  }, [tahlilRequest, isLoading, searchKey]);
+
+  const handleSearch = () => {
     if (!referenceId.trim()) {
-      showError('Sila Masukkan ID Rujukan')
+      showError('Sila Masukkan ID Rujukan');
       return;
     }
 
     setSearching(true);
-    try {
-      const requests = await base44.entities.TahlilRequest.filter({ reference_id: referenceId.trim() });
-      
-      if (requests.length === 0) {
-        showError('Permohonan Tidak Dijumpa')
-        setSearching(false);
-        return;
-      }
-
-      const foundRequest = requests[0];
-      setRequest(foundRequest);
-
-      if (foundRequest.tahfiz_center_id) {
-        const centers = await base44.entities.TahfizCenter.filter({ id: foundRequest.tahfiz_center_id });
-        if (centers.length > 0) {
-          setTahfizCenter(centers[0]);
-        }
-      }
-
-      setIsDialogOpen(true);
-    } catch (error) {
-      console.error('Search error:', error);
-      showError('Ralat Semasa Mencari Permohonan')
-    } finally {
-      setSearching(false);
-    }
+    setSearchKey(referenceId.trim());
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
+      case TahlilStatus.PENDING:
         return (
           <Badge className="bg-yellow-100 text-yellow-700 text-lg px-4 py-2">
             <Clock className="w-5 h-5 mr-2" />
             Menunggu
           </Badge>
         );
-      case 'accepted':
+      case TahlilStatus.ACCEPTED:
         return (
           <Badge className="bg-blue-100 text-blue-700 text-lg px-4 py-2">
             <CheckCircle className="w-5 h-5 mr-2" />
             Diterima
           </Badge>
         );
-      case 'completed':
+      case TahlilStatus.COMPLETED:
         return (
           <Badge className="bg-green-100 text-green-700 text-lg px-4 py-2">
             <CheckCircle className="w-5 h-5 mr-2" />
             Selesai
           </Badge>
         );
-      case 'rejected':
+      case TahlilStatus.REJECTED:
         return (
           <Badge className="bg-red-100 text-red-700 text-lg px-4 py-2">
             <XCircle className="w-5 h-5 mr-2" />
@@ -83,20 +89,29 @@ export default function CheckTahlilStatus() {
           </Badge>
         );
       default:
-        return <Badge variant="secondary" className="text-lg px-4 py-2">{status}</Badge>;
+        return (
+          <Badge variant="secondary" className="text-lg px-4 py-2">
+            {status}
+          </Badge>
+        );
     }
   };
 
   return (
     <div className="min-h-screen">
       <BackNavigation title="Tahlil Status" />
+
       <div className="max-w-2xl mx-auto space-y-6 py-8">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-600 mb-4">
             <BookOpen className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Semak Status Permohonan Tahlil</h1>
-          <p className="text-gray-600 dark:text-gray-400">Masukkan ID rujukan untuk menyemak status permohonan anda</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Semak Status Permohonan Tahlil
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Masukkan ID rujukan untuk menyemak status permohonan anda
+          </p>
         </div>
 
         <Card className="border-0 shadow-xl">
@@ -112,7 +127,7 @@ export default function CheckTahlilStatus() {
                 placeholder="ID Rujukan"
                 value={referenceId}
                 onChange={(e) => setReferenceId(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
@@ -138,90 +153,98 @@ export default function CheckTahlilStatus() {
         </Card>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-full max-h-full w-full h-full">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl">Status Permohonan Tahlil</DialogTitle>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setSearchKey(null);
+            setRequest(null);
+            setTahfizCenter(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl w-full max-h-[95vh] overflow-y-auto rounded-2xl p-0">
+          <DialogHeader className="border-b px-6 py-4">
+            <DialogTitle className="text-center text-xl font-bold tracking-wide">
+              Status Permohonan Tahlil
+            </DialogTitle>
           </DialogHeader>
+
           {request && (
-            <div className="space-y-6">
-              <div className="text-center py-4">
+            <div className="px-6 py-6 space-y-8">
+              <div className="flex flex-col items-center space-y-3">
+                <div className="text-3xl font-bold tracking-widest font-mono">
+                  {request.referenceno}
+                </div>
                 {getStatusBadge(request.status)}
               </div>
-
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">ID Rujukan</p>
-                  <p className="font-mono font-semibold text-lg">{request.reference_id}</p>
-                </div>
-
-                {request.requester_name && (
-                  <div>
-                    <p className="text-sm text-gray-500">Pemohon</p>
-                    <p className="font-semibold">{request.requester_name}</p>
+              <div className="grid md:grid-cols-2 gap-5">
+                {request.requestorname && (
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs text-gray-500">Pemohon</p>
+                    <p className="font-semibold text-lg">{request.requestorname}</p>
                   </div>
                 )}
-
-                {request.deceased_name && (
-                    <div>
-                      <p className="text-sm text-gray-500">Nama Arwah</p>
-                      <p className="font-semibold">{request.deceased_name}</p>
-                    </div>
-                )}
-                
-                <div>
-                  <p className="text-sm text-gray-500">Jenis Perkhidmatan</p>
-                  <p className="font-semibold">
-                    {(request.service_type || '')
-                      .split(',')
-                      .filter(Boolean)
-                      .map(type => SERVICE_LABELS[type] || type)
-                      .join(', ')
-                    }
-                  </p>
-                </div>
-
                 {tahfizCenter && (
-                  <div>
-                    <p className="text-sm text-gray-500">Pusat Tahfiz</p>
-                    <p className="font-semibold">{tahfizCenter.name}</p>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs text-gray-500">Pusat Tahfiz</p>
+                    <p className="font-semibold text-lg">{tahfizCenter.name}</p>
                   </div>
                 )}
-
-                {request.preferred_date && (
-                  <div>
-                    <p className="text-sm text-gray-500">Tarikh Pilihan</p>
+                {request.preferreddate && (
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs text-gray-500">Tarikh Pilihan</p>
                     <p className="font-semibold">
-                      {new Date(request.preferred_date).toLocaleDateString('ms-MY')}
+                      {new Date(request.preferreddate).toLocaleDateString('ms-MY')}
                     </p>
                   </div>
                 )}
-
-                {request.notes && (
-                  <div>
-                    <p className="text-sm text-gray-500">Catatan</p>
-                    <p className="text-gray-700">{request.notes}</p>
-                  </div>
-                )}
-
-                <div>
-                  <p className="text-sm text-gray-500">Tarikh Permohonan</p>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs text-gray-500">Tarikh Permohonan</p>
                   <p className="font-semibold">
-                    {new Date(request.created_date).toLocaleDateString('ms-MY', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {new Date(request.createdat).toLocaleDateString('ms-MY')}
                   </p>
                 </div>
               </div>
-
+              {request.deceasednames?.length > 0 && (
+                <div className="bg-white border rounded-xl p-5">
+                  <p className="text-sm font-semibold mb-3">Nama Arwah</p>
+                  <ol className="list-decimal pl-5 space-y-1 font-medium">
+                    {request.deceasednames.map((name, i) => (
+                      <li key={i}>{name}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+              {request.selectedservices?.length > 0 && (
+                <div className="bg-white border rounded-xl p-5">
+                  <p className="text-sm font-semibold mb-3">Jenis Perkhidmatan</p>
+                  <div className="flex flex-wrap gap-2">
+                    {request.selectedservices.map((type, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium"
+                      >
+                        {SERVICE_LABELS[type] || type}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {request.notes && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                  <p className="text-sm font-semibold mb-2">Catatan</p>
+                  <p className="text-gray-700 leading-relaxed">{request.notes}</p>
+                </div>
+              )}
               <Button
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setSearchKey(null);
+                }}
+                className="w-full h-12 text-lg rounded-xl"
                 variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="w-full"
               >
                 Tutup
               </Button>

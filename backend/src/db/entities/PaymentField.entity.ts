@@ -1,4 +1,6 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 
 @Entity("paymentfield")
 export class PaymentField {
@@ -22,4 +24,13 @@ export class PaymentField {
     
     @Column("varchar", { length: 255, nullable: true })
     placeholder?: string;
+
+    @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.paymentfield)
+    organisationpaymentconfigs!: OrganisationPaymentConfig[];
+
+    @OneToMany(() => TahfizPaymentConfig, (tahfizpaymentconfigs) => tahfizpaymentconfigs.paymentfield)
+    tahfizpaymentconfigs!: TahfizPaymentConfig[];
+
+    @CreateDateColumn({ name: "createdat" })
+    createdat!: Date;
 }

@@ -8,6 +8,19 @@ import { AppDataSource } from "../datasource.ts";
 
 
 export const authRouter = router({
+  getClientIp: publicProcedure
+    .query(({ ctx }) => {
+      const req = ctx.req;
+
+      const ip =
+        req.headers["cf-connecting-ip"] || // Cloudflare
+        req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+        req.socket.remoteAddress ||
+        "unknown";
+
+      return ip;
+    }),
+
   login: publicProcedure
     .input(z.object({ email: z.string(), password: z.string() }))
     .mutation(async ({ input, ctx  }) => {

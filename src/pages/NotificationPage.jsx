@@ -1,49 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Bell, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { translate } from '@/utils/translations';
+import { useGetNotificationPaginated, useUpdateNotification } from '@/hooks/useNotificationMutations';
+import Pagination from '@/components/Pagination';
+import Breadcrumb from '@/components/Breadcrumb';
+import { useAdminAccess } from '@/utils/auth';
 
 export default function NotificationPage() {
-  const navigate = useNavigate();
-  const [userEmail, setUserEmail] = useState(null);
-  const queryClient = useQueryClient();
+  const { 
+    isSuperAdmin, 
+    userEmail
+  } = useAdminAccess();
+  const [unreadPage, setUnreadPage] = useState(1);
+  const [readPage, setReadPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [activeTab, setActiveTab] = useState("unread");
 
-  useEffect(() => {
-    const appUserAuth = localStorage.getItem('appUserAuth');
-    if (appUserAuth) {
-      const appUser = JSON.parse(appUserAuth);
-      setUserEmail(appUser.email);
-    }
-  }, []);
-
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', userEmail],
-    queryFn: () => base44.entities.Notification.filter({ user_email: userEmail }),
-    enabled: !!userEmail
+  const {
+    notificationList: unreadNotifications,
+    totalPages: unreadTotalPages,
+    isLoading: unreadLoading,
+  } = useGetNotificationPaginated({
+    page: unreadPage,
+    pageSize: itemsPerPage,
+    receiveremail: userEmail,
+    isread: false,
   });
 
-  const markAsReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { is_read: true }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
-    }
+  const {
+    notificationList: readNotifications,
+    totalPages: readTotalPages,
+    isLoading: readLoading,
+  } = useGetNotificationPaginated({
+    page: readPage,
+    pageSize: itemsPerPage,
+    receiveremail: userEmail,
+    isread: true,
   });
+
+  const updateMutation = useUpdateNotification();
 
   const handleNotificationClick = (notification) => {
-    if (!notification.is_read) {
-      markAsReadMutation.mutate(notification.id);
+    if (!notification.isread) {
+      updateMutation.mutateAsync({
+        id: notification.id,
+        data: { isread: true },
+      })
     }
   };
-
-  const unreadNotifications = notifications.filter(n => !n.is_read);
-  const readNotifications = notifications.filter(n => n.is_read);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -69,74 +76,98 @@ export default function NotificationPage() {
     }
   };
 
-  const NotificationList = ({ items }) => (
-    <div className="space-y-3">
-      {items.length === 0 ? (
-        <Card className="border-0 shadow-sm dark:bg-gray-800">
-          <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
-            {translate('noNotifications')}
-          </CardContent>
-        </Card>
-      ) : (
-        items.map(notification => (
-          <Card 
-            key={notification.id} 
-            className={`border cursor-pointer hover:shadow-md transition-all ${
-              !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-800'
-            }`}
-            onClick={() => handleNotificationClick(notification)}
-          >
-            <CardContent className="p-4">
-              <div className="flex gap-3">
-                <div className="mt-1">
-                  {getStatusIcon(notification.status)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{notification.title}</h3>
-                    {!notification.is_read && (
-                      <Badge className="bg-blue-500">Baru</Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{notification.message}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={getStatusColor(notification.status)}>
-                      {notification.status === 'approved' && 'Diluluskan'}
-                      {notification.status === 'verified' && 'Disahkan'}
-                      {notification.status === 'rejected' && 'Ditolak'}
-                      {notification.status === 'pending' && 'Menunggu'}
-                    </Badge>
-                    <span className="text-xs text-gray-400">
-                      {format(new Date(notification.created_date), 'dd MMM yyyy, HH:mm')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))
+  const NotificationTable = ({ items }) => (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b bg-gray-100 dark:bg-gray-800">
+            <th className="p-3 text-left text-sm font-semibold">Status</th>
+            <th className="p-3 text-left text-sm font-semibold">Title</th>
+            <th className="p-3 text-left text-sm font-semibold">Message</th>
+            <th className="p-3 text-left text-sm font-semibold">Date</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {items.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="p-6 text-center text-gray-500">
+                {translate("noNotifications")}
+              </td>
+            </tr>
+          ) : (
+            items.map((notification) => (
+              <tr
+                key={notification.id}
+                onClick={() => handleNotificationClick(notification)}
+                className={`cursor-pointer border-b hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                  !notification.isread
+                    ? "bg-blue-50 dark:bg-blue-900/30 font-semibold"
+                    : ""
+                }`}
+              >
+                <td className="p-3">{getStatusIcon(notification.status)}</td>
+                <td className="p-3">{notification.title}</td>
+                <td className="p-3 text-sm text-gray-600 dark:text-gray-300">
+                  {notification.message}
+                </td>
+                <td className="p-3 text-xs text-gray-500">
+                  {format(new Date(notification.createdat), "dd MMM yyyy, HH:mm")}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+      {activeTab === "unread" && unreadTotalPages > 0 && (
+        <Pagination
+          currentPage={unreadPage}
+          totalPages={unreadTotalPages}
+          onPageChange={setUnreadPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={(value) => {
+            setItemsPerPage(value);
+            setUnreadPage(1);
+            setReadPage(1);
+          }}
+          totalItems={unreadNotifications.total}
+        />
       )}
+
+      {activeTab === "read" && readTotalPages > 0 && (
+        <Pagination
+          currentPage={readPage}
+          totalPages={readTotalPages}
+          onPageChange={setReadPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={(value) => {
+            setItemsPerPage(value);
+            setUnreadPage(1);
+            setReadPage(1);
+          }}
+          totalItems={readNotifications.total}
+        />
+        )}
     </div>
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 pb-2">
-      <div className="flex items-center gap-3 pt-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 dark:text-gray-300">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{translate('notifications')}</h1>
-        {unreadNotifications.length > 0 && (
-          <Badge className="bg-red-500">{unreadNotifications.length}</Badge>
-        )}
-      </div>
+  <div className="space-y-6">
+    <Breadcrumb items={[
+      { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+      { label: translate('Notification'), page: 'NotificationPage' }
+    ]} />
 
-      <Tabs defaultValue="unread" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value)}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
           <TabsTrigger value="unread" className="relative dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
             {translate('unread')}
-            {unreadNotifications.length > 0 && (
-              <Badge className="ml-2 bg-red-500">{unreadNotifications.length}</Badge>
+            {unreadNotifications.items.length > 0 && (
+              <Badge className="ml-2 bg-red-500">{unreadNotifications.items.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="read" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
@@ -145,11 +176,11 @@ export default function NotificationPage() {
         </TabsList>
 
         <TabsContent value="unread" className="mt-4">
-          <NotificationList items={unreadNotifications} />
+          <NotificationTable items={unreadNotifications.items} />
         </TabsContent>
 
         <TabsContent value="read" className="mt-4">
-          <NotificationList items={readNotifications} />
+          <NotificationTable items={readNotifications.items} />
         </TabsContent>
       </Tabs>
     </div>
