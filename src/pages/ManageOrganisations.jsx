@@ -516,6 +516,7 @@ export default function ManageOrganisations() {
 
       <PaymentConfigDialog
         open={paymentConfigOpen}
+        hasAdminAccess={hasAdminAccess}
         onOpenChange={setPaymentConfigOpen}
         entityId={selectedOrgForPayment?.id}
         entityType="organisation"

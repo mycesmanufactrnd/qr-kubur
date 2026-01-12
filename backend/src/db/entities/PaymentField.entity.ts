@@ -1,14 +1,18 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
+import { PaymentPlatform } from "./PaymentPlatform.entity.ts";
 
 @Entity("paymentfield")
 export class PaymentField {
     @PrimaryGeneratedColumn()
     id!: number;
-
-    @Column("varchar", { length: 255 })
-    code!: string;
+    
+    @ManyToOne(() => PaymentPlatform, (paymentplatform) => paymentplatform.paymentfields, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    paymentplatform?: PaymentPlatform | null;
 
     @Column("varchar", { length: 255 })
     key!: string;

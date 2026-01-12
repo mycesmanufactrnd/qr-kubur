@@ -13,9 +13,12 @@ export default function ImageTextCaptcha({ open, onOpenChange, onVerified, onFai
 
   useEffect(() => {
     if (open) {
-      generateCaptcha();
-      setUserInput('');
-      setAttempts(0);
+      const id = setTimeout(() => {
+        generateCaptcha();
+        setUserInput('');
+        setAttempts(0);
+      }, 0);
+      return () => clearTimeout(id);
     }
   }, [open]);
 

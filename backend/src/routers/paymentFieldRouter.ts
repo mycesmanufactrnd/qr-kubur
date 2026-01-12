@@ -8,7 +8,9 @@ export const paymentFieldRouter = router({
   getField: superAdminProcedure
     .query(() => {
       const fieldRepo = AppDataSource.getRepository(PaymentField);
-      return fieldRepo.find();
+      return fieldRepo.find({
+        relations: ['paymentplatform']
+      });
     }),
 
   create: superAdminProcedure

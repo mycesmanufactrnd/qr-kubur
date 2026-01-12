@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
 import { translate } from '@/utils/translations';
+import { trpc } from '@/utils/trpc';
 
 export default function PaymentConfigDialog({ 
   open, 
+  hasAdminAccess, 
   onOpenChange, 
   entityId, 
   entityType
@@ -21,83 +23,68 @@ export default function PaymentConfigDialog({
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [configValues, setConfigValues] = useState({});
   const [uploadingFiles, setUploadingFiles] = useState({});
+  const trpcUtils = trpc.useUtils();
+  // const configEntity = entityType === 'tahfiz' ? 'TahfizPaymentConfig' : 'OrganisationPaymentConfig';
 
-  const queryClient = useQueryClient();
-  const configEntity = entityType === 'tahfiz' ? 'TahfizPaymentConfig' : 'OrganisationPaymentConfig';
-  const entityKey = entityType === 'tahfiz' ? 'tahfiz_id' : 'organisation_id';
+  const { data: platforms = [] } = 
+    trpc.paymentPlatform.getActivePlatform.useQuery(
+      undefined,
+      { enabled: hasAdminAccess && open }
+    );
 
-  const { data: platforms = [] } = useQuery({
-    queryKey: ['payment-platforms-active'],
-    queryFn: () => base44.entities.PaymentPlatform.filter({ status: 'active' }),
-    enabled: open
-  });
+  const platformFields = platforms.flatMap(platform =>
+    (platform.paymentfields ?? []).map(field => ({
+      ...field,
+      platformCode: platform.code,
+      platformName: platform.name,
+      platformId: platform.id,
+    }))
+  );
 
-  const { data: platformFields = [] } = useQuery({
-    queryKey: ['payment-fields'],
-    queryFn: () => base44.entities.PaymentPlatformField.list(),
-    enabled: open
-  });
+  const {
+    data: organisationConfigs = [],
+    isLoading: orgConfigLoading,
+  } = trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
+    {
+      organisation: entityType === 'organisation'
+        ? { id: entityId }
+        : null,
+    },
+    {
+      enabled: entityType === 'organisation' && !!entityId,
+    }
+  );
 
-  const { data: existingConfigs = [] } = useQuery({
-    queryKey: ['payment-config', entityType, entityId],
-    queryFn: () => base44.entities[configEntity].filter({ [entityKey]: entityId }),
-    enabled: open && !!entityId
-  });
+  const existingConfigs = organisationConfigs;
 
   useEffect(() => {
     if (existingConfigs.length > 0) {
       const values = {};
       const platformSet = new Set();
+
       existingConfigs.forEach(config => {
-        if (config?.payment_platform_code && config?.key) {
-          platformSet.add(config.payment_platform_code);
-          values[`${config.payment_platform_code}_${config.key}`] = config.value;
+        const platformCode = config.paymentplatform?.code;
+        const fieldKey = config.paymentfield?.key;
+
+        if (platformCode && fieldKey) {
+          platformSet.add(platformCode);
+          values[`${platformCode}_${fieldKey}`] = config.value;
         }
       });
+
       setSelectedPlatforms(Array.from(platformSet));
       setConfigValues(values);
     }
   }, [existingConfigs]);
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      // Delete existing configs
-      await Promise.all(
-        existingConfigs.map(config => 
-          base44.entities[configEntity].delete(config.id)
-        )
-      );
-
-      // Create new configs
-      const configs = [];
-      for (const platformCode of selectedPlatforms) {
-        const fields = platformFields.filter(f => f?.payment_platform_code === platformCode);
-        for (const field of fields) {
-          if (field?.key) {
-            const value = configValues[`${platformCode}_${field.key}`];
-            if (value) {
-              configs.push({
-                [entityKey]: entityId,
-                payment_platform_code: platformCode,
-                key: field.key,
-                value: value
-              });
-            }
-          }
-        }
-      }
-
-      await Promise.all(
-        configs.map(config => base44.entities[configEntity].create(config))
-      );
-    },
+  const upsertMutation = trpc.organisationPaymentConfig.upsert.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(['payment-config']);
+      trpcUtils.organisationPaymentConfig.getConfigByOrganisationId.invalidate();
       showSuccess('Payment Configuration Saved');
       onOpenChange(false);
-    }
+    },
   });
-
+  
   const handleFileUpload = async (platformCode, fieldKey, file) => {
     const uploadKey = `${platformCode}_${fieldKey}`;
     setUploadingFiles({ ...uploadingFiles, [uploadKey]: true });
@@ -124,7 +111,7 @@ export default function PaymentConfigDialog({
   const validateConfig = () => {
     for (const platformCode of selectedPlatforms) {
       const fields = platformFields.filter(f => 
-        f?.payment_platform_code === platformCode && f?.required
+        f?.platformCode === platformCode && f?.required
       );
       for (const field of fields) {
         if (field?.key) {
@@ -142,7 +129,28 @@ export default function PaymentConfigDialog({
 
   const handleSave = () => {
     if (!validateConfig()) return;
-    saveMutation.mutate();
+
+    const configsToUpsert = selectedPlatforms.flatMap(platformCode => {
+      const fields = platformFields.filter(f => f.platformCode === platformCode);
+      return fields
+        .map(field => {
+          const value = configValues[`${platformCode}_${field.key}`];
+          if (value) {
+            return {
+              paymentPlatformId: field.platformId,
+              paymentFieldId: field.id,
+              value,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+    });
+
+    upsertMutation.mutate({
+      organisationId: entityId,
+      configs: configsToUpsert,
+    });
   };
 
   const renderField = (platform, field) => {
@@ -150,7 +158,7 @@ export default function PaymentConfigDialog({
     const value = configValues[fieldId] || '';
     const isUploading = uploadingFiles[fieldId];
 
-    switch (field.field_type) {
+    switch (field.fieldtype) {
       case 'image':
         return (
           <div>
@@ -195,7 +203,7 @@ export default function PaymentConfigDialog({
             <Label htmlFor={fieldId}>{field.label || field.key} {field.required && <span className="text-red-500">*</span>}</Label>
             <Input
               id={fieldId}
-              type={field.field_type === 'password' ? 'password' : 'text'}
+              type={field.fieldtype === 'password' ? 'password' : 'text'}
               value={value}
               onChange={(e) => setConfigValues({ ...configValues, [fieldId]: e.target.value })}
               placeholder={field.placeholder}
@@ -241,7 +249,7 @@ export default function PaymentConfigDialog({
 
           {selectedPlatforms.map(platformCode => {
             const platform = platforms.find(p => p?.code === platformCode);
-            const fields = platformFields.filter(f => f?.payment_platform_code === platformCode);
+            const fields = platformFields.filter(f => f?.platformCode === platformCode);
             
             if (!platform || fields.length === 0) return null;
 
@@ -266,9 +274,9 @@ export default function PaymentConfigDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {translate('cancel')}
           </Button>
-          <Button onClick={handleSave} disabled={saveMutation.isPending || selectedPlatforms.length === 0}>
+          <Button onClick={handleSave} disabled={upsertMutation.isPending || selectedPlatforms.length === 0}>
             <Save className="w-4 h-4 mr-2" />
-            {saveMutation.isPending ? translate('saving...') : translate('savingConfig')}
+            {upsertMutation.isPending ? translate('saving...') : translate('savingConfig')}
           </Button>
         </DialogFooter>
       </DialogContent>

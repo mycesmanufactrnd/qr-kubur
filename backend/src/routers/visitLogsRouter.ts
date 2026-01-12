@@ -7,6 +7,8 @@ export const visitLogsRouter = router({
     create: publicProcedure
         .input(
             z.object({
+                grave: z.object({ id: z.number() }).nullable().optional(),
+                deadperson: z.object({ id: z.number() }).nullable().optional(),
                 visitorip: z.string().optional().nullable(),
             })
         )

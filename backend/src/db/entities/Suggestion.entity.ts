@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { Organisation } from "./Organisation.entity.ts";
 import { ApprovalStatus } from "../enums.ts";
+import { DeadPerson } from "./DeadPerson.entity.ts";
+import { Grave } from "./Grave.entity.ts";
 
 @Entity("suggestion")
 export class Suggestion {
@@ -16,6 +16,18 @@ export class Suggestion {
     
     @Column("text")
     reason!: string;
+
+    @ManyToOne(() => DeadPerson, (deadperson) => deadperson.suggestions, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    deadperson?: DeadPerson | null;
+
+    @ManyToOne(() => Grave, (grave) => grave.suggestions, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    grave?: Grave | null; 
 
     @Column({
         type: "enum",
