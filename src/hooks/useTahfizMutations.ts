@@ -32,25 +32,38 @@ export function useGetTahfizPaginated({
   };
 }
 
+// FIX: Added the missing export required by SearchTahfiz.jsx
+export function useGetTahfizCoordinates(coordinates?: { latitude: number; longitude: number } | null) {
+  return trpc.tahfiz.getTahfiz.useQuery(
+    { coordinates: coordinates ?? null },
+    {
+      enabled: true,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    }
+  );
+}
+
 export function useTahfizMutations() {
   const trpcUtils = trpc.useUtils();
 
-  const invalidate = () => {
+  const invalidateAll = () => {
     trpcUtils.tahfiz.getPaginated.invalidate();
+    trpcUtils.tahfiz.getTahfiz.invalidate(); // Refresh maps too
   };
 
   const createTahfiz = trpc.tahfiz.create.useMutation({
-    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Created successfully'); invalidate(); },
+    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Created successfully'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
 
   const updateTahfiz = trpc.tahfiz.update.useMutation({
-    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Updated successfully'); invalidate(); },
+    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Updated successfully'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
 
   const deleteTahfiz = trpc.tahfiz.delete.useMutation({
-    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Deleted successfully'); invalidate(); },
+    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Deleted successfully'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
 
