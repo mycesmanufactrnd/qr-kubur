@@ -19,6 +19,7 @@ import { tahlilRequestRouter } from "./tahlilRequestRouter.ts";
 import { usersRouter } from "./usersRouter.ts";
 import { graveRouter } from "./graveRouter.ts";
 import { visitLogsRouter } from "./visitLogsRouter.ts";
+import { organisationPaymentConfigRouter } from "./organisationPaymentConfigRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
@@ -29,6 +30,7 @@ export const appRouter = trpcRouter({
   surah: surahRouter,
   tahfiz: tahfizRouter,
   organisation: organisationRouter,
+  organisationPaymentConfig: organisationPaymentConfigRouter,
   organisationType: organisationTypeRouter,
   grave: graveRouter,
   suggestion: suggestionRouter,

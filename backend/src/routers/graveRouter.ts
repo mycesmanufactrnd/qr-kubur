@@ -81,6 +81,22 @@ export const graveRouter = router({
       return await graveRepo.delete(input);
     }),
 
+  getGraveById: publicProcedure
+    .input(
+        z.object({
+          id: z.number()
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.id) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(Grave).findOne({ 
+        where: { id: input.id } 
+      });
+    }),
+
   getGraveByCoordinates: publicProcedure
     .input(
         z.object({
@@ -91,7 +107,7 @@ export const graveRouter = router({
         })
     )
     .query(async ({ input }) => {
-        const repo = AppDataSource.getRepository(Grave);
+        const graveRepo = AppDataSource.getRepository(Grave);
 
         if (!input.coordinates) {
           return [];
@@ -99,7 +115,7 @@ export const graveRouter = router({
 
         const { latitude, longitude } = input.coordinates;
 
-        return repo.createQueryBuilder("grave")
+        return graveRepo.createQueryBuilder("grave")
         .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL")
         .orderBy(
             `

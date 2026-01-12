@@ -3,6 +3,7 @@ import { ActiveInactiveStatus } from "../enums.ts";
 import { Donation } from "./Donation.entity.ts";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
+import { PaymentField } from "./PaymentField.entity.ts";
 
 @Entity("paymentplatform")
 export class PaymentPlatform {
@@ -36,6 +37,9 @@ export class PaymentPlatform {
 
     @OneToMany(() => TahfizPaymentConfig, (tahfizpaymentconfigs) => tahfizpaymentconfigs.paymentplatform)
     tahfizpaymentconfigs!: TahfizPaymentConfig[];
+
+    @OneToMany(() => PaymentField, (paymentfields) => paymentfields.paymentplatform)
+    paymentfields!: PaymentField[];
 
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;
