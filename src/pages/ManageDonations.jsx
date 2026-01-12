@@ -1,268 +1,106 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, CheckCircle, XCircle, Clock, Eye, Filter, ExternalLink } from 'lucide-react';
+import { Heart, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
-import { usePermissions } from '../components/PermissionsContext';
-import { showSuccess } from '@/components/ToastrNotification';
+import { useCrudPermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
+import { useGetDonationPaginated, useUpdateDonation } from '@/hooks/useDonationMutations';
+import { VerificationStatus } from '@/utils/enums';
+import { useAdminAccess } from '@/utils/auth';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import Pagination from '@/components/Pagination';
 
 export default function ManageDonations() {
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterRecipientType, setFilterRecipientType] = useState('all');
-  const [filterPaymentMethod, setFilterPaymentMethod] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const { 
+    loadingUser, 
+    hasAdminAccess, 
+    isSuperAdmin, 
+    currentUserStates 
+  } = useAdminAccess();
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const queryClient = useQueryClient();
+  const {
+    loading: permissionsLoading,
+    canView, canVerify, canReject
+  } = useCrudPermissions('donationList');
 
-  React.useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
-      if (appUserAuth) {
-        setUser(JSON.parse(appUserAuth));
-      }
-    } catch (e) {
-      setUser(null);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
-  const { hasPermission } = usePermissions();
-  const isSuperAdmin = user?.role === 'superadmin';
-  const hasViewPermission = hasPermission('donations_view');
-
-  const { data: donations = [], isLoading } = useQuery({
-    queryKey: ['admin-donations', user?.organisation_id, user?.tahfiz_center_id],
-    queryFn: async () => {
-      const allDonations = await base44.entities.Donation.list('-created_date');
-      
-      // If superadmin, return all
-      if (isSuperAdmin) return allDonations;
-      
-      // Tahfiz center admin - filter by tahfiz center
-      if (user?.tahfiz_center_id) {
-        return allDonations.filter(d => 
-          d.recipient_type === 'tahfiz' && d.tahfiz_center_id === user.tahfiz_center_id
-        );
-      }
-      
-      // Organization admin - filter by organization
-      if (user?.organisation_id) {
-        return allDonations.filter(d => 
-          d.recipient_type === 'organisation' && d.organisation_id === user.organisation_id
-        );
-      }
-      
-      return [];
-    },
-    enabled: !!user && hasViewPermission
+  const {
+    donationList,
+    totalPages,
+    isLoading,
+  } = useGetDonationPaginated({
+    page,
+    pageSize: itemsPerPage,
   });
 
-  const { data: organisations = [] } = useQuery({
-    queryKey: ['organisations'],
-    queryFn: () => base44.entities.Organisation.list()
-  });
+  const updateMutation = useUpdateDonation();
 
-  const { data: tahfizCenters = [] } = useQuery({
-    queryKey: ['tahfiz'],
-    queryFn: () => base44.entities.TahfizCenter.list()
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Donation.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-donations']);
-      setIsDialogOpen(false);
-      setSelectedDonation(null);
-      showSuccess('Status derma telah dikemaskini')
-    }
-  });
-
-  const filteredDonations = donations.filter(d => {
-    // Status filter
-    const statusMatch = filterStatus === 'all' || d.status === filterStatus;
-    
-    // Recipient type filter
-    const recipientMatch = filterRecipientType === 'all' || d.recipient_type === filterRecipientType;
-    
-    // Payment method filter
-    const paymentMatch = filterPaymentMethod === 'all' || d.payment_method === filterPaymentMethod;
-    
-    // Search term filter (donor name or recipient name)
-    let searchMatch = true;
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      const donorName = (d.donor_name || '').toLowerCase();
-      const recipientName = getRecipientName(d).toLowerCase();
-      searchMatch = donorName.includes(search) || recipientName.includes(search);
-    }
-    
-    // Date range filter
-    let dateMatch = true;
-    if (dateFrom || dateTo) {
-      const donationDate = new Date(d.created_date);
-      if (dateFrom) {
-        const fromDate = new Date(dateFrom);
-        fromDate.setHours(0, 0, 0, 0);
-        dateMatch = dateMatch && donationDate >= fromDate;
-      }
-      if (dateTo) {
-        const toDate = new Date(dateTo);
-        toDate.setHours(23, 59, 59, 999);
-        dateMatch = dateMatch && donationDate <= toDate;
-      }
-    }
-    
-    return statusMatch && recipientMatch && paymentMatch && searchMatch && dateMatch;
-  });
-
-  const totalVerified = donations
-    .filter(d => d.status === 'verified')
-    .reduce((sum, d) => sum + (d.amount || 0), 0);
+  const totalVerified = donationList.items
+    .filter(d => d.status === VerificationStatus.VERIFY)
+    .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
   const openDetailDialog = (donation) => {
     setSelectedDonation(donation);
     setIsDialogOpen(true);
   };
 
-  const handleVerify = async () => {
+  const handleSubmission = (type) => {
     if (!selectedDonation) return;
-    updateMutation.mutate({
+
+    updateMutation.mutateAsync({
       id: selectedDonation.id,
-      data: { status: 'verified' }
-    });
-
-    // Create notification if donor has email
-    if (selectedDonation.donor_email) {
-      try {
-        await base44.entities.Notification.create({
-          user_email: selectedDonation.donor_email,
-          type: 'donation',
-          title: 'Derma Disahkan',
-          message: `Derma anda sebanyak RM${selectedDonation.amount?.toFixed(2)} telah disahkan.`,
-          related_id: selectedDonation.id,
-          status: 'verified'
-        });
-      } catch (err) {
-        console.error('Failed to create notification:', err);
+      data: {
+        status: type === 'approve'
+          ? VerificationStatus.VERIFY
+          : VerificationStatus.REJECTED,
       }
-    }
-
-    // Log activity
-    try {
-      await base44.entities.LogActivity.create({
-        activity_type: 'donation_verify',
-        function_name: 'ManageDonations',
-        user_email: user?.email,
-        level: 'info',
-        summary: `Derma disahkan: RM${selectedDonation.amount}`,
-        details: { donation_id: selectedDonation.id, amount: selectedDonation.amount },
-        success: true
-      });
-    } catch (err) {
-      console.error('Failed to log activity:', err);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!selectedDonation) return;
-    updateMutation.mutate({
-      id: selectedDonation.id,
-      data: { status: 'rejected' }
+    })
+    .then((res) => { 
+      if (res) { 
+        setIsDialogOpen(false); 
+        setSelectedDonation(null); 
+      } 
     });
-
-    // Create notification if donor has email
-    if (selectedDonation.donor_email) {
-      try {
-        await base44.entities.Notification.create({
-          user_email: selectedDonation.donor_email,
-          type: 'donation',
-          title: 'Derma Ditolak',
-          message: `Derma anda sebanyak RM${selectedDonation.amount?.toFixed(2)} telah ditolak.`,
-          related_id: selectedDonation.id,
-          status: 'rejected'
-        });
-      } catch (err) {
-        console.error('Failed to create notification:', err);
-      }
-    }
-
-    // Log activity
-    try {
-      await base44.entities.LogActivity.create({
-        activity_type: 'donation_reject',
-        function_name: 'ManageDonations',
-        user_email: user?.email,
-        level: 'warn',
-        summary: `Derma ditolak: RM${selectedDonation.amount}`,
-        details: { donation_id: selectedDonation.id, amount: selectedDonation.amount },
-        success: true
-      });
-    } catch (err) {
-      console.error('Failed to log activity:', err);
-    }
-  };
-
-  const getRecipientName = (donation) => {
-    if (donation.organisation_id) {
-      const org = organisations.find(o => o.id === donation.organisation_id);
-      return org?.name || 'Organisasi';
-    }
-    if (donation.tahfiz_center_id) {
-      const center = tahfizCenters.find(c => c.id === donation.tahfiz_center_id);
-      return center?.name || 'Pusat Tahfiz';
-    }
-    return '-';
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
+      case VerificationStatus.PENDING:
         return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Menunggu</Badge>;
-      case 'verified':
+      case VerificationStatus.VERIFY:
         return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Disahkan</Badge>;
-      case 'rejected':
+      case VerificationStatus.REJECTED:
         return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  if (loadingUser || isLoading) {
+  if (loadingUser || permissionsLoading) {
     return <LoadingUser />;
   }
 
-  if (!hasViewPermission) {
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
           { label: translate('adminDashboard'), page: 'AdminDashboard' },
           { label: translate('manageDonations'), page: 'ManageDonations' }
         ]} />
-        <Card className="max-w-lg mx-auto">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
-          </CardContent>
-        </Card>
+        <AccessDeniedComponent/>
       </div>
     );
   }
@@ -274,20 +112,15 @@ export default function ManageDonations() {
         { label: translate('manageDonations'), page: 'ManageDonations' }
       ]} />
       
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400" />
             {translate('manageDonations')} 
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {donations.filter(d => d.status === 'pending').length} {translate('awaitingVerification')}
-          </p>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-700 dark:to-teal-800 text-white">
           <CardContent className="p-4">
@@ -296,9 +129,9 @@ export default function ManageDonations() {
           </CardContent>
         </Card>
         {[
-          { label: translate('pending'), value: donations.filter(d => d.status === 'pending').length, color: 'yellow' },
-          { label: translate('verified'), value: donations.filter(d => d.status === 'verified').length, color: 'green' },
-          { label: translate('rejected'), value: donations.filter(d => d.status === 'rejected').length, color: 'red' }
+          { label: translate('pending'), value: donationList.items.filter(d => d.status === VerificationStatus.PENDING).length, color: 'yellow' },
+          { label: translate('verified'), value: donationList.items.filter(d => d.status === VerificationStatus.VERIFY).length, color: 'succes' },
+          { label: translate('rejected'), value: donationList.items.filter(d => d.status === VerificationStatus.REJECTED).length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -309,180 +142,17 @@ export default function ManageDonations() {
         ))}
       </div>
 
-      {/* Advanced Search & Filter */}
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Filter className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
-          </div>
-          
-          {/* Search by name */}
-          <div>
-            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('findDonor/Recipient')}</label>
-            <input
-              type="text"
-              placeholder={translate('enterDonorOrRecipientName')}  
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-            />
-          </div>
-
-          {/* Date range */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('dateFrom')} </label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('dateTo')} </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-white rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-          </div>
-
-          {/* Filters row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('status')} </label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder={translate('allStatus')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{translate('allStatus')}</SelectItem>
-                  <SelectItem value="pending">{translate('pending')}</SelectItem>
-                  <SelectItem value="verified">{translate('verified')}</SelectItem>
-                  <SelectItem value="rejected">{translate('rejected')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('recipientType')}</label> 
-              <Select value={filterRecipientType} onValueChange={setFilterRecipientType}>
-                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder={translate('allTypes')}/>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{translate('allTypes')}</SelectItem>
-                  <SelectItem value="organisation">{translate('org')}</SelectItem>
-                  <SelectItem value="tahfiz">{translate('TahfizCenter')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">{translate('paymentMethod')}</label>
-              <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
-                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder="Semua Kaedah" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{translate('allMethods')}</SelectItem>
-                  <SelectItem value="bank_transfer">{translate('bankTransfer')}</SelectItem>
-                  <SelectItem value="duitnow">{translate('duitNow')}</SelectItem>
-                  <SelectItem value="online">{translate('online')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Reset filters button */}
-          {(searchTerm || dateFrom || dateTo || filterStatus !== 'all' || filterRecipientType !== 'all' || filterPaymentMethod !== 'all') && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm('');
-                  setDateFrom('');
-                  setDateTo('');
-                  setFilterStatus('all');
-                  setFilterRecipientType('all');
-                  setFilterPaymentMethod('all');
-                }}
-              >
-                {translate('resetAllSearches')}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Results count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        {translate('show')} {filteredDonations.length} {translate('from')} {donations.length} {translate('donate')}
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="lg:hidden space-y-3">
-        {isLoading ? (
-          [1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredDonations.length === 0 ? (
-          <Card className="border-0 shadow-sm dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredDonations.map(donation => (
-            <Card key={donation.id} className="border-0 shadow-sm dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {donation.donor_name || translate('anonymous')}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{getRecipientName(donation)}</p>
-                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                      RM {donation.amount?.toFixed(2)}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {getStatusBadge(donation.status)}
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(donation.created_date).toLocaleDateString('ms-MY')}
-                      </span>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => openDetailDialog(donation)} className="h-8 w-8 p-0">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Desktop Table */}
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('donor')}</TableHead>
-                <TableHead>{translate('recipient')}</TableHead>
-                <TableHead>{translate('amount')}</TableHead>
-                <TableHead>{translate('status')}</TableHead>
-                <TableHead>{translate('date')}</TableHead>
-                <TableHead className="text-right">{translate('actions')}</TableHead>
+                <TableHead className="text-center">{translate('recipient')}</TableHead>
+                <TableHead className="text-center">{translate('amount')}</TableHead>
+                <TableHead className="text-center">{translate('status')}</TableHead>
+                <TableHead className="text-center">{translate('date')}</TableHead>
+                <TableHead className="text-center">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -490,29 +160,29 @@ export default function ManageDonations() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">{translate('loading')}</TableCell>
                 </TableRow>
-              ) : filteredDonations.length === 0 ? (
+              ) : donationList.items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
                 </TableRow>
               ) : (
-                filteredDonations.map(donation => (
+                donationList.items.map(donation => (
                   <TableRow key={donation.id}>
                     <TableCell className="font-medium">
-                      {donation.donor_name || 'Tanpa Nama'}
+                      {donation.donorname || 'Tanpa Nama'}
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {getRecipientName(donation)}
+                    <TableCell className="max-w-xs truncate text-center">
+                      {donation.organisation?.name ?? donation.tahfizcenter?.name}
                     </TableCell>
-                    <TableCell className="font-semibold">
-                      RM {donation.amount?.toFixed(2)}
+                    <TableCell className="font-semibold text-center">
+                      RM {donation.amount}
                     </TableCell>
-                    <TableCell>{getStatusBadge(donation.status)}</TableCell>
+                    <TableCell className="text-center">{getStatusBadge(donation.status)}</TableCell>
                     <TableCell>
-                      {new Date(donation.created_date).toLocaleDateString('ms-MY')}
+                      {new Date(donation.createdat).toLocaleDateString('ms-MY')}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button variant="ghost" size="sm" onClick={() => openDetailDialog(donation)}>
-                        <Eye className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -520,10 +190,22 @@ export default function ManageDonations() {
               )}
             </TableBody>
           </Table>
+          {totalPages > 0 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value);
+                setPage(1);
+              }}
+              totalItems={donationList.total}
+            />
+          )}
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
@@ -534,28 +216,28 @@ export default function ManageDonations() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Penderma</p>
-                  <p className="font-semibold">{selectedDonation.donor_name || 'Tanpa Nama'}</p>
+                  <p className="font-semibold">{selectedDonation.donorname || 'Tanpa Nama'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Jumlah</p>
                   <p className="font-semibold text-lg text-emerald-600">
-                    RM {selectedDonation.amount?.toFixed(2)}
+                    RM {selectedDonation.amount}
                   </p>
                 </div>
               </div>
-              {selectedDonation.donor_email && (
+              {selectedDonation.donoremail && (
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-                  <p>{selectedDonation.donor_email}</p>
+                  <p>{selectedDonation.donoremail}</p>
                 </div>
               )}
               <div>
                 <p className="text-sm text-gray-500">Penerima</p>
-                <p>{getRecipientName(selectedDonation)}</p>
+                <p>{selectedDonation.organisation?.name ?? selectedDonation.tahfizcenter?.name}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Kaedah Pembayaran</p>
-                <p className="capitalize">{selectedDonation.payment_method?.replace('_', ' ')}</p>
+                <p className="capitalize">{selectedDonation.paymentplatform?.name.replace('_', ' ')}</p>
               </div>
               {selectedDonation.notes && (
                 <div>
@@ -583,22 +265,27 @@ export default function ManageDonations() {
             </Button>
             {selectedDonation?.status === 'pending' && (
               <>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleReject}
-                  disabled={updateMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Tolak
-                </Button>
-                <Button 
-                  onClick={handleVerify}
-                  disabled={updateMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Sahkan
-                </Button>
+                { canReject && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => handleSubmission('reject')}
+                    disabled={updateMutation.isPending}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Tolak
+                  </Button>
+                )}
+
+                { canVerify && (
+                  <Button 
+                    onClick={() => handleSubmission('approve')}
+                    disabled={updateMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Sahkan
+                  </Button>
+                )}
               </>
             )}
           </DialogFooter>

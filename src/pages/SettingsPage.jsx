@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { ArrowLeft, HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';

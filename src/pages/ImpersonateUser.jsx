@@ -1,4 +1,3 @@
-import { base44 } from "@/api/base44Client";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

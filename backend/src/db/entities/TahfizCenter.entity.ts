@@ -1,6 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { User } from "./User.entity.ts";
-import { nullable } from "zod";
+import { Suggestion } from "./Suggestion.entity.ts";
+import { Donation } from "./Donation.entity.ts";
+import { TahlilRequest } from "./TahlilRequest.entity.js";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -40,8 +43,17 @@ export class TahfizCenter {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @OneToMany(() => User, (user) => user.tahfizcenter)
-  user!: User[];
+  @OneToMany(() => User, (users) => users.tahfizcenter)
+  users!: User[];
+
+  @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
+  donations!: Donation[];
+
+  @OneToMany(() => TahlilRequest, (tahlilrequests) => tahlilrequests.tahfizcenter)
+  tahlilrequests!: TahlilRequest[];
+
+  @OneToMany(() => TahfizPaymentConfig, (tahfizpaymentconfigs) => tahfizpaymentconfigs.tahfizcenter)
+  tahfizpaymentconfigs!: TahfizPaymentConfig[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

@@ -3,7 +3,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  JoinColumn,
   CreateDateColumn,
   OneToMany,
 } from "typeorm";
@@ -31,20 +30,20 @@ export class User {
   @Column("varchar", { length: 20, nullable: true })
   role!: string;
 
-  @ManyToOne(() => Organisation, (organisation) => organisation.user, {
+  @ManyToOne(() => Organisation, (organisation) => organisation.users, {
     nullable: true,
     onDelete: "SET NULL",
   })
   organisation?: Organisation | null;
 
-  @ManyToOne(() => TahfizCenter, (tahfizcenter) => tahfizcenter.user, {
+  @ManyToOne(() => TahfizCenter, (tahfizcenter) => tahfizcenter.users, {
     nullable: true,
     onDelete: "SET NULL",
   })
   tahfizcenter?: TahfizCenter | null;
 
-  @OneToMany(() => Permission, (permission) => permission.user)
-  permission!: Permission[];
+  @OneToMany(() => Permission, (permissions) => permissions.user)
+  permissions!: Permission[];
 
   @Column("text", { array: true, nullable: true })
   states?: string[];

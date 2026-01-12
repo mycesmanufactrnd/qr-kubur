@@ -9,6 +9,11 @@ type useGetTahfizPaginatedParams = {
   filterState?: string;
 };
 
+type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
 const titleMessage = 'Tahfiz Center';
 
 export function useGetTahfizPaginated({
@@ -42,5 +47,19 @@ export function useGetTahfizPaginated({
   const totalPages = Math.ceil(tahfizCenterList.total / pageSize);
 
   return { tahfizCenterList, totalPages, isLoading, refetch, error };
+}
+
+export function useGetTahfizCoordinates(coordinates?: Coordinates | null) {
+  const { data = [], isLoading, error, refetch } = trpc.tahfiz.getTahfiz.useQuery(
+    { coordinates: coordinates ?? null },
+    {
+      enabled: !!coordinates,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    }
+  );
+
+  return { tahfizCenters: data, isLoading, error, refetch };
 }
 

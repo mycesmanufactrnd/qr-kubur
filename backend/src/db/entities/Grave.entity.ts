@@ -1,7 +1,8 @@
 // Added ManyToOne and JoinColumn to the imports
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"; 
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from "typeorm"; 
 import { Organisation } from "./Organisation.entity.ts";
 import { ActiveInactiveStatus } from "../enums.ts";
+import { DeadPerson } from "./DeadPerson.entity.ts";
 
 @Entity("grave")
 export class Grave {
@@ -41,6 +42,13 @@ export class Grave {
     default: ActiveInactiveStatus.ACTIVE,
   })
   status!: ActiveInactiveStatus;
+
+  @OneToOne(() => DeadPerson, (deadPerson) => deadPerson.grave, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  @JoinColumn()
+  deadPerson?: DeadPerson | null;
 
 
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {

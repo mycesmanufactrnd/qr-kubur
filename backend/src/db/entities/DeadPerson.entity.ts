@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn} from "typeorm";
-import { grave } from "./Grave.entity.ts";
+import { Grave } from "./Grave.entity.ts";
 
 @Entity("deadperson")
 export class DeadPerson {
@@ -21,10 +21,8 @@ export class DeadPerson {
     @CreateDateColumn({ name: "causeofdeath" })
     causeofdeath!: string;
     
-    @OneToOne(() => DeadPerson, (deadperson) => graveid.grave, {
-        nullable: true,
-        onDelete: "SET NULL",
-      })
+    @OneToOne(() => Grave, (grave) => grave.deadPerson)
+    grave?: Grave;
 
     @Column("varchar", { length: 255 })
     biography?: string;

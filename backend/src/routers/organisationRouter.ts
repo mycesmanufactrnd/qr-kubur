@@ -23,8 +23,8 @@ export const organisationRouter = router({
   getPaginated: protectedProcedure
     .input(
       z.object({
-        page: z.number().min(1).optional(),
-        pageSize: z.number().min(1).optional(),
+        page: z.number().optional().nullable(),
+        pageSize: z.number().optional().nullable(),
         search: z.string().optional(),
         filterType: z.number().optional(),
         filterState: z.string().optional(),
@@ -39,6 +39,7 @@ export const organisationRouter = router({
     )
     .query(async ({ input }) => {
       const { page, pageSize, search, filterType, filterState, checkRole, currentUserOrganisation } = input;
+      console.log('inputinputinputinputinputinputinput', input)
       const organisationRepo = AppDataSource.getRepository(Organisation);
 
       const query = organisationRepo.createQueryBuilder('organisation')

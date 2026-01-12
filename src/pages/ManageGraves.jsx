@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { translate } from '@/utils/translations';
-import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +34,7 @@ const emptyGrave = {
   organisation_id: '',
   qr_code: '',
   status: 'active',
-  total_graves: 0
+  total_graves: 0,
 };
 
 export default function ManageGraves() {
@@ -88,10 +87,14 @@ export default function ManageGraves() {
     search: filterName,
     filterState: filterState === 'all' ? undefined : filterState,
     filterStatus: filterStatus === 'all' ? undefined : filterStatus,
+    filterBlock: filterBlock || undefined, 
+    filterLot: filterLot || undefined,     
     organisationIds: accessibleOrgIds
   }); 
-  
+
   const { organisationsList } = useGetOrganisationPaginated({})
+
+  console.log('organisationsList', organisationsList);
 
   const createMutation = useCreateGrave();
   const updateMutation = useUpdateGrave();
@@ -106,7 +109,7 @@ export default function ManageGraves() {
   const openEditDialog = (grave) => {
     setEditingGrave(grave);
     setFormData({
-      cemetery_name: grave.cemeteryname || '',
+      cemetery_name: grave.name || '',
       state: grave.state || '',
       block: grave.block || '',
       lot: grave.lot || '',
@@ -129,7 +132,7 @@ export default function ManageGraves() {
 
     // Mapping snake_case (UI) to camelCase (API/Entity)
     const submitData = {
-      cemeteryname: formData.cemetery_name,
+      name: formData.cemetery_name,
       state: formData.state,
       block: formData.block || null,
       lot: formData.lot || null,
@@ -153,12 +156,23 @@ export default function ManageGraves() {
     }
   };
 
-  const confirmDelete = async () => {
-    if (!graveToDelete) return;
+// ManageGraves.jsx
+
+const confirmDelete = async () => {
+  if (!graveToDelete) return;
+
+  try {
+    // This calls the tRPC delete procedure via your hook
     await deleteMutation.mutateAsync(graveToDelete.id);
+    
+    // Close the dialog and clear the state
     setDeleteDialogOpen(false);
     setGraveToDelete(null);
-  };
+  } catch (error) {
+    // Errors are already handled by showApiError inside useDeleteGrave
+    console.error("Delete failed:", error);
+  }
+};
 
   if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
   if (!hasAdminAccess) return <AccessDeniedComponent/>;
@@ -267,71 +281,6 @@ export default function ManageGraves() {
         </CardContent>
       </Card>
 
-      {/* Mobile Cards */}
-      <div className="lg:hidden space-y-3">
-        {isLoading ? (
-          [1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-              </CardContent>
-            </Card>
-          ))
-        ) : gravesList.items.length === 0 ? (
-          <Card className="border-0 shadow-sm dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noRecords')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          gravesList.items.map(grave => (
-            <Card key={grave.id} className="border-0 shadow-sm dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{grave.cemetery_name}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {grave.block && `${translate('block')} ${grave.block}`}
-                      {grave.block && grave.lot && ', '}
-                      {grave.lot && `${translate('lot')} ${grave.lot}`}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    {canEdit && (
-                      <Button variant="ghost" size="sm" onClick={() => openEditDialog(grave)} className="h-8 w-8 p-0">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {canDelete && (
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(grave)} className="h-8 w-8 p-0">
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(value) => {
-              setItemsPerPage(value);
-              setPage(1);
-            }}
-            totalItems={gravesList.items.length}
-          />
-        )}
-      </div>
-
       {/* Desktop Table */}
       <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
@@ -359,9 +308,9 @@ export default function ManageGraves() {
               ) : (
                 gravesList.items.map(grave => (
                   <TableRow key={grave.id}>
-                    <TableCell className="font-medium">{grave.cemetery_name}</TableCell>
-                    <TableCell className="text-center">{grave.total_graves}</TableCell>
-                    <TableCell className="text-center">{grave.qr_code}</TableCell>
+                    <TableCell className="font-medium">{grave.name}</TableCell>
+                    <TableCell className="text-center">{grave.totalgraves}</TableCell>
+                    <TableCell className="text-center">{grave.qrcode}</TableCell>
                     <TableCell className="text-center">{grave.state}</TableCell>
                     <TableCell className="text-center">
                       {grave.block && `${translate('block')} ${grave.block}`}
@@ -384,7 +333,11 @@ export default function ManageGraves() {
                         </Button>
                       )}
                       {canDelete && (
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(grave)}>
+                        <Button variant="ghost" size="sm" onClick={() => {
+                            setGraveToDelete(grave); 
+                            setDeleteDialogOpen(true); 
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
                       )}
@@ -417,7 +370,8 @@ export default function ManageGraves() {
               {editingGrave ? translate('editGrave') : translate('addGrave')}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={
+            handleSubmit} className="space-y-4">
             <div>
               <Label>{translate('cemeteryName')} <span className="text-red-500">*</span></Label>
               <Input
@@ -425,19 +379,28 @@ export default function ManageGraves() {
                 onChange={(e) => setFormData({...formData, cemetery_name: e.target.value})}
               />
             </div>
-            <div>
-              <Label>{translate('state')} <span className="text-red-500">*</span></Label>
-              <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
-                <SelectTrigger>
-                  <SelectValue placeholder={translate('state')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {currentUserStates.map(state => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div>
+                <Label>{translate('state')} <span className="text-red-500">*</span></Label>
+                <Select 
+                  /* Ensure value is never undefined/null to keep the component controlled */
+                  value={formData.state || ""} 
+                  onValueChange={(v) => setFormData({ ...formData, state: v })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={translate('selectStates')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* Logic: If SuperAdmin, show the full list from enums. 
+                      Otherwise, show only the states assigned to this user's profile.
+                    */}
+                    {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{translate('block')}</Label>

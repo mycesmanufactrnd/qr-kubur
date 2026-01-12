@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ActiveInactiveStatus } from '../db/enums.ts';
 
 export const organisationSchema = z.object({
   name: z.string().min(1),
@@ -13,8 +14,5 @@ export const organisationSchema = z.object({
   email: z.string().optional(),
   url: z.string().optional(),
 
-  status: z.enum({
-    ACTIVE: "active",
-    INACTIVE: "inactive",
-  }).optional(),
+  status: z.enum(ActiveInactiveStatus).optional(),
 });

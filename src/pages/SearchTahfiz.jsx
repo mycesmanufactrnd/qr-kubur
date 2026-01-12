@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
-
-const NEARBY_STATES = ["Selangor", "Kuala Lumpur", "Putrajaya", "Negeri Sembilan", "Melaka"];
+import { STATES_MY } from '@/utils/enums';
 
 export default function SearchTahfiz() {
   const navigate = useNavigate();
@@ -74,7 +73,7 @@ export default function SearchTahfiz() {
     
     // When "nearby" is selected, only show centers from NEARBY_STATES
     const matchesState = selectedState === 'nearby' 
-      ? NEARBY_STATES.includes(center.state)
+      ? STATES_MY.includes(center.state)
       : center.state === selectedState;
     
     return matchesSearch && matchesState;
