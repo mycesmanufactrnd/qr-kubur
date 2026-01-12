@@ -9,57 +9,50 @@ type useGetTahfizPaginatedParams = {
   filterState?: string;
 };
 
-type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
-
-const titleMessage = 'Tahfiz Center';
+const TITLE_MESSAGE = 'Tahfiz Center';
 
 export function useGetTahfizPaginated({
-  page,
-  pageSize,
+  page = 1,
+  pageSize = 10,
   search,
   filterState,
 }: useGetTahfizPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
-
   const currentUserTahfizCenterId = currentUser?.tahfizcenter?.id ?? undefined;
 
-  const { data, isLoading, refetch, error } =
-    trpc.tahfiz.getPaginated.useQuery(
-      {
-        page,
-        pageSize,
-        search,
-        filterState,
-        currentUserTahfiz: currentUserTahfizCenterId,
-        checkRole,
-      },
-      { enabled: hasAdminAccess && !!currentUser }
-    );
-
-  const tahfizCenterList = {
-    items: data?.items ?? [],
-    total: data?.total ?? 0,
-  };
-
-  const totalPages = Math.ceil(tahfizCenterList.total / pageSize);
-
-  return { tahfizCenterList, totalPages, isLoading, refetch, error };
-}
-
-export function useGetTahfizCoordinates(coordinates?: Coordinates | null) {
-  const { data = [], isLoading, error, refetch } = trpc.tahfiz.getTahfiz.useQuery(
-    { coordinates: coordinates ?? null },
-    {
-      enabled: !!coordinates,
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
+  const query = trpc.tahfiz.getPaginated.useQuery(
+    { page, pageSize, search, filterState, currentUserTahfiz: currentUserTahfizCenterId, checkRole },
+    { enabled: hasAdminAccess && !!currentUser, keepPreviousData: true }
   );
 
-  return { tahfizCenters: data, isLoading, error, refetch };
+  return {
+    tahfizCenterList: { items: query.data?.items ?? [], total: query.data?.total ?? 0 },
+    totalPages: Math.ceil((query.data?.total ?? 0) / pageSize),
+    ...query,
+  };
 }
 
+export function useTahfizMutations() {
+  const trpcUtils = trpc.useUtils();
+
+  const invalidate = () => {
+    trpcUtils.tahfiz.getPaginated.invalidate();
+  };
+
+  const createTahfiz = trpc.tahfiz.create.useMutation({
+    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Created successfully'); invalidate(); },
+    onError: (err) => showApiError(err),
+  });
+
+  const updateTahfiz = trpc.tahfiz.update.useMutation({
+    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Updated successfully'); invalidate(); },
+    onError: (err) => showApiError(err),
+  });
+
+  const deleteTahfiz = trpc.tahfiz.delete.useMutation({
+    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Deleted successfully'); invalidate(); },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createTahfiz, updateTahfiz, deleteTahfiz };
+}
