@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { translate } from '@/utils/translations';
 import { handleLogout, removeImpersonation, useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent.jsx';
+import { trpc } from './utils/trpc';
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -42,14 +43,12 @@ function LayoutContent({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState('false');
 
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', currentUser?.email],
-    queryFn: () => base44.entities.Notification.filter({ user_email: currentUser?.email, is_read: false }),
-    enabled: !!currentUser,
-  });
-
-  const unreadCount = notifications.length;
-
+  const { data: unreadNotiCount, isLoading } =
+    trpc.notification.getUnreadNotificationCount.useQuery(
+      { receiveremail: currentUser?.email },
+      { enabled: !!currentUser?.email }
+    );
+  
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     const isImpersonating = localStorage.getItem('isImpersonating');
@@ -248,9 +247,9 @@ function LayoutContent({ children, currentPageName }) {
                 <Link to={createPageUrl('NotificationPage')} className="relative">
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-5 h-5" />
-                    {unreadCount > 0 && (
+                    {unreadNotiCount > 0 && (
                       <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-xs">
-                        {unreadCount}
+                        {unreadNotiCount}
                       </Badge>
                     )}
                   </Button>

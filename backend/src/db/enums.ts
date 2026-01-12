@@ -21,3 +21,9 @@ export enum TahlilStatus {
   ACCEPTED = "accepted",
   REJECTED = "rejected",
 }
+
+export enum NotificationType {
+  SUGGESTION = "suggestion",
+  DONATION = "donation",
+  TAHLILREQUEST = "tahlilrequest",
+}
