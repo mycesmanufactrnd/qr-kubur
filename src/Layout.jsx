@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
-import { base44 } from '@/api/base44Client';
 import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
 import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
