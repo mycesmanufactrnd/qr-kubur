@@ -96,6 +96,7 @@ export default function SubmitSuggestion() {
       { field: 'type', label: 'Record Type', type: 'select' },
       { field: 'entityId', label: 'Record', type: 'select' },
       { field: 'suggestedchanges', label: 'Suggested Changes', type: 'text' },
+      { field: 'reason', label: 'Reason', type: 'text' },
     ]);
 
     if (!isValid) return;
@@ -106,7 +107,8 @@ export default function SubmitSuggestion() {
       type: type,
       suggestedchanges: suggestedchanges,
       reason,
-      status: 'pending'
+      status: 'pending',
+      visitorip: visitorIp ?? null,
     };
 
     if (recentCount >= 3) {
@@ -115,12 +117,12 @@ export default function SubmitSuggestion() {
     }
 
     if (type === 'person') {
-      suggestionData.grave = { id: watchSelectedGrave };
-      suggestionData.deadperson = { id: entityId };
+      suggestionData.grave = { id: Number(watchSelectedGrave) };
+      suggestionData.deadperson = { id: Number(entityId) };
     }
 
     if (type === 'grave') {
-      suggestionData.grave = { id: entityId };
+      suggestionData.grave = { id: Number(entityId) };
     }
 
     setPendingSubmission(suggestionData);
@@ -299,7 +301,7 @@ export default function SubmitSuggestion() {
             </div>
 
             <div>
-              <Label htmlFor="reason" className="dark:text-gray-300">Sebab / Justifikasi</Label>
+              <Label htmlFor="reason" className="dark:text-gray-300">Sebab / Justifikasi <span className="text-red-500">*</span></Label>
               <Controller
                 name="reason"
                 control={control}

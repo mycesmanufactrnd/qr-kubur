@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPageUrl } from '../utils/index';
 import { Camera, X, AlertCircle, CheckCircle, Keyboard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import QrScanner from 'react-qr-scanner';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 export default function ScanQR() {
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
@@ -16,12 +17,34 @@ export default function ScanQR() {
     refetchOnWindowFocus: false,
   });
 
-  const [manualCode, setManualCode] = useState('');
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showManual, setShowManual] = useState(false);
+  const [scannedGraveId, setScannedGraveId] = useState(null);
+  const [scannedDeadPersonId, setScannedDeadPersonId] = useState(null);
+
+  const { data: selectedGrave, isLoading: graveLoading } = trpc.grave.getGraveById.useQuery(
+    { id: scannedGraveId ?? 0 },
+    { enabled: scannedGraveId !== null }
+  );
+
+  const { data: selectedDeadPerson, isLoading: personLoading } = trpc.deadperson.getDeadPersonById.useQuery(
+    { id: scannedDeadPersonId ?? 0 },
+    { enabled: scannedDeadPersonId !== null }
+  );
+
+  useEffect(() => {
+    if (selectedGrave && scannedGraveId !== null) {
+      setResult({ type: 'grave', data: selectedGrave });
+    }
+  }, [selectedGrave, scannedGraveId]);
+
+  useEffect(() => {
+    if (selectedDeadPerson && scannedDeadPersonId !== null) {
+      setResult({ type: 'person', data: selectedDeadPerson });
+    }
+  }, [selectedDeadPerson, scannedDeadPersonId]);
 
   const createMutation = trpc.visitLogs.create.useMutation();
 
@@ -45,7 +68,6 @@ export default function ScanQR() {
     }
   };
 
-
   const handleScan = async (data) => {
     if (data && !loading) {
       setLoading(true);
@@ -65,15 +87,11 @@ export default function ScanQR() {
         }
 
         if (type === 'grave') {
-          // const grave = await base44.entities.Grave.filter({ id });
-
+          setScannedGraveId(id); 
           await createVisitLog(type, id);
-          setResult({ type: 'grave', data: grave[0] });
         } else if (type === 'deadperson') {
-          // const person = await base44.entities.DeadPerson.filter({ id });
-
+          setScannedDeadPersonId(id); 
           await createVisitLog(type, id);
-          setResult({ type: 'person', data: person[0] });
         } else {
           setError('Kod QR tidak dijumpai dalam sistem.');
         }
@@ -98,6 +116,15 @@ export default function ScanQR() {
       window.location.href = createPageUrl('DeadPersonDetails') + `?id=${result.data.id}`;
     }
   };
+
+  if (graveLoading || personLoading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-3 pb-2 text-center">
+        <BackNavigation title="Scan QR" />
+        <PageLoadingComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-3 pb-2">
@@ -151,7 +178,6 @@ export default function ScanQR() {
         </Card>
       )}
 
-      {/* Error Alert */}
       {error && (
         <Alert variant="destructive" className="border-0">
           <AlertCircle className="h-4 w-4" />
@@ -159,7 +185,6 @@ export default function ScanQR() {
         </Alert>
       )}
 
-      {/* Result */}
       {result && (
         <Card className="border-0 shadow-lg bg-emerald-50 dark:bg-emerald-900/30">
           <CardContent className="p-4">
@@ -198,7 +223,6 @@ export default function ScanQR() {
                 onClick={() => {
                   setResult(null);
                   setError(null);
-                  setManualCode('');
                 }}
                 className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >

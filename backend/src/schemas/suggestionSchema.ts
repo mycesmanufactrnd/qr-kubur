@@ -7,6 +7,8 @@ export const suggestionSchema = z.object({
     reason: z.string().min(1),
     status: z.enum(ApprovalStatus).optional(),
     visitorip: z.string().optional().nullable(),
+    grave: z.object({ id: z.number() }).nullable().optional(),
+    deadperson: z.object({ id: z.number() }).nullable().optional(),
 
 });
 

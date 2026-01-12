@@ -18,6 +18,10 @@ type Coordinates = {
   longitude: number;
 };
 
+type UseGetGraveCoordinatesOptions = {
+  coordinates?: Coordinates | null;
+  enabled?: boolean;
+};
 
 const titleMessage = 'Grave';
 
@@ -146,7 +150,6 @@ export function useSearchGraves({
   search?: string; 
   filterState?: string; 
 }) {
-  // We use a high pageSize here to get all relevant graves for distance calculation
   const { data, isLoading, refetch } = trpc.grave.getPaginated.useQuery({
     pageSize: 100, 
     search,

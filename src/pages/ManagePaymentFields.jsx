@@ -36,7 +36,7 @@ export default function ManagePaymentFields() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [formData, setFormData] = useState({
-    code: '',
+    paymentplatform: null,
     key: '',
     label: '',
     fieldtype: 'text',
@@ -57,20 +57,20 @@ export default function ManagePaymentFields() {
     const matchesSearch = !searchQuery || 
       f.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.key?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPlatform = filterPlatform === 'all' || f.code === filterPlatform;
+    const matchesPlatform = filterPlatform === 'all';
     return matchesSearch && matchesPlatform;
   });
 
   const openAddDialog = () => {
     setEditingField(null);
-    setFormData({ code: '', key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+    setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (field) => {
     setEditingField(field);
     setFormData({
-      code: field.code || '',
+      paymentplatform: field.paymentplatform?.id || '',
       key: field.key || '',
       label: field.label || '',
       fieldtype: field.fieldtype || 'text',
@@ -84,29 +84,36 @@ export default function ManagePaymentFields() {
     e.preventDefault();
 
     const isValid = validateFields(formData, [
-      { field: 'code', label: 'Code', type: 'text' },
-      { field: 'key', label: 'Key', type: 'text' },
+      { field: 'paymentplatform', label: 'Payment Platform', type: 'text' },
+      { field: 'key', label: 'Field Key', type: 'text' },
       { field: 'label', label: 'Label', type: 'text' },
       { field: 'fieldtype', label: 'Field Type', type: 'text' },
     ]);
 
     if (!isValid) return;
 
+    const payload = {
+      ...formData,
+      paymentplatform: formData.paymentplatform
+        ? { id: formData.paymentplatform }
+        : null,
+    };
+
     if (editingField) {
-      updateMutation.mutateAsync({ id: editingField.id, data: formData })
+      updateMutation.mutateAsync({ id: editingField.id, data: payload })
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
           setEditingField(null);
-          setFormData({ code: '', key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+          setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
         }
       });
     } else {
-      createMutation.mutateAsync(formData)
+      createMutation.mutateAsync(payload)
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
-          setFormData({ code: '', key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+          setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
         }
       });
     }
@@ -220,7 +227,7 @@ export default function ManagePaymentFields() {
                 filteredFields.map(field => (
                   <TableRow key={field.id}>
                     <TableCell>
-                      <Badge variant="secondary">{getPlatformName(field.code)}</Badge>
+                      <Badge variant="secondary">{getPlatformName(field.paymentplatform?.code)}</Badge>
                     </TableCell>
                     <TableCell className="font-mono text-sm">{field.key}</TableCell>
                     <TableCell>{field.label || '-'}</TableCell>
@@ -257,16 +264,16 @@ export default function ManagePaymentFields() {
             <div>
               <Label>Payment Platform <span className="text-red-500">*</span></Label>
               <Select 
-                value={formData.code} 
-                onValueChange={(value) => setFormData({ ...formData, code: value })}
-                disabled={!!editingField}
+                value={formData.paymentplatform} 
+                onValueChange={(value) => setFormData({ ...formData, paymentplatform: Number(value) })}
+                disabled={editingField}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
                 <SelectContent>
                   {platforms.map(p => (
-                    <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
+                    <SelectItem key={p.id} value={Number(p.id)}>{p.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
