@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const graveSchema = z.object({
-  cemeteryname: z.string().min(1, "Nama tanah perkuburan diperlukan"),
+  name: z.string().min(1, "Nama tanah perkuburan diperlukan"),
   state: z.string().min(1, "Negeri diperlukan"),
   block: z.string().optional().nullable(),
   lot: z.string().optional().nullable(),

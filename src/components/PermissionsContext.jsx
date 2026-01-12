@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const PermissionsContext = createContext();
+const PermissionsContext = createContext(null);
 
 export function PermissionsProvider({ children }) {
   const [permissions, setPermissions] = useState([]);
