@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { showError, showSuccess } from '@/components/ToastrNotification';
 import { useAdminAccess } from '@/utils/auth';
 import { 
   useCreatePaymentPlatform,
@@ -41,40 +40,10 @@ export default function ManagePaymentPlatforms() {
     isSuperAdmin, 
   } = useAdminAccess();
 
-  const { data: platforms = [], isLoading } = useQuery({
-    queryKey: ['payment-platforms'],
-    queryFn: () => base44.entities.PaymentPlatform.list(),
-    enabled: isSuperAdmin
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.PaymentPlatform.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-platforms']);
-      setIsDialogOpen(false);
-      setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
-      showSuccess('Payment Platform Successfully Created');
-    }
-  });
-  
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PaymentPlatform.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-platforms']);
-      setIsDialogOpen(false);
-      setEditingPlatform(null);
-      setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
-      showSuccess('Payment Platform Successfully Updated');
-    }
-  });
-  
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.PaymentPlatform.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['payment-platforms']);
-      showSuccess('Payment Platform Successfully Deleted');
-    }
-  });
+  const { data: platforms, isLoading } = useGetPaymentPlatform(isSuperAdmin);
+  const createMutation = useCreatePaymentPlatform();
+  const updateMutation = useUpdatePaymentPlatform();
+  const deleteMutation = useDeletePaymentPlatform();
 
   if (loadingUser) {
     return <LoadingUser />;
@@ -96,12 +65,6 @@ export default function ManagePaymentPlatforms() {
       </div>
     );
   }
-
-  const filteredPlatforms = platforms.filter(p => 
-    !searchQuery || 
-    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.code?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const openAddDialog = () => {
     setEditingPlatform(null);
@@ -218,65 +181,6 @@ export default function ManagePaymentPlatforms() {
         </Button>
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder= {translate('searchPlatform')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Mobile Cards */}
-      <div className="lg:hidden space-y-3">
-        {isLoading ? (
-          [1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-              </CardContent>
-            </Card>
-          ))
-        ) : platforms.length === 0 ? (
-          <Card className="border-0 shadow-sm dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-500">{translate('noPlatformFound')}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          platforms.map(platform => (
-            <Card key={platform.id} className="border-0 shadow-sm dark:bg-gray-800">
-              <CardContent className="p-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{platform.name}</h3>
-                    <p className="text-xs text-gray-500 font-mono">{platform.code}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs capitalize">{platform.category}</Badge>
-                      {getStatusBadge(platform.status)}
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(platform)} className="h-8 w-8 p-0">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(platform)} className="h-8 w-8 p-0">
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Desktop Table */}
       <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
