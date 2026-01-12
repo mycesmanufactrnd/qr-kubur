@@ -11,6 +11,12 @@ type useGetGravePaginatedParams = {
   organisationIds?: number[];
 };
 
+type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+
 const titleMessage = 'Grave';
 
 export function useGetGravePaginated({
@@ -86,4 +92,27 @@ export function useDeleteGrave() {
       showApiError(err);
     },
   });
+}
+
+type UseGetGraveCoordinatesOptions = {
+  coordinates?: Coordinates | null;
+  enabled?: boolean;
+};
+
+export function useGetGraveCoordinates(
+  options: UseGetGraveCoordinatesOptions = {}
+) {
+  const { coordinates, enabled: customEnabled } = options;
+
+  const { data = [], isLoading, error, refetch } = trpc.grave.getGraveByCoordinates.useQuery(
+    { coordinates: coordinates ?? null },
+    {
+      enabled: customEnabled && !!coordinates,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    }
+  );
+
+  return { graves: data, isLoading, error, refetch };
 }

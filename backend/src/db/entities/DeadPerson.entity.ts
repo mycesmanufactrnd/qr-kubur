@@ -10,18 +10,18 @@ export class DeadPerson {
   @Column("varchar", { length: 255 })
   name!: string;
 
-  @Column("varchar", { length: 255 })
-  icnumber!: string;
+  @Column("varchar", { length: 255, nullable: true })
+  icnumber?: string;
 
-  @Column({ type: "date" })
+  @Column({ type: "date", nullable: true })
   dateofbirth!: Date;
 
-  @Column({ type: "date" })
+  @Column({ type: "date", nullable: true })
   dateofdeath!: Date;
 
-  @Column("varchar", { length: 255 })
+  @Column("varchar", { length: 255, nullable: true })
   causeofdeath!: string;
-    
+  
   @OneToOne(() => Grave, (grave) => grave.deadPerson, {
     nullable: true,
     onDelete: "SET NULL",
@@ -29,10 +29,10 @@ export class DeadPerson {
   @JoinColumn()
   grave?: Grave | null;
 
-  @Column("varchar", { length: 255 })
+  @Column("varchar", { length: 255, nullable: true })
   biography?: string;
 
-  @Column("varchar", { length: 255 })
+  @Column("varchar", { length: 255, nullable: true })
   photourl?: string;
 
   @Column("double precision", { nullable: true })

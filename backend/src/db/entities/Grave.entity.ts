@@ -39,12 +39,8 @@ export class Grave {
     default: ActiveInactiveStatus.ACTIVE,
   })
   status!: ActiveInactiveStatus;
-
-  @OneToOne(() => DeadPerson, (deadPerson) => deadPerson.grave, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
-  @JoinColumn()
+  
+  @OneToOne(() => DeadPerson, (deadPerson) => deadPerson.grave)
   deadPerson?: DeadPerson | null;
 
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
