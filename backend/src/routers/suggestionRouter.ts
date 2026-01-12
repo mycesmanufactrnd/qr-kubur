@@ -1,10 +1,27 @@
-import { router, protectedProcedure, publicProcedure, adminProcedure } from "../trpc.ts";
+import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
 import { Suggestion } from "../db/entities.ts";
 import { suggestionApprovalSchema, suggestionSchema } from "../schemas/suggestionSchema.ts";
+import { MoreThan } from "typeorm";
 
 export const suggestionRouter = router({
+   countRecentByIp: publicProcedure
+        .input(z.object({
+            ip: z.string(),
+            since: z.string()
+        }))
+        .query(async ({ input }) => {
+            const repo = AppDataSource.getRepository(Suggestion);
+
+            return repo.count({
+                where: {
+                    visitorip: input.ip,
+                    createdat: MoreThan(new Date(input.since)),
+                }
+            });
+        }),
+
     getPaginated: protectedProcedure
         .input(
             z.object({
@@ -51,6 +68,15 @@ export const suggestionRouter = router({
                 .getManyAndCount();
 
             return { items, total };
+        }),
+
+    create: publicProcedure
+        .input(suggestionSchema)
+        .mutation(async ({ input }) => {
+            const suggestionRepo = AppDataSource.getRepository(Suggestion);
+
+            const suggestion = suggestionRepo.create(input);
+            return await suggestionRepo.save(suggestion);
         }),
 
     update: protectedProcedure

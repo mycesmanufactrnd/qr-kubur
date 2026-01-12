@@ -1,6 +1,8 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ActiveInactiveStatus } from "../enums.ts";
 import { Donation } from "./Donation.entity.ts";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 
 @Entity("paymentplatform")
 export class PaymentPlatform {
@@ -28,6 +30,12 @@ export class PaymentPlatform {
 
     @OneToMany(() => Donation, (donations) => donations.paymentplatform)
     donations!: Donation[];
+
+    @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.paymentplatform)
+    organisationpaymentconfigs!: OrganisationPaymentConfig[];
+
+    @OneToMany(() => TahfizPaymentConfig, (tahfizpaymentconfigs) => tahfizpaymentconfigs.paymentplatform)
+    tahfizpaymentconfigs!: TahfizPaymentConfig[];
 
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;

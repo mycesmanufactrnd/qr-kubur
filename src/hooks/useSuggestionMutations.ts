@@ -36,19 +36,16 @@ export function useGetSuggestionPaginated({
   return { suggestionList, totalPages, isLoading, refetch, error };
 }
 
-// export function useCreateSuggestion() {
-//   const trpcUtils = trpc.useUtils();
-
-//   return trpc.suggestion.create.useMutation({
-//     onSuccess: () => {
-//       showSuccess(titleMessage, 'create');
-//       trpcUtils.suggestion.getPaginated.invalidate();
-//     },
-//     onError: (err) => {
-//       showApiError(err);
-//     },
-//   });
-// }
+export function useCreateSuggestion() {
+  return trpc.suggestion.create.useMutation({
+    onSuccess: () => {
+      showSuccess(titleMessage, 'create');
+    },
+    onError: (err) => {
+      showApiError(err);
+    },
+  });
+}
 
 export function useUpdateSuggestion() {
   const trpcUtils = trpc.useUtils();
@@ -76,4 +73,18 @@ export function useDeleteSuggestion() {
       showApiError(err);
     },
   });
+}
+
+export function useRecentCountSuggestion(visitorIp?: string, oneHourAgo?: any) {
+  const { data: recentCount = 0 } = trpc.suggestion.countRecentByIp.useQuery(
+    { ip: visitorIp ?? '', since: oneHourAgo },
+    {
+      enabled: !!visitorIp && visitorIp !== 'unknown',
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    }
+  );
+
+  return recentCount;
 }

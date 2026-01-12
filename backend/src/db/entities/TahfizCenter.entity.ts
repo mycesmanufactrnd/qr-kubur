@@ -3,6 +3,7 @@ import { User } from "./User.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { TahlilRequest } from "./TahlilRequest.entity.js";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -45,14 +46,14 @@ export class TahfizCenter {
   @OneToMany(() => User, (users) => users.tahfizcenter)
   users!: User[];
 
-  @OneToMany(() => Suggestion, (suggestions) => suggestions.tahfizcenter)
-  suggestions!: Suggestion[];
-
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
   donations!: Donation[];
 
   @OneToMany(() => TahlilRequest, (tahlilrequests) => tahlilrequests.tahfizcenter)
   tahlilrequests!: TahlilRequest[];
+
+  @OneToMany(() => TahfizPaymentConfig, (tahfizpaymentconfigs) => tahfizpaymentconfigs.tahfizcenter)
+  tahfizpaymentconfigs!: TahfizPaymentConfig[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

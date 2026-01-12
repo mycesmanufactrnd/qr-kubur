@@ -4,6 +4,7 @@ import { OrganisationType } from "./OrganisationType.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
 import { Suggestion } from "./Suggestion.entity.ts";
 import { Donation } from "./Donation.entity.ts";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
@@ -53,11 +54,11 @@ export class Organisation {
   @OneToMany(() => User, (user) => user.organisation)
   users!: User[];
 
-  @OneToMany(() => Suggestion, (suggestions) => suggestions.tahfizcenter)
-  suggestions!: Suggestion[];
-
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
   donations!: Donation[];
+
+  @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.organisation)
+  organisationpaymentconfigs!: OrganisationPaymentConfig[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

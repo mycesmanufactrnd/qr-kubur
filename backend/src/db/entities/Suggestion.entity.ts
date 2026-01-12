@@ -11,18 +11,6 @@ export class Suggestion {
     @Column("varchar", { length: 20 })
     type!: string;
 
-    @ManyToOne(() => TahfizCenter, (tahfizcenter) => tahfizcenter.suggestions, {
-        nullable: true,
-        onDelete: "SET NULL",
-    })
-    tahfizcenter?: TahfizCenter | null;
-
-    @ManyToOne(() => Organisation, (organisation) => organisation.suggestions, {
-        nullable: true,
-        onDelete: "SET NULL",
-    })
-    organisation?: Organisation | null;
-
     @Column("text")
     suggestedchanges!: string;
     
