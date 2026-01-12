@@ -95,3 +95,17 @@ export function useDeleteGrave() {
     },
   });
 }
+
+export function useBulkCreateGraves() {
+  const trpcUtils = trpc.useUtils();
+
+  return trpc.grave.bulkCreate.useMutation({
+    onSuccess: (data) => {
+      showSuccess('Grave', `Successfully imported ${data.count} records`);
+      trpcUtils.grave.getPaginated.invalidate();
+    },
+    onError: (err) => {
+      showApiError(err);
+    },
+  });
+}
