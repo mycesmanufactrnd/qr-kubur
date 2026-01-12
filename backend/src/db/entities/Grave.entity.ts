@@ -1,8 +1,8 @@
-// Added ManyToOne and JoinColumn to the imports
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from "typeorm"; 
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne, OneToMany, CreateDateColumn } from "typeorm"; 
 import { Organisation } from "./Organisation.entity.ts";
 import { ActiveInactiveStatus } from "../enums.ts";
 import { DeadPerson } from "./DeadPerson.entity.ts";
+import { Suggestion } from "./Suggestion.entity.ts";
 
 @Entity("grave")
 export class Grave {
@@ -18,11 +18,8 @@ export class Grave {
   @Column("varchar", { length: 255, nullable: true })
   lot?: string;
 
-  @Column("double precision", { nullable: true }) // Standardized to lowercase
+  @Column("double precision", { nullable: true })
   latitude?: number;
-
-  @Column("varchar", { length: 255, nullable: true })
-  icnumber?: string;
 
   @Column("double precision", { nullable: true })
   longitude?: number;
@@ -42,18 +39,19 @@ export class Grave {
     default: ActiveInactiveStatus.ACTIVE,
   })
   status!: ActiveInactiveStatus;
-
-  @OneToOne(() => DeadPerson, (deadPerson) => deadPerson.grave, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
-  @JoinColumn()
+  
+  @OneToOne(() => DeadPerson, (deadPerson) => deadPerson.grave)
   deadPerson?: DeadPerson | null;
-
 
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
     nullable: true,
     onDelete: "SET NULL",
   })
   organisation?: Organisation | null;
+
+  @OneToMany(() => Suggestion, (suggestions) => suggestions.grave)
+  suggestions!: Suggestion[];
+
+  @CreateDateColumn ({ name: "createdat" })
+  createdat!: Date;
 }

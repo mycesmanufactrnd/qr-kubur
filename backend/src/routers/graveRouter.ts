@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { Grave, Organisation } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
@@ -79,6 +79,39 @@ export const graveRouter = router({
     .mutation(async ({ input }) => {
       const graveRepo = AppDataSource.getRepository(Grave);
       return await graveRepo.delete(input);
+    }),
+
+  getGraveByCoordinates: publicProcedure
+    .input(
+        z.object({
+        coordinates: z.object({
+            latitude: z.number().min(-90).max(90),
+            longitude: z.number().min(-180).max(180),
+        }).optional().nullable()
+        })
+    )
+    .query(async ({ input }) => {
+        const repo = AppDataSource.getRepository(Grave);
+
+        if (!input.coordinates) {
+          return [];
+        }
+
+        const { latitude, longitude } = input.coordinates;
+
+        return repo.createQueryBuilder("grave")
+        .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL")
+        .orderBy(
+            `
+            earth_distance(
+                ll_to_earth(grave.latitude, grave.longitude),
+                ll_to_earth(:lat, :lng)
+            )
+            `,
+            "ASC"
+        )
+        .setParameters({ lat: latitude, lng: longitude })
+        .getMany();
     }),
 
   bulkCreate: protectedProcedure

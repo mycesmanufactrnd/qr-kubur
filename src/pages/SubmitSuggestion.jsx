@@ -16,6 +16,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { validateFields } from '@/utils/validations';
 import { trpc } from '@/utils/trpc';
 import { useCreateSuggestion, useRecentCountSuggestion } from '@/hooks/useSuggestionMutations';
+import { useGetGraveCoordinates } from '@/hooks/useGraveMutations';
+import { getDistanceFromLatLonInKm } from '@/utils/helpers';
 
 export default function SubmitSuggestion() {
   const oneHourAgo = useMemo(() => new Date(Date.now() - 60 * 60 * 1000).toISOString(), []);
@@ -70,10 +72,17 @@ export default function SubmitSuggestion() {
     }
   }, []);
 
-  const { data: graves = [] } = useQuery({
-    queryKey: ['graves-nearby'],
-    queryFn: () => base44.entities.Grave.list(),
-    enabled: watchType === 'grave' || watchType === 'person'
+  const { graves: nearbyGraves } = useGetGraveCoordinates({
+    coordinates: userLocation,
+    enabled: watchType === "grave" || watchType === "person",
+  });
+
+  const gravesWithDistance = nearbyGraves.map(g => {
+    if (g.latitude != null && g.longitude != null) {
+      const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, g.latitude, g.longitude);
+      return { ...g, distance };
+    }
+    return { ...g, distance: Infinity };
   });
 
   const { data: persons = [] } = useQuery({
@@ -106,13 +115,11 @@ export default function SubmitSuggestion() {
     }
 
     if (type === 'person') {
-      //check apa yg diorg buat
       suggestionData.grave = { id: watchSelectedGrave };
       suggestionData.deadperson = { id: entityId };
     }
 
     if (type === 'grave') {
-      //check apa yg diorg buat
       suggestionData.grave = { id: entityId };
     }
 
@@ -207,8 +214,14 @@ export default function SubmitSuggestion() {
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger><SelectValue placeholder="Pilih kubur" /></SelectTrigger>
                         <SelectContent>
-                          {graves.map(g => (
-                            <SelectItem key={g.id} value={g.id}>{g.cemetery_name}</SelectItem>
+                          {gravesWithDistance.map(g => (
+                            <SelectItem key={g.id} value={String(g.id)}>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-3 h-3" />
+                                {g.name}
+                                {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
+                              </div>
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -249,15 +262,15 @@ export default function SubmitSuggestion() {
                   <div>
                     <Label>Pilih Kubur <span className="text-red-500">*</span></Label>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Pilih kubur berdekatan" />
                       </SelectTrigger>
                       <SelectContent>
-                        {graves.slice(0, 20).map(g => (
-                          <SelectItem key={g.id} value={g.id}>
+                        {gravesWithDistance.slice(0, 20).map(g => (
+                          <SelectItem key={g.id} value={String(g.id)}>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-3 h-3" />
-                              {g.cemetery_name} - {g.state}
+                              {g.name}
                               {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
                             </div>
                           </SelectItem>

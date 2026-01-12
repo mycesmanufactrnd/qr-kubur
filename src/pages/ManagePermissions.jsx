@@ -12,7 +12,6 @@ import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
-import { trpc } from '@/utils/trpc';
 import { useGetPermission, useUpsertPermission } from '@/hooks/usePermissionMutations';
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
 import { useGetUserPaginated } from '@/hooks/useUserMutations';
