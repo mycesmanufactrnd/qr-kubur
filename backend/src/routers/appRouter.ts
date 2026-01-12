@@ -12,6 +12,7 @@ import { permissionRouter } from "./permissionRouter.ts";
 import { surahRouter } from "./surahRouter.ts";
 import { tahfizRouter } from "./tahfizRouter.ts";
 import { usersRouter } from "./usersRouter.ts";
+import { graveRouter } from "./graveRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
@@ -23,6 +24,7 @@ export const appRouter = trpcRouter({
   tahfiz: tahfizRouter,
   organisation: organisationRouter,
   organisationType: organisationTypeRouter,
+  grave: graveRouter,
 });
 
 export type AppRouter = typeof appRouter;

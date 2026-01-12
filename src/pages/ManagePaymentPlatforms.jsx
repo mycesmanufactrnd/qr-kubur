@@ -22,6 +22,8 @@ import {
   useUpdatePaymentPlatform, 
 } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
+import { translate } from '@/utils/translations';
+
 
 export default function ManagePaymentPlatforms() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -41,10 +43,67 @@ export default function ManagePaymentPlatforms() {
     isSuperAdmin, 
   } = useAdminAccess();
 
-  const { data: platforms, isLoading } = useGetPaymentPlatform(isSuperAdmin);
-  const createMutation = useCreatePaymentPlatform();
-  const updateMutation = useUpdatePaymentPlatform();
-  const deleteMutation = useDeletePaymentPlatform();
+  const { data: platforms = [], isLoading } = useQuery({
+    queryKey: ['payment-platforms'],
+    queryFn: () => base44.entities.PaymentPlatform.list(),
+    enabled: isSuperAdmin
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.PaymentPlatform.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['payment-platforms']);
+      setIsDialogOpen(false);
+      setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+      showSuccess('Payment Platform Successfully Created');
+    }
+  });
+  
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.PaymentPlatform.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['payment-platforms']);
+      setIsDialogOpen(false);
+      setEditingPlatform(null);
+      setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+      showSuccess('Payment Platform Successfully Updated');
+    }
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.PaymentPlatform.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['payment-platforms']);
+      showSuccess('Payment Platform Successfully Deleted');
+    }
+  });
+
+  if (loadingUser) {
+    return <LoadingUser />;
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
+          { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
+        ]} />
+        <Card className="max-w-lg mx-auto mt-8">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{translate('accessDenied')}</h2>
+            <p className="text-gray-600">{translate('doNotHavePermissionAccessPage')}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const filteredPlatforms = platforms.filter(p => 
+    !searchQuery || 
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.code?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const openAddDialog = () => {
     setEditingPlatform(null);
@@ -160,6 +219,20 @@ export default function ManagePaymentPlatforms() {
           Add Platform
         </Button>
       </div>
+
+      <Card className="border-0 shadow-md dark:bg-gray-800">
+        <CardContent className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder= {translate('searchPlatform')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-3">

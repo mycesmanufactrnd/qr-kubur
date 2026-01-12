@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, Ma
 import { User } from "./User.entity.ts";
 import { OrganisationType } from "./OrganisationType.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
+import { Grave } from "./Grave.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
@@ -53,4 +54,7 @@ export class Organisation {
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
+
+  @OneToMany(() => Grave, (grave) => grave.organisation)
+  graves?: Grave[];
 }
