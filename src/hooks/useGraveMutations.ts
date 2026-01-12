@@ -109,3 +109,22 @@ export function useBulkCreateGraves() {
     },
   });
 }
+
+export function useSearchGraves({ 
+  search, 
+  filterState 
+}: { 
+  search?: string; 
+  filterState?: string; 
+}) {
+  // We use a high pageSize here to get all relevant graves for distance calculation
+  const { data, isLoading, refetch } = trpc.grave.getPaginated.useQuery({
+    pageSize: 100, 
+    search,
+    filterState: filterState === 'nearby' ? undefined : filterState,
+  });
+
+  const gravesList = data?.items ?? [];
+  
+  return { gravesList, isLoading, refetch };
+}

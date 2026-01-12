@@ -80,4 +80,14 @@ export const graveRouter = router({
       const graveRepo = AppDataSource.getRepository(Grave);
       return await graveRepo.delete(input);
     }),
+
+  bulkCreate: protectedProcedure
+    .input(z.array(graveSchema)) // Validates the entire array against your schema
+    .mutation(async ({ input }) => {
+      const graveRepo = AppDataSource.getRepository(Grave);
+      
+      // Using chunking is safer for very large CSVs
+      const results = await graveRepo.save(input);
+      return { count: results.length };
+    }),
 });
