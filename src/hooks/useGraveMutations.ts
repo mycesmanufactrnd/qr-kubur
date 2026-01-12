@@ -9,6 +9,8 @@ type useGetGravePaginatedParams = {
   filterState?: string;
   filterStatus?: string;
   organisationIds?: number[];
+  filterBlock?: string;
+  filterLot?: string;
 };
 
 type Coordinates = {
@@ -26,6 +28,8 @@ export function useGetGravePaginated({
   filterState,
   filterStatus,
   organisationIds,
+  filterBlock,
+  filterLot,
 }: useGetGravePaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
@@ -38,6 +42,8 @@ export function useGetGravePaginated({
         filterState,
         filterStatus,
         organisationIds,
+        filterBlock,
+        filterLot,
       },
       { enabled: hasAdminAccess }
     );
@@ -80,12 +86,14 @@ export function useUpdateGrave() {
   });
 }
 
+
 export function useDeleteGrave() {
   const trpcUtils = trpc.useUtils();
 
   return trpc.grave.delete.useMutation({
     onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
+      showSuccess('Grave', 'delete');
+      // This tells tRPC to reload the table data
       trpcUtils.grave.getPaginated.invalidate();
     },
     onError: (err) => {

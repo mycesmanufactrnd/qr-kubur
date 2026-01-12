@@ -12,10 +12,12 @@ export const graveRouter = router({
       search: z.string().optional(),
       filterState: z.string().optional(),
       filterStatus: z.string().optional(),
+      filterBlock: z.string().optional(),
+      filterLot: z.string().optional(),
       organisationIds: z.array(z.number()).optional(), // For access control
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterState, filterStatus, organisationIds } = input;
+      const { page, pageSize, search, filterState, filterStatus, filterBlock, filterLot, organisationIds } = input;
       const graveRepo = AppDataSource.getRepository(Grave);
 
       const query = graveRepo.createQueryBuilder('grave')
@@ -27,11 +29,19 @@ export const graveRouter = router({
       }
 
       if (search) {
-        query.andWhere('grave.cemeteryname ILIKE :search', { search: `%${search}%` });
+        query.andWhere('grave.name ILIKE :search', { search: `%${search}%` });
       }
 
       if (filterState && filterState !== 'all') {
         query.andWhere('grave.state = :state', { state: filterState });
+      }
+  
+      if (filterBlock) {
+          query.andWhere('grave.block ILIKE :block', { block: `%${filterBlock}%` });
+      }
+
+      if (filterLot) {
+          query.andWhere('grave.lot ILIKE :lot', { lot: `%${filterLot}%` });
       }
 
       if (filterStatus && filterStatus !== 'all') {

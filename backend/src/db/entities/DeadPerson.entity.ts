@@ -20,7 +20,7 @@ export class DeadPerson {
   dateofdeath!: Date;
 
   @Column("varchar", { length: 255, nullable: true })
-  causeofdeath!: string;
+  causeofdeath?: string;
   
   @OneToOne(() => Grave, (grave) => grave.deadPerson, {
     nullable: true,
