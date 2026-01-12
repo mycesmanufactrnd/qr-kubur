@@ -18,6 +18,10 @@ type Coordinates = {
   longitude: number;
 };
 
+type UseGetGraveCoordinatesOptions = {
+  coordinates?: Coordinates | null;
+  enabled?: boolean;
+};
 
 const titleMessage = 'Grave';
 
@@ -102,11 +106,6 @@ export function useDeleteGrave() {
   });
 }
 
-type UseGetGraveCoordinatesOptions = {
-  coordinates?: Coordinates | null;
-  enabled?: boolean;
-};
-
 export function useGetGraveCoordinates(
   options: UseGetGraveCoordinatesOptions = {}
 ) {
@@ -123,4 +122,36 @@ export function useGetGraveCoordinates(
   );
 
   return { graves: data, isLoading, error, refetch };
+}
+
+export function useBulkCreateGraves() {
+  const trpcUtils = trpc.useUtils();
+
+  return trpc.grave.bulkCreate.useMutation({
+    onSuccess: (data) => {
+      showSuccess('Grave', `Successfully imported ${data.count} records`);
+      trpcUtils.grave.getPaginated.invalidate();
+    },
+    onError: (err) => {
+      showApiError(err);
+    },
+  });
+}
+
+export function useSearchGraves({ 
+  search, 
+  filterState 
+}: { 
+  search?: string; 
+  filterState?: string; 
+}) {
+  const { data, isLoading, refetch } = trpc.grave.getPaginated.useQuery({
+    pageSize: 100, 
+    search,
+    filterState: filterState === 'nearby' ? undefined : filterState,
+  });
+
+  const gravesList = data?.items ?? [];
+  
+  return { gravesList, isLoading, refetch };
 }

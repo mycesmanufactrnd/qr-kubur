@@ -24,6 +24,7 @@ import { useGetGravePaginated, useCreateGrave, useUpdateGrave, useDeleteGrave } 
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 
+
 const emptyGrave = {
   cemetery_name: '',
   state: '',

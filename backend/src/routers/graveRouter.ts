@@ -129,4 +129,13 @@ export const graveRouter = router({
         .setParameters({ lat: latitude, lng: longitude })
         .getMany();
     }),
+
+  bulkCreate: protectedProcedure
+    .input(z.array(graveSchema))
+    .mutation(async ({ input }) => {
+      const graveRepo = AppDataSource.getRepository(Grave);
+      
+      const results = await graveRepo.save(input);
+      return { count: results.length };
+    }),
 });
