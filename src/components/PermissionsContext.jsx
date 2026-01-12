@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const PermissionsContext = createContext(null);
 
@@ -65,7 +64,9 @@ export function useCrudPermissions(prefix) {
   return {
     loading,
     canView: hasPermission(`${prefix}_view`),
+    canVerify: hasPermission(`${prefix}_verify`),
     canApprove: hasPermission(`${prefix}_approve`),
+    canReject: hasPermission(`${prefix}_reject`),
     canCreate: hasPermission(`${prefix}_create`),
     canEdit: hasPermission(`${prefix}_edit`),
     canDelete: hasPermission(`${prefix}_delete`)

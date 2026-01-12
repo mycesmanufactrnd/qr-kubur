@@ -8,7 +8,7 @@ export class OrganisationType {
   id!: number;
 
   @OneToMany(() => Organisation, (organisation) => organisation.organisationtype)
-  organisation!: Organisation[];
+  organisations!: Organisation[];
 
   @Column("varchar", { length: 255 })
   name!: string;

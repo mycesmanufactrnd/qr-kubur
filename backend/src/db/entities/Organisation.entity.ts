@@ -3,13 +3,16 @@ import { User } from "./User.entity.ts";
 import { OrganisationType } from "./OrganisationType.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
 import { Grave } from "./Grave.entity.ts";
+import { Suggestion } from "./Suggestion.entity.ts";
+import { Donation } from "./Donation.entity.ts";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => OrganisationType, (organisationtype) => organisationtype.organisation, {
+  @ManyToOne(() => OrganisationType, (organisationtype) => organisationtype.organisations, {
     nullable: true,
     onDelete: "SET NULL",
   })
@@ -50,7 +53,13 @@ export class Organisation {
   status!: ActiveInactiveStatus;
 
   @OneToMany(() => User, (user) => user.organisation)
-  user!: User[];
+  users!: User[];
+
+  @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
+  donations!: Donation[];
+
+  @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.organisation)
+  organisationpaymentconfigs!: OrganisationPaymentConfig[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
