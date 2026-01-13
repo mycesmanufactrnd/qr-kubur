@@ -19,7 +19,7 @@ const titleMessage = 'Deceased Record';
 
 export function useGetDeadPersonPaginated(params: useGetDeadPersonPaginatedParams) {
   const { data, isLoading, refetch, error } = 
-    trpc.deadPerson.getPaginated.useQuery(params);
+    trpc.deadperson.getPaginated.useQuery(params);
 
   return { 
     deadPersonsList: { 
@@ -35,10 +35,10 @@ export function useGetDeadPersonPaginated(params: useGetDeadPersonPaginatedParam
 export function useCreateDeadPerson() {
   const utils = trpc.useUtils();
 
-  return trpc.deadPerson.create.useMutation({
+  return trpc.deadperson.create.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'create');
-      utils.deadPerson.getPaginated.invalidate();
+      utils.deadperson.getPaginated.invalidate();
     },
     onError: (err) => {
       showApiError(err);
@@ -49,10 +49,10 @@ export function useCreateDeadPerson() {
 export function useUpdateDeadPerson() {
   const utils = trpc.useUtils();
 
-  return trpc.deadPerson.update.useMutation({
+  return trpc.deadperson.update.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'update');
-      utils.deadPerson.getPaginated.invalidate();
+      utils.deadperson.getPaginated.invalidate();
     },
     onError: (err) => {
       showApiError(err);
@@ -63,10 +63,10 @@ export function useUpdateDeadPerson() {
 export function useDeleteDeadPerson() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.deadPerson.delete.useMutation({
+  return trpc.deadperson.delete.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'delete');
-      trpcUtils.deadPerson.getPaginated.invalidate();
+      trpcUtils.deadperson.getPaginated.invalidate();
     },
     onError: (err) => {
       showApiError(err);

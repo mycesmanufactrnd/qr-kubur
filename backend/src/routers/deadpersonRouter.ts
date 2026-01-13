@@ -25,10 +25,12 @@ export const deadPersonRouter = router({
       const query = repo.createQueryBuilder('deadperson')
         .leftJoinAndSelect('deadperson.grave', 'grave');
 
+      // Filter by authorized grave IDs
       if (accessibleGravesIds && accessibleGravesIds.length > 0) {
         query.andWhere('deadperson.graveId IN (:...ids)', { ids: accessibleGravesIds });
       }
 
+      // Search and Filter logic
       if (search) query.andWhere('deadperson.name ILIKE :search', { search: `%${search}%` });
       if (filterIC) query.andWhere('deadperson.icnumber ILIKE :ic', { ic: `%${filterIC}%` });
       if (filterGrave) query.andWhere('deadperson.graveId = :graveId', { graveId: filterGrave });
@@ -50,9 +52,19 @@ export const deadPersonRouter = router({
     .input(deadPersonSchema)
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeadPerson);
-      // Logic to link grave
-      const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: input.graveId });
-      const person = repo.create({ ...input, grave });
+      
+      // Separate graveId from the rest of the data to avoid TypeORM mapping issues
+      const { graveId, ...personData } = input;
+
+      // Ensure the Grave exists
+      const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
+
+      // Create person with explicit grave relation
+      const person = repo.create({ 
+        ...personData, 
+        grave 
+      });
+
       return await repo.save(person);
     }),
 
@@ -60,15 +72,28 @@ export const deadPersonRouter = router({
     .input(z.object({ id: z.number(), data: deadPersonSchema }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeadPerson);
+      
+      // Ensure record exists
       const person = await repo.findOneByOrFail({ id: input.id });
-      const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: input.data.graveId });
-      repo.merge(person, { ...input.data, grave });
+      
+      const { graveId, ...personData } = input.data;
+
+      // Ensure the target Grave exists
+      const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
+
+      // Merge updated data and re-link the grave relation
+      repo.merge(person, { 
+        ...personData, 
+        grave 
+      });
+
       return await repo.save(person);
     }),
 
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
+      // Direct deletion by ID
       return await AppDataSource.getRepository(DeadPerson).delete(input);
     }),
 });
