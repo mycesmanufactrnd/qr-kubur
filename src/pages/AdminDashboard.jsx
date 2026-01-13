@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { 
   MapPin, Users, Building2, Heart, FileText, TrendingUp, 
   BookOpen, Clock, Book, UserCheck
@@ -13,6 +11,7 @@ import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
 
 export default function AdminDashboard() {
   const { 
@@ -20,78 +19,54 @@ export default function AdminDashboard() {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin, 
-    isEmployee,
     isTahfizAdmin,
-    currentUserStates 
   } = useAdminAccess();
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['admin-stats', currentUser?.id],
-    queryFn: async () => {
-      let gravesCount = 0;
-      let organisationsCount = 0;
-      let deadPersonCount = 0;
-      
-      if (currentUser.organisation_id) {
-        const orgsId = await [];
+  const stats = {
+    organisations: 0,
+    tahfiz: 0,
+    totalDonations: 0,
+    pendingDonations: 0, 
+    pendingSuggestions: 0, 
+    pendingTahlil: 0, 
+  }
 
-        const graves = await base44.entities.Grave.filter({
-          organisation_id: { $in: orgsId }
-        });
-
-        gravesCount = graves.length;
-
-        const gravesIds = [...new Set(graves.map(grave => grave.id))];
-
-        const deadPersons = await base44.entities.DeadPerson.filter({
-          grave_id: { $in: gravesIds }
-        });
-
-        deadPersonCount = deadPersons.length;
-        organisationsCount = orgsId.length;
-      }
-
-      let tahfizCentreCount = 0;
-      if (isTahfizAdmin) {
-        tahfizCentreCount = 0;
-      }
-
-      return {
-        graves: gravesCount,
-        persons: deadPersonCount,
-        organisations: organisationsCount,
-        tahfiz: tahfizCentreCount,
-        totalDonations: 0,
-        pendingDonations: 0, 
-        pendingSuggestions: 0, 
-        pendingTahlil: 0, 
-      };
+  const { data: OGDStats, isLoading: isOGDLoading } = trpc.dashboard.getOGDAdminStates.useQuery(
+    { 
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin: isSuperAdmin 
     },
-    enabled: !!currentUser
-  });
+    { enabled: isSuperAdmin  || (!!currentUser && !!currentUser.organisation) }
+  );
+
+  const organisationCount = OGDStats?.organisationCount ?? 0;
+  const graveCount = OGDStats?.graveCount ?? 0;
+  const deadPersonCount = OGDStats?.deadPersonCount ?? 0;
 
   const quickStats = [
     { 
       label: translate('totalGraves'), 
-      value: stats?.graves || 0, 
+      value: graveCount || 0, 
       icon: MapPin, 
       color: 'emerald', 
-      page: 'ManageGraves' 
+      page: 'ManageGraves',
+      loading: isOGDLoading
     },
     { 
       label: translate('totalPersons'), 
-      value: stats?.persons || 0, 
+      value: deadPersonCount || 0, 
       icon: Users, 
       color: 'blue', 
-      page: 'ManageDeadPersons' 
+      page: 'ManageDeadPersons',
+      loading: isOGDLoading
     },
     { 
       label: translate('totalOrgs'), 
-      value: stats?.organisations || 0, 
+      value: organisationCount || 0, 
       icon: Building2, 
       color: 'violet', 
-      page: 'ManageOrganisations' 
+      page: 'ManageOrganisations',
+      loading: isOGDLoading
     },
     { 
       label: translate('totalTahfiz'), 
@@ -152,7 +127,11 @@ export default function AdminDashboard() {
 
                         <div className="flex flex-col leading-tight">
                         <p className="text-lg font-bold text-gray-900">
-                            {stat.value}
+                          {stat.loading ? (
+                            <div className="w-5 h-5 border-2 border-t-transparent border-gray-400 rounded-full animate-spin mx-auto"></div>
+                          ) : (
+                            stat.value
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
                             {stat.label}

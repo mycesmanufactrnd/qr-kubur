@@ -1,5 +1,5 @@
 import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { Grave, Organisation } from '../db/entities.ts';
+import { Grave } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 import { graveSchema } from '../schemas/graveSchema.ts';
@@ -24,7 +24,7 @@ export const graveRouter = router({
         .leftJoinAndSelect('grave.organisation', 'organisation');
 
       if (organisationIds && organisationIds.length > 0) {
-        query.andWhere('grave.organisationid IN (:...ids)', { ids: organisationIds });
+        query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
       }
 
       if (search) {
@@ -54,17 +54,7 @@ export const graveRouter = router({
         .getManyAndCount();
 
       return { items, total };
-    }),
-
-  getCountGravesByOrganisation: protectedProcedure
-    .input(
-      z.object({
-        parentorganisation: z.number()
-      })
-    )
-    .query(async ({ input }) => {
-      const { parentorganisation } = input;
-    }),
+    }),  
 
   create: protectedProcedure
     .input(graveSchema)

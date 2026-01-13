@@ -106,11 +106,6 @@ export function useDeleteGrave() {
   });
 }
 
-type UseGetGraveCoordinatesOptions = {
-  coordinates?: Coordinates | null;
-  enabled?: boolean;
-};
-
 export function useGetGraveCoordinates(
   options: UseGetGraveCoordinatesOptions = {}
 ) {
