@@ -78,6 +78,7 @@ export const SERVICE_LABELS = {
 
 export const ACTION_MAPS = {
   create: 'Created Successfully',
+  save: 'Saved Successfully',
   edit: 'Edited Successfully',
   update: 'Edited Successfully',
   delete: 'Deleted Successfully',
@@ -87,6 +88,7 @@ export const ACTION_MAPS = {
 
 export const ACTION_FAILURE_MAPS = {
   create: 'Creation Failed',
+  save: 'Saved Failed',
   edit: 'Edit Failed',
   update: 'Edit Failed',
   delete: 'Deletion Failed',

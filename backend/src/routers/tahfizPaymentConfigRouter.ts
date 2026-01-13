@@ -1,25 +1,25 @@
 import { protectedProcedure, router } from '../trpc.ts';
-import { OrganisationPaymentConfig } from '../db/entities.ts';
+import { TahfizPaymentConfig } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
-export const organisationPaymentConfigRouter = router({
-  getConfigByOrganisationId: protectedProcedure
+export const tahfizPaymentConfigRouter = router({
+  getConfigByTahfizId: protectedProcedure
     .input(
       z.object({
-        organisation: z.object({ id: z.number() }).nullable().optional(),
+        tahfiz: z.object({ id: z.number() }).nullable().optional(),
       })
     )
     .query(async ({ input }) => {
-      if (!input.organisation?.id) {
+      if (!input.tahfiz?.id) {
         return [];
       }
 
       return await AppDataSource
-        .getRepository(OrganisationPaymentConfig)
+        .getRepository(TahfizPaymentConfig)
         .find({
           where: {
-            organisation: { id: input.organisation.id },
+            tahfizcenter: { id: input.tahfiz.id },
           },
           relations: ['paymentplatform', 'paymentfield']
         });
@@ -28,7 +28,7 @@ export const organisationPaymentConfigRouter = router({
   upsert: protectedProcedure
     .input(
       z.object({
-        organisationId: z.number(),
+        tahfizId: z.number(),
         configs: z.array(
           z.object({
             paymentPlatformId: z.number(),
@@ -39,16 +39,16 @@ export const organisationPaymentConfigRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const repo = AppDataSource.getRepository(OrganisationPaymentConfig);
+      const repo = AppDataSource.getRepository(TahfizPaymentConfig);
 
       for (const cfg of input.configs) {
         const existing = await repo.findOne({
           where: {
-            organisation: { id: input.organisationId },
+            tahfizcenter: { id: input.tahfizId },
             paymentplatform: { id: cfg.paymentPlatformId },
             paymentfield: { id: cfg.paymentFieldId },
           },
-          relations: ['organisation', 'paymentplatform', 'paymentfield'],
+          relations: ['tahfiz', 'paymentplatform', 'paymentfield'],
         });
 
         if (existing) {
@@ -57,7 +57,7 @@ export const organisationPaymentConfigRouter = router({
         } else {
           await repo.save(
             repo.create({
-              organisation: { id: input.organisationId },
+              tahfizcenter: { id: input.tahfizId },
               paymentplatform: { id: cfg.paymentPlatformId },
               paymentfield: { id: cfg.paymentFieldId },
               value: cfg.value,

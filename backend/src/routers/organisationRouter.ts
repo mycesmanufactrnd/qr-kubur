@@ -39,7 +39,6 @@ export const organisationRouter = router({
     )
     .query(async ({ input }) => {
       const { page, pageSize, search, filterType, filterState, checkRole, currentUserOrganisation } = input;
-      console.log('inputinputinputinputinputinputinput', input)
       const organisationRepo = AppDataSource.getRepository(Organisation);
 
       const query = organisationRepo.createQueryBuilder('organisation')
