@@ -13,7 +13,6 @@
     "docker:rebuild:all": "docker compose --env-file .env down -v --remove-orphans && docker compose --env-file .env up -d --build",
     "docker:up": "docker compose --env-file .env up -d",
     "docker:down": "docker compose --env-file .env down",
-    "docker:up:build": "docker compose --env-file .env down --build -d",
     "docker:down:volume": "docker compose --env-file .env down -v",
     "docker:restart:dev": "docker compose up -d --force-recreate backend frontend",
     "docker:rebuild:dev": "docker compose build backend frontend && docker compose up -d backend frontend",

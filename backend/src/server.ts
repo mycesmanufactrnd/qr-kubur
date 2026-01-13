@@ -3,11 +3,11 @@ import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext, router as trpcRouter } from "./trpc.ts";
-import { usersRouter } from "./routers/usersRouter.ts";
 import { AppDataSource } from "./datasource.ts";
-import { authRouter } from "./routers/authRouter.ts";
 import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
+import { registerUploadRoutes } from "./api.ts";
+import multipart from '@fastify/multipart';
 
 const app = Fastify({
   trustProxy: true,
@@ -41,6 +41,10 @@ await app.register(import('@fastify/cors'), {
   origin: "http://localhost:5173",
 });
 
+await app.register(multipart);
+
+registerUploadRoutes(app);
+
 app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
   trpcOptions: { 
@@ -62,22 +66,20 @@ async function bootstrap() {
     if (error) {
       throw error;
     }
-    console.log("✅ Supabase connected");
+    console.log("\n✅ Supabase connected");
 
     // Database (TypeORM)
     await AppDataSource.initialize();
-    console.log("✅ Database connected and synchronized!");
+    console.log("\n✅ Database connected and synchronized!");
 
     // Start Fastify
-    // await app.listen({ port: 8000 });
-    // console.log("🚀 tRPC backend running on http://localhost:8000");
     const PORT = Number(process.env.BACKEND_PORT ?? 8000)
 
     await app.listen({ port: PORT, host: '0.0.0.0' })
-    console.log(`🚀 tRPC backend running on http://localhost:${PORT}`)
+    console.log(`\n🚀 tRPC backend running on http://localhost:${PORT}`)
 
   } catch (err) {
-    console.error("❌ Server failed to start");
+    console.error("\n ❌ Server failed to start");
 
     if (err instanceof Error) {
       console.error(err.message);

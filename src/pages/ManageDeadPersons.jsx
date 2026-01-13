@@ -4,18 +4,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError } from '../components/ToastrNotification';
 import { useCrudPermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
-import { getParentAndChildOrgs } from '@/utils/helpers';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { STATES_MY } from '@/utils/enums';
@@ -28,6 +25,7 @@ import {
   useDeleteDeadPerson 
 } from '@/hooks/useDeadPersonMutations';
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
+import { trpc } from '@/utils/trpc';
 
 const emptyPerson = {
   name: '',
@@ -73,13 +71,16 @@ export default function ManageDeadPersons() {
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('dead_persons');
 
+  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id },
+    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin }
+  );
+
   useEffect(() => {
-    if (!isSuperAdmin && currentUser?.organisation?.id) {
-      getParentAndChildOrgs(currentUser.organisation.id)
-        .then((orgIds) => setAccessibleOrgIds(orgIds))
-        .catch(err => console.error(err));
+    if (parentAndChildQuery.data) {
+      setAccessibleOrgIds(parentAndChildQuery.data);
     }
-  }, [currentUser, isSuperAdmin]);
+  }, [parentAndChildQuery.data]);
 
   const { deadPersonsList, isLoading, refetch } = useGetDeadPersonPaginated({
     page,

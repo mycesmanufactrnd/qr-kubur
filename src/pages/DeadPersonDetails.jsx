@@ -1,6 +1,4 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils/index';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
@@ -159,7 +157,6 @@ export default function DeadPersonDetails() {
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Lokasi Kubur</h2>
-            {/* <Link to={createPageUrl('GraveDetails') + `?id=${grave.id}`}> */}
               <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors mb-2">
                 <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
@@ -169,7 +166,6 @@ export default function DeadPersonDetails() {
                   <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
                 </div>
               </div>
-            {/* </Link> */}
             <div className="flex gap-2">
               {grave.gps_lat && grave.gps_lng && (
                 <Button onClick={openDirections} size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs">

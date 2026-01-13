@@ -19,7 +19,6 @@ export default function SearchGrave() {
   const [userLocation, setUserLocation] = useState(null);
   const [displayedCount, setDisplayedCount] = useState(10);
 
-  // Use tRPC hook instead of base44 useQuery
   const { gravesList, isLoading, refetch } = useSearchGraves({
     search: searchQuery,
     filterState: selectedState

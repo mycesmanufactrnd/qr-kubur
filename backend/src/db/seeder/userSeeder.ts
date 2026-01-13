@@ -5,6 +5,8 @@ import { User } from "../entities/User.entity.js";
 import type { DeepPartial } from "typeorm";
 
 export async function runUserSeeder() {
+  console.log("🌱 Seeding users...");
+
   await AppDataSource.initialize();
 
   const userRepo = AppDataSource.getRepository(User);
@@ -14,11 +16,11 @@ export async function runUserSeeder() {
   });
 
   if (adminExists) {
-    console.log("Users already seeded");
+    console.log("✔ Users already seeded");
     return;
   }
 
-  const inputPassword = "password"; // or whatever input you have
+  const inputPassword = "password";
   const hashedPassword = crypto.createHash("sha256").update(inputPassword).digest("hex");
 
   const superadmin: DeepPartial<User> = {
@@ -32,13 +34,13 @@ export async function runUserSeeder() {
   };
 
   const ainulUser: DeepPartial<User> = {
-  fullname: "AINUL SYUHADAH BINTI HAMDAN",
-  email: "ainulhamdans@gmail.com",
-  password: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", // Pre-hashed
-  role: "superadmin", // Or "admin" depending on the access you want
-  state: ["Selangor"],
-  organisation: null,
-  tahfizcenter: null,
+    fullname: "AINUL SYUHADAH BINTI HAMDAN",
+    email: "ainulhamdans@gmail.com",
+    password: hashedPassword,
+    role: "superadmin",
+    states: ["Selangor"],
+    organisation: null,
+    tahfizcenter: null,
   };
 
   const adminEntity = userRepo.create([superadmin, ainulUser]);

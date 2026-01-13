@@ -1,5 +1,5 @@
 import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { Grave, Organisation } from '../db/entities.ts';
+import { Grave } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 import { graveSchema } from '../schemas/graveSchema.ts';
@@ -23,9 +23,8 @@ export const graveRouter = router({
       const query = graveRepo.createQueryBuilder('grave')
         .leftJoinAndSelect('grave.organisation', 'organisation');
 
-      // Access Control
       if (organisationIds && organisationIds.length > 0) {
-        query.andWhere('grave.organisationid IN (:...ids)', { ids: organisationIds });
+        query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
       }
 
       if (search) {
@@ -55,7 +54,7 @@ export const graveRouter = router({
         .getManyAndCount();
 
       return { items, total };
-    }),
+    }),  
 
   create: protectedProcedure
     .input(graveSchema)
