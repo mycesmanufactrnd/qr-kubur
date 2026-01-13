@@ -14,7 +14,7 @@ import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
 
 export default function AdminDashboard() {
-  const { 
+  const {
     currentUser, 
     loadingUser, 
     hasAdminAccess, 
@@ -23,25 +23,47 @@ export default function AdminDashboard() {
   } = useAdminAccess();
 
   const stats = {
-    organisations: 0,
-    tahfiz: 0,
     totalDonations: 0,
     pendingDonations: 0, 
-    pendingSuggestions: 0, 
-    pendingTahlil: 0, 
   }
 
-  const { data: OGDStats, isLoading: isOGDLoading } = trpc.dashboard.getOGDAdminStates.useQuery(
+  const { data: OGDSStats, isLoading: isOGDSLoading } = trpc.dashboard.getOGDSAdminStates.useQuery(
     { 
       currentUserOrganisation: currentUser?.organisation?.id ?? null,
       isSuperAdmin: isSuperAdmin 
     },
-    { enabled: isSuperAdmin  || (!!currentUser && !!currentUser.organisation) }
+    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.organisation) }
   );
 
-  const organisationCount = OGDStats?.organisationCount ?? 0;
-  const graveCount = OGDStats?.graveCount ?? 0;
-  const deadPersonCount = OGDStats?.deadPersonCount ?? 0;
+  const { data: TTRStats, isLoading: isTTRLoading } = trpc.dashboard.getTTRAdminStates.useQuery(
+    { 
+      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
+      isSuperAdmin: isSuperAdmin 
+    },
+    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.tahfizcenter) }
+  );
+
+  const { data: DDVStats, isLoading: isDDVLoading } = trpc.dashboard.getDDVAdminStates.useQuery(
+    { 
+      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin: isSuperAdmin 
+    },
+    { 
+      enabled: isSuperAdmin ||
+        (!!currentUser && !!currentUser.organisation) ||
+        (!!currentUser && !!currentUser.tahfizcenter) 
+    }
+  );
+
+  const organisationCount = OGDSStats?.organisationCount ?? 0;
+  const graveCount = OGDSStats?.graveCount ?? 0;
+  const deadPersonCount = OGDSStats?.deadPersonCount ?? 0;
+  const suggestionCount = OGDSStats?.suggestionCount ?? 0;
+  const tahfizCount = TTRStats?.tahfizCount ?? 0;
+  const tahlilRequestCount = TTRStats?.tahlilRequestCount ?? 0;
+  const donationCount = DDVStats?.donationCount ?? 0;
+  const donationVerified = DDVStats?.donationVerified ?? 0;
 
   const quickStats = [
     { 
@@ -50,7 +72,8 @@ export default function AdminDashboard() {
       icon: MapPin, 
       color: 'emerald', 
       page: 'ManageGraves',
-      loading: isOGDLoading
+      disabled: isTahfizAdmin && !isSuperAdmin,
+      loading: isOGDSLoading
     },
     { 
       label: translate('totalPersons'), 
@@ -58,7 +81,8 @@ export default function AdminDashboard() {
       icon: Users, 
       color: 'blue', 
       page: 'ManageDeadPersons',
-      loading: isOGDLoading
+      disabled: isTahfizAdmin && !isSuperAdmin,
+      loading: isOGDSLoading
     },
     { 
       label: translate('totalOrgs'), 
@@ -66,22 +90,42 @@ export default function AdminDashboard() {
       icon: Building2, 
       color: 'violet', 
       page: 'ManageOrganisations',
-      loading: isOGDLoading
+      disabled: isTahfizAdmin && !isSuperAdmin,
+      loading: isOGDSLoading
     },
     { 
       label: translate('totalTahfiz'), 
-      value: stats?.tahfiz || 0, 
+      value: tahfizCount || 0, 
       icon: BookOpen, 
       color: 'amber', 
       page: 'ManageTahfizCenters',
       disabled: !isTahfizAdmin && !isSuperAdmin,
+      loading: isTTRLoading
     },
   ];
 
   const pendingItems = [
-    { label: translate('totalSuggestions'), value: stats?.pendingSuggestions || 0, page: 'ManageSuggestions', color: 'amber' },
-    { label: translate('totalDonations'), value: stats?.pendingDonations || 0, page: 'ManageDonations', color: 'red' },
-    { label: translate('totalTahlilRequests'), value: stats?.pendingTahlil || 0, page: 'ManageTahlilRequests', color: 'blue' },
+    { 
+      label: translate('totalSuggestions'), 
+      value: suggestionCount || 0, 
+      loading: isDDVLoading, 
+      page: 'ManageSuggestions',
+      color: 'amber' 
+    },
+    { 
+      label: translate('totalDonations'), 
+      value: donationCount || 0, 
+      loading: isDDVLoading, 
+      page: 'ManageDonations',
+      color: 'red' 
+    },
+    { 
+      label: translate('totalTahlilRequests'), 
+      value: tahlilRequestCount || 0, 
+      loading: isTTRLoading, 
+      page: 'ManageTahlilRequests',
+      color: 'blue' 
+    },
   ];
 
  if (loadingUser) {
@@ -112,7 +156,6 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Compact Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {quickStats.map((stat, i) => (
             <Link key={i} to={stat.disabled ? "#" : createPageUrl(stat.page)}>
@@ -156,7 +199,13 @@ export default function AdminDashboard() {
             {pendingItems.map((item, i) => (
               <Link key={i} to={createPageUrl(item.page)}>
                 <div className={`p-2 rounded-lg bg-${item.color}-50 hover:bg-${item.color}-100 transition-colors text-center`}>
-                  <p className='text-md'>{item.value}</p>
+                  <p className='text-md'>
+                    {item.loading ? (
+                      <span className="inline-block w-6 h-6 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></span>
+                    ) : (
+                      item.value
+                    )}
+                  </p>
                   <p className="text-xs text-gray-600 mt-1 truncate">{item.label}</p>
                 </div>
               </Link>
@@ -170,7 +219,13 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-emerald-100 text-xs">{translate('totalVerified')}</p>
-              <p className="text-xl font-bold">RM {(stats?.totalDonations || 0).toLocaleString()}</p>
+              <p className="text-xl font-bold">
+                {isDDVLoading ? (
+                  <span className="inline-block w-6 h-6 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></span>
+                ) : (
+                  `RM ${(donationVerified || 0).toLocaleString()}`
+                )}
+              </p>
             </div>
             <TrendingUp className="w-8 h-8 text-emerald-200" />
           </div>
