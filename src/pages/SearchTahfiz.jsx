@@ -18,8 +18,8 @@ export default function SearchTahfiz() {
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
-  // 2. Use the tRPC hook. It automatically fetches when userLocation is set.
-  const { tahfizCenters, isLoading } = useGetTahfizCoordinates(
+  // FIX: Destructure 'data' and rename it to 'tahfizCenters'
+  const { data: tahfizCenters, isLoading } = useGetTahfizCoordinates(
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
   );
 
@@ -30,6 +30,9 @@ export default function SearchTahfiz() {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         });
+      }, (error) => {
+        console.error("Location error:", error);
+        // Fallback or info to user that 'nearby' won't work perfectly
       });
     }
   }, []);
@@ -42,13 +45,13 @@ export default function SearchTahfiz() {
     }, 300);
   };
 
-  // 3. Logic is simplified because the backend/hook now handles distance sorting
+  // Logic: filter the data array inside tahfizCenters
   const filteredCenters = (tahfizCenters || []).filter(center => {
     const matchesSearch = !searchQuery || 
       center.name?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesState = selectedState === 'nearby' 
-      ? true // Assuming 'getTahfiz' returns closest regardless of state, or handles nearby logic
+      ? true 
       : center.state === selectedState;
     
     return matchesSearch && matchesState;
@@ -57,9 +60,9 @@ export default function SearchTahfiz() {
   const displayedCenters = filteredCenters.slice(0, displayedCount);
 
   const openDirections = (center) => {
-    if (center.gps_lat && center.gps_lng) {
-      // Fixed the string interpolation for the Google Maps URL
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${center.gps_lat},${center.gps_lng}`, '_blank');
+    // FIX: Use 'latitude' and 'longitude' to match DB schema
+    if (center.latitude && center.longitude) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${center.latitude},${center.longitude}`, '_blank');
     }
   };
 
@@ -82,13 +85,12 @@ export default function SearchTahfiz() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="nearby">{translate('nearby')}</SelectItem>
-                {/* 4. Tip: Map through STATES_MY instead of hardcoding for productivity */}
                 {STATES_MY.map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={handleSearch} className="h-9 bg-violet-600">
+            <Button onClick={handleSearch} className="h-9 bg-violet-600 hover:bg-violet-700">
               <Search className="w-4 h-4 mr-1" />
               {translate('search')}
             </Button>
@@ -99,7 +101,7 @@ export default function SearchTahfiz() {
       {/* Results Section */}
       {isLoading || isSearching ? (
          <div className="space-y-2 text-center p-10">
-            <p className="animate-pulse">{translate('loading')}</p>
+            <p className="animate-pulse text-gray-500">{translate('loading')}</p>
          </div>
       ) : displayedCenters.length === 0 ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800 p-8 text-center">
@@ -116,27 +118,26 @@ export default function SearchTahfiz() {
                       <Building2 className="w-5 h-5 text-violet-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{center.name}</h3>
+                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{center.name}</h3>
                       <p className="text-xs text-gray-500 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> {center.state}
                       </p>
-                      {/* Distance is already calculated by tRPC query */}
                       {center.distance && (
                         <p className="text-xs text-violet-600 mt-1">
                           <Navigation className="w-3 h-3 inline mr-1" />
                           {center.distance < 1 
                             ? `${Math.round(center.distance * 1000)}m`
-                            : `${center.distance.toFixed(1)}km`}
+                            : `${Number(center.distance).toFixed(1)}km`}
                         </p>
                       )}
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Button size="sm" onClick={() => openDirections(center)} className="h-7 text-xs bg-violet-600">
+                    <Button size="sm" onClick={() => openDirections(center)} className="h-7 text-xs bg-violet-600 hover:bg-violet-700">
                       {translate('direction')}
                     </Button>
                     <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${center.id}`}>
-                      <Button size="sm" variant="outline" className="h-7 text-xs w-full">
+                      <Button size="sm" variant="outline" className="h-7 text-xs w-full dark:bg-gray-700">
                         {translate('request')}
                       </Button>
                     </Link>

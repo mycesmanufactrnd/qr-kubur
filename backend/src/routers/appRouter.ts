@@ -42,7 +42,7 @@ export const appRouter = trpcRouter({
   activityLogs: activityLogsRouter,
   visitLogs: visitLogsRouter,
   notification: notificationRouter,
-  deadperson: deadPersonRouter,
+  deadperson: deadPersonRouter
 });
 
 export type AppRouter = typeof appRouter;
