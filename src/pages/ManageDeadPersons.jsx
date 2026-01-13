@@ -20,7 +20,7 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
-// Import your new tRPC hooks
+import { base44 } from '@/api/base44Client'; // Kept for file upload integration
 import { 
   useGetDeadPersonPaginated, 
   useCreateDeadPerson, 
@@ -67,26 +67,20 @@ export default function ManageDeadPersons() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
-  const [accessibleGravesIds, setAccessibleGravesIds] = useState([]);
 
   const {
     loading: permissionsLoading,
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('dead_persons');
 
-  // Load accessible organization and grave IDs
   useEffect(() => {
     if (!isSuperAdmin && currentUser?.organisation?.id) {
       getParentAndChildOrgs(currentUser.organisation.id)
-        .then((orgIds) => {
-          setAccessibleOrgIds(orgIds);
-          // In tRPC version, the backend handles finding graves for these orgs
-        })
+        .then((orgIds) => setAccessibleOrgIds(orgIds))
         .catch(err => console.error(err));
     }
   }, [currentUser, isSuperAdmin]);
 
-  // tRPC Hooks
   const { deadPersonsList, isLoading, refetch } = useGetDeadPersonPaginated({
     page,
     pageSize: itemsPerPage,
@@ -96,7 +90,6 @@ export default function ManageDeadPersons() {
     filterState: filterState === 'all' ? undefined : filterState,
     dateFrom,
     dateTo,
-    // We pass org IDs and let backend find the graves
     accessibleOrgIds
   });
 
@@ -119,7 +112,7 @@ export default function ManageDeadPersons() {
     setEditingPerson(person);
     setFormData({
       name: person.name || '',
-      ic_number: person.icnumber || '', // Mapping entity 'icnumber'
+      ic_number: person.icnumber || '',
       date_of_birth: person.dateofbirth || '',
       date_of_death: person.dateofdeath || '',
       cause_of_death: person.causeofdeath || '',
@@ -133,9 +126,43 @@ export default function ManageDeadPersons() {
     setIsDialogOpen(true);
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({...formData, photo_url: file_url});
+      showSuccess('Photo', 'uploaded');
+    } catch (error) {
+      showApiError(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      showInfo('Mendapatkan lokasi...');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData({
+            ...formData,
+            gps_lat: position.coords.latitude.toFixed(16),
+            gps_lng: position.coords.longitude.toFixed(16)
+          });
+          showSuccess('Lokasi berjaya diperolehi');
+        },
+        () => showError('Tidak dapat mendapatkan lokasi. Sila aktifkan GPS.'),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      showError('GPS tidak disokong oleh pelayar ini');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.name?.trim()) return showError('Sila masukkan nama penuh');
     if (!formData.grave_id) return showError('Sila pilih tanah perkuburan');
 
@@ -160,9 +187,7 @@ export default function ManageDeadPersons() {
         await createMutation.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
-    } catch (error) {
-      // Errors handled by hooks
-    }
+    } catch (error) {}
   };
 
   const confirmDelete = async () => {
@@ -197,6 +222,7 @@ export default function ManageDeadPersons() {
         )}
       </div>
 
+      {/* Advanced Filter Card */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -206,7 +232,7 @@ export default function ManageDeadPersons() {
               onChange={(e) => setFilterName(e.target.value)} 
             />
             <Input 
-              placeholder="IC Number" 
+              placeholder="No. IC (Filter)" 
               value={filterIC} 
               onChange={(e) => setFilterIC(e.target.value)} 
             />
@@ -233,6 +259,7 @@ export default function ManageDeadPersons() {
         </CardContent>
       </Card>
 
+      {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
@@ -279,10 +306,13 @@ export default function ManageDeadPersons() {
         )}
       </Card>
 
+      {/* Full Add/Edit Dialog with Missing Fields Re-added */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-gray-800">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
-            <DialogTitle>{editingPerson ? translate('edit') : translate('addNew')}</DialogTitle>
+            <DialogTitle className="dark:text-white">
+              {editingPerson ? translate('edit') : translate('addNew')}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -290,28 +320,79 @@ export default function ManageDeadPersons() {
               <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
             </div>
             <div className="space-y-2">
-              <Label>IC Number</Label>
-              <Input value={formData.ic_number} onChange={(e) => setFormData({...formData, ic_number: e.target.value})} />
+              <Label>{translate('icNumber')}</Label>
+              <Input value={formData.ic_number} onChange={(e) => setFormData({...formData, ic_number: e.target.value})} placeholder="XXXXXX-XX-XXXX" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Tarikh Lahir</Label>
+                <Label>{translate('dateOfBirth')}</Label>
                 <Input type="date" value={formData.date_of_birth} onChange={(e) => setFormData({...formData, date_of_birth: e.target.value})} />
               </div>
               <div>
-                <Label>Tarikh Meninggal</Label>
+                <Label>{translate('dateOfDeath')}</Label>
                 <Input type="date" value={formData.date_of_death} onChange={(e) => setFormData({...formData, date_of_death: e.target.value})} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Tanah Perkuburan *</Label>
+              <Label>{translate('causeOfDeath')}</Label>
+              <Input value={formData.cause_of_death} onChange={(e) => setFormData({...formData, cause_of_death: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+              <Label>{translate('cemeteryName')} *</Label>
               <Select value={String(formData.grave_id)} onValueChange={(v) => setFormData({...formData, grave_id: v})}>
-                <SelectTrigger><SelectValue placeholder="Pilih Kubur" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={translate('selectCemetery')} /></SelectTrigger>
                 <SelectContent>
-                  {gravesList.items.map(g => <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>)}
+                  {gravesList.items.map(g => <SelectItem key={g.id} value={String(g.id)}>{g.name} - {g.state}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Re-added GPS Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>{translate('gpsLat')}</Label>
+                <Input type="number" step="any" value={formData.gps_lat} onChange={(e) => setFormData({...formData, gps_lat: e.target.value})} placeholder="3.1390" />
+              </div>
+              <div>
+                <Label>{translate('gpsLng')}</Label>
+                <Input type="number" step="any" value={formData.gps_lng} onChange={(e) => setFormData({...formData, gps_lng: e.target.value})} placeholder="101.6869" />
+              </div>
+            </div>
+            <Button type="button" variant="outline" onClick={getCurrentLocation} className="w-full">
+              <MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}
+            </Button>
+
+            {/* Re-added QR and Biography */}
+            <div className="space-y-2">
+              <Label>{translate('qrCode')}</Label>
+              <Input value={formData.qr_code} onChange={(e) => setFormData({...formData, qr_code: e.target.value})} placeholder="QRP-001" />
+            </div>
+            <div className="space-y-2">
+              <Label>{translate('biography')}</Label>
+              <Textarea value={formData.biography} onChange={(e) => setFormData({...formData, biography: e.target.value})} rows={3} />
+            </div>
+
+            {/* Re-added Photo Upload */}
+            <div className="space-y-2">
+              <Label>{translate('photo')}</Label>
+              <div className="flex items-center gap-3">
+                {formData.photo_url && (
+                  <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                )}
+                <div className="flex-1">
+                  <Input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-upload" />
+                  <label htmlFor="photo-upload">
+                    <Button type="button" variant="outline" asChild disabled={uploading} className="w-full">
+                      <span>
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploading ? translate('loading') : translate('upload')}
+                      </span>
+                    </Button>
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('cancel')}</Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
