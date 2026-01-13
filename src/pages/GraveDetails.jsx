@@ -1,38 +1,35 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { MapPin, Navigation, Share2, ArrowLeft, Search } from 'lucide-react';
+import { MapPin, Navigation, Share2, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { showSuccess } from '@/components/ToastrNotification.jsx';
 import BackNavigation from '@/components/BackNavigation';
+import { trpc } from '@/utils/trpc';
+import { useGetGraveById } from '@/hooks/useGraveMutations';
+import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
 
 export default function GraveDetails() {
-  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
-  const graveId = urlParams.get('id');
+  const graveId = urlParams.get('id') ? Number(urlParams.get('id')) : null;
+  
   const [searchName, setSearchName] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
-  const { data: grave, isLoading } = useQuery({
-    queryKey: ['grave', graveId],
-    queryFn: async () => {
-      const graves = await base44.entities.Grave.filter({ id: graveId });
-      return graves[0];
-    },
-    enabled: !!graveId
+  // 1. Fetch Grave Details via tRPC
+  const { data: grave, isLoading: graveLoading } = useGetGraveById(graveId);
+
+  // 2. Fetch Associated Persons via tRPC
+  const { deadPersonsList, isLoading: personsLoading } = useGetDeadPersonPaginated({
+    filterGrave: graveId || undefined,
+    pageSize: 100, // Fetch a larger set to allow local filtering as per original UI
   });
 
-  const { data: persons = [] } = useQuery({
-    queryKey: ['grave-persons', graveId],
-    queryFn: () => base44.entities.DeadPerson.filter({ grave_id: graveId }),
-    enabled: !!graveId
-  });
+  const persons = deadPersonsList.items;
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -43,43 +40,47 @@ export default function GraveDetails() {
   };
 
   const openDirections = () => {
-    if (grave?.gps_lat && grave?.gps_lng) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.gps_lat},${grave.gps_lng}`, '_blank');
+    // FIX: Using entity property names 'latitude' and 'longitude'
+    if (grave?.latitude && grave?.longitude) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.latitude},${grave.longitude}`, '_blank');
     }
   };
 
   const shareLocation = async () => {
     const url = window.location.href;
+    const title = grave?.name || 'Lokasi Kubur';
     if (navigator.share) {
       try {
         await navigator.share({
-          title: grave?.cemetery_name,
-          text: `Lokasi kubur: ${grave?.cemetery_name}`,
+          title: title,
+          text: `Lokasi kubur: ${title}`,
           url: url
         });
       } catch (error) {
         if (error.name !== 'AbortError') {
           navigator.clipboard.writeText(url);
-          alert('Pautan telah disalin!');
+          showSuccess('Pautan telah disalin!');
         }
       }
     } else {
       navigator.clipboard.writeText(url);
-      alert('Pautan telah disalin!');
+      showSuccess('Pautan telah disalin!');
     }
   };
 
+  // Local filtering logic maintained from original code
   const filtered = persons.filter(p => {
     const matchesName = !searchName || p.name?.toLowerCase().includes(searchName.toLowerCase());
-    const matchesDate = !searchDate || (p.date_of_death && p.date_of_death.startsWith(searchDate));
+    // FIX: Using entity property 'dateofdeath'
+    const matchesDate = !searchDate || (p.dateofdeath && String(p.dateofdeath).startsWith(searchDate));
     return matchesName && matchesDate;
   });
 
   const displayedPersons = filtered.slice(0, displayedCount);
 
-  if (isLoading) {
+  if (graveLoading) {
     return (
-      <div className="space-y-3 animate-pulse pb-2">
+      <div className="space-y-3 animate-pulse pb-2 p-4">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
         <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
@@ -88,7 +89,7 @@ export default function GraveDetails() {
 
   if (!grave) {
     return (
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
+      <Card className="border-0 shadow-sm dark:bg-gray-800 m-4">
         <CardContent className="p-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">Maklumat tidak dijumpai</p>
         </CardContent>
@@ -98,8 +99,8 @@ export default function GraveDetails() {
 
   return (
     <div className="space-y-3 pb-2">
-      <BackNavigation title={grave.cemetery_name} />
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
+      <BackNavigation title={grave.name} />
+      <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
         <CardContent className="p-3">
           <div className="flex items-start gap-3 mb-3">
             <div className="w-12 h-12 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
@@ -112,7 +113,7 @@ export default function GraveDetails() {
             </div>
           </div>
           <div className="flex gap-2">
-            {grave.gps_lat && grave.gps_lng && (
+            {grave.latitude && grave.longitude && (
               <Button onClick={openDirections} size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs">
                 <Navigation className="w-3 h-3 mr-1" />
                 Arah
@@ -127,7 +128,7 @@ export default function GraveDetails() {
       </Card>
 
       {/* Persons List */}
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
+      <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
         <CardContent className="p-3">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
           
@@ -156,7 +157,7 @@ export default function GraveDetails() {
             </div>
           )}
 
-          {isSearching ? (
+          {isSearching || personsLoading ? (
             <div className="space-y-2">
               {[1, 2].map(i => (
                 <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
@@ -172,19 +173,19 @@ export default function GraveDetails() {
                     <div className="flex items-start justify-between gap-3">
                       <Link to={createPageUrl('DeadPersonDetails') + `?id=${person.id}`} className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-gray-900 dark:text-white">{person.name}</p>
-                        {person.date_of_death && (
+                        {person.dateofdeath && (
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
+                            {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
                           </p>
                         )}
                       </Link>
-                      {person.gps_lat && person.gps_lng && (
+                      {person.latitude && person.longitude && (
                         <div className="flex flex-col gap-1">
                           <Button
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.gps_lat},${person.gps_lng}`, '_blank');
+                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.latitude},${person.longitude}`, '_blank');
                             }}
                             className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
                           >

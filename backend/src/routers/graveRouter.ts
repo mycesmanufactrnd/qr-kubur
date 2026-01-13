@@ -138,4 +138,14 @@ export const graveRouter = router({
       const results = await graveRepo.save(input);
       return { count: results.length };
     }),
+
+
+    getById: protectedProcedure
+      .input(z.number())
+      .query(async ({ input }) => {
+        return await AppDataSource.getRepository(Grave).findOne({
+          where: { id: input },
+          relations: ['organisation']
+        });
+      }),
 });
