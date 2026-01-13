@@ -155,3 +155,10 @@ export function useSearchGraves({
   
   return { gravesList, isLoading, refetch };
 }
+
+export function useGetGraveById(id: number | null) {
+  return trpc.grave.getGraveById.useQuery(
+    { id: id as number }, 
+    { enabled: !!id }
+  );
+}
