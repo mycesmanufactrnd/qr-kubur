@@ -53,10 +53,8 @@ export const deadPersonRouter = router({
       const { graveId, ...personData } = input;
       const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
 
-      const person = repo.create({ 
-        ...personData, 
-        grave 
-      });
+      // Create person with explicit grave relation
+      const person = repo.create({ ...personData, grave });
 
       return await repo.save(person);
     }),
@@ -90,35 +88,15 @@ export const deadPersonRouter = router({
       return await AppDataSource.getRepository(DeadPerson).delete(input);
     }),
 
-  getDeadPersonById: publicProcedure
-    .input(
-        z.object({
-          id: z.number()
-        })
-    )
-    .query(async ({ input }) => {
-      if (!input.id) {
-        return null;
-      }
-
-      return await AppDataSource.getRepository(DeadPerson).findOne({ 
-        where: { id: input.id } 
-      });
-    }),
-
-  getDeadPersonByGraveId: publicProcedure
-    .input(
-        z.object({
-          graveId: z.number()
-        })
-    )
-    .query(async ({ input }) => {
-      if (!input.graveId) {
-        return null;
-      }
-
-      return await AppDataSource.getRepository(DeadPerson).find({ 
-        where: { grave: { id: input.graveId } } 
-      });
-    }),
+getById: protectedProcedure
+  .input(z.number())
+  .query(async ({ input }) => {
+    const repo = AppDataSource.getRepository(DeadPerson);
+    // We use relations: ['grave'] so that the grave data 
+    // comes back in the same request!
+    return await repo.findOne({ 
+      where: { id: input },
+      relations: ['grave'] 
+    });
+  }),
 });

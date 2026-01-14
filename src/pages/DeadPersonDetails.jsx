@@ -1,44 +1,44 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { trpc } from '@/utils/trpc';
+import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 
 export default function DeadPersonDetails() {
-  const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
-  const personId = urlParams.get('id');
+  const [searchParams] = useSearchParams();
+  const personId = Number(searchParams.get('id'));
 
-  const { data: person, isLoading } = useQuery({
-    queryKey: ['dead-person', personId],
-    queryFn: async () => {
-      const persons = await base44.entities.DeadPerson.filter({ id: personId });
-      return persons[0];
-    },
-    enabled: !!personId
+  /* -------------------- DATA -------------------- */
+
+  const {
+    data: person,
+    isLoading,
+    isError,
+  } = trpc.deadperson.getById.useQuery(personId, {
+    enabled: !!personId,
   });
 
-  const { data: grave } = useQuery({
-    queryKey: ['grave', person?.grave_id],
-    queryFn: async () => {
-      if (!person?.grave_id) return null;
-      const graves = await base44.entities.Grave.filter({ id: person.grave_id });
-      return graves[0];
-    },
-    enabled: !!person?.grave_id
-  });
+  const grave = person?.grave;
+
+  /* -------------------- HELPERS -------------------- */
 
   const openDirections = () => {
     if (grave?.gps_lat && grave?.gps_lng) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.gps_lat},${grave.gps_lng}`, '_blank');
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&destination=${grave.gps_lat},${grave.gps_lng}`,
+        '_blank'
+      );
     }
   };
 
   const openPersonDirections = () => {
-    if (person?.gps_lat && person?.gps_lng) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.gps_lat},${person.gps_lng}`, '_blank');
+    if (person?.latitude && person?.longitude) {
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&destination=${person.latitude},${person.longitude}`,
+        '_blank'
+      );
     }
   };
 
@@ -49,7 +49,7 @@ export default function DeadPersonDetails() {
         await navigator.share({
           title: person?.name,
           text: `Profil: ${person?.name}`,
-          url: url
+          url,
         });
       } catch (error) {
         if (error.name !== 'AbortError') {
@@ -73,6 +73,8 @@ export default function DeadPersonDetails() {
     return age;
   };
 
+  /* -------------------- STATES -------------------- */
+
   if (isLoading) {
     return (
       <div className="space-y-3 animate-pulse pb-2">
@@ -82,53 +84,68 @@ export default function DeadPersonDetails() {
     );
   }
 
-  if (!person) {
+  if (isError || !person) {
     return (
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Maklumat tidak dijumpai</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Maklumat tidak dijumpai
+          </p>
         </CardContent>
       </Card>
     );
   }
 
-  const age = calculateAge(person.date_of_birth, person.date_of_death);
+  const age = calculateAge(person.dateofbirth, person.dateofdeath);
+
+  /* -------------------- UI -------------------- */
 
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title={person.name} />
+
+      {/* Person Details */}
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
-          {person.ic_number && (
+
+          {person.icnumber && (
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
-              <p className="text-sm font-medium dark:text-white">{person.ic_number}</p>
-            </div>
-          )}
-          {person.date_of_birth && (
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
               <p className="text-sm font-medium dark:text-white">
-                {new Date(person.date_of_birth).toLocaleDateString('ms-MY')}
+                {person.icnumber}
               </p>
             </div>
           )}
-          {person.date_of_death && (
+
+          {person.dateofbirth && (
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
+              <p className="text-sm font-medium dark:text-white">
+                {new Date(person.dateofbirth).toLocaleDateString('ms-MY')}
+              </p>
+            </div>
+          )}
+
+          {person.dateofdeath && (
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Meninggal</p>
               <p className="text-sm font-medium dark:text-white">
-                {new Date(person.date_of_death).toLocaleDateString('ms-MY')}
+                {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
                 {age && ` (${age} tahun)`}
               </p>
             </div>
           )}
+
           {person.biography && (
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Biografi</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{person.biography}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {person.biography}
+              </p>
             </div>
           )}
-          {person.gps_lat && person.gps_lng && (
+
+          {(person.latitude && person.longitude) && (
             <div className="flex gap-2 pt-2">
               <Button
                 size="sm"
@@ -138,6 +155,7 @@ export default function DeadPersonDetails() {
                 <Navigation className="w-3 h-3 mr-1" />
                 Arah
               </Button>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -156,24 +174,42 @@ export default function DeadPersonDetails() {
       {grave && (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Lokasi Kubur</h2>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors mb-2">
-                <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm dark:text-white">{grave.cemetery_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
-                </div>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+              Lokasi Kubur
+            </h2>
+
+            <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors mb-2">
+              <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
               </div>
+              <div>
+                <p className="font-medium text-sm dark:text-white">
+                  {grave.cemetery_name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {grave.state}
+                </p>
+              </div>
+            </div>
+
             <div className="flex gap-2">
-              {grave.gps_lat && grave.gps_lng && (
-                <Button onClick={openDirections} size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs">
+              {(grave.gps_lat && grave.gps_lng) && (
+                <Button
+                  onClick={openDirections}
+                  size="sm"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs"
+                >
                   <Navigation className="w-3 h-3 mr-1" />
                   Arah
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={shareProfile} className="h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={shareProfile}
+                className="h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+              >
                 <Share2 className="w-3 h-3 mr-1" />
                 Kongsi
               </Button>

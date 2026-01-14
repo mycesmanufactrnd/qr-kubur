@@ -73,3 +73,10 @@ export function useDeleteDeadPerson() {
     },
   });
 }
+
+export function useGetDeadPerson(id) {
+  const numId = id ? parseInt(id) : null;
+  return trpc.deadperson.getById.useQuery(numId, { 
+    enabled: !!numId 
+  });
+}
