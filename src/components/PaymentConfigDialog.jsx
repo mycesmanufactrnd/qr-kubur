@@ -116,30 +116,27 @@ export default function PaymentConfigDialog({
     const uploadKey = `${platformCode}_${fieldKey}`;
     setUploadingFiles({ ...uploadingFiles, [uploadKey]: true });
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      
-      console.info('respose', res);
+      const formData = new FormData();
+      formData.append('file', file);
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        console.error("Failed to parse JSON from response");
-        showError('Upload failed (invalid response)');
+      const res = await fetch('/api/upload', { 
+        method: 'POST', 
+        body: formData 
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
         return;
       }
 
-      if (res.ok) {
-        setConfigValues({ ...configValues, [uploadKey]: data.file_url });
-        setPreviewUrls(prev => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
-        showSuccess('File Uploaded');
-      } else {
-        showError(data.error || 'Failed To Upload File');
-      }
+      const data = await res.json();
+      
+      setConfigValues({ ...configValues, [uploadKey]: data.file_url });
+      setPreviewUrls(prev => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
+      showSuccess('Photo uploaded');
+      
     } catch (err) {
       console.error("Fetch error:", err);
       showError('Failed To Upload File');
@@ -223,7 +220,8 @@ export default function PaymentConfigDialog({
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleFileUpload(platform.code, field.key, file);
+                  if (!file) return;
+                  handleFileUpload(platform.code, field.key, file);
                 }}
                 disabled={isUploading}
               />

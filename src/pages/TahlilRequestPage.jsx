@@ -23,7 +23,6 @@ const SERVICE_TYPES = [
 ];
 
 export default function TahlilRequestPage() {
-  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const preSelectedTahfiz = urlParams.get('tahfiz');
   const preSelectedDeceased = urlParams.get('deceased');

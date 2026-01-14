@@ -17,7 +17,6 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
-import { base44 } from '@/api/base44Client'; // Kept for file upload integration
 import { 
   useGetDeadPersonPaginated, 
   useCreateDeadPerson, 
@@ -26,6 +25,7 @@ import {
 } from '@/hooks/useDeadPersonMutations';
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
+import { Textarea } from '@/components/ui/textarea';
 
 const emptyPerson = {
   name: '',
@@ -35,7 +35,7 @@ const emptyPerson = {
   cause_of_death: '',
   grave_id: '',
   biography: '',
-  photo_url: '',
+  photourl: '',
   gps_lat: '',
   gps_lng: '',
   qr_code: ''
@@ -119,27 +119,12 @@ export default function ManageDeadPersons() {
       cause_of_death: person.causeofdeath || '',
       grave_id: person.grave?.id || '',
       biography: person.biography || '',
-      photo_url: person.photourl || '',
+      photourl: person.photourl || '',
       gps_lat: person.latitude || '',
       gps_lng: person.longitude || '',
       qr_code: person.url || ''
     });
     setIsDialogOpen(true);
-  };
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({...formData, photo_url: file_url});
-      showSuccess('Photo', 'uploaded');
-    } catch (error) {
-      showApiError(error);
-    } finally {
-      setUploading(false);
-    }
   };
 
   const getCurrentLocation = () => {
@@ -174,7 +159,7 @@ export default function ManageDeadPersons() {
       dateofdeath: formData.date_of_death || null,
       causeofdeath: formData.cause_of_death || null,
       biography: formData.biography || null,
-      photourl: formData.photo_url || null,
+      photourl: formData.photourl || null,
       latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
       longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
       url: formData.qr_code || null,
@@ -197,6 +182,36 @@ export default function ManageDeadPersons() {
     setDeleteDialogOpen(false);
     setPersonToDelete(null);
   };
+
+  const handleFileUpload = async (file) => {
+    setUploading(true);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
+
+      const data = await res.json();
+
+      setFormData({ ...formData, photourl: data.file_url });
+      showSuccess('Photo uploaded');
+    } catch (err) {
+      console.error(err);
+      showError('Failed to upload photo');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
   if (!hasAdminAccess) return <AccessDeniedComponent/>;
@@ -363,7 +378,6 @@ export default function ManageDeadPersons() {
               <MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}
             </Button>
 
-            {/* Re-added QR and Biography */}
             <div className="space-y-2">
               <Label>{translate('qrCode')}</Label>
               <Input value={formData.qr_code} onChange={(e) => setFormData({...formData, qr_code: e.target.value})} placeholder="QRP-001" />
@@ -373,27 +387,29 @@ export default function ManageDeadPersons() {
               <Textarea value={formData.biography} onChange={(e) => setFormData({...formData, biography: e.target.value})} rows={3} />
             </div>
 
-            {/* Re-added Photo Upload */}
             <div className="space-y-2">
               <Label>{translate('photo')}</Label>
               <div className="flex items-center gap-3">
-                {formData.photo_url && (
-                  <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
-                )}
-                <div className="flex-1">
-                  <Input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-upload" />
-                  <label htmlFor="photo-upload">
-                    <Button type="button" variant="outline" asChild disabled={uploading} className="w-full">
-                      <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploading ? translate('loading') : translate('upload')}
-                      </span>
-                    </Button>
-                  </label>
-                </div>
-              </div>
-            </div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    handleFileUpload(file);                    
+                  }}
+                  disabled={uploading}
+                />
 
+                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
+              </div>
+              {formData.photourl && (
+                  <img 
+                    src={`/api/file/${encodeURIComponent(formData.photourl)}`} 
+                    alt="Preview" 
+                  />
+                )}
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('cancel')}</Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
