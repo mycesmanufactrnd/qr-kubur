@@ -59,10 +59,7 @@ export const deadPersonRouter = router({
       const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
 
       // Create person with explicit grave relation
-      const person = repo.create({ 
-        ...personData, 
-        grave 
-      });
+      const person = repo.create({ ...personData, grave });
 
       return await repo.save(person);
     }),
@@ -95,4 +92,16 @@ export const deadPersonRouter = router({
       // Direct deletion by ID
       return await AppDataSource.getRepository(DeadPerson).delete(input);
     }),
+
+getById: protectedProcedure
+  .input(z.number())
+  .query(async ({ input }) => {
+    const repo = AppDataSource.getRepository(DeadPerson);
+    // We use relations: ['grave'] so that the grave data 
+    // comes back in the same request!
+    return await repo.findOne({ 
+      where: { id: input },
+      relations: ['grave'] 
+    });
+  }),
 });
