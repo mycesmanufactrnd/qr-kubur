@@ -124,7 +124,7 @@ export default function PaymentConfigDialog({
 
       const bucketType = entityType === "organisation" ? 'bucket-org' : 'bucket-tahfiz';
 
-      const res = await fetch(`/api/upload/${entityType}`, { 
+      const res = await fetch(`/api/upload/${bucketType}`, { 
         method: 'POST', 
         body: formData 
       });
@@ -197,7 +197,7 @@ export default function PaymentConfigDialog({
     });
 
     const payload = buildPaymentConfigPayload(entityType, entityId, configsToUpsert);
-
+    
     upsertMutation.mutateAsync(payload)
     .then((res) => {
       if (res) {
