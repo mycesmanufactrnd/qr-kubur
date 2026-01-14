@@ -37,7 +37,7 @@ export class Grave {
   })
   status!: ActiveInactiveStatus;
   
-  @OneToOne(() => DeadPerson, (deadPerson) => deadPerson.grave)
+  @OneToMany(() => DeadPerson, (deadPerson) => deadPerson.grave)
   deadPerson?: DeadPerson | null;
 
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {

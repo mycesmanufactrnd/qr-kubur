@@ -35,8 +35,7 @@ export const deadPersonRouter = router({
       if (filterGrave) query.andWhere('deadperson.graveId = :graveId', { graveId: filterGrave });
       if (filterState) query.andWhere('grave.state = :state', { state: filterState });
 
-      if (dateFrom) query.andWhere('deadperson.dateofdeath >= :dateFrom', { dateFrom });
-      if (dateTo) query.andWhere('deadperson.dateofdeath <= :dateTo', { dateTo });
+      if (dateFrom && dateTo) { query.andWhere( 'deadperson.dateofdeath BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo } ); } else if (dateFrom) { query.andWhere( 'deadperson.dateofdeath = :dateFrom', { dateFrom } ); } else if (dateTo) { query.andWhere( 'deadperson.dateofdeath = :dateTo', { dateTo } ); }
 
       const [items, total] = await query
         .orderBy('deadperson.id', 'DESC')
@@ -91,6 +90,17 @@ export const deadPersonRouter = router({
       return await AppDataSource.getRepository(DeadPerson).delete(input);
     }),
 
+getById: protectedProcedure
+  .input(z.number())
+  .query(async ({ input }) => {
+    const repo = AppDataSource.getRepository(DeadPerson);
+    // We use relations: ['grave'] so that the grave data 
+    // comes back in the same request!
+    return await repo.findOne({ 
+      where: { id: input },
+      relations: ['grave'] 
+    });
+  }),
   getDeadPersonById: publicProcedure
     .input(
         z.object({
@@ -103,7 +113,8 @@ export const deadPersonRouter = router({
       }
 
       return await AppDataSource.getRepository(DeadPerson).findOne({ 
-        where: { id: input.id } 
+        where: { id: input.id },
+        relations: ['grave']
       });
     }),
 

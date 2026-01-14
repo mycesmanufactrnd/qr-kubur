@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn, JoinColumn, OneToMany} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn, OneToMany} from "typeorm";
 import { Grave } from "./Grave.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
 
@@ -22,7 +22,7 @@ export class DeadPerson {
   @Column("varchar", { length: 255, nullable: true })
   causeofdeath?: string;
   
-  @OneToOne(() => Grave, (grave) => grave.deadPerson, {
+  @ManyToOne(() => Grave, (grave) => grave.deadPerson, {
     nullable: true,
     onDelete: "SET NULL",
   })
