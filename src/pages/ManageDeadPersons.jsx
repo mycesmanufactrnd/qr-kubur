@@ -47,6 +47,8 @@ export default function ManageDeadPersons() {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
+    isAdmin,
+    isEmployee,
     currentUserStates 
   } = useAdminAccess();
 
@@ -211,54 +213,118 @@ export default function ManageDeadPersons() {
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Users className="w-6 h-6 text-blue-600" />
-          {translate('managePersons')}
-        </h1>
-        {canCreate && (
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600" />
+            {translate('managePersons')}
+          </h1>
+        </div>
           <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
             {translate('addNew')}
           </Button>
-        )}
       </div>
 
       {/* Advanced Filter Card */}
+      {/* Advanced Filter Card */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input 
-              placeholder={translate('searchDeceasedName')} 
-              value={filterName} 
-              onChange={(e) => setFilterName(e.target.value)} 
-            />
-            <Input 
-              placeholder="No. IC (Filter)" 
-              value={filterIC} 
-              onChange={(e) => setFilterIC(e.target.value)} 
-            />
+          <div className="flex items-center gap-2 mb-2">
+            <Search className="w-5 h-5 text-gray-500" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Select value={filterState} onValueChange={setFilterState}>
-              <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate('allStates')}</SelectItem>
-                {STATES_MY.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterGrave} onValueChange={setFilterGrave}>
-              <SelectTrigger><SelectValue placeholder="Kubur" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Perkuburan</SelectItem>
-                {gravesList.items.map(g => <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={() => { setFilterName(''); setFilterIC(''); setFilterGrave('all'); }}>
-              Reset
-            </Button>
+
+          {/* Row 1: Name + IC */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('fullName')}</Label>
+              <Input
+                placeholder={translate('searchDeceasedName')} 
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('icNumber')}</Label>
+              <Input
+                placeholder="XXXXXX-XX-XXXX"
+                value={filterIC}
+                onChange={(e) => setFilterIC(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Date of Birth + Date of Death */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('dateOfBirth')}</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white"
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('dateOfDeath')}</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="border-gray-300 dark:border-white dark:text-white"
+              />
+            </div>
+          </div>
+
+          {/* Row 3: State (Super Admin) + Grave */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {isSuperAdmin && (
+              <div>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('state')}</Label>
+                <Select
+                  value={filterState}
+                  onValueChange={(v) => {
+                    setFilterState(v);
+                    setFilterGrave('all'); // Reset grave when state changes
+                  }}
+                >
+                  <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
+                    <SelectValue placeholder="Pilih negeri" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{translate('allStates')}</SelectItem>
+                    {STATES_MY.map((state) => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('cemeteryName')}</Label>
+              <Select
+                value={filterGrave}
+                onValueChange={(v) => setFilterGrave(v)}
+              >
+                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
+                  <SelectValue placeholder={translate('selectCemetery')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{translate('allGraves')}</SelectItem>
+                  {gravesList.items.map((g) => (
+                    <SelectItem key={g.id} value={String(g.id)}>
+                      {g.name} - {g.state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
+
 
       {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
@@ -380,7 +446,7 @@ export default function ManageDeadPersons() {
                 {formData.photo_url && (
                   <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
                 )}
-                <div className="flex-1">
+                <div>
                   <Input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-upload" />
                   <label htmlFor="photo-upload">
                     <Button type="button" variant="outline" asChild disabled={uploading} className="w-full">
