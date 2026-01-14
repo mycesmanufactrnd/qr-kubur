@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { translate } from '@/utils/translations';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download, QrCode } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

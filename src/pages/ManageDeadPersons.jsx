@@ -189,7 +189,7 @@ export default function ManageDeadPersons() {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/upload/bucket-grave', {
         method: 'POST',
         body: formDataUpload,
       });
@@ -416,7 +416,7 @@ export default function ManageDeadPersons() {
               </div>
               {formData.photourl && (
                   <img 
-                    src={`/api/file/${encodeURIComponent(formData.photourl)}`} 
+                    src={`/api/file/bucket-grave/${encodeURIComponent(formData.photourl)}`} 
                     alt="Preview" 
                   />
                 )}
