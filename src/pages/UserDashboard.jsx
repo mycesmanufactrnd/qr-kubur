@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { Search, QrCode, Heart, BookOpen, FileText, Map, LogIn, BookText, Compass } from 'lucide-react';
+import { Search, QrCode, Heart, BookOpen, FileText, Map, BookText } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { translate } from '@/utils/translations';
 

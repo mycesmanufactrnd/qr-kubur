@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Filter, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,7 +15,6 @@ export default function ViewLogs() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const { 
-    currentUser, 
     loadingUser, 
     isSuperAdmin, 
   } = useAdminAccess();

@@ -41,9 +41,6 @@ export class DeadPerson {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @Column("varchar", { length: 255, nullable: true })
-  url?: string;
-
   @OneToMany(() => Suggestion, (suggestions) => suggestions.deadperson)
   suggestions!: Suggestion[];
 

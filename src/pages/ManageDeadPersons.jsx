@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin, QrCode } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import QRCodeDialog from "@/components/QRCodeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -38,7 +39,6 @@ const emptyPerson = {
   photourl: '',
   gps_lat: '',
   gps_lng: '',
-  qr_code: ''
 };
 
 export default function ManageDeadPersons() {
@@ -47,7 +47,6 @@ export default function ManageDeadPersons() {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    currentUserStates 
   } = useAdminAccess();
 
   const [filterName, setFilterName] = useState('');
@@ -64,6 +63,8 @@ export default function ManageDeadPersons() {
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
+  const [qrDialogOpen, setQRDialogOpen] = useState(false);
+  const [qrPerson, setQRPerson] = useState({});
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
 
   const {
@@ -122,7 +123,6 @@ export default function ManageDeadPersons() {
       photourl: person.photourl || '',
       gps_lat: person.latitude || '',
       gps_lng: person.longitude || '',
-      qr_code: person.url || ''
     });
     setIsDialogOpen(true);
   };
@@ -162,7 +162,6 @@ export default function ManageDeadPersons() {
       photourl: formData.photourl || null,
       latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
       longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
-      url: formData.qr_code || null,
       graveId: Number(formData.grave_id)
     };
 
@@ -238,7 +237,6 @@ export default function ManageDeadPersons() {
         )}
       </div>
 
-      {/* Advanced Filter Card */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -275,17 +273,16 @@ export default function ManageDeadPersons() {
         </CardContent>
       </Card>
 
-      {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('fullName')}</TableHead>
-                <TableHead>{translate('icNumber')}</TableHead>
-                <TableHead>{translate('dateOfDeath')}</TableHead>
-                <TableHead>{translate('cemeteryName')}</TableHead>
-                {(canEdit || canDelete) && <TableHead className="text-right">{translate('actions')}</TableHead>}
+                <TableHead className="text-center">{translate('icNumber')}</TableHead>
+                <TableHead className="text-center">{translate('dateOfDeath')}</TableHead>
+                <TableHead className="text-center">{translate('cemeteryName')}</TableHead>
+                {(canEdit || canDelete) && <TableHead className="text-center">{translate('actions')}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -297,12 +294,32 @@ export default function ManageDeadPersons() {
                 deadPersonsList.items.map(person => (
                   <TableRow key={person.id}>
                     <TableCell className="font-medium">{person.name}</TableCell>
-                    <TableCell>{person.icnumber || '-'}</TableCell>
-                    <TableCell>{person.dateofdeath ? new Date(person.dateofdeath).toLocaleDateString('ms-MY') : '-'}</TableCell>
-                    <TableCell>{person.grave?.name || '-'}</TableCell>
-                    <TableCell className="text-right">
-                      {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(person)}><Edit className="w-4 h-4" /></Button>}
-                      {canDelete && <Button variant="ghost" size="sm" onClick={() => { setPersonToDelete(person); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                    <TableCell className="text-center">{person.icnumber || '-'}</TableCell>
+                    <TableCell className="text-center">{person.dateofdeath ? new Date(person.dateofdeath).toLocaleDateString('ms-MY') : '-'}</TableCell>
+                    <TableCell className="text-center">{person.grave?.name || '-'}</TableCell>
+                    <TableCell className="text-center">
+                      {
+                        canEdit && 
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(person)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                      }
+                      {
+                        canDelete && 
+                          <Button variant="ghost" size="sm" onClick={() => { setPersonToDelete(person); setDeleteDialogOpen(true); }}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                      }
+                      {
+                        <Button variant="ghost" size="sm" 
+                          onClick={() => { setQRPerson({
+                            type: "deadperson",
+                            id: person.id
+                          }); setQRDialogOpen(true); }}
+                        >
+                          <QrCode className="w-4 h-4 text-green-500" />
+                        </Button>
+                      }
                     </TableCell>
                   </TableRow>
                 ))
@@ -322,7 +339,6 @@ export default function ManageDeadPersons() {
         )}
       </Card>
 
-      {/* Full Add/Edit Dialog with Missing Fields Re-added */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
@@ -377,11 +393,6 @@ export default function ManageDeadPersons() {
             <Button type="button" variant="outline" onClick={getCurrentLocation} className="w-full">
               <MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}
             </Button>
-
-            <div className="space-y-2">
-              <Label>{translate('qrCode')}</Label>
-              <Input value={formData.qr_code} onChange={(e) => setFormData({...formData, qr_code: e.target.value})} placeholder="QRP-001" />
-            </div>
             <div className="space-y-2">
               <Label>{translate('biography')}</Label>
               <Textarea value={formData.biography} onChange={(e) => setFormData({...formData, biography: e.target.value})} rows={3} />
@@ -427,6 +438,12 @@ export default function ManageDeadPersons() {
         description={`Padam rekod "${personToDelete?.name}"?`}
         onConfirm={confirmDelete}
         variant="destructive"
+      />
+
+      <QRCodeDialog
+        open={qrDialogOpen}
+        onOpenChange={setQRDialogOpen}
+        data={qrPerson}
       />
     </div>
   );

@@ -8,7 +8,6 @@ export const graveSchema = z.object({
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   icnumber: z.string().optional().nullable(),
-  qrcode: z.string().optional().nullable(),
   totalgraves: z.number().int().nonnegative().optional().nullable(),
   status: z.string().optional().nullable(),
   organisationid: z.number().optional().nullable(),

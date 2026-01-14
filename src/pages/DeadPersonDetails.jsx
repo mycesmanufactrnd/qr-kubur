@@ -1,4 +1,3 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
@@ -7,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 
 export default function DeadPersonDetails() {
-  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const personId = urlParams.get('id');
 
