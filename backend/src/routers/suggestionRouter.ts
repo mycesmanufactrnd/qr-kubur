@@ -25,12 +25,12 @@ export const suggestionRouter = router({
     getPaginated: protectedProcedure
         .input(
             z.object({
-            page: z.number().min(1).optional(),
-            pageSize: z.number().min(1).optional(),
-            currentUser: z.object({
-            id: z.number(),
-            organisation: z.object({ id: z.number() }).nullable(),
-            tahfizcenter: z.object({ id: z.number() }).nullable(),
+                page: z.number().min(1).optional(),
+                pageSize: z.number().min(1).optional(),
+                currentUser: z.object({
+                id: z.number(),
+                organisation: z.object({ id: z.number() }).nullable(),
+                tahfizcenter: z.object({ id: z.number() }).nullable(),
             }),
             checkRole: z.object({
                 superadmin: z.boolean(),

@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { ApprovalStatus } from '../db/enums.ts';
 
 export const suggestionSchema = z.object({
+    name: z.string().min(1),
+    phoneno: z.string().min(1),
     type: z.string().min(1),
     suggestedchanges: z.string().min(1),
     reason: z.string().min(1),

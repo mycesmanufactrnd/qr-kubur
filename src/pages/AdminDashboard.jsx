@@ -169,13 +169,13 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="flex flex-col leading-tight">
-                        <p className="text-lg font-bold text-gray-900">
+                        <div className="text-lg font-bold text-gray-900">
                           {stat.loading ? (
                             <div className="w-5 h-5 border-2 border-t-transparent border-gray-400 rounded-full animate-spin mx-auto"></div>
                           ) : (
                             stat.value
                           )}
-                        </p>
+                        </div>
                         <p className="text-xs text-gray-500 truncate">
                             {stat.label}
                         </p>
