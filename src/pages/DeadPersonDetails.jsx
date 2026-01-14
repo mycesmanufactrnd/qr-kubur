@@ -4,12 +4,12 @@ import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
+import { createPageUrl } from '@/utils';
+import { showSuccess } from '@/components/ToastrNotification';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get('id'));
-
-  /* -------------------- DATA -------------------- */
 
   const {
     data: person,
@@ -21,12 +21,10 @@ export default function DeadPersonDetails() {
 
   const grave = person?.grave;
 
-  /* -------------------- HELPERS -------------------- */
-
   const openDirections = () => {
-    if (grave?.gps_lat && grave?.gps_lng) {
+    if (grave?.latitude && grave?.longitude) {
       window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${grave.gps_lat},${grave.gps_lng}`,
+        `https://www.google.com/maps/dir/?api=1&destination=${grave.latitude},${grave.longitude}`,
         '_blank'
       );
     }
@@ -72,8 +70,6 @@ export default function DeadPersonDetails() {
     return age;
   };
 
-  /* -------------------- STATES -------------------- */
-
   if (isLoading) {
     return (
       <div className="space-y-3 animate-pulse pb-2">
@@ -97,55 +93,65 @@ export default function DeadPersonDetails() {
 
   const age = calculateAge(person.dateofbirth, person.dateofdeath);
 
-  /* -------------------- UI -------------------- */
-
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title={person.name} />
 
-      {/* Person Details */}
       <Card className="border-0 shadow-sm dark:bg-gray-800">
-        <CardContent className="p-3 space-y-2">
-
-          {person.icnumber && (
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
-              <p className="text-sm font-medium dark:text-white">
-                {person.icnumber}
-              </p>
+        <CardContent className="p-4 space-y-4">
+          {person.photourl && (
+            <div className="flex justify-center">
+              <img
+                src={`/api/file/bucket-grave/${encodeURIComponent(person.photourl)}`}
+                alt="Preview"
+                className="w-24 h-32 object-cover rounded-md"
+              />
             </div>
           )}
-
-          {person.dateofbirth && (
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
-              <p className="text-sm font-medium dark:text-white">
-                {new Date(person.dateofbirth).toLocaleDateString('ms-MY')}
-              </p>
+          <div className="space-y-3">
+            {person.icnumber && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
+                <p className="text-sm font-medium dark:text-white">
+                  {person.icnumber}
+                </p>
+              </div>
+            )}
+            <div className="flex justify-between gap-4">
+              {person.dateofbirth && (
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
+                  <p className="text-sm font-medium dark:text-white">
+                    {new Date(person.dateofbirth).toLocaleDateString('ms-MY')}
+                  </p>
+                </div>
+              )}
+              <div className="mr-4">
+                {person.dateofdeath && (
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Tarikh Meninggal
+                    </p>
+                    <p className="text-sm font-medium dark:text-white">
+                      {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
+                      {age && ` (${age} tahun)`}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
 
-          {person.dateofdeath && (
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Meninggal</p>
-              <p className="text-sm font-medium dark:text-white">
-                {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
-                {age && ` (${age} tahun)`}
-              </p>
-            </div>
-          )}
-
-          {person.biography && (
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Biografi</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                {person.biography}
-              </p>
-            </div>
-          )}
-
+            {person.biography && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Biografi</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {person.biography}
+                </p>
+              </div>
+            )}
+          </div>
           {(person.latitude && person.longitude) && (
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
               <Button
                 size="sm"
                 onClick={openPersonDirections}
@@ -166,10 +172,9 @@ export default function DeadPersonDetails() {
               </Button>
             </div>
           )}
+
         </CardContent>
       </Card>
-
-      {/* Grave Location */}
       {grave && (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
@@ -183,7 +188,7 @@ export default function DeadPersonDetails() {
               </div>
               <div>
                 <p className="font-medium text-sm dark:text-white">
-                  {grave.cemetery_name}
+                  {grave.name}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {grave.state}
@@ -191,28 +196,38 @@ export default function DeadPersonDetails() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              {(grave.gps_lat && grave.gps_lng) && (
-                <Button
-                  onClick={openDirections}
-                  size="sm"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 h-8 text-xs"
-                >
-                  <Navigation className="w-3 h-3 mr-1" />
-                  Arah
-                </Button>
-              )}
+            {(grave.latitude && grave.longitude) && (
+            <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
+              <Button
+                size="sm"
+                onClick={openDirections}
+                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
+              >
+                <Navigation className="w-3 h-3 mr-1" />
+                Arah
+              </Button>
 
               <Button
                 variant="outline"
                 size="sm"
-                onClick={shareProfile}
-                className="h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  
+                  const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
+                  if (navigator.share) {
+                    navigator.share({ title: grave.name, url });
+                  } else {
+                    navigator.clipboard.writeText(url);
+                    alert('Pautan telah disalin!');
+                  }
+                }}
+                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Share2 className="w-3 h-3 mr-1" />
                 Kongsi
               </Button>
             </div>
+          )}
           </CardContent>
         </Card>
       )}
