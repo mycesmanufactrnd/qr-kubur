@@ -11,6 +11,5 @@ export const deadPersonSchema = z.object({
   photourl: z.string().optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
-  url: z.string().optional().nullable(), // For QR Code link
   graveId: z.number().min(1, "Tanah perkuburan diperlukan"),
 });

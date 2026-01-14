@@ -43,7 +43,7 @@ export default function ManageDonations() {
   const updateMutation = useUpdateDonation();
 
   const totalVerified = donationList.items
-    .filter(d => d.status === VerificationStatus.VERIFY)
+    .filter(d => d.status === VerificationStatus.VERIFIED)
     .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
   const openDetailDialog = (donation) => {
@@ -58,7 +58,7 @@ export default function ManageDonations() {
       id: selectedDonation.id,
       data: {
         status: type === 'approve'
-          ? VerificationStatus.VERIFY
+          ? VerificationStatus.VERIFIED
           : VerificationStatus.REJECTED,
       }
     })
@@ -74,7 +74,7 @@ export default function ManageDonations() {
     switch (status) {
       case VerificationStatus.PENDING:
         return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Menunggu</Badge>;
-      case VerificationStatus.VERIFY:
+      case VerificationStatus.VERIFIED:
         return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Disahkan</Badge>;
       case VerificationStatus.REJECTED:
         return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
@@ -130,7 +130,7 @@ export default function ManageDonations() {
         </Card>
         {[
           { label: translate('pending'), value: donationList.items.filter(d => d.status === VerificationStatus.PENDING).length, color: 'yellow' },
-          { label: translate('verified'), value: donationList.items.filter(d => d.status === VerificationStatus.VERIFY).length, color: 'succes' },
+          { label: translate('verified'), value: donationList.items.filter(d => d.status === VerificationStatus.VERIFIED).length, color: 'succes' },
           { label: translate('rejected'), value: donationList.items.filter(d => d.status === VerificationStatus.REJECTED).length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">

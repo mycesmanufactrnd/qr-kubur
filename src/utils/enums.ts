@@ -78,6 +78,7 @@ export const SERVICE_LABELS = {
 
 export const ACTION_MAPS = {
   create: 'Created Successfully',
+  upload: 'Upload Successfully',
   save: 'Saved Successfully',
   edit: 'Edited Successfully',
   update: 'Edited Successfully',
@@ -88,6 +89,7 @@ export const ACTION_MAPS = {
 
 export const ACTION_FAILURE_MAPS = {
   create: 'Creation Failed',
+  upload: 'Upload Failed',
   save: 'Saved Failed',
   edit: 'Edit Failed',
   update: 'Edit Failed',
@@ -109,7 +111,7 @@ export enum ApprovalStatus {
 
 export enum VerificationStatus {
   PENDING = "pending",
-  VERIFY = "verify",
+  VERIFIED = "verified",
   REJECTED = "rejected",
 }
 

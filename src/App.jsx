@@ -1,5 +1,4 @@
 import './App.css'
-import VisualEditAgent from '@/lib/VisualEditAgent'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 
@@ -45,7 +44,6 @@ function App() {
       <Router>
         <AuthenticatedApp />
       </Router>
-      <VisualEditAgent />
     </>
   )
 }

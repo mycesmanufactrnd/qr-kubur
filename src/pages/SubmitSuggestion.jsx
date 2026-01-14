@@ -308,9 +308,18 @@ export default function SubmitSuggestion() {
               />
             </div>
 
-            <Button type="submit" disabled={!watch('type') || !watch('entityId') || !watch('suggestedchanges')}>
-              Hantar Cadangan
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={
+                  !watch('type') ||
+                  !watch('entityId') ||
+                  !watch('suggestedchanges')
+                }
+              >
+                Hantar Cadangan
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </form>

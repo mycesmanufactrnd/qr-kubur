@@ -1,3 +1,6 @@
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
@@ -7,6 +10,16 @@ import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 
 export default function DeadPersonDetails() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const personId = urlParams.get('id');
+
+  const { data: person, isLoading } = useQuery({
+    queryKey: ['dead-person', personId],
+    queryFn: async () => {
+      const persons = await base44.entities.DeadPerson.filter({ id: personId });
+      return persons[0];
+    },
+    enabled: !!personId
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get('id'));
 

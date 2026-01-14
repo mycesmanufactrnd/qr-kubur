@@ -11,7 +11,7 @@ export enum ApprovalStatus {
 
 export enum VerificationStatus {
   PENDING = "pending",
-  VERIFY = "verify",
+  VERIFIED = "verified",
   REJECTED = "rejected",
 }
 
