@@ -1,9 +1,8 @@
-// routers/deadPersonRouter.ts
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { DeadPerson, Grave } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
-import { deadPersonSchema } from '../schemas/deadPersonSchema.ts';
+import { deadPersonSchema } from '../schemas/deadpersonSchema.ts';
 
 export const deadPersonRouter = router({
   getPaginated: protectedProcedure
@@ -51,15 +50,13 @@ export const deadPersonRouter = router({
     .input(deadPersonSchema)
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeadPerson);
-      
-      // Separate graveId from the rest of the data to avoid TypeORM mapping issues
       const { graveId, ...personData } = input;
-
-      // Ensure the Grave exists
       const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
 
-      // Create person with explicit grave relation
-      const person = repo.create({ ...personData, grave });
+      const person = repo.create({ 
+        ...personData, 
+        grave 
+      });
 
       return await repo.save(person);
     }),
@@ -104,4 +101,36 @@ getById: protectedProcedure
       relations: ['grave'] 
     });
   }),
+  getDeadPersonById: publicProcedure
+    .input(
+        z.object({
+          id: z.number()
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.id) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(DeadPerson).findOne({ 
+        where: { id: input.id },
+        relations: ['grave']
+      });
+    }),
+
+  getDeadPersonByGraveId: publicProcedure
+    .input(
+        z.object({
+          graveId: z.number()
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.graveId) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(DeadPerson).find({ 
+        where: { grave: { id: input.graveId } } 
+      });
+    }),
 });

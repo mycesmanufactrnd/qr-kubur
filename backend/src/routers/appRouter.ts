@@ -21,15 +21,19 @@ import { graveRouter } from "./graveRouter.ts";
 import { visitLogsRouter } from "./visitLogsRouter.ts";
 import { organisationPaymentConfigRouter } from "./organisationPaymentConfigRouter.ts";
 import { deadPersonRouter } from "./deadpersonRouter.ts";
+import { tahfizPaymentConfigRouter } from "./tahfizPaymentConfigRouter.ts";
+import { dashboardRouter } from "./dashboardRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
+  dashboard: dashboardRouter,
   users: usersRouter,
   permission: permissionRouter,
   paymentPlatform: paymentPlatformRouter, 
   paymentField: paymentFieldRouter, 
   surah: surahRouter,
   tahfiz: tahfizRouter,
+  tahfizPaymentConfig: tahfizPaymentConfigRouter,
   organisation: organisationRouter,
   organisationPaymentConfig: organisationPaymentConfigRouter,
   organisationType: organisationTypeRouter,

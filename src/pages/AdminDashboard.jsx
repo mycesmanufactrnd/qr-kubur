@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { getParentAndChildOrgs } from '../utils/helpers';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { 
   MapPin, Users, Building2, Heart, FileText, TrendingUp, 
   BookOpen, Clock, Book, UserCheck
@@ -14,100 +11,121 @@ import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
 
 export default function AdminDashboard() {
-  const { 
+  const {
     currentUser, 
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin, 
-    isEmployee,
     isTahfizAdmin,
-    currentUserStates 
   } = useAdminAccess();
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['admin-stats', currentUser?.id],
-    queryFn: async () => {
-      let gravesCount = 0;
-      let organisationsCount = 0;
-      let deadPersonCount = 0;
-      
-      if (currentUser.organisation_id) {
-        const orgsId = await getParentAndChildOrgs(currentUser.organisation_id);
+  const stats = {
+    totalDonations: 0,
+    pendingDonations: 0, 
+  }
 
-        const graves = await base44.entities.Grave.filter({
-          organisation_id: { $in: orgsId }
-        });
-
-        gravesCount = graves.length;
-
-        const gravesIds = [...new Set(graves.map(grave => grave.id))];
-
-        const deadPersons = await base44.entities.DeadPerson.filter({
-          grave_id: { $in: gravesIds }
-        });
-
-        deadPersonCount = deadPersons.length;
-        organisationsCount = orgsId.length;
-      }
-
-      let tahfizCentreCount = 0;
-      if (isTahfizAdmin) {
-        tahfizCentreCount = 0;
-      }
-
-      return {
-        graves: gravesCount,
-        persons: deadPersonCount,
-        organisations: organisationsCount,
-        tahfiz: tahfizCentreCount,
-        totalDonations: 0,
-        pendingDonations: 0, 
-        pendingSuggestions: 0, 
-        pendingTahlil: 0, 
-      };
+  const { data: OGDSStats, isLoading: isOGDSLoading } = trpc.dashboard.getOGDSAdminStates.useQuery(
+    { 
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin: isSuperAdmin 
     },
-    enabled: !!currentUser
-  });
+    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.organisation) }
+  );
+
+  const { data: TTRStats, isLoading: isTTRLoading } = trpc.dashboard.getTTRAdminStates.useQuery(
+    { 
+      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
+      isSuperAdmin: isSuperAdmin 
+    },
+    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.tahfizcenter) }
+  );
+
+  const { data: DDVStats, isLoading: isDDVLoading } = trpc.dashboard.getDDVAdminStates.useQuery(
+    { 
+      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin: isSuperAdmin 
+    },
+    { 
+      enabled: isSuperAdmin ||
+        (!!currentUser && !!currentUser.organisation) ||
+        (!!currentUser && !!currentUser.tahfizcenter) 
+    }
+  );
+
+  const organisationCount = OGDSStats?.organisationCount ?? 0;
+  const graveCount = OGDSStats?.graveCount ?? 0;
+  const deadPersonCount = OGDSStats?.deadPersonCount ?? 0;
+  const suggestionCount = OGDSStats?.suggestionCount ?? 0;
+  const tahfizCount = TTRStats?.tahfizCount ?? 0;
+  const tahlilRequestCount = TTRStats?.tahlilRequestCount ?? 0;
+  const donationCount = DDVStats?.donationCount ?? 0;
+  const donationVerified = DDVStats?.donationVerified ?? 0;
 
   const quickStats = [
     { 
       label: translate('totalGraves'), 
-      value: stats?.graves || 0, 
+      value: graveCount || 0, 
       icon: MapPin, 
       color: 'emerald', 
-      page: 'ManageGraves' 
+      page: 'ManageGraves',
+      disabled: isTahfizAdmin && !isSuperAdmin,
+      loading: isOGDSLoading
     },
     { 
       label: translate('totalPersons'), 
-      value: stats?.persons || 0, 
+      value: deadPersonCount || 0, 
       icon: Users, 
       color: 'blue', 
-      page: 'ManageDeadPersons' 
+      page: 'ManageDeadPersons',
+      disabled: isTahfizAdmin && !isSuperAdmin,
+      loading: isOGDSLoading
     },
     { 
       label: translate('totalOrgs'), 
-      value: stats?.organisations || 0, 
+      value: organisationCount || 0, 
       icon: Building2, 
       color: 'violet', 
-      page: 'ManageOrganisations' 
+      page: 'ManageOrganisations',
+      disabled: isTahfizAdmin && !isSuperAdmin,
+      loading: isOGDSLoading
     },
     { 
       label: translate('totalTahfiz'), 
-      value: stats?.tahfiz || 0, 
+      value: tahfizCount || 0, 
       icon: BookOpen, 
       color: 'amber', 
       page: 'ManageTahfizCenters',
       disabled: !isTahfizAdmin && !isSuperAdmin,
+      loading: isTTRLoading
     },
   ];
 
   const pendingItems = [
-    { label: translate('totalSuggestions'), value: stats?.pendingSuggestions || 0, page: 'ManageSuggestions', color: 'amber' },
-    { label: translate('totalDonations'), value: stats?.pendingDonations || 0, page: 'ManageDonations', color: 'red' },
-    { label: translate('totalTahlilRequests'), value: stats?.pendingTahlil || 0, page: 'ManageTahlilRequests', color: 'blue' },
+    { 
+      label: translate('totalSuggestions'), 
+      value: suggestionCount || 0, 
+      loading: isDDVLoading, 
+      page: 'ManageSuggestions',
+      color: 'amber' 
+    },
+    { 
+      label: translate('totalDonations'), 
+      value: donationCount || 0, 
+      loading: isDDVLoading, 
+      page: 'ManageDonations',
+      color: 'red' 
+    },
+    { 
+      label: translate('totalTahlilRequests'), 
+      value: tahlilRequestCount || 0, 
+      loading: isTTRLoading, 
+      page: 'ManageTahlilRequests',
+      color: 'blue' 
+    },
   ];
 
  if (loadingUser) {
@@ -138,7 +156,6 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Compact Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {quickStats.map((stat, i) => (
             <Link key={i} to={stat.disabled ? "#" : createPageUrl(stat.page)}>
@@ -153,7 +170,11 @@ export default function AdminDashboard() {
 
                         <div className="flex flex-col leading-tight">
                         <p className="text-lg font-bold text-gray-900">
-                            {stat.value}
+                          {stat.loading ? (
+                            <div className="w-5 h-5 border-2 border-t-transparent border-gray-400 rounded-full animate-spin mx-auto"></div>
+                          ) : (
+                            stat.value
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
                             {stat.label}
@@ -178,7 +199,13 @@ export default function AdminDashboard() {
             {pendingItems.map((item, i) => (
               <Link key={i} to={createPageUrl(item.page)}>
                 <div className={`p-2 rounded-lg bg-${item.color}-50 hover:bg-${item.color}-100 transition-colors text-center`}>
-                  <p className='text-md'>{item.value}</p>
+                  <p className='text-md'>
+                    {item.loading ? (
+                      <span className="inline-block w-6 h-6 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></span>
+                    ) : (
+                      item.value
+                    )}
+                  </p>
                   <p className="text-xs text-gray-600 mt-1 truncate">{item.label}</p>
                 </div>
               </Link>
@@ -192,7 +219,13 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-emerald-100 text-xs">{translate('totalVerified')}</p>
-              <p className="text-xl font-bold">RM {(stats?.totalDonations || 0).toLocaleString()}</p>
+              <p className="text-xl font-bold">
+                {isDDVLoading ? (
+                  <span className="inline-block w-6 h-6 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></span>
+                ) : (
+                  `RM ${(donationVerified || 0).toLocaleString()}`
+                )}
+              </p>
             </div>
             <TrendingUp className="w-8 h-8 text-emerald-200" />
           </div>

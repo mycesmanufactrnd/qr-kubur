@@ -9,3 +9,7 @@ RUN npm install -g tsx
 # Source code mounted as volume, no need to COPY in dev
 EXPOSE 8000
 CMD ["npm", "run", "dev"]
+
+
+# run this to execute npm i in docker
+# docker compose exec backend npm install

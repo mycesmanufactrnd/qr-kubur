@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { translate } from '@/utils/translations';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, Filter, X, Save, Upload, Download, QrCode } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +16,13 @@ import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
 import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
-import { getParentAndChildOrgs } from '@/utils/helpers';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetGravePaginated, useCreateGrave, useUpdateGrave, useDeleteGrave } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
+import QRCodeDialog from '@/components/QRCodeDialog';
 
 
 const emptyGrave = {
@@ -33,7 +33,6 @@ const emptyGrave = {
   gps_lat: '',
   gps_lng: '',
   organisation_id: '',
-  qr_code: '',
   status: 'active',
   total_graves: 0,
 };
@@ -62,21 +61,24 @@ export default function ManageGraves() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [graveToDelete, setGraveToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
-
+  const [qrDialogOpen, setQRDialogOpen] = useState(false);
+  const [qrGrave, setQRGrave] = useState({});
 
   const {
       loading: permissionsLoading,
       canView, canCreate, canEdit, canDelete
     } = useCrudPermissions('graves');
 
-    // Load accessible organizations for non-superadmins
-    useEffect(() => {
-      if (!isSuperAdmin && currentUser?.organisation?.id) {
-        getParentAndChildOrgs(currentUser.organisation.id)
-          .then(ids => setAccessibleOrgIds(ids))
-          .catch(err => console.error(err));
-      }
-    }, [currentUser, isSuperAdmin]);
+  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id },
+    { enabled: !!currentUser && !!currentUser?.organisation?.id && !isSuperAdmin }
+  );
+
+  useEffect(() => {
+    if (parentAndChildQuery.data) {
+      setAccessibleOrgIds(parentAndChildQuery.data);
+    }
+  }, [parentAndChildQuery.data]);
 
   const {
     gravesList,
@@ -94,8 +96,6 @@ export default function ManageGraves() {
   }); 
 
   const { organisationsList } = useGetOrganisationPaginated({})
-
-  console.log('organisationsList', organisationsList);
 
   const createMutation = useCreateGrave();
   const updateMutation = useUpdateGrave();
@@ -117,7 +117,6 @@ export default function ManageGraves() {
       gps_lat: grave.latitude || '',
       gps_lng: grave.longitude || '',
       organisation_id: grave.organisationid || '',
-      qr_code: grave.qrcode || '',
       status: grave.status || 'active',
       total_graves: grave.totalgraves || 0
     });
@@ -131,7 +130,6 @@ export default function ManageGraves() {
     if (!formData.cemetery_name?.trim()) return showError('Sila masukkan nama tanah perkuburan');
     if (!formData.state) return showError('Sila pilih negeri');
 
-    // Mapping snake_case (UI) to camelCase (API/Entity)
     const submitData = {
       name: formData.cemetery_name,
       state: formData.state,
@@ -140,7 +138,6 @@ export default function ManageGraves() {
       latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
       longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
       organisationid: formData.organisation_id ? Number(formData.organisation_id) : null,
-      qrcode: formData.qr_code || null,
       status: formData.status || 'active',
       totalgraves: parseInt(formData.total_graves) || 0
     };
@@ -290,7 +287,6 @@ const confirmDelete = async () => {
               <TableRow>
                 <TableHead>{translate('cemeteryName')}</TableHead>
                 <TableHead className="text-center">{translate('totalGravesCount')}</TableHead>
-                <TableHead className="text-center">{translate('qrCode')}</TableHead>
                 <TableHead className="text-center">{translate('state')}</TableHead>
                 <TableHead className="text-center">{translate('block')}/{translate('lot')}</TableHead>
                 <TableHead className="text-center">{translate('status')}</TableHead>
@@ -311,7 +307,6 @@ const confirmDelete = async () => {
                   <TableRow key={grave.id}>
                     <TableCell className="font-medium">{grave.name}</TableCell>
                     <TableCell className="text-center">{grave.totalgraves}</TableCell>
-                    <TableCell className="text-center">{grave.qrcode}</TableCell>
                     <TableCell className="text-center">{grave.state}</TableCell>
                     <TableCell className="text-center">
                       {grave.block && `${translate('block')} ${grave.block}`}
@@ -342,6 +337,16 @@ const confirmDelete = async () => {
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
                       )}
+                      {
+                        <Button variant="ghost" size="sm" 
+                          onClick={() => { setQRGrave({
+                            type: "grave",
+                            id: grave.id
+                          }); setQRDialogOpen(true); }}
+                        >
+                          <QrCode className="w-4 h-4 text-green-500" />
+                        </Button>
+                      }                
                     </TableCell>
                   </TableRow>
                 ))
@@ -484,14 +489,6 @@ const confirmDelete = async () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{translate('qrCode')}</Label>
-                <Input
-                  value={formData.qr_code}
-                  onChange={(e) => setFormData({...formData, qr_code: e.target.value})}
-                  placeholder="QRK-001"
-                />
-              </div>
-              <div>
                 <Label>{translate('totalGravesCount')}</Label>
                 <Input
                   type="number"
@@ -499,19 +496,19 @@ const confirmDelete = async () => {
                   onChange={(e) => setFormData({...formData, total_graves: e.target.value})}
                 />
               </div>
-            </div>
-            <div>
-              <Label>{translate('status')}</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">{translate('active')}</SelectItem>
-                  <SelectItem value="full">{translate('full')}</SelectItem>
-                  <SelectItem value="maintenance">{translate('maintenance')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <Label>{translate('status')}</Label>
+                <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">{translate('active')}</SelectItem>
+                    <SelectItem value="full">{translate('full')}</SelectItem>
+                    <SelectItem value="maintenance">{translate('maintenance')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -534,6 +531,12 @@ const confirmDelete = async () => {
         onConfirm={confirmDelete}
         confirmText={translate('delete')}
         variant="destructive"
+      />
+
+      <QRCodeDialog
+        open={qrDialogOpen}
+        onOpenChange={setQRDialogOpen}
+        data={qrGrave}
       />
     </div>
   );

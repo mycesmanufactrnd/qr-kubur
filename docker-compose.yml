@@ -87,7 +87,8 @@ services:
     ports:
       - "${STORAGE_PORT}:5000"
     volumes:
-      - storage_data:${FILE_STORAGE_BACKEND_PATH}
+      # - storage_data:${FILE_STORAGE_BACKEND_PATH}
+      - ./supabase_storage:${FILE_STORAGE_BACKEND_PATH}
     healthcheck:
       test:
         [
@@ -120,10 +121,9 @@ services:
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
-      TENANT_ID: stub
+      TENANT_ID: qr-kubur
       # TODO: https://github.com/supabase/storage-api/issues/55
-      REGION: stub
-      GLOBAL_S3_BUCKET: stub
+      REGION: local
       ENABLE_IMAGE_TRANSFORMATION: "true"
       IMGPROXY_URL: http://imgproxy:5001
 
@@ -340,6 +340,7 @@ services:
       - ./backend:/usr/src/app 
       - backend_node_modules:/usr/src/app/node_modules
     environment:
+      - DOCKER=true
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
     depends_on:

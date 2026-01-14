@@ -181,7 +181,7 @@ export default function ManagePaymentPlatforms() {
         </Button>
       </div>
 
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800">
+      <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

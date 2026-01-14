@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreditCard, Save, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
 import { translate } from '@/utils/translations';
 import { trpc } from '@/utils/trpc';
+import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 
 export default function PaymentConfigDialog({ 
   open, 
@@ -23,8 +22,25 @@ export default function PaymentConfigDialog({
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [configValues, setConfigValues] = useState({});
   const [uploadingFiles, setUploadingFiles] = useState({});
-  const trpcUtils = trpc.useUtils();
-  // const configEntity = entityType === 'tahfiz' ? 'TahfizPaymentConfig' : 'OrganisationPaymentConfig';
+  const [previewUrls, setPreviewUrls] = useState({});
+
+  const buildPaymentConfigPayload = (entityType, entityId, configsToUpsert) => {
+    switch (entityType) {
+      case "organisation":
+        return { organisationId: entityId, configs: configsToUpsert };
+      case "tahfiz":
+        return { tahfizId: entityId, configs: configsToUpsert };
+      default:
+        throw new Error(`Unsupported entityType: ${entityType}`);
+    }
+  }
+
+  const resetForm = () => {
+    setSelectedPlatforms([]);
+    setConfigValues({});
+    setUploadingFiles({});
+    setPreviewUrls({});
+  };
 
   const { data: platforms = [] } = 
     trpc.paymentPlatform.getActivePlatform.useQuery(
@@ -40,61 +56,90 @@ export default function PaymentConfigDialog({
       platformId: platform.id,
     }))
   );
+  
+  
+  const existingConfigs = useGetConfigByEntity({
+    entityId: Number(entityId),
+    entityType: entityType,
+  });
 
-  const {
-    data: organisationConfigs = [],
-    isLoading: orgConfigLoading,
-  } = trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
-    {
-      organisation: entityType === 'organisation'
-        ? { id: entityId }
-        : null,
-    },
-    {
-      enabled: entityType === 'organisation' && !!entityId,
-    }
-  );
-
-  const existingConfigs = organisationConfigs;
+  const upsertMutation = useUpsertConfigByEntity();
 
   useEffect(() => {
     if (existingConfigs.length > 0) {
-      const values = {};
-      const platformSet = new Set();
+      const fetchAllFileUrls = async () => {
+        const values = {};
+        const platformSet = new Set();
 
-      existingConfigs.forEach(config => {
-        const platformCode = config.paymentplatform?.code;
-        const fieldKey = config.paymentfield?.key;
+        for (const config of existingConfigs) {
+          const platformCode = config.paymentplatform?.code;
+          const fieldKey = config.paymentfield?.key;
+          const filename = config.value;
 
-        if (platformCode && fieldKey) {
-          platformSet.add(platformCode);
-          values[`${platformCode}_${fieldKey}`] = config.value;
+          if (platformCode && fieldKey && filename) {
+            platformSet.add(platformCode);
+
+            try {
+              const res = await fetch(`/api/file/${encodeURIComponent(filename)}`);
+              if (!res.ok) {
+                console.warn(`Failed to fetch file: ${filename}`);
+                values[`${platformCode}_${fieldKey}`] = '';
+                continue;
+              }
+
+              const blob = await res.blob();
+              values[`${platformCode}_${fieldKey}`] = URL.createObjectURL(blob);
+            } catch (err) {
+              console.error('Error fetching file:', err);
+              values[`${platformCode}_${fieldKey}`] = '';
+            }
+          }
         }
-      });
 
-      setSelectedPlatforms(Array.from(platformSet));
-      setConfigValues(values);
+        setSelectedPlatforms(Array.from(platformSet));
+        setConfigValues(values);
+      };
+
+      fetchAllFileUrls();
     }
   }, [existingConfigs]);
 
-  const upsertMutation = trpc.organisationPaymentConfig.upsert.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationPaymentConfig.getConfigByOrganisationId.invalidate();
-      showSuccess('Payment Configuration Saved');
-      onOpenChange(false);
-    },
-  });
+  useEffect(() => {
+    return () => {
+      Object.values(previewUrls).forEach(url => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [previewUrls]);
   
   const handleFileUpload = async (platformCode, fieldKey, file) => {
     const uploadKey = `${platformCode}_${fieldKey}`;
     setUploadingFiles({ ...uploadingFiles, [uploadKey]: true });
-    
+
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setConfigValues({ ...configValues, [`${platformCode}_${fieldKey}`]: file_url });
-      showSuccess('File Uploaded');
-    } catch (error) {
-      showError("Failed To Upload File");
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', { 
+        method: 'POST', 
+        body: formData 
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
+
+      const data = await res.json();
+      
+      setConfigValues({ ...configValues, [uploadKey]: data.file_url });
+      setPreviewUrls(prev => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
+      showSuccess('Photo uploaded');
+      
+    } catch (err) {
+      console.error("Fetch error:", err);
+      showError('Failed To Upload File');
     } finally {
       setUploadingFiles({ ...uploadingFiles, [uploadKey]: false });
     }
@@ -147,10 +192,15 @@ export default function PaymentConfigDialog({
         .filter(Boolean);
     });
 
-    upsertMutation.mutate({
-      organisationId: entityId,
-      configs: configsToUpsert,
-    });
+    const payload = buildPaymentConfigPayload(entityType, entityId, configsToUpsert);
+
+    upsertMutation.mutateAsync(payload)
+    .then((res) => {
+      if (res) {
+        onOpenChange(false);
+        resetForm();
+      }
+    })
   };
 
   const renderField = (platform, field) => {
@@ -160,6 +210,7 @@ export default function PaymentConfigDialog({
 
     switch (field.fieldtype) {
       case 'image':
+        const previewSrc = previewUrls[fieldId] || value;
         return (
           <div>
             <Label>{field.label || field.key} {field.required && <span className="text-red-500">*</span>}</Label>
@@ -169,14 +220,15 @@ export default function PaymentConfigDialog({
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleFileUpload(platform.code, field.key, file);
+                  if (!file) return;
+                  handleFileUpload(platform.code, field.key, file);
                 }}
                 disabled={isUploading}
               />
               {isUploading && <span className="text-sm text-gray-500">translate('uploading...')</span>}
             </div>
-            {value && (
-              <img src={value} alt="Preview" className="mt-2 h-20 rounded border" />
+            {previewSrc && (
+              <img src={previewSrc} alt="Preview" className="mt-2 h-20 rounded border" />
             )}
           </div>
         );
@@ -214,7 +266,10 @@ export default function PaymentConfigDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(openState) => {
+      if (!openState) resetForm();
+      onOpenChange(openState);
+    }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -274,9 +329,15 @@ export default function PaymentConfigDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {translate('cancel')}
           </Button>
-          <Button onClick={handleSave} disabled={upsertMutation.isPending || selectedPlatforms.length === 0}>
+          <Button onClick={handleSave} disabled={
+            upsertMutation.orgMutation.isPending || 
+            upsertMutation.tahfizMutation.isPending || 
+            selectedPlatforms.length === 0
+          }>
             <Save className="w-4 h-4 mr-2" />
-            {upsertMutation.isPending ? translate('saving...') : translate('savingConfig')}
+            { (upsertMutation.orgMutation.isPending || upsertMutation.tahfizMutation.isPending) 
+              ? translate('saving...') : translate('savingConfig')
+            }
           </Button>
         </DialogFooter>
       </DialogContent>

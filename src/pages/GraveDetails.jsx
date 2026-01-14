@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { showSuccess } from '@/components/ToastrNotification.jsx';
 import BackNavigation from '@/components/BackNavigation';
-import { trpc } from '@/utils/trpc';
 import { useGetGraveById } from '@/hooks/useGraveMutations';
 import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
 

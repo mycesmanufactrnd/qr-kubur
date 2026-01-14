@@ -1,26 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin, QrCode } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import QRCodeDialog from "@/components/QRCodeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
 import { showSuccess, showError, showInfo, showApiError } from '../components/ToastrNotification';
 import { useCrudPermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
-import { getParentAndChildOrgs } from '@/utils/helpers';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
-import { base44 } from '@/api/base44Client'; // Kept for file upload integration
 import { 
   useGetDeadPersonPaginated, 
   useCreateDeadPerson, 
@@ -28,6 +25,8 @@ import {
   useDeleteDeadPerson 
 } from '@/hooks/useDeadPersonMutations';
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
+import { trpc } from '@/utils/trpc';
+import { Textarea } from '@/components/ui/textarea';
 
 const emptyPerson = {
   name: '',
@@ -37,10 +36,9 @@ const emptyPerson = {
   cause_of_death: '',
   grave_id: '',
   biography: '',
-  photo_url: '',
+  photourl: '',
   gps_lat: '',
   gps_lng: '',
-  qr_code: ''
 };
 
 export default function ManageDeadPersons() {
@@ -49,9 +47,6 @@ export default function ManageDeadPersons() {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin,
-    isEmployee,
-    currentUserStates 
   } = useAdminAccess();
 
   const [filterName, setFilterName] = useState('');
@@ -68,6 +63,8 @@ export default function ManageDeadPersons() {
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
+  const [qrDialogOpen, setQRDialogOpen] = useState(false);
+  const [qrPerson, setQRPerson] = useState({});
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
 
   const {
@@ -75,13 +72,16 @@ export default function ManageDeadPersons() {
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('dead_persons');
 
+  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id },
+    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin }
+  );
+
   useEffect(() => {
-    if (!isSuperAdmin && currentUser?.organisation?.id) {
-      getParentAndChildOrgs(currentUser.organisation.id)
-        .then((orgIds) => setAccessibleOrgIds(orgIds))
-        .catch(err => console.error(err));
+    if (parentAndChildQuery.data) {
+      setAccessibleOrgIds(parentAndChildQuery.data);
     }
-  }, [currentUser, isSuperAdmin]);
+  }, [parentAndChildQuery.data]);
 
   const { deadPersonsList, isLoading, refetch } = useGetDeadPersonPaginated({
     page,
@@ -120,27 +120,11 @@ export default function ManageDeadPersons() {
       cause_of_death: person.causeofdeath || '',
       grave_id: person.grave?.id || '',
       biography: person.biography || '',
-      photo_url: person.photourl || '',
+      photourl: person.photourl || '',
       gps_lat: person.latitude || '',
       gps_lng: person.longitude || '',
-      qr_code: person.url || ''
     });
     setIsDialogOpen(true);
-  };
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({...formData, photo_url: file_url});
-      showSuccess('Photo', 'uploaded');
-    } catch (error) {
-      showApiError(error);
-    } finally {
-      setUploading(false);
-    }
   };
 
   const getCurrentLocation = () => {
@@ -175,10 +159,9 @@ export default function ManageDeadPersons() {
       dateofdeath: formData.date_of_death || null,
       causeofdeath: formData.cause_of_death || null,
       biography: formData.biography || null,
-      photourl: formData.photo_url || null,
+      photourl: formData.photourl || null,
       latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
       longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
-      url: formData.qr_code || null,
       graveId: Number(formData.grave_id)
     };
 
@@ -198,6 +181,36 @@ export default function ManageDeadPersons() {
     setDeleteDialogOpen(false);
     setPersonToDelete(null);
   };
+
+  const handleFileUpload = async (file) => {
+    setUploading(true);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
+
+      const data = await res.json();
+
+      setFormData({ ...formData, photourl: data.file_url });
+      showSuccess('Photo uploaded');
+    } catch (err) {
+      console.error(err);
+      showError('Failed to upload photo');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
   if (!hasAdminAccess) return <AccessDeniedComponent/>;
@@ -224,8 +237,6 @@ export default function ManageDeadPersons() {
           </Button>
       </div>
 
-      {/* Advanced Filter Card */}
-      {/* Advanced Filter Card */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
@@ -324,18 +335,16 @@ export default function ManageDeadPersons() {
         </CardContent>
       </Card>
 
-
-      {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('fullName')}</TableHead>
-                <TableHead>{translate('icNumber')}</TableHead>
-                <TableHead>{translate('dateOfDeath')}</TableHead>
-                <TableHead>{translate('cemeteryName')}</TableHead>
-                {(canEdit || canDelete) && <TableHead className="text-right">{translate('actions')}</TableHead>}
+                <TableHead className="text-center">{translate('icNumber')}</TableHead>
+                <TableHead className="text-center">{translate('dateOfDeath')}</TableHead>
+                <TableHead className="text-center">{translate('cemeteryName')}</TableHead>
+                {(canEdit || canDelete) && <TableHead className="text-center">{translate('actions')}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -347,12 +356,32 @@ export default function ManageDeadPersons() {
                 deadPersonsList.items.map(person => (
                   <TableRow key={person.id}>
                     <TableCell className="font-medium">{person.name}</TableCell>
-                    <TableCell>{person.icnumber || '-'}</TableCell>
-                    <TableCell>{person.dateofdeath ? new Date(person.dateofdeath).toLocaleDateString('ms-MY') : '-'}</TableCell>
-                    <TableCell>{person.grave?.name || '-'}</TableCell>
-                    <TableCell className="text-right">
-                      {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(person)}><Edit className="w-4 h-4" /></Button>}
-                      {canDelete && <Button variant="ghost" size="sm" onClick={() => { setPersonToDelete(person); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                    <TableCell className="text-center">{person.icnumber || '-'}</TableCell>
+                    <TableCell className="text-center">{person.dateofdeath ? new Date(person.dateofdeath).toLocaleDateString('ms-MY') : '-'}</TableCell>
+                    <TableCell className="text-center">{person.grave?.name || '-'}</TableCell>
+                    <TableCell className="text-center">
+                      {
+                        canEdit && 
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(person)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                      }
+                      {
+                        canDelete && 
+                          <Button variant="ghost" size="sm" onClick={() => { setPersonToDelete(person); setDeleteDialogOpen(true); }}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                      }
+                      {
+                        <Button variant="ghost" size="sm" 
+                          onClick={() => { setQRPerson({
+                            type: "deadperson",
+                            id: person.id
+                          }); setQRDialogOpen(true); }}
+                        >
+                          <QrCode className="w-4 h-4 text-green-500" />
+                        </Button>
+                      }
                     </TableCell>
                   </TableRow>
                 ))
@@ -372,7 +401,6 @@ export default function ManageDeadPersons() {
         )}
       </Card>
 
-      {/* Full Add/Edit Dialog with Missing Fields Re-added */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
@@ -427,38 +455,34 @@ export default function ManageDeadPersons() {
             <Button type="button" variant="outline" onClick={getCurrentLocation} className="w-full">
               <MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}
             </Button>
-
-            {/* Re-added QR and Biography */}
-            <div className="space-y-2">
-              <Label>{translate('qrCode')}</Label>
-              <Input value={formData.qr_code} onChange={(e) => setFormData({...formData, qr_code: e.target.value})} placeholder="QRP-001" />
-            </div>
             <div className="space-y-2">
               <Label>{translate('biography')}</Label>
               <Textarea value={formData.biography} onChange={(e) => setFormData({...formData, biography: e.target.value})} rows={3} />
             </div>
 
-            {/* Re-added Photo Upload */}
             <div className="space-y-2">
               <Label>{translate('photo')}</Label>
               <div className="flex items-center gap-3">
-                {formData.photo_url && (
-                  <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
-                )}
-                <div>
-                  <Input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-upload" />
-                  <label htmlFor="photo-upload">
-                    <Button type="button" variant="outline" asChild disabled={uploading} className="w-full">
-                      <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploading ? translate('loading') : translate('upload')}
-                      </span>
-                    </Button>
-                  </label>
-                </div>
-              </div>
-            </div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    handleFileUpload(file);                    
+                  }}
+                  disabled={uploading}
+                />
 
+                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
+              </div>
+              {formData.photourl && (
+                  <img 
+                    src={`/api/file/${encodeURIComponent(formData.photourl)}`} 
+                    alt="Preview" 
+                  />
+                )}
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('cancel')}</Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
@@ -476,6 +500,12 @@ export default function ManageDeadPersons() {
         description={`Padam rekod "${personToDelete?.name}"?`}
         onConfirm={confirmDelete}
         variant="destructive"
+      />
+
+      <QRCodeDialog
+        open={qrDialogOpen}
+        onOpenChange={setQRDialogOpen}
+        data={qrPerson}
       />
     </div>
   );

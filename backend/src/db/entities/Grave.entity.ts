@@ -27,9 +27,6 @@ export class Grave {
   @Column("varchar", { length: 255, nullable: true })
   state?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
-  qrcode?: string;
-
   @Column("int", { nullable: true }) 
   totalgraves?: number;
 

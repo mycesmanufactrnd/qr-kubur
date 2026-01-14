@@ -15,12 +15,22 @@ services:
         paths:
           - /auth
 
-  - name: storage
-    url: http://storage:5000
+  - name: storage-v1
+    _comment: 'Storage: /storage/v1/* -> http://storage:5000/*'
+    url: http://storage:5000/
     routes:
-      - name: storage-route
+      - name: storage-v1-all
+        strip_path: true
         paths:
-          - /storage
+          - /storage/v1/
+    plugins:
+      - name: cors
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "X-Project-Ref: qr-kubur"
+
 
   - name: realtime
     url: http://realtime:4000
