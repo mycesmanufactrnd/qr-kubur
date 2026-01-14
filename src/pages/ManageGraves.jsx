@@ -430,7 +430,6 @@ const confirmDelete = async () => {
                   step="any"
                   value={formData.gps_lat}
                   onChange={(e) => setFormData({...formData, gps_lat: e.target.value})}
-                  placeholder="3.1390"
                 />
               </div>
               <div>
@@ -440,7 +439,6 @@ const confirmDelete = async () => {
                   step="any"
                   value={formData.gps_lng}
                   onChange={(e) => setFormData({...formData, gps_lng: e.target.value})}
-                  placeholder="101.6869"
                 />
               </div>
             </div>
@@ -449,7 +447,6 @@ const confirmDelete = async () => {
               variant="outline"
               onClick={() => {
                 if (navigator.geolocation) {
-                  showInfo('Mendapatkan lokasi...');
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
                       setFormData({
