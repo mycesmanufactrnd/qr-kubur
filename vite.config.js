@@ -14,6 +14,7 @@ export default defineConfig({
     }),
     react(),
   ],
+  base: '/',
   envDir: './',
   server: {
     host: '0.0.0.0',
