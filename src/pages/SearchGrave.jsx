@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { Search, MapPin, Navigation, Share2 } from 'lucide-react';
@@ -10,7 +10,6 @@ import { showSuccess } from '@/components/ToastrNotification.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { STATES_MY } from '@/utils/enums';
-// Import the new hook
 import { useSearchGraves } from '@/hooks/useGraveMutations';
 
 export default function SearchGrave() {

@@ -9,7 +9,7 @@ import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
-import { showInfo, showSuccess } from '@/components/ToastrNotification';
+import { showSuccess } from '@/components/ToastrNotification';
 
 export default function ScanQR() {
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {

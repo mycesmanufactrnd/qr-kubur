@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, User, Phone, Mail, Calendar, CheckCircle, Building2, ArrowLeft, Plus, Trash2, CreditCard } from 'lucide-react';
+import { User, Phone, Mail, Calendar, CheckCircle, Building2, Plus, Trash2, CreditCard } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ export default function TahlilRequestPage() {
   const selectedCenter = tahfizCenters.find(c => c.id === selectedTahfiz);
 
   // Get available payment platforms for selected tahfiz
-  const availablePlatforms = React.useMemo(() => {
+  const availablePlatforms = useMemo(() => {
     if (!paymentConfigs.length || !paymentPlatforms.length) return [];
     
     const platformCodes = [...new Set(paymentConfigs.map(c => c.payment_platform_code).filter(Boolean))];
@@ -88,7 +88,7 @@ export default function TahlilRequestPage() {
     return details;
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const validPlatforms = availablePlatforms.filter(p => p?.code);
     if (validPlatforms.length > 0) {
       if (!paymentMethod || !validPlatforms.find(p => p.code === paymentMethod)) {

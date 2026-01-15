@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 import { createPageUrl } from '@/utils';
-import { showSuccess } from '@/components/ToastrNotification';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();

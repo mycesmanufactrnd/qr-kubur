@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '../components/Breadcrumb';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions } from '../components/PermissionsContext';
 import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
 import { translate } from '@/utils/translations';
 import { useAdminAccess } from '@/utils/auth';
@@ -18,7 +18,6 @@ import Pagination from '@/components/Pagination';
 export default function ManageTahlilRequests() {
   const { 
     loadingUser,
-    currentUser,
     isTahfizAdmin,
     isSuperAdmin
   } = useAdminAccess();

@@ -18,7 +18,6 @@ export default function SearchTahfiz() {
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
-  // FIX: Destructure 'data' and rename it to 'tahfizCenters'
   const { data: tahfizCenters, isLoading } = useGetTahfizCoordinates(
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
   );
@@ -32,7 +31,6 @@ export default function SearchTahfiz() {
         });
       }, (error) => {
         console.error("Location error:", error);
-        // Fallback or info to user that 'nearby' won't work perfectly
       });
     }
   }, []);
@@ -45,7 +43,6 @@ export default function SearchTahfiz() {
     }, 300);
   };
 
-  // Logic: filter the data array inside tahfizCenters
   const filteredCenters = (tahfizCenters || []).filter(center => {
     const matchesSearch = !searchQuery || 
       center.name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -60,7 +57,6 @@ export default function SearchTahfiz() {
   const displayedCenters = filteredCenters.slice(0, displayedCount);
 
   const openDirections = (center) => {
-    // FIX: Use 'latitude' and 'longitude' to match DB schema
     if (center.latitude && center.longitude) {
       window.open(`https://www.google.com/maps/dir/?api=1&destination=${center.latitude},${center.longitude}`, '_blank');
     }
@@ -98,7 +94,6 @@ export default function SearchTahfiz() {
         </CardContent>
       </Card>
 
-      {/* Results Section */}
       {isLoading || isSearching ? (
          <div className="space-y-2 text-center p-10">
             <p className="animate-pulse text-gray-500">{translate('loading')}</p>
