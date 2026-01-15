@@ -43,9 +43,18 @@ export default function ToyyibPayConfigPage() {
       </button>
 
       {result && (
-        <pre className="bg-gray-100 p-2 rounded text-sm overflow-x-auto">
-          {result}
-        </pre>
+        <div>
+          <pre className="bg-gray-100 p-2 rounded text-sm overflow-x-auto">
+            {result}
+          </pre>
+          <a
+            href={JSON.parse(result).paymentUrl}
+            rel="noopener noreferrer"
+            className="text-blue-600 underline mt-2 inline-block"
+          >
+            Go to Payment
+          </a>
+        </div>
       )}
 
       {error && (

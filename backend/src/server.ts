@@ -11,9 +11,10 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext, router as trpcRouter } from "./trpc.ts";
 import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
-import { registerUploadRoutes } from "./api.ts";
 import multipart from '@fastify/multipart';
+import formbody from "@fastify/formbody";
 import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
+import { registerAPIRoutes } from "./api/api.ts";
 
 const app = Fastify({
   trustProxy: true,
@@ -34,8 +35,9 @@ await app.register(import('@fastify/cors'), {
 });
 
 await app.register(multipart);
+await app.register(formbody);
 
-registerUploadRoutes(app);
+registerAPIRoutes(app);
 
 app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",

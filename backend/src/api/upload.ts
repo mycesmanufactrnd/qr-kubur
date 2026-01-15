@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import type { FastifyInstance } from "fastify";
-import { supabaseStorageClient } from "./supabase.ts";
+import { supabaseStorageClient } from "../supabase.ts";
 
 
 export const registerUploadRoutes = (app: FastifyInstance) => {

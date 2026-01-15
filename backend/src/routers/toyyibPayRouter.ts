@@ -22,13 +22,9 @@ export const toyyibPayRouter = router({
         phone: input.phone,
       });
 
-    //   return {
-    //     billCode: bill.BillCode,
-    //     paymentUrl: `https://toyyibpay.com/${bill.BillCode}`,
-    //   };
       return {
-        billCode: 'qwer',
-        paymentUrl: `https://toyyibpay.com/`,
+        billCode: bill.BillCode,
+        paymentUrl: `https://dev.toyyibpay.com/${bill.BillCode}`,
       };
     }),
 });

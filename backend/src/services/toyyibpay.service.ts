@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
+import { supabaseClient } from "../supabase.ts";
 
 export async function createBill({
   amount,
@@ -23,22 +24,52 @@ export async function createBill({
     billDescription: "Tahlil & Doa Contribution",
     billPriceSetting: 1,
     billPayorInfo: 1,
-    billAmount: amount * 100, // RM → cent
+    billAmount: amount * 100,
     billReturnUrl: toyyibpayConfig.returnUrl,
     billCallbackUrl: toyyibpayConfig.callbackUrl,
     billExternalReferenceNo: referenceNo,
     billTo: name,
     billEmail: email,
     billPhone: phone,
-    billPaymentChannel: 0, // FPX
+    billPaymentChannel: 0,
   };
-
-  console.log('payloadpayloadpayloadpayloadpayload', payload)
 
   const res = await axios.post(
     `${toyyibpayConfig.baseUrl}/index.php/api/createBill`,
-    payload
+    payload,
+    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
 
   return res.data[0];
 }
+
+export async function handleToyyibPayCallback(data: any) {
+  const {
+    refno,
+    status,
+    reason,
+    billcode,
+    order_id,
+    amount,
+    transaction_time,
+  } = data;
+
+  console.log("ToyyibPay callback received:", data);
+
+  // const { error } = await supabaseClient
+  //   .from("payments")
+  //   .update({
+  //     status,
+  //     reason,
+  //     amount,
+  //     transaction_time,
+  //   })
+  //   .eq("billcode", billcode);
+
+  // if (error) {
+  //   console.error("Failed to update payment:", error);
+  //   throw new Error("DB update failed");
+  // }
+
+  return true;
+};
