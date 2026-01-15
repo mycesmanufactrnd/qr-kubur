@@ -4,7 +4,6 @@ import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import DeadPersonDetails from './pages/DeadPersonDetails';
 import DonationPage from './pages/DonationPage';
 import GraveDetails from './pages/GraveDetails';
-import Home from './pages/Home';
 import IconLibrary from './pages/IconLibrary';
 import ManageDeadPersons from './pages/ManageDeadPersons';
 import ManageDonations from './pages/ManageDonations';
@@ -42,7 +41,6 @@ export const PAGES = {
     "DeadPersonDetails": DeadPersonDetails,
     "DonationPage": DonationPage,
     "GraveDetails": GraveDetails,
-    "Home": Home,
     "IconLibrary": IconLibrary,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageDonations": ManageDonations,
