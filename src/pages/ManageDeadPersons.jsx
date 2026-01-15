@@ -30,15 +30,15 @@ import { Textarea } from '@/components/ui/textarea';
 
 const emptyPerson = {
   name: '',
-  ic_number: '',
-  date_of_birth: '',
-  date_of_death: '',
-  cause_of_death: '',
-  grave_id: '',
+  icnumber: '',
+  dateofbirth: '',
+  dateofdeath: '',
+  causeofdeath: '',
+  grave: '',
   biography: '',
   photourl: '',
-  gps_lat: '',
-  gps_lng: '',
+  gpslatitude: '',
+  gpslongitude: '',
 };
 
 export default function ManageDeadPersons() {
@@ -47,9 +47,6 @@ export default function ManageDeadPersons() {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin,
-    isEmployee,
-    currentUserStates 
   } = useAdminAccess();
 
   const [filterName, setFilterName] = useState('');
@@ -117,28 +114,27 @@ export default function ManageDeadPersons() {
     setEditingPerson(person);
     setFormData({
       name: person.name || '',
-      ic_number: person.icnumber || '',
-      date_of_birth: person.dateofbirth || '',
-      date_of_death: person.dateofdeath || '',
-      cause_of_death: person.causeofdeath || '',
-      grave_id: person.grave?.id || '',
+      icnumber: person.icnumber || '',
+      dateofbirth: person.dateofbirth || '',
+      dateofdeath: person.dateofdeath || '',
+      causeofdeath: person.causeofdeath || '',
+      grave: person.grave?.id || '',
       biography: person.biography || '',
       photourl: person.photourl || '',
-      gps_lat: person.latitude || '',
-      gps_lng: person.longitude || '',
+      gpslatitude: person.latitude || '',
+      gpslongitude: person.longitude || '',
     });
     setIsDialogOpen(true);
   };
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
-      showInfo('Mendapatkan lokasi...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setFormData({
             ...formData,
-            gps_lat: position.coords.latitude.toFixed(16),
-            gps_lng: position.coords.longitude.toFixed(16)
+            gpslatitude: position.coords.latitude.toFixed(16),
+            gpslongitude: position.coords.longitude.toFixed(16)
           });
           showSuccess('Lokasi berjaya diperolehi');
         },
@@ -153,19 +149,19 @@ export default function ManageDeadPersons() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name?.trim()) return showError('Sila masukkan nama penuh');
-    if (!formData.grave_id) return showError('Sila pilih tanah perkuburan');
+    if (!formData.grave) return showError('Sila pilih tanah perkuburan');
 
     const submitData = {
       name: formData.name,
-      icnumber: formData.ic_number || null,
-      dateofbirth: formData.date_of_birth || null,
-      dateofdeath: formData.date_of_death || null,
-      causeofdeath: formData.cause_of_death || null,
+      icnumber: formData.icnumber || null,
+      dateofbirth: formData.dateofbirth || null,
+      dateofdeath: formData.dateofdeath || null,
+      causeofdeath: formData.causeofdeath || null,
       biography: formData.biography || null,
       photourl: formData.photourl || null,
-      latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-      longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
-      graveId: Number(formData.grave_id)
+      latitude: formData.gpslatitude ? parseFloat(formData.gpslatitude) : null,
+      longitude: formData.gpslongitude ? parseFloat(formData.gpslongitude) : null,
+      graveId: Number(formData.grave)
     };
 
     try {
@@ -192,7 +188,7 @@ export default function ManageDeadPersons() {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/upload/bucket-grave', {
         method: 'POST',
         body: formDataUpload,
       });
@@ -240,8 +236,6 @@ export default function ManageDeadPersons() {
           </Button>
       </div>
 
-      {/* Advanced Filter Card */}
-      {/* Advanced Filter Card */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
@@ -340,8 +334,6 @@ export default function ManageDeadPersons() {
         </CardContent>
       </Card>
 
-
-      {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
@@ -422,25 +414,25 @@ export default function ManageDeadPersons() {
             </div>
             <div className="space-y-2">
               <Label>{translate('icNumber')}</Label>
-              <Input value={formData.ic_number} onChange={(e) => setFormData({...formData, ic_number: e.target.value})} placeholder="XXXXXX-XX-XXXX" />
+              <Input value={formData.icnumber} onChange={(e) => setFormData({...formData, icnumber: e.target.value})} placeholder="XXXXXX-XX-XXXX" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{translate('dateOfBirth')}</Label>
-                <Input type="date" value={formData.date_of_birth} onChange={(e) => setFormData({...formData, date_of_birth: e.target.value})} />
+                <Input type="date" value={formData.dateofbirth} onChange={(e) => setFormData({...formData, dateofbirth: e.target.value})} />
               </div>
               <div>
                 <Label>{translate('dateOfDeath')}</Label>
-                <Input type="date" value={formData.date_of_death} onChange={(e) => setFormData({...formData, date_of_death: e.target.value})} />
+                <Input type="date" value={formData.dateofdeath} onChange={(e) => setFormData({...formData, dateofdeath: e.target.value})} />
               </div>
             </div>
             <div className="space-y-2">
               <Label>{translate('causeOfDeath')}</Label>
-              <Input value={formData.cause_of_death} onChange={(e) => setFormData({...formData, cause_of_death: e.target.value})} />
+              <Input value={formData.causeofdeath} onChange={(e) => setFormData({...formData, causeofdeath: e.target.value})} />
             </div>
             <div className="space-y-2">
               <Label>{translate('cemeteryName')} *</Label>
-              <Select value={String(formData.grave_id)} onValueChange={(v) => setFormData({...formData, grave_id: v})}>
+              <Select value={String(formData.grave)} onValueChange={(v) => setFormData({...formData, grave: v})}>
                 <SelectTrigger><SelectValue placeholder={translate('selectCemetery')} /></SelectTrigger>
                 <SelectContent>
                   {gravesList.items.map(g => <SelectItem key={g.id} value={String(g.id)}>{g.name} - {g.state}</SelectItem>)}
@@ -452,11 +444,11 @@ export default function ManageDeadPersons() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{translate('gpsLat')}</Label>
-                <Input type="number" step="any" value={formData.gps_lat} onChange={(e) => setFormData({...formData, gps_lat: e.target.value})} placeholder="3.1390" />
+                <Input type="number" step="any" value={formData.gpslatitude} onChange={(e) => setFormData({...formData, gpslatitude: e.target.value})} placeholder="3.1390" />
               </div>
               <div>
                 <Label>{translate('gpsLng')}</Label>
-                <Input type="number" step="any" value={formData.gps_lng} onChange={(e) => setFormData({...formData, gps_lng: e.target.value})} placeholder="101.6869" />
+                <Input type="number" step="any" value={formData.gpslongitude} onChange={(e) => setFormData({...formData, gpslongitude: e.target.value})} placeholder="101.6869" />
               </div>
             </div>
             <Button type="button" variant="outline" onClick={getCurrentLocation} className="w-full">
@@ -470,24 +462,22 @@ export default function ManageDeadPersons() {
             <div className="space-y-2">
               <Label>{translate('photo')}</Label>
               <div className="flex items-center gap-3">
-                {formData.photo_url && (
-                  <img src={formData.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
-                )}
-                <div>
-                  <Input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" id="photo-upload" />
-                  <label htmlFor="photo-upload">
-                    <Button type="button" variant="outline" asChild disabled={uploading} className="w-full">
-                      <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploading ? translate('loading') : translate('upload')}
-                      </span>
-                    </Button>
-                  </label>
-                </div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    handleFileUpload(file);                    
+                  }}
+                  disabled={uploading}
+                />
+
+                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
               </div>
               {formData.photourl && (
                   <img 
-                    src={`/api/file/${encodeURIComponent(formData.photourl)}`} 
+                    src={`/api/file/bucket-grave/${encodeURIComponent(formData.photourl)}`} 
                     alt="Preview" 
                   />
                 )}

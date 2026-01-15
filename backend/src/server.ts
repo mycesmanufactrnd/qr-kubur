@@ -37,8 +37,8 @@ await app.register(rateLimit, {
 });
 
 await app.register(import('@fastify/cors'), {
-  // origin: "*",
-  origin: "http://localhost:5173",
+  origin: "*",
+  // origin: "http://localhost:5173",
 });
 
 await app.register(multipart);

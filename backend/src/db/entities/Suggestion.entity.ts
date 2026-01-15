@@ -2,12 +2,17 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } f
 import { ApprovalStatus } from "../enums.ts";
 import { DeadPerson } from "./DeadPerson.entity.ts";
 import { Grave } from "./Grave.entity.ts";
-
 @Entity("suggestion")
 export class Suggestion {
     @PrimaryGeneratedColumn()
     id!: number;
 
+    @Column("varchar", { length: 20 })
+    name!: string;
+
+    @Column("varchar", { length: 20 })
+    phoneno!: string;
+    
     @Column("varchar", { length: 20 })
     type!: string;
 

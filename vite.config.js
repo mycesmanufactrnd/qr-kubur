@@ -14,9 +14,11 @@ export default defineConfig({
     }),
     react(),
   ],
+  base: '/',
   envDir: './',
   server: {
     host: '0.0.0.0',
+    allowedHosts: true,
     port: 5173,
     watch: {
       usePolling: true,

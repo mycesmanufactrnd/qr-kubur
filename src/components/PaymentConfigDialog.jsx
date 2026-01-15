@@ -79,8 +79,10 @@ export default function PaymentConfigDialog({
           if (platformCode && fieldKey && filename) {
             platformSet.add(platformCode);
 
+            const bucketType = entityType === "organisation" ? 'bucket-org' : 'bucket-tahfiz';
+
             try {
-              const res = await fetch(`/api/file/${encodeURIComponent(filename)}`);
+              const res = await fetch(`/api/file/${bucketType}/${encodeURIComponent(filename)}`);
               if (!res.ok) {
                 console.warn(`Failed to fetch file: ${filename}`);
                 values[`${platformCode}_${fieldKey}`] = '';
@@ -120,7 +122,9 @@ export default function PaymentConfigDialog({
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload', { 
+      const bucketType = entityType === "organisation" ? 'bucket-org' : 'bucket-tahfiz';
+
+      const res = await fetch(`/api/upload/${bucketType}`, { 
         method: 'POST', 
         body: formData 
       });
@@ -193,7 +197,7 @@ export default function PaymentConfigDialog({
     });
 
     const payload = buildPaymentConfigPayload(entityType, entityId, configsToUpsert);
-
+    
     upsertMutation.mutateAsync(payload)
     .then((res) => {
       if (res) {

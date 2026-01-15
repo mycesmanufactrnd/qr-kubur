@@ -2,9 +2,12 @@ import { randomUUID } from 'crypto';
 import type { FastifyInstance } from "fastify";
 import { supabaseStorageClient } from "./supabase.ts";
 
+
 export const registerUploadRoutes = (app: FastifyInstance) => {
-  app.post('/api/upload', async (request, reply) => {
+  app.post('/api/upload/:bucket', async (request, reply) => {
     try {
+      const { bucket } = request.params as { bucket: string };
+
       const file = await request.file();
 
       if (!file) return reply.status(400).send({ error: 'No file uploaded' });
@@ -26,7 +29,7 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
       console.log('New name:', safeName);
 
       const { data, error } = await supabaseStorageClient.storage
-        .from('bucket-org')
+        .from(bucket!)
         .upload(safeName, buffer, { contentType: mimetype, upsert: false });
 
       if (error) {
@@ -42,13 +45,13 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
     }
   });
 
-  app.get('/api/file/:filename', async (req, reply) => {
-    const { filename } = req.params as { filename: string };
+  app.get('/api/file/:bucket/:filename', async (req, reply) => {
+    const { filename, bucket } = req.params as { filename: string, bucket: string };
 
     try {
       const { data, error } = await supabaseStorageClient
         .storage
-        .from('bucket-org')
+        .from(bucket)
         .download(filename);
 
       if (error || !data) {

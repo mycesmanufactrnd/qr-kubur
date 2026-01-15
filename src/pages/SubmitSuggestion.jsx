@@ -34,6 +34,8 @@ export default function SubmitSuggestion() {
     reset: handleResetForm, setValue, watch 
   } = useForm({
     defaultValues: {
+      name: '',
+      phoneno: '',
       type: '',
       watchSelectedGrave: '',
       entityId: '',
@@ -90,6 +92,8 @@ export default function SubmitSuggestion() {
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
+      { field: 'name', label: 'Name', type: 'text' },
+      { field: 'phoneno', label: 'Phone No.', type: 'phone' },
       { field: 'type', label: 'Record Type', type: 'select' },
       { field: 'entityId', label: 'Record', type: 'select' },
       { field: 'suggestedchanges', label: 'Suggested Changes', type: 'text' },
@@ -98,10 +102,12 @@ export default function SubmitSuggestion() {
 
     if (!isValid) return;
       
-    const { type, entityId, watchSelectedGrave, suggestedchanges, reason } = formData;
+    const { name, phoneno, type, entityId, watchSelectedGrave, suggestedchanges, reason } = formData;
 
     const suggestionData = {
-      type: type,
+      name,
+      phoneno,
+      type,
       suggestedchanges: suggestedchanges,
       reason,
       status: 'pending',
@@ -175,7 +181,41 @@ export default function SubmitSuggestion() {
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label htmlFor="type" className="dark:text-gray-300">Jenis Rekod</Label>
+              <Label htmlFor="name" className="dark:text-gray-300">Name <span className="text-red-500">*</span></Label>
+              <Controller
+                name="name"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    id="name" type="text"
+                    placeholder="Enter name"
+                    className="w-full border rounded px-3 py-1 mt-1"
+                  />
+                )}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phoneno" className="dark:text-gray-300">Phone No. <span className="text-red-500">*</span></Label>
+              <Controller
+                name="phoneno"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    id="phoneno" type="text"
+                    placeholder="Enter phone no."
+                    className="w-full border rounded px-3 py-1 mt-1"
+                  />
+                )}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="type" className="dark:text-gray-300">Jenis Rekod <span className="text-red-500">*</span></Label>
               <Controller
                 name="type"
                 control={control}

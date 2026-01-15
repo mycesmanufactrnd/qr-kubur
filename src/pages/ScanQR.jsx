@@ -9,6 +9,7 @@ import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { showInfo, showSuccess } from '@/components/ToastrNotification';
 
 export default function ScanQR() {
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
@@ -18,33 +19,36 @@ export default function ScanQR() {
   });
 
   const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [scannedGraveId, setScannedGraveId] = useState(null);
   const [scannedDeadPersonId, setScannedDeadPersonId] = useState(null);
 
   const { data: selectedGrave, isLoading: graveLoading } = trpc.grave.getGraveById.useQuery(
-    { id: scannedGraveId ?? 0 },
-    { enabled: scannedGraveId !== null }
+    { id: scannedGraveId },
+    { enabled: typeof scannedGraveId === 'number' }
   );
 
   const { data: selectedDeadPerson, isLoading: personLoading } = trpc.deadperson.getDeadPersonById.useQuery(
-    { id: scannedDeadPersonId ?? 0 },
-    { enabled: scannedDeadPersonId !== null }
+    { id: scannedDeadPersonId },
+    { enabled: typeof scannedDeadPersonId === 'number' }
   );
 
-  useEffect(() => {
-    if (selectedGrave && scannedGraveId !== null) {
-      setResult({ type: 'grave', data: selectedGrave });
-    }
-  }, [selectedGrave, scannedGraveId]);
+  const result =
+    selectedGrave
+      ? { type: 'grave', data: selectedGrave }
+      : selectedDeadPerson
+      ? { type: 'deadperson', data: selectedDeadPerson }
+      : null;
 
   useEffect(() => {
-    if (selectedDeadPerson && scannedDeadPersonId !== null) {
-      setResult({ type: 'person', data: selectedDeadPerson });
+    if (selectedGrave) {
+      showSuccess(`Found grave: ${selectedGrave.name}`);
     }
-  }, [selectedDeadPerson, scannedDeadPersonId]);
+    if (selectedDeadPerson) {
+      showSuccess(`Found Dead Person: ${selectedDeadPerson.name}`);
+    }
+  }, [selectedGrave, selectedDeadPerson]);
 
   const createMutation = trpc.visitLogs.create.useMutation();
 
@@ -80,18 +84,28 @@ export default function ScanQR() {
         const parsed = JSON.parse(qrCode);
         const { type, id } = parsed;
 
+        const numericId = Number(id);
+
+        if (isNaN(numericId)) {
+          setError('Kod QR tidak sah.');
+          return;
+        }
+
         if (!type || !id) {
           setError('Kod QR tidak sah.');
           setLoading(false);
           return;
         }
 
+        
         if (type === 'grave') {
-          setScannedGraveId(id); 
-          await createVisitLog(type, id);
+          const numericId = Number(id);
+          setScannedGraveId(numericId);
+          await createVisitLog(type, numericId);
         } else if (type === 'deadperson') {
-          setScannedDeadPersonId(id); 
-          await createVisitLog(type, id);
+          const numericId = Number(id);
+          setScannedDeadPersonId(numericId);
+          await createVisitLog(type, numericId);
         } else {
           setError('Kod QR tidak dijumpai dalam sistem.');
         }
@@ -195,7 +209,7 @@ export default function ScanQR() {
               <div className="flex-1">
                 <p className="font-semibold text-emerald-700 dark:text-emerald-300">{translate('recordFound')}</p>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white mt-1">
-                  {result.type === 'grave' ? result.data.cemetery_name : result.data.name}
+                  {result.data.name}
                 </h3>
                 {result.type === 'grave' && result.data.state && (
                   <p className="text-sm text-gray-600 dark:text-gray-300">{result.data.state}</p>
@@ -203,9 +217,9 @@ export default function ScanQR() {
                 {result.type === 'grave' && result.data.block && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Blok {result.data.block}, Lot {result.data.lot}</p>
                 )}
-                {result.type === 'person' && result.data.date_of_death && (
+                {result.type === 'person' && result.data.dateofdeath && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {new Date(result.data.date_of_death).toLocaleDateString('ms-MY')}
+                    {new Date(result.data.dateofdeath).toLocaleDateString('ms-MY')}
                   </p>
                 )}
               </div>
@@ -221,8 +235,9 @@ export default function ScanQR() {
               <Button 
                 variant="outline"
                 onClick={() => {
-                  setResult(null);
                   setError(null);
+                  setScannedGraveId(null);
+                  setScannedDeadPersonId(null);
                 }}
                 className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >

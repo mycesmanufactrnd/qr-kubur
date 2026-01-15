@@ -53,8 +53,10 @@ export const deadPersonRouter = router({
       const { graveId, ...personData } = input;
       const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
 
-      // Create person with explicit grave relation
-      const person = repo.create({ ...personData, grave });
+      const person = repo.create({ 
+        ...personData, 
+        grave 
+      });
 
       return await repo.save(person);
     }),
@@ -99,4 +101,36 @@ getById: protectedProcedure
       relations: ['grave'] 
     });
   }),
+  getDeadPersonById: publicProcedure
+    .input(
+        z.object({
+          id: z.number()
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.id) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(DeadPerson).findOne({ 
+        where: { id: input.id },
+        relations: ['grave']
+      });
+    }),
+
+  getDeadPersonByGraveId: publicProcedure
+    .input(
+        z.object({
+          graveId: z.number()
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.graveId) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(DeadPerson).find({ 
+        where: { grave: { id: input.graveId } } 
+      });
+    }),
 });

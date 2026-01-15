@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '../components/Breadcrumb';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions } from '../components/PermissionsContext';
 import { translate } from '@/utils/translations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAdminAccess } from '@/utils/auth';
@@ -21,7 +21,6 @@ export default function ManageSuggestions() {
   const { 
     loadingUser,
     hasAdminAccess, 
-    currentUser
   } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -169,7 +168,9 @@ export default function ManageSuggestions() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('suggestionType')}</TableHead>
+                <TableHead>{translate('Name')}</TableHead>
+                <TableHead className="text-center">{translate('Phone No')}</TableHead>
+                <TableHead className="text-center">{translate('suggestionType')}</TableHead>
                 <TableHead className="text-center">{translate('suggestion')}</TableHead>
                 <TableHead className="text-center">{translate('status')}</TableHead>
                 <TableHead className="text-center">{translate('date')}</TableHead>
@@ -188,7 +189,9 @@ export default function ManageSuggestions() {
               ) : (
                 suggestions.items.map(suggestion => (
                   <TableRow key={suggestion.id}>
-                    <TableCell>
+                    <TableCell>{suggestion.name}</TableCell>
+                    <TableCell className="text-center">{suggestion.phoneno}</TableCell>
+                    <TableCell className="text-center">
                       <Badge variant="outline">
                         {getEntityTypeLabel(suggestion.type)}
                       </Badge>

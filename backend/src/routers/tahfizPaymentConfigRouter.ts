@@ -48,7 +48,7 @@ export const tahfizPaymentConfigRouter = router({
             paymentplatform: { id: cfg.paymentPlatformId },
             paymentfield: { id: cfg.paymentFieldId },
           },
-          relations: ['tahfiz', 'paymentplatform', 'paymentfield'],
+          relations: ['tahfizcenter', 'paymentplatform', 'paymentfield'],
         });
 
         if (existing) {

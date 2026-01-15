@@ -8,12 +8,22 @@ export function useGetConfigByEntity({
   entityId: number;
   entityType: string;
 }) {
-  const { data } = trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
-    { organisation: { id: entityType === 'organisation' ? entityId : null } },
-    { enabled: entityType === 'organisation' && !!entityId }
-  );
-
-  return data ?? [];
+  if (entityType === "organisation") {
+    const { data } = trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
+      { organisation: { id: entityType === 'organisation' ? entityId : null } },
+      { enabled: entityType === 'organisation' && !!entityId }
+    );
+  
+    return data ?? [];
+  }
+  else if (entityType === "tahfiz") {
+    const { data } = trpc.tahfizPaymentConfig.getConfigByTahfizId.useQuery(
+      { tahfiz: { id: entityType === 'tahfiz' ? entityId : null } },
+      { enabled: entityType === 'tahfiz' && !!entityId }
+    );
+  
+    return data ?? [];
+  }
 }
 
 export function useUpsertConfigByEntity() {
