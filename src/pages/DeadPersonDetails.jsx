@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
-import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
+import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';

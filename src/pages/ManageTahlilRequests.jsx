@@ -27,8 +27,7 @@ export default function ManageTahlilRequests() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const {
-    loading: permissionsLoading,
-    canView, canApprove, canReject, canDelete
+    loading: permissionsLoading, canView,
   } = useCrudPermissions('tahlil');
 
   const {
@@ -132,7 +131,7 @@ export default function ManageTahlilRequests() {
         ))}
       </div>
 
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

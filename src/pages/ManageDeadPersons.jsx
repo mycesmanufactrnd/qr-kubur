@@ -70,7 +70,7 @@ export default function ManageDeadPersons() {
 
   const {
     loading: permissionsLoading,
-    canView, canCreate, canEdit, canDelete
+    canEdit, canDelete
   } = useCrudPermissions('dead_persons');
 
   const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(

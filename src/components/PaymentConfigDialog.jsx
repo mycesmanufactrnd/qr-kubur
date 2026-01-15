@@ -79,7 +79,7 @@ export default function PaymentConfigDialog({
           if (platformCode && fieldKey && filename) {
             platformSet.add(platformCode);
 
-            const bucketType = entityType === "organisation" ? 'bucket-org' : 'bucket-tahfiz';
+            const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
 
             try {
               const res = await fetch(`/api/file/${bucketType}/${encodeURIComponent(filename)}`);
@@ -122,7 +122,7 @@ export default function PaymentConfigDialog({
       const formData = new FormData();
       formData.append('file', file);
 
-      const bucketType = entityType === "organisation" ? 'bucket-org' : 'bucket-tahfiz';
+      const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
 
       const res = await fetch(`/api/upload/${bucketType}`, { 
         method: 'POST', 
