@@ -49,6 +49,7 @@ export default function SuperadminDashboard() {
       items: [
         { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
         { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
+        { name: translate('ToyyibPay Config'), page: 'ToyyibPayConfigPage', icon: Sparkles, color: 'indigo' },
       ]
     },
   ];

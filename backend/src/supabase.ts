@@ -1,8 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from "dotenv";
-import path from "path";
-
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
 if (!SERVICE_ROLE_KEY) {
@@ -14,7 +10,7 @@ const isRunningInDocker = process.env.DOCKER === 'true';
 const SUPABASE_URL = isRunningInDocker ? 'http://kong:8000' : 'http://localhost:8000';
 
 console.log(`\n💻 Running in ${isRunningInDocker ? 'DOCKER' : 'LOCAL'} mode`);
-console.log('🌐 Using SUPABASE_URL:', SUPABASE_URL);
+console.log('\n🌐 Using SUPABASE_URL:', SUPABASE_URL);
 
 export const supabaseClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },

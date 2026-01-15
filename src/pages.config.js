@@ -31,6 +31,7 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
+import ToyyibPayConfigPage from './pages/ToyyibPayConfigPage.jsx';
 import __Layout from './Layout.jsx';
 
 
@@ -68,6 +69,7 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
+    "ToyyibPayConfigPage": ToyyibPayConfigPage,
 }
 
 export const pagesConfig = {
