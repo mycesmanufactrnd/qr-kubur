@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, Building2, CheckCircle, CreditCard, Smartphone, QrCode, ArrowLeft } from 'lucide-react';
+import { Heart, Building2, CheckCircle, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,6 @@ export default function DonationPage() {
   const [referenceId, setReferenceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: organisations = [] } = useQuery({
@@ -79,15 +78,13 @@ export default function DonationPage() {
     ? organisations.find(o => o.id === selectedRecipient)
     : tahfizCenters.find(t => t.id === selectedRecipient);
 
-  // Get available payment platforms for selected recipient
-  const availablePlatforms = React.useMemo(() => {
+  const availablePlatforms = useMemo(() => {
     if (!paymentConfigs.length || !paymentPlatforms.length) return [];
     
     const platformCodes = [...new Set(paymentConfigs.map(c => c.payment_platform_code).filter(Boolean))];
     return paymentPlatforms.filter(p => p && p.code && platformCodes.includes(p.code));
   }, [paymentConfigs, paymentPlatforms]);
 
-  // Get payment details for selected method
   const getPaymentDetails = (platformCode) => {
     if (!platformCode || !paymentConfigs) return {};
     const configs = paymentConfigs.filter(c => c?.payment_platform_code === platformCode);
@@ -100,8 +97,7 @@ export default function DonationPage() {
     return details;
   };
 
-  // Reset payment method when recipient changes
-  React.useEffect(() => {
+  useEffect(() => {
     const validPlatforms = availablePlatforms.filter(p => p?.code);
     if (validPlatforms.length > 0) {
       if (!paymentMethod || !validPlatforms.find(p => p.code === paymentMethod)) {
@@ -229,7 +225,6 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        {/* Amount */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-lg dark:text-white">Jumlah Derma</CardTitle>
@@ -268,7 +263,6 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        {/* Payment Method */}
         {availablePlatforms.length > 0 && (
           <Card className="border-0 shadow-md dark:bg-gray-800">
             <CardHeader>
@@ -395,7 +389,6 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        {/* Submit */}
         <Button 
           type="submit"
           className="w-full h-14 text-lg bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 shadow-lg shadow-pink-200"

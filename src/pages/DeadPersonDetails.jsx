@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 import { createPageUrl } from '@/utils';
+import { calculateAge } from '@/utils/helpers';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
@@ -59,22 +61,9 @@ export default function DeadPersonDetails() {
     }
   };
 
-  const calculateAge = (dob, dod) => {
-    if (!dob || !dod) return null;
-    const birth = new Date(dob);
-    const death = new Date(dod);
-    let age = death.getFullYear() - birth.getFullYear();
-    const m = death.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) age--;
-    return age;
-  };
-
   if (isLoading) {
     return (
-      <div className="space-y-3 animate-pulse pb-2">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
-      </div>
+      <PageLoadingComponent/>
     );
   }
 
