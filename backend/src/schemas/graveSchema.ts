@@ -11,5 +11,5 @@ export const graveSchema = z.object({
   icnumber: z.string().optional().nullable(),
   totalgraves: z.number().int().nonnegative().optional().nullable(),
   status: z.string().optional().nullable(),
-  organisationid: z.number().optional().nullable(),
+  organisation: z.object({ id: z.number() }).nullable().optional(),
 });

@@ -12,8 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
-import { showSuccess, showError, showInfo, showWarning, showApiError, showApiSuccess, showUniqueError } from '../components/ToastrNotification';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { showSuccess, showError } from '../components/ToastrNotification';
+import { useCrudPermissions } from '../components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
@@ -25,21 +25,20 @@ import QRCodeDialog from '@/components/QRCodeDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
 
-
-const emptyGrave = {
-  cemetery_name: '',
-  state: '',
-  block: '',
-  lot: '',
-  address: '',
-  gps_lat: '',
-  gps_lng: '',
-  organisation_id: '',
-  status: 'active',
-  total_graves: 0,
-};
-
 export default function ManageGraves() {
+  const emptyGrave = {
+    name: '',
+    state: '',
+    block: '',
+    lot: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+    organisation: '',
+    status: 'active',
+    totalgraves: 0,
+  };
+
   const { 
     currentUser, 
     loadingUser, 
@@ -47,7 +46,7 @@ export default function ManageGraves() {
     isSuperAdmin, 
     currentUserStates 
   } = useAdminAccess();
-
+  
   const [filterName, setFilterName] = useState('');
   const [filterState, setFilterState] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -65,15 +64,15 @@ export default function ManageGraves() {
   const [qrGrave, setQRGrave] = useState({});
 
   const {
-      loading: permissionsLoading,
-      canView, canCreate, canEdit, canDelete
-    } = useCrudPermissions('graves');
-
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('graves');
+  
   const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
     { organisationId: currentUser?.organisation?.id },
     { enabled: !!currentUser && !!currentUser?.organisation?.id && !isSuperAdmin }
   );
-
+  
   useEffect(() => {
     if (parentAndChildQuery.data) {
       setAccessibleOrgIds(parentAndChildQuery.data);
@@ -110,16 +109,16 @@ export default function ManageGraves() {
   const openEditDialog = (grave) => {
     setEditingGrave(grave);
     setFormData({
-      cemetery_name: grave.name || '',
+      name: grave.name || '',
       state: grave.state || '',
       block: grave.block || '',
       lot: grave.lot || '',
       address: grave.address || '',
-      gps_lat: grave.latitude || '',
-      gps_lng: grave.longitude || '',
-      organisation_id: grave.organisationid || '',
+      latitude: grave.latitude || '',
+      longitude: grave.longitude || '',
+      organisation: grave.organisation?.id || null,
       status: grave.status || 'active',
-      total_graves: grave.totalgraves || 0
+      totalgraves: grave.totalgraves || 0
     });
     setIsDialogOpen(true);
   };
@@ -128,23 +127,23 @@ export default function ManageGraves() {
     e.preventDefault();
     
     const isValid = validateFields(formData, [
-      { field: 'cemetery_name', label: 'Grave', type: 'text' },
+      { field: 'name', label: 'Grave', type: 'text' },
       { field: 'state', label: 'State', type: 'select' },
     ]);
 
     if (!isValid) return;
 
     const submitData = {
-      name: formData.cemetery_name,
+      name: formData.name,
       state: formData.state,
       block: formData.block || '',
       lot: formData.lot || '',
       address: formData.address || '',
-      latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
-      longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
-      organisationid: formData.organisation_id ? Number(formData.organisation_id) : null,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      organisation: formData.organisation ? { id: Number(formData.organisation) } : null,
       status: formData.status || 'active',
-      totalgraves: Number(formData.total_graves) || 0
+      totalgraves: Number(formData.totalgraves) || 0
     };
 
     try {
@@ -284,8 +283,7 @@ const confirmDelete = async () => {
         </CardContent>
       </Card>
 
-      {/* Desktop Table */}
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -386,8 +384,8 @@ const confirmDelete = async () => {
             <div>
               <Label>{translate('cemeteryName')} <span className="text-red-500">*</span></Label>
               <Input
-                value={formData.cemetery_name}
-                onChange={(e) => setFormData({...formData, cemetery_name: e.target.value})}
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
             </div>
               <div>
@@ -437,8 +435,8 @@ const confirmDelete = async () => {
                 <Input
                   type="number"
                   step="any"
-                  value={formData.gps_lat}
-                  onChange={(e) => setFormData({...formData, gps_lat: e.target.value})}
+                  value={formData.latitude}
+                  onChange={(e) => setFormData({...formData, latitude: e.target.value})}
                 />
               </div>
               <div>
@@ -446,8 +444,8 @@ const confirmDelete = async () => {
                 <Input
                   type="number"
                   step="any"
-                  value={formData.gps_lng}
-                  onChange={(e) => setFormData({...formData, gps_lng: e.target.value})}
+                  value={formData.longitude}
+                  onChange={(e) => setFormData({...formData, longitude: e.target.value})}
                 />
               </div>
             </div>
@@ -460,8 +458,8 @@ const confirmDelete = async () => {
                     (position) => {
                       setFormData({
                         ...formData,
-                        gps_lat: position.coords.latitude.toFixed(16),
-                        gps_lng: position.coords.longitude.toFixed(16)
+                        latitude: position.coords.latitude.toFixed(16),
+                        longitude: position.coords.longitude.toFixed(16)
                       });
                       showSuccess('Lokasi berjaya diperolehi');
                     },
@@ -481,13 +479,13 @@ const confirmDelete = async () => {
             </Button>
             <div>
               <Label>{translate('managingOrg')}</Label>
-              <Select value={formData.organisation_id} onValueChange={(v) => setFormData({...formData, organisation_id: v})}>
+              <Select value={String(formData.organisation)} onValueChange={(value) => setFormData({...formData, organisation: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder={translate('allManagingOrg')} />
                 </SelectTrigger>
                 <SelectContent>
                   {organisationsList.items.map(org => (
-                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                    <SelectItem key={org.id} value={String(org.id)}>{org.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -497,8 +495,8 @@ const confirmDelete = async () => {
                 <Label>{translate('totalGravesCount')}</Label>
                 <Input
                   type="number"
-                  value={formData.total_graves}
-                  onChange={(e) => setFormData({...formData, total_graves: e.target.value})}
+                  value={formData.totalgraves}
+                  onChange={(e) => setFormData({...formData, totalgraves: e.target.value})}
                 />
               </div>
               <div>
@@ -532,7 +530,7 @@ const confirmDelete = async () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title={translate('delete') + ' ' + translate('manageGravesTitle')}
-        description={`${translate('delete')} "${graveToDelete?.cemetery_name}"?`}
+        description={`${translate('delete')} "${graveToDelete?.name}"?`}
         onConfirm={confirmDelete}
         confirmText={translate('delete')}
         variant="destructive"
