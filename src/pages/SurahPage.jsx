@@ -5,12 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SURAH_DATA, SURAH_LIST, RECITERS } from "@/utils/enums";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import TahlilPdf from "@/assets/Tahlil.pdf";
-import DoaTahlilPdf from "@/assets/DoaTahlil.pdf";
 import BackNavigation from "@/components/BackNavigation";
 
+
 export default function SurahPage() {
+  const TahlilPdf = "/Tahlil.pdf";
+  const DoaTahlilPdf = "/DoaTahlil.pdf";
+  
   const [surahId, setSurahId] = useState(36);
   const [reciterId, setReciterId] = useState(1);
 
