@@ -37,7 +37,7 @@ export function useGetTahfizCoordinates(coordinates?: { latitude: number; longit
   return trpc.tahfiz.getTahfiz.useQuery(
     { coordinates: coordinates ?? null },
     {
-      enabled: true,
+      enabled: coordinates !== undefined,
       staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
     }

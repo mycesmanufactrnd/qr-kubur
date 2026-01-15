@@ -5,28 +5,57 @@ import { TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
-  // Fetching for maps
-  getTahfiz: publicProcedure
-    .input(z.object({
-      coordinates: z.object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-      }).optional().nullable()
-    }))
-    .query(async ({ input }) => {
-      const repo = AppDataSource.getRepository(TahfizCenter);
-      if (!input.coordinates) {
-        return repo.find({ take: 100, order: { createdat: "DESC" } });
-      }
-      const { latitude, longitude } = input.coordinates;
-      return repo.createQueryBuilder("t")
-        .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
-        .setParameters({ lat: latitude, lng: longitude })
-        .take(10)
-        .getMany();
-    }),
 
-  // Fetching for Admin Table
+  // GET NEARBY TAHFIZ FOR MAPS / SEARCH PAGE
+  getTahfiz: publicProcedure
+  .input(z.object({
+    coordinates: z.object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    }).optional().nullable()
+  }))
+  .query(async ({ input }) => {
+    const repo = AppDataSource.getRepository(TahfizCenter);
+
+    if (!input.coordinates) {
+      return repo.find({
+        take: 100,
+        order: { createdat: "DESC" }
+      });
+    }
+
+    const { latitude, longitude } = input.coordinates;
+
+    const qb = repo.createQueryBuilder("t")
+      .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
+      .addSelect(`
+        (
+          6371 * acos(
+            cos(radians(:lat)) *
+            cos(radians(t.latitude)) *
+            cos(radians(t.longitude) - radians(:lng)) +
+            sin(radians(:lat)) *
+            sin(radians(t.latitude))
+          )
+        )
+      `, "distance")
+      .orderBy("distance", "ASC")
+      .setParameters({ lat: latitude, lng: longitude })
+      .take(20);
+
+    const { entities, raw } = await qb.getRawAndEntities();
+
+    // Merge raw distance → entity
+    const results = entities.map((entity, index) => ({
+      ...entity,
+      distance: Number(raw[index].distance),
+    }));
+
+    return results;
+  }),
+
+
+  // ADMIN TABLE PAGINATION
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).optional(),
@@ -39,16 +68,23 @@ export const tahfizRouter = router({
       const repo = AppDataSource.getRepository(TahfizCenter);
       const query = repo.createQueryBuilder("tahfizcenter");
 
-      if (search) query.andWhere("tahfizcenter.name ILIKE :search", { search: `%${search}%` });
-      if (filterState) query.andWhere("tahfizcenter.state = :state", { state: filterState });
+      if (search)
+        query.andWhere("tahfizcenter.name ILIKE :search", { search: `%${search}%` });
 
-      if (page && pageSize) query.skip((page - 1) * pageSize).take(pageSize);
+      if (filterState)
+        query.andWhere("tahfizcenter.state = :state", { state: filterState });
 
-      const [items, total] = await query.orderBy("tahfizcenter.createdat", "DESC").getManyAndCount();
+      if (page && pageSize)
+        query.skip((page - 1) * pageSize).take(pageSize);
+
+      const [items, total] = await query
+        .orderBy("tahfizcenter.createdat", "DESC")
+        .getManyAndCount();
+
       return { items, total };
     }),
 
-  // Mutations
+  // CREATE NEW TAHFIZ
   create: protectedProcedure
     .input(tahfizSchema)
     .mutation(async ({ input }) => {
@@ -57,15 +93,17 @@ export const tahfizRouter = router({
       return await repo.save(tahfiz);
     }),
 
+  // UPDATE TAHFIZ
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: tahfizSchema.partial() }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(TahfizCenter);
       const tahfiz = await repo.findOneByOrFail({ id: input.id });
-      repo.merge(tahfiz, input.data); 
+      repo.merge(tahfiz, input.data);
       return repo.save(tahfiz);
     }),
 
+  // DELETE TAHFIZ
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {

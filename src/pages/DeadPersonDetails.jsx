@@ -4,22 +4,11 @@ import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
-import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 
 export default function DeadPersonDetails() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const personId = urlParams.get('id');
-
-  const { data: person, isLoading } = useQuery({
-    queryKey: ['dead-person', personId],
-    queryFn: async () => {
-      const persons = await base44.entities.DeadPerson.filter({ id: personId });
-      return persons[0];
-    },
-    enabled: !!personId
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get('id'));
 
@@ -90,7 +79,7 @@ export default function DeadPersonDetails() {
 
   if (isLoading) {
     return (
-      <div className="space-y-3 animate-pulse pb-2">
+      <div className="space-y-3 animate-pulse pb-2 p-4">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
         <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
@@ -99,7 +88,7 @@ export default function DeadPersonDetails() {
 
   if (isError || !person) {
     return (
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
+      <Card className="border-0 shadow-sm dark:bg-gray-800 m-4">
         <CardContent className="p-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Maklumat tidak dijumpai
@@ -114,19 +103,16 @@ export default function DeadPersonDetails() {
   /* -------------------- UI -------------------- */
 
   return (
-    <div className="space-y-3 pb-2">
+    <div className="space-y-3 pb-2 p-4">
       <BackNavigation title={person.name} />
 
       {/* Person Details */}
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
-
           {person.icnumber && (
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
-              <p className="text-sm font-medium dark:text-white">
-                {person.icnumber}
-              </p>
+              <p className="text-sm font-medium dark:text-white">{person.icnumber}</p>
             </div>
           )}
 
