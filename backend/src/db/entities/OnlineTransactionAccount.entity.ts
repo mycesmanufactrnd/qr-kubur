@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import { OnlineTransaction } from "./OnlineTransaction.entity.ts";
 
-@Entity("online_trans_acct")
+@Entity("onlinetransactionaccount")
 export class OnlineTransactionAccount {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -15,7 +15,7 @@ export class OnlineTransactionAccount {
   @ManyToOne(() => OnlineTransaction, (transaction) => transaction.accounts)
   transaction!: OnlineTransaction;
 
-  @Column("varchar", { length: 2 })
+  @Column("varchar", { length: 50 })
   type!: string;
   // App: QR Kubur
 
@@ -32,8 +32,8 @@ export class OnlineTransactionAccount {
   referenceno?: string;
   // ToyyibPay: refno
 
-  @Column("varchar", { length: 50, nullable: true })
-  gatewaystatus?: string;
+  @Column("varchar", { length: 10, nullable: true })
+  gatewayStatus?: string;
   // ToyyibPay: status (3=unsuccessful, 1=success, 2=pending)
 
   @CreateDateColumn({ name: "createdat" })

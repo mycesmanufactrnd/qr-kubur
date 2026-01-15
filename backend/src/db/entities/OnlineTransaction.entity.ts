@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 import { OnlineTransactionAccount } from "./OnlineTransactionAccount.entity.ts";
 
-@Entity("online_trans")
+@Entity("onlinetransaction")
 export class OnlineTransaction {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -32,8 +32,8 @@ export class OnlineTransaction {
   // ToyyibPay: amount
   // App: Total amount for the transaction
 
-  @Column("varchar", { length: 2 })
-  orderstatus!: string;
+  @Column("varchar", { length: 10, nullable: true })
+  orderstatus?: string;
   // ToyyibPay: status_id (3=unsuccessful, 1=success, 2=pending)
   // App: status code (pending, success, failed)
 
@@ -86,7 +86,7 @@ export class OnlineTransaction {
   // App: null
   // ToyyibPay: reason
 
-  @Column("varchar", { length: 50, nullable: true })
+  @Column("varchar", { length: 10, nullable: true })
   gatewaystatus?: string;
   // App: null
   // ToyyibPay: status (3=unsuccessful, 1=success, 2=pending)
@@ -100,5 +100,5 @@ export class OnlineTransaction {
   accounts?: OnlineTransactionAccount[];
 
   @CreateDateColumn({ name: "createdat" })
-  createdAt!: Date;
+  createdat!: Date;
 }

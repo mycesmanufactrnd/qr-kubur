@@ -1,6 +1,8 @@
 import axios from "axios";
 import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
 import { supabaseClient } from "../supabase.ts";
+import { AppDataSource } from "../datasource.ts";
+import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
 
 export async function createBill({
   amount,
@@ -53,25 +55,60 @@ export async function handleToyyibPayCallback(data: any) {
     billcode,
     order_id,
     amount,
+    status_id,
+    msg,
+    transaction_id,
+    fpx_transaction_id,
+    hash,
     transaction_time,
   } = data;
 
-  console.log("ToyyibPay callback received:", data);
+  const paymentToyyibStatus: Record<string, string> = {
+    "1": "success",
+    "2": "pending",
+    "3": "unsuccessful",
+    
+    "01": "success",
+    "02": "pending",
+    "03": "unsuccessful",
+  }
 
-  // const { error } = await supabaseClient
-  //   .from("payments")
-  //   .update({
-  //     status,
-  //     reason,
-  //     amount,
-  //     transaction_time,
-  //   })
-  //   .eq("billcode", billcode);
+  const gatewayStatus = paymentToyyibStatus[String(status)] || status;
 
-  // if (error) {
-  //   console.error("Failed to update payment:", error);
-  //   throw new Error("DB update failed");
-  // }
+  const onlineTransactionRepo = AppDataSource.getRepository(OnlineTransaction);
+  const onlineTransactionAccountRepo = AppDataSource.getRepository(OnlineTransactionAccount);
 
-  return true;
-};
+  const transaction = onlineTransactionRepo.create({
+    referenceno: refno,
+    orderno: order_id,
+    ordertime: null,
+    orderamount: parseFloat(amount),
+    orderstatus: status_id,
+    transactionid: transaction_id,
+    userid: null,
+    fpxdirectrespcode: null,
+    fpxindirectrespcode: null,
+    fpxtransactionid: fpx_transaction_id,
+    fpxtransactiontime: transaction_time ? new Date(transaction_time) : null,
+    billcode: billcode,
+    gatewaymsg: msg,
+    gatewayadditionalmsg: reason,
+    gatewaystatus: gatewayStatus,
+    gatewayhash: hash,
+  });
+
+  const savedTransaction = await onlineTransactionRepo.save(transaction);
+
+  const transactionAccount = onlineTransactionAccountRepo.create({
+    type: 'QR Kubur',
+    accountno: '123456789',
+    amount: parseFloat(amount),
+    referenceno: refno,
+    gatewayStatus: gatewayStatus,
+    transaction: savedTransaction, 
+  });
+
+  await onlineTransactionAccountRepo.save(transactionAccount);
+
+  return true
+}
