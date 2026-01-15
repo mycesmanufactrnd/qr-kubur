@@ -5,6 +5,7 @@ export const graveSchema = z.object({
   state: z.string().min(1, "Negeri diperlukan"),
   block: z.string().optional().nullable(),
   lot: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   icnumber: z.string().optional().nullable(),

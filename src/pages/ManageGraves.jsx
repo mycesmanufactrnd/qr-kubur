@@ -22,6 +22,8 @@ import { useGetGravePaginated, useCreateGrave, useUpdateGrave, useDeleteGrave } 
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
+import { Textarea } from '@/components/ui/textarea';
+import { validateFields } from '@/utils/validations';
 
 
 const emptyGrave = {
@@ -29,6 +31,7 @@ const emptyGrave = {
   state: '',
   block: '',
   lot: '',
+  address: '',
   gps_lat: '',
   gps_lng: '',
   organisation_id: '',
@@ -42,8 +45,6 @@ export default function ManageGraves() {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin, 
-    isEmployee, 
     currentUserStates 
   } = useAdminAccess();
 
@@ -113,6 +114,7 @@ export default function ManageGraves() {
       state: grave.state || '',
       block: grave.block || '',
       lot: grave.lot || '',
+      address: grave.address || '',
       gps_lat: grave.latitude || '',
       gps_lng: grave.longitude || '',
       organisation_id: grave.organisationid || '',
@@ -125,20 +127,24 @@ export default function ManageGraves() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic Validation
-    if (!formData.cemetery_name?.trim()) return showError('Sila masukkan nama tanah perkuburan');
-    if (!formData.state) return showError('Sila pilih negeri');
+    const isValid = validateFields(formData, [
+      { field: 'cemetery_name', label: 'Grave', type: 'text' },
+      { field: 'state', label: 'State', type: 'select' },
+    ]);
+
+    if (!isValid) return;
 
     const submitData = {
       name: formData.cemetery_name,
       state: formData.state,
-      block: formData.block || null,
-      lot: formData.lot || null,
+      block: formData.block || '',
+      lot: formData.lot || '',
+      address: formData.address || '',
       latitude: formData.gps_lat ? parseFloat(formData.gps_lat) : null,
       longitude: formData.gps_lng ? parseFloat(formData.gps_lng) : null,
       organisationid: formData.organisation_id ? Number(formData.organisation_id) : null,
       status: formData.status || 'active',
-      totalgraves: parseInt(formData.total_graves) || 0
+      totalgraves: Number(formData.total_graves) || 0
     };
 
     try {
@@ -372,7 +378,7 @@ const confirmDelete = async () => {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingGrave ? translate('editGrave') : translate('addGrave')}
+              {editingGrave ? translate('Edit Grave') : translate('addGrave')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={
@@ -387,7 +393,6 @@ const confirmDelete = async () => {
               <div>
                 <Label>{translate('state')} <span className="text-red-500">*</span></Label>
                 <Select 
-                  /* Ensure value is never undefined/null to keep the component controlled */
                   value={formData.state || ""} 
                   onValueChange={(v) => setFormData({ ...formData, state: v })}
                 >
@@ -395,9 +400,6 @@ const confirmDelete = async () => {
                     <SelectValue placeholder={translate('selectStates')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Logic: If SuperAdmin, show the full list from enums. 
-                      Otherwise, show only the states assigned to this user's profile.
-                    */}
                     {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((state) => (
                       <SelectItem key={state} value={state}>
                         {state}
@@ -408,20 +410,27 @@ const confirmDelete = async () => {
               </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{translate('block')}</Label>
+                <Label>{translate('Block')}</Label>
                 <Input
                   value={formData.block}
                   onChange={(e) => setFormData({...formData, block: e.target.value})}
                 />
               </div>
               <div>
-                <Label>{translate('lot')}</Label>
+                <Label>{translate('Lot')}</Label>
                 <Input
                   value={formData.lot}
                   onChange={(e) => setFormData({...formData, lot: e.target.value})}
                 />
               </div>
             </div>
+            <Label>{translate('Address')}</Label>
+            <Textarea
+              value={formData.address}
+              onChange={(e) => setFormData({...formData, address: e.target.address})}
+              rows={3}
+              className="dark:bg-gray-700 dark:text-white"
+            />
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>{translate('gpsLat')}</Label>

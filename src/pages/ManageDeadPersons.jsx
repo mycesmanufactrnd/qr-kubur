@@ -27,6 +27,7 @@ import {
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { Textarea } from '@/components/ui/textarea';
+import { validateFields } from '@/utils/validations';
 
 const emptyPerson = {
   name: '',
@@ -148,8 +149,13 @@ export default function ManageDeadPersons() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name?.trim()) return showError('Sila masukkan nama penuh');
-    if (!formData.grave) return showError('Sila pilih tanah perkuburan');
+
+    const isValid = validateFields(formData, [
+      { field: 'name', label: 'Name', type: 'text' },
+      { field: 'grave', label: 'Grave', type: 'select' },
+    ]);
+
+    if (!isValid) return;
 
     const submitData = {
       name: formData.name,

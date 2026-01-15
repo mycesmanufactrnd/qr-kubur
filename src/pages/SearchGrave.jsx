@@ -71,7 +71,7 @@ export default function SearchGrave() {
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
-            placeholder={translate('graveName')}
+            placeholder={translate('Grave')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -82,7 +82,7 @@ export default function SearchGrave() {
                 <SelectValue placeholder={translate('state')} />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-700">
-                <SelectItem value="nearby">{translate('nearby')}</SelectItem>
+                <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
                 {STATES_MY.map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
