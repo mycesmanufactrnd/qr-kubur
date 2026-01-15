@@ -12,7 +12,7 @@ export const registerPaymentRoutes = (app: FastifyInstance) => {
       }
     }
 
-    console.log("ToyyibPay callback parsed:", data);
+    // console.log("ToyyibPay callback parsed:", data);
 
     try {
       await handleToyyibPayCallback(data);

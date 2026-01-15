@@ -22,8 +22,8 @@ export async function createBill({
     categoryCode: toyyibpayConfig.categoryCode,
     billName: "QR Kubur Tahlil",
     billDescription: "Tahlil & Doa Contribution",
-    billPriceSetting: 1,
-    billPayorInfo: 1,
+    billPriceSetting: 1, // 0 - for user to set the amount
+    billPayorInfo: 1, // 0 - if not require payer info
     billAmount: amount * 100,
     billReturnUrl: toyyibpayConfig.returnUrl,
     billCallbackUrl: toyyibpayConfig.callbackUrl,
@@ -31,7 +31,9 @@ export async function createBill({
     billTo: name,
     billEmail: email,
     billPhone: phone,
-    billPaymentChannel: 0,
+    billPaymentChannel: 0, // Set 0 for FPX, 1 Credit Card and 2 for both FPX & Credit Car
+    billContentEmail: 'Meow, Thank you for purchasing our product!',
+    billChargeToCustomer: 1,
   };
 
   const res = await axios.post(
