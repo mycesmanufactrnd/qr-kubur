@@ -13,8 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-
-const SUGGESTED_AMOUNTS = [10, 20, 50, 100, 200, 500];
+import { DONATION_AMOUNTS } from '@/utils/enums';
 
 export default function DonationPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -231,7 +230,7 @@ export default function DonationPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              {SUGGESTED_AMOUNTS.map(amt => (
+              {DONATION_AMOUNTS.map(amt => (
                 <Button
                   key={amt}
                   type="button"

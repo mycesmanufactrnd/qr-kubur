@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from "@/components/BackNavigation";
+import { DONATION_AMOUNTS } from '@/utils/enums';
 
 const SERVICE_TYPES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas', description: 'Bacaan tahlil ringkas untuk arwah' },
@@ -38,6 +39,8 @@ export default function TahlilRequestPage() {
   const [referenceId, setReferenceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [amount, setAmount] = useState('');
+  const [customAmount, setCustomAmount] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -67,7 +70,6 @@ export default function TahlilRequestPage() {
 
   const selectedCenter = tahfizCenters.find(c => c.id === selectedTahfiz);
 
-  // Get available payment platforms for selected tahfiz
   const availablePlatforms = useMemo(() => {
     if (!paymentConfigs.length || !paymentPlatforms.length) return [];
     
@@ -75,7 +77,6 @@ export default function TahlilRequestPage() {
     return paymentPlatforms.filter(p => p && p.code && platformCodes.includes(p.code));
   }, [paymentConfigs, paymentPlatforms]);
 
-  // Get payment details for selected method
   const getPaymentDetails = (platformCode) => {
     if (!platformCode || !paymentConfigs) return {};
     const configs = paymentConfigs.filter(c => c?.payment_platform_code === platformCode);
@@ -494,7 +495,44 @@ export default function TahlilRequestPage() {
           </Card>
         )}
 
-        {/* Transaction Details */}
+        <Card className="border-0 shadow-md dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle className="text-lg dark:text-white">Jumlah Derma</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              {DONATION_AMOUNTS.map(amt => (
+                <Button
+                  key={amt}
+                  type="button"
+                  variant={amount === String(amt) && !customAmount ? 'default' : 'outline'}
+                  className={amount === String(amt) && !customAmount ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                  onClick={() => {
+                    setAmount(String(amt));
+                    setCustomAmount('');
+                  }}
+                >
+                  RM {amt}
+                </Button>
+              ))}
+            </div>
+            
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">RM</span>
+              <Input
+                type="number"
+                placeholder="Jumlah lain"
+                value={customAmount}
+                onChange={(e) => {
+                  setCustomAmount(e.target.value);
+                  setAmount('');
+                }}
+                className="pl-12 text-md dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
             <CardTitle className="text-lg dark:text-white">

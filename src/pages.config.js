@@ -36,6 +36,9 @@ import __Layout from './Layout.jsx';
 import UserDashboard from './pages/UserDashboard';
 import UserDashboard1 from './pages/Dashboards/UserDashboard1';
 import UserDashboard2 from './pages/Dashboards/UserDashboard2';
+import UserDashboard3 from './pages/Dashboards/UserDashboard3';
+import UserDashboard4 from './pages/Dashboards/UserDashboard4';
+import UserDashboard5 from './pages/Dashboards/UserDashboard5';
 
 
 export const PAGES = {
@@ -74,11 +77,12 @@ export const PAGES = {
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "SolatJenazah": SolatJenazah,
 
-
-
     "UserDashboard": UserDashboard,
     "UserDashboard1": UserDashboard1,
     "UserDashboard2": UserDashboard2,
+    "UserDashboard3": UserDashboard3,
+    "UserDashboard4": UserDashboard4,
+    "UserDashboard5": UserDashboard5,
 }
 
 export const pagesConfig = {
