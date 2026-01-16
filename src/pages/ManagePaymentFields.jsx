@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Settings, Plus, Edit, Trash2, Search, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { showError, showSuccess } from '@/components/ToastrNotification';
 import { useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';

@@ -1,13 +1,7 @@
-import "reflect-metadata";
-import * as dotenv from "dotenv";
-import path from "path";
-
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
-
 import { DataSource } from "typeorm";
 import * as entities from "./db/entities.ts";
 
-console.log("Checking Database URL:", process.env.DATABASE_URL ? "FOUND" : "MISSING");
+console.log("\n🛢️ Checking Database URL:", process.env.DATABASE_URL ? "FOUND" : "MISSING");
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error("DATABASE_URL environment variable is not set");

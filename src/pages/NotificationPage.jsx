@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";

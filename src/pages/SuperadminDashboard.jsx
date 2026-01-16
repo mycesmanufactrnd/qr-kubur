@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { 
-  Shield, Users, Database, Terminal, Book, Sparkles, List, CreditCard, Settings, UserCheck,
-  UserX
+  Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX
 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +49,7 @@ export default function SuperadminDashboard() {
       items: [
         { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
         { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
+        { name: translate('ToyyibPay Config'), page: 'ToyyibPayConfigPage', icon: Sparkles, color: 'indigo' },
       ]
     },
   ];

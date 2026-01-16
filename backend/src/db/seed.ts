@@ -5,6 +5,8 @@ const { runBucketSeeder } = await import("./seeder/bucketSeeder.ts");
 
 const { runSelangorGraveSeeder } = await import("./seeder/graves/selangorSeeder.ts");
 
+import { runDeadPersonSeeder } from "./seeder/deadperson/deadpersonSeeder.ts";
+
 console.log("\nSeeding users...");
 await runUserSeeder();
 
@@ -13,6 +15,9 @@ await runSelangorGraveSeeder();
 
 console.log("\nSeeding buckets...");
 await runBucketSeeder();
+
+console.log("\nSeeding dead persons...");
+await runDeadPersonSeeder();
 
 console.log("\n✅ Database seed operation completed");
 process.exit(0);

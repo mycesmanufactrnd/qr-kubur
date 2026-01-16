@@ -19,17 +19,10 @@ import Pagination from '../components/Pagination';
 import { usePermissions } from '../components/PermissionsContext';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
-import { showError } from '@/components/ToastrNotification';
 
-// tRPC Hooks
 import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMutations';
 import { useAdminAccess } from '@/utils/auth';
-
-const STATES = [
-  "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
-  "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", 
-  "Terengganu", "Wilayah Persekutuan"
-];
+import { STATES_MY } from '@/utils/enums';
 
 const SERVICES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas' },
@@ -202,7 +195,7 @@ export default function ManageTahfizCenters() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{translate('allStates')}</SelectItem>
-                  {STATES.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
+                  {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
@@ -283,7 +276,7 @@ export default function ManageTahfizCenters() {
               <Controller name="state" control={control} render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue placeholder={translate('selectStates')} /></SelectTrigger>
-                  <SelectContent>{STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{STATES_MY.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
               )} />
             </div>

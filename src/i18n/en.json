@@ -15,7 +15,7 @@
   "Main": "Main",
 
   "Dashboard": "Dashboard",
-  "quickActions": "Quick Actions",
+  "Quick Actions": "Quick Actions",
   "Search Grave": "Search Grave",
   "Scan QR": "Scan QR",
   "Search Tahfiz": "Search Tahfiz",
@@ -44,7 +44,7 @@
   "reportBug": "Report Bug",
   "information": "Information",
   "termsConditions": "Terms & Conditions",
-  "privacyPolicy": "Privacy Policy",
+  "Privacy Policy": "Privacy Policy",
   "Admin Login": "Admin Login",
   "logOut": "Log Out",
   "Log In": "Log In",
@@ -75,6 +75,7 @@
   "Direction": "Direction",
   "Request": "Request",
 
+  "QR Code": "QR Code",
   "Scan QR Code": "Scan QR Code",
   "Use camera to scan": "Use camera to scan",
   "Scan with Camera": "Scan with Camera",

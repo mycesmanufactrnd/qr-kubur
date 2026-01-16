@@ -19,11 +19,26 @@ export const runBucketSeeder = async () => {
   console.log("🌱 Seeding storage buckets...");
 
   const sql = `
-    INSERT INTO storage.buckets (id, name, tenant_id, region, allowed_mime_types, file_size_limit, public)
-    VALUES 
-    ('bucket-grave', 'grave-images', 'grave', 'local', '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}', 107374182400, true),
-    ('bucket-tahfiz', 'payment-tahfiz-assets', 'payment-tahfiz', 'local', '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}', 107374182400, true),
-    ('bucket-org', 'payment-org-assets', 'payment-org', 'local', '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}', 107374182400, true)
+    INSERT INTO storage.buckets
+    (id, name, tenant_id, region, allowed_mime_types, file_size_limit, public)
+    VALUES
+    
+    ('bucket-grave', 'Grave Images', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true),
+
+    ('bucket-tahfiz-config', 'Tahfiz Payment Config Images', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true),
+
+    ('bucket-organisation-config', 'Organisation Payment Config Images', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true),
+
+    ('bucket-tahfiz-tahlil', 'Tahfiz Tahlil Request Config', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true)
+
     ON CONFLICT (id) DO NOTHING;
   `;
 

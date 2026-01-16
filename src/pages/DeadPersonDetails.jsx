@@ -1,11 +1,12 @@
 import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
-import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
+import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 import { createPageUrl } from '@/utils';
-import { showSuccess } from '@/components/ToastrNotification';
+import { calculateAge } from '@/utils/helpers';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
@@ -58,16 +59,6 @@ export default function DeadPersonDetails() {
       navigator.clipboard.writeText(url);
       alert('Pautan telah disalin!');
     }
-  };
-
-  const calculateAge = (dob, dod) => {
-    if (!dob || !dod) return null;
-    const birth = new Date(dob);
-    const death = new Date(dod);
-    let age = death.getFullYear() - birth.getFullYear();
-    const m = death.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) age--;
-    return age;
   };
 
   if (isLoading) {

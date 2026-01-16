@@ -12,10 +12,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { useQuery } from "@tanstack/react-query";
-import { Search, UserX, UserSearch, ShieldCheck } from "lucide-react";
+import { Search, UserX, UserSearch } from "lucide-react";
 import { useState } from "react";
-import { impersonateUser, useAdminAccess } from "@/utils/auth";
+import { impersonateUser } from "@/utils/auth";
 import { useGetUserPaginated } from "@/hooks/useUserMutations";
 import Pagination from "@/components/Pagination";
 import { translate } from "@/utils/translations";

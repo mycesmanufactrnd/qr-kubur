@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
+    "@fastify/formbody": "^8.0.2",
     "@fastify/multipart": "^9.3.0",
     "@fastify/rate-limit": "^10.3.0",
     "@supabase/supabase-js": "^2.89.0",
     "@trpc/server": "^11.8.1",
+    "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "chokidar": "^5.0.0",
     "dotenv": "^17.2.3",

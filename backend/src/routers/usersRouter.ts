@@ -2,7 +2,7 @@ import { router, protectedProcedure, publicProcedure, adminProcedure } from "../
 import bcrypt from "bcrypt"; 
 import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
-import { User } from "../db/entities.ts";
+import { Permission, User } from "../db/entities.ts";
 import { updateUserSchema, userSchema } from "../schemas/userSchema.ts";
 
 export const usersRouter = router({
@@ -108,8 +108,12 @@ export const usersRouter = router({
         .leftJoinAndSelect("user.organisation", "organisation")
         .leftJoinAndSelect("user.tahfizcenter", "tahfizcenter");
 
+        
         if (!checkRole?.superadmin) {
-          if (checkRole?.admin) {
+          if (!currentUser?.organisation && !currentUser?.tahfizcenter) {
+            query.andWhere("user.id = :id", { id: currentUser.id });
+          }
+          else if (checkRole?.admin) {
             query.andWhere("user.role IN (:...roles)", { roles: ["admin", "employee"] });
 
             if (currentUser.organisation) {
@@ -148,12 +152,30 @@ export const usersRouter = router({
     .input(userSchema)
     .mutation(async ({ input }) => {
       const userRepo = AppDataSource.getRepository(User);
+      const permissionRepo = AppDataSource.getRepository(Permission);
 
       const user = userRepo.create(input);
 
       const savedUser = await userRepo.save(user);
 
       const { password, ...userWithoutPassword } = savedUser;
+
+      if (savedUser) {
+        const permissions = permissionRepo.create([
+          {
+            slug: 'permissions_edit',
+            enabled: true,
+            user: savedUser,
+          },
+          {
+            slug: 'permissions_view',
+            enabled: true,
+            user: savedUser,
+          },
+        ]);
+
+        await permissionRepo.save(permissions);
+      }
 
       return userWithoutPassword;
     }),

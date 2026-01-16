@@ -18,6 +18,9 @@ export class Grave {
   @Column("varchar", { length: 255, nullable: true })
   lot?: string;
 
+  @Column("text", { nullable: true })
+  address?: string;
+
   @Column("double precision", { nullable: true })
   latitude?: number;
 
