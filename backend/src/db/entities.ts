@@ -15,3 +15,5 @@ export * from "./entities/VisitLog.entity.ts";
 export * from "./entities/OrganisationPaymentConfig.entity.ts";
 export * from "./entities/TahfizPaymentConfig.entity.ts";
 export * from "./entities/AdminNotification.entity.ts";
+export * from "./entities/OnlineTransaction.entity.ts";
+export * from "./entities/OnlineTransactionAccount.entity.ts";

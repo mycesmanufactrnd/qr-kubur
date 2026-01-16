@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '../components/Breadcrumb';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions } from '../components/PermissionsContext';
 import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
 import { translate } from '@/utils/translations';
 import { useAdminAccess } from '@/utils/auth';
@@ -18,7 +18,6 @@ import Pagination from '@/components/Pagination';
 export default function ManageTahlilRequests() {
   const { 
     loadingUser,
-    currentUser,
     isTahfizAdmin,
     isSuperAdmin
   } = useAdminAccess();
@@ -28,8 +27,7 @@ export default function ManageTahlilRequests() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const {
-    loading: permissionsLoading,
-    canView, canApprove, canReject, canDelete
+    loading: permissionsLoading, canView,
   } = useCrudPermissions('tahlil');
 
   const {
@@ -133,7 +131,7 @@ export default function ManageTahlilRequests() {
         ))}
       </div>
 
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

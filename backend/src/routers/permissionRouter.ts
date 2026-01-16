@@ -1,23 +1,23 @@
 import { z } from "zod";
-import { adminProcedure, router } from "../trpc.ts";
+import { adminProcedure, protectedProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { Permission } from "../db/entities/Permission.entity.ts";
 
 export const permissionRouter = router({
-    getByUser: adminProcedure
-    .input(z.object({ userId: z.number() }))
-    .query(({ input }) => {
-        return AppDataSource.getRepository(Permission).find({
-            where: { user: { id: input.userId } }
-        });
-    }),
+    getByUser: protectedProcedure
+        .input(z.object({ userId: z.number() }))
+        .query(({ input }) => {
+            return AppDataSource.getRepository(Permission).find({
+                where: { user: { id: input.userId } }
+            });
+        }),
 
     upsert: adminProcedure
     .input(z.object({
         userId: z.number(),
         slug: z.string(),
         enabled: z.boolean()
-        }))
+    }))
     .mutation(async ({ input }) => {
         const repo = AppDataSource.getRepository(Permission);
 

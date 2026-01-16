@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Backend Logs</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css">
+<style>
+  html, body {
+    margin: 100;
+    height: 100%;
+    width: 100%;
+    background: #000;
+    font-family: monospace;
+    overflow: hidden;
+  }
+  #terminal-container {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden; 
+  }
+  #terminal {
+    height: 100%;
+  }
+  .xterm .xterm-viewport {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+</style>
+</head>
+<body>
+<div id="terminal-container">
+  <div id="terminal"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<script>
+  const term = new Terminal({
+    theme: { background:"#000", foreground:"#fff", cursor:"#fff" },
+    cursorBlink: true,
+    fontSize: 14,
+    fontFamily: "monospace",
+    scrollback: 100000,
+    convertEol: true,
+    cols: 100
+  });
+
+  term.open(document.getElementById("terminal"));
+
+  term.options.wrapAround = false;
+
+  const autoScroll = () => term.scrollToBottom();
+
+  term.writeln("🖥 Connecting to backend logs...");
+
+  const ws = new WebSocket("ws://localhost:5138");
+
+  ws.onmessage = e => {
+    const lines = e.data.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    lines.forEach(line => term.writeln(line)); 
+    autoScroll();
+  };
+
+  ws.onopen = () => term.writeln("✅ Connected to backend logs.");
+  ws.onclose = () => term.writeln("❌ Disconnected from backend logs.");
+</script>
+</body>
+</html>

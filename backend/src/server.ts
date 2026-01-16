@@ -1,31 +1,24 @@
 import "reflect-metadata";
+import * as dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+import { AppDataSource } from "./datasource.ts";
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext, router as trpcRouter } from "./trpc.ts";
-import { AppDataSource } from "./datasource.ts";
 import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
-import { registerUploadRoutes } from "./api.ts";
 import multipart from '@fastify/multipart';
+import formbody from "@fastify/formbody";
+import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
+import { registerAPIRoutes } from "./api/api.ts";
 
 const app = Fastify({
   trustProxy: true,
 });
-
-{/*
-
-BackEnd Architecture
-
-| Component   | Role                                     |
-| ----------- | ---------------------------------------- |
-| Fastify     | Web server (receives HTTP requests)      |
-| tRPC Router | Controller layer (routes calls to logic) |
-| Type ORM    | Service/repository layer (queries DB)    |
-| Zod         | DTO/validation layer (checks input)      |
-| JWT/Auth    | Auth layer (check who can call what)     |
-
-*/}
 
 await app.register(rateLimit, {
   global: true,
@@ -42,8 +35,9 @@ await app.register(import('@fastify/cors'), {
 });
 
 await app.register(multipart);
+await app.register(formbody);
 
-registerUploadRoutes(app);
+registerAPIRoutes(app);
 
 app.register(fastifyTRPCPlugin, {
   prefix: "/trpc",
@@ -58,6 +52,9 @@ app.register(fastifyTRPCPlugin, {
 app.get("/", async () => {
   return { message: "tRPC backend is running" };
 });
+
+const toyyibpayConfig = getToyyibpayConfig();
+// console.log("\n💵 ToyyibPay env", toyyibpayConfig);
 
 async function bootstrap() {
   try {
