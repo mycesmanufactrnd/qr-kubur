@@ -78,12 +78,12 @@ export default function SubmitSuggestion() {
     enabled: watchType === "grave" || watchType === "person",
   });
 
-  const gravesWithDistance = nearbyGraves.map(g => {
-    if (g.latitude != null && g.longitude != null) {
-      const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, g.latitude, g.longitude);
-      return { ...g, distance };
+  const gravesWithDistance = nearbyGraves.map(grave => {
+    if (grave.latitude != null && grave.longitude != null) {
+      const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, grave.latitude, grave.longitude);
+      return { ...grave, distance };
     }
-    return { ...g, distance: Infinity };
+    return { ...grave, distance: Infinity };
   });
 
   const { data: persons, isLoading: isPersonLoading } = trpc.deadperson.getDeadPersonByGraveId.useQuery(

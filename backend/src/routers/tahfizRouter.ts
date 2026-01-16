@@ -5,7 +5,6 @@ import { TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
-  // Fetching for maps
   getTahfiz: publicProcedure
     .input(z.object({
       coordinates: z.object({
@@ -18,6 +17,7 @@ export const tahfizRouter = router({
       if (!input.coordinates) {
         return repo.find({ take: 100, order: { createdat: "DESC" } });
       }
+      
       const { latitude, longitude } = input.coordinates;
       return repo.createQueryBuilder("t")
         .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
@@ -26,7 +26,6 @@ export const tahfizRouter = router({
         .getMany();
     }),
 
-  // Fetching for Admin Table
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).optional(),
@@ -48,7 +47,6 @@ export const tahfizRouter = router({
       return { items, total };
     }),
 
-  // Mutations
   create: protectedProcedure
     .input(tahfizSchema)
     .mutation(async ({ input }) => {

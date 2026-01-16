@@ -67,7 +67,6 @@ export default function ManageTahfizCenters() {
   const hasEditPermission = hasPermission('tahfiz_edit');
   const hasDeletePermission = hasPermission('tahfiz_delete');
 
-  // tRPC Query
   const { tahfizCenterList, totalPages, isLoading } = useGetTahfizPaginated({
     page,
     pageSize: itemsPerPage,
@@ -75,7 +74,6 @@ export default function ManageTahfizCenters() {
     filterState: filterState === 'all' ? undefined : filterState,
   });
 
-  // tRPC Mutations
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
 
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
@@ -337,7 +335,7 @@ export default function ManageTahfizCenters() {
       </Dialog>
 
       <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={confirmDelete} title={translate('delete')} description={translate('confirmDelete')} variant="destructive" />
-      <PaymentConfigDialog open={paymentConfigOpen} onOpenChange={setPaymentConfigOpen} entityId={selectedCenterForPayment?.id} entityType="tahfiz" />
+      <PaymentConfigDialog open={paymentConfigOpen} hasAdminAccess={hasCreatePermission} onOpenChange={setPaymentConfigOpen} entityId={selectedCenterForPayment?.id} entityType="tahfiz" />
     </div>
   );
 }

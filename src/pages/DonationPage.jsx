@@ -13,7 +13,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-import { DONATION_AMOUNTS } from '@/utils/enums';
+import { DONATION_AMOUNTS, STATES_MY } from '@/utils/enums';
+import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
+import { translate } from '@/utils/translations';
 
 export default function DonationPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -30,18 +32,32 @@ export default function DonationPage() {
   const [notes, setNotes] = useState('');
   const [referenceId, setReferenceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [selectedState, setSelectedState] = useState('nearby');
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+      }, (error) => {
+        console.error("Location error:", error);
+      });
+    }
+  }, []);
 
   const { data: organisations = [] } = useQuery({
     queryKey: ['organisations'],
     queryFn: () => base44.entities.Organisation.list()
   });
 
-  const { data: tahfizCenters = [] } = useQuery({
-    queryKey: ['tahfiz-centers'],
-    queryFn: () => base44.entities.TahfizCenter.list()
-  });
+  const { data: tahfizCenters, isLoading: isTahfizLoading } = useGetTahfizCoordinates(
+    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
+  );
 
   const { data: paymentPlatforms = [] } = useQuery({
     queryKey: ['payment-platforms-active'],
@@ -72,10 +88,6 @@ export default function DonationPage() {
       showSuccess('Terima kasih! Derma anda telah direkodkan.');
     }
   });
-
-  const selectedOrg = recipientType === 'organisation' 
-    ? organisations.find(o => o.id === selectedRecipient)
-    : tahfizCenters.find(t => t.id === selectedRecipient);
 
   const availablePlatforms = useMemo(() => {
     if (!paymentConfigs.length || !paymentPlatforms.length) return [];
@@ -202,25 +214,42 @@ export default function DonationPage() {
               </TabsContent>
 
               <TabsContent value="tahfiz" className="mt-4">
-                <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih pusat tahfiz" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {tahfizCenters.map(center => (
-                      <SelectItem key={center.id} value={center.id}>
-                        <div className="flex flex-col">
-                          <span>{center.name}</span>
-                          <span className="text-xs text-gray-500">{center.state}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col gap-3">
+                  <Select value={selectedState} onValueChange={setSelectedState}>
+                    <SelectTrigger className="h-9 dark:bg-gray-700">
+                      <SelectValue placeholder={translate('State')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
+                      {STATES_MY.map(state => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={String(selectedRecipient)}
+                    onValueChange={setSelectedRecipient}
+                  >
+                    <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                      <SelectValue placeholder="Pilih pusat tahfiz" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-700">
+                      {tahfizCenters?.map(center => (
+                        <SelectItem key={center.id} value={String(center.id)}>
+                          <div className="flex flex-col">
+                            <span>{center.name}</span>
+                            <span className="text-xs text-gray-500">{center.state}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </TabsContent>
             </Tabs>
-
-
           </CardContent>
         </Card>
 

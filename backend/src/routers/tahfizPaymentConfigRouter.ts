@@ -41,26 +41,38 @@ export const tahfizPaymentConfigRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(TahfizPaymentConfig);
 
-      for (const cfg of input.configs) {
-        const existing = await repo.findOne({
-          where: {
-            tahfizcenter: { id: input.tahfizId },
-            paymentplatform: { id: cfg.paymentPlatformId },
-            paymentfield: { id: cfg.paymentFieldId },
-          },
-          relations: ['tahfizcenter', 'paymentplatform', 'paymentfield'],
-        });
+      const existingConfigs = await repo.find({
+        where: { tahfizcenter: { id: input.tahfizId } },
+        relations: ['tahfizcenter', 'paymentplatform', 'paymentfield'],
+      });
+
+      const upsertKeys = new Set(
+        input.configs.map(config => `${config.paymentPlatformId}_${config.paymentFieldId}`)
+      );
+
+      for (const config of existingConfigs) {
+        const key = `${config.paymentplatform?.id}_${config.paymentfield?.id}`;
+        if (!upsertKeys.has(key)) {
+          await repo.remove(config);
+        }
+      }
+
+      for (const config of input.configs) {
+        const existing = existingConfigs.find(
+          e => e.paymentplatform?.id === config.paymentPlatformId &&
+              e.paymentfield?.id === config.paymentFieldId
+        );
 
         if (existing) {
-          existing.value = cfg.value;
+          existing.value = config.value;
           await repo.save(existing);
         } else {
           await repo.save(
             repo.create({
               tahfizcenter: { id: input.tahfizId },
-              paymentplatform: { id: cfg.paymentPlatformId },
-              paymentfield: { id: cfg.paymentFieldId },
-              value: cfg.value,
+              paymentplatform: { id: config.paymentPlatformId },
+              paymentfield: { id: config.paymentFieldId },
+              value: config.value,
             })
           );
         }

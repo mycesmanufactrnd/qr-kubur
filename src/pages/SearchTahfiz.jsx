@@ -18,10 +18,6 @@ export default function SearchTahfiz() {
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
-  const { data: tahfizCenters, isLoading } = useGetTahfizCoordinates(
-    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
-  );
-
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -34,6 +30,10 @@ export default function SearchTahfiz() {
       });
     }
   }, []);
+
+  const { data: tahfizCenters, isLoading } = useGetTahfizCoordinates(
+    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
+  );
 
   const handleSearch = () => {
     setIsSearching(true);
