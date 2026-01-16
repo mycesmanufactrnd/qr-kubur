@@ -228,7 +228,6 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        {/* Payment Method */}
         {availablePlatforms.length > 0 && (
           <Card className="border-0 shadow-md dark:bg-gray-800">
             <CardHeader>

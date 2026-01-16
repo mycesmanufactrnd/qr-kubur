@@ -15,7 +15,7 @@
   "Main": "Utama",
 
   "Dashboard": "Papan Pemuka",
-  "quickActions": "Akses Pantas",
+  "Quick Actions": "Akses Pantas",
   "Search Grave": "Cari Kubur",
   "Scan QR": "Imbas QR",
   "Search Tahfiz": "Cari Tahfiz",
@@ -75,6 +75,7 @@
   "Direction": "Arah",
   "Request": "Mohon",
 
+  "QR Code": "Kod QR",
   "Scan QR Code": "Imbas Kod QR",
   "Use camera to scan": "Gunakan kamera untuk imbas",
   "Scan with Camera": "Imbas dengan Kamera",
@@ -136,7 +137,7 @@
   "activityLogs": "Log Aktiviti",
 
   "addGrave": "Tambah Kubur",
-  "Edit Grave": "Edit Kubur",
+  "Edit Grave": "Kemaskini Kubur",
   "importCSV": "Import CSV",
   "Download CSV Template": "Muat Turun Template CSV",
   "cemeteryName": "Nama Tanah Perkuburan",
@@ -201,7 +202,7 @@
   "allTypes": "Semua jenis",
   "services": "Perkhidmatan",
   "Confirm Delete": "Adakah anda pasti untuk memadam",
-  "Search...": "Cari...",
+  "Search": "Cari",
 
   "donor": "Penderma",
   "recipient": "Penerima",

@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { translate } from '@/utils/translations';
-import PageLoadingComponent from '../components/PageLoadingComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
@@ -201,7 +202,7 @@ export default function AdminDashboard() {
                 <div className={`p-2 rounded-lg bg-${item.color}-50 hover:bg-${item.color}-100 transition-colors text-center`}>
                   <p className='text-md'>
                     {item.loading ? (
-                      <span className="inline-block w-6 h-6 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></span>
+                      <InlineLoadingComponent/>
                     ) : (
                       item.value
                     )}
@@ -221,7 +222,7 @@ export default function AdminDashboard() {
               <p className="text-emerald-100 text-xs">{translate('totalVerified')}</p>
               <p className="text-xl font-bold">
                 {isDDVLoading ? (
-                  <span className="inline-block w-6 h-6 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></span>
+                  <InlineLoadingComponent/>
                 ) : (
                   `RM ${(donationVerified || 0).toLocaleString()}`
                 )}

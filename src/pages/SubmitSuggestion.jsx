@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { FileText, CheckCircle, ArrowLeft, MapPin } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, MapPin } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageTextCaptcha from '../components/ImageTextCaptcha';
-import { showSuccess, showError, showWarning } from '../components/ToastrNotification';
+import { showError, showWarning } from '../components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
 import { Controller, useForm } from 'react-hook-form';
 import { validateFields } from '@/utils/validations';
@@ -54,6 +54,7 @@ export default function SubmitSuggestion() {
 
   const createMutation = useCreateSuggestion();
 
+  // if no extension created in psql
   // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
   // CREATE EXTENSION IF NOT EXISTS cube;
   // CREATE EXTENSION IF NOT EXISTS earthdistance;

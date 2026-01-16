@@ -9,7 +9,7 @@ import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
-import { showInfo, showSuccess } from '@/components/ToastrNotification';
+import { showSuccess } from '@/components/ToastrNotification';
 
 export default function ScanQR() {
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
@@ -174,8 +174,7 @@ export default function ScanQR() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
                   <Camera className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{translate('scanWithCamera')}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{translate('pointCamera')}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{translate('Scan With Camera')}</h3>
                 <div className="flex gap-2 justify-center">
                   <Button 
                     onClick={() => setScanning(true)}
@@ -183,7 +182,7 @@ export default function ScanQR() {
                     disabled={loading}
                   >
                     <Camera className="w-4 h-4 mr-2" />
-                    {translate('openCamera')}
+                    {translate('Open Camera')}
                   </Button>
                 </div>
               </div>

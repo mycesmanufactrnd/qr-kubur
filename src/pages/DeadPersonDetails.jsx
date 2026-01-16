@@ -1,11 +1,12 @@
 import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
-import { Calendar, MapPin, Navigation, Share2, ArrowLeft } from 'lucide-react';
+import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 import { createPageUrl } from '@/utils';
-import { showSuccess } from '@/components/ToastrNotification';
+import { calculateAge } from '@/utils/helpers';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
@@ -60,19 +61,9 @@ export default function DeadPersonDetails() {
     }
   };
 
-  const calculateAge = (dob, dod) => {
-    if (!dob || !dod) return null;
-    const birth = new Date(dob);
-    const death = new Date(dod);
-    let age = death.getFullYear() - birth.getFullYear();
-    const m = death.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) age--;
-    return age;
-  };
-
   if (isLoading) {
     return (
-      <div className="space-y-3 animate-pulse pb-2">
+      <div className="space-y-3 animate-pulse pb-2 p-4">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
         <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
@@ -81,7 +72,7 @@ export default function DeadPersonDetails() {
 
   if (isError || !person) {
     return (
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
+      <Card className="border-0 shadow-sm dark:bg-gray-800 m-4">
         <CardContent className="p-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Maklumat tidak dijumpai
@@ -94,7 +85,7 @@ export default function DeadPersonDetails() {
   const age = calculateAge(person.dateofbirth, person.dateofdeath);
 
   return (
-    <div className="space-y-3 pb-2">
+    <div className="space-y-3 pb-2 p-4">
       <BackNavigation title={person.name} />
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">

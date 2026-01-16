@@ -4,7 +4,6 @@ import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import DeadPersonDetails from './pages/DeadPersonDetails';
 import DonationPage from './pages/DonationPage';
 import GraveDetails from './pages/GraveDetails';
-import Home from './pages/Home';
 import IconLibrary from './pages/IconLibrary';
 import ManageDeadPersons from './pages/ManageDeadPersons';
 import ManageDonations from './pages/ManageDonations';
@@ -30,9 +29,16 @@ import SuperadminDashboard from './pages/SuperadminDashboard';
 import SurahPage from './pages/SurahPage';
 import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
-import UserDashboard from './pages/UserDashboard';
 import ViewLogs from './pages/ViewLogs';
+import ToyyibPayConfigPage from './pages/ToyyibPayConfigPage.jsx';
+import SolatJenazah from './pages/SolatJenazah.jsx';
 import __Layout from './Layout.jsx';
+import UserDashboard from './pages/UserDashboard';
+import UserDashboard1 from './pages/Dashboards/UserDashboard1';
+import UserDashboard2 from './pages/Dashboards/UserDashboard2';
+import UserDashboard3 from './pages/Dashboards/UserDashboard3';
+import UserDashboard4 from './pages/Dashboards/UserDashboard4';
+import UserDashboard5 from './pages/Dashboards/UserDashboard5';
 
 
 export const PAGES = {
@@ -42,7 +48,6 @@ export const PAGES = {
     "DeadPersonDetails": DeadPersonDetails,
     "DonationPage": DonationPage,
     "GraveDetails": GraveDetails,
-    "Home": Home,
     "IconLibrary": IconLibrary,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageDonations": ManageDonations,
@@ -68,12 +73,20 @@ export const PAGES = {
     "SurahPage": SurahPage,
     "TahlilRequestPage": TahlilRequestPage,
     "TermsAndConditions": TermsAndConditions,
-    "UserDashboard": UserDashboard,
     "ViewLogs": ViewLogs,
+    "ToyyibPayConfigPage": ToyyibPayConfigPage,
+    "SolatJenazah": SolatJenazah,
+
+    "UserDashboard": UserDashboard,
+    "UserDashboard1": UserDashboard1,
+    "UserDashboard2": UserDashboard2,
+    "UserDashboard3": UserDashboard3,
+    "UserDashboard4": UserDashboard4,
+    "UserDashboard5": UserDashboard5,
 }
 
 export const pagesConfig = {
-    mainPage: "UserDashboard",
+    mainPage: "UserDashboard2",
     Pages: PAGES,
     Layout: __Layout,
 };

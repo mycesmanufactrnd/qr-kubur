@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from "@/components/BackNavigation";
+import { DONATION_AMOUNTS } from '@/utils/enums';
 
 const SERVICE_TYPES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas', description: 'Bacaan tahlil ringkas untuk arwah' },

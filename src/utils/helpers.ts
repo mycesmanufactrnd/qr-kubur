@@ -44,3 +44,13 @@ export function getDistanceFromLatLonInKm(
   return R * c; // Distance in km
 }
 
+export function calculateAge(deadOfBirth, deadOfDeath) {
+    if (!deadOfBirth || !deadOfDeath) return 0;
+    const birth = new Date(deadOfBirth);
+    const death = new Date(deadOfDeath);
+    let age = death.getFullYear() - birth.getFullYear();
+    const m = death.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) age--;
+    return age;
+  };
+
