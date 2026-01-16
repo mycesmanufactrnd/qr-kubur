@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Building2, CheckCircle, CreditCard } from 'lucide-react';
@@ -22,8 +21,14 @@ export default function DonationPage() {
   const preSelectedOrg = urlParams.get('org');
   const preSelectedTahfiz = urlParams.get('tahfiz');
 
-  const [recipientType, setRecipientType] = useState(preSelectedTahfiz ? 'tahfiz' : 'organisation');
-  const [selectedRecipient, setSelectedRecipient] = useState(preSelectedOrg || preSelectedTahfiz || '');
+const [recipientType, setRecipientType] = useState(
+  preSelectedOrg ? 'organisation' : preSelectedTahfiz ? 'tahfiz' : 'organisation'
+);
+
+  const [selectedRecipient, setSelectedRecipient] = useState(
+  preSelectedOrg ? Number(preSelectedOrg) : preSelectedTahfiz ? Number(preSelectedTahfiz) : null
+);
+
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -199,19 +204,23 @@ export default function DonationPage() {
               </TabsList>
 
               <TabsContent value="organisation" className="mt-4">
-                <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
+                <Select
+                  value={selectedRecipient !== null ? String(selectedRecipient) : ''}
+                  onValueChange={val => setSelectedRecipient(Number(val))}
+                >
                   <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-700">
                     {organisations.map(org => (
-                      <SelectItem key={org.id} value={org.id}>
+                      <SelectItem key={org.id} value={String(org.id)}>
                         {org.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </TabsContent>
+
 
               <TabsContent value="tahfiz" className="mt-4">
                 <div className="flex flex-col gap-3">

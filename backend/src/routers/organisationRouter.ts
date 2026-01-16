@@ -3,6 +3,7 @@ import { Organisation } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 import { organisationSchema } from '../schemas/organisationSchema.ts';
+import { ActiveInactiveStatus } from '../db/enums.ts';
 
 async function getOrganisationTreeIds(rootId: number) {
   const result = await AppDataSource.query(`
@@ -125,5 +126,16 @@ export const organisationRouter = router({
 
       return isIdOnly ? orgs.map(o => o.id) : orgs;
     }),
+
+
+  getAll: protectedProcedure
+    .query(async () => {
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      return organisationRepo.find({ 
+        where: { status: ActiveInactiveStatus.ACTIVE },
+        order: { name: 'ASC' }
+      });
+    }),
+
 
 });
