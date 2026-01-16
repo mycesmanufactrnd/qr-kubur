@@ -36,7 +36,7 @@ export default function SearchTahfiz() {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-
+console.log('lat', lat, 'lng', lng)
         setUserLocation({ lat, lng });
 
         // Optional: Reverse geocode to get state
@@ -127,10 +127,7 @@ export default function SearchTahfiz() {
               </SelectContent>
             </Select>
 
-            <Button onClick={handleSearch} className="h-9 bg-violet-600 hover:bg-violet-700">
-              <Search className="w-4 h-4 mr-1" />
-              {translate('search')}
-            </Button>
+            
           </div>
         </CardContent>
       </Card>
@@ -149,7 +146,7 @@ export default function SearchTahfiz() {
         </div>
       ) : displayedCenters.length === 0 ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800 p-8 text-center">
-          <p className="text-sm text-gray-500">{translate('noTahfizFound')}</p>
+          <p className="text-sm text-gray-500">{translate('Loading...')}</p>
         </Card>
       ) : (
         <div className="space-y-2">
