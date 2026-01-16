@@ -14,6 +14,7 @@ export default function UserDashboard() {
     { icon: Heart, title: translate('Donate'), page: 'DonationPage', color: 'bg-pink-100 text-pink-600 dark:bg-pink-900 dark:text-pink-300' },
     { icon: FileText, title: translate('Suggestions'), page: 'SubmitSuggestion', color: 'bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-300' },
     { icon: BookText, title: translate('Surah & Prayer'), page: 'SurahPage', color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300' },
+    { icon: BookText, title: translate('Panduan Solat Jenazah'), page: 'SolatJenazah', color: 'bg-indigo-100 text-black-600 dark:bg-emerald-900 dark:text-emerald-300' },
   ];
 
   return (
