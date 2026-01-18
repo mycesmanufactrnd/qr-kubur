@@ -24,21 +24,9 @@ import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
+import { defaultGraveField } from '@/utils/defaultformfields';
 
 export default function ManageGraves() {
-  const emptyGrave = {
-    name: '',
-    state: '',
-    block: '',
-    lot: '',
-    address: '',
-    latitude: '',
-    longitude: '',
-    organisation: '',
-    status: 'active',
-    totalgraves: 0,
-  };
-
   const { 
     currentUser, 
     loadingUser, 
@@ -56,7 +44,7 @@ export default function ManageGraves() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
-  const [formData, setFormData] = useState(emptyGrave);
+  const [formData, setFormData] = useState(defaultGraveField);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [graveToDelete, setGraveToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
@@ -102,7 +90,7 @@ export default function ManageGraves() {
 
   const openAddDialog = () => {
     setEditingGrave(null);
-    setFormData(emptyGrave);
+    setFormData(defaultGraveField);
     setIsDialogOpen(true);
   };
 
@@ -154,24 +142,18 @@ export default function ManageGraves() {
       }
       setIsDialogOpen(false);
     } catch (error) {
-      // Errors handled by hooks
     }
   };
-
-// ManageGraves.jsx
 
 const confirmDelete = async () => {
   if (!graveToDelete) return;
 
   try {
-    // This calls the tRPC delete procedure via your hook
     await deleteMutation.mutateAsync(graveToDelete.id);
     
-    // Close the dialog and clear the state
     setDeleteDialogOpen(false);
     setGraveToDelete(null);
   } catch (error) {
-    // Errors are already handled by showApiError inside useDeleteGrave
     console.error("Delete failed:", error);
   }
 };

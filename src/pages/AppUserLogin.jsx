@@ -6,7 +6,6 @@ import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { handleLoginTRPC } from '@/utils/auth';
 
 export default function AppUserLogin() {
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -77,10 +76,6 @@ export default function AppUserLogin() {
             >
               {loading ? 'Logging in...' : 'Log Masuk'}
             </Button>
-
-            <div className="text-center text-sm text-gray-500 mt-4">
-              <p>Default password: <code className="bg-gray-100 px-2 py-1 rounded">password</code></p>
-            </div>
           </form>
         </CardContent>
       </Card>

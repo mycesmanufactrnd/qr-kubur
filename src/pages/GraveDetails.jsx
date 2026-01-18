@@ -9,6 +9,7 @@ import { showSuccess } from '@/components/ToastrNotification.jsx';
 import BackNavigation from '@/components/BackNavigation';
 import { useGetGraveById } from '@/hooks/useGraveMutations';
 import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
+import { openDirections, shareLink } from '@/utils/helpers';
 
 export default function GraveDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -38,39 +39,8 @@ export default function GraveDetails() {
     }, 300);
   };
 
-  const openDirections = () => {
-    // FIX: Using entity property names 'latitude' and 'longitude'
-    if (grave?.latitude && grave?.longitude) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.latitude},${grave.longitude}`, '_blank');
-    }
-  };
-
-  const shareLocation = async () => {
-    const url = window.location.href;
-    const title = grave?.name || 'Lokasi Kubur';
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: title,
-          text: `Lokasi kubur: ${title}`,
-          url: url
-        });
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          navigator.clipboard.writeText(url);
-          showSuccess('Pautan telah disalin!');
-        }
-      }
-    } else {
-      navigator.clipboard.writeText(url);
-      showSuccess('Pautan telah disalin!');
-    }
-  };
-
-  // Local filtering logic maintained from original code
   const filtered = persons.filter(p => {
     const matchesName = !searchName || p.name?.toLowerCase().includes(searchName.toLowerCase());
-    // FIX: Using entity property 'dateofdeath'
     const matchesDate = !searchDate || (p.dateofdeath && String(p.dateofdeath).startsWith(searchDate));
     return matchesName && matchesDate;
   });
@@ -115,7 +85,10 @@ export default function GraveDetails() {
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
               <Button
                 size="sm"
-                onClick={openDirections}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDirections(grave.latitude, grave.longitude)
+                }}
                 className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
                 <Navigation className="w-3 h-3 mr-1" />
@@ -125,7 +98,13 @@ export default function GraveDetails() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={shareLocation}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shareLink({
+                    title: grave?.name || 'Grave',
+                    text: `Grave: ${grave?.name}`,
+                  })
+                }}
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Share2 className="w-3 h-3 mr-1" />
@@ -136,7 +115,6 @@ export default function GraveDetails() {
         </CardContent>
       </Card>
 
-      {/* Persons List */}
       <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
         <CardContent className="p-3">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
@@ -194,7 +172,7 @@ export default function GraveDetails() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${person.latitude},${person.longitude}`, '_blank');
+                              openDirections(person.latitude, person.longitude)
                             }}
                             className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
                           >
@@ -207,12 +185,11 @@ export default function GraveDetails() {
                             onClick={(e) => {
                               e.stopPropagation();
                               const url = `${window.location.origin}${createPageUrl('DeadPersonDetails')}?id=${person.id}`;
-                              if (navigator.share) {
-                                navigator.share({ title: person.name, url });
-                              } else {
-                                navigator.clipboard.writeText(url);
-                                showSuccess('Pautan disalin');
-                              }
+                              shareLink({
+                                title: person?.name || 'Name',
+                                text: `Name: ${person?.name}`,
+                                url
+                              })
                             }}
                             className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                           >

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { translate } from '@/utils/translations';
-import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard, MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,17 +19,13 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import PaymentConfigDialog from '@/components/PaymentConfigDialog';
 import { getLabelFromId } from '@/utils/helpers';
-import { STATES_MY } from '@/utils/enums';
+import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetOrganisationType } from '@/hooks/useOrganisationTypeMutations';
-import { 
-  useCreateOrganisation, 
-  useDeleteOrganisation, 
-  useGetOrganisationPaginated, 
-  useUpdateOrganisation 
-} from '@/hooks/useOrganisationMutations';
+import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
 
 import { validateFields } from '@/utils/validations';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const emptyOrg = {
   name: '',
@@ -40,6 +36,9 @@ const emptyOrg = {
   phone: '',
   email: '',
   url: '',
+  latitude: '',
+  longitude: '',
+  canbedonated: false,
   status: 'active'
 };
 
@@ -86,9 +85,7 @@ export default function ManageOrganisations() {
     isLoading: typesLoading, 
   } = useGetOrganisationType(hasAdminAccess);
 
-  const createMutation = useCreateOrganisation();
-  const updateMutation = useUpdateOrganisation();
-  const deleteMutation = useDeleteOrganisation();
+  const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
 
   const openAddDialog = () => {
     setEditingOrg(null);
@@ -108,7 +105,10 @@ export default function ManageOrganisations() {
       phone: org.phone || '',
       email: org.email || '',
       url: org.url || '',
-      status: org.status || 'active'
+      latitude: org.latitude || '',
+      longitude: org.longitude || '',
+      canbedonated: org.canbedonated || false,
+      status: org.status || ActiveInactiveStatus.ACTIVE
     });
     setIsDialogOpen(true);
   };
@@ -137,11 +137,16 @@ export default function ManageOrganisations() {
       phone: data.phone || '',
       email: data.email || '',
       url: data.url || '',
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
+      canbedonated: data.canbedonated || false,
       status: data.status || 'active'
     };
 
+    console.log('submitData', submitData);
+
     if (editingOrg) {
-      updateMutation.mutateAsync({ id: editingOrg.id, data: submitData })
+      updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
@@ -150,7 +155,7 @@ export default function ManageOrganisations() {
         }
       })
     } else {
-      createMutation.mutateAsync(submitData)
+      createOrganisation.mutateAsync(submitData)
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
@@ -167,7 +172,7 @@ export default function ManageOrganisations() {
 
   const confirmDelete = () => {
     if (!orgToDelete) return;
-    deleteMutation.mutate(orgToDelete.id);
+    deleteOrganisation.mutate(orgToDelete.id);
     setDeleteDialogOpen(false);
     setOrgToDelete(null);
   };
@@ -478,6 +483,32 @@ export default function ManageOrganisations() {
                   render={({ field }) => <Input {...field} />}
                 />
               </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Latitude</Label><Controller name="latitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+              <div><Label>Longitude</Label><Controller name="longitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+            </div>
+            <Button type="button" variant="outline" className="w-full" onClick={() => {
+              navigator.geolocation.getCurrentPosition((pos) => {
+                setValue('latitude', pos.coords.latitude.toFixed(8));
+                setValue('longitude', pos.coords.longitude.toFixed(8));
+              });
+            }}><MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}</Button>
+            <div className="flex items-center gap-3 rounded-lg border p-3">
+              <Controller
+                name="canbedonated"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                )}
+              />
+
+              <Label className="cursor-pointer">
+                {translate('canBeDonated')}
+              </Label>
+            </div>
             <div>
               <Label>{translate('status')}</Label>
               <Controller
@@ -500,7 +531,7 @@ export default function ManageOrganisations() {
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('cancel')}
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createOrganisation.isPending || updateOrganisation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {translate('save')}
               </Button>
