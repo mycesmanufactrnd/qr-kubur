@@ -13,28 +13,24 @@ export const tahfizRouter = router({
     }).optional().nullable()
   }))
   .query(async ({ input }) => {
-    const repo = AppDataSource.getRepository(TahfizCenter);
+    const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
 
     if (!input.coordinates) {
-      return repo.find({
-        take: 100,
-        order: { createdat: "DESC" }
-      });
+      return await tahfizRepo.find({
+        where: {
+          state: "Selangor",
+        }
+      })
     }
 
     const { latitude, longitude } = input.coordinates;
 
-    const qb = repo.createQueryBuilder("t")
+    const qb = tahfizRepo.createQueryBuilder("t")
       .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
       .addSelect(`
-        (
-          6371 * acos(
-            cos(radians(:lat)) *
-            cos(radians(t.latitude)) *
-            cos(radians(t.longitude) - radians(:lng)) +
-            sin(radians(:lat)) *
-            sin(radians(t.latitude))
-          )
+        earth_distance(
+          ll_to_earth(t.latitude, t.longitude),
+          ll_to_earth(:lat, :lng)
         )
       `, "distance")
       .orderBy("distance", "ASC")
@@ -43,7 +39,6 @@ export const tahfizRouter = router({
 
     const { entities, raw } = await qb.getRawAndEntities();
 
-    // Merge raw distance → entity
     const results = entities.map((entity, index) => ({
       ...entity,
       distance: Number(raw[index].distance),
@@ -53,13 +48,12 @@ export const tahfizRouter = router({
   }),
 
 
-  // ADMIN TABLE PAGINATION
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).optional(),
       pageSize: z.number().min(1).optional(),
       search: z.string().optional(),
-      filterState: z.string().optional(),
+      filterState: z.string().optional(),      
     }))
     .query(async ({ input }) => {
       const { page, pageSize, search, filterState } = input;

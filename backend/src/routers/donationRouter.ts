@@ -1,8 +1,8 @@
 import z from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
+import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { Donation } from "../db/entities.ts";
-import { donationApprovalSchema } from "../schemas/donationSchema.ts";
+import { donationApprovalSchema, donationSchema } from "../schemas/donationSchema.ts";
 
 export const donationRouter = router({
     getPaginated: protectedProcedure
@@ -70,5 +70,14 @@ export const donationRouter = router({
             const savedSuggestion = await donationRepo.save(donation);
     
             return savedSuggestion;
+        }),
+
+    create: publicProcedure
+        .input(donationSchema)
+        .mutation(async ({ input }) => {
+            const donationRepo = AppDataSource.getRepository(Donation);
+
+            const donation = donationRepo.create(input);
+            return await donationRepo.save(donation);
         }),
 });
