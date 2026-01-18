@@ -6,59 +6,41 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { showSuccess } from '@/components/ToastrNotification.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
+import CardSkeletonComponent from '@/components/CardSkeletonComponent';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useSearchGraves } from '@/hooks/useGraveMutations';
+import { getDistanceFromLatLonInKm, openDirections, shareLink } from '@/utils/helpers';
+import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SearchGrave() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
-  const [userLocation, setUserLocation] = useState(null);
   const [displayedCount, setDisplayedCount] = useState(10);
+  const {
+    userLocation,
+    userState,
+    locationDenied,
+    isLocationLoading
+  } = useLocationContext();
 
   const { gravesList, isLoading, refetch } = useSearchGraves({
     search: searchQuery,
     filterState: selectedState
   });
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (err) => console.error(err)
-      );
-    }
-  }, []);
-
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
   const handleSearch = () => {
     setDisplayedCount(10);
-    refetch(); // Manually trigger tRPC refetch
+    refetch();
   };
 
-  // Process data for distance display and sorting
   const processedGraves = gravesList
     .map(grave => ({
       ...grave,
       distance: (userLocation && grave.latitude && grave.longitude)
-        ? calculateDistance(userLocation.lat, userLocation.lng, grave.latitude, grave.longitude)
+        ? getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, grave.latitude, grave.longitude)
         : null
     }))
     .sort((a, b) => (a.distance || 999999) - (b.distance || 999999));
@@ -96,21 +78,13 @@ export default function SearchGrave() {
         </CardContent>
       </Card>
 
-      {/* Results */}
       {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse dark:bg-gray-800">
-              <CardContent className="p-3"><div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" /></CardContent>
-            </Card>
-          ))}
-        </div>
+        <CardSkeletonComponent/>
       ) : displayedGraves.length === 0 ? (
-        <Card className="border-0 shadow-sm dark:bg-gray-800">
-          <CardContent className="p-8 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{translate('noGravesFound')}</p>
-          </CardContent>
-        </Card>
+        <NoDataCardComponent
+          title={translate('noGravesFound')}
+          description="Sila cuba carian lain atau ubah penapis."
+        />
       ) : (
         <div className="space-y-3">
           {displayedGraves.map((grave) => (
@@ -142,7 +116,7 @@ export default function SearchGrave() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${grave.latitude},${grave.longitude}`, '_blank');
+                          openDirections(grave.latitude, grave.longitude)
                         }}
                         className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
                       >
@@ -155,12 +129,11 @@ export default function SearchGrave() {
                       onClick={(e) => {
                         e.stopPropagation();
                         const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
-                        if (navigator.share) {
-                          navigator.share({ title: grave.name, url });
-                        } else {
-                          navigator.clipboard.writeText(url);
-                          showSuccess('Pautan disalin');
-                        }
+                        shareLink({
+                          title: grave?.name || 'Kubur',
+                          text: `Kubur: ${grave?.name}`,
+                          url
+                        })
                       }}
                       className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300"
                     >
