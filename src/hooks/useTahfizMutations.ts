@@ -37,8 +37,9 @@ export function useGetTahfizCoordinates(coordinates?: { latitude: number; longit
     { coordinates: coordinates ?? null },
     {
       enabled: coordinates !== undefined,
-      staleTime: 1000 * 60 * 5,
+      staleTime: Infinity,
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
     }
   );
 }

@@ -1,6 +1,7 @@
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
+import { Coordinates } from '@/utils/enums';
 
 type useGetGravePaginatedParams = {
   page?: number;
@@ -11,11 +12,6 @@ type useGetGravePaginatedParams = {
   organisationIds?: number[];
   filterBlock?: string;
   filterLot?: string;
-};
-
-type Coordinates = {
-  latitude: number;
-  longitude: number;
 };
 
 type UseGetGraveCoordinatesOptions = {

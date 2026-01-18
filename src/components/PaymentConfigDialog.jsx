@@ -66,7 +66,8 @@ export default function PaymentConfigDialog({
   
   const existingConfigs = useGetConfigByEntity({
     entityId: Number(entityId),
-    entityType: entityType, 
+    entityType: entityType,
+    enabled: !!entityId && !!entityType,
   });
 
   const upsertMutation = useUpsertConfigByEntity();
