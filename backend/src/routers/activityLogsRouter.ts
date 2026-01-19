@@ -1,5 +1,5 @@
 import z from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
+import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { ActivityLog } from "../db/entities/ActivityLog.entity.ts";
 
@@ -35,5 +35,21 @@ export const activityLogsRouter = router({
 
             return { items, total };
 
+        }),
+
+    create: publicProcedure
+        .input(z.object({
+            activitytype: z.string().optional().nullable(),
+            functionname: z.string().optional().nullable(),
+            useremail: z.string().optional().nullable(),
+            level: z.string().default('debug'),
+            summary: z.string().optional().nullable(),
+            extramessage: z.string().optional().nullable(),
+        }))
+        .mutation(async ({ input }) => {
+          const organisationRepo = AppDataSource.getRepository(ActivityLog);
+    
+          const organisation = organisationRepo.create(input);
+          return await organisationRepo.save(organisation);
         }),
 });
