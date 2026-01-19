@@ -11,6 +11,7 @@ export const tahfizSchema = z.object({
   phone: z.string().optional(),
   email: z.string().optional(),
   url: z.string().optional(),
+  // Ensure these are named latitude/longitude
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   status: z.enum(ActiveInactiveStatus).optional(),

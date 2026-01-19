@@ -5,6 +5,8 @@ import { TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
+
+  // GET NEARBY TAHFIZ FOR MAPS / SEARCH PAGE
   getTahfiz: publicProcedure
   .input(z.object({
     coordinates: z.object({
@@ -13,24 +15,28 @@ export const tahfizRouter = router({
     }).optional().nullable()
   }))
   .query(async ({ input }) => {
-    const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
+    const repo = AppDataSource.getRepository(TahfizCenter);
 
     if (!input.coordinates) {
-      return await tahfizRepo.find({
-        where: {
-          state: "Selangor",
-        }
-      })
+      return repo.find({
+        take: 100,
+        order: { createdat: "DESC" }
+      });
     }
 
     const { latitude, longitude } = input.coordinates;
 
-    const qb = tahfizRepo.createQueryBuilder("t")
+    const qb = repo.createQueryBuilder("t")
       .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
       .addSelect(`
-        earth_distance(
-          ll_to_earth(t.latitude, t.longitude),
-          ll_to_earth(:lat, :lng)
+        (
+          6371 * acos(
+            cos(radians(:lat)) *
+            cos(radians(t.latitude)) *
+            cos(radians(t.longitude) - radians(:lng)) +
+            sin(radians(:lat)) *
+            sin(radians(t.latitude))
+          )
         )
       `, "distance")
       .orderBy("distance", "ASC")
@@ -39,6 +45,7 @@ export const tahfizRouter = router({
 
     const { entities, raw } = await qb.getRawAndEntities();
 
+    // Merge raw distance → entity
     const results = entities.map((entity, index) => ({
       ...entity,
       distance: Number(raw[index].distance),
@@ -48,12 +55,13 @@ export const tahfizRouter = router({
   }),
 
 
+  // ADMIN TABLE PAGINATION
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).optional(),
       pageSize: z.number().min(1).optional(),
       search: z.string().optional(),
-      filterState: z.string().optional(),      
+      filterState: z.string().optional(),
     }))
     .query(async ({ input }) => {
       const { page, pageSize, search, filterState } = input;
@@ -76,6 +84,7 @@ export const tahfizRouter = router({
       return { items, total };
     }),
 
+  // CREATE NEW TAHFIZ
   create: protectedProcedure
     .input(tahfizSchema)
     .mutation(async ({ input }) => {
