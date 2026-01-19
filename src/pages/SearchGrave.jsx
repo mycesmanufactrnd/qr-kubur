@@ -6,13 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { showSuccess } from '@/components/ToastrNotification.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useSearchGraves } from '@/hooks/useGraveMutations';
-import { getDistanceFromLatLonInKm, openDirections, shareLink } from '@/utils/helpers';
+import { getDistanceFromLatLonInKm, openDirections } from '@/utils/helpers';
 import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SearchGrave() {
@@ -135,11 +136,12 @@ export default function SearchGrave() {
                       onClick={(e) => {
                         e.stopPropagation();
                         const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
-                        shareLink({
-                          title: grave?.name || 'Kubur',
-                          text: `Kubur: ${grave?.name}`,
-                          url
-                        })
+                        if (navigator.share) {
+                          navigator.share({ title: grave.name, url });
+                        } else {
+                          navigator.clipboard.writeText(url);
+                          showSuccess('Pautan disalin');
+                        }
                       }}
                       className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300"
                     >

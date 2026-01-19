@@ -7,6 +7,11 @@ const { runSelangorGraveSeeder } = await import("./seeder/graves/selangorSeeder.
 
 import { runDeadPersonSeeder } from "./seeder/deadperson/deadpersonSeeder.ts";
 
+import { runOrganisationTypeSeeder } from "./seeder/organisation/organisationTypeSeeder.ts";
+import { runOrganisationSeeder } from "./seeder/organisation/organisationSeeder.ts";
+import { runTahfizSeeder } from "./seeder/tahfiz/tahfizSeeder.ts";
+import { runDonationSeeder } from "./seeder/donation/donationSeeder.ts";
+
 console.log("\nSeeding users...");
 await runUserSeeder();
 
@@ -18,6 +23,18 @@ await runBucketSeeder();
 
 console.log("\nSeeding dead persons...");
 await runDeadPersonSeeder();
+
+console.log("\nSeeding Organisation Type...");
+await runOrganisationTypeSeeder();
+
+console.log("\nSeeding Organisations...");
+await runOrganisationSeeder();
+
+console.log("\nSeeding Tahfiz Centers...");
+await runTahfizSeeder();
+
+console.log("\nSeeding Donations...");
+await runDonationSeeder();
 
 console.log("\n✅ Database seed operation completed");
 process.exit(0);

@@ -49,8 +49,6 @@ export default function SearchTahfiz() {
         )
       : filteredCenters;
 
-  const displayedCenters = sortedCenters.slice(0, displayedCount);
-
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title={translate('searchTahfizTitle') || "Search Tahfiz Center"} />
@@ -86,16 +84,16 @@ export default function SearchTahfiz() {
         <LocationDeniedComponent onRetry={requestLocation}/>
       )}
 
-      {isLoading || isSearching ? (
+      {isLoading ? (
         <ListCardSkeletonComponent/>
-      ) : displayedCenters.length === 0 ? (
+      ) : sortedCenters.length === 0 ? (
         <NoDataCardComponent
           title={translate('noTahfizFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
         <div className="space-y-2">
-          {displayedCenters.map(center => (
+          {sortedCenters.map(center => (
             <Card key={center.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-3">
                 <div className="flex items-start justify-between gap-3">

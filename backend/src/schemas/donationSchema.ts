@@ -13,5 +13,5 @@ export const donationSchema = z.object({
 });
 
 export const donationApprovalSchema = z.object({
-  status: z.enum(VerificationStatus).optional(),
+    status: z.enum(VerificationStatus).optional(), 
 });
