@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { MapPin, Navigation, Share2, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { showSuccess } from '@/components/ToastrNotification.jsx';
+import ShareButton from '@/components/ShareButton';
+import DirectionButton from '@/components/DirectionButton';
 import BackNavigation from '@/components/BackNavigation';
 import { useGetGraveById } from '@/hooks/useGraveMutations';
 import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
-import { openDirections, shareLink } from '@/utils/helpers';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
+import { translate } from '@/utils/translations';
+import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 
 export default function GraveDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -20,13 +24,11 @@ export default function GraveDetails() {
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
-  // 1. Fetch Grave Details via tRPC
   const { data: grave, isLoading: graveLoading } = useGetGraveById(graveId);
 
-  // 2. Fetch Associated Persons via tRPC
   const { deadPersonsList, isLoading: personsLoading } = useGetDeadPersonPaginated({
     filterGrave: graveId || undefined,
-    pageSize: 100, // Fetch a larger set to allow local filtering as per original UI
+    pageSize: 100,
   });
 
   const persons = deadPersonsList.items;
@@ -49,20 +51,17 @@ export default function GraveDetails() {
 
   if (graveLoading) {
     return (
-      <div className="space-y-3 animate-pulse pb-2 p-4">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
-      </div>
-    );
+      <PageLoadingComponent/>
+    );  
   }
 
   if (!grave) {
     return (
-      <Card className="border-0 shadow-sm dark:bg-gray-800 m-4">
-        <CardContent className="p-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Maklumat tidak dijumpai</p>
-        </CardContent>
-      </Card>
+      <NoDataCardComponent
+        isPage={true}
+        title={translate('noGravesFound')}
+        description="Tiada Maklumat Dijumpai"
+      />
     );
   }
 
@@ -70,51 +69,50 @@ export default function GraveDetails() {
     <div className="space-y-3 pb-2">
       <BackNavigation title={grave.name} />
       <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
-        <CardContent className="p-3">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-12 h-12 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-900 flex items-center justify-center shrink-0">
               <MapPin className="w-6 h-6 text-teal-600 dark:text-teal-300" />
             </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
-              {grave.block && <p className="text-xs text-gray-500 dark:text-gray-400">Blok {grave.block}</p>}
-              {grave.lot && <p className="text-xs text-gray-500 dark:text-gray-400">Lot {grave.lot}</p>}
+            <div className="flex-1 min-w-0">
+              {grave.organisation?.name && (
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <span className="truncate inline-block max-w-full align-middle">
+                    {grave.organisation.name}
+                  </span>
+                  <span className="text-gray-400 text-xs ml-1">
+                    ({translate('Managed By')})
+                  </span>
+                </p>
+              )}
             </div>
           </div>
+          {(grave.state || grave.block || grave.lot || grave.totalgraves !== null && grave.totalgraves !== undefined) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+              {grave.state && <strong>{grave.state}</strong>}
+              {grave.block && <span>Blok: <strong>{grave.block}</strong></span>}
+              {grave.lot && <span>Lot: <strong>{grave.lot}</strong></span>}
+              {grave.totalgraves !== null && grave.totalgraves !== undefined && (
+                <span>Jumlah Kubur: <strong>{grave.totalgraves}</strong></span>
+              )}
+            </div>
+          )}
           {(grave.latitude && grave.longitude) && (
-            <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDirections(grave.latitude, grave.longitude)
-                }}
-                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Navigation className="w-3 h-3 mr-1" />
-                Arah
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  shareLink({
-                    title: grave?.name || 'Grave',
-                    text: `Grave: ${grave?.name}`,
-                  })
-                }}
-                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-              >
-                <Share2 className="w-3 h-3 mr-1" />
-                Kongsi
-              </Button>
+            <div className="flex gap-2 pt-3 border-t dark:border-gray-700">
+              <DirectionButton
+                addClass="flex-1"
+                latitude={grave.latitude}
+                longitude={grave.longitude}
+              />
+              <ShareButton
+                addClass="flex-1"
+                title={grave?.name || 'Grave'}
+                textMessage={`Lokasi Kubur: ${grave?.name || ''}`}
+              />
             </div>
           )}
         </CardContent>
       </Card>
-
       <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
         <CardContent className="p-3">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
@@ -146,12 +144,10 @@ export default function GraveDetails() {
 
           {isSearching || personsLoading ? (
             <div className="space-y-2">
-              {[1, 2].map(i => (
-                <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              ))}
+              <ListCardSkeletonComponent/>
             </div>
           ) : displayedPersons.length === 0 ? (
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">Tiada rekod</p>
+            <NoDataCardComponent/>
           ) : (
             <div className="space-y-2">
               {displayedPersons.map(person => (
@@ -168,34 +164,12 @@ export default function GraveDetails() {
                       </Link>
                       {person.latitude && person.longitude && (
                         <div className="flex flex-col gap-1">
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDirections(person.latitude, person.longitude)
-                            }}
-                            className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
-                          >
-                            <Navigation className="w-3 h-3 mr-1" />
-                            Arah
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const url = `${window.location.origin}${createPageUrl('DeadPersonDetails')}?id=${person.id}`;
-                              shareLink({
-                                title: person?.name || 'Name',
-                                text: `Name: ${person?.name}`,
-                                url
-                              })
-                            }}
-                            className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-                          >
-                            <Share2 className="w-3 h-3 mr-1" />
-                            Kongsi
-                          </Button>
+                          <DirectionButton latitude={person?.latitude || null} longitude={person?.longitude || null} />
+                          <ShareButton 
+                            title={person?.name || 'Name'} 
+                            textMessage={`Name: ${person?.name}`}
+                            url={`${window.location.origin}${createPageUrl('DeadPersonDetails')}?id=${person.id}`}
+                          />
                         </div>
                       )}
                     </div>

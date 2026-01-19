@@ -16,10 +16,12 @@ import { trpc } from '@/utils/trpc';
 import { useCreateSuggestion, useRecentCountSuggestion } from '@/hooks/useSuggestionMutations';
 import { useGetGraveCoordinates } from '@/hooks/useGraveMutations';
 import { getDistanceFromLatLonInKm } from '@/utils/helpers';
+import { defaultSuggestionField } from '@/utils/defaultformfields';
+import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SubmitSuggestion() {
+  const { userLocation } = useLocationContext();
   const oneHourAgo = useMemo(() => new Date(Date.now() - 60 * 60 * 1000).toISOString(), []);
-
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
     staleTime: Infinity,
     refetchOnMount: false,
@@ -33,19 +35,10 @@ export default function SubmitSuggestion() {
     handleSubmit: handleFormSubmit, 
     reset: handleResetForm, setValue, watch 
   } = useForm({
-    defaultValues: {
-      name: '',
-      phoneno: '',
-      type: '',
-      watchSelectedGrave: '',
-      entityId: '',
-      suggestedchanges: '',
-      reason: ''
-    }
+    defaultValues: defaultSuggestionField
   });
   
   const [submitted, setSubmitted] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
@@ -53,25 +46,6 @@ export default function SubmitSuggestion() {
   const watchSelectedGrave = watch('watchSelectedGrave');
 
   const createMutation = useCreateSuggestion();
-
-  // if no extension created in psql
-  // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
-  // CREATE EXTENSION IF NOT EXISTS cube;
-  // CREATE EXTENSION IF NOT EXISTS earthdistance;
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          });
-        },
-        () => setUserLocation(null)
-      );
-    }
-  }, []);
 
   const { graves: nearbyGraves } = useGetGraveCoordinates({
     coordinates: userLocation,

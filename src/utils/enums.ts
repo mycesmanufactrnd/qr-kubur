@@ -83,6 +83,14 @@ export const SERVICE_LABELS = {
   'custom': 'Perkhidmatan Khas'
 };
 
+export const SERVICE_TYPES = [
+  { value: 'tahlil_ringkas', label: 'Tahlil Ringkas', description: 'Bacaan tahlil ringkas untuk arwah' },
+  { value: 'tahlil_panjang', label: 'Tahlil Panjang', description: 'Bacaan tahlil lengkap dengan surah-surah pilihan' },
+  { value: 'yasin', label: 'Yasin', description: 'Pembacaan Surah Yasin untuk arwah' },
+  { value: 'doa_arwah', label: 'Doa Arwah', description: 'Doa khusus untuk arwah' },
+  { value: 'custom', label: 'Perkhidmatan Khas', description: 'Perkhidmatan mengikut permintaan' }
+];
+
 export const ACTION_MAPS = {
   create: 'Created Successfully',
   upload: 'Upload Successfully',

@@ -13,7 +13,7 @@ import LocationDeniedComponent from '@/components/LocationDeniedComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useLocationContext } from '@/providers/LocationProvider';
 import { openDirections, requestLocation } from '@/utils/helpers';
-import CardSkeletonComponent from '@/components/CardSkeletonComponent';
+import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 
 export default function SearchTahfiz() {
@@ -100,7 +100,7 @@ export default function SearchTahfiz() {
       )}
 
       {isLoading || isSearching ? (
-        <CardSkeletonComponent/>
+        <ListCardSkeletonComponent/>
       ) : displayedCenters.length === 0 ? (
         <NoDataCardComponent
           title={translate('noTahfizFound')}

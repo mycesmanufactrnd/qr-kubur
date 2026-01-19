@@ -92,9 +92,15 @@ export const graveRouter = router({
       }
 
       return await AppDataSource.getRepository(Grave).findOne({ 
-        where: { id: input.id } 
+        where: { id: input.id },
+        relations: ["organisation"]
       });
     }),
+
+  // if no extension created in psql
+  // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
+  // CREATE EXTENSION IF NOT EXISTS cube;
+  // CREATE EXTENSION IF NOT EXISTS earthdistance;
 
   getGraveByCoordinates: publicProcedure
     .input(

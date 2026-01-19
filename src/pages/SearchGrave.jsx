@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
-import CardSkeletonComponent from '@/components/CardSkeletonComponent';
+import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useSearchGraves } from '@/hooks/useGraveMutations';
@@ -79,7 +79,7 @@ export default function SearchGrave() {
       </Card>
 
       {isLoading ? (
-        <CardSkeletonComponent/>
+        <ListCardSkeletonComponent/>
       ) : displayedGraves.length === 0 ? (
         <NoDataCardComponent
           title={translate('noGravesFound')}

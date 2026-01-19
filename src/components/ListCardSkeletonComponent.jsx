@@ -1,6 +1,6 @@
 import { Card, CardContent } from "./ui/card";
 
-export default function CardSkeletonComponent() {
+export default function ListCardSkeletonComponent() {
     return (
         <div className="space-y-2">
         {[1, 2, 3].map(i => (
