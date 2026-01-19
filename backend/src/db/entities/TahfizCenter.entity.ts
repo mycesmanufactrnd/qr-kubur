@@ -43,9 +43,6 @@ export class TahfizCenter {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @Column({ type: "boolean", default: false })
-  canbedonated!: boolean;
-
   @OneToMany(() => User, (users) => users.tahfizcenter)
   users!: User[];
 
