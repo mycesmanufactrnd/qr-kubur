@@ -188,7 +188,7 @@ const [recipientType, setRecipientType] = useState(
 
 
               <TabsContent value="tahfiz" className="mt-4">
-                <Select value={String(selectedRecipient)} onValueChange={val => setSelectedRecipient(Number(val))}>
+                <Select value={selectedRecipient !== null ? String(selectedRecipient) : ''} onValueChange={val => setSelectedRecipient(Number(val))}>
                   <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
                     <SelectValue placeholder="Pilih pusat tahfiz" />
                   </SelectTrigger>
