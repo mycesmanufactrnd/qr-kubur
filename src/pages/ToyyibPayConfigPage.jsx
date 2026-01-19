@@ -29,12 +29,12 @@ export default function ToyyibPayStatusPage() {
 
     try {
       const bill = await createBillMutation.mutateAsync({
-        amount: 1,
+        amount: 1000,
         referenceNo: "TEST123",
         name: "Test User",
         email: "test@example.com",
         phone: "0123456789",
-        returnTo: '',
+        returnTo: 'config',
       });
 
       setPaymentInfo((prev) => ({

@@ -29,7 +29,7 @@ export async function createBill({
     else if (returnTo === 'tahfiz') {
       returnUrl = toyyibpayConfig.returnUrlTahlil;
     }
-  
+
     const payload = {
       userSecretKey: toyyibpayConfig.secretKey,
       categoryCode: toyyibpayConfig.categoryCode,
