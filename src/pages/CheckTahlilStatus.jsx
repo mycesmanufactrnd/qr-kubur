@@ -21,7 +21,6 @@ export default function CheckTahlilStatus() {
   const {
     data: tahlilRequest,
     isLoading,
-    isError,
   } = trpc.tahlilRequest.getByReferenceNo.useQuery(
     searchKey ? { referenceno: searchKey } : null,
     { enabled: !!searchKey }

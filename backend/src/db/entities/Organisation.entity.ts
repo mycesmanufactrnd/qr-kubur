@@ -45,6 +45,15 @@ export class Organisation {
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
 
+  @Column("double precision", { nullable: true })
+  latitude?: number;
+
+  @Column("double precision", { nullable: true })
+  longitude?: number;
+
+  @Column({ type: "boolean", default: false })
+  canbedonated!: boolean;
+
   @Column({
     type: "enum",
     enum: ActiveInactiveStatus,

@@ -12,10 +12,9 @@ export async function runDeadPersonSeeder() {
   const graveRepo = AppDataSource.getRepository(Grave);
   const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
 
-  // 1. Fetch the graves we want to populate (based on your Selangor seeder list)
   const selangorGraves = await graveRepo.find({
     where: { state: "Selangor" },
-    relations: ["deadPerson"] // Check if they already have persons assigned
+    relations: ["deadPerson"] 
   });
 
   if (selangorGraves.length === 0) {
@@ -23,7 +22,6 @@ export async function runDeadPersonSeeder() {
     return;
   }
 
-  // 2. Dummy data mapping (Matching common names to the cemeteries)
   const dummyNames = [
     "Ahmad bin Abdullah",
     "Fatimah binti Hassan",
@@ -42,8 +40,6 @@ export async function runDeadPersonSeeder() {
   for (let i = 0; i < selangorGraves.length; i++) {
     const grave = selangorGraves[i];
 
-    // 3. Skip if this grave already has at least one dead person assigned
-    // This makes the seeder idempotent (safe to run multiple times)
     const existingCount = await deadPersonRepo.count({
       where: { grave: { id: grave.id } }
     });
@@ -52,16 +48,15 @@ export async function runDeadPersonSeeder() {
       continue;
     }
 
-    // 4. Create dummy record
     const person = deadPersonRepo.create({
-      name: dummyNames[i % dummyNames.length], // Rotate names if more graves than names
-      icnumber: `${70 + i}0101-10-${5000 + i}`, // Dummy IC: YYMMDD-SS-####
+      name: dummyNames[i % dummyNames.length],
+      icnumber: `${70 + i}0101-10-${5000 + i}`,
       dateofbirth: new Date(1940 + i, 0, 1),
       dateofdeath: new Date(2020, 5, 15 + i),
       causeofdeath: i % 2 === 0 ? "Sakit Tua" : "Komplikasi Jantung",
       biography: `Allahyarham merupakan seorang yang sangat berjasa di kawasan ${grave.name}.`,
       photourl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(dummyNames[i % dummyNames.length])}`,
-      grave: grave, // Link to the specific grave entity
+      grave: grave,
       latitude: grave.latitude,
       longitude: grave.longitude
     });

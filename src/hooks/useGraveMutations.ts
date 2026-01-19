@@ -1,10 +1,22 @@
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
+import { Coordinates } from '@/utils/enums';
 
-type Coordinates = {
-  latitude: number;
-  longitude: number;
+type useGetGravePaginatedParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  filterState?: string;
+  filterStatus?: string;
+  organisationIds?: number[];
+  filterBlock?: string;
+  filterLot?: string;
+};
+
+type UseGetGraveCoordinatesOptions = {
+  coordinates?: Coordinates | null;
+  enabled?: boolean;
 };
 
 const titleMessage = 'Grave';

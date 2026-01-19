@@ -23,17 +23,24 @@ export default function PaymentConfigDialog({
   const [configValues, setConfigValues] = useState({});
   const [uploadingFiles, setUploadingFiles] = useState({});
   const [previewUrls, setPreviewUrls] = useState({});
+  const [removedPlatforms, setRemovedPlatforms] = useState([]);
 
-  const buildPaymentConfigPayload = (entityType, entityId, configsToUpsert) => {
+  const buildPaymentConfigPayload = (entityType, entityId, configsToUpsert, existingConfigs = [], selectedPlatforms = []) => {
     switch (entityType) {
       case "organisation":
-        return { organisationId: entityId, configs: configsToUpsert };
+        return { 
+          organisationId: entityId, 
+          configs: configsToUpsert,
+        };
       case "tahfiz":
-        return { tahfizId: entityId, configs: configsToUpsert };
+        return { 
+          tahfizId: entityId, 
+          configs: configsToUpsert,
+        };
       default:
         throw new Error(`Unsupported entityType: ${entityType}`);
     }
-  }
+  };
 
   const resetForm = () => {
     setSelectedPlatforms([]);
@@ -57,15 +64,17 @@ export default function PaymentConfigDialog({
     }))
   );
   
-  
   const existingConfigs = useGetConfigByEntity({
     entityId: Number(entityId),
     entityType: entityType,
+    enabled: !!entityId && !!entityType,
   });
 
   const upsertMutation = useUpsertConfigByEntity();
 
   useEffect(() => {
+    if (!open) return;
+    
     if (existingConfigs.length > 0) {
       const fetchAllFileUrls = async () => {
         const values = {};
@@ -74,26 +83,32 @@ export default function PaymentConfigDialog({
         for (const config of existingConfigs) {
           const platformCode = config.paymentplatform?.code;
           const fieldKey = config.paymentfield?.key;
-          const filename = config.value;
+          const fieldType = config.paymentfield?.fieldtype;
+          const configValue = config.value;
 
-          if (platformCode && fieldKey && filename) {
+          if (platformCode && fieldKey && configValue) {
             platformSet.add(platformCode);
 
-            const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
-
-            try {
-              const res = await fetch(`/api/file/${bucketType}/${encodeURIComponent(filename)}`);
-              if (!res.ok) {
-                console.warn(`Failed to fetch file: ${filename}`);
+            if (fieldType == "image") {
+              const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
+  
+              try {
+                const res = await fetch(`/api/file/${bucketType}/${encodeURIComponent(configValue)}`);
+                if (!res.ok) {
+                  console.warn(`Failed to fetch file: ${configValue}`);
+                  values[`${platformCode}_${fieldKey}`] = '';
+                  continue;
+                }
+  
+                const blob = await res.blob();
+                values[`${platformCode}_${fieldKey}`] = URL.createObjectURL(blob);
+              } catch (err) {
+                console.error('Error fetching file:', err);
                 values[`${platformCode}_${fieldKey}`] = '';
-                continue;
               }
-
-              const blob = await res.blob();
-              values[`${platformCode}_${fieldKey}`] = URL.createObjectURL(blob);
-            } catch (err) {
-              console.error('Error fetching file:', err);
-              values[`${platformCode}_${fieldKey}`] = '';
+            }
+            else {
+              values[`${platformCode}_${fieldKey}`] = configValue;
             }
           }
         }
@@ -104,7 +119,7 @@ export default function PaymentConfigDialog({
 
       fetchAllFileUrls();
     }
-  }, [existingConfigs]);
+  }, [existingConfigs, open]);
 
   useEffect(() => {
     return () => {
@@ -114,7 +129,7 @@ export default function PaymentConfigDialog({
     };
   }, [previewUrls]);
   
-  const handleFileUpload = async (platformCode, fieldKey, file) => {
+  const handleFileUpload = async (platformCode, fieldKey, fieldType, file) => {
     const uploadKey = `${platformCode}_${fieldKey}`;
     setUploadingFiles({ ...uploadingFiles, [uploadKey]: true });
 
@@ -150,11 +165,15 @@ export default function PaymentConfigDialog({
   };
 
   const togglePlatform = (platformCode) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformCode) 
-        ? prev.filter(p => p !== platformCode)
-        : [...prev, platformCode]
-    );
+    setSelectedPlatforms(prev => {
+      if (prev.includes(platformCode)) {
+        setRemovedPlatforms(r => [...r, platformCode]);
+        return prev.filter(p => p !== platformCode);
+      } else {
+        setRemovedPlatforms(r => r.filter(p => p !== platformCode));
+        return [...prev, platformCode];
+      }
+    });
   };
 
   const validateConfig = () => {
@@ -196,7 +215,7 @@ export default function PaymentConfigDialog({
         .filter(Boolean);
     });
 
-    const payload = buildPaymentConfigPayload(entityType, entityId, configsToUpsert);
+    const payload = buildPaymentConfigPayload(entityType, entityId, configsToUpsert, existingConfigs, selectedPlatforms);
     
     upsertMutation.mutateAsync(payload)
     .then((res) => {
@@ -225,7 +244,7 @@ export default function PaymentConfigDialog({
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  handleFileUpload(platform.code, field.key, file);
+                  handleFileUpload(platform.code, field.key, field.fieldtype, file);
                 }}
                 disabled={isUploading}
               />
@@ -333,11 +352,7 @@ export default function PaymentConfigDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {translate('cancel')}
           </Button>
-          <Button onClick={handleSave} disabled={
-            upsertMutation.orgMutation.isPending || 
-            upsertMutation.tahfizMutation.isPending || 
-            selectedPlatforms.length === 0
-          }>
+          <Button onClick={handleSave} >
             <Save className="w-4 h-4 mr-2" />
             { (upsertMutation.orgMutation.isPending || upsertMutation.tahfizMutation.isPending) 
               ? translate('saving...') : translate('savingConfig')

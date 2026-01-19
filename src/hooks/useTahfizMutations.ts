@@ -32,14 +32,14 @@ export function useGetTahfizPaginated({
   };
 }
 
-// FIX: Added the missing export required by SearchTahfiz.jsx
 export function useGetTahfizCoordinates(coordinates?: { latitude: number; longitude: number } | null) {
   return trpc.tahfiz.getTahfiz.useQuery(
     { coordinates: coordinates ?? null },
     {
       enabled: coordinates !== undefined,
-      staleTime: 1000 * 60 * 5,
+      staleTime: Infinity,
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
     }
   );
 }
@@ -49,7 +49,7 @@ export function useTahfizMutations() {
 
   const invalidateAll = () => {
     trpcUtils.tahfiz.getPaginated.invalidate();
-    trpcUtils.tahfiz.getTahfiz.invalidate(); // Refresh maps too
+    trpcUtils.tahfiz.getTahfiz.invalidate();
   };
 
   const createTahfiz = trpc.tahfiz.create.useMutation({

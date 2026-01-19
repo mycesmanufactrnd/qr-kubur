@@ -5,8 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 import { createPageUrl } from '@/utils';
-import { calculateAge } from '@/utils/helpers';
-import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { calculateAge, openDirections, shareLink } from '@/utils/helpers';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
@@ -21,45 +20,6 @@ export default function DeadPersonDetails() {
   });
 
   const grave = person?.grave;
-
-  const openDirections = () => {
-    if (grave?.latitude && grave?.longitude) {
-      window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${grave.latitude},${grave.longitude}`,
-        '_blank'
-      );
-    }
-  };
-
-  const openPersonDirections = () => {
-    if (person?.latitude && person?.longitude) {
-      window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${person.latitude},${person.longitude}`,
-        '_blank'
-      );
-    }
-  };
-
-  const shareProfile = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: person?.name,
-          text: `Profil: ${person?.name}`,
-          url,
-        });
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          navigator.clipboard.writeText(url);
-          alert('Pautan telah disalin!');
-        }
-      }
-    } else {
-      navigator.clipboard.writeText(url);
-      alert('Pautan telah disalin!');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -145,7 +105,10 @@ export default function DeadPersonDetails() {
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
               <Button
                 size="sm"
-                onClick={openPersonDirections}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDirections(person.latitude, person.longitude)
+                }}
                 className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
                 <Navigation className="w-3 h-3 mr-1" />
@@ -155,7 +118,13 @@ export default function DeadPersonDetails() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={shareProfile}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shareLink({
+                    title: person?.name || 'Name',
+                    text: `Name: ${person?.name}`,
+                  })
+                }}
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Share2 className="w-3 h-3 mr-1" />
@@ -191,7 +160,10 @@ export default function DeadPersonDetails() {
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
               <Button
                 size="sm"
-                onClick={openDirections}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDirections(grave.latitude, grave.longitude)
+                }}
                 className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
                 <Navigation className="w-3 h-3 mr-1" />
@@ -203,14 +175,13 @@ export default function DeadPersonDetails() {
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  
+
                   const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
-                  if (navigator.share) {
-                    navigator.share({ title: grave.name, url });
-                  } else {
-                    navigator.clipboard.writeText(url);
-                    alert('Pautan telah disalin!');
-                  }
+                  shareLink({
+                    title: grave?.name || 'Lokasi Kubur',
+                    text: `Grave: ${grave?.name}`,
+                    url
+                  })
                 }}
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >

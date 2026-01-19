@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { Organisation } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
@@ -137,5 +137,36 @@ export const organisationRouter = router({
       });
     }),
 
+  getOrganisationByCoordinates: publicProcedure
+    .input(
+      z.object({
+        coordinates: z.object({
+            latitude: z.number().min(-90).max(90),
+            longitude: z.number().min(-180).max(180),
+        }).optional().nullable()
+      })
+    )
+    .query(async ({ input }) => {
+        const organisationRepo = AppDataSource.getRepository(Organisation);
 
+        if (!input.coordinates) {
+          return [];
+        }
+
+        const { latitude, longitude } = input.coordinates;
+
+        return organisationRepo.createQueryBuilder("organisation")
+        .where("organisation.latitude IS NOT NULL AND organisation.longitude IS NOT NULL")
+        .orderBy(
+            `
+            earth_distance(
+                ll_to_earth(organisation.latitude, organisation.longitude),
+                ll_to_earth(:lat, :lng)
+            )
+            `,
+            "ASC"
+        )
+        .setParameters({ lat: latitude, lng: longitude })
+        .getMany();
+    }),
 });

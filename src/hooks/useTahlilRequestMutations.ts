@@ -1,9 +1,8 @@
-// src/hooks/useTahlilRequestMutations.ts
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 
-type UseGetTahlilReqPaginatedParams = {
+type useGetTahlilReqPaginatedParams = {
   page?: number;
   pageSize?: number;
 };
@@ -13,37 +12,27 @@ const titleMessage = 'Tahlil Request';
 export function useGetTahlilRequestPaginated({
   page,
   pageSize,
-}: UseGetTahlilReqPaginatedParams) {
-  const { isTahfizAdmin, isSuperAdmin, currentUser } = useAdminAccess();
+}: useGetTahlilReqPaginatedParams) {
+  const { currentUser, isTahfizAdmin, isSuperAdmin } = useAdminAccess();
 
-  const { data, isLoading, refetch, error } = trpc.tahlilRequest.getPaginated.useQuery(
-    {
-      page: page ?? 1,
-      pageSize: pageSize ?? 10,
-      currentUser: currentUser
-        ? {
-            id: currentUser.id,
-            tahfizcenter: currentUser.tahfizcenter
-              ? { id: currentUser.tahfizcenter.id }
-              : null,
-          }
-        : { id: 0, tahfizcenter: null },
-      isTahfizAdmin: !!isTahfizAdmin,
-      isSuperAdmin: !!isSuperAdmin,
-    },
-    {
-      enabled: !!currentUser, // Only run after currentUser is loaded
-    }
-  );
+  const { data, isLoading, refetch, error } =
+    trpc.tahlilRequest.getPaginated.useQuery(
+      {
+        page,
+        pageSize,
+        currentUser,
+        isTahfizAdmin,
+        isSuperAdmin
+      },
+      { enabled: (isSuperAdmin || isTahfizAdmin) && !!currentUser }
+    );
 
   const tahlilRequestList = {
     items: data?.items ?? [],
     total: data?.total ?? 0,
   };
 
-  const totalPages = pageSize
-    ? Math.ceil(tahlilRequestList.total / pageSize)
-    : 1;
+  const totalPages = Math.ceil(tahlilRequestList.total / pageSize);
 
   return { tahlilRequestList, totalPages, isLoading, refetch, error };
 }
