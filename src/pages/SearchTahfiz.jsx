@@ -19,8 +19,6 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 export default function SearchTahfiz() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
-  const [displayedCount, setDisplayedCount] = useState(10);
-  const [isSearching, setIsSearching] = useState(false);
 
   const {
     userLocation,

@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Heart, Building2, CheckCircle, CreditCard } from 'lucide-react';
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-import { DONATION_AMOUNTS, STATES_MY, VerificationStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, VerificationStatus } from '@/utils/enums';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
@@ -19,40 +18,104 @@ import { useForm } from 'react-hook-form';
 import { trpc } from '@/utils/trpc';
 import { validateFields } from '@/utils/validations';
 import { useLocationContext } from '@/providers/LocationProvider';
-
-const defaultValues = {
-  recipientType: 'organisation',
-  selectedRecipient: '',
-  amount: '',
-  customAmount: '',
-  paymentMethod: '',
-  donorName: '',
-  donorEmail: '',
-  notes: '',
-};
+import { defaultDonationField } from '@/utils/defaultformfields';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { useSearchParams } from 'react-router-dom';
+import { activityLogError } from '@/utils/helpers';
 
 export default function DonationPage() {
+  const [searchParams] = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
+  const [loadingPayment, setLoadingPayment] = useState(false);
   const {
     watch,
     setValue,
     handleSubmit,
     reset,
-  } = useForm({ defaultValues });
+  } = useForm({ defaultValues: defaultDonationField });
   const {
     userLocation,
-    userState,
     locationDenied,
-    isLocationLoading,
   } = useLocationContext();
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
   const amount = watch('amount');
   const customAmount = watch('customAmount');
   const paymentMethod = watch('paymentMethod');
-  const donorName = watch('donorName');
-  const donorEmail = watch('donorEmail');
+  const donorname = watch('donorname');
+  const donorphoneno = watch('donorphoneno');
+  const donoremail = watch('donoremail');
   const notes = watch('notes');
+
+  const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const createLogMutation = trpc.activityLogs.create.useMutation();
+  const createDonationRunningNoMutation = trpc.runningNo.createDonationRunningNo.useMutation();
+  const createDonation = trpc.donation.create.useMutation({
+    onSuccess: () => {
+      setSubmitted(true);
+      showSuccess('Terima kasih! Derma anda telah direkodkan.');
+      reset(defaultDonationField);
+    },
+  });
+
+  const finalAmountWithFee = useMemo(() => {
+    const baseAmount = customAmount || amount;
+    if (!baseAmount) return 0;
+    return Number(baseAmount) + 0.5;
+  }, [amount, customAmount]);
+
+  useEffect(() => {
+    const status_id = searchParams.get("status_id");
+    const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
+
+    if (!status_id) return;
+
+    const pendingDonation = sessionStorage.getItem("donationPending");
+    if (!pendingDonation) return;
+
+    const { formData, finalAmount } = JSON.parse(pendingDonation);
+
+    if (statusText === "Success") {
+      showSuccess("Pembayaran berjaya!");
+      
+      createDonation.mutateAsync({
+        donorname: formData.donorname || null,
+        donorphoneno: formData.donorphoneno || null,
+        donoremail: formData.donoremail || null,
+        amount: Number(finalAmount) || null,
+        tahfizcenter: formData.recipientType === 'tahfiz' && formData.selectedRecipient
+          ? { id: Number(formData.selectedRecipient) }
+          : null,
+        organisation: formData.recipientType === 'organisation' && formData.selectedRecipient
+          ? { id: Number(formData.selectedRecipient) }
+          : null,
+        notes: formData.notes || null,
+        status: VerificationStatus.PENDING,
+      })
+      .then((res) => {
+        if (res) {
+          sessionStorage.removeItem("donationPending");
+        }
+      })
+      .catch((error) => {
+        createLogMutation.mutateAsync({
+          activitytype: 'Create Donation',
+          functionname: 'createDonation.mutateAsync',
+          useremail: '',
+          level: 'error',
+          summary: activityLogError(error),
+          extramessage: pendingDonation,
+        })
+
+        sessionStorage.removeItem("donationPending");
+      })
+
+    } else if (statusText === "Pending") {
+      showError("Pembayaran masih dalam proses.");
+    } else {
+      showError("Pembayaran gagal.");
+    }
+  }, [searchParams]);
 
   const { organisations = [] } = useGetOrganisationCoordinates({
     coordinates: userLocation?.lat && userLocation?.lng
@@ -107,42 +170,67 @@ export default function DonationPage() {
   useEffect(() => {
     setValue('paymentMethod', '');
   }, [selectedRecipient]);
-  
-  const createDonation = trpc.donation.create.useMutation({
-    onSuccess: () => {
-      setSubmitted(true);
-      showSuccess('Terima kasih! Derma anda telah direkodkan.');
-      reset(defaultValues);
-    },
-  });
 
-  const onSubmit = (data) => {
-    const isValid = validateFields(data, [
+  const handlePaymentConfig = async (formData) => {
+    if (!formData) return false;
+    
+    setLoadingPayment(true);
+
+    sessionStorage.setItem(
+      "donationPending",
+      JSON.stringify({ formData, finalAmountWithFee })
+    );
+    
+    const nextRunningNo = await createDonationRunningNoMutation.mutateAsync();
+    
+    const year = new Date().getFullYear();
+    const runningNo = `DON-${year}-${String(nextRunningNo).padStart(4, '0')}`
+
+    try {
+      const bill = await createBillMutation.mutateAsync({
+        amount: finalAmountWithFee,
+        referenceNo: runningNo,
+        name: formData?.donorname ?? 'ANONYMOUS',
+        email: formData?.donoremail ?? 'noreply@gmail.com',
+        phone: formData?.donorphoneno ?? '0123456789',
+        returnTo: 'donation',
+      });
+
+      if (bill && bill.paymentUrl) {
+        window.location.href = bill.paymentUrl;
+        return true;
+      } else {
+        setLoadingPayment(false);
+        showError("No payment URL returned.");
+      }
+    } catch (err) {
+      setLoadingPayment(false);
+      showError(err.message || "Unknown error");
+
+    }
+  };
+
+  const onSubmit = async (formData) => {
+    const isValid = validateFields(formData, [
       { field: 'recipientType', label: 'Recipient Type', type: 'select' },
+      { field: 'email', label: 'Email', type: 'email', required: false },
     ]);
 
     if (!isValid) return;
 
-    const finalAmount = data.customAmount || data.amount;
+    const finalAmount = formData.customAmount || formData.amount;
 
-    if (!finalAmount || !data.selectedRecipient || !data.paymentMethod) {
+    if (!finalAmount || !formData.selectedRecipient || !formData.paymentMethod) {
       showError('Sila lengkapkan maklumat derma');
       return;
     }
 
-    createDonation.mutate({
-      donorname: data.donorName || null,
-      donoremail: data.donorEmail || null,
-      amount: Number(finalAmount) || null,
-      tahfizcenter: data.recipientType === 'tahfiz' && data.selectedRecipient
-        ? { id: Number(data.selectedRecipient) }
-        : null,
-      organisation: data.recipientType === 'organisation' && data.selectedRecipient
-        ? { id: Number(data.selectedRecipient) }
-        : null,
-      notes: data.notes || null,
-      status: VerificationStatus.PENDING,
-    });
+    const resPayment = await handlePaymentConfig(formData);
+
+    if (!resPayment) {
+      showError('Payment Failed');
+      return;
+    }    
   };
 
   {locationDenied && (
@@ -150,6 +238,10 @@ export default function DonationPage() {
       Lokasi tidak tersedia. Senarai tidak disusun mengikut jarak.
     </p>
   )}
+
+  if (loadingPayment) {
+    return ( <PageLoadingComponent/> )
+  }
 
   if (submitted) {
     return (
@@ -263,6 +355,12 @@ export default function DonationPage() {
                 setValue('amount', '');
               }}
             />
+
+            {(amount || customAmount) && (
+              <p className="text-sm text-gray-500">
+                Jumlah: RM {Number(customAmount || amount).toFixed(2)} + Penyelenggaraan: RM 0.50 = <strong>RM {finalAmountWithFee.toFixed(2)}</strong>
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -298,10 +396,11 @@ export default function DonationPage() {
         )}
 
         <Card>
-          <CardHeader><CardTitle>Maklumat Penderma</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Maklumat Penderma (optional)</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <Input placeholder="Nama" value={donorName} onChange={e => setValue('donorName', e.target.value)} />
-            <Input placeholder="Email" value={donorEmail} onChange={e => setValue('donorEmail', e.target.value)} />
+            <Input placeholder="Nama" value={donorname} onChange={e => setValue('donorname', e.target.value)} />
+            <Input placeholder="Email" value={donoremail} onChange={e => setValue('donoremail', e.target.value)} />
+            <Input placeholder="Phone No." value={donorphoneno} onChange={e => setValue('donorphoneno', e.target.value)} />
             <Textarea placeholder="Catatan" value={notes} onChange={e => setValue('notes', e.target.value)} />
           </CardContent>
         </Card>

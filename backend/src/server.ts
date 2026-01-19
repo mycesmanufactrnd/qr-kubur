@@ -73,7 +73,7 @@ async function bootstrap() {
     const PORT = Number(process.env.BACKEND_PORT ?? 8000)
 
     await app.listen({ port: PORT, host: '0.0.0.0' })
-    console.log(`\n🚀 tRPC backend running on http://localhost:${PORT}`)
+    console.log(`\n🚀 tRPC backend running`)
 
   } catch (err) {
     console.error("\n ❌ Server failed to start");

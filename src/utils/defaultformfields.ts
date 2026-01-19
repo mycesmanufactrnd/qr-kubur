@@ -47,3 +47,15 @@ export const defaultTahfizField = {
   latitude: '', 
   longitude: ''
 }
+
+export const defaultDonationField = {
+  recipientType: 'organisation',
+  selectedRecipient: '',
+  amount: '',
+  customAmount: '',
+  paymentMethod: '',
+  donorname: '',
+  donoremail: '',
+  donorphoneno: '',
+  notes: 'Sedeqah',
+}

@@ -136,3 +136,12 @@ export enum TahlilStatus {
   ACCEPTED = "accepted",
   REJECTED = "rejected",
 }
+
+export const paymentToyyibStatus = {
+  "1": "Success",
+  "2": "Pending",
+  "3": "Unsuccessful",
+  "01": "Success",
+  "02": "Pending",
+  "03": "Unsuccessful",
+};

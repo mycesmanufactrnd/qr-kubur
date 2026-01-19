@@ -103,3 +103,12 @@ export function requestLocation() {
   window.location.reload(); 
 };
 
+export function activityLogError(error: any) {
+  return JSON.stringify({
+    message: error?.message,
+    code: error?.data?.code ?? error?.code,
+    httpStatus: error?.data?.httpStatus,
+    path: error?.data?.path,
+  });
+}
+
