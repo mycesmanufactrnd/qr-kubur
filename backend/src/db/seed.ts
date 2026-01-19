@@ -11,6 +11,7 @@ import { runOrganisationTypeSeeder } from "./seeder/organisation/organisationTyp
 import { runOrganisationSeeder } from "./seeder/organisation/organisationSeeder.ts";
 import { runTahfizSeeder } from "./seeder/tahfiz/tahfizSeeder.ts";
 import { runDonationSeeder } from "./seeder/donation/donationSeeder.ts";
+import { runBillplzSeeder } from "./seeder/gateway/billplzSeeder.ts";
 
 console.log("\nSeeding users...");
 await runUserSeeder();
@@ -35,6 +36,9 @@ await runTahfizSeeder();
 
 console.log("\nSeeding Donations...");
 await runDonationSeeder();
+
+console.log("\nSeeding Billplz Payment Platform...");
+await runBillplzSeeder();
 
 console.log("\n✅ Database seed operation completed");
 process.exit(0);
