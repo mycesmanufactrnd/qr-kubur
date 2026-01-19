@@ -26,8 +26,6 @@
     "docker:seed": "docker compose exec backend npm run seed"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.3",
-    "@base44/vite-plugin": "^0.2.5",
     "@fastify/cors": "^11.2.0",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",
