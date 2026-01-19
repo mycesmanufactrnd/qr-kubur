@@ -28,13 +28,9 @@ export default function SearchGrave() {
 
   const { gravesList, isLoading, refetch } = useSearchGraves({
     search: searchQuery,
-    filterState: selectedState
+    filterState: selectedState === 'nearby' ? userState : selectedState,
+    coordinates: userLocation,
   });
-
-  const handleSearch = () => {
-    setDisplayedCount(10);
-    refetch();
-  };
 
   const processedGraves = gravesList
     .map(grave => ({
@@ -50,6 +46,7 @@ export default function SearchGrave() {
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title="Search Graves" />
+
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
@@ -58,6 +55,7 @@ export default function SearchGrave() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
           />
+
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
               <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
@@ -70,10 +68,6 @@ export default function SearchGrave() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={handleSearch} className="h-9 bg-emerald-600 hover:bg-emerald-700">
-              <Search className="w-4 h-4 mr-1" />
-              {translate('search')}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -87,32 +81,43 @@ export default function SearchGrave() {
         />
       ) : (
         <div className="space-y-3">
-          {displayedGraves.map((grave) => (
-            <Card key={grave.id} className="mb-2 border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800">
+          {displayedGraves.map(grave => (
+            <Card
+              key={grave.id}
+              className="mb-2 border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800"
+            >
               <CardContent className="p-3">
                 <div className="flex items-start justify-between gap-3">
-                  <Link to={createPageUrl('GraveDetails') + `?id=${grave.id}`} className="flex items-start gap-3 flex-1 min-w-0">
+                  <Link
+                    to={createPageUrl('GraveDetails') + `?id=${grave.id}`}
+                    className="flex items-start gap-3 flex-1 min-w-0"
+                  >
                     <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-300" />
                     </div>
+
                     <div className="flex-1 min-w-0">
-                      {/* Changed from cemetery_name to name */}
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{grave.name}</h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{grave.state}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        {grave.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {grave.state}
+                      </p>
+
                       {grave.distance !== null && (
                         <p className="text-xs text-emerald-600 mt-1">
                           <Navigation className="w-3 h-3 inline mr-1" />
-                          {grave.distance < 1 
+                          {grave.distance < 1
                             ? `${Math.round(grave.distance * 1000)}m`
-                            : `${grave.distance.toFixed(1)}km`
-                          }
+                            : `${grave.distance.toFixed(1)}km`}
                         </p>
                       )}
                     </div>
                   </Link>
+
                   <div className="flex flex-col gap-1">
                     {grave.latitude && grave.longitude && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -123,7 +128,8 @@ export default function SearchGrave() {
                         <Navigation className="w-3 h-3 mr-1" /> Arah
                       </Button>
                     )}
-                    <Button 
+
+                    <Button
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
@@ -144,10 +150,11 @@ export default function SearchGrave() {
               </CardContent>
             </Card>
           ))}
+
           {displayedCount < processedGraves.length && (
             <div className="text-center py-2">
               <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                {translate('loadMore')}
+                Load more
               </Button>
             </div>
           )}

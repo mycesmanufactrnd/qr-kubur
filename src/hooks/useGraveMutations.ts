@@ -14,11 +14,6 @@ type useGetGravePaginatedParams = {
   filterLot?: string;
 };
 
-type UseGetGraveCoordinatesOptions = {
-  coordinates?: Coordinates | null;
-  enabled?: boolean;
-};
-
 const titleMessage = 'Grave';
 
 export function useGetGravePaginated({
@@ -35,24 +30,11 @@ export function useGetGravePaginated({
 
   const { data, isLoading, refetch, error } =
     trpc.grave.getPaginated.useQuery(
-      {
-        page,
-        pageSize,
-        search,
-        filterState,
-        filterStatus,
-        organisationIds,
-        filterBlock,
-        filterLot,
-      },
+      { page, pageSize, search, filterState, filterStatus, organisationIds, filterBlock, filterLot },
       { enabled: hasAdminAccess }
     );
 
-  const gravesList = {
-    items: data?.items ?? [],
-    total: data?.total ?? 0,
-  };
-
+  const gravesList = { items: data?.items ?? [], total: data?.total ?? 0 };
   const totalPages = Math.ceil(gravesList.total / (pageSize ?? 10));
 
   return { gravesList, totalPages, isLoading, refetch, error };
@@ -66,9 +48,7 @@ export function useCreateGrave() {
       showSuccess(titleMessage, 'create');
       trpcUtils.grave.getPaginated.invalidate();
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: showApiError,
   });
 }
 
@@ -80,44 +60,20 @@ export function useUpdateGrave() {
       showSuccess(titleMessage, 'update');
       trpcUtils.grave.getPaginated.invalidate();
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: showApiError,
   });
 }
-
 
 export function useDeleteGrave() {
   const trpcUtils = trpc.useUtils();
 
   return trpc.grave.delete.useMutation({
     onSuccess: () => {
-      showSuccess('Grave', 'delete');
-      // This tells tRPC to reload the table data
+      showSuccess(titleMessage, 'delete');
       trpcUtils.grave.getPaginated.invalidate();
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: showApiError,
   });
-}
-
-export function useGetGraveCoordinates(
-  options: UseGetGraveCoordinatesOptions = {}
-) {
-  const { coordinates, enabled: customEnabled } = options;
-
-  const { data = [], isLoading, error, refetch } = trpc.grave.getGraveByCoordinates.useQuery(
-    { coordinates: coordinates ?? null },
-    {
-      enabled: customEnabled && !!coordinates,
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  );
-
-  return { graves: data, isLoading, error, refetch };
 }
 
 export function useBulkCreateGraves() {
@@ -125,36 +81,41 @@ export function useBulkCreateGraves() {
 
   return trpc.grave.bulkCreate.useMutation({
     onSuccess: (data) => {
-      showSuccess('Grave', `Successfully imported ${data.count} records`);
+      showSuccess(titleMessage, `Successfully imported ${data.count} records`);
       trpcUtils.grave.getPaginated.invalidate();
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: showApiError,
   });
 }
 
-export function useSearchGraves({ 
-  search, 
-  filterState 
-}: { 
-  search?: string; 
-  filterState?: string; 
+export function useSearchGraves({
+  search,
+  filterState,
+  coordinates,
+}: {
+  search?: string;
+  filterState?: string;
+  coordinates?: Coordinates | null;
 }) {
-  const { data, isLoading, refetch } = trpc.grave.getPaginated.useQuery({
-    pageSize: 100, 
-    search,
-    filterState: filterState === 'nearby' ? undefined : filterState,
+  const { data, isLoading, refetch } = trpc.grave.search.useQuery({
+    search: search ?? '',
+    filterState: filterState ?? '',
+    userLat: coordinates?.latitude ?? null,
+    userLng: coordinates?.longitude ?? null,
   });
 
-  const gravesList = data?.items ?? [];
-  
-  return { gravesList, isLoading, refetch };
+  return { gravesList: data ?? [], isLoading, refetch };
 }
 
 export function useGetGraveById(id: number | null) {
-  return trpc.grave.getGraveById.useQuery(
-    { id: id as number }, 
-    { enabled: !!id }
+  return trpc.grave.getGraveById.useQuery({ id: id as number }, { enabled: !!id });
+}
+
+export function useGetGraveCoordinates(coordinates?: Coordinates | null) {
+  const { data = [], isLoading, error, refetch } = trpc.grave.getGraveByCoordinates.useQuery(
+    { coordinates: coordinates ?? null },
+    { enabled: !!coordinates, staleTime: Infinity, refetchOnWindowFocus: false, refetchOnMount: false }
   );
+
+  return { graves: data, isLoading, error, refetch };
 }

@@ -33,14 +33,6 @@ export default function SearchTahfiz() {
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
   );
 
-  const handleSearch = () => {
-    setIsSearching(true);
-    setTimeout(() => {
-      setDisplayedCount(10);
-      setIsSearching(false);
-    }, 300);
-  };
-
   const filteredCenters = (tahfizCenters || []).filter(center => {
     const matchesSearch = !searchQuery || center.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -87,10 +79,7 @@ export default function SearchTahfiz() {
               </SelectContent>
             </Select>
 
-            <Button onClick={handleSearch} className="h-9 bg-violet-600 hover:bg-violet-700">
-              <Search className="w-4 h-4 mr-1" />
-              {translate('search')}
-            </Button>
+            
           </div>
         </CardContent>
       </Card>
