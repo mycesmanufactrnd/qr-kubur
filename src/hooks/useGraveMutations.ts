@@ -14,11 +14,6 @@ type useGetGravePaginatedParams = {
   filterLot?: string;
 };
 
-type UseGetGraveCoordinatesOptions = {
-  coordinates?: Coordinates | null;
-  enabled?: boolean;
-};
-
 const titleMessage = 'Grave';
 
 export function useGetGravePaginated({
@@ -30,16 +25,7 @@ export function useGetGravePaginated({
   organisationIds,
   filterBlock,
   filterLot,
-}: {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  filterState?: string;
-  filterStatus?: string;
-  organisationIds?: number[];
-  filterBlock?: string;
-  filterLot?: string;
-}) {
+}: useGetGravePaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =

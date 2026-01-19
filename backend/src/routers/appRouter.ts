@@ -24,9 +24,11 @@ import { deadPersonRouter } from "./deadpersonRouter.ts";
 import { tahfizPaymentConfigRouter } from "./tahfizPaymentConfigRouter.ts";
 import { dashboardRouter } from "./dashboardRouter.ts";
 import { toyyibPayRouter } from "./toyyibPayRouter.ts";
+import { runningNoRouter } from "./runningNoRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
+  runningNo: runningNoRouter,
   toyyibPay: toyyibPayRouter,
   dashboard: dashboardRouter,
   users: usersRouter,

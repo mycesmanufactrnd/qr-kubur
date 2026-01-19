@@ -7,7 +7,9 @@ if (!SERVICE_ROLE_KEY) {
 
 const isRunningInDocker = process.env.DOCKER === 'true';
 
-const SUPABASE_URL = isRunningInDocker ? 'http://kong:8000' : 'http://localhost:8000';
+const SUPABASE_URL = isRunningInDocker 
+  ? 'http://kong:8000' 
+  : 'http://localhost:8000';
 
 console.log(`\n💻 Running in ${isRunningInDocker ? 'DOCKER' : 'LOCAL'} mode`);
 console.log('\n🌐 Using SUPABASE_URL:', SUPABASE_URL);

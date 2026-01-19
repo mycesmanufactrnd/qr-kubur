@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { graveSchema } from '../schemas/graveSchema.ts';
 
 export const graveRouter = router({
-  // Paginated fetch for admin
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).default(1),
@@ -39,7 +38,6 @@ export const graveRouter = router({
       return { items, total };
     }),
 
-  // Create grave
   create: protectedProcedure
     .input(graveSchema)
     .mutation(async ({ input }) => {
@@ -48,7 +46,6 @@ export const graveRouter = router({
       return await graveRepo.save(grave);
     }),
 
-  // Update grave
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: graveSchema }))
     .mutation(async ({ input }) => {
@@ -58,7 +55,6 @@ export const graveRouter = router({
       return await graveRepo.save(grave);
     }),
 
-  // Delete grave
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
@@ -66,7 +62,6 @@ export const graveRouter = router({
       return await graveRepo.delete(input);
     }),
 
-  // Bulk create graves
   bulkCreate: protectedProcedure
     .input(z.array(graveSchema))
     .mutation(async ({ input }) => {
@@ -75,15 +70,23 @@ export const graveRouter = router({
       return { count: results.length };
     }),
 
-  // Get grave by ID
   getGraveById: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(
+        z.object({
+          id: z.number()
+        })
+    )
     .query(async ({ input }) => {
-      if (!input.id) return null;
-      return await AppDataSource.getRepository(Grave).findOne({ where: { id: input.id } });
+      if (!input.id) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(Grave).findOne({ 
+        where: { id: input.id },
+        relations: ["organisation"]
+      });
     }),
 
-  // Get graves by coordinates (nearby search)
   search: publicProcedure
     .input(z.object({
       search: z.string().optional(),
@@ -99,7 +102,6 @@ export const graveRouter = router({
 
       if (search) query.andWhere('grave.name ILIKE :search', { search: `%${search}%` });
 
-      // Nearby search: if coordinates exist, order by distance
       if (userLat !== null && userLng !== null) {
         query
           .where('grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL')
@@ -117,27 +119,40 @@ export const graveRouter = router({
       return await query.getMany();
     }),
 
-  // Get graves by exact coordinates
-  getGraveByCoordinates: publicProcedure
-    .input(z.object({
-      coordinates: z.object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-      }).optional().nullable()
-    }))
-    .query(async ({ input }) => {
-      const graveRepo = AppDataSource.getRepository(Grave);
-      if (!input.coordinates) return [];
-      const { latitude, longitude } = input.coordinates;
+  // if no extension created in psql
+  // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
+  // CREATE EXTENSION IF NOT EXISTS cube;
+  // CREATE EXTENSION IF NOT EXISTS earthdistance;
 
-      return graveRepo.createQueryBuilder('grave')
-        .where('grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL')
-        .orderBy(`
-          earth_distance(
-            ll_to_earth(grave.latitude, grave.longitude),
-            ll_to_earth(:lat, :lng)
-          )
-        `, 'ASC')
+  getGraveByCoordinates: publicProcedure
+    .input(
+        z.object({
+        coordinates: z.object({
+            latitude: z.number().min(-90).max(90),
+            longitude: z.number().min(-180).max(180),
+        }).optional().nullable()
+        })
+    )
+    .query(async ({ input }) => {
+        const graveRepo = AppDataSource.getRepository(Grave);
+
+        if (!input.coordinates) {
+          return [];
+        }
+
+        const { latitude, longitude } = input.coordinates;
+
+        return graveRepo.createQueryBuilder("grave")
+        .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL")
+        .orderBy(
+            `
+            earth_distance(
+                ll_to_earth(grave.latitude, grave.longitude),
+                ll_to_earth(:lat, :lng)
+            )
+            `,
+            "ASC"
+        )
         .setParameters({ lat: latitude, lng: longitude })
         .getMany();
     }),

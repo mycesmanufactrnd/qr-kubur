@@ -31,9 +31,6 @@ export class TahlilRequest {
     })
     tahfizcenter?: TahfizCenter | null;
 
-    @Column("varchar", { length: 255, nullable: true })
-    referenceno?: string;
-
     @Column("text", { nullable: true })
     notes?: string;
 

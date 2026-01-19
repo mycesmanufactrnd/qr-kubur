@@ -12,8 +12,11 @@ export class Donation {
     @Column("varchar", { length: 255, nullable: true })
     donorname?: string;
 
-    @Column("varchar", { length: 255, nullable: true })
+    @Column("varchar", { length: 100, nullable: true })
     donoremail?: string;
+    
+    @Column("varchar", { length: 100, nullable: true })
+    donorphoneno?: string;
     
     @Column("decimal", { precision: 10, scale: 2, nullable: true })
     amount?: number;

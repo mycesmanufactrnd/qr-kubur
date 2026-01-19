@@ -14,6 +14,7 @@
     "docker:up": "docker compose --env-file .env up -d",
     "docker:down": "docker compose --env-file .env down",
     "docker:down:volume": "docker compose --env-file .env down -v",
+    "docker:restart": "npm run docker:down && npm run docker:up && npm run docker:logs:backend",
     "docker:restart:dev": "docker compose up -d --force-recreate backend frontend",
     "docker:rebuild:dev": "docker compose build backend frontend && docker compose up -d backend frontend",
     "docker:rebuild:backend": "docker compose stop backend && docker compose rm -f backend && docker volume rm qr-kubur_backend_node_modules && docker compose build backend && docker compose up -d backend && docker compose logs -f backend",
@@ -25,8 +26,6 @@
     "docker:seed": "docker compose exec backend npm run seed"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.3",
-    "@base44/vite-plugin": "^0.2.5",
     "@fastify/cors": "^11.2.0",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",

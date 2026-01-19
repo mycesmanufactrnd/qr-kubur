@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from 'react';
 import { Heart, Building2, CheckCircle, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,134 +10,248 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
+import { DONATION_AMOUNTS, paymentToyyibStatus, VerificationStatus } from '@/utils/enums';
+import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
+import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations';
+import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
+import { useForm } from 'react-hook-form';
 import { trpc } from '@/utils/trpc';
-
-const SUGGESTED_AMOUNTS = [10, 20, 50, 100, 200, 500];
+import { validateFields } from '@/utils/validations';
+import { useLocationContext } from '@/providers/LocationProvider';
+import { defaultDonationField } from '@/utils/defaultformfields';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { useSearchParams } from 'react-router-dom';
+import { activityLogError } from '@/utils/helpers';
 
 export default function DonationPage() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const preSelectedOrg = urlParams.get('org');
-  const preSelectedTahfiz = urlParams.get('tahfiz');
-
-const [recipientType, setRecipientType] = useState(
-  preSelectedOrg ? 'organisation' : preSelectedTahfiz ? 'tahfiz' : 'organisation'
-);
-
-  const [selectedRecipient, setSelectedRecipient] = useState(
-  preSelectedOrg ? Number(preSelectedOrg) : preSelectedTahfiz ? Number(preSelectedTahfiz) : null
-);
-
-  const [amount, setAmount] = useState('');
-  const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [donorName, setDonorName] = useState('');
-  const [donorEmail, setDonorEmail] = useState('');
-  const [notes, setNotes] = useState('');
-  const [referenceId, setReferenceId] = useState('');
+  const [searchParams] = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
+  const [loadingPayment, setLoadingPayment] = useState(false);
+  const {
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+  } = useForm({ defaultValues: defaultDonationField });
+  const {
+    userLocation,
+    locationDenied,
+  } = useLocationContext();
+  const recipientType = watch('recipientType');
+  const selectedRecipient = watch('selectedRecipient');
+  const amount = watch('amount');
+  const customAmount = watch('customAmount');
+  const paymentMethod = watch('paymentMethod');
+  const donorname = watch('donorname');
+  const donorphoneno = watch('donorphoneno');
+  const donoremail = watch('donoremail');
+  const notes = watch('notes');
 
-  const queryClient = useQueryClient();
-
-  const { data: organisations = [] } = trpc.organisation.getAll.useQuery();
-  const { data: tahfizCenters = [] } = trpc.tahfiz.getTahfiz.useQuery({ coordinates: null });
-  const { data: paymentPlatforms = [] } = trpc.paymentPlatform.getActive.useQuery();
-  const { data: paymentFields = [] } = trpc.paymentPlatformField.getAll.useQuery();
-  const { data: paymentConfigs = [] } = trpc.paymentConfig.getByRecipient.useQuery(
-    { recipientType, recipientId: Number(selectedRecipient) },
-    { enabled: !!selectedRecipient }
-  );
-
+  const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const createLogMutation = trpc.activityLogs.create.useMutation();
+  const createDonationRunningNoMutation = trpc.runningNo.createDonationRunningNo.useMutation();
   const createDonation = trpc.donation.create.useMutation({
     onSuccess: () => {
       setSubmitted(true);
-      queryClient.invalidateQueries(['donations']);
       showSuccess('Terima kasih! Derma anda telah direkodkan.');
+      reset(defaultDonationField);
     },
-    onError: (err) => showError(err.message || 'Gagal menghantar derma.'),
   });
 
-  // Determine selected recipient object
-  const selectedOrg = useMemo(() => {
-    if (recipientType === 'organisation') return organisations.find(o => o.id === Number(selectedRecipient));
-    return tahfizCenters.find(t => t.id === Number(selectedRecipient));
-  }, [recipientType, selectedRecipient, organisations, tahfizCenters]);
+  const finalAmountWithFee = useMemo(() => {
+    const baseAmount = customAmount || amount;
+    if (!baseAmount) return 0;
+    return Number(baseAmount) + 0.5;
+  }, [amount, customAmount]);
 
-  // Available payment platforms for selected recipient
-  const availablePlatforms = useMemo(() => {
-    if (!paymentConfigs.length || !paymentPlatforms.length) return [];
-    const platformCodes = [...new Set(paymentConfigs.map(c => c?.payment_platform_code).filter(Boolean))];
-    return paymentPlatforms.filter(p => p?.code && platformCodes.includes(p.code));
-  }, [paymentConfigs, paymentPlatforms]);
+  useEffect(() => {
+    const status_id = searchParams.get("status_id");
+    const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
 
-  // Payment details for selected method
-  const getPaymentDetails = (platformCode) => {
-    if (!platformCode || !paymentConfigs) return {};
-    const configs = paymentConfigs.filter(c => c?.payment_platform_code === platformCode);
-    const details = {};
-    configs.forEach(c => { if (c.key) details[c.key] = c.value; });
-    return details;
+    if (!status_id) return;
+
+    const pendingDonation = sessionStorage.getItem("donationPending");
+    if (!pendingDonation) return;
+
+    const { formData, finalAmount } = JSON.parse(pendingDonation);
+
+    if (statusText === "Success") {
+      showSuccess("Pembayaran berjaya!");
+      
+      createDonation.mutateAsync({
+        donorname: formData.donorname || null,
+        donorphoneno: formData.donorphoneno || null,
+        donoremail: formData.donoremail || null,
+        amount: Number(finalAmount) || null,
+        tahfizcenter: formData.recipientType === 'tahfiz' && formData.selectedRecipient
+          ? { id: Number(formData.selectedRecipient) }
+          : null,
+        organisation: formData.recipientType === 'organisation' && formData.selectedRecipient
+          ? { id: Number(formData.selectedRecipient) }
+          : null,
+        notes: formData.notes || null,
+        status: VerificationStatus.PENDING,
+      })
+      .then((res) => {
+        if (res) {
+          sessionStorage.removeItem("donationPending");
+        }
+      })
+      .catch((error) => {
+        createLogMutation.mutateAsync({
+          activitytype: 'Create Donation',
+          functionname: 'createDonation.mutateAsync',
+          useremail: '',
+          level: 'error',
+          summary: activityLogError(error),
+          extramessage: pendingDonation,
+        })
+
+        sessionStorage.removeItem("donationPending");
+      })
+
+    } else if (statusText === "Pending") {
+      showError("Pembayaran masih dalam proses.");
+    } else {
+      showError("Pembayaran gagal.");
+    }
+  }, [searchParams]);
+
+  const { organisations = [] } = useGetOrganisationCoordinates({
+    coordinates: userLocation?.lat && userLocation?.lng
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : undefined,
+    enabled: !!userLocation && recipientType === 'organisation',
+  });
+
+  const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
+    userLocation
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null
+  );
+
+  const { data: paymentConfigs = [] } = useGetConfigByEntity({
+    entityId: Number(selectedRecipient),
+    entityType: recipientType,
+    enabled: !!selectedRecipient && !!recipientType,
+  });
+
+  const paymentPlatforms = useMemo(() => {
+    const map = {};
+
+    paymentConfigs.forEach(config => {
+      if (!config.paymentplatform) return;
+
+      const code = config.paymentplatform.code;
+
+      if (!map[code]) {
+        map[code] = {
+          code,
+          name: config.paymentplatform.name,
+          fields: [],
+        };
+      }
+
+      if (config.paymentfield) {
+        map[code].fields.push({
+          key: config.paymentfield.key,
+          label: config.paymentfield.label,
+          fieldtype: config.paymentfield.fieldtype,
+          value: config.value,
+        });
+      }
+    });
+
+    return Object.values(map);
+  }, [paymentConfigs]);
+
+  const selectedPlatform = paymentPlatforms.find(p => p.code === paymentMethod);
+
+  useEffect(() => {
+    setValue('paymentMethod', '');
+  }, [selectedRecipient]);
+
+  const handlePaymentConfig = async (formData) => {
+    if (!formData) return false;
+    
+    setLoadingPayment(true);
+
+    sessionStorage.setItem(
+      "donationPending",
+      JSON.stringify({ formData, finalAmountWithFee })
+    );
+    
+    const nextRunningNo = await createDonationRunningNoMutation.mutateAsync();
+    
+    const year = new Date().getFullYear();
+    const runningNo = `DON-${year}-${String(nextRunningNo).padStart(4, '0')}`
+
+    try {
+      const bill = await createBillMutation.mutateAsync({
+        amount: finalAmountWithFee,
+        referenceNo: runningNo,
+        name: formData?.donorname ?? 'ANONYMOUS',
+        email: formData?.donoremail ?? 'noreply@gmail.com',
+        phone: formData?.donorphoneno ?? '0123456789',
+        returnTo: 'donation',
+      });
+
+      if (bill && bill.paymentUrl) {
+        window.location.href = bill.paymentUrl;
+        return true;
+      } else {
+        setLoadingPayment(false);
+        showError("No payment URL returned.");
+      }
+    } catch (err) {
+      setLoadingPayment(false);
+      showError(err.message || "Unknown error");
+
+    }
   };
 
-  // Reset payment method when recipient changes
-  useEffect(() => {
-    const validPlatforms = availablePlatforms.filter(p => p?.code);
-    if (validPlatforms.length > 0) {
-      if (!paymentMethod || !validPlatforms.find(p => p.code === paymentMethod)) {
-        setPaymentMethod(validPlatforms[0].code);
-      }
-    } else {
-      setPaymentMethod('');
-    }
-  }, [availablePlatforms, selectedRecipient]);
+  const onSubmit = async (formData) => {
+    const isValid = validateFields(formData, [
+      { field: 'recipientType', label: 'Recipient Type', type: 'select' },
+      { field: 'email', label: 'Email', type: 'email', required: false },
+    ]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const finalAmount = customAmount || amount;
-    if (!finalAmount || !selectedRecipient) {
+    if (!isValid) return;
+
+    const finalAmount = formData.customAmount || formData.amount;
+
+    if (!finalAmount || !formData.selectedRecipient || !formData.paymentMethod) {
       showError('Sila lengkapkan maklumat derma');
       return;
     }
-    if (!referenceId) {
-      showError('Sila masukkan ID rujukan transaksi');
-      return;
-    }
 
-    createDonation.mutate({
-      donorname: donorName || 'Tanpa Nama',
-      donoremail: donorEmail,
-      amount: parseFloat(finalAmount),
-      recepienttype: recipientType,
-      organisation: recipientType === 'organisation' ? { id: Number(selectedRecipient) } : null,
-      tahfizcenter: recipientType === 'tahfiz' ? { id: Number(selectedRecipient) } : null,
-      paymentplatform: paymentMethod ? { id: paymentPlatforms.find(p => p.code === paymentMethod)?.id } : null,
-      referenceno: referenceId,
-      notes,
-      status: 'pending',
-    });
+    const resPayment = await handlePaymentConfig(formData);
+
+    if (!resPayment) {
+      showError('Payment Failed');
+      return;
+    }    
   };
+
+  {locationDenied && (
+    <p className="text-xs text-gray-500 mt-2">
+      Lokasi tidak tersedia. Senarai tidak disusun mengikut jarak.
+    </p>
+  )}
+
+  if (loadingPayment) {
+    return ( <PageLoadingComponent/> )
+  }
 
   if (submitted) {
     return (
       <div className="max-w-lg mx-auto">
-        <Card className="border-0 shadow-lg dark:bg-gray-800">
+        <Card className="border-0 shadow-lg">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-300" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Terima Kasih!</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Derma anda sebanyak <span className="font-bold text-emerald-600">RM {customAmount || amount}</span> telah direkodkan.
-              Kami akan mengesahkan derma anda selepas semakan resit.
-            </p>
-            <Button 
-              onClick={() => {
-                setSubmitted(false);
-                setAmount('');
-                setCustomAmount('');
-                setReferenceId('');
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
+            <CheckCircle className="mx-auto mb-4 h-12 w-12 text-emerald-600" />
+            <h2 className="text-xl font-bold mb-2">Terima Kasih!</h2>
+            <p>Derma anda telah direkodkan.</p>
+            <Button className="mt-6" onClick={() => setSubmitted(false)}>
               Buat Derma Lagi
             </Button>
           </CardContent>
@@ -150,55 +263,61 @@ const [recipientType, setRecipientType] = useState(
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
       <BackNavigation title="Donation" />
-      <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Recipient Selection */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Penerima Derma</CardTitle>
+            <CardTitle>Penerima Derma</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Tabs value={recipientType} onValueChange={setRecipientType}>
-              <TabsList className="grid w-full grid-cols-2">
+          <CardContent>
+            <Tabs
+              value={recipientType}
+              onValueChange={(v) => {
+                setValue('recipientType', v);
+                setValue('selectedRecipient', '');
+                setValue('paymentMethod', '');
+              }}
+            >
+              <TabsList className="grid grid-cols-2">
                 <TabsTrigger value="organisation">
                   <Building2 className="w-4 h-4 mr-2" /> Organisasi
                 </TabsTrigger>
                 <TabsTrigger value="tahfiz">
-                  <Heart className="w-4 h-4 mr-2" /> Pusat Tahfiz
+                  <Heart className="w-4 h-4 mr-2" /> Tahfiz
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="organisation" className="mt-4">
                 <Select
-                  value={selectedRecipient !== null ? String(selectedRecipient) : ''}
-                  onValueChange={val => setSelectedRecipient(Number(val))}
+                  value={selectedRecipient ? String(selectedRecipient) : ''}
+                  onValueChange={v => setValue('selectedRecipient', v)}
                 >
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                  <SelectTrigger>
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {organisations.map(org => (
-                      <SelectItem key={org.id} value={String(org.id)}>
-                        {org.name}
+                  <SelectContent>
+                    {organisations.map(o => (
+                      <SelectItem key={o.id} value={String(o.id)}>
+                        {o.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </TabsContent>
 
-
-              <TabsContent value="tahfiz" className="mt-4">
-                <Select value={selectedRecipient !== null ? String(selectedRecipient) : ''} onValueChange={val => setSelectedRecipient(Number(val))}>
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+              <TabsContent value="tahfiz" className="mt-4 space-y-3">
+                <Select
+                  value={selectedRecipient ? String(selectedRecipient) : ''}
+                  onValueChange={v => setValue('selectedRecipient', v)}
+                >
+                  <SelectTrigger>
                     <SelectValue placeholder="Pilih pusat tahfiz" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-700">
-                    {tahfizCenters.map(center => (
-                      <SelectItem key={center.id} value={String(center.id)}>
-                        <div className="flex flex-col">
-                          <span>{center.name}</span>
-                          <span className="text-xs text-gray-500">{center.state}</span>
-                        </div>
+                  <SelectContent>
+                    {tahfizCenters.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -208,95 +327,81 @@ const [recipientType, setRecipientType] = useState(
           </CardContent>
         </Card>
 
-        {/* Amount Selection */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Jumlah Derma</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Jumlah Derma</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              {SUGGESTED_AMOUNTS.map(amt => (
+              {DONATION_AMOUNTS.map(amt => (
                 <Button
                   key={amt}
                   type="button"
-                  variant={amount === String(amt) && !customAmount ? 'default' : 'outline'}
-                  className={amount === String(amt) && !customAmount ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
-                  onClick={() => { setAmount(String(amt)); setCustomAmount(''); }}
+                  variant={amount === String(amt) ? 'default' : 'outline'}
+                  onClick={() => {
+                    setValue('amount', String(amt));
+                    setValue('customAmount', '');
+                  }}
                 >
                   RM {amt}
                 </Button>
               ))}
             </div>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">RM</span>
-              <Input
-                type="number"
-                placeholder="Jumlah lain"
-                value={customAmount}
-                onChange={(e) => { setCustomAmount(e.target.value); setAmount(''); }}
-                className="pl-12 text-md dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              />
-            </div>
+
+            <Input
+              type="number"
+              placeholder="Jumlah lain"
+              value={customAmount}
+              onChange={(e) => {
+                setValue('customAmount', e.target.value);
+                setValue('amount', '');
+              }}
+            />
+
+            {(amount || customAmount) && (
+              <p className="text-sm text-gray-500">
+                Jumlah: RM {Number(customAmount || amount).toFixed(2)} + Penyelenggaraan: RM 0.50 = <strong>RM {finalAmountWithFee.toFixed(2)}</strong>
+              </p>
+            )}
           </CardContent>
         </Card>
 
-        {availablePlatforms.length > 0 && (
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-lg dark:text-white">Kaedah Pembayaran</CardTitle>
-            </CardHeader>
+        {paymentPlatforms.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle>Kaedah Pembayaran</CardTitle></CardHeader>
             <CardContent>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                <div className="grid gap-3">
-                  {availablePlatforms.map(platform => (
-                    <Label key={platform.code} className="flex items-center gap-3 p-4 rounded-xl border dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors [&:has(:checked)]:border-emerald-500 [&:has(:checked)]:bg-emerald-50 dark:[&:has(:checked)]:bg-emerald-900/20">
-                      <RadioGroupItem value={platform.code} />
-                      <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                      <span className="dark:text-gray-300">{platform.name || 'Unknown'}</span>
-                    </Label>
+              <RadioGroup value={paymentMethod} onValueChange={v => setValue('paymentMethod', v)}>
+                {paymentPlatforms.map(p => (
+                  <Label key={p.code} className="flex items-center gap-3 p-3 border rounded cursor-pointer">
+                    <RadioGroupItem value={p.code} />
+                    <CreditCard className="w-4 h-4" />
+                    {p.name}
+                  </Label>
+                ))}
+              </RadioGroup>
+
+              {selectedPlatform && (
+                <div className="mt-4 space-y-2">
+                  {selectedPlatform.fields.map(f => (
+                    f.fieldtype === 'image' ? (
+                      <img key={f.key} src={f.value} alt={f.label} className="max-w-xs rounded border" />
+                    ) : (
+                      <p key={f.key}>
+                        <strong>{f.label}:</strong> {f.value}
+                      </p>
+                    )
                   ))}
                 </div>
-              </RadioGroup>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Donor Info */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Maklumat Penderma (Pilihan)</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Maklumat Penderma (optional)</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="donorName" className="dark:text-gray-300">Nama</Label>
-              <Input id="donorName" placeholder="Nama" value={donorName} onChange={(e) => setDonorName(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
-            <div>
-              <Label htmlFor="donorEmail" className="dark:text-gray-300">Email</Label>
-              <Input id="donorEmail" type="email" placeholder="Email untuk pengesahan" value={donorEmail} onChange={(e) => setDonorEmail(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
-            <div>
-              <Label htmlFor="notes" className="dark:text-gray-300">Catatan</Label>
-              <Textarea id="notes" placeholder="Sebarang catatan..." value={notes} onChange={(e) => setNotes(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Transaction Info */}
-        <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Butiran Transaksi</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-              <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Penting:</strong> Selepas membuat pembayaran, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="referenceId" className="dark:text-gray-300">ID Rujukan Transaksi <span className="text-red-500">*</span></Label>
-              <Input id="referenceId" placeholder="ID Rujukan Transaksi" value={referenceId} onChange={(e) => setReferenceId(e.target.value)} required className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
+            <Input placeholder="Nama" value={donorname} onChange={e => setValue('donorname', e.target.value)} />
+            <Input placeholder="Email" value={donoremail} onChange={e => setValue('donoremail', e.target.value)} />
+            <Input placeholder="Phone No." value={donorphoneno} onChange={e => setValue('donorphoneno', e.target.value)} />
+            <Textarea placeholder="Catatan" value={notes} onChange={e => setValue('notes', e.target.value)} />
           </CardContent>
         </Card>
 

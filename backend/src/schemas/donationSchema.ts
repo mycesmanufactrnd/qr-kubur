@@ -2,18 +2,16 @@ import { z } from 'zod';
 import { VerificationStatus } from '../db/enums.ts';
 
 export const donationSchema = z.object({
-    donorname: z.string().nullable().optional(),
-    donoremail: z.string().nullable().optional(),
-    amount: z.number().nullable().optional(),
-    recepienttype: z.string().min(1),
+    donorname: z.string().nullable(),
+    donoremail: z.string().nullable(),
+    donorphoneno: z.string().nullable(),
+    amount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").positive().nullable(),
     tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
     organisation: z.object({ id: z.number() }).nullable().optional(),
-    paymentplatform: z.object({ id: z.number() }).nullable().optional(),
-    referenceno: z.string().nullable().optional(),  // fixed to match entity
-    status: z.enum(VerificationStatus).optional(),  // left as-is
-    notes: z.string().nullable().optional(),
+    status: z.enum(VerificationStatus).optional(),
+    notes: z.string().nullable(),
 });
 
 export const donationApprovalSchema = z.object({
-    status: z.enum(VerificationStatus).optional(),  // left as-is
+    status: z.enum(VerificationStatus).optional(), 
 });

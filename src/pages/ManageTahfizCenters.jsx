@@ -23,6 +23,7 @@ import { translate } from '@/utils/translations';
 import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMutations';
 import { useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
+import { defaultTahfizField } from '@/utils/defaultformfields';
 
 const SERVICES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas' },
@@ -31,19 +32,6 @@ const SERVICES = [
   { value: 'doa_arwah', label: 'Doa Arwah' },
   { value: 'custom', label: 'Perkhidmatan Khas' }
 ];
-
-const emptyCenter = {
-  name: '',
-  description: '',
-  serviceoffered: [], // Matches Entity serviceoffered
-  serviceprice: {},    // Matches Entity serviceprice
-  state: '',
-  address: '',
-  phone: '',
-  email: '',
-  gps_lat: '',         // Local UI state
-  gps_lng: ''          // Local UI state
-};
 
 export default function ManageTahfizCenters() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,14 +67,14 @@ export default function ManageTahfizCenters() {
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
 
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
-    defaultValues: emptyCenter
+    defaultValues: defaultTahfizField
   });
 
   const selectedServices = watch('serviceoffered') || [];
 
   const openAddDialog = () => {
     setEditingCenter(null);
-    reset(emptyCenter);
+    reset(defaultTahfizField);
     setIsDialogOpen(true);
   };
 
@@ -101,8 +89,8 @@ export default function ManageTahfizCenters() {
       address: center.address || '',
       phone: center.phone || '',
       email: center.email || '',
-      gps_lat: center.latitude?.toString() || '', // Map latitude -> gps_lat
-      gps_lng: center.longitude?.toString() || '' // Map longitude -> gps_lng
+      latitude: center.latitude?.toString() || '', 
+      longitude: center.longitude?.toString() || ''
     });
     setIsDialogOpen(true);
   };
@@ -127,22 +115,22 @@ export default function ManageTahfizCenters() {
       email: data.email,
       serviceoffered: data.serviceoffered,
       serviceprice: data.serviceprice,
-      latitude: data.gps_lat ? parseFloat(data.gps_lat) : null,
-      longitude: data.gps_lng ? parseFloat(data.gps_lng) : null,
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
     };
 
     if (editingCenter) {
       updateTahfiz.mutate({ id: editingCenter.id, data: payload }, {
         onSuccess: () => {
           setIsDialogOpen(false);
-          reset(emptyCenter);
+          reset(defaultTahfizField);
         }
       });
     } else {
       createTahfiz.mutate(payload, {
         onSuccess: () => {
           setIsDialogOpen(false);
-          reset(emptyCenter);
+          reset(defaultTahfizField);
         }
       });
     }
@@ -319,13 +307,13 @@ export default function ManageTahfizCenters() {
               <div><Label>{translate('email')}</Label><Controller name="email" control={control} render={({ field }) => <Input type="email" {...field} />} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Latitude</Label><Controller name="gps_lat" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
-              <div><Label>Longitude</Label><Controller name="gps_lng" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+              <div><Label>Latitude</Label><Controller name="latitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+              <div><Label>Longitude</Label><Controller name="longitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
             </div>
             <Button type="button" variant="outline" className="w-full" onClick={() => {
               navigator.geolocation.getCurrentPosition((pos) => {
-                setValue('gps_lat', pos.coords.latitude.toFixed(8));
-                setValue('gps_lng', pos.coords.longitude.toFixed(8));
+                setValue('latitude', pos.coords.latitude.toFixed(8));
+                setValue('longitude', pos.coords.longitude.toFixed(8));
               });
             }}><MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}</Button>
             <DialogFooter>
