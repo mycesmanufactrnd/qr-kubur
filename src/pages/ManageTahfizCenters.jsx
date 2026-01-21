@@ -24,6 +24,8 @@ import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMuta
 import { useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
 import { defaultTahfizField } from '@/utils/defaultformfields';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import PageLoadingComponent from '../components/PageLoadingComponent';
 
 const SERVICES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas' },
@@ -40,14 +42,11 @@ export default function ManageTahfizCenters() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCenter, setEditingCenter] = useState(null);
-  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [centerToDelete, setCenterToDelete] = useState(null);
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedCenterForPayment, setSelectedCenterForPayment] = useState(null);
-
-  const { currentUser, isSuperAdmin, loadingUser } = useAdminAccess();
-  const { hasPermission } = usePermissions();
+  const { isTahfizAdmin, isSuperAdmin, loadingUser } = useAdminAccess();
 
   const {
     loading: permissionsLoading,
@@ -139,12 +138,36 @@ export default function ManageTahfizCenters() {
     });
   };
 
-  if (loadingUser) return <LoadingUser />;
-  if (!canView) return <div className="p-8 text-center">{translate('accessDenied')}</div>;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isTahfizAdmin && !isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('adminDashboard'), page: 'AdminDashboard' }, 
+          { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: translate('adminDashboard'), page: 'AdminDashboard' }, { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }]} />
+      <Breadcrumb items={[
+        { label: translate('adminDashboard'), page: 'AdminDashboard' }, 
+        { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }
+      ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -193,9 +216,9 @@ export default function ManageTahfizCenters() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('name')}</TableHead>
-                <TableHead>{translate('state')}</TableHead>
-                <TableHead>{translate('services')}</TableHead>
-                <TableHead className="text-right">{translate('actions')}</TableHead>
+                <TableHead className="text-center">{translate('state')}</TableHead>
+                <TableHead className="text-center">{translate('services')}</TableHead>
+                <TableHead className="text-center">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -207,10 +230,9 @@ export default function ManageTahfizCenters() {
                 tahfizCenterList.items.map(center => (
                   <TableRow key={center.id}>
                     <TableCell className="font-medium">{center.name}</TableCell>
-                    <TableCell>{center.state}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {/* Corrected to use serviceoffered attribute */}
+                    <TableCell className="text-center">{center.state}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-wrap justify-center items-center gap-1">
                         {center.serviceoffered?.slice(0, 2).map(service => (
                           <Badge key={service} variant="secondary" className="text-xs">
                             {SERVICES.find(s => s.value === service)?.label || service}
@@ -218,7 +240,7 @@ export default function ManageTahfizCenters() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       {canEdit && (
                         <>
                           <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}><Edit className="w-4 h-4" /></Button>

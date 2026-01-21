@@ -73,3 +73,11 @@ export const defaultOrganisationField = {
   canbedonated: false,
   status: 'active'
 }
+
+export const defaultPaymentConfigField = {
+  code: '',
+  name: '',
+  category: 'manual',
+  status: 'active',
+  icon: ''
+}

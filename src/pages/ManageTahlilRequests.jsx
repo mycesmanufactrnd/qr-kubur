@@ -1,4 +1,3 @@
-// src/pages/ManageTahlilRequests.jsx
 import { useState } from 'react';
 import { BookOpen, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,8 +61,18 @@ export default function ManageTahlilRequests() {
     }
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!isTahfizAdmin && !isSuperAdmin) return <AccessDeniedComponent />;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+  
+  if (!isTahfizAdmin && !isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
   if (!canView) return (
     <div className="space-y-6">
       <Breadcrumb items={[
@@ -90,7 +99,6 @@ export default function ManageTahlilRequests() {
         </div>
       </div>
 
-      {/* Status Cards */}
       <div className="grid grid-cols-4 gap-4">
         {['pending','accepted','completed','rejected'].map((status,i)=>(
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
@@ -104,8 +112,7 @@ export default function ManageTahlilRequests() {
         ))}
       </div>
 
-      {/* Table */}
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -163,7 +170,6 @@ export default function ManageTahlilRequests() {
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>

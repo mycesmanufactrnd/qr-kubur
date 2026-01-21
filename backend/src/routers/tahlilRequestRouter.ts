@@ -63,7 +63,6 @@ export const tahlilRequestRouter = router({
     create: publicProcedure
         .input(tahlilRequestSchema)
         .mutation(async ({ input }) => {
-            console.log('input', input)
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
             const donation = tahlilRequestRepo.create(input);
             return tahlilRequestRepo.save(donation);

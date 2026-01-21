@@ -20,55 +20,26 @@ import {
 } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
 import { translate } from '@/utils/translations';
+import { defaultPaymentConfigField } from '@/utils/defaultformfields';
+import PageLoadingComponent from '../components/PageLoadingComponent';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 
 
 export default function ManagePaymentPlatforms() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlatform, setEditingPlatform] = useState(null);
-  const [formData, setFormData] = useState({
-    code: '',
-    name: '',
-    category: 'manual',
-    status: 'active',
-    icon: ''
-  });
+  const [formData, setFormData] = useState(defaultPaymentConfigField);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [platformToDelete, setPlatformToDelete] = useState(null);
-
-  const { 
-    loadingUser,
-    isSuperAdmin, 
-  } = useAdminAccess();
-
+  const { loadingUser, isSuperAdmin } = useAdminAccess();
   const { data: platforms, isLoading } = useGetPaymentPlatform(isSuperAdmin);
   const createMutation = useCreatePaymentPlatform();
   const updateMutation = useUpdatePaymentPlatform();
   const deleteMutation = useDeletePaymentPlatform();
 
-  if (loadingUser) {
-    return <LoadingUser />;
-  }
-
-  if (!isSuperAdmin) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
-          { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
-        ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{translate('accessDenied')}</h2>
-            <p className="text-gray-600">{translate('doNotHavePermissionAccessPage')}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const openAddDialog = () => {
     setEditingPlatform(null);
-    setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+    setFormData(defaultPaymentConfigField);
     setIsDialogOpen(true);
   };
 
@@ -100,7 +71,7 @@ export default function ManagePaymentPlatforms() {
         if (res) {
           setIsDialogOpen(false);
           setEditingPlatform(null);
-          setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+          setFormData(defaultPaymentConfigField);
         }
       })
     } else {
@@ -108,7 +79,7 @@ export default function ManagePaymentPlatforms() {
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
-          setFormData({ code: '', name: '', category: 'manual', status: 'active', icon: '' });
+          setFormData(defaultPaymentConfigField);
         }
       });
     }
@@ -141,22 +112,19 @@ export default function ManagePaymentPlatforms() {
   };
 
   if (loadingUser) {
-    return <LoadingUser />;
+    return (
+      <PageLoadingComponent/>
+    );
   }
 
   if (!isSuperAdmin) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
+           { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
           { label: 'Payment Platforms', page: 'ManagePaymentPlatforms' }
         ]} />
-        <Card className="max-w-lg mx-auto mt-8">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Akses Ditolak</h2>
-            <p className="text-gray-600">Anda tidak mempunyai kebenaran untuk mengakses halaman ini.</p>
-          </CardContent>
-        </Card>
+        <AccessDeniedComponent/>
       </div>
     );
   }
@@ -227,7 +195,6 @@ export default function ManagePaymentPlatforms() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800">
           <DialogHeader>
