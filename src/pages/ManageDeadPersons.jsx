@@ -28,19 +28,7 @@ import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
-
-const emptyPerson = {
-  name: '',
-  icnumber: '',
-  dateofbirth: '',
-  dateofdeath: '',
-  causeofdeath: '',
-  grave: '',
-  biography: '',
-  photourl: '',
-  gpslatitude: '',
-  gpslongitude: '',
-};
+import { defaultDeadPersonField } from '@/utils/defaultformfields';
 
 export default function ManageDeadPersons() {
   const { 
@@ -60,7 +48,7 @@ export default function ManageDeadPersons() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
-  const [formData, setFormData] = useState(emptyPerson);
+  const [formData, setFormData] = useState(defaultDeadPersonField);
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
@@ -107,7 +95,7 @@ export default function ManageDeadPersons() {
 
   const openAddDialog = () => {
     setEditingPerson(null);
-    setFormData(emptyPerson);
+    setFormData(defaultDeadPersonField);
     setIsDialogOpen(true);
   };
 

@@ -81,3 +81,25 @@ export const defaultPaymentConfigField = {
   status: 'active',
   icon: ''
 }
+
+export const defaultDeadPersonField = {
+  name: '',
+  icnumber: '',
+  dateofbirth: '',
+  dateofdeath: '',
+  causeofdeath: '',
+  grave: '',
+  biography: '',
+  photourl: '',
+  gpslatitude: '',
+  gpslongitude: '',
+}
+
+export const defaultPaymentField = {
+  paymentplatform: null,
+  key: '',
+  label: '',
+  fieldtype: 'text',
+  required: false,
+  placeholder: ''
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { MapPin, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,21 +16,21 @@ import { translate } from '@/utils/translations';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 
 export default function GraveDetails() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const graveId = urlParams.get('id') ? Number(urlParams.get('id')) : null;
+  const [searchParams] = useSearchParams();
+  const graveId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
   const [searchName, setSearchName] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
 
-  const { data: grave, isLoading: graveLoading } = useGetGraveById(graveId);
+  const { data: grave, isLoading: graveLoading, isError: isGraveDetailsError } = useGetGraveById(graveId);
 
   const { deadPersonsList, isLoading: personsLoading } = useGetDeadPersonPaginated({
     filterGrave: graveId || undefined,
     pageSize: 100,
   });
 
-  const persons = deadPersonsList.items;
+  const persons = deadPersonsList?.items ?? [];
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -54,7 +54,7 @@ export default function GraveDetails() {
     );  
   }
 
-  if (!grave) {
+  if (!grave || isGraveDetailsError) {
     return (
       <NoDataCardComponent
         isPage={true}

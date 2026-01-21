@@ -22,6 +22,7 @@ import {
 } from '@/hooks/usePaymentFieldMutations';
 import { useGetPaymentPlatform } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
+import { defaultPaymentField } from '@/utils/defaultformfields';
 
 export default function ManagePaymentFields() {
   const { 
@@ -33,14 +34,7 @@ export default function ManagePaymentFields() {
   const [filterPlatform, setFilterPlatform] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState(null);
-  const [formData, setFormData] = useState({
-    paymentplatform: null,
-    key: '',
-    label: '',
-    fieldtype: 'text',
-    required: false,
-    placeholder: ''
-  });
+  const [formData, setFormData] = useState(defaultPaymentField);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState(null);
 
@@ -61,7 +55,7 @@ export default function ManagePaymentFields() {
 
   const openAddDialog = () => {
     setEditingField(null);
-    setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+    setFormData(defaultPaymentField);
     setIsDialogOpen(true);
   };
 
@@ -103,7 +97,7 @@ export default function ManagePaymentFields() {
         if (res) {
           setIsDialogOpen(false);
           setEditingField(null);
-          setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+          setFormData(defaultPaymentField);
         }
       });
     } else {
@@ -111,7 +105,7 @@ export default function ManagePaymentFields() {
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
-          setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+          setFormData(defaultPaymentField);
         }
       });
     }

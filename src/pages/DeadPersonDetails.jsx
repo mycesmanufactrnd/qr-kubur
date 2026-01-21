@@ -16,9 +16,7 @@ export default function DeadPersonDetails() {
   const personId = Number(searchParams.get('id'));
 
   const {
-    data: deadPersonDetails,
-    isLoading,
-    isError,
+    data: deadPersonDetails, isLoading, isError,
   } = trpc.deadperson.getDeadPersonById.useQuery(
     { id: personId }, 
     { enabled: !!personId }
