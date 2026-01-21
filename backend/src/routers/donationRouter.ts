@@ -64,31 +64,14 @@ export const donationRouter = router({
       return { items, total };
     }),
 
-  // 🔹 Create donation
   create: protectedProcedure
     .input(donationSchema)
     .mutation(async ({ input }) => {
-      const repo = AppDataSource.getRepository(Donation);
-
-      const donationData: any = {
-        donorname: input.donorname,
-        donoremail: input.donoremail,
-        amount: input.amount,
-        recepienttype: input.recepienttype,
-        notes: input.notes,
-        referenceno: input.referenceno,
-        status: input.status ?? 'PENDING',
-      };
-
-      if (input.tahfizcenter?.id) donationData.tahfizcenter = { id: input.tahfizcenter.id };
-      if (input.organisation?.id) donationData.organisation = { id: input.organisation.id };
-      if (input.paymentplatform?.id) donationData.paymentplatform = { id: input.paymentplatform.id };
-
-      const donation = repo.create(donationData);
-      return repo.save(donation);
+      const donationRepo = AppDataSource.getRepository(Donation);
+      const donation = donationRepo.create(input);
+      return donationRepo.save(donation);
     }),
 
-  // 🔹 Update donation (approval/status)
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: donationApprovalSchema }))
     .mutation(async ({ input }) => {

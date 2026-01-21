@@ -29,9 +29,6 @@ export class PaymentPlatform {
     @Column("varchar", { length: 50, nullable: true })
     icon?: string;
 
-    @OneToMany(() => Donation, (donations) => donations.paymentplatform)
-    donations!: Donation[];
-
     @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.paymentplatform)
     organisationpaymentconfigs!: OrganisationPaymentConfig[];
 

@@ -112,3 +112,15 @@ export function activityLogError(error: any) {
   });
 }
 
+export function trimEmptyArray(dataArray) {
+  return (dataArray || []).filter(s => s && s.trim() !== '')
+}
+
+export function clearQueryParams() {
+  if (typeof window !== "undefined") {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+

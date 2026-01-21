@@ -33,12 +33,6 @@ export class Donation {
     })
     organisation?: Organisation | null;
 
-    @ManyToOne(() => PaymentPlatform, (paymentplatform) => paymentplatform.donations, {
-        nullable: true,
-        onDelete: "SET NULL",
-    })
-    paymentplatform?: PaymentPlatform | null;
-
     @Column("varchar", { length: 255, nullable: true })
     referenceno?: string;
 

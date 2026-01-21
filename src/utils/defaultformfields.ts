@@ -13,15 +13,14 @@ export const defaultGraveField = {
 
 export const defaultTahlilRequestField = {
   tahfizId: null,
-  serviceTypes: [''],
-  deceasedNames: [''],
+  selectedservices: [],
+  deceasednames: [],
   amount: '',
   customAmount: '',
-  requesterName: '',
-  requesterPhone: '',
-  requesterEmail: '',
-  preferredDate: '',
-  customService: '',
+  requestorname: '',
+  requestorphoneno: '',
+  requestoremail: '',
+  customservice: '',
   paymentMethod: '',
 }
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
 import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
-import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX } from 'lucide-react';
+import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -103,6 +103,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: translate('Main'), icon: Home, page: 'UserDashboard2' },
     { name: translate('Search'), icon: Search, page: 'SearchGrave' },
     { name: translate('QR Code'), icon: QrCode, page: 'ScanQR' },
+    { name: translate('Donation'), icon: Heart, page: 'DonationPage' },
     { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
   ];
 

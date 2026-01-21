@@ -60,6 +60,15 @@ export const tahlilRequestRouter = router({
             return { items, total };
         }),
 
+    create: publicProcedure
+        .input(tahlilRequestSchema)
+        .mutation(async ({ input }) => {
+            console.log('input', input)
+            const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
+            const donation = tahlilRequestRepo.create(input);
+            return tahlilRequestRepo.save(donation);
+        }),
+            
     update: protectedProcedure
         .input(z.object({ id: z.number(), data: tahlilRequestApprovalSchema }))
         .mutation(async ({ input }) => {

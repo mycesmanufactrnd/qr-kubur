@@ -21,7 +21,7 @@ import { useLocationContext } from '@/providers/LocationProvider';
 import { defaultDonationField } from '@/utils/defaultformfields';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { useSearchParams } from 'react-router-dom';
-import { activityLogError } from '@/utils/helpers';
+import { activityLogError, clearQueryParams } from '@/utils/helpers';
 
 export default function DonationPage() {
   const [searchParams] = useSearchParams();
@@ -58,14 +58,15 @@ export default function DonationPage() {
     },
   });
 
-  const finalAmountWithFee = useMemo(() => {
+  const finalAmount = useMemo(() => {
     const baseAmount = customAmount || amount;
     if (!baseAmount) return 0;
-    return Number(baseAmount) + 0.5;
+    return Number(baseAmount);
   }, [amount, customAmount]);
 
   useEffect(() => {
     const status_id = searchParams.get("status_id");
+    const order_id = searchParams.get("order_id");
     const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
 
     if (!status_id) return;
@@ -91,10 +92,12 @@ export default function DonationPage() {
           : null,
         notes: formData.notes || null,
         status: VerificationStatus.PENDING,
+        referenceno: order_id || null,
       })
       .then((res) => {
         if (res) {
           sessionStorage.removeItem("donationPending");
+          clearQueryParams();
         }
       })
       .catch((error) => {
@@ -108,6 +111,7 @@ export default function DonationPage() {
         })
 
         sessionStorage.removeItem("donationPending");
+        clearQueryParams();
       })
 
     } else if (statusText === "Pending") {
@@ -130,7 +134,7 @@ export default function DonationPage() {
       : null
   );
 
-  const { data: paymentConfigs = [] } = useGetConfigByEntity({
+  const { data: paymentConfigs } = useGetConfigByEntity({
     entityId: Number(selectedRecipient),
     entityType: recipientType,
     enabled: !!selectedRecipient && !!recipientType,
@@ -168,19 +172,22 @@ export default function DonationPage() {
   const selectedPlatform = paymentPlatforms.find(p => p.code === paymentMethod);
 
   useEffect(() => {
-    setValue('paymentMethod', '');
-  }, [selectedRecipient]);
+    if (!paymentPlatforms.length) return;
+
+    const exists = paymentPlatforms.some(p => p.code === paymentMethod);
+
+    if (!exists) {
+      setValue('paymentMethod', paymentPlatforms[0].code);
+    }
+  }, [paymentPlatforms, paymentMethod, setValue]);
 
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
     
     setLoadingPayment(true);
 
-    sessionStorage.setItem(
-      "donationPending",
-      JSON.stringify({ formData, finalAmountWithFee })
-    );
-    
+    sessionStorage.setItem("donationPending", JSON.stringify({ formData, finalAmount }));
+
     const nextRunningNo = await createDonationRunningNoMutation.mutateAsync();
     
     const year = new Date().getFullYear();
@@ -188,7 +195,7 @@ export default function DonationPage() {
 
     try {
       const bill = await createBillMutation.mutateAsync({
-        amount: finalAmountWithFee,
+        amount: finalAmount,
         referenceNo: runningNo,
         name: formData?.donorname ?? 'ANONYMOUS',
         email: formData?.donoremail ?? 'noreply@gmail.com',
@@ -214,13 +221,15 @@ export default function DonationPage() {
     const isValid = validateFields(formData, [
       { field: 'recipientType', label: 'Recipient Type', type: 'select' },
       { field: 'email', label: 'Email', type: 'email', required: false },
+      { field: 'paymentMethod', label: 'Payment Method', type: 'text' },
+      { field: 'selectedRecipient', label: 'Recepient', type: 'text' },
     ]);
 
     if (!isValid) return;
 
     const finalAmount = formData.customAmount || formData.amount;
 
-    if (!finalAmount || !formData.selectedRecipient || !formData.paymentMethod) {
+    if (!finalAmount) {
       showError('Sila lengkapkan maklumat derma');
       return;
     }
@@ -229,6 +238,7 @@ export default function DonationPage() {
 
     if (!resPayment) {
       showError('Payment Failed');
+      setLoadingPayment(false);
       return;
     }    
   };
@@ -355,12 +365,6 @@ export default function DonationPage() {
                 setValue('amount', '');
               }}
             />
-
-            {(amount || customAmount) && (
-              <p className="text-sm text-gray-500">
-                Jumlah: RM {Number(customAmount || amount).toFixed(2)} + Penyelenggaraan: RM 0.50 = <strong>RM {finalAmountWithFee.toFixed(2)}</strong>
-              </p>
-            )}
           </CardContent>
         </Card>
 

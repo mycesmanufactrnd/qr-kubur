@@ -145,3 +145,6 @@ export const paymentToyyibStatus = {
   "02": "Pending",
   "03": "Unsuccessful",
 };
+
+export const SST_PERCENTAGE = 0.06;
+export const SERVICE_FEE_PERCENTAGE = 0.05;
