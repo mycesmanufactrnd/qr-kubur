@@ -30,9 +30,7 @@ export const donationRouter = router({
       const { page = 1, pageSize = 10, currentUser, checkRole } = input;
 
       const donationRepo = AppDataSource.getRepository(Donation);
-      const query = donationRepo
-        .createQueryBuilder("donation")
-        .leftJoinAndSelect("donation.paymentplatform", "paymentplatform");
+      const query = donationRepo.createQueryBuilder("donation")
 
       if (checkRole?.superadmin) {
         query

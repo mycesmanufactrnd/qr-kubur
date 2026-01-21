@@ -16,7 +16,7 @@ import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
-import { usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
 
@@ -46,16 +46,14 @@ export default function ManageTahfizCenters() {
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedCenterForPayment, setSelectedCenterForPayment] = useState(null);
 
-  const { currentUser, isLoading: loadingUser } = useAdminAccess();
+  const { currentUser, isSuperAdmin, loadingUser } = useAdminAccess();
   const { hasPermission } = usePermissions();
 
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = hasPermission('tahfiz_view');
-  const hasCreatePermission = hasPermission('tahfiz_create');
-  const hasEditPermission = hasPermission('tahfiz_edit');
-  const hasDeletePermission = hasPermission('tahfiz_delete');
+  const {
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('tahfiz');
 
-  // tRPC Query
   const { tahfizCenterList, totalPages, isLoading } = useGetTahfizPaginated({
     page,
     pageSize: itemsPerPage,
@@ -63,7 +61,6 @@ export default function ManageTahfizCenters() {
     filterState: filterState === 'all' ? undefined : filterState,
   });
 
-  // tRPC Mutations
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
 
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
@@ -105,7 +102,6 @@ export default function ManageTahfizCenters() {
   };
 
   const onSubmit = (data) => {
-    // Explicitly mapping data to match Backend Schema/Entity names
     const payload = {
       name: data.name,
       description: data.description,
@@ -144,7 +140,7 @@ export default function ManageTahfizCenters() {
   };
 
   if (loadingUser) return <LoadingUser />;
-  if (!hasViewPermission) return <div className="p-8 text-center">{translate('accessDenied')}</div>;
+  if (!canView) return <div className="p-8 text-center">{translate('accessDenied')}</div>;
 
   return (
     <div className="space-y-6">
@@ -155,7 +151,7 @@ export default function ManageTahfizCenters() {
           <BookOpen className="w-6 h-6 text-amber-600" />
           {translate('manageTahfiz')}
         </h1>
-        {hasCreatePermission && (
+        {canCreate && (
           <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
             <Plus className="w-4 h-4 mr-2" />
             {translate('addNew')}
@@ -223,13 +219,13 @@ export default function ManageTahfizCenters() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {hasEditPermission && (
+                      {canEdit && (
                         <>
                           <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}><Edit className="w-4 h-4" /></Button>
                           <Button variant="ghost" size="sm" onClick={() => { setSelectedCenterForPayment(center); setPaymentConfigOpen(true); }}><CreditCard className="w-4 h-4 text-green-600" /></Button>
                         </>
                       )}
-                      {hasDeletePermission && (
+                      {canDelete && (
                         <Button variant="ghost" size="sm" onClick={() => { setCenterToDelete(center); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>
                       )}
                     </TableCell>

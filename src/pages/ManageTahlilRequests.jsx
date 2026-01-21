@@ -44,7 +44,7 @@ export default function ManageTahlilRequests() {
     await updateMutation.mutateAsync({ id: selectedRequest.id, data: { status: newStatus } });
     setIsDialogOpen(false);
     setSelectedRequest(null);
-    refetch(); // Refresh the list
+    refetch();
   };
 
   const getStatusBadge = (status) => {

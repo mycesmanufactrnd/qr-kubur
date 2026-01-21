@@ -137,13 +137,13 @@ function LayoutContent({ children, currentPageName }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                    {currentUser?.full_name?.[0] || currentUser?.email?.[0]?.toUpperCase()}
+                    {currentUser?.fullname?.[0] || currentUser?.email?.[0]?.toUpperCase()}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2 border-b">
-                  <p className="text-sm font-medium">{currentUser?.full_name || 'User'}</p>
+                  <p className="text-sm font-medium">{currentUser?.fullname || 'User'}</p>
                   <p className="text-xs text-gray-500">{currentUser?.email}</p>
                   <p className="text-xs text-emerald-600 capitalize">{currentUser?.role}</p>
                 </div>
@@ -259,17 +259,17 @@ function LayoutContent({ children, currentPageName }) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                        {currentUser.full_name?.[0] || currentUser.email?.[0]?.toUpperCase()}
+                        {currentUser.fullname?.[0] || currentUser.email?.[0]?.toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-gray-700">
-                        {currentUser.full_name || currentUser.email?.split('@')[0]}
+                        {currentUser.fullname || currentUser.email?.split('@')[0]}
                       </span>
                       <ChevronDown className="w-4 h-4 text-gray-400" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-3 py-2 border-b">
-                      <p className="text-sm font-medium">{currentUser.full_name || 'User'}</p>
+                      <p className="text-sm font-medium">{currentUser.fullname || 'User'}</p>
                       <p className="text-xs text-gray-500">{currentUser.email}</p>
                       <p className="text-xs text-emerald-600 capitalize">{currentUser.role}</p>
                     </div>

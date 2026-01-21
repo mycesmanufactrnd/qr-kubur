@@ -58,3 +58,18 @@ export const defaultDonationField = {
   donorphoneno: '',
   notes: 'Sedeqah',
 }
+
+export const defaultOrganisationField = {
+  name: '',
+  parentorganisation: null,
+  organisationtype: null,
+  states: '',
+  address: '',
+  phone: '',
+  email: '',
+  url: '',
+  latitude: '',
+  longitude: '',
+  canbedonated: false,
+  status: 'active'
+}

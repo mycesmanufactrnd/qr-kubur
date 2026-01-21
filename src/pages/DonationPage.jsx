@@ -250,7 +250,7 @@ export default function DonationPage() {
   )}
 
   if (loadingPayment) {
-    return ( <PageLoadingComponent/> )
+    return <PageLoadingComponent/>
   }
 
   if (submitted) {

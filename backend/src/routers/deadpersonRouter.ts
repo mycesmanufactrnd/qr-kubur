@@ -86,25 +86,13 @@ export const deadPersonRouter = router({
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
-      // Direct deletion by ID
       return await AppDataSource.getRepository(DeadPerson).delete(input);
     }),
 
-getById: protectedProcedure
-  .input(z.number())
-  .query(async ({ input }) => {
-    const repo = AppDataSource.getRepository(DeadPerson);
-    // We use relations: ['grave'] so that the grave data 
-    // comes back in the same request!
-    return await repo.findOne({ 
-      where: { id: input },
-      relations: ['grave'] 
-    });
-  }),
   getDeadPersonById: publicProcedure
     .input(
         z.object({
-          id: z.number()
+          id: z.number(),
         })
     )
     .query(async ({ input }) => {

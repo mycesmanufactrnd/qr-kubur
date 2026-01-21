@@ -1,8 +1,6 @@
-// hooks/useDeadPersonMutations.ts
 import { trpc } from '@/utils/trpc';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 
-// Define parameters to match the filtering logic in ManageDeadPersons.jsx
 type useGetDeadPersonPaginatedParams = {
   page?: number;
   pageSize?: number;
@@ -71,12 +69,5 @@ export function useDeleteDeadPerson() {
     onError: (err) => {
       showApiError(err);
     },
-  });
-}
-
-export function useGetDeadPerson(id) {
-  const numId = id ? parseInt(id) : null;
-  return trpc.deadperson.getById.useQuery(numId, { 
-    enabled: !!numId 
   });
 }

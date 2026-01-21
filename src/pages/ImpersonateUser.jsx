@@ -59,8 +59,7 @@ export default function ImpersonateUser() {
         </CardContent>
       </Card>
 
-      {/* Desktop Table View */}
-      <Card className="hidden lg:block border-0 shadow-md overflow-hidden dark:bg-gray-800">
+      <Card className="border-0 shadow-md overflow-hidden dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-gray-50 dark:bg-gray-900">
@@ -138,37 +137,6 @@ export default function ImpersonateUser() {
           )}
         </CardContent>
       </Card>
-
-
-      {/* Mobile Card View (for small screens) */}
-      <div className="lg:hidden space-y-4">
-        {users.items.map(user => (
-           <Card key={user.id} className="border-0 shadow-sm">
-             <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-sm">{user.fullname}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => impersonateUser(user)}>
-                  <UserSearch className="w-4 h-4" />
-                </Button>
-             </CardContent>
-           </Card>
-        ))}
-        {users.total > 0 && (
-         <Pagination
-           currentPage={page}
-           totalPages={totalPages}
-           onPageChange={setPage}
-           itemsPerPage={itemsPerPage}
-           onItemsPerPageChange={(value) => {
-             setItemsPerPage(value);
-             setPage(1);
-           }}
-           totalItems={users.total}
-         />
-       )}
-      </div>
     </div>
   );
 }

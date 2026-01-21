@@ -177,7 +177,7 @@ export default function ManageDonations() {
                       RM {donation.amount}
                     </TableCell>
                     <TableCell className="text-center">{getStatusBadge(donation.status)}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       {new Date(donation.createdat).toLocaleDateString('ms-MY')}
                     </TableCell>
                     <TableCell className="text-center">

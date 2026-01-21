@@ -18,7 +18,6 @@ import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 export default function GraveDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const graveId = urlParams.get('id') ? Number(urlParams.get('id')) : null;
-  
   const [searchName, setSearchName] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [displayedCount, setDisplayedCount] = useState(10);

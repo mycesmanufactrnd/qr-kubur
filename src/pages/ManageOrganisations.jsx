@@ -23,24 +23,9 @@ import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetOrganisationType } from '@/hooks/useOrganisationTypeMutations';
 import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
-
 import { validateFields } from '@/utils/validations';
 import { Checkbox } from '@/components/ui/checkbox';
-
-const emptyOrg = {
-  name: '',
-  parentorganisation: null,
-  organisationtype: null,
-  states: '',
-  address: '',
-  phone: '',
-  email: '',
-  url: '',
-  latitude: '',
-  longitude: '',
-  canbedonated: false,
-  status: 'active'
-};
+import { defaultOrganisationField } from '@/utils/defaultformfields';
 
 export default function ManageOrganisations() {
   const { 
@@ -57,7 +42,7 @@ export default function ManageOrganisations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
-    defaultValues: emptyOrg
+    defaultValues: defaultOrganisationField
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
@@ -90,7 +75,7 @@ export default function ManageOrganisations() {
   const openAddDialog = () => {
     setEditingOrg(null);
     const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    reset({...emptyOrg, states: defaultState});
+    reset({...defaultOrganisationField, states: defaultState});
     setIsDialogOpen(true);
   };
 
@@ -143,15 +128,13 @@ export default function ManageOrganisations() {
       status: data.status || 'active'
     };
 
-    console.log('submitData', submitData);
-
     if (editingOrg) {
       updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
           setEditingOrg(null);
-          reset(emptyOrg);
+          reset(defaultOrganisationField);
         }
       })
     } else {
@@ -159,7 +142,7 @@ export default function ManageOrganisations() {
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
-          reset(emptyOrg);
+          reset(defaultOrganisationField);
         }
       });
     }
