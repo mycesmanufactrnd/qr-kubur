@@ -16,6 +16,7 @@ import { translate } from '@/utils/translations';
 import { handleLogout, removeImpersonation, useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent.jsx';
 import { trpc } from './utils/trpc';
+import { notificationQueryOptions } from '@/utils/queryOptions';
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -44,7 +45,10 @@ function LayoutContent({ children, currentPageName }) {
   const { data: unreadNotiCount, isLoading } =
     trpc.notification.getUnreadNotificationCount.useQuery(
       { receiveremail: currentUser?.email },
-      { enabled: !!currentUser?.email }
+      { 
+        enabled: !!currentUser?.email,
+        ...notificationQueryOptions,
+       }
     );
   
   useEffect(() => {

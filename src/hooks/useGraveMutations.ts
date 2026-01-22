@@ -2,6 +2,7 @@ import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 import { Coordinates } from '@/utils/enums';
+import { coordinatesQueryOptions } from '@/utils/queryOptions';
 
 type useGetGravePaginatedParams = {
   page?: number;
@@ -114,7 +115,10 @@ export function useGetGraveById(id: number | null) {
 export function useGetGraveCoordinates(coordinates?: Coordinates | null) {
   const { data = [], isLoading, error, refetch } = trpc.grave.getGraveByCoordinates.useQuery(
     { coordinates: coordinates ?? null },
-    { enabled: !!coordinates, staleTime: Infinity, refetchOnWindowFocus: false, refetchOnMount: false }
+    { 
+      enabled: !!coordinates, 
+      ...coordinatesQueryOptions,
+    }
   );
 
   return { graves: data, isLoading, error, refetch };

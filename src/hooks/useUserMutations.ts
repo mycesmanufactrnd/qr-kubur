@@ -56,44 +56,42 @@ export function useGetUserPaginated({
   return { userList, totalPages, isLoading, refetch, error };
 }
 
-export function useCreateUser() {
+export function useUserMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.users.create.useMutation({
+  const invalidateAll = async () => {
+    await trpcUtils.users.getPaginated.invalidate();
+  };
+
+  const createUser = trpc.users.create.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'create');
-      trpcUtils.users.getPaginated.invalidate();
+      invalidateAll();
     },
     onError: (err) => {
       showApiError(err);
     },
   });
-}
 
-export function useUpdateUser() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.users.update.useMutation({
+  const updateUser = trpc.users.update.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'update');
-      trpcUtils.users.getPaginated.invalidate();
+      invalidateAll();
     },
     onError: (err) => {
       showApiError(err);
     },
   });
-}
 
-export function useDeleteUser() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.users.delete.useMutation({
+  const deleteUser = trpc.users.delete.useMutation({
     onSuccess: () => {
       showSuccess(titleMessage, 'delete');
-      trpcUtils.users.getPaginated.invalidate();
+      invalidateAll();
     },
     onError: (err) => {
       showApiError(err);
     },
   });
+
+  return { createUser, updateUser, deleteUser }
 }

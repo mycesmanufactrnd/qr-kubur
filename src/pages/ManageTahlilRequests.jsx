@@ -48,13 +48,13 @@ export default function ManageTahlilRequests() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
+      case TahlilStatus.PENDING:
         return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('pending')}</Badge>;
-      case 'accepted':
+      case TahlilStatus.ACCEPTED:
         return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('accepted')}</Badge>;
-      case 'completed':
+      case TahlilStatus.COMPLETED:
         return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('completed')}</Badge>;
-      case 'rejected':
+      case TahlilStatus.REJECTED:
         return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;

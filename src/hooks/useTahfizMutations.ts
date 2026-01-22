@@ -1,6 +1,7 @@
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
+import { coordinatesQueryOptions } from '@/utils/queryOptions';
 
 type useGetTahfizPaginatedParams = {
   page?: number;
@@ -32,14 +33,12 @@ export function useGetTahfizPaginated({
   };
 }
 
-// FIX: Added the missing export required by SearchTahfiz.jsx
 export function useGetTahfizCoordinates(coordinates?: { latitude: number; longitude: number } | null) {
   return trpc.tahfiz.getTahfiz.useQuery(
     { coordinates: coordinates ?? null },
     {
-      enabled: coordinates !== undefined,
-      staleTime: 1000 * 60 * 5,
-      refetchOnWindowFocus: false,
+      enabled: !!coordinates,
+      ...coordinatesQueryOptions,
     }
   );
 }
@@ -49,7 +48,7 @@ export function useTahfizMutations() {
 
   const invalidateAll = () => {
     trpcUtils.tahfiz.getPaginated.invalidate();
-    trpcUtils.tahfiz.getTahfiz.invalidate(); // Refresh maps too
+    trpcUtils.tahfiz.getTahfiz.invalidate();
   };
 
   const createTahfiz = trpc.tahfiz.create.useMutation({

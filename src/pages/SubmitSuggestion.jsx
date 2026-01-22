@@ -18,14 +18,13 @@ import { useGetGraveCoordinates } from '@/hooks/useGraveMutations';
 import { getDistanceFromLatLonInKm } from '@/utils/helpers';
 import { defaultSuggestionField } from '@/utils/defaultformfields';
 import { useLocationContext } from '@/providers/LocationProvider';
+import { ipAddressQueryOptions } from '@/utils/queryOptions';
 
 export default function SubmitSuggestion() {
   const { userLocation } = useLocationContext();
   const oneHourAgo = useMemo(() => new Date(Date.now() - 60 * 60 * 1000).toISOString(), []);
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    ...ipAddressQueryOptions,
   });
 
   const recentCount = useRecentCountSuggestion(visitorIp, oneHourAgo); 

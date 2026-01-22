@@ -2,6 +2,7 @@ import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 import { Coordinates } from '@/utils/enums';
+import { coordinatesQueryOptions } from '@/utils/queryOptions';
 
 type useGetOrganisationPaginatedParams = {
   page?: number;
@@ -95,9 +96,7 @@ export function useGetOrganisationCoordinates(
     { coordinates: coordinates ?? null },
     {
       enabled: customEnabled && !!coordinates,
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      ...coordinatesQueryOptions,
     }
   );
 

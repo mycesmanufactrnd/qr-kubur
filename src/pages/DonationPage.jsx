@@ -27,16 +27,8 @@ export default function DonationPage() {
   const [searchParams] = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const {
-    watch,
-    setValue,
-    handleSubmit,
-    reset,
-  } = useForm({ defaultValues: defaultDonationField });
-  const {
-    userLocation,
-    locationDenied,
-  } = useLocationContext();
+  const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
+  const { userLocation, locationDenied } = useLocationContext();
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
   const amount = watch('amount');

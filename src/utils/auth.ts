@@ -1,6 +1,7 @@
 import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
 import { trpc, trpcClient } from './trpc';
+import { STATES_MY } from './enums';
 
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
@@ -100,7 +101,13 @@ export function useAdminAccess() {
 
   const hasAdminAccess = isSuperAdmin || isAdmin || isEmployee;
 
-  const currentUserStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+  let currentUserStates = [];
+  if (isSuperAdmin) {
+    currentUserStates = STATES_MY;
+  }
+  else {
+    currentUserStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+  }
 
   const checkRole = {
     superadmin: isSuperAdmin,
