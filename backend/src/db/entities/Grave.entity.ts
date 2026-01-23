@@ -3,7 +3,6 @@ import { Organisation } from "./Organisation.entity.ts";
 import { ActiveInactiveStatus } from "../enums.ts";
 import { DeadPerson } from "./DeadPerson.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
-
 @Entity("grave")
 export class Grave {
   @PrimaryGeneratedColumn()

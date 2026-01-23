@@ -26,6 +26,8 @@ import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/u
 import { validateFields } from '@/utils/validations';
 import { Checkbox } from '@/components/ui/checkbox';
 import { defaultOrganisationField } from '@/utils/defaultformfields';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageOrganisations() {
   const { 
@@ -281,13 +283,9 @@ export default function ManageOrganisations() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={4}/>
               ) : organisationsList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={4}/>
               ) : (
                 organisationsList.items.map(org => (
                   <TableRow key={org.id}>

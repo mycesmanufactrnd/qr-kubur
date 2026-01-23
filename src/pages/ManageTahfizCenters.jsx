@@ -26,6 +26,8 @@ import { STATES_MY } from '@/utils/enums';
 import { defaultTahfizField } from '@/utils/defaultformfields';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '../components/PageLoadingComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 const SERVICES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas' },
@@ -223,9 +225,9 @@ export default function ManageTahfizCenters() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell></TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={4}/>
               ) : tahfizCenterList.items.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-8">{translate('noRecords')}</TableCell></TableRow>
+                <NoDataTableComponent colSpan={4}/>
               ) : (
                 tahfizCenterList.items.map(center => (
                   <TableRow key={center.id}>

@@ -14,6 +14,8 @@ import { useGetTahlilRequestPaginated, useUpdateTahlilRequest } from '@/hooks/us
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Pagination from '@/components/Pagination';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageTahlilRequests() {
   const { loadingUser, isTahfizAdmin, isSuperAdmin, currentUser } = useAdminAccess();
@@ -128,13 +130,9 @@ export default function ManageTahlilRequests() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={7}/>
               ) : tahlilRequestList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={7}/>
               ) : (
                 tahlilRequestList.items.map(request => (
                   <TableRow key={request.id}>

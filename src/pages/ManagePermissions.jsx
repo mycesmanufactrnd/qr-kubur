@@ -15,6 +15,8 @@ import { useAdminAccess } from '@/utils/auth';
 import { useGetPermission, useUpsertPermission } from '@/hooks/usePermissionMutations';
 import { useGetUserPaginated } from '@/hooks/useUserMutations';
 import Pagination from '@/components/Pagination';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 export default function ManagePermissions() {
   const { 
@@ -126,9 +128,9 @@ export default function ManagePermissions() {
 
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {loadingUsers ? (
-                <p className="text-sm text-gray-500 text-center py-4">{translate('loading...')}</p>
+                <InlineLoadingComponent/>
               ) : users.items.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">{translate('noUserFound')}</p>
+                <NoDataCardComponent/>
               ) : (
                 users.items.map(user => (
                   <button

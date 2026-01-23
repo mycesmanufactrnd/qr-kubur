@@ -21,6 +21,8 @@ import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import { useGetTahfizPaginated } from '@/hooks/useTahfizMutations';
 import { hashPassword } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
+import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
 
 export default function ManageUsers() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, currentUserStates } = useAdminAccess();
@@ -223,20 +225,9 @@ export default function ManageUsers() {
 
       <div className="space-y-2">
         {appUsersLoading ? (
-          [1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-12 bg-gray-100 rounded" />
-              </CardContent>
-            </Card>
-          ))
+          <ListCardSkeletonComponent/>
         ) : appUsers.items.length === 0 ? (
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-8 text-center">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">{translate('noUserFound')}</p> 
-            </CardContent>
-          </Card>
+          <NoDataCardComponent/>
         ) : (
           appUsers.items.map(user => (
             <Card key={user.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
@@ -420,7 +411,7 @@ export default function ManageUsers() {
               <div>
                 <label className="text-sm font-medium mb-2 block">{translate('state')} <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
-                  {adminAccessibleStates.map(states => (
+                  {currentUserStates.map(states => (
                     <div key={states} className="flex items-center space-x-2">
                       <Checkbox
                         id={states}

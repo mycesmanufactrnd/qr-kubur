@@ -23,6 +23,8 @@ import {
 import { useGetPaymentPlatform } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
 import { defaultPaymentField } from '@/utils/defaultformfields';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManagePaymentFields() {
   const { 
@@ -192,7 +194,6 @@ export default function ManagePaymentFields() {
         </CardContent>
       </Card>
 
-      {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
@@ -208,13 +209,9 @@ export default function ManagePaymentFields() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : filteredFields.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">No fields found</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 filteredFields.map(field => (
                   <TableRow key={field.id}>

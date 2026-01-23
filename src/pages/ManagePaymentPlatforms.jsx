@@ -23,6 +23,8 @@ import { translate } from '@/utils/translations';
 import { defaultPaymentConfigField } from '@/utils/defaultformfields';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 
 export default function ManagePaymentPlatforms() {
@@ -163,13 +165,9 @@ export default function ManagePaymentPlatforms() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">Loading...</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={5}/>
               ) : platforms.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noPlatformFound')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={5}/>
               ) : (
                 platforms.map(platform => (
                   <TableRow key={platform.id}>

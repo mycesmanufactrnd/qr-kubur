@@ -23,7 +23,8 @@
     "docker:logs:frontend": "docker compose --env-file .env logs -f frontend",
     "docker:restart:dev:logs": "npm run docker:restart:dev && npm run docker:logs:backend",
     "docker:supabase": "docker exec -it supabase_db psql -U postgres -d supabase",
-    "docker:seed": "docker compose exec backend npm run seed"
+    "docker:seed": "docker compose exec backend npm run seed",
+    "docker:seed:prod": "docker compose exec backend npm run seed:prod"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",

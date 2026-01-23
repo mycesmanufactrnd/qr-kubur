@@ -58,7 +58,7 @@ export function removeImpersonation() {
   location.href = createPageUrl("ImpersonateUser");
 }
 
-export function impersonateUser(user: { id: any; }) {
+export function impersonateUser(user: any) {
   if (!user || !user.id) return;
 
   const currentAuth = localStorage.getItem("appUserAuth");

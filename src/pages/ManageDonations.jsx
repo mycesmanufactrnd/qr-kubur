@@ -14,6 +14,8 @@ import { VerificationStatus } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Pagination from '@/components/Pagination';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageDonations() {
   const { 
@@ -157,13 +159,9 @@ export default function ManageDonations() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : donationList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 donationList.items.map(donation => (
                   <TableRow key={donation.id}>
