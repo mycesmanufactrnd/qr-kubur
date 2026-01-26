@@ -13,7 +13,7 @@ import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useGetGravesCoordinates } from '@/hooks/useGraveMutations';
-import { getDistanceFromLatLonInKm, openDirections, showEarthDistance } from '@/utils/helpers';
+import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SearchGrave() {

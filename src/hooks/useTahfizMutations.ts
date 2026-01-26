@@ -12,6 +12,13 @@ type useGetTahfizPaginatedParams = {
 
 const TITLE_MESSAGE = 'Tahfiz Center';
 
+export function useGetTahfizById(tahfizId: number) {
+  return trpc.tahfiz.getTahfizById.useQuery(
+    { id: tahfizId }, 
+    { enabled: !!tahfizId }
+  );
+}
+
 export function useGetTahfizPaginated({
   page = 1,
   pageSize = 10,
@@ -23,7 +30,7 @@ export function useGetTahfizPaginated({
 
   const query = trpc.tahfiz.getPaginated.useQuery(
     { page, pageSize, search, filterState, currentUserTahfiz: currentUserTahfizCenterId, checkRole },
-    { enabled: hasAdminAccess && !!currentUser, keepPreviousData: true }
+    { enabled: hasAdminAccess && !!currentUser }
   );
 
   return {
@@ -37,7 +44,7 @@ export function useGetTahfizCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
   userState?: string
 ) {
-  return trpc.tahfiz.getTahfiz.useQuery(
+  return trpc.tahfiz.getTahfizByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
       userState
@@ -54,7 +61,6 @@ export function useTahfizMutations() {
 
   const invalidateAll = () => {
     trpcUtils.tahfiz.getPaginated.invalidate();
-    trpcUtils.tahfiz.getTahfiz.invalidate();
   };
 
   const createTahfiz = trpc.tahfiz.create.useMutation({

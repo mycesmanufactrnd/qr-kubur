@@ -12,11 +12,6 @@ type useGetOrganisationPaginatedParams = {
   filterState?: string;
 };
 
-type UseGetOrganisationCoordinatesOptions = {
-  coordinates?: Coordinates | null;
-  enabled?: boolean;
-};
-
 const titleMessage = 'Organisation';
 
 export function useGetOrganisationPaginated({
@@ -88,14 +83,16 @@ export function useOrganisationMutations() {
 }
 
 export function useGetOrganisationCoordinates(
-  options: UseGetOrganisationCoordinatesOptions = {}
+  coordinates?: { latitude: number; longitude: number } | null, 
+  userState?: string
 ) {
-  const { coordinates, enabled: customEnabled } = options;
-
   const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
-    { coordinates: coordinates ?? null },
+    { 
+      coordinates: coordinates ?? null,
+      userState
+    },
     {
-      enabled: customEnabled && !!coordinates,
+      enabled: !!coordinates,
       ...coordinatesQueryOptions,
     }
   );

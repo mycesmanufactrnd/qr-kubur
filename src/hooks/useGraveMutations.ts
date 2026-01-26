@@ -93,7 +93,7 @@ export function useGetGravesCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
   userState?: string
 ) {
-  return trpc.grave.getGrave.useQuery(
+  return trpc.grave.getGraveByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
       userState
@@ -107,16 +107,4 @@ export function useGetGravesCoordinates(
 
 export function useGetGraveById(id: number | null) {
   return trpc.grave.getGraveById.useQuery({ id: id as number }, { enabled: !!id });
-}
-
-export function useGetGraveCoordinates(coordinates?: Coordinates | null) {
-  const { data = [], isLoading, error, refetch } = trpc.grave.getGraveByCoordinates.useQuery(
-    { coordinates: coordinates ?? null },
-    { 
-      enabled: !!coordinates, 
-      ...coordinatesQueryOptions,
-    }
-  );
-
-  return { graves: data, isLoading, error, refetch };
 }

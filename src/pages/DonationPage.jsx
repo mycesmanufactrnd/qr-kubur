@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess, showWarning } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-import { DONATION_AMOUNTS, paymentToyyibStatus, VerificationStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, STATES_MY, VerificationStatus } from '@/utils/enums';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
@@ -21,14 +21,16 @@ import { useLocationContext } from '@/providers/LocationProvider';
 import { defaultDonationField } from '@/utils/defaultformfields';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { useSearchParams } from 'react-router-dom';
-import { activityLogError, clearQueryParams } from '@/utils/helpers';
+import { activityLogError, clearQueryParams, showEarthDistance } from '@/utils/helpers';
+import { translate } from '@/utils/translations';
 
 export default function DonationPage() {
   const [searchParams] = useSearchParams();
+  const [selectedState, setSelectedState] = useState('nearby');
   const [submitted, setSubmitted] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
-  const { userLocation, locationDenied } = useLocationContext();
+  const { userLocation, userState, locationDenied } = useLocationContext();
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
   const amount = watch('amount');
@@ -119,17 +121,21 @@ export default function DonationPage() {
     }
   }, [searchParams]);
 
-  const { organisations = [] } = useGetOrganisationCoordinates({
-    coordinates: userLocation?.lat && userLocation?.lng
+  const shouldFetchOrganisation = !!userLocation && recipientType === 'organisation';
+  const shouldFetchTahfiz = !!userLocation && recipientType === 'tahfiz';
+
+  const { organisations = [] } = useGetOrganisationCoordinates(
+    shouldFetchOrganisation 
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : undefined,
-    enabled: !!userLocation && recipientType === 'organisation',
-  });
+      : null,
+    selectedState === 'nearby' ? userState : selectedState
+  );
 
   const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
-    userLocation
+    shouldFetchTahfiz
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : null
+      : null,
+    selectedState === 'nearby' ? userState : selectedState
   );
 
   const { data: paymentConfigs } = useGetConfigByEntity({
@@ -291,6 +297,25 @@ export default function DonationPage() {
               </TabsList>
 
               <TabsContent value="organisation" className="mt-4">
+                <div className="mb-2">
+                  <Select value={selectedState} 
+                    onValueChange={(v) => {
+                      setSelectedState(v);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                  >
+                    <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                      <SelectValue placeholder={translate('state')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-700">
+                      <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
+                      {STATES_MY.map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Select
                   value={selectedRecipient ? String(selectedRecipient) : ''}
                   onValueChange={v => setValue('selectedRecipient', v)}
@@ -299,16 +324,35 @@ export default function DonationPage() {
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
-                    {organisations.map(o => (
-                      <SelectItem key={o.id} value={String(o.id)}>
-                        {o.name}
+                    {organisations.map(organisation => (
+                      <SelectItem key={organisation.id} value={String(organisation.id)}>
+                        {organisation.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </TabsContent>
 
-              <TabsContent value="tahfiz" className="mt-4 space-y-3">
+              <TabsContent value="tahfiz" className="mt-4">
+                <div className="mb-2">
+                  <Select value={selectedState}
+                    onValueChange={(v) => {
+                      setSelectedState(v);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                  >
+                    <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                      <SelectValue placeholder={translate('state')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-700">
+                      <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
+                      {STATES_MY.map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Select
                   value={selectedRecipient ? String(selectedRecipient) : ''}
                   onValueChange={v => setValue('selectedRecipient', v)}

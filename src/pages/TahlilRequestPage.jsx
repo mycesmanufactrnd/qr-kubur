@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import BackNavigation from "@/components/BackNavigation";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from '@/providers/LocationProvider';
-import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
+import { useGetTahfizById, useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 import { DONATION_AMOUNTS, paymentToyyibStatus, SERVICE_FEE_PERCENTAGE, SERVICE_TYPES, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
 import { defaultTahlilRequestField } from '@/utils/defaultformfields';
@@ -24,7 +24,7 @@ import { useSearchParams } from 'react-router-dom';
 
 export default function TahlilRequestPage() {
   const [searchParams] = useSearchParams();
-  const { userLocation } = useLocationContext();
+  const { userLocation, userState } = useLocationContext();
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedDeceasedNames, setSubmittedDeceasedNames] = useState([]);
@@ -45,23 +45,31 @@ export default function TahlilRequestPage() {
     return params.get('tahfiz') || '';
   }, []);
 
+  const hasPreselectedTahfiz = !!preSelectedTahfiz;
+
+  const { data: tahfizById } = useGetTahfizById(
+    hasPreselectedTahfiz ? Number(preSelectedTahfiz) : undefined
+  );
+
+  const { data: nearbyTahfiz = [] } = useGetTahfizCoordinates(
+    !hasPreselectedTahfiz && userLocation
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null,
+    userState
+  );
+
+  const tahfizCenters = useMemo(() => {
+    if (hasPreselectedTahfiz && tahfizById) {
+      return [tahfizById];
+    }
+
+    return nearbyTahfiz;
+  }, [hasPreselectedTahfiz, tahfizById, nearbyTahfiz]);
+
   const { watch, setValue, handleSubmit, reset } = useForm({
     defaultValues: { ...defaultTahlilRequestField, tahfizId: preSelectedTahfiz }
   });
 
-  const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
-    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
-  );
-
-  useEffect(() => {
-    if (!preSelectedTahfiz) return;
-    if (!tahfizCenters.length) return;
-
-    const found = tahfizCenters.find(c => c.id === Number(preSelectedTahfiz));
-    if (found) {
-      setValue('tahfizId', String(preSelectedTahfiz));
-    }
-  }, [preSelectedTahfiz, tahfizCenters, setValue]);
 
   const tahfizId = watch('tahfizId');
   const selectedservices = watch('selectedservices');

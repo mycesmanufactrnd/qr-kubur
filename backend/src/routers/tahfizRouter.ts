@@ -5,9 +5,25 @@ import { TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
-  getTahfiz: publicProcedure
+  getTahfizById: publicProcedure
+    .input(
+        z.object({
+          id: z.number(),
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.id) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(TahfizCenter).findOne({ 
+        where: { id: input.id },
+      });
+    }),
+
+  getTahfizByCoordinates: publicProcedure
     .input(z.object({
-      userState: z.string(),
+      userState: z.string().optional().nullable(),
       coordinates: z.object({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
@@ -52,20 +68,35 @@ export const tahfizRouter = router({
       pageSize: z.number().min(1).optional(),
       search: z.string().optional(),
       filterState: z.string().optional(),
+      currentUserTahfiz: z.number().optional().nullable(),
+      checkRole: z.object({
+        superadmin: z.boolean(),
+        tahfiz: z.boolean(),
+      }).optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterState } = input;
-      const repo = AppDataSource.getRepository(TahfizCenter);
-      const query = repo.createQueryBuilder("tahfizcenter");
+      const { page, pageSize, search, filterState, currentUserTahfiz, checkRole } = input;
 
-      if (search)
+      const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
+      const query = tahfizRepo.createQueryBuilder("tahfizcenter");
+
+      if (search) {
         query.andWhere("tahfizcenter.name ILIKE :search", { search: `%${search}%` });
+      }
 
-      if (filterState)
+      if (filterState) {
         query.andWhere("tahfizcenter.state = :state", { state: filterState });
+      }
 
-      if (page && pageSize)
+      if (checkRole?.tahfiz && currentUserTahfiz) {
+        query.andWhere("tahfizcenter.id = :id", {
+          id: currentUserTahfiz,
+        });
+      }
+
+      if (page && pageSize) {
         query.skip((page - 1) * pageSize).take(pageSize);
+      }
 
       const [items, total] = await query
         .orderBy("tahfizcenter.createdat", "DESC")
