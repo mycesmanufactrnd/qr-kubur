@@ -23,14 +23,15 @@ export const tahfizRouter = router({
 
   getTahfizByCoordinates: publicProcedure
     .input(z.object({
-      userState: z.string().optional().nullable(),
       coordinates: z.object({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
-      }).optional().nullable()
+      }).optional().nullable(),
+      userState: z.string().optional().nullable(),
+      searchQuery: z.string().optional().nullable()
     }))
     .query(async ({ input }) => {
-      const repo = AppDataSource.getRepository(TahfizCenter);
+      const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
 
       if (!input.coordinates) {
         return [];
@@ -38,10 +39,15 @@ export const tahfizRouter = router({
 
       const { latitude, longitude } = input.coordinates;
 
-      const query = repo.createQueryBuilder("tahfiz")
-      .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL")
-      .andWhere("tahfiz.state = :state", { state: input.userState })
-      .orderBy(`
+      const query = tahfizRepo.createQueryBuilder("tahfiz")
+        .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL")
+        .andWhere("tahfiz.state = :state", { state: input.userState });
+
+      if (input.searchQuery) {
+        query.andWhere("tahfiz.name ILIKE :name", { name: `%${input.searchQuery}%` });
+      }
+
+      query.orderBy(`
           earth_distance(
             ll_to_earth(tahfiz.latitude, tahfiz.longitude),
             ll_to_earth(:lat, :lng)

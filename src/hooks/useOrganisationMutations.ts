@@ -84,12 +84,14 @@ export function useOrganisationMutations() {
 
 export function useGetOrganisationCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
-  userState?: string
+  userState?: string,
+  searchQuery?: string,
 ) {
   const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
-      userState
+      userState,
+      searchQuery
     },
     {
       enabled: !!coordinates,

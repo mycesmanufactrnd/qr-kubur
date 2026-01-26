@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Heart, Building2, CheckCircle, CreditCard } from 'lucide-react';
+import { Heart, Building2, CheckCircle, CreditCard, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,16 +21,19 @@ import { useLocationContext } from '@/providers/LocationProvider';
 import { defaultDonationField } from '@/utils/defaultformfields';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { useSearchParams } from 'react-router-dom';
-import { activityLogError, clearQueryParams, showEarthDistance } from '@/utils/helpers';
+import { activityLogError, clearQueryParams } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 
 export default function DonationPage() {
   const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [manualSearchQuery, setManualSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
   const [submitted, setSubmitted] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
   const { userLocation, userState, locationDenied } = useLocationContext();
+  
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
   const amount = watch('amount');
@@ -128,14 +131,16 @@ export default function DonationPage() {
     shouldFetchOrganisation 
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
-    selectedState === 'nearby' ? userState : selectedState
+    selectedState === 'nearby' ? userState : selectedState,
+    manualSearchQuery
   );
 
   const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
     shouldFetchTahfiz
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
-    selectedState === 'nearby' ? userState : selectedState
+    selectedState === 'nearby' ? userState : selectedState,
+    manualSearchQuery
   );
 
   const { data: paymentConfigs } = useGetConfigByEntity({
@@ -217,16 +222,15 @@ export default function DonationPage() {
     } catch (err) {
       setLoadingPayment(false);
       showError(err.message || "Unknown error");
-
     }
   };
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
       { field: 'recipientType', label: 'Recipient Type', type: 'select' },
+      { field: 'selectedRecipient', label: 'Recipient', type: 'text' },
       { field: 'email', label: 'Email', type: 'email', required: false },
       { field: 'paymentMethod', label: 'Payment Method', type: 'text' },
-      { field: 'selectedRecipient', label: 'Recepient', type: 'text' },
     ]);
 
     if (!isValid) return;
@@ -297,6 +301,25 @@ export default function DonationPage() {
               </TabsList>
 
               <TabsContent value="organisation" className="mt-4">
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    placeholder={translate('Name')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-9 dark:bg-gray-700"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setManualSearchQuery(searchQuery);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                    className="h-9"
+                  >
+                    <Search className="w-4 h-4 mr-1" /> {translate('Search')}
+                  </Button>
+                </div>
                 <div className="mb-2">
                   <Select value={selectedState} 
                     onValueChange={(v) => {
@@ -324,16 +347,41 @@ export default function DonationPage() {
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
-                    {organisations.map(organisation => (
-                      <SelectItem key={organisation.id} value={String(organisation.id)}>
-                        {organisation.name}
+                    {organisations.length > 0 ? (
+                      organisations.map(organisation => (
+                        <SelectItem key={organisation.id} value={String(organisation.id)}>
+                          {organisation.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-orgs" disabled>
+                        Tiada organisasi dijumpai
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </TabsContent>
 
               <TabsContent value="tahfiz" className="mt-4">
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    placeholder={translate('Name')}
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                    className="h-9 dark:bg-gray-700"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => setManualSearchQuery(searchQuery)}
+                    className="h-9"
+                  >
+                    <Search className="w-4 h-4 mr-1" /> {translate('Search')}
+                  </Button>
+                </div>
                 <div className="mb-2">
                   <Select value={selectedState}
                     onValueChange={(v) => {

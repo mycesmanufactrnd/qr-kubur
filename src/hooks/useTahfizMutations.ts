@@ -42,12 +42,14 @@ export function useGetTahfizPaginated({
 
 export function useGetTahfizCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
-  userState?: string
+  userState?: string,
+  searchQuery?: string,
 ) {
   return trpc.tahfiz.getTahfizByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
-      userState
+      userState,
+      searchQuery
     },
     {
       enabled: !!coordinates,

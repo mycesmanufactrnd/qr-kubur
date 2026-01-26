@@ -94,9 +94,10 @@ export const graveRouter = router({
         longitude: z.number().min(-180).max(180),
       }).optional().nullable(),
       userState: z.string(),
+      searchQuery: z.string().optional().nullable(),
     }))
     .query(async ({ input }) => {
-      const repo = AppDataSource.getRepository(Grave);
+      const graveRepo = AppDataSource.getRepository(Grave);
 
       if (!input.coordinates) {
         return [];
@@ -109,10 +110,15 @@ export const graveRouter = router({
       // CREATE EXTENSION IF NOT EXISTS cube;
       // CREATE EXTENSION IF NOT EXISTS earthdistance;
 
-      const query = repo.createQueryBuilder("grave")
-      .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL")
-      .andWhere("grave.state = :state", { state: input.userState })
-      .orderBy(`
+      const query = graveRepo.createQueryBuilder("grave")
+        .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL")
+        .andWhere("grave.state = :state", { state: input.userState });
+
+      if (input.searchQuery) {
+        query.andWhere("grave.name ILIKE :name", { name: `%${input.searchQuery}%` });
+      }
+
+      query.orderBy(`
           earth_distance(
             ll_to_earth(grave.latitude, grave.longitude),
             ll_to_earth(:lat, :lng)

@@ -144,7 +144,8 @@ export const organisationRouter = router({
             latitude: z.number().min(-90).max(90),
             longitude: z.number().min(-180).max(180),
         }).optional().nullable(),
-        userState: z.string().optional().nullable()
+        userState: z.string().optional().nullable(),
+        searchQuery: z.string().optional().nullable()
       })
     )
     .query(async ({ input }) => {
@@ -160,8 +161,13 @@ export const organisationRouter = router({
         .where("organisation.latitude IS NOT NULL AND organisation.longitude IS NOT NULL")
         .andWhere(":state = ANY(organisation.states)", {
           state: input.userState,
-        })
-        .orderBy(`
+        });
+
+      if (input.searchQuery) {
+        query.andWhere("organisation.name ILIKE :name", { name: `%${input.searchQuery}%` });
+      }
+
+      query.orderBy(`
           earth_distance(
             ll_to_earth(organisation.latitude, organisation.longitude),
             ll_to_earth(:lat, :lng)

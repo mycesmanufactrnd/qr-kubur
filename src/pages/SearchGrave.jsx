@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { Search, MapPin, Navigation, Share2 } from 'lucide-react';
@@ -18,6 +18,7 @@ import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SearchGrave() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [manualSearchQuery, setManualSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
   const [displayedCount, setDisplayedCount] = useState(10);
   const {
@@ -36,11 +37,8 @@ export default function SearchGrave() {
     userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
-    selectedState === 'nearby' ? userState : selectedState
-  );
-
-  const filteredGraves = (gravesList || []).filter(center =>
-    !searchQuery || center.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    selectedState === 'nearby' ? userState : selectedState,
+    manualSearchQuery
   );
 
   return (
@@ -49,12 +47,20 @@ export default function SearchGrave() {
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
-          <Input
-            placeholder={translate('Grave')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-          />
+          <div className="flex gap-2">
+            <Input
+              placeholder={translate('Grave')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+            <Button
+              onClick={() => setManualSearchQuery(searchQuery)}
+              className="h-9"
+            >
+              <Search className="w-4 h-4 mr-1" /> {translate('Search')}
+            </Button>
+          </div>
 
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
@@ -74,14 +80,14 @@ export default function SearchGrave() {
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
-      ) : filteredGraves.length === 0 ? (
+      ) : gravesList.length === 0 ? (
         <NoDataCardComponent
           title={translate('noGravesFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
         <div className="space-y-3">
-          {filteredGraves.map(grave => (
+          {gravesList.map(grave => (
             <Card
               key={grave.id}
               className="mb-2 border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800"
@@ -150,7 +156,7 @@ export default function SearchGrave() {
             </Card>
           ))}
 
-          {displayedCount < filteredGraves.length && (
+          {displayedCount < gravesList.length && (
             <div className="text-center py-2">
               <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
                 Load more

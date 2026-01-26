@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
-import {  Building2, Navigation, MapPin } from 'lucide-react';
+import { Building2, Navigation, MapPin, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import DirectionButton from '@/components/DirectionButton';
 
 export default function SearchTahfiz() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [manualSearchQuery, setManualSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
 
   const { userLocation, userState, locationDenied } = useLocationContext();
@@ -27,11 +28,8 @@ export default function SearchTahfiz() {
     userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
-    selectedState === 'nearby' ? userState : selectedState
-  );
-
-  const filteredCenters = (tahfizCenters || []).filter(center =>
-    !searchQuery || center.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    selectedState === 'nearby' ? userState : selectedState,
+    manualSearchQuery
   );
 
   return (
@@ -40,12 +38,20 @@ export default function SearchTahfiz() {
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
-          <Input
-            placeholder={translate('tahfizName')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 dark:bg-gray-700"
-          />
+          <div className="flex gap-2">
+            <Input
+              placeholder={translate('tahfizName')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 dark:bg-gray-700"
+            />
+            <Button
+              onClick={() => setManualSearchQuery(searchQuery)}
+              className="h-9"
+            >
+              <Search className="w-4 h-4 mr-1" /> {translate('Search')}
+            </Button>
+          </div>
 
           <div className="flex gap-2">
             <Select value={selectedState} onValueChange={setSelectedState}>
@@ -69,14 +75,14 @@ export default function SearchTahfiz() {
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
-      ) : filteredCenters.length === 0 ? (
+      ) : tahfizCenters.length === 0 ? (
         <NoDataCardComponent
           title={translate('noTahfizFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
         <div className="space-y-2">
-          {filteredCenters.map(center => (
+          {tahfizCenters.map(center => (
             <Card key={center.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-3">
                 <div className="flex items-start justify-between gap-3">
