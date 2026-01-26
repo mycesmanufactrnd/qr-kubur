@@ -5,57 +5,47 @@ import { TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
-
-  // GET NEARBY TAHFIZ FOR MAPS / SEARCH PAGE
   getTahfiz: publicProcedure
-  .input(z.object({
-    coordinates: z.object({
-      latitude: z.number().min(-90).max(90),
-      longitude: z.number().min(-180).max(180),
-    }).optional().nullable()
-  }))
-  .query(async ({ input }) => {
-    const repo = AppDataSource.getRepository(TahfizCenter);
+    .input(z.object({
+      userState: z.string(),
+      coordinates: z.object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      }).optional().nullable()
+    }))
+    .query(async ({ input }) => {
+      const repo = AppDataSource.getRepository(TahfizCenter);
 
-    if (!input.coordinates) {
-      return repo.find({
-        take: 100,
-        order: { createdat: "DESC" }
-      });
-    }
+      if (!input.coordinates) {
+        return [];
+      }
 
-    const { latitude, longitude } = input.coordinates;
+      const { latitude, longitude } = input.coordinates;
 
-    const qb = repo.createQueryBuilder("t")
-      .where("t.latitude IS NOT NULL AND t.longitude IS NOT NULL")
-      .addSelect(`
-        (
-          6371 * acos(
-            cos(radians(:lat)) *
-            cos(radians(t.latitude)) *
-            cos(radians(t.longitude) - radians(:lng)) +
-            sin(radians(:lat)) *
-            sin(radians(t.latitude))
+      const query = repo.createQueryBuilder("tahfiz")
+      .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL")
+      .andWhere("tahfiz.state = :state", { state: input.userState })
+      .orderBy(`
+          earth_distance(
+            ll_to_earth(tahfiz.latitude, tahfiz.longitude),
+            ll_to_earth(:lat, :lng)
           )
-        )
-      `, "distance")
-      .orderBy("distance", "ASC")
-      .setParameters({ lat: latitude, lng: longitude })
-      .take(20);
+        `, 'ASC')
+      .addSelect(`
+        earth_distance(
+          ll_to_earth(tahfiz.latitude, tahfiz.longitude),
+          ll_to_earth(:lat, :lng)
+        )`, 'distance')
+      .setParameters({ lat: latitude, lng: longitude });
 
-    const { entities, raw } = await qb.getRawAndEntities();
+    const { entities, raw } = await query.getRawAndEntities();
 
-    // Merge raw distance → entity
-    const results = entities.map((entity, index) => ({
+    return entities.map((entity, index) => ({
       ...entity,
       distance: Number(raw[index].distance),
     }));
-
-    return results;
   }),
 
-
-  // ADMIN TABLE PAGINATION
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).optional(),
@@ -84,7 +74,6 @@ export const tahfizRouter = router({
       return { items, total };
     }),
 
-  // CREATE NEW TAHFIZ
   create: protectedProcedure
     .input(tahfizSchema)
     .mutation(async ({ input }) => {
@@ -93,7 +82,6 @@ export const tahfizRouter = router({
       return await repo.save(tahfiz);
     }),
 
-  // UPDATE TAHFIZ
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: tahfizSchema.partial() }))
     .mutation(async ({ input }) => {
@@ -103,7 +91,6 @@ export const tahfizRouter = router({
       return repo.save(tahfiz);
     }),
 
-  // DELETE TAHFIZ
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {

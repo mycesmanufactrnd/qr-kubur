@@ -1,9 +1,7 @@
 import "reflect-metadata";
-import { AppDataSource } from "../../../datasource.ts";
-import { ActiveInactiveStatus } from "../../enums.ts";
-import { OrganisationType } from "../../entities.ts";
-
-import { In } from "typeorm";
+import { AppDataSource } from "../../datasource.ts";
+import { OrganisationType } from "../entities.ts";
+import { ActiveInactiveStatus } from "../enums.ts";
 
 export async function runOrganisationTypeSeeder() {
   console.log("🌱 Seeding expanded organisation types...");

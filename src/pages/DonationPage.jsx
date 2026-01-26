@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { showError, showSuccess } from '@/components/ToastrNotification';
+import { showError, showSuccess, showWarning } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
 import { DONATION_AMOUNTS, paymentToyyibStatus, VerificationStatus } from '@/utils/enums';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
@@ -49,6 +49,12 @@ export default function DonationPage() {
       reset(defaultDonationField);
     },
   });
+
+  useEffect(() => {
+    if (locationDenied) {
+      showWarning('Lokasi tidak tersedia');
+    }
+  }, [locationDenied]);
 
   const finalAmount = useMemo(() => {
     const baseAmount = customAmount || amount;
@@ -234,12 +240,6 @@ export default function DonationPage() {
       return;
     }    
   };
-
-  {locationDenied && (
-    <p className="text-xs text-gray-500 mt-2">
-      Lokasi tidak tersedia. Senarai tidak disusun mengikut jarak.
-    </p>
-  )}
 
   if (loadingPayment) {
     return <PageLoadingComponent/>

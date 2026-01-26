@@ -87,37 +87,46 @@ export const graveRouter = router({
       });
     }),
 
-  search: publicProcedure
+  getGrave: publicProcedure
     .input(z.object({
-      search: z.string().optional(),
-      filterState: z.string().optional(),
-      userLat: z.number().nullable().optional(),
-      userLng: z.number().nullable().optional(),
+      userState: z.string(),
+      coordinates: z.object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      }).optional().nullable()
     }))
     .query(async ({ input }) => {
-      const graveRepo = AppDataSource.getRepository(Grave);
-      const { search, filterState, userLat, userLng } = input;
+      const repo = AppDataSource.getRepository(Grave);
 
-      const query = graveRepo.createQueryBuilder('grave');
-
-      if (search) query.andWhere('grave.name ILIKE :search', { search: `%${search}%` });
-
-      if (userLat !== null && userLng !== null) {
-        query
-          .where('grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL')
-          .orderBy(`
-            earth_distance(
-              ll_to_earth(grave.latitude, grave.longitude),
-              ll_to_earth(:lat, :lng)
-            )
-          `, 'ASC')
-          .setParameters({ lat: userLat, lng: userLng });
-      } else if (filterState && filterState !== 'nearby' && filterState !== 'all') {
-        query.andWhere('grave.state = :state', { state: filterState });
+      if (!input.coordinates) {
+        return [];
       }
 
-      return await query.getMany();
-    }),
+      const { latitude, longitude } = input.coordinates;
+
+      const query = repo.createQueryBuilder("grave")
+      .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL")
+      .andWhere("grave.state = :state", { state: input.userState })
+      .orderBy(`
+          earth_distance(
+            ll_to_earth(grave.latitude, grave.longitude),
+            ll_to_earth(:lat, :lng)
+          )
+        `, 'ASC')
+      .addSelect(`
+        earth_distance(
+          ll_to_earth(grave.latitude, grave.longitude),
+          ll_to_earth(:lat, :lng)
+        )`, 'distance')
+      .setParameters({ lat: latitude, lng: longitude });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    return entities.map((entity, index) => ({
+      ...entity,
+      distance: Number(raw[index].distance),
+    }));
+  }),
 
   // if no extension created in psql
   // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>

@@ -123,4 +123,14 @@ export function clearQueryParams() {
   }
 }
 
+export function showEarthDistance(distanceMeters?: number | null): string {
+  if (distanceMeters == null || isNaN(distanceMeters)) return '-';
+
+  if (distanceMeters < 1000) {
+    return `${Math.round(distanceMeters)}m`;
+  } else {
+    return `${(distanceMeters / 1000).toFixed(1)}km`;
+  }
+}
+
 

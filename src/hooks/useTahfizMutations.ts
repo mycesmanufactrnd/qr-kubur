@@ -33,9 +33,15 @@ export function useGetTahfizPaginated({
   };
 }
 
-export function useGetTahfizCoordinates(coordinates?: { latitude: number; longitude: number } | null) {
+export function useGetTahfizCoordinates(
+  coordinates?: { latitude: number; longitude: number } | null, 
+  userState?: string
+) {
   return trpc.tahfiz.getTahfiz.useQuery(
-    { coordinates: coordinates ?? null },
+    { 
+      coordinates: coordinates ?? null,
+      userState
+    },
     {
       enabled: !!coordinates,
       ...coordinatesQueryOptions,

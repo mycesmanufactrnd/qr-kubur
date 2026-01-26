@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
-import { Search, Building2, Navigation, MapPin } from 'lucide-react';
+import {  Building2, Navigation, MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,42 +12,27 @@ import BackNavigation from '@/components/BackNavigation';
 import LocationDeniedComponent from '@/components/LocationDeniedComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useLocationContext } from '@/providers/LocationProvider';
-import { openDirections, requestLocation } from '@/utils/helpers';
+import { showEarthDistance, requestLocation } from '@/utils/helpers';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
+import DirectionButton from '@/components/DirectionButton';
 
 export default function SearchTahfiz() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
 
-  const {
-    userLocation,
-    userState,
-    locationDenied,
-    isLocationLoading
-  } = useLocationContext();
-
+  const { userLocation, userState, locationDenied } = useLocationContext();
+  
   const { data: tahfizCenters, isLoading } = useGetTahfizCoordinates(
-    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null
+    userLocation
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null,
+    selectedState === 'nearby' ? userState : selectedState
   );
 
-  const filteredCenters = (tahfizCenters || []).filter(center => {
-    const matchesSearch = !searchQuery || center.name?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesState =
-      selectedState === 'nearby'
-        ? userLocation && userState && center.state === userState
-        : center.state === selectedState;
-
-    return matchesSearch && matchesState;
-  });
-
-  const sortedCenters =
-    selectedState === 'nearby' && userLocation
-      ? [...filteredCenters].sort(
-          (a, b) => (a.distance ?? 999999) - (b.distance ?? 999999)
-        )
-      : filteredCenters;
+  const filteredCenters = (tahfizCenters || []).filter(center =>
+    !searchQuery || center.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-3 pb-2">
@@ -74,8 +59,6 @@ export default function SearchTahfiz() {
                 ))}
               </SelectContent>
             </Select>
-
-            
           </div>
         </CardContent>
       </Card>
@@ -86,14 +69,14 @@ export default function SearchTahfiz() {
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
-      ) : sortedCenters.length === 0 ? (
+      ) : filteredCenters.length === 0 ? (
         <NoDataCardComponent
           title={translate('noTahfizFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
         <div className="space-y-2">
-          {sortedCenters.map(center => (
+          {filteredCenters.map(center => (
             <Card key={center.id} className="border-0 shadow-sm dark:bg-gray-800">
               <CardContent className="p-3">
                 <div className="flex items-start justify-between gap-3">
@@ -111,9 +94,7 @@ export default function SearchTahfiz() {
                       {center.distance && (
                         <p className="text-xs text-violet-600 mt-1">
                           <Navigation className="w-3 h-3 inline mr-1" />
-                          {center.distance < 1
-                            ? `${Math.round(center.distance * 1000)}m`
-                            : `${Number(center.distance).toFixed(1)}km`}
+                          {showEarthDistance(center.distance)}
                         </p>
                       )}
                     </div>
@@ -121,18 +102,11 @@ export default function SearchTahfiz() {
 
                   <div className="flex flex-col gap-1">
                     { (center.latitude && center.longitude) && (
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDirections(center.latitude, center.longitude)
-                        }}
-                        className="h-7 text-xs bg-violet-600 hover:bg-violet-700"
-                      >
-                        {translate('direction')}
-                      </Button>
+                      <DirectionButton
+                        latitude={center.latitude}
+                        longitude={center.longitude}
+                      />
                     ) }
-
                     <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${center.id}`}>
                       <Button size="sm" variant="outline" className="h-7 text-xs w-full dark:bg-gray-700">
                         {translate('request')}

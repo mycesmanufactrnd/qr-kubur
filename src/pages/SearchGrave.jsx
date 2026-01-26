@@ -6,14 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { showSuccess } from '@/components/ToastrNotification.jsx';
+import { showSuccess, showWarning } from '@/components/ToastrNotification.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
-import { useSearchGraves } from '@/hooks/useGraveMutations';
-import { getDistanceFromLatLonInKm, openDirections } from '@/utils/helpers';
+import { useGetGravesCoordinates } from '@/hooks/useGraveMutations';
+import { getDistanceFromLatLonInKm, openDirections, showEarthDistance } from '@/utils/helpers';
 import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SearchGrave() {
@@ -24,25 +24,24 @@ export default function SearchGrave() {
     userLocation,
     userState,
     locationDenied,
-    isLocationLoading
   } = useLocationContext();
 
-  const { gravesList, isLoading, refetch } = useSearchGraves({
-    search: searchQuery,
-    filterState: selectedState === 'nearby' ? userState : selectedState,
-    coordinates: userLocation,
-  });
+  useEffect(() => {
+    if (locationDenied) {
+      showWarning('Lokasi tidak tersedia');
+    }
+  }, [locationDenied]);
 
-  const processedGraves = gravesList
-    .map(grave => ({
-      ...grave,
-      distance: (userLocation && grave.latitude && grave.longitude)
-        ? getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, grave.latitude, grave.longitude)
-        : null
-    }))
-    .sort((a, b) => (a.distance || 999999) - (b.distance || 999999));
+  const { data: gravesList, isLoading } = useGetGravesCoordinates(
+    userLocation
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null,
+    selectedState === 'nearby' ? userState : selectedState
+  );
 
-  const displayedGraves = processedGraves.slice(0, displayedCount);
+  const filteredGraves = (gravesList || []).filter(center =>
+    !searchQuery || center.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-3 pb-2">
@@ -75,14 +74,14 @@ export default function SearchGrave() {
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
-      ) : displayedGraves.length === 0 ? (
+      ) : filteredGraves.length === 0 ? (
         <NoDataCardComponent
           title={translate('noGravesFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
         <div className="space-y-3">
-          {displayedGraves.map(grave => (
+          {filteredGraves.map(grave => (
             <Card
               key={grave.id}
               className="mb-2 border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800"
@@ -108,9 +107,7 @@ export default function SearchGrave() {
                       {grave.distance !== null && (
                         <p className="text-xs text-emerald-600 mt-1">
                           <Navigation className="w-3 h-3 inline mr-1" />
-                          {grave.distance < 1
-                            ? `${Math.round(grave.distance * 1000)}m`
-                            : `${grave.distance.toFixed(1)}km`}
+                          {showEarthDistance(grave.distance)}
                         </p>
                       )}
                     </div>
@@ -153,7 +150,7 @@ export default function SearchGrave() {
             </Card>
           ))}
 
-          {displayedCount < processedGraves.length && (
+          {displayedCount < filteredGraves.length && (
             <div className="text-center py-2">
               <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
                 Load more

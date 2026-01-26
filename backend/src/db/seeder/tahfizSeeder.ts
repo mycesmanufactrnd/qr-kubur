@@ -1,5 +1,4 @@
 
-// seeders/tahfizSeeder.ts
 import "reflect-metadata";
 import { AppDataSource } from "../../datasource.ts";
 import { TahfizCenter } from "../entities.ts"; 

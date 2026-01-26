@@ -89,23 +89,20 @@ export function useBulkCreateGraves() {
   });
 }
 
-export function useSearchGraves({
-  search,
-  filterState,
-  coordinates,
-}: {
-  search?: string;
-  filterState?: string;
-  coordinates?: Coordinates | null;
-}) {
-  const { data, isLoading, refetch } = trpc.grave.search.useQuery({
-    search: search ?? '',
-    filterState: filterState ?? '',
-    userLat: coordinates?.latitude ?? null,
-    userLng: coordinates?.longitude ?? null,
-  });
-
-  return { gravesList: data ?? [], isLoading, refetch };
+export function useGetGravesCoordinates(
+  coordinates?: { latitude: number; longitude: number } | null, 
+  userState?: string
+) {
+  return trpc.grave.getGrave.useQuery(
+    { 
+      coordinates: coordinates ?? null,
+      userState
+    },
+    {
+      enabled: !!coordinates,
+      ...coordinatesQueryOptions,
+    }
+  );
 }
 
 export function useGetGraveById(id: number | null) {
