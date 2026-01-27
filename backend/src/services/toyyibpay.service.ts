@@ -37,7 +37,7 @@ export async function createBill({
       billDescription: "Tahlil & Doa Contribution",
       billPriceSetting: 1, // 0 - for user to set the amount
       billPayorInfo: 1, // 0 - if not require payer info
-      billAmount: amount * 100,
+      billAmount: amount * 10,
       billReturnUrl: returnUrl,
       billCallbackUrl: toyyibpayConfig.callbackUrl,
       billExternalReferenceNo: referenceNo,

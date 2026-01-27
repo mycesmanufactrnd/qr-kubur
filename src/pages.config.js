@@ -31,6 +31,7 @@ import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import ViewLogs from './pages/ViewLogs';
 import ToyyibPayConfigPage from './pages/ToyyibPayConfigPage.jsx';
+import BillplzConfigPage from './pages/BillplzConfigPage.jsx';
 import SolatJenazah from './pages/SolatJenazah.jsx';
 import __Layout from './Layout.jsx';
 import UserDashboard from './pages/UserDashboard';
@@ -75,6 +76,7 @@ export const PAGES = {
     "TermsAndConditions": TermsAndConditions,
     "ViewLogs": ViewLogs,
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
+    "BillplzConfigPage": BillplzConfigPage,
     "SolatJenazah": SolatJenazah,
 
     "UserDashboard": UserDashboard,

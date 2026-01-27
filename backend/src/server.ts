@@ -16,6 +16,7 @@ import formbody from "@fastify/formbody";
 import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
 import { registerAPIRoutes } from "./api/api.ts";
 import { getBucketConfig } from "./config/bucket.config.ts";
+import { getBillplzConfig } from "./config/billplz.config.ts";
 
 const app = Fastify({
   trustProxy: true,
@@ -108,6 +109,19 @@ async function bootstrap() {
 
     process.exit(1);
   }
+}
+
+const billplzConfig = getBillplzConfig();
+
+const missingBillplzKeys = Object.entries(billplzConfig)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingBillplzKeys.length === 0) {
+  console.log('✅ All Billplz configs loaded');
+} else {
+  // This will catch your 'undefined' callback URL immediately
+  console.log(`❌ Missing Billplz configs: ${missingBillplzKeys.join(', ')}`);
 }
 
 bootstrap();

@@ -3,41 +3,47 @@ import { getBillplzConfig } from "../config/billplz.config.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
 
+// billplz.service.ts
 export async function createBill({
-  amount,
-  referenceNo,
-  name,
-  email,
+  amount, referenceNo, name, email, phone
 }: {
-  amount: number;
-  referenceNo: string;
-  name: string;
-  email: string;
+  amount: number; referenceNo: string; name: string; email: string; phone: string;
 }) {
-  const config = getBillplzConfig();
-  
-  // Billplz expects amount in cents (integer)
-  const payload = {
-    collection_id: config.collectionId,
-    email: email,
-    name: name,
-    amount: Math.round(amount * 100), 
-    callback_url: config.callbackUrl,
-    redirect_url: config.redirectUrl,
-    description: `Tahlil Contribution Ref: ${referenceNo}`,
-  };
+  try {
+    const config = getBillplzConfig();
+    
+    // 🔹 DEBUG: Check if callbackUrl is actually loaded
+    console.log("Debug - Callback URL:", config.callbackUrl);
 
-  // Basic Auth: API Key as username, empty password
-  const auth = Buffer.from(`${config.apiKey}:`).toString("base64");
+    const payload = {
+      collection_id: config.collectionId,
+      email: email || 'guest@example.com',
+      name: name || 'ANONYMOUS',
+      mobile: phone || '60123456789',
+      amount: Math.round(Number(amount) * 100), 
+      // 🔹 FIX: Billplz API requires snake_case keys
+      callback_url: config.callbackUrl, 
+      redirect_url: config.redirectUrl,
+      description: `Tahlil Ref: ${referenceNo}`,
+    };
 
-  const res = await axios.post(`${config.baseUrl}/bills`, payload, {
-    headers: { 
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/json' 
-    },
-  });
+    const auth = Buffer.from(`${config.apiKey}:`).toString("base64");
 
-  return res.data;
+    const res = await axios.post(`${config.baseUrl}/bills`, payload, {
+      headers: { 
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json' 
+      },
+    });
+
+    return res.data;
+  } catch (error: any) {
+    if (error.response) {
+      // This caught your "Callback url can't be blank" error
+      console.error('Billplz 422 Error Detail:', JSON.stringify(error.response.data, null, 2));
+    }
+    return null;
+  }
 }
 
 export async function handleBillplzCallback(data: any) {

@@ -11,14 +11,23 @@ export const billplzRouter = router({
         referenceNo: z.string(),
         name: z.string(),
         email: z.string().email(),
+        phone: z.string().optional().nullable(), // 🔹 ADD THIS
       })
     )
     .mutation(async ({ input }) => {
-      const bill = await createBill(input);
+      // 🔹 Pass the phone to the service
+      const bill = await createBill({
+        ...input,
+        phone: input.phone || '0123456789' 
+      });
+
+      if (!bill || !bill.id) {
+        throw new Error("Validation Error: Billplz rejected the payload. Check your Collection ID.");
+      }
 
       return {
         billId: bill.id,
-        paymentUrl: bill.url, // URL for customer redirection
+        paymentUrl: bill.url,
       };
     }),
 });
