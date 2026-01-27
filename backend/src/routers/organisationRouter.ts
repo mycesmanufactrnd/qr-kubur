@@ -143,30 +143,48 @@ export const organisationRouter = router({
         coordinates: z.object({
             latitude: z.number().min(-90).max(90),
             longitude: z.number().min(-180).max(180),
-        }).optional().nullable()
+        }).optional().nullable(),
+        userState: z.string().optional().nullable(),
+        searchQuery: z.string().optional().nullable()
       })
     )
     .query(async ({ input }) => {
-        const organisationRepo = AppDataSource.getRepository(Organisation);
+      const organisationRepo = AppDataSource.getRepository(Organisation);
 
-        if (!input.coordinates) {
-          return [];
-        }
+      if (!input.coordinates) {
+        return [];
+      }
 
-        const { latitude, longitude } = input.coordinates;
+      const { latitude, longitude } = input.coordinates;
 
-        return organisationRepo.createQueryBuilder("organisation")
+      const query = organisationRepo.createQueryBuilder("organisation")
         .where("organisation.latitude IS NOT NULL AND organisation.longitude IS NOT NULL")
-        .orderBy(
-            `
-            earth_distance(
-                ll_to_earth(organisation.latitude, organisation.longitude),
-                ll_to_earth(:lat, :lng)
-            )
-            `,
-            "ASC"
-        )
-        .setParameters({ lat: latitude, lng: longitude })
-        .getMany();
+        .andWhere(":state = ANY(organisation.states)", {
+          state: input.userState,
+        });
+
+      if (input.searchQuery) {
+        query.andWhere("organisation.name ILIKE :name", { name: `%${input.searchQuery}%` });
+      }
+
+      query.orderBy(`
+          earth_distance(
+            ll_to_earth(organisation.latitude, organisation.longitude),
+            ll_to_earth(:lat, :lng)
+          )
+        `, 'ASC')
+        .addSelect(`
+          earth_distance(
+            ll_to_earth(organisation.latitude, organisation.longitude),
+            ll_to_earth(:lat, :lng)
+          )`, 'distance')
+        .setParameters({ lat: latitude, lng: longitude });
+
+      const { entities, raw } = await query.getRawAndEntities();
+
+      return entities.map((entity, index) => ({
+        ...entity,
+        distance: Number(raw[index].distance),
+      }));
     }),
 });

@@ -1,6 +1,5 @@
+import { showApiError, showSuccess } from '@/components/ToastrNotification';
 import { trpc } from '@/utils/trpc';
-import { showSuccess, showApiError } from '@/components/ToastrNotification';
-import { useAdminAccess } from '@/utils/auth';
 
 export function useGetPermission(userId?: number, canView?: boolean) {
     return trpc.permission.getByUser.useQuery(
@@ -12,12 +11,11 @@ export function useGetPermission(userId?: number, canView?: boolean) {
 export function useUpsertPermission() {
   const utils = trpc.useUtils();
 
-  return trpc.permission.upsert.useMutation({
+  return trpc.permission.upsertMany.useMutation({
     onSuccess: () => {
       utils.permission.getByUser.invalidate();
+      showSuccess('Permission', 'update');
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: showApiError,
   });
 }

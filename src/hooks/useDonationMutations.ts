@@ -9,7 +9,6 @@ type useGetDonationPaginatedParams = {
 
 const titleMessage = "Donation";
 
-// 🔹 Hook to fetch paginated donations
 export function useGetDonationPaginated({ page, pageSize }: useGetDonationPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
 
@@ -33,7 +32,6 @@ export function useGetDonationPaginated({ page, pageSize }: useGetDonationPagina
   return { donationList, totalPages, isLoading, refetch, error };
 }
 
-// 🔹 Hook to update donation
 export function useUpdateDonation() {
   const trpcUtils = trpc.useUtils();
 

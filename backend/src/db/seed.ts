@@ -1,23 +1,21 @@
+import { runBucketSeeder } from "./seeder/bucketSeeder.ts";
+import { runDeadPersonSeeder } from "./seeder/deadpersonSeeder.ts";
+import { runDonationSeeder } from "./seeder/donationSeeder.ts";
+import { runGraveSeeder } from "./seeder/graveSeeder.ts";
+import { runOrganisationSeeder } from "./seeder/organisationSeeder.ts";
+import { runOrganisationTypeSeeder } from "./seeder/organisationTypeSeeder.ts";
+import { runTahfizSeeder } from "./seeder/tahfizSeeder.ts";
+import { runUserSeeder } from "./seeder/userSeeder.ts";
+
 console.log("🌱 Starting database seed...");
 
-const { runUserSeeder } = await import("./seeder/userSeeder.ts");
-const { runBucketSeeder } = await import("./seeder/bucketSeeder.ts");
-
-const { runSelangorGraveSeeder } = await import("./seeder/graves/selangorSeeder.ts");
-
-import { runDeadPersonSeeder } from "./seeder/deadperson/deadpersonSeeder.ts";
-
-import { runOrganisationTypeSeeder } from "./seeder/organisation/organisationTypeSeeder.ts";
-import { runOrganisationSeeder } from "./seeder/organisation/organisationSeeder.ts";
-import { runTahfizSeeder } from "./seeder/tahfiz/tahfizSeeder.ts";
-import { runDonationSeeder } from "./seeder/donation/donationSeeder.ts";
 import { runBillplzSeeder } from "./seeder/gateway/billplzSeeder.ts";
 
 console.log("\nSeeding users...");
 await runUserSeeder();
 
 console.log("\nSeeding graves...");
-await runSelangorGraveSeeder();
+await runGraveSeeder();
 
 console.log("\nSeeding buckets...");
 await runBucketSeeder();

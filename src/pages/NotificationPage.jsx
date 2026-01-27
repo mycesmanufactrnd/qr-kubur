@@ -7,7 +7,9 @@ import { translate } from '@/utils/translations';
 import { useGetNotificationPaginated, useUpdateNotification } from '@/hooks/useNotificationMutations';
 import Pagination from '@/components/Pagination';
 import Breadcrumb from '@/components/Breadcrumb';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useAdminAccess } from '@/utils/auth';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 export default function NotificationPage() {
   const { 
@@ -63,18 +65,12 @@ export default function NotificationPage() {
         return <Clock className="w-5 h-5 text-yellow-500" />;
     }
   };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved':
-      case 'verified':
-        return 'bg-green-50 border-green-200';
-      case 'rejected':
-        return 'bg-red-50 border-red-200';
-      default:
-        return 'bg-yellow-50 border-yellow-200';
-    }
-  };
+  
+  if (unreadLoading || readLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
 
   const NotificationTable = ({ items }) => (
     <div className="overflow-x-auto">
@@ -90,11 +86,7 @@ export default function NotificationPage() {
 
         <tbody>
           {items.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="p-6 text-center text-gray-500">
-                {translate("noNotifications")}
-              </td>
-            </tr>
+            <NoDataTableComponent colSpan={4}/>
           ) : (
             items.map((notification) => (
               <tr

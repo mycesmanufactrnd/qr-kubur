@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Heart, Building2, CheckCircle, CreditCard } from 'lucide-react';
+import { Heart, Building2, CheckCircle, CreditCard, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { showError, showSuccess } from '@/components/ToastrNotification';
+import { showError, showSuccess, showWarning } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-import { DONATION_AMOUNTS, paymentToyyibStatus, VerificationStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, STATES_MY, VerificationStatus } from '@/utils/enums';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
@@ -21,22 +21,19 @@ import { useLocationContext } from '@/providers/LocationProvider';
 import { defaultDonationField } from '@/utils/defaultformfields';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { useSearchParams } from 'react-router-dom';
-import { activityLogError } from '@/utils/helpers';
+import { activityLogError, clearQueryParams } from '@/utils/helpers';
+import { translate } from '@/utils/translations';
 
 export default function DonationPage() {
   const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [manualSearchQuery, setManualSearchQuery] = useState('');
+  const [selectedState, setSelectedState] = useState('nearby');
   const [submitted, setSubmitted] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const {
-    watch,
-    setValue,
-    handleSubmit,
-    reset,
-  } = useForm({ defaultValues: defaultDonationField });
-  const {
-    userLocation,
-    locationDenied,
-  } = useLocationContext();
+  const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
+  const { userLocation, userState, locationDenied } = useLocationContext();
+  
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
   const amount = watch('amount');
@@ -58,14 +55,21 @@ export default function DonationPage() {
     },
   });
 
-  const finalAmountWithFee = useMemo(() => {
+  useEffect(() => {
+    if (locationDenied) {
+      showWarning('Lokasi tidak tersedia');
+    }
+  }, [locationDenied]);
+
+  const finalAmount = useMemo(() => {
     const baseAmount = customAmount || amount;
     if (!baseAmount) return 0;
-    return Number(baseAmount) + 0.5;
+    return Number(baseAmount);
   }, [amount, customAmount]);
 
   useEffect(() => {
     const status_id = searchParams.get("status_id");
+    const order_id = searchParams.get("order_id");
     const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
 
     if (!status_id) return;
@@ -91,10 +95,12 @@ export default function DonationPage() {
           : null,
         notes: formData.notes || null,
         status: VerificationStatus.PENDING,
+        referenceno: order_id || null,
       })
       .then((res) => {
         if (res) {
           sessionStorage.removeItem("donationPending");
+          clearQueryParams();
         }
       })
       .catch((error) => {
@@ -108,6 +114,7 @@ export default function DonationPage() {
         })
 
         sessionStorage.removeItem("donationPending");
+        clearQueryParams();
       })
 
     } else if (statusText === "Pending") {
@@ -117,20 +124,26 @@ export default function DonationPage() {
     }
   }, [searchParams]);
 
-  const { organisations = [] } = useGetOrganisationCoordinates({
-    coordinates: userLocation?.lat && userLocation?.lng
-      ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : undefined,
-    enabled: !!userLocation && recipientType === 'organisation',
-  });
+  const shouldFetchOrganisation = !!userLocation && recipientType === 'organisation';
+  const shouldFetchTahfiz = !!userLocation && recipientType === 'tahfiz';
 
-  const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
-    userLocation
+  const { organisations = [] } = useGetOrganisationCoordinates(
+    shouldFetchOrganisation 
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : null
+      : null,
+    selectedState === 'nearby' ? userState : selectedState,
+    manualSearchQuery
   );
 
-  const { data: paymentConfigs = [] } = useGetConfigByEntity({
+  const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
+    shouldFetchTahfiz
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null,
+    selectedState === 'nearby' ? userState : selectedState,
+    manualSearchQuery
+  );
+
+  const { data: paymentConfigs } = useGetConfigByEntity({
     entityId: Number(selectedRecipient),
     entityType: recipientType,
     enabled: !!selectedRecipient && !!recipientType,
@@ -168,19 +181,22 @@ export default function DonationPage() {
   const selectedPlatform = paymentPlatforms.find(p => p.code === paymentMethod);
 
   useEffect(() => {
-    setValue('paymentMethod', '');
-  }, [selectedRecipient]);
+    if (!paymentPlatforms.length) return;
+
+    const exists = paymentPlatforms.some(p => p.code === paymentMethod);
+
+    if (!exists) {
+      setValue('paymentMethod', paymentPlatforms[0].code);
+    }
+  }, [paymentPlatforms, paymentMethod, setValue]);
 
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
     
     setLoadingPayment(true);
 
-    sessionStorage.setItem(
-      "donationPending",
-      JSON.stringify({ formData, finalAmountWithFee })
-    );
-    
+    sessionStorage.setItem("donationPending", JSON.stringify({ formData, finalAmount }));
+
     const nextRunningNo = await createDonationRunningNoMutation.mutateAsync();
     
     const year = new Date().getFullYear();
@@ -188,7 +204,7 @@ export default function DonationPage() {
 
     try {
       const bill = await createBillMutation.mutateAsync({
-        amount: finalAmountWithFee,
+        amount: finalAmount,
         referenceNo: runningNo,
         name: formData?.donorname ?? 'ANONYMOUS',
         email: formData?.donoremail ?? 'noreply@gmail.com',
@@ -206,21 +222,22 @@ export default function DonationPage() {
     } catch (err) {
       setLoadingPayment(false);
       showError(err.message || "Unknown error");
-
     }
   };
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
       { field: 'recipientType', label: 'Recipient Type', type: 'select' },
+      { field: 'selectedRecipient', label: 'Recipient', type: 'text' },
       { field: 'email', label: 'Email', type: 'email', required: false },
+      { field: 'paymentMethod', label: 'Payment Method', type: 'text' },
     ]);
 
     if (!isValid) return;
 
     const finalAmount = formData.customAmount || formData.amount;
 
-    if (!finalAmount || !formData.selectedRecipient || !formData.paymentMethod) {
+    if (!finalAmount) {
       showError('Sila lengkapkan maklumat derma');
       return;
     }
@@ -229,18 +246,13 @@ export default function DonationPage() {
 
     if (!resPayment) {
       showError('Payment Failed');
+      setLoadingPayment(false);
       return;
     }    
   };
 
-  {locationDenied && (
-    <p className="text-xs text-gray-500 mt-2">
-      Lokasi tidak tersedia. Senarai tidak disusun mengikut jarak.
-    </p>
-  )}
-
   if (loadingPayment) {
-    return ( <PageLoadingComponent/> )
+    return <PageLoadingComponent/>
   }
 
   if (submitted) {
@@ -289,6 +301,44 @@ export default function DonationPage() {
               </TabsList>
 
               <TabsContent value="organisation" className="mt-4">
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    placeholder={translate('Name')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-9 dark:bg-gray-700"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setManualSearchQuery(searchQuery);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                    className="h-9"
+                  >
+                    <Search className="w-4 h-4 mr-1" /> {translate('Search')}
+                  </Button>
+                </div>
+                <div className="mb-2">
+                  <Select value={selectedState} 
+                    onValueChange={(v) => {
+                      setSelectedState(v);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                  >
+                    <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                      <SelectValue placeholder={translate('state')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-700">
+                      <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
+                      {STATES_MY.map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Select
                   value={selectedRecipient ? String(selectedRecipient) : ''}
                   onValueChange={v => setValue('selectedRecipient', v)}
@@ -297,16 +347,60 @@ export default function DonationPage() {
                     <SelectValue placeholder="Pilih organisasi" />
                   </SelectTrigger>
                   <SelectContent>
-                    {organisations.map(o => (
-                      <SelectItem key={o.id} value={String(o.id)}>
-                        {o.name}
+                    {organisations.length > 0 ? (
+                      organisations.map(organisation => (
+                        <SelectItem key={organisation.id} value={String(organisation.id)}>
+                          {organisation.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-orgs" disabled>
+                        Tiada organisasi dijumpai
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </TabsContent>
 
-              <TabsContent value="tahfiz" className="mt-4 space-y-3">
+              <TabsContent value="tahfiz" className="mt-4">
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    placeholder={translate('Name')}
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                    className="h-9 dark:bg-gray-700"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => setManualSearchQuery(searchQuery)}
+                    className="h-9"
+                  >
+                    <Search className="w-4 h-4 mr-1" /> {translate('Search')}
+                  </Button>
+                </div>
+                <div className="mb-2">
+                  <Select value={selectedState}
+                    onValueChange={(v) => {
+                      setSelectedState(v);
+                      setValue('selectedRecipient', '');
+                      setValue('paymentMethod', '');
+                    }}
+                  >
+                    <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                      <SelectValue placeholder={translate('state')} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-700">
+                      <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
+                      {STATES_MY.map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Select
                   value={selectedRecipient ? String(selectedRecipient) : ''}
                   onValueChange={v => setValue('selectedRecipient', v)}
@@ -355,12 +449,6 @@ export default function DonationPage() {
                 setValue('amount', '');
               }}
             />
-
-            {(amount || customAmount) && (
-              <p className="text-sm text-gray-500">
-                Jumlah: RM {Number(customAmount || amount).toFixed(2)} + Penyelenggaraan: RM 0.50 = <strong>RM {finalAmountWithFee.toFixed(2)}</strong>
-              </p>
-            )}
           </CardContent>
         </Card>
 

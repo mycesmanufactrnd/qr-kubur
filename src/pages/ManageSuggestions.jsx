@@ -16,6 +16,8 @@ import { useDeleteSuggestion, useGetSuggestionPaginated, useUpdateSuggestion } f
 import Pagination from '@/components/Pagination';
 import { ApprovalStatus } from '@/utils/enums';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageSuggestions() {
   const { 
@@ -179,13 +181,9 @@ export default function ManageSuggestions() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={7}/>
               ) : suggestions.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={7}/>
               ) : (
                 suggestions.items.map(suggestion => (
                   <TableRow key={suggestion.id}>

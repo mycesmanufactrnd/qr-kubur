@@ -8,13 +8,14 @@ import { AppDataSource } from "./datasource.ts";
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
-import { createContext, router as trpcRouter } from "./trpc.ts";
+import { createContext, router } from "./trpc.ts";
 import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
 import multipart from '@fastify/multipart';
 import formbody from "@fastify/formbody";
 import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
 import { registerAPIRoutes } from "./api/api.ts";
+import { getBucketConfig } from "./config/bucket.config.ts";
 
 const app = Fastify({
   trustProxy: true,
@@ -54,7 +55,28 @@ app.get("/", async () => {
 });
 
 const toyyibpayConfig = getToyyibpayConfig();
-// console.log("\n💵 ToyyibPay env", toyyibpayConfig);
+
+const missingToyyibPayKeys = Object.entries(toyyibpayConfig)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingToyyibPayKeys.length === 0) {
+  console.log('✅ All toyyibPay configs loaded');
+} else {
+  console.log(`❌ Missing toyyibPay configs: ${missingToyyibPayKeys.join(', ')}`);
+}
+
+const bucketConfig = getBucketConfig();
+
+const missingBucketsKeys = Object.entries(bucketConfig)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingBucketsKeys.length === 0) {
+  console.log('✅ All bucket configs loaded');
+} else {
+  console.log(`❌ Missing bucket configs: ${missingBucketsKeys.join(', ')}`);
+}
 
 async function bootstrap() {
   try {

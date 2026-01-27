@@ -112,3 +112,25 @@ export function activityLogError(error: any) {
   });
 }
 
+export function trimEmptyArray(dataArray) {
+  return (dataArray || []).filter(s => s && s.trim() !== '')
+}
+
+export function clearQueryParams() {
+  if (typeof window !== "undefined") {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+export function showEarthDistance(distanceMeters?: number | null): string {
+  if (distanceMeters == null || isNaN(distanceMeters)) return '-';
+
+  if (distanceMeters < 1000) {
+    return `${Math.round(distanceMeters)}m`;
+  } else {
+    return `${(distanceMeters / 1000).toFixed(1)}km`;
+  }
+}
+
+

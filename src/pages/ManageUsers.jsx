@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
@@ -21,28 +16,16 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
 import { validateFields } from '@/utils/validations';
-import { 
-  useCreateUser,
-  useDeleteUser,
-  useGetUserPaginated,
-  useUpdateUser, 
-} from '@/hooks/useUserMutations';
+import { useGetUserPaginated, useUserMutations } from '@/hooks/useUserMutations';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import { useGetTahfizPaginated } from '@/hooks/useTahfizMutations';
 import { hashPassword } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
+import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
 
 export default function ManageUsers() {
-  const { 
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    isAdmin, 
-    isEmployee,
-    currentUserStates,
-  } = useAdminAccess();
-
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, currentUserStates } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [search, setSearch] = useState('');
@@ -65,25 +48,11 @@ export default function ManageUsers() {
   const { organisationsList: organisations } = useGetOrganisationPaginated({});
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
-  const createMutation = useCreateUser();
-  const updateMutation = useUpdateUser();
-  const deleteMutation = useDeleteUser();
-
-  const adminAccessibleStates = (() => {
-    if (isSuperAdmin) {
-      return STATES_MY;
-    }
-
-    if (isAdmin || isEmployee) {
-      return currentUserStates;
-    }
-
-    return [];
-  })();
+  const { createUser, updateUser, deleteUser } = useUserMutations();
 
   const handleAddUser = () => {
     setIsAddMode(true);
-    const defaultState = isAdmin && !isSuperAdmin ? adminAccessibleStates : [];
+    const defaultState = isAdmin && !isSuperAdmin ? currentUserStates : [];
     const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation.id : null;
     const defaultTahfizId = isAdmin && !isSuperAdmin ? currentUser.tahfizcenter.id : null;
 
@@ -148,9 +117,8 @@ export default function ManageUsers() {
     }
 
     if (isAddMode) {
-      createMutation.mutateAsync(submitData)
+      createUser.mutateAsync(submitData)
       .then((res) => {
-        console.log('res', res)
         if (res) {
           setDialogOpen(false);
           setEditUser(null);
@@ -159,7 +127,7 @@ export default function ManageUsers() {
       });
     } else {
       if (editUser.isAppUser) {
-        updateMutation.mutateAsync({ id: editUser.id, data: submitData })
+        updateUser.mutateAsync({ id: editUser.id, data: submitData })
         .then((res) => {
           if (res) {
             setDialogOpen(false);
@@ -192,7 +160,7 @@ export default function ManageUsers() {
     if (!userToDelete) return;
     const isAppUser = appUsers.items.some(u => u.id === userToDelete.id);
     if (isAppUser) {
-      deleteMutation.mutate(userToDelete.id);
+      deleteUser.mutate(userToDelete.id);
     }
     setDeleteDialogOpen(false);
     setUserToDelete(null);
@@ -257,20 +225,9 @@ export default function ManageUsers() {
 
       <div className="space-y-2">
         {appUsersLoading ? (
-          [1, 2, 3].map(i => (
-            <Card key={i} className="border-0 shadow-sm animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-12 bg-gray-100 rounded" />
-              </CardContent>
-            </Card>
-          ))
+          <ListCardSkeletonComponent/>
         ) : appUsers.items.length === 0 ? (
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-8 text-center">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">{translate('noUserFound')}</p> 
-            </CardContent>
-          </Card>
+          <NoDataCardComponent/>
         ) : (
           appUsers.items.map(user => (
             <Card key={user.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
@@ -454,7 +411,7 @@ export default function ManageUsers() {
               <div>
                 <label className="text-sm font-medium mb-2 block">{translate('state')} <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
-                  {adminAccessibleStates.map(states => (
+                  {currentUserStates.map(states => (
                     <div key={states} className="flex items-center space-x-2">
                       <Checkbox
                         id={states}

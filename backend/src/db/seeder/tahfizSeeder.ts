@@ -1,7 +1,7 @@
-// seeders/tahfizSeeder.ts
+
 import "reflect-metadata";
-import { AppDataSource } from "../../../datasource.ts";
-import { TahfizCenter } from "../../entities.ts"; 
+import { AppDataSource } from "../../datasource.ts";
+import { TahfizCenter } from "../entities.ts"; 
 
 export async function runTahfizSeeder() {
   console.log("🌱 Seeding 10 Tahfiz Centers...");

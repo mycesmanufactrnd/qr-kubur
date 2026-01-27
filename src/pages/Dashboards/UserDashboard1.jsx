@@ -1,15 +1,6 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import {
-  Search,
-  QrCode,
-  Heart,
-  BookOpen,
-  FileText,
-  Map,
-  BookText,
-  AlertTriangle
-} from 'lucide-react';
+import { Search, QrCode, Heart, BookOpen, FileText, Map, BookText, AlertTriangle } from 'lucide-react';
 import { translate } from '@/utils/translations';
 import { motion } from 'framer-motion';
 
@@ -17,7 +8,6 @@ export default function UserDashboard1() {
   return (
     <div className="pb-28 space-y-10">
 
-      {/* CINEMATIC HERO */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -39,10 +29,8 @@ export default function UserDashboard1() {
         </div>
       </motion.div>
 
-      {/* MOSAIC LAYOUT */}
       <div className="grid grid-cols-6 gap-4">
 
-        {/* LARGE FEATURE */}
         <FeatureCard
           col="col-span-6 md:col-span-4"
           icon={AlertTriangle}
@@ -53,7 +41,6 @@ export default function UserDashboard1() {
           glow
         />
 
-        {/* TALL CARD */}
         <FeatureCard
           col="col-span-3 md:col-span-2 row-span-2"
           icon={BookOpen}
@@ -63,7 +50,6 @@ export default function UserDashboard1() {
           accent="from-indigo-500 to-violet-600"
         />
 
-        {/* SMALL CARDS */}
         <FeatureCard
           col="col-span-3"
           icon={FileText}
@@ -104,8 +90,6 @@ export default function UserDashboard1() {
     </div>
   );
 }
-
-/* ---------------- COMPONENTS ---------------- */
 
 function HeroPill({ icon: Icon, label, page }) {
   return (

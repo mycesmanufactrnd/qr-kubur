@@ -10,12 +10,11 @@ import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { showSuccess } from '@/components/ToastrNotification';
+import { ipAddressQueryOptions } from '@/utils/queryOptions';
 
 export default function ScanQR() {
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    ...ipAddressQueryOptions,
   });
 
   const [scanning, setScanning] = useState(false);

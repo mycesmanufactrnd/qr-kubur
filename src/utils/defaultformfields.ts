@@ -13,15 +13,14 @@ export const defaultGraveField = {
 
 export const defaultTahlilRequestField = {
   tahfizId: null,
-  serviceTypes: [''],
-  deceasedNames: [''],
+  selectedservices: [],
+  deceasednames: [],
   amount: '',
   customAmount: '',
-  requesterName: '',
-  requesterPhone: '',
-  requesterEmail: '',
-  preferredDate: '',
-  customService: '',
+  requestorname: '',
+  requestorphoneno: '',
+  requestoremail: '',
+  customservice: '',
   paymentMethod: '',
 }
 
@@ -58,4 +57,49 @@ export const defaultDonationField = {
   donoremail: '',
   donorphoneno: '',
   notes: 'Sedeqah',
+}
+
+export const defaultOrganisationField = {
+  name: '',
+  parentorganisation: null,
+  organisationtype: null,
+  states: '',
+  address: '',
+  phone: '',
+  email: '',
+  url: '',
+  latitude: '',
+  longitude: '',
+  canbedonated: false,
+  status: 'active'
+}
+
+export const defaultPaymentConfigField = {
+  code: '',
+  name: '',
+  category: 'manual',
+  status: 'active',
+  icon: ''
+}
+
+export const defaultDeadPersonField = {
+  name: '',
+  icnumber: '',
+  dateofbirth: '',
+  dateofdeath: '',
+  causeofdeath: '',
+  grave: '',
+  biography: '',
+  photourl: '',
+  gpslatitude: '',
+  gpslongitude: '',
+}
+
+export const defaultPaymentField = {
+  paymentplatform: null,
+  key: '',
+  label: '',
+  fieldtype: 'text',
+  required: false,
+  placeholder: ''
 }

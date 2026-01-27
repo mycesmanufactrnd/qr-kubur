@@ -24,7 +24,6 @@ export const toyyibPayRouter = router({
         returnTo: input.returnTo,
       });
 
-      console.log('bill',bill)
       return {
         billCode: bill.BillCode,
         paymentUrl: `https://dev.toyyibpay.com/${bill.BillCode}`,

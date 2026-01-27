@@ -2,6 +2,7 @@ import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 import { Coordinates } from '@/utils/enums';
+import { coordinatesQueryOptions } from '@/utils/queryOptions';
 
 type useGetOrganisationPaginatedParams = {
   page?: number;
@@ -9,11 +10,6 @@ type useGetOrganisationPaginatedParams = {
   search?: string;
   filterType?: number;
   filterState?: string;
-};
-
-type UseGetOrganisationCoordinatesOptions = {
-  coordinates?: Coordinates | null;
-  enabled?: boolean;
 };
 
 const titleMessage = 'Organisation';
@@ -87,17 +83,19 @@ export function useOrganisationMutations() {
 }
 
 export function useGetOrganisationCoordinates(
-  options: UseGetOrganisationCoordinatesOptions = {}
+  coordinates?: { latitude: number; longitude: number } | null, 
+  userState?: string,
+  searchQuery?: string,
 ) {
-  const { coordinates, enabled: customEnabled } = options;
-
   const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
-    { coordinates: coordinates ?? null },
+    { 
+      coordinates: coordinates ?? null,
+      userState,
+      searchQuery
+    },
     {
-      enabled: customEnabled && !!coordinates,
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      enabled: !!coordinates,
+      ...coordinatesQueryOptions,
     }
   );
 

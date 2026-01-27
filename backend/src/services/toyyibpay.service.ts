@@ -117,8 +117,6 @@ export async function handleToyyibPayCallback(data: any) {
     type: 'QR Kubur',
     accountno: '123456789',
     amount: parseFloat(amount),
-    referenceno: refno,
-    gatewayStatus: gatewayStatus,
     transaction: savedTransaction, 
   });
 

@@ -12,31 +12,41 @@ export const permissionRouter = router({
             });
         }),
 
-    upsert: adminProcedure
-    .input(z.object({
-        userId: z.number(),
-        slug: z.string(),
-        enabled: z.boolean()
-    }))
-    .mutation(async ({ input }) => {
-        const repo = AppDataSource.getRepository(Permission);
+    upsertMany: adminProcedure
+        .input(z.object({
+            userId: z.number(),
+                permissions: z.array(z.object({
+                slug: z.string(),
+                enabled: z.boolean()
+            }))
+        }))
+        .mutation(async ({ input }) => {
+            const repo = AppDataSource.getRepository(Permission);
 
-        const existing = await repo.findOne({
-            where: {
-            user: { id: input.userId },
-            slug: input.slug
-            }
-        });
+            const existing = await repo.find({
+                where: {
+                    user: { id: input.userId }
+                }
+            });
 
-        if (existing) {
-            existing.enabled = input.enabled;
-            return repo.save(existing);
-        }
+            const existingMap = new Map(
+                existing.map(p => [p.slug, p])
+            );
 
-        return repo.save(repo.create({
-            slug: input.slug,
-            enabled: input.enabled,
-            user: { id: input.userId }
-        }));
-    })
+            const toSave = input.permissions.map(p => {
+                const found = existingMap.get(p.slug);
+                if (found) {
+                    found.enabled = p.enabled;
+                    return found;
+                }
+                return repo.create({
+                    slug: p.slug,
+                    enabled: p.enabled,
+                    user: { id: input.userId }
+                });
+            });
+
+            return repo.save(toSave);
+        })
+
 });

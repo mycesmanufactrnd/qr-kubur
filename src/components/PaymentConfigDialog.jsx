@@ -64,7 +64,7 @@ export default function PaymentConfigDialog({
     }))
   );
   
-  const existingConfigs = useGetConfigByEntity({
+  const { data: existingConfigs, isLoading } = useGetConfigByEntity({
     entityId: Number(entityId),
     entityType: entityType,
     enabled: !!entityId && !!entityType,
@@ -85,7 +85,6 @@ export default function PaymentConfigDialog({
           const fieldKey = config.paymentfield?.key;
           const fieldType = config.paymentfield?.fieldtype;
           const configValue = config.value;
-
           if (platformCode && fieldKey && configValue) {
             platformSet.add(platformCode);
 

@@ -2,140 +2,115 @@ import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
 import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
-import { createPageUrl } from '@/utils';
-import { calculateAge, openDirections, shareLink } from '@/utils/helpers';
+import { calculateAge } from '@/utils/helpers';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import ShareButton from '@/components/ShareButton';
+import DirectionButton from '@/components/DirectionButton';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get('id'));
 
   const {
-    data: person,
-    isLoading,
-    isError,
-  } = trpc.deadperson.getById.useQuery(personId, {
-    enabled: !!personId,
-  });
+    data: deadPersonDetails, isLoading, isError,
+  } = trpc.deadperson.getDeadPersonById.useQuery(
+    { id: personId }, 
+    { enabled: !!personId }
+  );
 
-  const grave = person?.grave;
+  const graveDetails = deadPersonDetails?.grave;
 
   if (isLoading) {
     return (
-      <div className="space-y-3 animate-pulse pb-2 p-4">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
-      </div>
+      <PageLoadingComponent/>
     );
   }
 
-  if (isError || !person) {
+  if (isError || !deadPersonDetails) {
     return (
-      <Card className="border-0 shadow-sm dark:bg-gray-800 m-4">
-        <CardContent className="p-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Maklumat tidak dijumpai
-          </p>
-        </CardContent>
-      </Card>
+      <NoDataCardComponent
+        isPage={true}
+        description="Tiada Maklumat Dijumpai"
+      />
     );
   }
 
-  const age = calculateAge(person.dateofbirth, person.dateofdeath);
+  const age = calculateAge(deadPersonDetails.dateofbirth, deadPersonDetails.dateofdeath);
 
   return (
     <div className="space-y-3 pb-2 p-4">
-      <BackNavigation title={person.name} />
-
+      <BackNavigation title={deadPersonDetails.name} />
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
-          {person.photourl && (
+          {deadPersonDetails.photourl && (
             <div className="flex justify-center">
               <img
-                src={`/api/file/bucket-grave/${encodeURIComponent(person.photourl)}`}
+                src={`/api/file/bucket-grave/${encodeURIComponent(deadPersonDetails.photourl)}`}
                 alt="Preview"
                 className="w-24 h-32 object-cover rounded-md"
               />
             </div>
           )}
           <div className="space-y-3">
-            {person.icnumber && (
+            {deadPersonDetails.icnumber && (
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
                 <p className="text-sm font-medium dark:text-white">
-                  {person.icnumber}
+                  {deadPersonDetails.icnumber}
                 </p>
               </div>
             )}
             <div className="flex justify-between gap-4">
-              {person.dateofbirth && (
+              {deadPersonDetails.dateofbirth && (
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
                   <p className="text-sm font-medium dark:text-white">
-                    {new Date(person.dateofbirth).toLocaleDateString('ms-MY')}
+                    {new Date(deadPersonDetails.dateofbirth).toLocaleDateString('ms-MY')}
                   </p>
                 </div>
               )}
               <div className="mr-4">
-                {person.dateofdeath && (
+                {deadPersonDetails.dateofdeath && (
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Tarikh Meninggal
                     </p>
                     <p className="text-sm font-medium dark:text-white">
-                      {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
+                      {new Date(deadPersonDetails.dateofdeath).toLocaleDateString('ms-MY')}
                       {age && ` (${age} tahun)`}
                     </p>
                   </div>
                 )}
               </div>
             </div>
-
-            {person.biography && (
+            {deadPersonDetails.biography && (
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Biografi</p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {person.biography}
+                  {deadPersonDetails.biography}
                 </p>
               </div>
             )}
           </div>
-          {(person.latitude && person.longitude) && (
+          {(deadPersonDetails.latitude && deadPersonDetails.longitude) && (
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDirections(person.latitude, person.longitude)
-                }}
-                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Navigation className="w-3 h-3 mr-1" />
-                Arah
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  shareLink({
-                    title: person?.name || 'Name',
-                    text: `Name: ${person?.name}`,
-                  })
-                }}
-                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-              >
-                <Share2 className="w-3 h-3 mr-1" />
-                Kongsi
-              </Button>
+              <DirectionButton
+                addClass="flex-1"
+                latitude={deadPersonDetails.latitude}
+                longitude={deadPersonDetails.longitude}
+              />
+              <ShareButton
+                addClass="flex-1"
+                title={deadPersonDetails?.name || 'Name'}
+                textMessage={`Name: ${deadPersonDetails?.name || ''}`}
+              />
             </div>
           )}
-
         </CardContent>
       </Card>
-      {grave && (
+      {graveDetails && (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
@@ -148,46 +123,26 @@ export default function DeadPersonDetails() {
               </div>
               <div>
                 <p className="font-medium text-sm dark:text-white">
-                  {grave.name}
+                  {graveDetails.name}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {grave.state}
+                  {graveDetails.state}
                 </p>
               </div>
             </div>
 
-            {(grave.latitude && grave.longitude) && (
+            {(graveDetails.latitude && graveDetails.longitude) && (
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDirections(grave.latitude, grave.longitude)
-                }}
-                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Navigation className="w-3 h-3 mr-1" />
-                Arah
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
-                  shareLink({
-                    title: grave?.name || 'Lokasi Kubur',
-                    text: `Grave: ${grave?.name}`,
-                    url
-                  })
-                }}
-                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-              >
-                <Share2 className="w-3 h-3 mr-1" />
-                Kongsi
-              </Button>
+              <DirectionButton
+                addClass="flex-1"
+                latitude={graveDetails.latitude}
+                longitude={graveDetails.longitude}
+              />
+              <ShareButton
+                addClass="flex-1"
+                title={graveDetails?.name || 'Grave'}
+                textMessage={`Lokasi Kubur: ${graveDetails?.name || ''}`}
+              />
             </div>
           )}
           </CardContent>

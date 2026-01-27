@@ -2,16 +2,17 @@ import { z } from 'zod';
 import { TahlilStatus } from '../db/enums.ts';
 
 export const tahlilRequestSchema = z.object({
-  requestorname: z.string().min(1),
-  requestoremail: z.string().email().optional().nullable(),
-  requestorphoneno: z.string().min(1),
-  deceasednames: z.array(z.string().min(1)).nullable().optional(),
-  selectedservices: z.array(z.string().min(1)).nullable().optional(),
-  referenceno: z.string().nullable().optional(),
-  status: z.enum(TahlilStatus).optional().default(TahlilStatus.PENDING),
+  requestorname: z.string().optional().nullable(),
+  requestorphoneno: z.string().optional().nullable(),
+  requestoremail: z.string().optional().nullable(),
+  deceasednames: z.array(z.string()).optional().nullable(),
+  selectedservices: z.array(z.string()).optional().nullable(),
   tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
-  preferreddate: z.string().optional().nullable().transform((str) => (str ? new Date(str) : undefined)),
-  notes: z.string().optional().nullable(),
+  customservice: z.string().optional().nullable(),
+  referenceno: z.string().optional().nullable(),
+  serviceamount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").nullable(),
+  platformfeeamount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").nullable(),
+  status: z.enum(TahlilStatus).optional().default(TahlilStatus.PENDING),
 });
 
 export const tahlilRequestApprovalSchema = z.object({
