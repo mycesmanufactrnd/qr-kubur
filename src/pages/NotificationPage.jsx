@@ -81,10 +81,10 @@ export default function NotificationPage() {
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b bg-gray-100 dark:bg-gray-800">
-            <th className="p-3 text-left text-sm font-semibold">Status</th>
-            <th className="p-3 text-left text-sm font-semibold">Title</th>
-            <th className="p-3 text-left text-sm font-semibold">Message</th>
-            <th className="p-3 text-left text-sm font-semibold">Date</th>
+            <th className="p-3 text-left text-sm font-semibold">{translate('Status')}</th>
+            <th className="p-3 text-left text-sm font-semibold">{translate('Title')}</th>
+            <th className="p-3 text-left text-sm font-semibold">{translate('Message')}</th>
+            <th className="p-3 text-left text-sm font-semibold">{translate('Date')}</th>
           </tr>
         </thead>
 
@@ -92,7 +92,7 @@ export default function NotificationPage() {
           {items.length === 0 ? (
             <tr>
               <td colSpan={4} className="p-6 text-center text-gray-500">
-                {translate("noNotifications")}
+                {translate("No notifications")}
               </td>
             </tr>
           ) : (
@@ -154,8 +154,8 @@ export default function NotificationPage() {
   return (
   <div className="space-y-6">
     <Breadcrumb items={[
-      { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-      { label: translate('Notification'), page: 'NotificationPage' }
+      { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+      { label: translate('Notifications'), page: 'NotificationPage' }
     ]} />
 
       <Tabs
@@ -165,13 +165,13 @@ export default function NotificationPage() {
       >
         <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
           <TabsTrigger value="unread" className="relative dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
-            {translate('unread')}
+            {translate('Unread')}
             {unreadNotifications.items.length > 0 && (
               <Badge className="ml-2 bg-red-500">{unreadNotifications.items.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="read" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
-            {translate('read')}
+            {translate('Read')}
           </TabsTrigger>
         </TabsList>
 

@@ -83,14 +83,14 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   const adminNavItems = [
-    { name: 'Admin Dashboard', icon: User, page: 'AdminDashboard' },
-    { name: 'Settings', icon: Settings, page: 'SettingsPage' },
+    { name: translate ('Admin Dashboard'), icon: User, page: 'AdminDashboard' },
+    { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
   ];
   
   const superAdminNavItems = [
     ...adminNavItems,
-    { name: 'Super Admin', icon: Shield, page: 'SuperadminDashboard' },
-    { name: 'Impersonate User', icon: UserX, page: 'ImpersonateUser' },
+    { name: translate ('Super Admin'), icon: Shield, page: 'SuperadminDashboard' },
+    { name: translate ('Impersonate User'), icon: UserX, page: 'ImpersonateUser' },
   ];
 
   if (loadingUser) {
@@ -303,8 +303,8 @@ function LayoutContent({ children, currentPageName }) {
                     <DropdownMenuSeparator />
                     {isImpersonating === "true" ? (
                       <DropdownMenuItem onClick={removeImpersonation} className="text-red-600">
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Leave Impersonating
+                        <LogOut className="w-4 h-4 mr-2" /> 
+                        {translate('Leave Impersonating')}
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
@@ -372,7 +372,7 @@ function LayoutContent({ children, currentPageName }) {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <QrCode className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm text-gray-600">© {new Date().getFullYear()} QR Kubur. Hak Cipta Terpelihara.</span>
+              <span className="text-sm text-gray-600">© {new Date().getFullYear()} {translate('QR Kubur. All Rights Reserved.')}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <Link to={createPageUrl('UserDashboard')} className="hover:text-emerald-600 transition-colors">{translate('Main')}</Link>

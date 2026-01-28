@@ -9,6 +9,7 @@ import { useAdminAccess } from '@/utils/auth';
 import { useGetActivityLogPaginated } from '@/hooks/useActivityLogMutations';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '../components/PageLoadingComponent';
+import { translate } from '@/utils/translations';
 
 export default function ViewLogs() {
   const [page, setPage] = useState(1);
@@ -38,8 +39,8 @@ export default function ViewLogs() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: 'Super Admin', page: 'SuperadminDashboard' },
-          { label: 'Log Aktiviti', page: 'ViewLogs' }
+          { label: translate('Super Admin'), page: 'SuperadminDashboard' },
+          { label: translate('Activity Logs'), page: 'ViewLogs' }
         ]} />
         <AccessDeniedComponent/>
       </div>
@@ -59,15 +60,15 @@ export default function ViewLogs() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Super Admin', page: 'SuperadminDashboard' },
-        { label: 'Log Aktiviti', page: 'ViewLogs' }
+        { label: translate('Super Admin'), page: 'SuperadminDashboard' },
+        { label: translate('Activity Logs'), page: 'ViewLogs' }
       ]} />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-blue-600" />
-            Log Aktiviti
+            {translate('Activity Logs')}
           </h1>
         </div>
       </div>
@@ -77,22 +78,22 @@ export default function ViewLogs() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-center">Masa</TableHead>
-                <TableHead className="text-center">Level</TableHead>
-                <TableHead className="text-center">Aktiviti</TableHead>
-                <TableHead className="text-center">Fungsi</TableHead>
-                <TableHead className="text-center">Pengguna</TableHead>
-                <TableHead className="text-center">Ringkasan</TableHead>
+                <TableHead className="text-center">{translate('Time')}</TableHead>
+                <TableHead className="text-center">{translate('Level')}</TableHead>
+                <TableHead className="text-center">{translate('Activity')}</TableHead>
+                <TableHead className="text-center">{translate('Function')}</TableHead>
+                <TableHead className="text-center">{translate('User')}</TableHead>
+                <TableHead className="text-center">{translate('Summary')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">Memuatkan...</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8">{translate('Loading...')}</TableCell>
                 </TableRow>
               ) : logs.items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">Tiada log</TableCell>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">{translate('No log')}</TableCell>
                 </TableRow>
               ) : (
                 logs.items.map(log => (

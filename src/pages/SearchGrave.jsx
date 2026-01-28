@@ -111,13 +111,13 @@ export default function SearchGrave() {
 
   return (
     <div className="space-y-3 pb-2">
-      <BackNavigation title="Search Graves" />
+      <BackNavigation title="Search Grave" />
 
       {/* Search Input */}
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
-            placeholder={translate('Grave')}
+            placeholder={translate('Cemetery name...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -143,7 +143,7 @@ export default function SearchGrave() {
       {locationDenied && selectedState === "nearby" && (
         <Card className="border-0 shadow-sm dark:bg-gray-800 p-4 text-center">
           <p className="text-sm text-gray-500">
-            Sila benarkan lokasi untuk melihat kubur berdekatan.
+            {translate('Please Enable Location')}
           </p>
         </Card>
       )}
@@ -151,13 +151,13 @@ export default function SearchGrave() {
       {/* Loading */}
       {isLoading || isSearching ? (
         <div className="space-y-2 text-center p-10">
-          <p className="animate-pulse text-gray-500">{translate('loading')}</p>
+          <p className="animate-pulse text-gray-500">{translate('Loading...')}</p>
         </div>
       ) : displayedGraves.length === 0 ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-8 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {translate('noGravesFound')}
+              {translate('No graves found')}
             </p>
           </CardContent>
         </Card>
@@ -210,7 +210,7 @@ export default function SearchGrave() {
                         }}
                         className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
                       >
-                        <Navigation className="w-3 h-3 mr-1" /> Arah
+                        <Navigation className="w-3 h-3 mr-1" /> {translate('Direction')}
                       </Button>
                     )}
 
@@ -224,12 +224,12 @@ export default function SearchGrave() {
                           navigator.share({ title: grave.name, url });
                         } else {
                           navigator.clipboard.writeText(url);
-                          showSuccess('Pautan disalin');
+                          showSuccess(translate('Link copied'))
                         }
                       }}
                       className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300"
                     >
-                      <Share2 className="w-3 h-3 mr-1" /> Kongsi
+                      <Share2 className="w-3 h-3 mr-1" /> {translate('Share')}
                     </Button>
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export default function SearchGrave() {
           {displayedCount < processedGraves.length && (
             <div className="text-center py-2">
               <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                Load more
+                {translate('Load more')}
               </Button>
             </div>
           )}

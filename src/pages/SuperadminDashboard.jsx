@@ -20,16 +20,16 @@ export default function SuperadminDashboard() {
   const superadminConfig = [
     {
       value: "users",
-      title: translate('userManagement'),
+      title: translate('User Management'),
       items: [
-        { name: translate('impersonateUser'), page: 'ImpersonateUser', icon: UserX, color: 'red' }, 
-        { name: translate('manageUsers'), page: 'ManageUsers', icon: Users, color: 'amber' },
+        { name: translate('Impersonate User'), page: 'ImpersonateUser', icon: UserX, color: 'red' }, 
+        { name: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'amber' },
         { name: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
       ]
     },
     {
       value: "organisation",
-      title: translate('organisationManagement'),
+      title: translate('Organisation Management'),
       items: [
         { name: translate('orgType'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
         { name: translate('manageOrgs'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
@@ -37,7 +37,7 @@ export default function SuperadminDashboard() {
     },
     {
       value: "payment",
-      title: translate('paymentManagement'), 
+      title: translate('Payment Management'), 
       items: [
         { name: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
         { name: translate('paymentFields'), page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
@@ -45,7 +45,7 @@ export default function SuperadminDashboard() {
     },
     {
       value: "system",
-      title: translate('systemManagement'),
+      title: translate('System Management'),
       items: [
         { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
         { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
@@ -72,12 +72,12 @@ export default function SuperadminDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            {translate('superadminDashboard')}
+            {translate('Super Admin Dashboard')}
           </h1>
         </div>
         <Link to={createPageUrl('AdminDashboard')}>
           <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
-            To {translate('adminDashboard')}
+             {translate('To Admin Dashboard')}
           </Badge>
         </Link>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { translate } from '@/utils/translations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +18,7 @@ export default function ConfirmDialog({
   description, 
   onConfirm,
   confirmText = "Ya",
-  cancelText = "Batal",
+  cancelText = translate('Cancel'),
   variant = "default"
 }) {
   return (

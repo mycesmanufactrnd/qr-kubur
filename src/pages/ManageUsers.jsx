@@ -57,6 +57,12 @@ export default function ManageUsers() {
     canView, canCreate, canEdit, canDelete
   } = useCrudPermissions('users');
 
+  const ROLE_LABELS = {
+    superadmin: translate('Super Admin'),
+    admin: translate('Admin'),
+    employee: translate('Employee'),
+  };
+
   const { userList: appUsers, totalPages, isLoading: appUsersLoading } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
@@ -214,8 +220,8 @@ export default function ManageUsers() {
     return (
       <div className="space-y-4">
         <Breadcrumb items={[
-          { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-          { label: translate('manageUsers'), page: 'ManageUsers' }
+          { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: translate('Manage Users'), page: 'ManageUsers' }
         ]} />
         <AccessDeniedComponent/>
       </div>
@@ -225,16 +231,16 @@ export default function ManageUsers() {
   return (
     <div className="space-y-4">
       <Breadcrumb items={[
-        { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-        { label: translate('manageUsers'), page: 'ManageUsers' }
+        { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+        { label: translate('Manage Users'), page: 'ManageUsers' }
       ]} />
       
       <div className="flex items-center justify-between">
-        <h1 className="text-xl lg:text-2xl font-bold">{translate('manageUsers')}</h1>
+        <h1 className="text-xl lg:text-2xl font-bold">{translate('Manage Users')}</h1>
         { canCreate && (
           <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="w-4 h-4 mr-2" />
-            {translate('addUser')}
+            {translate('Add New User')}
           </Button>
         )}
       </div>
@@ -245,7 +251,7 @@ export default function ManageUsers() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('searchUser')}
+                placeholder={translate('Search User')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)} 
                 className="pl-10 h-10"
@@ -268,7 +274,7 @@ export default function ManageUsers() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-8 text-center">
               <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">{translate('noUserFound')}</p> 
+              <p className="text-gray-500">{translate('No users found')}</p> 
             </CardContent>
           </Card>
         ) : (
@@ -287,7 +293,7 @@ export default function ManageUsers() {
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       <div className="flex gap-2 mt-1 flex-wrap">
                         <Badge variant="secondary" className="text-xs capitalize">
-                          {user.role}
+                          {ROLE_LABELS[user.role] || user.role}
                         </Badge>
                       </div>
                     </div>
@@ -342,64 +348,64 @@ export default function ManageUsers() {
           className="max-w-2xl max-h-[90vh] overflow-y-auto"
         >
           <DialogHeader>
-            <DialogTitle>{isAddMode ? translate('addUser') : translate('editUser')}</DialogTitle>
+            <DialogTitle>{isAddMode ? translate('Add New User') : translate('Edit User')}</DialogTitle>
           </DialogHeader>
           
           {editUser && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">{translate('fullName')} <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium mb-2 block">{translate('Full Name')} <span className="text-red-500">*</span></label>
                 <Input
                   value={editUser.fullname}
                   onChange={(e) => setEditUser({...editUser, fullname: e.target.value})}
-                  placeholder="Masukkan nama penuh"
+                  placeholder={translate('Enter full name')}
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">{translate('email')} <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium mb-2 block">{translate('Email')} <span className="text-red-500">*</span></label>
               <Input
                 type="email"
                 value={editUser.email}
                 onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                placeholder="Masukkan email"
+                placeholder={translate('Enter email')}
               />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">{translate('phone')} </label>
+                <label className="text-sm font-medium mb-2 block">{translate('Phone No.')} </label>
               <Input
                 value={editUser.phoneno}
                 onChange={(e) => setEditUser({...editUser, phoneno: e.target.value})}
-                placeholder="Enter Phone No."
+                placeholder={translate("Enter phone. no")}
               />
               </div>
 
               {!isAddMode ? (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">{translate('passwordLeaveBlank')}</label>
+                  <label className="text-sm font-medium mb-2 block">{translate('Password (leave blank if not changing)')}</label>
                   <Input
                    type="password"  
                    value={editUser.password}
                    onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-                   placeholder={translate('leaveEmptyIfNotChanging')} 
+                   placeholder={translate('Leave blank if not changing')} 
                   />
                 </div>
               ) 
               : (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">{translate('password')} <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium mb-2 block">{translate('Password')} <span className="text-red-500">*</span></label>
                   <Input
                     type="password"
                     value={editUser.password}
                     onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-                    placeholder="Masukkan kata laluan"
+                    placeholder={translate('Enter password')}
                   />
                 </div>
               )}
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">{translate('role')}</label>
+                  <label className="text-sm font-medium mb-2 block">{translate('Role')}</label>
                   <Select 
                   value={editUser.role || 'employee'} 
                   onValueChange={(v) => setEditUser({...editUser, role: v})}
@@ -408,22 +414,22 @@ export default function ManageUsers() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {isSuperAdmin && <SelectItem value="superadmin">{translate('superAdmin')}</SelectItem>}
-                    <SelectItem value="admin">{translate('admin')}</SelectItem>
-                    <SelectItem value="employee">{translate('employee')}</SelectItem>
+                    {isSuperAdmin && <SelectItem value="superadmin">{translate('Super Admin')}</SelectItem>}
+                    <SelectItem value="admin">{translate('Admin')}</SelectItem>
+                    <SelectItem value="employee">{translate('Employee')}</SelectItem>
                   </SelectContent>
                   </Select>
                   </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">{translate('org')}</label>
+                <label className="text-sm font-medium mb-2 block">{translate('Organisation')}</label>
                 <Select 
                   value={editUser.organisation || ''} 
                   onValueChange={(v) => setEditUser({...editUser, organisation: v, tahfizcenter: null})}
                   disabled={isAdmin && !isSuperAdmin && currentUser.organisation}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={translate('selectOrg')}/>
+                    <SelectValue placeholder={translate('Select organisation')}/>
                   </SelectTrigger>
                   <SelectContent>
                     {organisations.items.map(org => (
@@ -434,14 +440,14 @@ export default function ManageUsers() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">{translate('TahfizCenter')}</label>
+                <label className="text-sm font-medium mb-2 block">{translate('Tahfiz Center')}</label>
                 <Select 
                   value={editUser.tahfiz_center_id || ''} 
                   onValueChange={(v) => setEditUser({...editUser, tahfiz_center_id: v, organisation_id: ''})}
                   disabled={(isAdmin && !isSuperAdmin && currentUser.tahfiz_center_id) || currentUser.organisation_id}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={translate('selectTahfizCenter')} /> 
+                    <SelectValue placeholder={translate('Select Tahfiz center')} /> 
                   </SelectTrigger>
                   <SelectContent>
                     {tahfizCenters.items.map(center => (
@@ -452,7 +458,7 @@ export default function ManageUsers() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">{translate('state')} <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium mb-2 block">{translate('State')} <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
                   {adminAccessibleStates.map(states => (
                     <div key={states} className="flex items-center space-x-2">
@@ -470,10 +476,10 @@ export default function ManageUsers() {
 
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  {translate('cancel')}
+                  {translate('Cancel')}
                 </Button>
                 <Button onClick={handleSaveUser} className="bg-emerald-600 hover:bg-emerald-700">
-                  {translate('save')}
+                  {translate('Save')}
                 </Button>
               </div>
             </div>
@@ -484,10 +490,10 @@ export default function ManageUsers() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Pengguna"
-        description={`Adakah anda pasti ingin memadam pengguna ${userToDelete?.fullname || userToDelete?.email}? Tindakan ini tidak boleh dibatalkan.`}
+        title={translate('Delete User')}
+        description={`${translate("Are you sure you want to delete this user")} ${userToDelete?.fullname || userToDelete?.email}? ${translate("This action cannot be undone")}`}
         onConfirm={confirmDelete}
-        confirmText="Padam"
+        confirmText={translate('Delete')}
         variant="destructive"
         />
     </div>

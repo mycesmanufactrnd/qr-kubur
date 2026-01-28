@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
+import { translate } from '@/utils/translations';
+
 
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ export default function PrivacyPolicy() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">Dasar Privasi</h1>
+        <h1 className="text-xl font-bold text-gray-900">{translate('Privacy Policy')}</h1>
       </div>
 
       <div className="flex-1 bg-white rounded-lg shadow-md overflow-hidden">

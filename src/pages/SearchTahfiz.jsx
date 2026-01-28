@@ -103,12 +103,12 @@ console.log('lat', lat, 'lng', lng)
 
   return (
     <div className="space-y-3 pb-2">
-      <BackNavigation title={translate('searchTahfizTitle') || "Search Tahfiz Center"} />
+      <BackNavigation title={translate('Search Tahfiz') || "Search Tahfiz Center"} />
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <Input
-            placeholder={translate('tahfizName')}
+            placeholder={translate('Tahfiz center name...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 dark:bg-gray-700"
@@ -120,7 +120,7 @@ console.log('lat', lat, 'lng', lng)
                 <SelectValue placeholder={translate('state')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="nearby">{translate('nearby')}</SelectItem>
+                <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
                 {STATES_MY.map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
@@ -135,14 +135,14 @@ console.log('lat', lat, 'lng', lng)
       {locationDenied && selectedState === "nearby" && (
         <Card className="border-0 shadow-sm dark:bg-gray-800 p-4 text-center">
           <p className="text-sm text-gray-500">
-            {translate('pleaseEnableLocation') || "Please enable your location to view nearby Tahfiz."}
+            {translate('Please Enable Location') || "Please enable your location to view nearby Tahfiz."}
           </p>
         </Card>
       )}
 
       {isLoading || isSearching ? (
         <div className="space-y-2 text-center p-10">
-          <p className="animate-pulse text-gray-500">{translate('loading')}</p>
+          <p className="animate-pulse text-gray-500">{translate('Loading')}</p>
         </div>
       ) : displayedCenters.length === 0 ? (
         <Card className="border-0 shadow-sm dark:bg-gray-800 p-8 text-center">
@@ -182,12 +182,12 @@ console.log('lat', lat, 'lng', lng)
                       onClick={() => openDirections(center)}
                       className="h-7 text-xs bg-violet-600 hover:bg-violet-700"
                     >
-                      {translate('direction')}
+                      {translate('Direction')}
                     </Button>
 
                     <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${center.id}`}>
                       <Button size="sm" variant="outline" className="h-7 text-xs w-full dark:bg-gray-700">
-                        {translate('request')}
+                        {translate('Request')}
                       </Button>
                     </Link>
                   </div>
