@@ -14,10 +14,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { validateFields } from '@/utils/validations';
 import { trpc } from '@/utils/trpc';
 import { useCreateSuggestion, useRecentCountSuggestion } from '@/hooks/useSuggestionMutations';
-import { useGetGraveCoordinates } from '@/hooks/useGraveMutations';
-import { getDistanceFromLatLonInKm } from '@/utils/helpers';
-import { translate } from '@/utils/translations';
-
+import { useGetGravesCoordinates } from '@/hooks/useGraveMutations';
+import { showEarthDistance } from '@/utils/helpers';
+import { defaultSuggestionField } from '@/utils/defaultformfields';
+import { useLocationContext } from '@/providers/LocationProvider';
+import { ipAddressQueryOptions } from '@/utils/queryOptions';
 
 export default function SubmitSuggestion() {
   const { userLocation, userState } = useLocationContext();
@@ -143,12 +144,12 @@ export default function SubmitSuggestion() {
   
   return (
     <div className="max-w-lg mx-auto space-y-4 pb-2">
-      <BackNavigation title={translate('Suggestion')} />
+      <BackNavigation title="Suggestion" />
       <form onSubmit={handleFormSubmit(onSubmit)}>
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label htmlFor="name" className="dark:text-gray-300">{translate('Name')}<span className="text-red-500">*</span></Label>
+              <Label htmlFor="name" className="dark:text-gray-300">Name <span className="text-red-500">*</span></Label>
               <Controller
                 name="name"
                 control={control}
@@ -157,7 +158,7 @@ export default function SubmitSuggestion() {
                   <input
                     {...field}
                     id="name" type="text"
-                    placeholder={translate('Enter name')}
+                    placeholder="Enter name"
                     className="w-full border rounded px-3 py-1 mt-1"
                   />
                 )}
@@ -165,16 +166,16 @@ export default function SubmitSuggestion() {
             </div>
 
             <div>
-              <Label htmlFor="phoneno" className="dark:text-gray-300">{translate('Phone No.')} <span className="text-red-500">*</span></Label>
+              <Label htmlFor="phoneno" className="dark:text-gray-300">Phone No. <span className="text-red-500">*</span></Label>
               <Controller
                 name="phoneno"
                 control={control}
-                rules={{ required: true }} 
+                rules={{ required: true }}
                 render={({ field }) => (
                   <input
                     {...field}
                     id="phoneno" type="text"
-                    placeholder={translate('Enter phone. no')}
+                    placeholder="Enter phone no."
                     className="w-full border rounded px-3 py-1 mt-1"
                   />
                 )}
@@ -182,7 +183,7 @@ export default function SubmitSuggestion() {
             </div>
 
             <div>
-              <Label htmlFor="type" className="dark:text-gray-300">{translate('Record Type')} <span className="text-red-500">*</span></Label>
+              <Label htmlFor="type" className="dark:text-gray-300">Jenis Rekod <span className="text-red-500">*</span></Label>
               <Controller
                 name="type"
                 control={control}
@@ -197,11 +198,11 @@ export default function SubmitSuggestion() {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={translate('Select Record Type')} />
+                      <SelectValue placeholder="Pilih jenis rekod" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="person">{translate('Record Person')} </SelectItem>
-                      <SelectItem value="grave">{translate('Record Grave')}</SelectItem>
+                      <SelectItem value="person">Rekod Si Mati</SelectItem>
+                      <SelectItem value="grave">Tanah Perkuburan</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -216,9 +217,9 @@ export default function SubmitSuggestion() {
                   rules={{ required: true }}
                   render={({ field }) => (
                     <div>
-                      <Label className="dark:text-gray-300">{translate('Select Grave')} <span className="text-red-500">*</span></Label>
+                      <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger><SelectValue placeholder={translate('Select Grave')} /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Pilih kubur" /></SelectTrigger>
                         <SelectContent>
                           {nearbyGraves.map(grave => (
                             <SelectItem key={grave.id} value={String(grave.id)}>
@@ -244,9 +245,9 @@ export default function SubmitSuggestion() {
               rules={{ required: true }}
               render={({ field }) => (
                   <div>
-                    <Label className="dark:text-gray-300">{translate('Select Deceased')} <span className="text-red-500">*</span></Label>
+                    <Label className="dark:text-gray-300">Pilih Si Mati <span className="text-red-500">*</span></Label>
                     <Select value={String(field.value)} onValueChange={field.onChange}>
-                      <SelectTrigger><SelectValue placeholder={translate('Select Deceased')} /></SelectTrigger> 
+                      <SelectTrigger><SelectValue placeholder="Pilih si mati" /></SelectTrigger>
                       <SelectContent>
                         {!isPersonLoading && persons.map(p => (
                           <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
@@ -266,10 +267,10 @@ export default function SubmitSuggestion() {
                 rules={{ required: true }}
                 render={({ field }) => (
                   <div>
-                    <Label>{translate('Select Grave')} <span className="text-red-500">*</span></Label>
+                    <Label>Pilih Kubur <span className="text-red-500">*</span></Label>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder={translate('Select nearby grave')} />
+                        <SelectValue placeholder="Pilih kubur berdekatan" />
                       </SelectTrigger>
                       <SelectContent>
                         {nearbyGraves.slice(0, 20).map(grave => (
@@ -289,28 +290,28 @@ export default function SubmitSuggestion() {
             )}
 
             <div>
-              <Label htmlFor="suggestedchanges" className="dark:text-gray-300">{translate('Suggested Changes')} <span className="text-red-500">*</span></Label>
-              <Controller 
+              <Label htmlFor="suggestedchanges" className="dark:text-gray-300">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
+              <Controller
                 name="suggestedchanges"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <Textarea {...field} rows={5} placeholder={translate('Specify Correction...')} /> 
+                  <Textarea {...field} rows={5} placeholder="Nyatakan pembetulan..." />
                 )}
               />
 
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1"> 
-                {translate("Example: 'The name should be Ahmad bin Abu, not Ahmad bin Bakar'")}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Contoh: "Nama sepatutnya Ahmad bin Abu, bukan Ahmad bin Bakar"
               </p>
             </div>
 
             <div>
-              <Label htmlFor="reason" className="dark:text-gray-300">{translate("Reason / Justification")} <span className="text-red-500">*</span></Label>
+              <Label htmlFor="reason" className="dark:text-gray-300">Sebab / Justifikasi <span className="text-red-500">*</span></Label>
               <Controller
                 name="reason"
-                control={control} 
+                control={control}
                 render={({ field }) => (
-                  <Textarea {...field} rows={3} placeholder={translate("Reason...")} />
+                  <Textarea {...field} rows={3} placeholder="Sebab..." />
                 )}
               />
             </div>
@@ -321,10 +322,10 @@ export default function SubmitSuggestion() {
                 disabled={
                   !watch('type') ||
                   !watch('entityId') ||
-                  !watch('suggestedchanges') 
+                  !watch('suggestedchanges')
                 }
               >
-                {translate("Submit Suggestion")}
+                Hantar Cadangan
               </Button>
             </div>
           </CardContent>
