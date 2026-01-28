@@ -12,7 +12,6 @@ import { useGetGraveById } from '@/hooks/useGraveMutations';
 import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
-import { translate } from '@/utils/translations';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import { translate } from '@/utils/translations';
 

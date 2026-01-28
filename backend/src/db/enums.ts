@@ -1,6 +1,8 @@
 export enum ActiveInactiveStatus {
   ACTIVE = "active",
-  INACTIVE = "inactive"
+  INACTIVE = "inactive",
+  FULL = "full",
+  MAINTENANCE = "maintenance"
 }
 
 export enum ApprovalStatus {

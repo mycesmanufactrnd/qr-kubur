@@ -2,6 +2,7 @@ import { Share2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { shareLink } from "@/utils/helpers";
 import clsx from "clsx";
+import { translate } from "@/utils/translations";
 
 export default function ShareButton({ 
   title = '', 
@@ -27,7 +28,7 @@ export default function ShareButton({
       )}
     >
       <Share2 className="w-3 h-3 mr-1" />
-      Kongsi
+      {translate('Share')}
     </Button>
   );
 }

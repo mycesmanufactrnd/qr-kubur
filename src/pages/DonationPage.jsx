@@ -16,7 +16,6 @@ import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations'
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 import { useForm } from 'react-hook-form';
 import { trpc } from '@/utils/trpc';
-import { translate } from '@/utils/translations';
 import { validateFields } from '@/utils/validations';
 import { useLocationContext } from '@/providers/LocationProvider';
 import { defaultDonationField } from '@/utils/defaultformfields';
@@ -275,13 +274,13 @@ export default function DonationPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
-      <BackNavigation title={translate("Donation")} />
+      <BackNavigation title="Donation" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">{translate('Donation Recipient')}</CardTitle>
+            <CardTitle>{translate('Donation Recipient')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs
@@ -344,7 +343,7 @@ export default function DonationPage() {
                   value={selectedRecipient ? String(selectedRecipient) : ''}
                   onValueChange={v => setValue('selectedRecipient', v)}
                 >
-                  <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                  <SelectTrigger>
                     <SelectValue placeholder={translate('Select organisation')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -422,11 +421,8 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        {/* Amount Selection */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">{translate('Total Donations')}</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>{translate('Total Donations')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
               {DONATION_AMOUNTS.map(amt => (
@@ -443,16 +439,16 @@ export default function DonationPage() {
                 </Button>
               ))}
             </div>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">RM</span>
-              <Input
-                type="number"
-                placeholder={translate("Other amount")}
-                value={customAmount}
-                onChange={(e) => { setCustomAmount(e.target.value); setAmount(''); }}
-                className="pl-12 text-md dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              />
-            </div>
+
+            <Input
+              type="number"
+              placeholder={translate('Other amount')}
+              value={customAmount}
+              onChange={(e) => {
+                setValue('customAmount', e.target.value);
+                setValue('amount', '');
+              }}
+            />
           </CardContent>
         </Card>
 
@@ -487,42 +483,13 @@ export default function DonationPage() {
           </Card>
         )}
 
-        {/* Donor Info */}
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">{translate('Donor Information (Optional)')}</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>{translate('Donor Information (Optional)')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="donorName" className="dark:text-gray-300">{translate('Name')}</Label>
-              <Input id="donorName" placeholder={translate('Name')} value={donorName} onChange={(e) => setDonorName(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
-            <div>
-              <Label htmlFor="donorEmail" className="dark:text-gray-300">{translate('Email')}</Label>
-              <Input id="donorEmail" type="email" placeholder={translate('Email for confirmation')} value={donorEmail} onChange={(e) => setDonorEmail(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
-            <div>
-              <Label htmlFor="notes" className="dark:text-gray-300">{translate('Notes')}</Label>
-              <Textarea id="notes" placeholder={translate('Additional notes')} value={notes} onChange={(e) => setNotes(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Transaction Info */}
-        <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
-          <CardHeader>
-            <CardTitle className="text-lg dark:text-white">{translate('Transaction Details')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-              <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>{translate('Important:')}</strong> {translate('After payment, enter the transaction reference ID from your receipt.')}
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="referenceId" className="dark:text-gray-300">{translate('Transaction ID')} <span className="text-red-500">*</span></Label>
-              <Input id="referenceId" placeholder={translate('Transaction ID')} value={referenceId} onChange={(e) => setReferenceId(e.target.value)} required className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-            </div>
+            <Input placeholder={translate('Name')} value={donorname} onChange={e => setValue('donorname', e.target.value)} />
+            <Input placeholder={translate('Email')} value={donoremail} onChange={e => setValue('donoremail', e.target.value)} />
+            <Input placeholder={translate('Phone No.')} value={donorphoneno} onChange={e => setValue('donorphoneno', e.target.value)} />
+            <Textarea placeholder={translate('Notes')} value={notes} onChange={e => setValue('notes', e.target.value)} />
           </CardContent>
         </Card>
 

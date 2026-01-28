@@ -3,8 +3,11 @@ import { trpc } from '@/utils/trpc';
 import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import BackNavigation from '@/components/BackNavigation';
-import { createPageUrl } from '@/utils';
-import { calculateAge, openDirections, shareLink } from '@/utils/helpers';
+import { calculateAge } from '@/utils/helpers';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import ShareButton from '@/components/ShareButton';
+import DirectionButton from '@/components/DirectionButton';
 import { translate } from '@/utils/translations';
 
 export default function DeadPersonDetails() {
@@ -45,7 +48,7 @@ export default function DeadPersonDetails() {
           {deadPersonDetails.photourl && (
             <div className="flex justify-center">
               <img
-                src={`/api/file/bucket-grave/${encodeURIComponent(person.photourl)}`}
+                src={`/api/file/bucket-grave/${encodeURIComponent(deadPersonDetails.photourl)}`}
                 alt={translate('Preview')}
                 className="w-24 h-32 object-cover rounded-md"
               />
@@ -76,8 +79,8 @@ export default function DeadPersonDetails() {
                       {translate('Date of Death')}
                     </p>
                     <p className="text-sm font-medium dark:text-white">
-                      {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
-                      {age && ` (${age} ${translate('years')})`}
+                      {new Date(deadPersonDetails.dateofdeath).toLocaleDateString('ms-MY')}
+                      {age && ` (${age} tahun)`}
                     </p>
                   </div>
                 )}
@@ -94,32 +97,16 @@ export default function DeadPersonDetails() {
           </div>
           {(deadPersonDetails.latitude && deadPersonDetails.longitude) && (
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDirections(person.latitude, person.longitude)
-                }}
-                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Navigation className="w-3 h-3 mr-1" />{translate('Direction')}
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  shareLink({
-                    title: person?.name || 'Name',
-                    text: `Name: ${person?.name}`,
-                  })
-                }}
-                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-              >
-                <Share2 className="w-3 h-3 mr-1" />
-                {translate('Share')}
-              </Button>
+              <DirectionButton
+                addClass="flex-1"
+                latitude={deadPersonDetails.latitude}
+                longitude={deadPersonDetails.longitude}
+              />
+              <ShareButton
+                addClass="flex-1"
+                title={deadPersonDetails?.name || 'Name'}
+                textMessage={`Name: ${deadPersonDetails?.name || ''}`}
+              />
             </div>
           )}
         </CardContent>
@@ -147,35 +134,16 @@ export default function DeadPersonDetails() {
 
             {(graveDetails.latitude && graveDetails.longitude) && (
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDirections(grave.latitude, grave.longitude)
-                }}
-                className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
-              >
-                <Navigation className="w-3 h-3 mr-1" />{translate('Direction')}
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  const url = `${window.location.origin}${createPageUrl('GraveDetails')}?id=${grave.id}`;
-                  shareLink({
-                    title: grave?.name || 'Lokasi Kubur',
-                    text: `Grave: ${grave?.name}`,
-                    url
-                  })
-                }}
-                className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
-              >
-                <Share2 className="w-3 h-3 mr-1" />
-                {translate('Share')}
-              </Button>
+              <DirectionButton
+                addClass="flex-1"
+                latitude={graveDetails.latitude}
+                longitude={graveDetails.longitude}
+              />
+              <ShareButton
+                addClass="flex-1"
+                title={graveDetails?.name || 'Grave'}
+                textMessage={`Lokasi Kubur: ${graveDetails?.name || ''}`}
+              />
             </div>
           )}
           </CardContent>
