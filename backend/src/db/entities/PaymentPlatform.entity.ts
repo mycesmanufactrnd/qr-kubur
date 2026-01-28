@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { ActiveInactiveStatus } from "../enums.ts";
 import { Donation } from "./Donation.entity.ts";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
@@ -6,6 +6,7 @@ import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 import { PaymentField } from "./PaymentField.entity.ts";
 
 @Entity("paymentplatform")
+@Unique(["code"])
 export class PaymentPlatform {
     @PrimaryGeneratedColumn()
     id!: number;
@@ -28,9 +29,6 @@ export class PaymentPlatform {
 
     @Column("varchar", { length: 50, nullable: true })
     icon?: string;
-
-    @OneToMany(() => Donation, (donations) => donations.paymentplatform)
-    donations!: Donation[];
 
     @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.paymentplatform)
     organisationpaymentconfigs!: OrganisationPaymentConfig[];

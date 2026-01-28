@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { User } from "./User.entity.ts";
-import { Suggestion } from "./Suggestion.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { TahlilRequest } from "./TahlilRequest.entity.js";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";

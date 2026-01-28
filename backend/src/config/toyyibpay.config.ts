@@ -2,6 +2,8 @@ export const getToyyibpayConfig = () => ({
   baseUrl: process.env.DEV_TOYYIBPAY_BASE_URL!,
   secretKey: process.env.DEV_TOYYIBPAY_SECRET_KEY!,
   categoryCode: process.env.DEV_TOYYIBPAY_REGISTRATION_CATEGORY_CODE!,
-  returnUrl: process.env.DEV_TOYYIBPAY_RETURN_URL!,
   callbackUrl: process.env.DEV_TOYYIBPAY_CALLBACK_URL!,
+  returnUrl: process.env.DEV_TOYYIBPAY_RETURN_URL!,
+  returnUrlDonation: process.env.DEV_TOYYIBPAY_RETURN_URL_DONATION!,
+  returnUrlTahlil: process.env.DEV_TOYYIBPAY_RETURN_URL_TAHLIL!,
 });

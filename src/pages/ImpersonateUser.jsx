@@ -2,14 +2,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Search, UserX, UserSearch } from "lucide-react";
@@ -18,6 +11,8 @@ import { impersonateUser } from "@/utils/auth";
 import { useGetUserPaginated } from "@/hooks/useUserMutations";
 import Pagination from "@/components/Pagination";
 import { translate } from "@/utils/translations";
+import NoDataTableComponent from "@/components/NoDataTableComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 
 export default function ImpersonateUser() {
   const [page, setPage] = useState(1);
@@ -29,6 +24,13 @@ export default function ImpersonateUser() {
     pageSize: itemsPerPage,
     search: searchQuery,
   });
+
+  
+  if (loadingUsers) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -59,8 +61,7 @@ export default function ImpersonateUser() {
         </CardContent>
       </Card>
 
-      {/* Desktop Table View */}
-      <Card className="hidden lg:block border-0 shadow-md overflow-hidden dark:bg-gray-800">
+      <Card className="border-0 shadow-md overflow-hidden dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-gray-50 dark:bg-gray-900">
@@ -73,39 +74,27 @@ export default function ImpersonateUser() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loadingUsers ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-gray-500"> 
-                    {translate('loadingUserList...')}
-                  </TableCell>
-                </TableRow>
-              ) : users.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-gray-500"> 
-                    {translate('noUserFound')}
-                  </TableCell>
-                </TableRow>
+              { users.items.length === 0 ? (
+                <NoDataTableComponent colSpan={5} message={translate("noUserFound")}/>
               ) : (
                 users.items.map((user) => (
                   <TableRow key={user.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
-                          {user.fullname?.[0] || 'U'}
+                          {user.fullname?.[0] || 'X'}
                         </div>
                         {user.fullname || 'Tiada Nama'}
                       </div>
                     </TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="text-center">{user.email}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant="outline" className="capitalize">
                         {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className={user.is_active !== false ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}>
-                        {user.is_active !== false ? translate('Active') : translate('Blocked')}
-                      </Badge>
+                        {user.phoneno}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button 
@@ -138,37 +127,6 @@ export default function ImpersonateUser() {
           )}
         </CardContent>
       </Card>
-
-
-      {/* Mobile Card View (for small screens) */}
-      <div className="lg:hidden space-y-4">
-        {users.items.map(user => (
-           <Card key={user.id} className="border-0 shadow-sm">
-             <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-sm">{user.fullname}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => impersonateUser(user)}>
-                  <UserSearch className="w-4 h-4" />
-                </Button>
-             </CardContent>
-           </Card>
-        ))}
-        {users.total > 0 && (
-         <Pagination
-           currentPage={page}
-           totalPages={totalPages}
-           onPageChange={setPage}
-           itemsPerPage={itemsPerPage}
-           onItemsPerPageChange={(value) => {
-             setItemsPerPage(value);
-             setPage(1);
-           }}
-           totalItems={users.total}
-         />
-       )}
-      </div>
     </div>
   );
 }

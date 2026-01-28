@@ -1,8 +1,7 @@
-// seeders/organisationSeeder.ts
 import "reflect-metadata";
-import { AppDataSource } from "../../../datasource.ts";
-import { Organisation, OrganisationType } from "../../entities.ts";
-import { ActiveInactiveStatus } from "../../enums.ts";
+import { AppDataSource } from "../../datasource.ts";
+import { Organisation, OrganisationType } from "../entities.ts";
+import { ActiveInactiveStatus } from "../enums.ts";
 
 export async function runOrganisationSeeder() {
   console.log("🌱 Seeding organisations for all states...");

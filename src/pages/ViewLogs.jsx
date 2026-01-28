@@ -9,6 +9,8 @@ import { useAdminAccess } from '@/utils/auth';
 import { useGetActivityLogPaginated } from '@/hooks/useActivityLogMutations';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '../components/PageLoadingComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ViewLogs() {
   const [page, setPage] = useState(1);
@@ -87,13 +89,9 @@ export default function ViewLogs() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">Memuatkan...</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : logs.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">Tiada log</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 logs.items.map(log => (
                   <TableRow key={log.id}>

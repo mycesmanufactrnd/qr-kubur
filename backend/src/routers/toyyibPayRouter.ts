@@ -7,19 +7,21 @@ export const toyyibPayRouter = router({
     .input(
       z.object({
         amount: z.number(),
-        referenceNo: z.string(),
-        name: z.string(),
-        email: z.string().email(),
-        phone: z.string(),
+        referenceNo: z.string().optional().nullable(),
+        name: z.string().optional().nullable(),
+        email: z.string().optional().nullable(),
+        phone: z.string().optional().nullable(),
+        returnTo: z.string().min(1),
       })
     )
     .mutation(async ({ input }) => {
       const bill = await createBill({
         amount: input.amount,
-        referenceNo: input.referenceNo,
-        name: input.name,
-        email: input.email,
-        phone: input.phone,
+        referenceNo: input?.referenceNo || '',
+        name: input?.name || 'ANONYMOUS',
+        email: input?.email || 'noreply@gmail.com',
+        phone: input?.phone || '0123456789',
+        returnTo: input.returnTo,
       });
 
       return {

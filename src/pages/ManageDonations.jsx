@@ -14,6 +14,8 @@ import { VerificationStatus } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Pagination from '@/components/Pagination';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageDonations() {
   const { 
@@ -157,13 +159,9 @@ export default function ManageDonations() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">{translate('Loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : donationList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">{translate('No records')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 donationList.items.map(donation => (
                   <TableRow key={donation.id}>
@@ -177,7 +175,7 @@ export default function ManageDonations() {
                       RM {donation.amount}
                     </TableCell>
                     <TableCell className="text-center">{getStatusBadge(donation.status)}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       {new Date(donation.createdat).toLocaleDateString('ms-MY')}
                     </TableCell>
                     <TableCell className="text-center">

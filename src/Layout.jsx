@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
 import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
-import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX } from 'lucide-react';
+import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import { translate } from '@/utils/translations';
 import { handleLogout, removeImpersonation, useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent.jsx';
 import { trpc } from './utils/trpc';
+import { notificationQueryOptions } from '@/utils/queryOptions';
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -44,7 +45,10 @@ function LayoutContent({ children, currentPageName }) {
   const { data: unreadNotiCount, isLoading } =
     trpc.notification.getUnreadNotificationCount.useQuery(
       { receiveremail: currentUser?.email },
-      { enabled: !!currentUser?.email }
+      { 
+        enabled: !!currentUser?.email,
+        ...notificationQueryOptions,
+       }
     );
   
   useEffect(() => {
@@ -100,9 +104,10 @@ function LayoutContent({ children, currentPageName }) {
   }
 
   const bottomNavItems = [
-    { name: translate('Main'), icon: Home, page: 'UserDashboard' },
+    { name: translate('Main'), icon: Home, page: 'UserDashboard2' },
     { name: translate('Search'), icon: Search, page: 'SearchGrave' },
     { name: translate('QR Code'), icon: QrCode, page: 'ScanQR' },
+    { name: translate('Donation'), icon: Heart, page: 'DonationPage' },
     { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
   ];
 
@@ -136,13 +141,13 @@ function LayoutContent({ children, currentPageName }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                    {currentUser?.full_name?.[0] || currentUser?.email?.[0]?.toUpperCase()}
+                    {currentUser?.fullname?.[0] || currentUser?.email?.[0]?.toUpperCase()}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2 border-b">
-                  <p className="text-sm font-medium">{currentUser?.full_name || 'User'}</p>
+                  <p className="text-sm font-medium">{currentUser?.fullname || 'User'}</p>
                   <p className="text-xs text-gray-500">{currentUser?.email}</p>
                   <p className="text-xs text-emerald-600 capitalize">{currentUser?.role}</p>
                 </div>
@@ -258,17 +263,17 @@ function LayoutContent({ children, currentPageName }) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                        {currentUser.full_name?.[0] || currentUser.email?.[0]?.toUpperCase()}
+                        {currentUser.fullname?.[0] || currentUser.email?.[0]?.toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-gray-700">
-                        {currentUser.full_name || currentUser.email?.split('@')[0]}
+                        {currentUser.fullname || currentUser.email?.split('@')[0]}
                       </span>
                       <ChevronDown className="w-4 h-4 text-gray-400" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-3 py-2 border-b">
-                      <p className="text-sm font-medium">{currentUser.full_name || 'User'}</p>
+                      <p className="text-sm font-medium">{currentUser.fullname || 'User'}</p>
                       <p className="text-xs text-gray-500">{currentUser.email}</p>
                       <p className="text-xs text-emerald-600 capitalize">{currentUser.role}</p>
                     </div>

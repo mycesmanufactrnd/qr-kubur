@@ -23,24 +23,11 @@ import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetOrganisationType } from '@/hooks/useOrganisationTypeMutations';
 import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
-
 import { validateFields } from '@/utils/validations';
 import { Checkbox } from '@/components/ui/checkbox';
-
-const emptyOrg = {
-  name: '',
-  parentorganisation: null,
-  organisationtype: null,
-  states: '',
-  address: '',
-  phone: '',
-  email: '',
-  url: '',
-  latitude: '',
-  longitude: '',
-  canbedonated: false,
-  status: 'active'
-};
+import { defaultOrganisationField } from '@/utils/defaultformfields';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageOrganisations() {
   const { 
@@ -57,7 +44,7 @@ export default function ManageOrganisations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
-    defaultValues: emptyOrg
+    defaultValues: defaultOrganisationField
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
@@ -90,7 +77,7 @@ export default function ManageOrganisations() {
   const openAddDialog = () => {
     setEditingOrg(null);
     const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    reset({...emptyOrg, states: defaultState});
+    reset({...defaultOrganisationField, states: defaultState});
     setIsDialogOpen(true);
   };
 
@@ -143,15 +130,13 @@ export default function ManageOrganisations() {
       status: data.status || 'active'
     };
 
-    console.log('submitData', submitData);
-
     if (editingOrg) {
       updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
           setEditingOrg(null);
-          reset(emptyOrg);
+          reset(defaultOrganisationField);
         }
       })
     } else {
@@ -159,7 +144,7 @@ export default function ManageOrganisations() {
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
-          reset(emptyOrg);
+          reset(defaultOrganisationField);
         }
       });
     }
@@ -298,13 +283,9 @@ export default function ManageOrganisations() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">{translate('Loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={4}/>
               ) : organisationsList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('No records')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={4}/>
               ) : (
                 organisationsList.items.map(org => (
                   <TableRow key={org.id}>

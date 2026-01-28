@@ -1,4 +1,3 @@
-// src/hooks/useTahlilRequestMutations.ts
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
@@ -32,7 +31,7 @@ export function useGetTahlilRequestPaginated({
       isSuperAdmin: !!isSuperAdmin,
     },
     {
-      enabled: !!currentUser, // Only run after currentUser is loaded
+      enabled: !!currentUser,
     }
   );
 

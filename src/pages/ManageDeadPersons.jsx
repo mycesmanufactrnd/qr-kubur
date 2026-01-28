@@ -28,19 +28,9 @@ import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
-
-const emptyPerson = {
-  name: '',
-  icnumber: '',
-  dateofbirth: '',
-  dateofdeath: '',
-  causeofdeath: '',
-  grave: '',
-  biography: '',
-  photourl: '',
-  gpslatitude: '',
-  gpslongitude: '',
-};
+import { defaultDeadPersonField } from '@/utils/defaultformfields';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 export default function ManageDeadPersons() {
   const { 
@@ -60,7 +50,7 @@ export default function ManageDeadPersons() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
-  const [formData, setFormData] = useState(emptyPerson);
+  const [formData, setFormData] = useState(defaultDeadPersonField);
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
@@ -84,7 +74,7 @@ export default function ManageDeadPersons() {
     }
   }, [parentAndChildQuery.data]);
 
-  const { deadPersonsList, isLoading, refetch } = useGetDeadPersonPaginated({
+  const { deadPersonsList, isLoading: isLoadingDeadPerson, refetch } = useGetDeadPersonPaginated({
     page,
     pageSize: itemsPerPage,
     search: filterName,
@@ -96,7 +86,7 @@ export default function ManageDeadPersons() {
     accessibleOrgIds
   });
 
-  const { gravesList } = useGetGravePaginated({
+  const { gravesList, isLoading: isLoadingGrave } = useGetGravePaginated({
     pageSize: 1000,
     organisationIds: accessibleOrgIds
   });
@@ -107,7 +97,7 @@ export default function ManageDeadPersons() {
 
   const openAddDialog = () => {
     setEditingPerson(null);
-    setFormData(emptyPerson);
+    setFormData(defaultDeadPersonField);
     setIsDialogOpen(true);
   };
 
@@ -353,10 +343,10 @@ export default function ManageDeadPersons() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8">{translate('Loading')}</TableCell></TableRow>
+              {isLoadingDeadPerson || isLoadingGrave ? (
+                <InlineLoadingComponent isTable={true} colSpan={5}/>
               ) : deadPersonsList.items.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('No records')}</TableCell></TableRow>
+                <NoDataTableComponent colSpan={5} />
               ) : (
                 deadPersonsList.items.map(person => (
                   <TableRow key={person.id}>

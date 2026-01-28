@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { trpc } from "../utils/trpc";
+import { paymentToyyibStatus } from "@/utils/enums";
 
 export default function ToyyibPayStatusPage() {
   const [searchParams] = useSearchParams();
@@ -9,15 +10,6 @@ export default function ToyyibPayStatusPage() {
   const [error, setError] = useState(null);
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
-
-  const paymentToyyibStatus = {
-    "1": "Success",
-    "2": "Pending",
-    "3": "Unsuccessful",
-    "01": "Success",
-    "02": "Pending",
-    "03": "Unsuccessful",
-  };
 
   useEffect(() => {
     const status_id = searchParams.get("status_id") || undefined;
@@ -37,11 +29,12 @@ export default function ToyyibPayStatusPage() {
 
     try {
       const bill = await createBillMutation.mutateAsync({
-        amount: 1,
+        amount: 1000,
         referenceNo: "TEST123",
         name: "Test User",
         email: "test@example.com",
         phone: "0123456789",
+        returnTo: 'config',
       });
 
       setPaymentInfo((prev) => ({

@@ -7,24 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import Breadcrumb from '../components/Breadcrumb';
 import { PERMISSION_CATEGORIES } from '../components/Permissions';
-import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
+import { useCrudPermissions } from '@/components/PermissionsContext';
 import { translate } from '@/utils/translations';
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetPermission, useUpsertPermission } from '@/hooks/usePermissionMutations';
-import { showApiError, showSuccess } from '@/components/ToastrNotification';
 import { useGetUserPaginated } from '@/hooks/useUserMutations';
 import Pagination from '@/components/Pagination';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 export default function ManagePermissions() {
   const { 
-    currentUser, 
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin, 
-    checkRole
   } = useAdminAccess();
 
   const {
@@ -60,19 +58,12 @@ export default function ManagePermissions() {
   }, [permissions, selectedUser]);
 
   const saveAllPermissions = async () => {
-    try {
-      for (const [slug, enabled] of Object.entries(userPermissions)) {
-        await upsertPermission.mutateAsync({
-          userId: selectedUser.id,
-          slug,
-          enabled
-        })
-      }
-
-      showSuccess('Permission', 'update');
-    } catch {
-      showApiError();
-    }
+    await upsertPermission.mutateAsync({
+      userId: selectedUser.id,
+      permissions: Object.entries(userPermissions).map(
+        ([slug, enabled]) => ({ slug, enabled })
+      )
+    });
   };
 
   const togglePermission = (slug) => {
@@ -137,9 +128,9 @@ export default function ManagePermissions() {
 
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {loadingUsers ? (
-                <p className="text-sm text-gray-500 text-center py-4">{translate('Loading')}</p>
+                <InlineLoadingComponent/>
               ) : users.items.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">{translate('No users found')}</p>
+                <NoDataCardComponent/>
               ) : (
                 users.items.map(user => (
                   <button

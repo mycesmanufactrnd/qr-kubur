@@ -1,6 +1,5 @@
 import axios from "axios";
 import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
-import { supabaseClient } from "../supabase.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
 
@@ -10,41 +9,56 @@ export async function createBill({
   name,
   email,
   phone,
+  returnTo
 }: {
   amount: number;
-  referenceNo: string;
-  name: string;
-  email: string;
-  phone: string;
+  referenceNo?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  returnTo: string;
 }) {
-  const toyyibpayConfig = getToyyibpayConfig();
+  try {
+    const toyyibpayConfig = getToyyibpayConfig();
 
-  const payload = {
-    userSecretKey: toyyibpayConfig.secretKey,
-    categoryCode: toyyibpayConfig.categoryCode,
-    billName: "QR Kubur Tahlil",
-    billDescription: "Tahlil & Doa Contribution",
-    billPriceSetting: 1, // 0 - for user to set the amount
-    billPayorInfo: 1, // 0 - if not require payer info
-    billAmount: amount * 100,
-    billReturnUrl: toyyibpayConfig.returnUrl,
-    billCallbackUrl: toyyibpayConfig.callbackUrl,
-    billExternalReferenceNo: referenceNo,
-    billTo: name,
-    billEmail: email,
-    billPhone: phone,
-    billPaymentChannel: 0, // Set 0 for FPX, 1 Credit Card and 2 for both FPX & Credit Car
-    billContentEmail: 'Meow, Thank you for purchasing our product!',
-    billChargeToCustomer: 1,
-  };
+    let returnUrl = toyyibpayConfig.returnUrl;
+    
+    if (returnTo === "donation") {
+      returnUrl = toyyibpayConfig.returnUrlDonation;
+    }
+    else if (returnTo === 'tahfiz') {
+      returnUrl = toyyibpayConfig.returnUrlTahlil;
+    }
 
-  const res = await axios.post(
-    `${toyyibpayConfig.baseUrl}/index.php/api/createBill`,
-    payload,
-    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-  );
+    const payload = {
+      userSecretKey: toyyibpayConfig.secretKey,
+      categoryCode: toyyibpayConfig.categoryCode,
+      billName: "QR Kubur Tahlil",
+      billDescription: "Tahlil & Doa Contribution",
+      billPriceSetting: 1, // 0 - for user to set the amount
+      billPayorInfo: 1, // 0 - if not require payer info
+      billAmount: amount * 10,
+      billReturnUrl: returnUrl,
+      billCallbackUrl: toyyibpayConfig.callbackUrl,
+      billExternalReferenceNo: referenceNo,
+      billTo: name ?? 'ANONYMOUS',
+      billEmail: email ?? 'noreply@gmail.com',
+      billPhone: phone ?? '0123456798',
+      billPaymentChannel: 0, // Set 0 for FPX, 1 Credit Card and 2 for both FPX & Credit Car
+      billContentEmail: 'Meow, Thank you for purchasing our product!',
+      billChargeToCustomer: 0, //Set 0 to charge FPX to customer.
+    };
 
-  return res.data[0];
+    const res = await axios.post(
+      `${toyyibpayConfig.baseUrl}/index.php/api/createBill`,
+      payload,
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+  
+    return res.data[0];
+  } catch (error) {
+    console.error('error', error)
+  }
 }
 
 export async function handleToyyibPayCallback(data: any) {
@@ -81,7 +95,7 @@ export async function handleToyyibPayCallback(data: any) {
   const transaction = onlineTransactionRepo.create({
     referenceno: refno,
     orderno: order_id,
-    ordertime: null,
+    ordertime: transaction_time ? new Date(transaction_time) : null,
     orderamount: parseFloat(amount),
     orderstatus: status_id,
     transactionid: transaction_id,
@@ -103,8 +117,6 @@ export async function handleToyyibPayCallback(data: any) {
     type: 'QR Kubur',
     accountno: '123456789',
     amount: parseFloat(amount),
-    referenceno: refno,
-    gatewayStatus: gatewayStatus,
     transaction: savedTransaction, 
   });
 

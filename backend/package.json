@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts --poll 1000",
     "seed": "tsx src/db/seed.ts",
+    "seed:prod": "tsx src/db/seed.prod.ts",
     "typeorm": "typeorm-ts-node-esm",
     "migration:create": "npm run typeorm -- migration:create",
     "migration:generate": "npm run typeorm -- migration:generate --dataSource ./src/datasource.ts",

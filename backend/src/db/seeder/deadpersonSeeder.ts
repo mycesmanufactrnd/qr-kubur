@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import { AppDataSource } from "../../../datasource.ts";
-import { DeadPerson, Grave } from "../../entities.ts";
+import { AppDataSource } from "../../datasource.ts";
+import { DeadPerson, Grave } from "../entities.ts";
 
 export async function runDeadPersonSeeder() {
   console.log("🌱 Seeding deceased persons for Selangor graves...");

@@ -16,13 +16,18 @@ import LoadingUser from '../components/PageLoadingComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Pagination from '../components/Pagination';
-import { usePermissions } from '../components/PermissionsContext';
+import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
 import PaymentConfigDialog from '../components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
 
 import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMutations';
 import { useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
+import { defaultTahfizField } from '@/utils/defaultformfields';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import PageLoadingComponent from '../components/PageLoadingComponent';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 const SERVICES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas' },
@@ -32,19 +37,6 @@ const SERVICES = [
   { value: 'custom', label: 'Perkhidmatan Khas' }
 ];
 
-const emptyCenter = {
-  name: '',
-  description: '',
-  serviceoffered: [], // Matches Entity serviceoffered
-  serviceprice: {},    // Matches Entity serviceprice
-  state: '',
-  address: '',
-  phone: '',
-  email: '',
-  gps_lat: '',         // Local UI state
-  gps_lng: ''          // Local UI state
-};
-
 export default function ManageTahfizCenters() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
@@ -52,22 +44,17 @@ export default function ManageTahfizCenters() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCenter, setEditingCenter] = useState(null);
-  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [centerToDelete, setCenterToDelete] = useState(null);
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedCenterForPayment, setSelectedCenterForPayment] = useState(null);
+  const { isTahfizAdmin, isSuperAdmin, loadingUser } = useAdminAccess();
 
-  const { currentUser, isLoading: loadingUser } = useAdminAccess();
-  const { hasPermission } = usePermissions();
+  const {
+    loading: permissionsLoading,
+    canView, canCreate, canEdit, canDelete
+  } = useCrudPermissions('tahfiz');
 
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const hasViewPermission = hasPermission('tahfiz_view');
-  const hasCreatePermission = hasPermission('tahfiz_create');
-  const hasEditPermission = hasPermission('tahfiz_edit');
-  const hasDeletePermission = hasPermission('tahfiz_delete');
-
-  // tRPC Query
   const { tahfizCenterList, totalPages, isLoading } = useGetTahfizPaginated({
     page,
     pageSize: itemsPerPage,
@@ -75,18 +62,17 @@ export default function ManageTahfizCenters() {
     filterState: filterState === 'all' ? undefined : filterState,
   });
 
-  // tRPC Mutations
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
 
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
-    defaultValues: emptyCenter
+    defaultValues: defaultTahfizField
   });
 
   const selectedServices = watch('serviceoffered') || [];
 
   const openAddDialog = () => {
     setEditingCenter(null);
-    reset(emptyCenter);
+    reset(defaultTahfizField);
     setIsDialogOpen(true);
   };
 
@@ -101,8 +87,8 @@ export default function ManageTahfizCenters() {
       address: center.address || '',
       phone: center.phone || '',
       email: center.email || '',
-      gps_lat: center.latitude?.toString() || '', // Map latitude -> gps_lat
-      gps_lng: center.longitude?.toString() || '' // Map longitude -> gps_lng
+      latitude: center.latitude?.toString() || '', 
+      longitude: center.longitude?.toString() || ''
     });
     setIsDialogOpen(true);
   };
@@ -117,7 +103,6 @@ export default function ManageTahfizCenters() {
   };
 
   const onSubmit = (data) => {
-    // Explicitly mapping data to match Backend Schema/Entity names
     const payload = {
       name: data.name,
       description: data.description,
@@ -127,22 +112,22 @@ export default function ManageTahfizCenters() {
       email: data.email,
       serviceoffered: data.serviceoffered,
       serviceprice: data.serviceprice,
-      latitude: data.gps_lat ? parseFloat(data.gps_lat) : null,
-      longitude: data.gps_lng ? parseFloat(data.gps_lng) : null,
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
     };
 
     if (editingCenter) {
       updateTahfiz.mutate({ id: editingCenter.id, data: payload }, {
         onSuccess: () => {
           setIsDialogOpen(false);
-          reset(emptyCenter);
+          reset(defaultTahfizField);
         }
       });
     } else {
       createTahfiz.mutate(payload, {
         onSuccess: () => {
           setIsDialogOpen(false);
-          reset(emptyCenter);
+          reset(defaultTahfizField);
         }
       });
     }
@@ -155,19 +140,43 @@ export default function ManageTahfizCenters() {
     });
   };
 
-  if (loadingUser) return <LoadingUser />;
-  if (!hasViewPermission) return <div className="p-8 text-center">{translate('accessDenied')}</div>;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isTahfizAdmin && !isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('adminDashboard'), page: 'AdminDashboard' }, 
+          { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: translate('adminDashboard'), page: 'AdminDashboard' }, { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }]} />
+      <Breadcrumb items={[
+        { label: translate('adminDashboard'), page: 'AdminDashboard' }, 
+        { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }
+      ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-amber-600" />
           {translate('manageTahfiz')}
         </h1>
-        {hasCreatePermission && (
+        {canCreate && (
           <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
             <Plus className="w-4 h-4 mr-2" />
             {translate('addNew')}
@@ -209,24 +218,23 @@ export default function ManageTahfizCenters() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('name')}</TableHead>
-                <TableHead>{translate('state')}</TableHead>
-                <TableHead>{translate('services')}</TableHead>
-                <TableHead className="text-right">{translate('actions')}</TableHead>
+                <TableHead className="text-center">{translate('state')}</TableHead>
+                <TableHead className="text-center">{translate('services')}</TableHead>
+                <TableHead className="text-center">{translate('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell></TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={4}/>
               ) : tahfizCenterList.items.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-8">{translate('noRecords')}</TableCell></TableRow>
+                <NoDataTableComponent colSpan={4}/>
               ) : (
                 tahfizCenterList.items.map(center => (
                   <TableRow key={center.id}>
                     <TableCell className="font-medium">{center.name}</TableCell>
-                    <TableCell>{center.state}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {/* Corrected to use serviceoffered attribute */}
+                    <TableCell className="text-center">{center.state}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-wrap justify-center items-center gap-1">
                         {center.serviceoffered?.slice(0, 2).map(service => (
                           <Badge key={service} variant="secondary" className="text-xs">
                             {SERVICES.find(s => s.value === service)?.label || service}
@@ -234,14 +242,14 @@ export default function ManageTahfizCenters() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      {hasEditPermission && (
+                    <TableCell className="text-center">
+                      {canEdit && (
                         <>
                           <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}><Edit className="w-4 h-4" /></Button>
                           <Button variant="ghost" size="sm" onClick={() => { setSelectedCenterForPayment(center); setPaymentConfigOpen(true); }}><CreditCard className="w-4 h-4 text-green-600" /></Button>
                         </>
                       )}
-                      {hasDeletePermission && (
+                      {canDelete && (
                         <Button variant="ghost" size="sm" onClick={() => { setCenterToDelete(center); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>
                       )}
                     </TableCell>
@@ -319,13 +327,13 @@ export default function ManageTahfizCenters() {
               <div><Label>{translate('email')}</Label><Controller name="email" control={control} render={({ field }) => <Input type="email" {...field} />} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>Latitude</Label><Controller name="gps_lat" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
-              <div><Label>Longitude</Label><Controller name="gps_lng" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+              <div><Label>Latitude</Label><Controller name="latitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+              <div><Label>Longitude</Label><Controller name="longitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
             </div>
             <Button type="button" variant="outline" className="w-full" onClick={() => {
               navigator.geolocation.getCurrentPosition((pos) => {
-                setValue('gps_lat', pos.coords.latitude.toFixed(8));
-                setValue('gps_lng', pos.coords.longitude.toFixed(8));
+                setValue('latitude', pos.coords.latitude.toFixed(8));
+                setValue('longitude', pos.coords.longitude.toFixed(8));
               });
             }}><MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}</Button>
             <DialogFooter>

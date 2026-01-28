@@ -13,6 +13,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
+import useGetAdminDashboardStats from '../hooks/useDashboardMutations';
 
 export default function AdminDashboard() {
   const {
@@ -23,39 +24,11 @@ export default function AdminDashboard() {
     isTahfizAdmin,
   } = useAdminAccess();
 
-  const stats = {
-    totalDonations: 0,
-    pendingDonations: 0, 
-  }
-
-  const { data: OGDSStats, isLoading: isOGDSLoading } = trpc.dashboard.getOGDSAdminStates.useQuery(
-    { 
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin: isSuperAdmin 
-    },
-    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.organisation) }
-  );
-
-  const { data: TTRStats, isLoading: isTTRLoading } = trpc.dashboard.getTTRAdminStates.useQuery(
-    { 
-      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
-      isSuperAdmin: isSuperAdmin 
-    },
-    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.tahfizcenter) }
-  );
-
-  const { data: DDVStats, isLoading: isDDVLoading } = trpc.dashboard.getDDVAdminStates.useQuery(
-    { 
-      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin: isSuperAdmin 
-    },
-    { 
-      enabled: isSuperAdmin ||
-        (!!currentUser && !!currentUser.organisation) ||
-        (!!currentUser && !!currentUser.tahfizcenter) 
-    }
-  );
+  const {
+    OGDSStats, isOGDSLoading,
+    TTRStats, isTTRLoading,
+    DDVStats, isDDVLoading,
+  } = useGetAdminDashboardStats(currentUser, isSuperAdmin);
 
   const organisationCount = OGDSStats?.organisationCount ?? 0;
   const graveCount = OGDSStats?.graveCount ?? 0;

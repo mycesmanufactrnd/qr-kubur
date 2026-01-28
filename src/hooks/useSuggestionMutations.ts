@@ -1,6 +1,7 @@
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
+import { ipAddressQueryOptions } from '@/utils/queryOptions';
 
 type useGetSuggestionPaginatedParams = {
   page?: number;
@@ -80,9 +81,7 @@ export function useRecentCountSuggestion(visitorIp?: string, oneHourAgo?: any) {
     { ip: visitorIp ?? '', since: oneHourAgo },
     {
       enabled: !!visitorIp && visitorIp !== 'unknown',
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
+      ...ipAddressQueryOptions,
     }
   );
 

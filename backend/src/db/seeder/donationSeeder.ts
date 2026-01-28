@@ -1,8 +1,7 @@
-// seeders/donationSeeder.ts
 import "reflect-metadata";
-import { AppDataSource } from "../../../datasource.ts";
-import { Donation, Organisation, TahfizCenter } from "../../../db/entities.ts";
-import { VerificationStatus } from "../../../db/enums.ts";
+import { AppDataSource } from "../../datasource.ts";
+import { Donation, Organisation, TahfizCenter } from "../../db/entities.ts";
+import { VerificationStatus } from "../../db/enums.ts";
 
 export async function runDonationSeeder() {
   console.log("🌱 Seeding dummy donations...");

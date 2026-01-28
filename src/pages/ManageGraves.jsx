@@ -25,6 +25,8 @@ import QRCodeDialog from '@/components/QRCodeDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
 import { defaultGraveField } from '@/utils/defaultformfields';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageGraves() {
   const { 
@@ -280,13 +282,9 @@ const confirmDelete = async () => {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">{translate('Loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : gravesList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('No records')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 gravesList.items.map(grave => (
                   <TableRow key={grave.id}>

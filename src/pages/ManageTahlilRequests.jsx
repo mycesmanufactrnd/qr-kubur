@@ -1,4 +1,3 @@
-// src/pages/ManageTahlilRequests.jsx
 import { useState } from 'react';
 import { BookOpen, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +14,8 @@ import { useGetTahlilRequestPaginated, useUpdateTahlilRequest } from '@/hooks/us
 import PageLoadingComponent from '../components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Pagination from '@/components/Pagination';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageTahlilRequests() {
   const { loadingUser, isTahfizAdmin, isSuperAdmin, currentUser } = useAdminAccess();
@@ -44,26 +45,36 @@ export default function ManageTahlilRequests() {
     await updateMutation.mutateAsync({ id: selectedRequest.id, data: { status: newStatus } });
     setIsDialogOpen(false);
     setSelectedRequest(null);
-    refetch(); // Refresh the list
+    refetch();
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
+      case TahlilStatus.PENDING:
         return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('pending')}</Badge>;
-      case 'accepted':
+      case TahlilStatus.ACCEPTED:
         return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('accepted')}</Badge>;
-      case 'completed':
+      case TahlilStatus.COMPLETED:
         return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('completed')}</Badge>;
-      case 'rejected':
+      case TahlilStatus.REJECTED:
         return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!isTahfizAdmin && !isSuperAdmin) return <AccessDeniedComponent />;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+  
+  if (!isTahfizAdmin && !isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
   if (!canView) return (
     <div className="space-y-6">
       <Breadcrumb items={[
@@ -90,7 +101,6 @@ export default function ManageTahlilRequests() {
         </div>
       </div>
 
-      {/* Status Cards */}
       <div className="grid grid-cols-4 gap-4">
         {['pending','accepted','completed','rejected'].map((status,i)=>(
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
@@ -104,8 +114,7 @@ export default function ManageTahlilRequests() {
         ))}
       </div>
 
-      {/* Table */}
-      <Card className="hidden lg:block border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -121,13 +130,9 @@ export default function ManageTahlilRequests() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={7}/>
               ) : tahlilRequestList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={7}/>
               ) : (
                 tahlilRequestList.items.map(request => (
                   <TableRow key={request.id}>
@@ -163,7 +168,6 @@ export default function ManageTahlilRequests() {
         </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
