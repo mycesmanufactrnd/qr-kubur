@@ -164,15 +164,15 @@ const confirmDelete = async () => {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('adminDashboard'), page: 'AdminDashboard' },
-        { label: translate('manageGravesTitle'), page: 'ManageGraves' }
+        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+        { label: translate('Manage Graves'), page: 'ManageGraves' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <MapPin className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            {translate('manageGravesTitle')}
+            {translate('Manage Graves')}
           </h1>
         </div>
         <div className="flex gap-2">
@@ -184,11 +184,11 @@ const confirmDelete = async () => {
                 className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {translate('importCSV')}
+                {translate('Import CSV')}
               </Button>
               <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800">
                 <Plus className="w-4 h-4 mr-2" />
-                {translate('addGrave')}
+                {translate('Add Grave')}
               </Button>
             </>
           )}
@@ -202,7 +202,7 @@ const confirmDelete = async () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder={translate('cemetery')}
+              placeholder={translate('Cemetery name')}
               value={filterName}
               onChange={(e) => setFilterName(e.target.value)}
               className="pl-10"
@@ -215,7 +215,7 @@ const confirmDelete = async () => {
                   <SelectValue placeholder="Negeri" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('allStates')}</SelectItem>
+                  <SelectItem value="all">{translate('All states')}</SelectItem>
                   {STATES_MY.map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -228,21 +228,21 @@ const confirmDelete = async () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('allStatus')}</SelectItem>
-                <SelectItem value="active">{translate('active')}</SelectItem>
-                <SelectItem value="full">{translate('full')}</SelectItem>
-                <SelectItem value="maintenance">{translate('maintenance')}</SelectItem>
+                <SelectItem value="all">{translate('All status')}</SelectItem>
+                <SelectItem value="active">{translate('Active')}</SelectItem>
+                <SelectItem value="full">{translate('Full')}</SelectItem>
+                <SelectItem value="maintenance">{translate('Maintenance')}</SelectItem>
               </SelectContent>
             </Select>
             
             <Input
-              placeholder={translate('block') + '...'}
+              placeholder={translate('Block') + '...'}
               value={filterBlock}
               onChange={(e) => setFilterBlock(e.target.value)}
             />
             
             <Input
-              placeholder={translate('lot') + '...'}
+              placeholder={translate('Lot') + '...'}
               value={filterLot}
               onChange={(e) => setFilterLot(e.target.value)}
             />
@@ -259,7 +259,7 @@ const confirmDelete = async () => {
               className="w-full"
             >
               <X className="w-4 h-4 mr-2" />
-              {translate('reset')}
+              {translate('Reset')}
             </Button>
           </div>
         </CardContent>
@@ -270,22 +270,22 @@ const confirmDelete = async () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('cemeteryName')}</TableHead>
-                <TableHead className="text-center">{translate('totalGravesCount')}</TableHead>
-                <TableHead className="text-center">{translate('state')}</TableHead>
-                <TableHead className="text-center">{translate('block')}/{translate('lot')}</TableHead>
-                <TableHead className="text-center">{translate('status')}</TableHead>
-                <TableHead className="text-center">{translate('actions')}</TableHead>
+                <TableHead>{translate('Cemetery name')}</TableHead>
+                <TableHead className="text-center">{translate('Total Graves')}</TableHead>
+                <TableHead className="text-center">{translate('State')}</TableHead>
+                <TableHead className="text-center">{translate('Block')}/{translate('Lot')}</TableHead>
+                <TableHead className="text-center">{translate('Status')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">{translate('loading')}</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8">{translate('Loading')}</TableCell>
                 </TableRow>
               ) : gravesList.items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">{translate('No records')}</TableCell>
                 </TableRow>
               ) : (
                 gravesList.items.map(grave => (
@@ -303,8 +303,8 @@ const confirmDelete = async () => {
                         grave.status === 'active' ? 'default' : 
                         grave.status === 'full' ? 'destructive' : 'secondary'
                       }>
-                        {grave.status === 'active' ? translate('active') : 
-                         grave.status === 'full' ? translate('full') : translate('maintenance')}
+                        {grave.status === 'active' ? translate('Active') : 
+                         grave.status === 'full' ? translate('Full') : translate('Maintenance')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
@@ -358,26 +358,26 @@ const confirmDelete = async () => {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingGrave ? translate('Edit Grave') : translate('addGrave')}
+              {editingGrave ? translate('Edit Grave') : translate('Add Grave')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={
             handleSubmit} className="space-y-4">
             <div>
-              <Label>{translate('cemeteryName')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('Cemetery name')} <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
             </div>
               <div>
-                <Label>{translate('state')} <span className="text-red-500">*</span></Label>
+                <Label>{translate('State')} <span className="text-red-500">*</span></Label>
                 <Select 
                   value={formData.state || ""} 
                   onValueChange={(v) => setFormData({ ...formData, state: v })}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={translate('selectStates')} />
+                    <SelectValue placeholder={translate('Select states')} />
                   </SelectTrigger>
                   <SelectContent>
                     {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((state) => (
@@ -413,7 +413,7 @@ const confirmDelete = async () => {
             />
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{translate('gpsLat')}</Label>
+                <Label>{translate('GPS Latitude')}</Label>
                 <Input
                   type="number"
                   step="any"
@@ -422,7 +422,7 @@ const confirmDelete = async () => {
                 />
               </div>
               <div>
-                <Label>{translate('gpsLng')}</Label>
+                <Label>{translate('GPS Longitude')}</Label>
                 <Input
                   type="number"
                   step="any"
@@ -457,13 +457,13 @@ const confirmDelete = async () => {
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
-              {translate('getCurrentLocation')}
+              {translate('Get Current Location')}
             </Button>
             <div>
-              <Label>{translate('managingOrg')}</Label>
+              <Label>{translate('Managing Organisation')}</Label>
               <Select value={String(formData.organisation)} onValueChange={(value) => setFormData({...formData, organisation: value})}>
                 <SelectTrigger>
-                  <SelectValue placeholder={translate('allManagingOrg')} />
+                  <SelectValue placeholder={translate('All managing organisations')} />
                 </SelectTrigger>
                 <SelectContent>
                   {organisationsList.items.map(org => (
@@ -474,7 +474,7 @@ const confirmDelete = async () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{translate('totalGravesCount')}</Label>
+                <Label>{translate('Total Graves')}</Label>
                 <Input
                   type="number"
                   value={formData.totalgraves}
@@ -482,26 +482,26 @@ const confirmDelete = async () => {
                 />
               </div>
               <div>
-                <Label>{translate('status')}</Label>
+                <Label>{translate('Status')}</Label>
                 <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">{translate('active')}</SelectItem>
-                    <SelectItem value="full">{translate('full')}</SelectItem>
-                    <SelectItem value="maintenance">{translate('maintenance')}</SelectItem>
+                    <SelectItem value="active">{translate('Active')}</SelectItem>
+                    <SelectItem value="full">{translate('Full')}</SelectItem>
+                    <SelectItem value="maintenance">{translate('Maintenance')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {translate('cancel')}
+                {translate('Cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                {translate('save')}
+                {translate('Save')}
               </Button>
             </DialogFooter>
           </form>
@@ -511,10 +511,10 @@ const confirmDelete = async () => {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={translate('delete') + ' ' + translate('manageGravesTitle')}
-        description={`${translate('delete')} "${graveToDelete?.name}"?`}
+        title={translate('Delete') + ' ' + translate('Manage Graves')}
+        description={`${translate('Delete')} "${graveToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText={translate('delete')}
+        confirmText={translate('Delete')}
         variant="destructive"
       />
 

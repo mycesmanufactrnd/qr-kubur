@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { translate } from '@/utils/translations';
 
 export default function Pagination({ 
   currentPage, 
@@ -17,7 +18,7 @@ export default function Pagination({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t">
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <span>Paparan:</span>
+        <span>{translate('Display:')}</span>
         <Select value={itemsPerPage.toString()} onValueChange={(v) => onItemsPerPageChange(parseInt(v))}>
           <SelectTrigger className="w-20 h-8">
             <SelectValue />
@@ -29,7 +30,7 @@ export default function Pagination({
           </SelectContent>
         </Select>
         <span className="hidden sm:inline">
-          {startItem}-{endItem} dari {totalItems}
+          {startItem}-{endItem} {translate('from')} {totalItems}
         </span>
       </div>
       

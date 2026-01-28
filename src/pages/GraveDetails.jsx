@@ -10,6 +10,7 @@ import BackNavigation from '@/components/BackNavigation';
 import { useGetGraveById } from '@/hooks/useGraveMutations';
 import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
 import { openDirections, shareLink } from '@/utils/helpers';
+import { translate } from '@/utils/translations';
 
 export default function GraveDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -92,7 +93,7 @@ export default function GraveDetails() {
                 className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
                 <Navigation className="w-3 h-3 mr-1" />
-                Arah
+                {translate('Direction')}
               </Button>
 
               <Button
@@ -108,7 +109,7 @@ export default function GraveDetails() {
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Share2 className="w-3 h-3 mr-1" />
-                Kongsi
+                {translate('Share')}
               </Button>
             </div>
           )}
@@ -117,19 +118,19 @@ export default function GraveDetails() {
 
       <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
         <CardContent className="p-3">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{translate('Deceased Name')} ({persons.length})</h2>
           
           {persons.length > 0 && (
             <div className="space-y-2 mb-3">
               <Input
-                placeholder="Cari nama..."
+                placeholder={translate('Search for the deceased\'s name...')}
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
                 className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Meninggal</label>
+                  <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">{translate('Date of Death')}</label>
                   <Input
                     type="date"
                     value={searchDate}
@@ -177,7 +178,7 @@ export default function GraveDetails() {
                             className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
                           >
                             <Navigation className="w-3 h-3 mr-1" />
-                            Arah
+                            {translate('Direction')}
                           </Button>
                           <Button
                             size="sm"
@@ -194,7 +195,7 @@ export default function GraveDetails() {
                             className="h-7 text-xs w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                           >
                             <Share2 className="w-3 h-3 mr-1" />
-                            Kongsi
+                            {translate('Share')}
                           </Button>
                         </div>
                       )}

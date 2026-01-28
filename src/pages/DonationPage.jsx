@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
+import { translate } from '@/utils/translations';
 
 const SUGGESTED_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
@@ -149,22 +150,22 @@ const [recipientType, setRecipientType] = useState(
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-2">
-      <BackNavigation title="Donation" />
+      <BackNavigation title={translate("Donation")} />
       <form onSubmit={handleSubmit} className="space-y-6">
 
         {/* Recipient Selection */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Penerima Derma</CardTitle>
+            <CardTitle className="text-lg dark:text-white">{translate('Donation Recipient')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs value={recipientType} onValueChange={setRecipientType}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="organisation">
-                  <Building2 className="w-4 h-4 mr-2" /> Organisasi
+                  <Building2 className="w-4 h-4 mr-2" /> {translate('Organisation')}
                 </TabsTrigger>
                 <TabsTrigger value="tahfiz">
-                  <Heart className="w-4 h-4 mr-2" /> Pusat Tahfiz
+                  <Heart className="w-4 h-4 mr-2" /> {translate('Tahfiz Center')}
                 </TabsTrigger>
               </TabsList>
 
@@ -174,7 +175,7 @@ const [recipientType, setRecipientType] = useState(
                   onValueChange={val => setSelectedRecipient(Number(val))}
                 >
                   <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih organisasi" />
+                    <SelectValue placeholder={translate('Select organisation')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-700">
                     {organisations.map(org => (
@@ -190,7 +191,7 @@ const [recipientType, setRecipientType] = useState(
               <TabsContent value="tahfiz" className="mt-4">
                 <Select value={selectedRecipient !== null ? String(selectedRecipient) : ''} onValueChange={val => setSelectedRecipient(Number(val))}>
                   <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                    <SelectValue placeholder="Pilih pusat tahfiz" />
+                    <SelectValue placeholder={translate('Select Tahfiz center')} />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-700">
                     {tahfizCenters.map(center => (
@@ -211,7 +212,7 @@ const [recipientType, setRecipientType] = useState(
         {/* Amount Selection */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Jumlah Derma</CardTitle>
+            <CardTitle className="text-lg dark:text-white">{translate('Total Donations')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
@@ -231,7 +232,7 @@ const [recipientType, setRecipientType] = useState(
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">RM</span>
               <Input
                 type="number"
-                placeholder="Jumlah lain"
+                placeholder={translate("Other amount")}
                 value={customAmount}
                 onChange={(e) => { setCustomAmount(e.target.value); setAmount(''); }}
                 className="pl-12 text-md dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -264,20 +265,20 @@ const [recipientType, setRecipientType] = useState(
         {/* Donor Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Maklumat Penderma (Pilihan)</CardTitle>
+            <CardTitle className="text-lg dark:text-white">{translate('Donor Information (Optional)')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="donorName" className="dark:text-gray-300">Nama</Label>
-              <Input id="donorName" placeholder="Nama" value={donorName} onChange={(e) => setDonorName(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+              <Label htmlFor="donorName" className="dark:text-gray-300">{translate('Name')}</Label>
+              <Input id="donorName" placeholder={translate('Name')} value={donorName} onChange={(e) => setDonorName(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
             </div>
             <div>
-              <Label htmlFor="donorEmail" className="dark:text-gray-300">Email</Label>
-              <Input id="donorEmail" type="email" placeholder="Email untuk pengesahan" value={donorEmail} onChange={(e) => setDonorEmail(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+              <Label htmlFor="donorEmail" className="dark:text-gray-300">{translate('Email')}</Label>
+              <Input id="donorEmail" type="email" placeholder={translate('Email for confirmation')} value={donorEmail} onChange={(e) => setDonorEmail(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
             </div>
             <div>
-              <Label htmlFor="notes" className="dark:text-gray-300">Catatan</Label>
-              <Textarea id="notes" placeholder="Sebarang catatan..." value={notes} onChange={(e) => setNotes(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+              <Label htmlFor="notes" className="dark:text-gray-300">{translate('Notes')}</Label>
+              <Textarea id="notes" placeholder={translate('Additional notes')} value={notes} onChange={(e) => setNotes(e.target.value)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
             </div>
           </CardContent>
         </Card>
@@ -285,23 +286,23 @@ const [recipientType, setRecipientType] = useState(
         {/* Transaction Info */}
         <Card className="border-0 shadow-md dark:bg-gray-800 border-2 border-amber-200 dark:border-amber-700">
           <CardHeader>
-            <CardTitle className="text-lg dark:text-white">Butiran Transaksi</CardTitle>
+            <CardTitle className="text-lg dark:text-white">{translate('Transaction Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
               <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Penting:</strong> Selepas membuat pembayaran, sila masukkan ID rujukan transaksi yang anda terima dari resit pembayaran.
+                <strong>{translate('Important:')}</strong> {translate('After payment, enter the transaction reference ID from your receipt.')}
               </p>
             </div>
             <div>
-              <Label htmlFor="referenceId" className="dark:text-gray-300">ID Rujukan Transaksi <span className="text-red-500">*</span></Label>
-              <Input id="referenceId" placeholder="ID Rujukan Transaksi" value={referenceId} onChange={(e) => setReferenceId(e.target.value)} required className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+              <Label htmlFor="referenceId" className="dark:text-gray-300">{translate('Transaction ID')} <span className="text-red-500">*</span></Label>
+              <Input id="referenceId" placeholder={translate('Transaction ID')} value={referenceId} onChange={(e) => setReferenceId(e.target.value)} required className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600" />
             </div>
           </CardContent>
         </Card>
 
         <Button type="submit" className="w-full">
-          {createDonation.isPending ? 'Menghantar...' : 'Hantar Derma'}
+          {createDonation.isPending ? 'Menghantar...' : (translate('Submit Donation'))}
         </Button>
       </form>
     </div>

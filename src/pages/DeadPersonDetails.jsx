@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';
 import { createPageUrl } from '@/utils';
 import { calculateAge, openDirections, shareLink } from '@/utils/helpers';
+import { translate } from '@/utils/translations';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
@@ -54,7 +55,7 @@ export default function DeadPersonDetails() {
             <div className="flex justify-center">
               <img
                 src={`/api/file/bucket-grave/${encodeURIComponent(person.photourl)}`}
-                alt="Preview"
+                alt={translate('Preview')}
                 className="w-24 h-32 object-cover rounded-md"
               />
             </div>
@@ -62,7 +63,7 @@ export default function DeadPersonDetails() {
           <div className="space-y-3">
             {person.icnumber && (
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">No. IC</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{translate('IC Number')}</p>
                 <p className="text-sm font-medium dark:text-white">
                   {person.icnumber}
                 </p>
@@ -71,7 +72,7 @@ export default function DeadPersonDetails() {
             <div className="flex justify-between gap-4">
               {person.dateofbirth && (
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Tarikh Lahir</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate('Date of Birth')}</p>
                   <p className="text-sm font-medium dark:text-white">
                     {new Date(person.dateofbirth).toLocaleDateString('ms-MY')}
                   </p>
@@ -81,11 +82,11 @@ export default function DeadPersonDetails() {
                 {person.dateofdeath && (
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Tarikh Meninggal
+                      {translate('Date of Death')}
                     </p>
                     <p className="text-sm font-medium dark:text-white">
                       {new Date(person.dateofdeath).toLocaleDateString('ms-MY')}
-                      {age && ` (${age} tahun)`}
+                      {age && ` (${age} ${translate('years')})`}
                     </p>
                   </div>
                 )}
@@ -94,7 +95,7 @@ export default function DeadPersonDetails() {
 
             {person.biography && (
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Biografi</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{translate('Biography')}</p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   {person.biography}
                 </p>
@@ -111,8 +112,7 @@ export default function DeadPersonDetails() {
                 }}
                 className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
-                <Navigation className="w-3 h-3 mr-1" />
-                Arah
+                <Navigation className="w-3 h-3 mr-1" />{translate('Direction')}
               </Button>
 
               <Button
@@ -128,7 +128,7 @@ export default function DeadPersonDetails() {
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Share2 className="w-3 h-3 mr-1" />
-                Kongsi
+                {translate('Share')}
               </Button>
             </div>
           )}
@@ -139,7 +139,7 @@ export default function DeadPersonDetails() {
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-              Lokasi Kubur
+              {translate('Grave Location')}
             </h2>
 
             <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors mb-2">
@@ -166,8 +166,7 @@ export default function DeadPersonDetails() {
                 }}
                 className="flex-1 h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
               >
-                <Navigation className="w-3 h-3 mr-1" />
-                Arah
+                <Navigation className="w-3 h-3 mr-1" />{translate('Direction')}
               </Button>
 
               <Button
@@ -186,7 +185,7 @@ export default function DeadPersonDetails() {
                 className="flex-1 h-8 text-xs dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
                 <Share2 className="w-3 h-3 mr-1" />
-                Kongsi
+                {translate('Share')}
               </Button>
             </div>
           )}
