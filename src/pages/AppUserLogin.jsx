@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { handleLoginTRPC } from '@/utils/auth';
+import { translate } from '@/utils/translations';
 
 export default function AppUserLogin() {
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +26,8 @@ export default function AppUserLogin() {
           <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
             <LogIn className="w-8 h-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-          <p className="text-sm text-gray-500">Log masuk untuk akses admin dashboard</p>
+          <CardTitle className="text-2xl font-bold">{translate('Admin Login')}</CardTitle>
+          <p className="text-sm text-gray-500">{translate('Log in to access the admin dashboard')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
@@ -39,7 +39,7 @@ export default function AppUserLogin() {
             )}
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
+              <label className="text-sm font-medium">{translate('Email')}</label>
               <Input
                 type="email"
                 placeholder="admin@example.com"
@@ -50,11 +50,11 @@ export default function AppUserLogin() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
+              <label className="text-sm font-medium">{translate('Password')}</label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={translate("Enter your password")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -75,12 +75,8 @@ export default function AppUserLogin() {
               className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
               disabled={loading}
             >
-              {loading ? 'Logging in...' : 'Log Masuk'}
+              {loading ? (translate('Logging in')) : (translate('Log In'))}
             </Button>
-
-            <div className="text-center text-sm text-gray-500 mt-4">
-              <p>Default password: <code className="bg-gray-100 px-2 py-1 rounded">password</code></p>
-            </div>
           </form>
         </CardContent>
       </Card>

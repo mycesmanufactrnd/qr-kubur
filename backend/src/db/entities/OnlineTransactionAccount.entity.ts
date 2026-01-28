@@ -28,14 +28,6 @@ export class OnlineTransactionAccount {
   // App: Amount for the transaction (split)
   // ToyyibPay: amount
 
-  @Column("varchar", { length: 50, nullable: true })
-  referenceno?: string;
-  // ToyyibPay: refno
-
-  @Column("varchar", { length: 10, nullable: true })
-  gatewayStatus?: string;
-  // ToyyibPay: status (3=unsuccessful, 1=success, 2=pending)
-
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 }

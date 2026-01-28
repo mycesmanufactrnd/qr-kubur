@@ -7,11 +7,11 @@ export class TahlilRequest {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column("varchar", { length: 255 })
-    requestorname!: string;
+    @Column("varchar", { length: 255, nullable: true })
+    requestorname?: string;
 
-    @Column("varchar", { length: 255 })
-    requestorphoneno!: string;
+    @Column("varchar", { length: 255, nullable: true })
+    requestorphoneno?: string;
     
     @Column("varchar", { length: 255, nullable: true })
     requestoremail?: string;
@@ -22,20 +22,23 @@ export class TahlilRequest {
     @Column("text", { array: true, nullable: true })
     selectedservices?: string[];
 
-    @Column({ type: "date", nullable: true })
-    preferreddate?: Date;
-
     @ManyToOne(() => TahfizCenter, (tahfizcenter) => tahfizcenter.tahlilrequests, {
         nullable: true,
         onDelete: "SET NULL",
     })
     tahfizcenter?: TahfizCenter | null;
 
+    @Column("text", { nullable: true })
+    customservice?: string;
+
     @Column("varchar", { length: 255, nullable: true })
     referenceno?: string;
 
-    @Column("text", { nullable: true })
-    notes?: string;
+    @Column("decimal", { precision: 10, scale: 2, nullable: true })
+    serviceamount?: number;
+    
+    @Column("decimal", { precision: 10, scale: 2, nullable: true })
+    platformfeeamount?: number;
 
     @Column({
         type: "enum",

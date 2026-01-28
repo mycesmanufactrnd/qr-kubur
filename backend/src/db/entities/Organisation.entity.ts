@@ -3,7 +3,6 @@ import { User } from "./User.entity.ts";
 import { OrganisationType } from "./OrganisationType.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
 import { Grave } from "./Grave.entity.ts";
-import { Suggestion } from "./Suggestion.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 
@@ -44,6 +43,15 @@ export class Organisation {
 
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
+
+  @Column("double precision", { nullable: true })
+  latitude?: number;
+
+  @Column("double precision", { nullable: true })
+  longitude?: number;
+
+  @Column({ type: "boolean", default: false })
+  canbedonated!: boolean;
 
   @Column({
     type: "enum",

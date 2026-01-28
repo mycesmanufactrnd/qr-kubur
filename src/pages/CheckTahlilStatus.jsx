@@ -9,6 +9,7 @@ import { showError } from '@/components/ToastrNotification';
 import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
+import { translate } from '@/utils/translations';
 
 export default function CheckTahlilStatus() {
   const [referenceId, setReferenceId] = useState('');
@@ -21,7 +22,6 @@ export default function CheckTahlilStatus() {
   const {
     data: tahlilRequest,
     isLoading,
-    isError,
   } = trpc.tahlilRequest.getByReferenceNo.useQuery(
     searchKey ? { referenceno: searchKey } : null,
     { enabled: !!searchKey }
@@ -106,9 +106,7 @@ export default function CheckTahlilStatus() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-600 mb-4">
             <BookOpen className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Semak Status Permohonan Tahlil
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{translate('Check Tahlil Application Status')}</h1>
           <p className="text-gray-600 dark:text-gray-400">
             Masukkan ID rujukan untuk menyemak status permohonan anda
           </p>

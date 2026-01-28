@@ -22,6 +22,9 @@ import {
 } from '@/hooks/usePaymentFieldMutations';
 import { useGetPaymentPlatform } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
+import { defaultPaymentField } from '@/utils/defaultformfields';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManagePaymentFields() {
   const { 
@@ -33,14 +36,7 @@ export default function ManagePaymentFields() {
   const [filterPlatform, setFilterPlatform] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState(null);
-  const [formData, setFormData] = useState({
-    paymentplatform: null,
-    key: '',
-    label: '',
-    fieldtype: 'text',
-    required: false,
-    placeholder: ''
-  });
+  const [formData, setFormData] = useState(defaultPaymentField);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState(null);
 
@@ -61,7 +57,7 @@ export default function ManagePaymentFields() {
 
   const openAddDialog = () => {
     setEditingField(null);
-    setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+    setFormData(defaultPaymentField);
     setIsDialogOpen(true);
   };
 
@@ -103,7 +99,7 @@ export default function ManagePaymentFields() {
         if (res) {
           setIsDialogOpen(false);
           setEditingField(null);
-          setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+          setFormData(defaultPaymentField);
         }
       });
     } else {
@@ -111,7 +107,7 @@ export default function ManagePaymentFields() {
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
-          setFormData({ paymentplatform: null, key: '', label: '', fieldtype: 'text', required: false, placeholder: '' });
+          setFormData(defaultPaymentField);
         }
       });
     }
@@ -198,7 +194,6 @@ export default function ManagePaymentFields() {
         </CardContent>
       </Card>
 
-      {/* Desktop Table */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
@@ -214,13 +209,9 @@ export default function ManagePaymentFields() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : filteredFields.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">No fields found</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 filteredFields.map(field => (
                   <TableRow key={field.id}>

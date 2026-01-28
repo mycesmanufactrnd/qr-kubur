@@ -5,80 +5,80 @@ import { TahlilRequest } from "../db/entities.ts";
 import { tahlilRequestApprovalSchema, tahlilRequestSchema } from "../schemas/tahlilRequestSchema.ts";
 
 export const tahlilRequestRouter = router({
-    // 1. CREATE: Publicly accessible submission
-    create: publicProcedure
-        .input(tahlilRequestSchema)
-        .mutation(async ({ input }) => {
+    getByReferenceNo: publicProcedure
+        .input(z.object({ referenceno: z.string() }))
+        .query(async ({ input }) => {
             const repo = AppDataSource.getRepository(TahlilRequest);
-            
-            // TypeORM can handle the relation if input.tahfizcenter contains { id: number }
-            const newRequest = repo.create(input);
-            return await repo.save(newRequest);
-        }),
 
-    // 2. GET PAGINATED: Using input for user data
+            return await repo.findOne({
+                where: { referenceno: input.referenceno },
+                relations: ['tahfizcenter']
+            });
+        }),
+        
     getPaginated: protectedProcedure
         .input(
             z.object({
-            page: z.number().min(1).default(1),
-            pageSize: z.number().min(1).default(10),
-            currentUser: z.object({
-                id: z.number(),
-                tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
-            }),
-            isTahfizAdmin: z.boolean().default(false),
-            isSuperAdmin: z.boolean().default(false),
+                page: z.number().min(1).optional(),
+                pageSize: z.number().min(1).optional(),
+                currentUser: z.object({
+                    id: z.number(),
+                    tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
+                }),
+                isTahfizAdmin: z.boolean().default(false),
+                isSuperAdmin : z.boolean().default(false),
             })
         )
         .query(async ({ input }) => {
-            const { page, pageSize, currentUser, isTahfizAdmin, isSuperAdmin } = input;
-            const repo = AppDataSource.getRepository(TahlilRequest);
+            const { page, pageSize , currentUser, isTahfizAdmin, isSuperAdmin  } = input;
 
-            const query = repo.createQueryBuilder("tahlilrequest")
-            .leftJoinAndSelect("tahlilrequest.tahfizcenter", "tahfizcenter");
+            const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
 
-            if (isSuperAdmin) {
-            // superadmin sees all
-            } else if (isTahfizAdmin && currentUser.tahfizcenter?.id) {
-            query.where("tahlilrequest.tahfizcenterId = :tahfizId", {
-                tahfizId: currentUser.tahfizcenter.id,
-            });
-            } else {
-            return { items: [], total: 0 };
+            const query = tahlilRequestRepo.createQueryBuilder("tahlilrequest");
+
+            if (isSuperAdmin) { 
+                query.leftJoinAndSelect("tahlilrequest.tahfizcenter", "tahfizcenter")
+            }
+            else if (isTahfizAdmin && currentUser.tahfizcenter) {
+                query.leftJoinAndSelect("tahlilrequest.tahfizcenter", "tahfizcenter")
+                    .where("tahlilrequest.tahfizcenterId = :tahfizId", {
+                        tahfizId: currentUser.tahfizcenter.id,
+                    });
+            }
+            else {
+                return { items: [], total: 0 };
+            }
+
+            if (page && pageSize) {
+                query.skip((page - 1) * pageSize).take(pageSize);
             }
 
             const [items, total] = await query
-            .orderBy("tahlilrequest.createdat", "DESC")
-            .skip((page - 1) * pageSize)
-            .take(pageSize)
-            .getManyAndCount();
+                .orderBy("tahlilrequest.createdat", "DESC")
+                .getManyAndCount();
 
-            // Map to match frontend UI fields
-            const mappedItems = items.map(r => ({
-            ...r,
-            requester_name: r.requestorname,
-            requester_phone: r.requestorphoneno,
-            requester_email: r.requestoremail,
-            deceasednames: r.deceasednames || [],
-            selectedservices: r.selectedservices || [],
-            tahfizcenter: r.tahfizcenter ? { id: r.tahfizcenter.id, name: r.tahfizcenter.name } : null,
-            preferred_date: r.preferreddate,
-            }));
-
-            return { items: mappedItems, total };
+            return { items, total };
         }),
 
-
-    // 3. UPDATE: Reference the specific item by ID
+    create: publicProcedure
+        .input(tahlilRequestSchema)
+        .mutation(async ({ input }) => {
+            const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
+            const donation = tahlilRequestRepo.create(input);
+            return tahlilRequestRepo.save(donation);
+        }),
+            
     update: protectedProcedure
         .input(z.object({ id: z.number(), data: tahlilRequestApprovalSchema }))
         .mutation(async ({ input }) => {
-            const repo = AppDataSource.getRepository(TahlilRequest);
-            const tahlilRequest = await repo.findOneByOrFail({ id: input.id });
+            const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
+            const suggestion = await tahlilRequestRepo.findOneByOrFail({ id: input.id });
     
-            // Merges the new status into the existing record
-            repo.merge(tahlilRequest, input.data);
-            return await repo.save(tahlilRequest);
+            tahlilRequestRepo.merge(suggestion, input.data);
+    
+            const savedSuggestion = await tahlilRequestRepo.save(suggestion);
+    
+            return savedSuggestion;
         }),
     
     delete: protectedProcedure

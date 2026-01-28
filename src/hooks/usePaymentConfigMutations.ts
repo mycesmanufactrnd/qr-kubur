@@ -4,27 +4,41 @@ import { trpc } from "@/utils/trpc.js";
 export function useGetConfigByEntity({
   entityId,
   entityType,
+  enabled = true,
 }: {
-  entityId: number;
-  entityType: string;
+  entityId?: number;
+  entityType?: string;
+  enabled?: boolean;
 }) {
-  if (entityType === "organisation") {
-    const { data } = trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
-      { organisation: { id: entityType === 'organisation' ? entityId : null } },
-      { enabled: entityType === 'organisation' && !!entityId }
+  const organisationQuery =
+    trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
+      { organisation: entityId ? { id: entityId } : null },
+      {
+        enabled: enabled && entityType === 'organisation' && !!entityId,
+      }
     );
-  
-    return data ?? [];
-  }
-  else if (entityType === "tahfiz") {
-    const { data } = trpc.tahfizPaymentConfig.getConfigByTahfizId.useQuery(
-      { tahfiz: { id: entityType === 'tahfiz' ? entityId : null } },
-      { enabled: entityType === 'tahfiz' && !!entityId }
+
+  const tahfizQuery =
+    trpc.tahfizPaymentConfig.getConfigByTahfizId.useQuery(
+      { tahfiz: entityId ? { id: entityId } : null },
+      {
+        enabled: enabled && entityType === 'tahfiz' && !!entityId,
+      }
     );
-  
-    return data ?? [];
-  }
+
+  const data =
+    entityType === 'organisation'
+      ? organisationQuery.data
+      : entityType === 'tahfiz'
+        ? tahfizQuery.data
+        : [];
+
+  return {
+    data: data ?? [],
+    isLoading: organisationQuery.isLoading || tahfizQuery.isLoading,
+  };
 }
+
 
 export function useUpsertConfigByEntity() {
   const trpcUtils = trpc.useUtils();

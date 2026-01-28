@@ -14,6 +14,8 @@ import { VerificationStatus } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Pagination from '@/components/Pagination';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageDonations() {
   const { 
@@ -73,11 +75,11 @@ export default function ManageDonations() {
   const getStatusBadge = (status) => {
     switch (status) {
       case VerificationStatus.PENDING:
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />Menunggu</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('Pending')}</Badge>;
       case VerificationStatus.VERIFIED:
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Disahkan</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('Verified')}</Badge>;
       case VerificationStatus.REJECTED:
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />Ditolak</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('Rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -97,8 +99,8 @@ export default function ManageDonations() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('adminDashboard'), page: 'AdminDashboard' },
-          { label: translate('manageDonations'), page: 'ManageDonations' }
+          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+          { label: translate('Manage Donations'), page: 'ManageDonations' }
         ]} />
         <AccessDeniedComponent/>
       </div>
@@ -108,15 +110,15 @@ export default function ManageDonations() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('adminDashboard'), page: 'AdminDashboard' },
-        { label: translate('manageDonations'), page: 'ManageDonations' }
+        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+        { label: translate('Manage Donations'), page: 'ManageDonations' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-            {translate('manageDonations')} 
+            {translate('Manage Donations')} 
           </h1>
         </div>
       </div>
@@ -124,14 +126,14 @@ export default function ManageDonations() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-0 shadow-md bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-700 dark:to-teal-800 text-white">
           <CardContent className="p-4">
-            <p className="text-emerald-100 text-sm">{translate('totalVerified')}</p>
+            <p className="text-emerald-100 text-sm">{translate('Total Verified')}</p>
             <p className="text-2xl font-bold">RM {totalVerified.toLocaleString()}</p>
           </CardContent>
         </Card>
         {[
-          { label: translate('pending'), value: donationList.items.filter(d => d.status === VerificationStatus.PENDING).length, color: 'yellow' },
-          { label: translate('verified'), value: donationList.items.filter(d => d.status === VerificationStatus.VERIFIED).length, color: 'succes' },
-          { label: translate('rejected'), value: donationList.items.filter(d => d.status === VerificationStatus.REJECTED).length, color: 'red' }
+          { label: translate('Pending'), value: donationList.items.filter(d => d.status === VerificationStatus.PENDING).length, color: 'yellow' },
+          { label: translate('Verified'), value: donationList.items.filter(d => d.status === VerificationStatus.VERIFIED).length, color: 'success' },
+          { label: translate('Rejected'), value: donationList.items.filter(d => d.status === VerificationStatus.REJECTED).length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -147,23 +149,19 @@ export default function ManageDonations() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('donor')}</TableHead>
-                <TableHead className="text-center">{translate('recipient')}</TableHead>
-                <TableHead className="text-center">{translate('amount')}</TableHead>
-                <TableHead className="text-center">{translate('status')}</TableHead>
-                <TableHead className="text-center">{translate('date')}</TableHead>
-                <TableHead className="text-center">{translate('actions')}</TableHead>
+                <TableHead>{translate('Donor')}</TableHead>
+                <TableHead className="text-center">{translate('Recipient')}</TableHead>
+                <TableHead className="text-center">{translate('Amount')}</TableHead>
+                <TableHead className="text-center">{translate('Status')}</TableHead>
+                <TableHead className="text-center">{translate('Date')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={6}/>
               ) : donationList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={6}/>
               ) : (
                 donationList.items.map(donation => (
                   <TableRow key={donation.id}>
@@ -177,7 +175,7 @@ export default function ManageDonations() {
                       RM {donation.amount}
                     </TableCell>
                     <TableCell className="text-center">{getStatusBadge(donation.status)}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       {new Date(donation.createdat).toLocaleDateString('ms-MY')}
                     </TableCell>
                     <TableCell className="text-center">
@@ -209,17 +207,17 @@ export default function ManageDonations() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">{translate('details')}</DialogTitle>
+            <DialogTitle className="dark:text-white">{translate('Details')}</DialogTitle>
           </DialogHeader>
           {selectedDonation && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Penderma</p>
+                  <p className="text-sm text-gray-500">{translate('Donor')}</p>
                   <p className="font-semibold">{selectedDonation.donorname || 'Tanpa Nama'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Jumlah</p>
+                  <p className="text-sm text-gray-500">{translate('Amount')}</p>
                   <p className="font-semibold text-lg text-emerald-600">
                     RM {selectedDonation.amount}
                   </p>
@@ -227,41 +225,41 @@ export default function ManageDonations() {
               </div>
               {selectedDonation.donoremail && (
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="text-sm text-gray-500">{translate('Email')}</p>
                   <p>{selectedDonation.donoremail}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">Penerima</p>
+                <p className="text-sm text-gray-500">{translate('Recipient')}</p>
                 <p>{selectedDonation.organisation?.name ?? selectedDonation.tahfizcenter?.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Kaedah Pembayaran</p>
+                <p className="text-sm text-gray-500">{translate('Payment Method')}</p>
                 <p className="capitalize">{selectedDonation.paymentplatform?.name.replace('_', ' ')}</p>
               </div>
               {selectedDonation.notes && (
                 <div>
-                  <p className="text-sm text-gray-500">Catatan</p>
+                  <p className="text-sm text-gray-500">{translate('Notes')}</p>
                   <p>{selectedDonation.notes}</p>
                 </div>
               )}
               {selectedDonation.reference_id && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">ID Rujukan</p>
+                  <p className="text-sm text-gray-500 mb-1">{translate('Reference ID')}</p>
                   <p className="font-mono font-semibold text-sm break-all bg-gray-50 p-2 rounded">
                     {selectedDonation.reference_id}
                   </p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">Status Semasa</p>
+                <p className="text-sm text-gray-500">{translate('Current Status')}</p>
                 {getStatusBadge(selectedDonation.status)}
               </div>
             </div>
           )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Tutup
+              {translate('Close')}
             </Button>
             {selectedDonation?.status === 'pending' && (
               <>
@@ -272,7 +270,7 @@ export default function ManageDonations() {
                     disabled={updateMutation.isPending}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
-                    Tolak
+                    {translate('Reject')}
                   </Button>
                 )}
 
@@ -283,7 +281,7 @@ export default function ManageDonations() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Sahkan
+                    {translate('Verify')}
                   </Button>
                 )}
               </>

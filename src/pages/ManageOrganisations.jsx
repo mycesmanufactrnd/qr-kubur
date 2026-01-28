@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { translate } from '@/utils/translations';
-import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard, MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,29 +19,15 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import PaymentConfigDialog from '@/components/PaymentConfigDialog';
 import { getLabelFromId } from '@/utils/helpers';
-import { STATES_MY } from '@/utils/enums';
+import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetOrganisationType } from '@/hooks/useOrganisationTypeMutations';
-import { 
-  useCreateOrganisation, 
-  useDeleteOrganisation, 
-  useGetOrganisationPaginated, 
-  useUpdateOrganisation 
-} from '@/hooks/useOrganisationMutations';
-
+import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
 import { validateFields } from '@/utils/validations';
-
-const emptyOrg = {
-  name: '',
-  parentorganisation: null,
-  organisationtype: null,
-  states: '',
-  address: '',
-  phone: '',
-  email: '',
-  url: '',
-  status: 'active'
-};
+import { Checkbox } from '@/components/ui/checkbox';
+import { defaultOrganisationField } from '@/utils/defaultformfields';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageOrganisations() {
   const { 
@@ -58,7 +44,7 @@ export default function ManageOrganisations() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
-    defaultValues: emptyOrg
+    defaultValues: defaultOrganisationField
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
@@ -86,14 +72,12 @@ export default function ManageOrganisations() {
     isLoading: typesLoading, 
   } = useGetOrganisationType(hasAdminAccess);
 
-  const createMutation = useCreateOrganisation();
-  const updateMutation = useUpdateOrganisation();
-  const deleteMutation = useDeleteOrganisation();
+  const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
 
   const openAddDialog = () => {
     setEditingOrg(null);
     const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    reset({...emptyOrg, states: defaultState});
+    reset({...defaultOrganisationField, states: defaultState});
     setIsDialogOpen(true);
   };
 
@@ -108,7 +92,10 @@ export default function ManageOrganisations() {
       phone: org.phone || '',
       email: org.email || '',
       url: org.url || '',
-      status: org.status || 'active'
+      latitude: org.latitude || '',
+      longitude: org.longitude || '',
+      canbedonated: org.canbedonated || false,
+      status: org.status || ActiveInactiveStatus.ACTIVE
     });
     setIsDialogOpen(true);
   };
@@ -137,24 +124,27 @@ export default function ManageOrganisations() {
       phone: data.phone || '',
       email: data.email || '',
       url: data.url || '',
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
+      canbedonated: data.canbedonated || false,
       status: data.status || 'active'
     };
 
     if (editingOrg) {
-      updateMutation.mutateAsync({ id: editingOrg.id, data: submitData })
+      updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
           setEditingOrg(null);
-          reset(emptyOrg);
+          reset(defaultOrganisationField);
         }
       })
     } else {
-      createMutation.mutateAsync(submitData)
+      createOrganisation.mutateAsync(submitData)
       .then((res) => {
         if(res) {
           setIsDialogOpen(false);
-          reset(emptyOrg);
+          reset(defaultOrganisationField);
         }
       });
     }
@@ -167,7 +157,7 @@ export default function ManageOrganisations() {
 
   const confirmDelete = () => {
     if (!orgToDelete) return;
-    deleteMutation.mutate(orgToDelete.id);
+    deleteOrganisation.mutate(orgToDelete.id);
     setDeleteDialogOpen(false);
     setOrgToDelete(null);
   };
@@ -188,8 +178,8 @@ export default function ManageOrganisations() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-          { label: translate('manageOrgs'), page: 'ManageOrganisations' }
+          { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: translate('Manage Organisations'), page: 'ManageOrganisations' }
         ]} />
         <AccessDeniedComponent/>
       </div>
@@ -199,20 +189,20 @@ export default function ManageOrganisations() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-        { label: translate('manageOrgs'), page: 'ManageOrganisations' }
+        { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+        { label: translate('Manage Organisations'), page: 'ManageOrganisations' }
       ]} />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-violet-600" />
-            {translate('manageOrgs')}
+            {translate('Manage Organisations')}
           </h1>
         </div>
         { canCreate && (
           <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
             <Plus className="w-4 h-4 mr-2" />
-            {translate('addNew')}
+            {translate('Add New')}
           </Button>
         )}
       </div>
@@ -220,12 +210,12 @@ export default function ManageOrganisations() {
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('advancedSearch')}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('Advanced Search')}</h3>
           </div>
           <div>
-            <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('orgName')}</Label>
+            <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('Organisation Name')}</Label>
             <Input
-              placeholder={translate('searchOrgName')}
+              placeholder={translate('Search organisation name...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
@@ -233,13 +223,13 @@ export default function ManageOrganisations() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('orgType')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('Organisation Type')}</Label>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={undefined}>{translate('allTypes')}</SelectItem>
+                  <SelectItem value={undefined}>{translate('All types')}</SelectItem>
                   {organisationTypeList.map(type => (
                     <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
@@ -247,13 +237,13 @@ export default function ManageOrganisations() {
               </Select>
             </div>            
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('state')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('State')}</Label>
               <Select value={filterState} onValueChange={setFilterState}>
                 <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
                   <SelectValue placeholder="" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={undefined}>{translate('allStates')}</SelectItem>
+                  <SelectItem value={undefined}>{translate('All states')}</SelectItem>
                   {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
@@ -283,23 +273,19 @@ export default function ManageOrganisations() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('name')}</TableHead>
-                <TableHead className="text-center">{translate('orgType')}</TableHead>
-                <TableHead className="text-center">{translate('state')}</TableHead>
+                <TableHead>{translate('Name')}</TableHead>
+                <TableHead className="text-center">{translate('Organisation Type')}</TableHead>
+                <TableHead className="text-center">{translate('State')}</TableHead>
                  { (canEdit || canDelete) && (
-                   <TableHead  className="text-center">{translate('actions')}</TableHead>
+                   <TableHead  className="text-center">{translate('Actions')}</TableHead>
                  ) }
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">{translate('loading')}</TableCell>
-                </TableRow>
+                <InlineLoadingComponent isTable={true} colSpan={4}/>
               ) : organisationsList.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">{translate('noRecords')}</TableCell>
-                </TableRow>
+                <NoDataTableComponent colSpan={4}/>
               ) : (
                 organisationsList.items.map(org => (
                   <TableRow key={org.id}>
@@ -365,12 +351,12 @@ export default function ManageOrganisations() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingOrg ? translate('edit') : translate('addNew')}
+              {editingOrg ? translate('Edit') : translate('Add New')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label>{translate('name')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('Name')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="name"
                 control={control}
@@ -379,7 +365,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{translate('orgType')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('Organisation Type')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="organisationtype"
                 control={control}
@@ -388,7 +374,7 @@ export default function ManageOrganisations() {
                   <Select value={field.value || ''} onValueChange={(val) => field.onChange(Number(val))}>
                     <SelectTrigger>
                       <SelectValue>
-                        {organisationTypeList.find(t => t.id === field.value)?.name || translate('selectOrgType')}
+                        {organisationTypeList.find(t => t.id === field.value)?.name || translate('Select organisation type')}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -401,7 +387,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{translate('parentOrg')}</Label>
+              <Label>{translate('Parent Organisation')}</Label>
               <Controller
                 name="parentorganisation"
                 control={control}
@@ -409,7 +395,7 @@ export default function ManageOrganisations() {
                   <Select value={field.value || ''} onValueChange={(val) => field.onChange(Number(val))}>
                     <SelectTrigger>
                       <SelectValue>
-                        {organisationsList.items.find(o => o.id === field.value)?.name || translate('selectParentOrg')}
+                        {organisationsList.items.find(o => o.id === field.value)?.name || translate('Select parent organisation')}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -422,7 +408,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{translate('state')} <span className="text-red-500">*</span></Label>
+              <Label>{translate('State')} <span className="text-red-500">*</span></Label>
               <Controller
                 name="states"
                 control={control}
@@ -433,7 +419,7 @@ export default function ManageOrganisations() {
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={translate('selectStates')} />
+                      <SelectValue placeholder={translate('Select states')} />
                     </SelectTrigger>
                     <SelectContent>
                       {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
@@ -445,7 +431,7 @@ export default function ManageOrganisations() {
               />
             </div>
             <div>
-              <Label>{translate('address')}</Label>
+              <Label>{translate('Address')}</Label>
               <Controller
                 name="address"
                 control={control}
@@ -454,7 +440,7 @@ export default function ManageOrganisations() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{translate('phone')}</Label>
+                <Label>{translate('Phone No.')}</Label>
                 <Controller
                   name="phone"
                   control={control}
@@ -462,7 +448,7 @@ export default function ManageOrganisations() {
                 />
               </div>
               <div>
-                <Label>{translate('email')}</Label>
+                <Label>{translate('Email')}</Label>
                 <Controller
                   name="email"
                   control={control}
@@ -478,8 +464,34 @@ export default function ManageOrganisations() {
                   render={({ field }) => <Input {...field} />}
                 />
               </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>{translate('GPS Latitude')}</Label><Controller name="latitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+              <div><Label>{translate('GPS Longitude')}</Label><Controller name="longitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
+            </div>
+            <Button type="button" variant="outline" className="w-full" onClick={() => {
+              navigator.geolocation.getCurrentPosition((pos) => {
+                setValue('latitude', pos.coords.latitude.toFixed(8));
+                setValue('longitude', pos.coords.longitude.toFixed(8));
+              });
+            }}><MapPin className="w-4 h-4 mr-2" /> {translate('Get Current Location')}</Button>
+            <div className="flex items-center gap-3 rounded-lg border p-3">
+              <Controller
+                name="Can be Donated"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                )}
+              />
+
+              <Label className="cursor-pointer">
+                {translate('Can be Donated')}
+              </Label>
+            </div>
             <div>
-              <Label>{translate('status')}</Label>
+              <Label>{translate('Status')}</Label>
               <Controller
                 name="status"
                 control={control}
@@ -489,8 +501,8 @@ export default function ManageOrganisations() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">{translate('active')}</SelectItem>
-                      <SelectItem value="inactive">{translate('inactive')}</SelectItem>
+                      <SelectItem value="active">{translate('Active')}</SelectItem>
+                      <SelectItem value="inactive">{translate('Inactive')}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -498,11 +510,11 @@ export default function ManageOrganisations() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {translate('cancel')}
+                {translate('Cancel')}
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createOrganisation.isPending || updateOrganisation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                {translate('save')}
+                {translate('Save')}
               </Button>
             </DialogFooter>
           </form>
@@ -512,10 +524,10 @@ export default function ManageOrganisations() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={translate('delete')}
-        description={`${translate('confirmDelete')} "${orgToDelete?.name}"?`}
+        title={translate('Delete')}
+        description={`${translate('Confirm delete')} "${orgToDelete?.name}"?`}
         onConfirm={confirmDelete}
-        confirmText={translate('delete')}
+        confirmText={translate('Delete')}
         variant="destructive"
       />
 

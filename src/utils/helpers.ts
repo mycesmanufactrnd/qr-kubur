@@ -1,3 +1,5 @@
+let cachedGeo = null;
+
 export function getLabelFromId(arrayList = [], typeId, key = 'name') {
   if (!arrayList || arrayList.length === 0 || !typeId) return '-';
 
@@ -45,12 +47,90 @@ export function getDistanceFromLatLonInKm(
 }
 
 export function calculateAge(deadOfBirth, deadOfDeath) {
-    if (!deadOfBirth || !deadOfDeath) return 0;
-    const birth = new Date(deadOfBirth);
-    const death = new Date(deadOfDeath);
-    let age = death.getFullYear() - birth.getFullYear();
-    const m = death.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) age--;
-    return age;
-  };
+  if (!deadOfBirth || !deadOfDeath) return 0;
+  const birth = new Date(deadOfBirth);
+  const death = new Date(deadOfDeath);
+  let age = death.getFullYear() - birth.getFullYear();
+  const m = death.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+export async function getMalaysiaGeo() {
+  if (cachedGeo) return cachedGeo;
+  const res = await fetch('/Geo_MY.json');
+  cachedGeo = await res.json();
+  return cachedGeo;
+}
+
+export function openDirections(latitude, longitude) {
+  if (latitude && longitude) {
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`,
+      '_blank'
+    );
+  }
+}
+
+export async function shareLink({
+  title, text, url,
+}: {
+  title?: string; text?: string; url?: string;
+}) {
+  const shareUrl = url || window.location.href;
+  
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: title || document.title,
+        text: text || '',
+        url: shareUrl,
+      });
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Pautan telah disalin!');
+      }
+    }
+  } else {
+    await navigator.clipboard.writeText(shareUrl);
+    alert('Pautan telah disalin!');
+  }
+}
+
+export function requestLocation() {
+  sessionStorage.removeItem('user_location');
+  window.location.reload(); 
+};
+
+export function activityLogError(error: any) {
+  return JSON.stringify({
+    message: error?.message,
+    code: error?.data?.code ?? error?.code,
+    httpStatus: error?.data?.httpStatus,
+    path: error?.data?.path,
+  });
+}
+
+export function trimEmptyArray(dataArray) {
+  return (dataArray || []).filter(s => s && s.trim() !== '')
+}
+
+export function clearQueryParams() {
+  if (typeof window !== "undefined") {
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+export function showEarthDistance(distanceMeters?: number | null): string {
+  if (distanceMeters == null || isNaN(distanceMeters)) return '-';
+
+  if (distanceMeters < 1000) {
+    return `${Math.round(distanceMeters)}m`;
+  } else {
+    return `${(distanceMeters / 1000).toFixed(1)}km`;
+  }
+}
+
 

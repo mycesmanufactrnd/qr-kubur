@@ -1,21 +1,19 @@
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils/index';
-import { 
-  Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX
-} from 'lucide-react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { translate } from '@/utils/translations';
-import PageLoadingComponent from '../components/PageLoadingComponent';
-import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
-import { useAdminAccess } from '@/utils/auth';
+  import { Link } from 'react-router-dom';
+  import { createPageUrl } from '../utils/index';
+  import { Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX } from 'lucide-react';
+  import { Card, CardContent } from "@/components/ui/card";
+  import { Badge } from "@/components/ui/badge";
+  import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  import { translate } from '@/utils/translations';
+  import PageLoadingComponent from '../components/PageLoadingComponent';
+  import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
+  import { useAdminAccess } from '@/utils/auth';
 
-export default function SuperadminDashboard() {
-  const { 
-    loadingUser, 
-    isSuperAdmin, 
-  } = useAdminAccess();
+  export default function SuperadminDashboard() {
+    const { 
+      loadingUser, 
+      isSuperAdmin, 
+    } = useAdminAccess();
 
   const superadminConfig = [
     {
@@ -54,17 +52,17 @@ export default function SuperadminDashboard() {
     },
   ];
 
-  if (loadingUser) {
-    return (
-      <PageLoadingComponent/>
-    );
-  }
+    if (loadingUser) {
+      return (
+        <PageLoadingComponent/>
+      );
+    }
 
-  if (!isSuperAdmin) {
-    return (
-      <AccessDeniedComponent/>
-    );
-  }
+    if (!isSuperAdmin) {
+      return (
+        <AccessDeniedComponent/>
+      );
+    }
 
   return (
     <div className="space-y-6">
@@ -82,37 +80,37 @@ export default function SuperadminDashboard() {
         </Link>
       </div>
 
-      <Tabs defaultValue={superadminConfig[0].value} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <Tabs defaultValue={superadminConfig[0].value} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            {superadminConfig.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           {superadminConfig.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.title}
-            </TabsTrigger>
+            <TabsContent key={tab.value} value={tab.value} className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-3">
+                {tab.items.map((item) => (
+                  <Link key={item.page} to={createPageUrl(item.page)}>
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg bg-${item.color}-100 flex items-center justify-center flex-shrink-0`}>
+                            <item.icon className={`w-5 h-5 text-${item.color}-600`} />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-sm">{item.name}</h3>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </TabsContent>
           ))}
-        </TabsList>
-        {superadminConfig.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value} className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-3">
-              {tab.items.map((item) => (
-                <Link key={item.page} to={createPageUrl(item.page)}>
-                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg bg-${item.color}-100 flex items-center justify-center flex-shrink-0`}>
-                          <item.icon className={`w-5 h-5 text-${item.color}-600`} />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-sm">{item.name}</h3>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
-  );
-}
+        </Tabs>
+      </div>
+    );
+  }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { CheckCircle, MapPin } from 'lucide-react';
@@ -20,12 +20,10 @@ import { translate } from '@/utils/translations';
 
 
 export default function SubmitSuggestion() {
+  const { userLocation, userState } = useLocationContext();
   const oneHourAgo = useMemo(() => new Date(Date.now() - 60 * 60 * 1000).toISOString(), []);
-
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    ...ipAddressQueryOptions,
   });
 
   const recentCount = useRecentCountSuggestion(visitorIp, oneHourAgo); 
@@ -35,19 +33,10 @@ export default function SubmitSuggestion() {
     handleSubmit: handleFormSubmit, 
     reset: handleResetForm, setValue, watch 
   } = useForm({
-    defaultValues: {
-      name: '',
-      phoneno: '',
-      type: '',
-      watchSelectedGrave: '',
-      entityId: '',
-      suggestedchanges: '',
-      reason: ''
-    }
+    defaultValues: defaultSuggestionField
   });
   
   const [submitted, setSubmitted] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
@@ -56,37 +45,12 @@ export default function SubmitSuggestion() {
 
   const createMutation = useCreateSuggestion();
 
-  // if no extension created in psql
-  // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
-  // CREATE EXTENSION IF NOT EXISTS cube;
-  // CREATE EXTENSION IF NOT EXISTS earthdistance;
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          });
-        },
-        () => setUserLocation(null)
-      );
-    }
-  }, []);
-
-  const { graves: nearbyGraves } = useGetGraveCoordinates({
-    coordinates: userLocation,
-    enabled: watchType === "grave" || watchType === "person",
-  });
-
-  const gravesWithDistance = nearbyGraves.map(g => {
-    if (g.latitude != null && g.longitude != null) {
-      const distance = getDistanceFromLatLonInKm(userLocation.latitude, userLocation.longitude, g.latitude, g.longitude);
-      return { ...g, distance };
-    }
-    return { ...g, distance: Infinity };
-  });
+  const { data: nearbyGraves } = useGetGravesCoordinates(
+    userLocation
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null,
+    userState,
+  );
 
   const { data: persons, isLoading: isPersonLoading } = trpc.deadperson.getDeadPersonByGraveId.useQuery(
     { graveId: Number(watchSelectedGrave) ?? 0 },
@@ -256,12 +220,12 @@ export default function SubmitSuggestion() {
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger><SelectValue placeholder={translate('Select Grave')} /></SelectTrigger>
                         <SelectContent>
-                          {gravesWithDistance.map(g => (
-                            <SelectItem key={g.id} value={String(g.id)}> 
+                          {nearbyGraves.map(grave => (
+                            <SelectItem key={grave.id} value={String(grave.id)}>
                               <div className="flex items-center gap-2">
                                 <MapPin className="w-3 h-3" />
-                                {g.name}
-                                {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
+                                {grave.name}
+                                {showEarthDistance(grave.distance)}
                               </div>
                             </SelectItem>
                           ))}
@@ -308,12 +272,12 @@ export default function SubmitSuggestion() {
                         <SelectValue placeholder={translate('Select nearby grave')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {gravesWithDistance.slice(0, 20).map(g => (
-                          <SelectItem key={g.id} value={String(g.id)}>
+                        {nearbyGraves.slice(0, 20).map(grave => (
+                          <SelectItem key={grave.id} value={String(grave.id)}>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-3 h-3" />
-                              {g.name}
-                              {g.distance && g.distance !== Infinity && ` (${g.distance.toFixed(1)}km)`}
+                              {grave.name}
+                              {showEarthDistance(grave.distance)}
                             </div>
                           </SelectItem>
                         ))}

@@ -1,6 +1,8 @@
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
+import { Coordinates } from '@/utils/enums';
+import { coordinatesQueryOptions } from '@/utils/queryOptions';
 
 type useGetOrganisationPaginatedParams = {
   page?: number;
@@ -46,44 +48,56 @@ export function useGetOrganisationPaginated({
   return { organisationsList, totalPages, isLoading, refetch, error };
 }
 
-export function useCreateOrganisation() {
+export function useOrganisationMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.organisation.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      trpcUtils.organisation.getPaginated.invalidate();
+  const invalidateAll = () => {
+    trpcUtils.organisation.getPaginated.invalidate();
+  };
+
+  const createOrganisation = trpc.organisation.create.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'create'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
+
+  const updateOrganisation = trpc.organisation.update.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'update'); 
+      invalidateAll(); 
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  const deleteOrganisation = trpc.organisation.delete.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'delete'); 
+      invalidateAll(); 
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createOrganisation, updateOrganisation, deleteOrganisation };
 }
 
-export function useUpdateOrganisation() {
-  const trpcUtils = trpc.useUtils();
+export function useGetOrganisationCoordinates(
+  coordinates?: { latitude: number; longitude: number } | null, 
+  userState?: string,
+  searchQuery?: string,
+) {
+  const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
+    { 
+      coordinates: coordinates ?? null,
+      userState,
+      searchQuery
+    },
+    {
+      enabled: !!coordinates,
+      ...coordinatesQueryOptions,
+    }
+  );
 
-  return trpc.organisation.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      trpcUtils.organisation.getPaginated.invalidate();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
-  });
-}
-
-export function useDeleteOrganisation() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.organisation.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      trpcUtils.organisation.getPaginated.invalidate();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
-  });
+  return { organisations: data, isLoading, error, refetch };
 }

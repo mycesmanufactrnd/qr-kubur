@@ -13,6 +13,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
+import useGetAdminDashboardStats from '../hooks/useDashboardMutations';
 
 export default function AdminDashboard() {
   const {
@@ -23,39 +24,11 @@ export default function AdminDashboard() {
     isTahfizAdmin,
   } = useAdminAccess();
 
-  const stats = {
-    totalDonations: 0,
-    pendingDonations: 0, 
-  }
-
-  const { data: OGDSStats, isLoading: isOGDSLoading } = trpc.dashboard.getOGDSAdminStates.useQuery(
-    { 
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin: isSuperAdmin 
-    },
-    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.organisation) }
-  );
-
-  const { data: TTRStats, isLoading: isTTRLoading } = trpc.dashboard.getTTRAdminStates.useQuery(
-    { 
-      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
-      isSuperAdmin: isSuperAdmin 
-    },
-    { enabled: isSuperAdmin || (!!currentUser && !!currentUser.tahfizcenter) }
-  );
-
-  const { data: DDVStats, isLoading: isDDVLoading } = trpc.dashboard.getDDVAdminStates.useQuery(
-    { 
-      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin: isSuperAdmin 
-    },
-    { 
-      enabled: isSuperAdmin ||
-        (!!currentUser && !!currentUser.organisation) ||
-        (!!currentUser && !!currentUser.tahfizcenter) 
-    }
-  );
+  const {
+    OGDSStats, isOGDSLoading,
+    TTRStats, isTTRLoading,
+    DDVStats, isDDVLoading,
+  } = useGetAdminDashboardStats(currentUser, isSuperAdmin);
 
   const organisationCount = OGDSStats?.organisationCount ?? 0;
   const graveCount = OGDSStats?.graveCount ?? 0;
@@ -68,7 +41,7 @@ export default function AdminDashboard() {
 
   const quickStats = [
     { 
-      label: translate('totalGraves'), 
+      label: translate('Total Graves'), 
       value: graveCount || 0, 
       icon: MapPin, 
       color: 'emerald', 
@@ -77,7 +50,7 @@ export default function AdminDashboard() {
       loading: isOGDSLoading
     },
     { 
-      label: translate('totalPersons'), 
+      label: translate('Total Deceased'), 
       value: deadPersonCount || 0, 
       icon: Users, 
       color: 'blue', 
@@ -86,7 +59,7 @@ export default function AdminDashboard() {
       loading: isOGDSLoading
     },
     { 
-      label: translate('totalOrgs'), 
+      label: translate('Total Organisations'), 
       value: organisationCount || 0, 
       icon: Building2, 
       color: 'violet', 
@@ -95,7 +68,7 @@ export default function AdminDashboard() {
       loading: isOGDSLoading
     },
     { 
-      label: translate('totalTahfiz'), 
+      label: translate('Total Tahfiz'), 
       value: tahfizCount || 0, 
       icon: BookOpen, 
       color: 'amber', 
@@ -107,21 +80,21 @@ export default function AdminDashboard() {
 
   const pendingItems = [
     { 
-      label: translate('totalSuggestions'), 
+      label: translate('Total Suggestions'), 
       value: suggestionCount || 0, 
       loading: isDDVLoading, 
       page: 'ManageSuggestions',
       color: 'amber' 
     },
     { 
-      label: translate('totalDonations'), 
+      label: translate('Total Donations'), 
       value: donationCount || 0, 
       loading: isDDVLoading, 
       page: 'ManageDonations',
       color: 'red' 
     },
     { 
-      label: translate('totalTahlilRequests'), 
+      label: translate('Total Tahlil Requests'), 
       value: tahlilRequestCount || 0, 
       loading: isTTRLoading, 
       page: 'ManageTahlilRequests',
@@ -145,13 +118,13 @@ export default function AdminDashboard() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{translate('adminDashboard')}</h1>
-          <p className="text-xs text-gray-500">{currentUser?.full_name || 'Admin'}</p>
+          <h1 className="text-xl font-bold text-gray-900">{translate('Admin Dashboard')}</h1>
+          <p className="text-xs text-gray-500">{currentUser?.full_name || (translate('Admin'))}</p>
         </div>
         {isSuperAdmin && (
           <Link to={createPageUrl('SuperAdminDashboard')}>
             <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
-              To {translate('superadminDashboard')}
+              To {translate('Super Admin Dashboard')}
             </Badge>
           </Link>
         )}
@@ -192,7 +165,7 @@ export default function AdminDashboard() {
         <CardHeader className="p-3 pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Clock className="w-4 h-4 text-orange-500" />
-            {translate('pendingApproval')}
+            {translate('Pending Approvals')}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
@@ -219,7 +192,7 @@ export default function AdminDashboard() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100 text-xs">{translate('totalVerified')}</p>
+              <p className="text-emerald-100 text-xs">{translate('Total Verified')}</p>
               <p className="text-xl font-bold">
                 {isDDVLoading ? (
                   <InlineLoadingComponent/>
@@ -235,19 +208,19 @@ export default function AdminDashboard() {
 
       <Card className="border-0 shadow-sm">
         <CardHeader className="p-3 pb-2">
-          <CardTitle className="text-sm">{translate('quickActions')}</CardTitle>
+          <CardTitle className="text-sm">{translate('Quick Actions')}</CardTitle>
         </CardHeader>
         <CardContent className="p-3 pt-0">
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: translate('manageGraves'), page: 'ManageGraves', icon: MapPin },
-              { label: translate('managePersons'), page: 'ManageDeadPersons', icon: Users },
-              { label: translate('manageOrgs'), page: 'ManageOrganisations', icon: Building2 },
-              { label: translate('manageTahfiz'), page: 'ManageTahfizCenters', icon: BookOpen },
-              { label: translate('manageSuggestions'), page: 'ManageSuggestions', icon: FileText },
-              { label: translate('manageDonations'), page: 'ManageDonations', icon: Heart },
-              { label: translate('manageTahlil'), page: 'ManageTahlilRequests', icon: Book },
-              { label: translate('manageUsers'), page: 'ManageUsers', icon: Users },
+              { label: translate('Manage Graves'), page: 'ManageGraves', icon: MapPin },
+              { label: translate('Manage Deceased'), page: 'ManageDeadPersons', icon: Users },
+              { label: translate('Manage Organisations'), page: 'ManageOrganisations', icon: Building2 },
+              { label: translate('Manage Tahfiz'), page: 'ManageTahfizCenters', icon: BookOpen },
+              { label: translate('Manage Suggestions'), page: 'ManageSuggestions', icon: FileText },
+              { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart },
+              { label: translate('Manage Tahlil'), page: 'ManageTahlilRequests', icon: Book },
+              { label: translate('Manage Users'), page: 'ManageUsers', icon: Users },
               { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck },
             ].map((action, i) => (
               <Link key={i} to={createPageUrl(action.page)}>

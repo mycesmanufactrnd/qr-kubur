@@ -1,9 +1,10 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 import { PaymentPlatform } from "./PaymentPlatform.entity.ts";
 
 @Entity("paymentfield")
+@Unique(["key", "paymentplatform"])
 export class PaymentField {
     @PrimaryGeneratedColumn()
     id!: number;
