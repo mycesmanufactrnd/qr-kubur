@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showSuccess, showWarning } from '@/components/ToastrNotification.jsx';
+import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
@@ -47,7 +48,13 @@ export default function SearchGrave() {
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
-          <div className="flex gap-2">
+          <AdvancedFilters
+            onApplyFilter={(filters) => {
+                setManualSearchQuery(filters.name || '');
+                setSelectedState(filters.state || 'nearby');
+              }}
+            />
+          {/* <div className="flex gap-2">
             <Input
               placeholder={translate('Grave')}
               value={searchQuery}
@@ -74,7 +81,7 @@ export default function SearchGrave() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 

@@ -33,6 +33,7 @@ import ViewLogs from './pages/ViewLogs';
 import ToyyibPayConfigPage from './pages/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from './pages/BillplzConfigPage.jsx';
 import SolatJenazah from './pages/SolatJenazah.jsx';
+import MosquePage from './pages/MosquePage.jsx';
 import __Layout from './Layout.jsx';
 import UserDashboard from './pages/UserDashboard';
 import UserDashboard1 from './pages/Dashboards/UserDashboard1';
@@ -78,6 +79,7 @@ export const PAGES = {
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
     "SolatJenazah": SolatJenazah,
+    "MosquePage": MosquePage,
 
     "UserDashboard": UserDashboard,
     "UserDashboard1": UserDashboard1,
