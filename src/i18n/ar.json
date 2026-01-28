@@ -308,6 +308,38 @@
   "Search platforms...": "ابحث عن المنصات...",
   "No platforms found": "لم يتم العثور على أي منصات",
   
+  
+
+  "Log in to access the admin dashboard": "Log in to access the admin dashboard",
+  "Enter your password":"Enter your password",
+  "Logging in":"Logging in",
+
+  "Check Tahlil Application Status":"Check Tahlil Application Status",
+
+  "years":"years",
+  
+  "Donation Recipient":"Donation Recipient",
+  "Other amount":"Other amount",
+  "Donor Information (Optional)":"Donor Information (Optional)",
+  "Email for confirmation":"Email for confirmation",
+  "Additional notes":"Additional notes",
+  "Transaction Details":"Transaction Details",
+  "Transaction ID":"Transaction ID",
+  "Submit Donation":"Submit Donation",
+  "Important:":"Important:",
+  "After payment, enter the transaction reference ID from your receipt.":"After payment, enter the transaction reference ID from your receipt.",
+
+  "Preview":"Preview",
+
+  "Current Status":"Current Status",
+
+  "Download":"Download",
+
+  "Can be Donated":"Can be Donated",
+
+  "Manage Organisation Types": "Manage Organisation Types",
+
+
   "Check Tahlil Status": "تحقّق من حالة التهليل",
   "Funeral Prayer Guide": "دليل صلاة الجنازة",
 
@@ -386,8 +418,6 @@
   "QR Kubur. All Rights Reserved.": "QR قبر. جميع الحقوق محفوظة.",
   "Leave Impersonating": "إنهاء الانتحال",
 
-  "No Permission": "لا توجد صلاحية",
-
-  "Last Updated": "آخر تحديث: ٢٢ يناير ٢٠٢٦"
+  "No Permission": "لا توجد صلاحية"
 
 }
