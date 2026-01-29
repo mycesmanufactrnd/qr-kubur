@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { trpc } from "../utils/trpc";
+import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus } from "@/utils/enums";
 
 export default function ToyyibPayStatusPage() {
