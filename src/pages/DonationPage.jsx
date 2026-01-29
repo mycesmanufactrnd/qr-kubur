@@ -280,7 +280,7 @@ export default function DonationPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Penerima Derma</CardTitle>
+            <CardTitle>{translate('Donation Recipient')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs
@@ -293,10 +293,10 @@ export default function DonationPage() {
             >
               <TabsList className="grid grid-cols-2">
                 <TabsTrigger value="organisation">
-                  <Building2 className="w-4 h-4 mr-2" /> Organisasi
+                  <Building2 className="w-4 h-4 mr-2" /> {translate('Organisation')}
                 </TabsTrigger>
                 <TabsTrigger value="tahfiz">
-                  <Heart className="w-4 h-4 mr-2" /> Tahfiz
+                  <Heart className="w-4 h-4 mr-2" /> {translate('Tahfiz Center')}
                 </TabsTrigger>
               </TabsList>
 
@@ -344,7 +344,7 @@ export default function DonationPage() {
                   onValueChange={v => setValue('selectedRecipient', v)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Pilih organisasi" />
+                    <SelectValue placeholder={translate('Select organisation')} />
                   </SelectTrigger>
                   <SelectContent>
                     {organisations.length > 0 ? (
@@ -406,7 +406,7 @@ export default function DonationPage() {
                   onValueChange={v => setValue('selectedRecipient', v)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Pilih pusat tahfiz" />
+                    <SelectValue placeholder={translate('Select Tahfiz center')} />
                   </SelectTrigger>
                   <SelectContent>
                     {tahfizCenters.map(c => (
@@ -422,7 +422,7 @@ export default function DonationPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Jumlah Derma</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{translate('Total Donations')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
               {DONATION_AMOUNTS.map(amt => (
@@ -442,7 +442,7 @@ export default function DonationPage() {
 
             <Input
               type="number"
-              placeholder="Jumlah lain"
+              placeholder={translate('Other amount')}
               value={customAmount}
               onChange={(e) => {
                 setValue('customAmount', e.target.value);
@@ -484,17 +484,17 @@ export default function DonationPage() {
         )}
 
         <Card>
-          <CardHeader><CardTitle>Maklumat Penderma (optional)</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{translate('Donor Information (Optional)')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <Input placeholder="Nama" value={donorname} onChange={e => setValue('donorname', e.target.value)} />
-            <Input placeholder="Email" value={donoremail} onChange={e => setValue('donoremail', e.target.value)} />
-            <Input placeholder="Phone No." value={donorphoneno} onChange={e => setValue('donorphoneno', e.target.value)} />
-            <Textarea placeholder="Catatan" value={notes} onChange={e => setValue('notes', e.target.value)} />
+            <Input placeholder={translate('Name')} value={donorname} onChange={e => setValue('donorname', e.target.value)} />
+            <Input placeholder={translate('Email')} value={donoremail} onChange={e => setValue('donoremail', e.target.value)} />
+            <Input placeholder={translate('Phone No.')} value={donorphoneno} onChange={e => setValue('donorphoneno', e.target.value)} />
+            <Textarea placeholder={translate('Notes')} value={notes} onChange={e => setValue('notes', e.target.value)} />
           </CardContent>
         </Card>
 
         <Button type="submit" className="w-full">
-          {createDonation.isPending ? 'Menghantar...' : 'Hantar Derma'}
+          {createDonation.isPending ? 'Menghantar...' : (translate('Submit Donation'))}
         </Button>
       </form>
     </div>

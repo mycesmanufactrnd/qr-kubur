@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { trpc } from "@/utils/trpc";
-import { getCurrentLanguage } from "@/utils/translations";
+import { getCurrentLanguage, translate } from "@/utils/translations";
 import { Card, CardContent } from "@/components/ui/card";
 import { SURAH_DATA, SURAH_LIST, RECITERS } from "@/utils/enums";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,17 +29,17 @@ export default function SurahPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <BackNavigation title="Surah & Tahlil" />
+      <BackNavigation title={translate('Surah & Prayer')} />
       <Tabs defaultValue="surah" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="tahlil">Tahlil</TabsTrigger>
-          <TabsTrigger value="surah">Surah</TabsTrigger>
-          <TabsTrigger value="doa">Doa</TabsTrigger>
+          <TabsTrigger value="tahlil">{translate('Tahlil')}</TabsTrigger>
+          <TabsTrigger value="surah">{translate('Surah')}</TabsTrigger>
+          <TabsTrigger value="doa">{translate('Doa')}</TabsTrigger>
         </TabsList>
         <TabsContent value="surah" className="space-y-6">
           <Card>
             <CardContent className="space-y-4">
-              <h3 className="text-center font-semibold mt-2">Pilih Qari</h3>
+              <h3 className="text-center font-semibold mt-2">{translate('Select Qari')}</h3>
 
               <div className="flex justify-center">
                 <Select
@@ -47,7 +47,7 @@ export default function SurahPage() {
                   onValueChange={(v) => setReciterId(Number(v))}
                 >
                   <SelectTrigger className="w-[260px]">
-                    <SelectValue placeholder="Pilih Qari" />
+                    <SelectValue placeholder={translate('Select Qari')} />
                   </SelectTrigger>
                   <SelectContent>
                     {RECITERS.map((r) => (
@@ -138,7 +138,7 @@ export default function SurahPage() {
       </Tabs>
 
       <footer className="text-center text-gray-500 text-sm">
-        Semoga bacaan ini sampai pahalanya kepada arwah 🤲
+        {translate('May the reward of this recitation reach the deceased')} 🤲
       </footer>
     </div>
   );

@@ -12,8 +12,8 @@ import { useGetGraveById } from '@/hooks/useGraveMutations';
 import { useGetDeadPersonPaginated } from '@/hooks/useDeadPersonMutations';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
-import { translate } from '@/utils/translations';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
+import { translate } from '@/utils/translations';
 
 export default function GraveDetails() {
   const [searchParams] = useSearchParams();
@@ -114,19 +114,19 @@ export default function GraveDetails() {
       </Card>
       <Card className="border-0 shadow-sm dark:bg-gray-800 mx-2">
         <CardContent className="p-3">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Si Mati ({persons.length})</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{translate('Deceased Name')} ({persons.length})</h2>
           
           {persons.length > 0 && (
             <div className="space-y-2 mb-3">
               <Input
-                placeholder="Cari nama..."
+                placeholder={translate('Search for the deceased\'s name...')}
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
                 className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Tarikh Meninggal</label>
+                  <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">{translate('Date of Death')}</label>
                   <Input
                     type="date"
                     value={searchDate}

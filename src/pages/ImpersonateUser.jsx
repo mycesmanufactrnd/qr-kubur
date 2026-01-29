@@ -35,24 +35,24 @@ export default function ImpersonateUser() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('superadminDashboard'), page: 'SuperadminDashboard' },
-        { label: translate('impersonateUser'), page: 'ImpersonateUser' }
+        { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
+        { label: translate('Impersonate User'), page: 'ImpersonateUser' }
       ]} />
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <UserX className="w-6 h-6 text-purple-600" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{translate('impersonateUser')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{translate('Impersonate User')}</h1>
         </div>
       </div>
 
       <Card className="border-0 shadow-sm bg-white dark:bg-gray-800">
         <CardContent className="p-4">
-            <Label className="text-sm font-medium mb-2 block">{translate('searchUser')}</Label>
+            <Label className="text-sm font-medium mb-2 block">{translate('Search User')}</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('usernameOrEmail')} 
+                placeholder={translate('Enter user\'s name or email...')} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -66,11 +66,11 @@ export default function ImpersonateUser() {
           <Table>
             <TableHeader className="bg-gray-50 dark:bg-gray-900">
               <TableRow>
-                <TableHead>{translate('username')}</TableHead>
-                <TableHead className="text-center">{translate('email')}</TableHead>
-                <TableHead className="text-center">{translate('role')}</TableHead>
-                <TableHead className="text-center">{translate('phone')}</TableHead>
-                <TableHead className="text-center">{translate('actions')}</TableHead>
+                <TableHead className="w-[300px]">{translate('Username')}</TableHead>
+                <TableHead>{translate('Email')}</TableHead>
+                <TableHead className="text-center">{translate('Role')}</TableHead>
+                <TableHead className="text-center">{translate('Status')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,7 +104,7 @@ export default function ImpersonateUser() {
                         onClick={() => impersonateUser(user)}
                       >
                         <UserSearch className="w-4 h-4 mr-2" />
-                        {translate('loginAs')}
+                        {translate('Login As')}
                       </Button>
                     </TableCell>
                   </TableRow>

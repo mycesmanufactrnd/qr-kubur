@@ -90,11 +90,11 @@ export default function ManageSuggestions() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('pending')}</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('Pending')}</Badge>;
       case 'approved':
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('approved')}</Badge>;
+        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('Approved')}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('rejected')}</Badge>;
+        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('Rejected')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -102,10 +102,10 @@ export default function ManageSuggestions() {
 
   const getEntityTypeLabel = (type) => {
     const labels = {
-      person: translate('recordPerson'),
-      grave: translate('recordGrave'),
-      organisation: translate('recordOrg'),
-      tahfiz: translate('recordTahfiz')
+      person: translate('Record Person'),
+      grave: translate('Record Grave'),
+      organisation: translate('Record Organisation'),
+      tahfiz: translate('Record Tahfiz')
     };
     return labels[type] || type;
   };
@@ -126,8 +126,8 @@ export default function ManageSuggestions() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('adminDashboard'), page: 'AdminDashboard' },
-          { label: translate('manageSuggestionsTitle'), page: 'ManageSuggestions' }
+          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+          { label: translate('Manage Suggestions'), page: 'ManageSuggestions' }
         ]} />
         <AccessDeniedComponent/>
       </div>
@@ -137,24 +137,24 @@ export default function ManageSuggestions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('adminDashboard'), page: 'AdminDashboard' },
-        { label: translate('manageSuggestionsTitle'), page: 'ManageSuggestions' }
+        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+        { label: translate('Manage Suggestions'), page: 'ManageSuggestions' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-            {translate('manageSuggestionsTitle')}
+            {translate('Manage Suggestions')}
           </h1>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: translate('pending'), value: suggestions.items.filter(s => s.status === 'pending').length, color: 'yellow' },
-          { label: translate('approved'), value: suggestions.items.filter(s => s.status === 'approved').length, color: 'green' },
-          { label: translate('rejected'), value: suggestions.items.filter(s => s.status === 'rejected').length, color: 'red' }
+          { label: translate('Pending'), value: suggestions.items.filter(s => s.status === 'pending').length, color: 'yellow' },
+          { label: translate('Approved'), value: suggestions.items.filter(s => s.status === 'approved').length, color: 'green' },
+          { label: translate('Rejected'), value: suggestions.items.filter(s => s.status === 'rejected').length, color: 'red' }
         ].map((stat, i) => (
           <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="p-4 text-center">
@@ -171,12 +171,12 @@ export default function ManageSuggestions() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Name')}</TableHead>
-                <TableHead className="text-center">{translate('Phone No')}</TableHead>
-                <TableHead className="text-center">{translate('suggestionType')}</TableHead>
-                <TableHead className="text-center">{translate('suggestion')}</TableHead>
-                <TableHead className="text-center">{translate('status')}</TableHead>
-                <TableHead className="text-center">{translate('date')}</TableHead>
-                <TableHead className="text-center">{translate('actions')}</TableHead>
+                <TableHead className="text-center">{translate('Phone No.')}</TableHead>
+                <TableHead className="text-center">{translate('Suggestion Type')}</TableHead>
+                <TableHead className="text-center">{translate('Suggestion')}</TableHead>
+                <TableHead className="text-center">{translate('Status')}</TableHead>
+                <TableHead className="text-center">{translate('Date')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -239,36 +239,36 @@ export default function ManageSuggestions() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">{translate('details')}</DialogTitle>
+            <DialogTitle className="dark:text-white">{translate('Details')}</DialogTitle>
           </DialogHeader>
           {selectedSuggestion && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('suggestionType')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Suggestion Type')}</p>
                 <p className="font-semibold dark:text-white">{getEntityTypeLabel(selectedSuggestion.type)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('suggestedChanges')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Suggested Changes')}</p>
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mt-1">
                   <p className="whitespace-pre-wrap dark:text-gray-200">{selectedSuggestion.suggestedchanges}</p>
                 </div>
               </div>
               {selectedSuggestion.reason && (
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{translate('reason')}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Reason / Justification')}</p>
                   <p className="dark:text-gray-200">{selectedSuggestion.reason}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('status')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Status')}</p>
                 {getStatusBadge(selectedSuggestion.status)}
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{translate('adminNotes')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{translate('Admin Notes')}</p>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder={translate('notes')}
+                  placeholder={translate('Notes')}
                   rows={3}
                   className="dark:bg-gray-700 dark:text-white"
                 />
@@ -277,7 +277,7 @@ export default function ManageSuggestions() {
           )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {translate('close')}
+              {translate('Close')}
             </Button>
             {selectedSuggestion?.status === 'pending' && (
               <>
@@ -288,7 +288,7 @@ export default function ManageSuggestions() {
                     disabled={updateMutation.isPending}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
-                    {translate('reject')}
+                    {translate('Reject')}
                   </Button>
                 )}
 
@@ -299,7 +299,7 @@ export default function ManageSuggestions() {
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {translate('approve')}
+                    {translate('Approve')}
                   </Button>
                 )}
               </>
@@ -311,10 +311,10 @@ export default function ManageSuggestions() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={translate('delete')}
-        description={`${translate('confirmDelete')} "${suggestionToDelete?.id}"?`}
+        title={translate('Delete')}
+        description={`${translate('Confirm delete')} "${suggestionToDelete?.id}"?`}
         onConfirm={confirmDelete}
-        confirmText={translate('delete')}
+        confirmText={translate('Delete')}
         variant="destructive"
       />
     </div>

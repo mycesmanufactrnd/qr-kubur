@@ -90,7 +90,7 @@ export default function ManagePermissions() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
           { label: translate('Manage Permissions'), page: 'ManagePermissions' }
         ]} />
         <AccessDeniedComponent/>
@@ -101,24 +101,24 @@ export default function ManagePermissions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: isSuperAdmin ? translate('superadminDashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+        { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
         { label: translate('Manage Permissions'), page: 'ManagePermissions' }
       ]} />
 
       <div className="flex items-center gap-2">
         <Shield className="w-6 h-6 text-purple-600" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{translate('manageUserPermissions')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{translate('Manage User Permissions')}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('searchUser')}</Label>
+              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('Search User')}</Label>
               <div className="relative mt-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder={translate('nameOrICnumber')}
+                  placeholder={translate('Name or IC number...')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 border-gray-300 dark:border-white dark:text-white"
@@ -158,7 +158,7 @@ export default function ManagePermissions() {
             {!selectedUser ? (
               <div className="text-center py-12">
                 <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">{translate('selectUserManageAccess')}</p> 
+                <p className="text-gray-500">{translate('Select a user to manage access')}</p> 
               </div>
             ) : (
               <div className="space-y-6">
@@ -170,7 +170,7 @@ export default function ManagePermissions() {
                   { canEdit && (
                     <Button onClick={saveAllPermissions} disabled={upsertPermission.isPending}>
                       <Save className="w-4 h-4 mr-2" />
-                      {translate('save')}
+                      {translate('Save')}
                     </Button>
                   )}
                 </div>
