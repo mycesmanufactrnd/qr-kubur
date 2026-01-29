@@ -1,4 +1,3 @@
-import AdminDashboard from './pages/AdminDashboard';
 import AppUserLogin from './pages/AppUserLogin';
 import CheckTahlilStatus from './pages/CheckTahlilStatus';
 import DeadPersonDetails from './pages/DeadPersonDetails';
@@ -25,7 +24,6 @@ import SearchGrave from './pages/SearchGrave';
 import SearchTahfiz from './pages/SearchTahfiz';
 import SettingsPage from './pages/SettingsPage';
 import SubmitSuggestion from './pages/SubmitSuggestion';
-import SuperadminDashboard from './pages/SuperadminDashboard';
 import SurahPage from './pages/SurahPage';
 import TahlilRequestPage from './pages/TahlilRequestPage';
 import TermsAndConditions from './pages/TermsAndConditions';
@@ -35,6 +33,11 @@ import BillplzConfigPage from './pages/BillplzConfigPage.jsx';
 import SolatJenazah from './pages/SolatJenazah.jsx';
 import MosquePage from './pages/MosquePage.jsx';
 import __Layout from './Layout.jsx';
+
+// Dashboard
+import AdminDashboard from './pages/Dashboards/AdminDashboard';
+import TahfizDashboard from './pages/Dashboards/TahfizDashboard';
+import SuperadminDashboard from './pages/Dashboards/SuperadminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import UserDashboard1 from './pages/Dashboards/UserDashboard1';
 import UserDashboard2 from './pages/Dashboards/UserDashboard2';
@@ -44,7 +47,6 @@ import UserDashboard5 from './pages/Dashboards/UserDashboard5';
 
 
 export const PAGES = {
-    "AdminDashboard": AdminDashboard,
     "AppUserLogin": AppUserLogin,
     "CheckTahlilStatus": CheckTahlilStatus,
     "DeadPersonDetails": DeadPersonDetails,
@@ -71,7 +73,6 @@ export const PAGES = {
     "SearchTahfiz": SearchTahfiz,
     "SettingsPage": SettingsPage,
     "SubmitSuggestion": SubmitSuggestion,
-    "SuperadminDashboard": SuperadminDashboard,
     "SurahPage": SurahPage,
     "TahlilRequestPage": TahlilRequestPage,
     "TermsAndConditions": TermsAndConditions,
@@ -80,7 +81,10 @@ export const PAGES = {
     "BillplzConfigPage": BillplzConfigPage,
     "SolatJenazah": SolatJenazah,
     "MosquePage": MosquePage,
-
+    // Dashboard
+    "AdminDashboard": AdminDashboard,
+    "TahfizDashboard": TahfizDashboard,
+    "SuperadminDashboard": SuperadminDashboard,
     "UserDashboard": UserDashboard,
     "UserDashboard1": UserDashboard1,
     "UserDashboard2": UserDashboard2,

@@ -1,11 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { Search, MapPin, Navigation, Share2 } from 'lucide-react';
+import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showSuccess, showWarning } from '@/components/ToastrNotification.jsx';
 import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import { translate } from '@/utils/translations';

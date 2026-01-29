@@ -1,13 +1,13 @@
   import { Link } from 'react-router-dom';
-  import { createPageUrl } from '../utils/index';
   import { Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX } from 'lucide-react';
   import { Card, CardContent } from "@/components/ui/card";
   import { Badge } from "@/components/ui/badge";
   import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
   import { translate } from '@/utils/translations';
-  import PageLoadingComponent from '../components/PageLoadingComponent';
   import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
   import { useAdminAccess } from '@/utils/auth';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { createPageUrl } from '@/utils';
 
   export default function SuperadminDashboard() {
     const { 
@@ -52,17 +52,17 @@
     },
   ];
 
-    if (loadingUser) {
-      return (
-        <PageLoadingComponent/>
-      );
-    }
+  if (loadingUser) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
 
-    if (!isSuperAdmin) {
-      return (
-        <AccessDeniedComponent/>
-      );
-    }
+  if (!isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
 
   return (
     <div className="space-y-6">
