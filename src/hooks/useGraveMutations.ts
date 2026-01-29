@@ -91,14 +91,12 @@ export function useBulkCreateGraves() {
 
 export function useGetGravesCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
-  userState?: string,
-  searchQuery?: string,
+  filters?: Record<string, string>
 ) {
   return trpc.grave.getGraveByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
-      userState, 
-      searchQuery,
+      filters: filters ?? {},
     },
     {
       enabled: !!coordinates,
