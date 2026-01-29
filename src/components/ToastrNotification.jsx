@@ -54,16 +54,17 @@ export const showWarning = (message, title = 'Amaran') => {
 };
 
 export const showRequiredError = (field) => {
-  toastr.error(`Sila lengkapkan medan: ${field}`, 'Pengesahan Gagal');
+  toastr.error(`${translate("Please complete the field")} ${field}`, translate("Failed Verification"));
+
 };
 
 export const showUniqueError = (field, value) => {
-  toastr.error(`${field} "${value}" sudah wujud dalam sistem`, 'Data Pendua');
+  toastr.error(`${field} "${value}" ${translate('already exists in the system')}`, translate('Duplicate Data'));
 };
 
 export const showApiError = (error) => {
-  const message = error?.message || error?.response?.data?.message || 'Operasi gagal';
-  toastr.error(message, 'Ralat API');
+  const message = error?.message || error?.response?.data?.message || translate('Operation failed');
+  toastr.error(message, translate('API Error'));
 };
 
 export const showApiSuccess = (operation) => {

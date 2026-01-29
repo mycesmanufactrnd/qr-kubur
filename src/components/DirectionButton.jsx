@@ -2,6 +2,7 @@ import { Navigation } from "lucide-react";
 import { Button } from "./ui/button";
 import { openDirections } from "@/utils/helpers";
 import clsx from "clsx";
+import { translate } from "@/utils/translations";
 
 export default function DirectionButton({ 
   latitude = null, 
@@ -23,7 +24,7 @@ export default function DirectionButton({
       )}
     >
       <Navigation className="w-3 h-3 mr-1" />
-      Arah
+      {translate('Direction')}
     </Button>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QRCodeCanvas } from "qrcode.react";
+import { translate } from '@/utils/translations';
 
 export default function QRCodeDialog({ open, onOpenChange, data }) {
   if (!data) return null;
@@ -32,7 +33,7 @@ export default function QRCodeDialog({ open, onOpenChange, data }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm text-center">
         <DialogHeader>
-          <DialogTitle>Kod QR</DialogTitle>
+          <DialogTitle>{translate('QR Code')}</DialogTitle>
         </DialogHeader>
 
         <div className="flex justify-center py-4">
@@ -45,10 +46,10 @@ export default function QRCodeDialog({ open, onOpenChange, data }) {
 
         <DialogFooter className="flex justify-between">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Tutup
+            {translate('Close')}
           </Button>
           <Button onClick={downloadQR}>
-            Muat Turun
+            {translate('Download')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -133,7 +133,7 @@ export default function ScanQR() {
   if (graveLoading || personLoading) {
     return (
       <div className="max-w-2xl mx-auto space-y-3 pb-2 text-center">
-        <BackNavigation title="Scan QR" />
+        <BackNavigation title={translate('Scan QR')} />
         <PageLoadingComponent/>
       </div>
     );
@@ -141,7 +141,7 @@ export default function ScanQR() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-3 pb-2">
-      <BackNavigation title="Scan QR" />
+      <BackNavigation title={translate('Scan QR')} />
       {!result && (
         <Card className="border-0 shadow-lg overflow-hidden dark:bg-gray-800">
           <CardContent className="p-0">
@@ -173,7 +173,7 @@ export default function ScanQR() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
                   <Camera className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{translate('Scan With Camera')}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{translate('Scan with Camera')}</h3>
                 <div className="flex gap-2 justify-center">
                   <Button 
                     onClick={() => setScanning(true)}
@@ -205,7 +205,7 @@ export default function ScanQR() {
                 <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-emerald-700 dark:text-emerald-300">{translate('recordFound')}</p>
+                <p className="font-semibold text-emerald-700 dark:text-emerald-300">{translate('Record Found')}</p>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white mt-1">
                   {result.data.name}
                 </h3>
@@ -213,7 +213,7 @@ export default function ScanQR() {
                   <p className="text-sm text-gray-600 dark:text-gray-300">{result.data.state}</p>
                 )}
                 {result.type === 'grave' && result.data.block && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Blok {result.data.block}, Lot {result.data.lot}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{translate('Blok')}{result.data.block}, {translate('Lot')}{result.data.lot}</p>
                 )}
                 {result.type === 'person' && result.data.dateofdeath && (
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -228,7 +228,7 @@ export default function ScanQR() {
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                 onClick={navigateToResult}
               >
-                {translate('viewDetails')}
+                {translate('View Details')}
               </Button>
               <Button 
                 variant="outline"
@@ -239,7 +239,7 @@ export default function ScanQR() {
                 }}
                 className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
               >
-                {translate('scanAgain')}
+                {translate('Scan Again')}
               </Button>
             </div>
           </CardContent>

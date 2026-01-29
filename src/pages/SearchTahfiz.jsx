@@ -34,7 +34,7 @@ export default function SearchTahfiz() {
 
   return (
     <div className="space-y-3 pb-2">
-      <BackNavigation title={translate('searchTahfizTitle') || "Search Tahfiz Center"} />
+      <BackNavigation title={translate('Search Tahfiz') || "Search Tahfiz Center"} />
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
@@ -59,7 +59,7 @@ export default function SearchTahfiz() {
                 <SelectValue placeholder={translate('state')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="nearby">{translate('nearby')}</SelectItem>
+                <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
                 {STATES_MY.map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
@@ -115,7 +115,7 @@ export default function SearchTahfiz() {
                     ) }
                     <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${center.id}`}>
                       <Button size="sm" variant="outline" className="h-7 text-xs w-full dark:bg-gray-700">
-                        {translate('request')}
+                        {translate('Request')}
                       </Button>
                     </Link>
                   </div>

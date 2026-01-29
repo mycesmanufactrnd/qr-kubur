@@ -15,43 +15,42 @@
       isSuperAdmin, 
     } = useAdminAccess();
 
-    const superadminConfig = [
-      {
-        value: "users",
-        title: translate('userManagement'),
-        items: [
-          { name: translate('impersonateUser'), page: 'ImpersonateUser', icon: UserX, color: 'red' }, 
-          { name: translate('manageUsers'), page: 'ManageUsers', icon: Users, color: 'amber' },
-          { name: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
-        ]
-      },
-      {
-        value: "organisation",
-        title: translate('organisationManagement'),
-        items: [
-          { name: translate('orgType'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
-          { name: translate('manageOrgs'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
-        ]
-      },
-      {
-        value: "payment",
-        title: translate('paymentManagement'), 
-        items: [
-          { name: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
-          { name: translate('paymentFields'), page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
-        ]
-      },
-      {
-        value: "system",
-        title: translate('systemManagement'),
-        items: [
-          { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
-          { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
-          { name: translate('ToyyibPay Config'), page: 'ToyyibPayConfigPage', icon: Sparkles, color: 'indigo' },
-          { name: translate('Billpiz Config'), page: 'BillplzConfigPage', icon: Sparkles, color: 'indigo' },
-        ]
-      },
-    ];
+  const superadminConfig = [
+    {
+      value: "users",
+      title: translate('User Management'),
+      items: [
+        { name: translate('Impersonate User'), page: 'ImpersonateUser', icon: UserX, color: 'red' }, 
+        { name: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'amber' },
+        { name: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
+      ]
+    },
+    {
+      value: "organisation",
+      title: translate('Organisation Management'),
+      items: [
+        { name: translate('orgType'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
+        { name: translate('manageOrgs'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
+      ]
+    },
+    {
+      value: "payment",
+      title: translate('Payment Management'), 
+      items: [
+        { name: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
+        { name: translate('paymentFields'), page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
+      ]
+    },
+    {
+      value: "system",
+      title: translate('System Management'),
+      items: [
+        { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
+        { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
+        { name: translate('ToyyibPay Config'), page: 'ToyyibPayConfigPage', icon: Sparkles, color: 'indigo' },
+      ]
+    },
+  ];
 
     if (loadingUser) {
       return (
@@ -65,21 +64,21 @@
       );
     }
 
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              {translate('superadminDashboard')}
-            </h1>
-          </div>
-          <Link to={createPageUrl('AdminDashboard')}>
-            <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
-              To {translate('adminDashboard')}
-            </Badge>
-          </Link>
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            {translate('Super Admin Dashboard')}
+          </h1>
         </div>
+        <Link to={createPageUrl('AdminDashboard')}>
+          <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
+             {translate('To Admin Dashboard')}
+          </Badge>
+        </Link>
+      </div>
 
         <Tabs defaultValue={superadminConfig[0].value} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
