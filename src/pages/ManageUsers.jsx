@@ -25,7 +25,7 @@ import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 
 export default function ManageUsers() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, isEmployee, currentUserStates } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, currentUserStates } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [search, setSearch] = useState('');
@@ -53,8 +53,8 @@ export default function ManageUsers() {
   const handleAddUser = () => {
     setIsAddMode(true);
     const defaultState = isAdmin && !isSuperAdmin ? currentUserStates : [];
-    const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation.id : null;
-    const defaultTahfizId = isAdmin && !isSuperAdmin ? currentUser.tahfizcenter.id : null;
+    const defaultOrgId = isAdmin && !isSuperAdmin ? currentUser.organisation?.id : null;
+    const defaultTahfizId = isAdmin && !isSuperAdmin ? currentUser.tahfizcenter?.id : null;
 
     setEditUser({
       fullname: '',
@@ -355,58 +355,62 @@ export default function ManageUsers() {
                 </div>
               )}
 
+            <div>
+              <label className="text-sm font-medium mb-2 block">{translate('role')}</label>
+              <Select 
+                value={editUser.role || 'employee'} 
+                onValueChange={(v) => setEditUser({...editUser, role: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {isSuperAdmin && <SelectItem value="superadmin">{translate('superAdmin')}</SelectItem>}
+                  <SelectItem value="admin">{translate('admin')}</SelectItem>
+                  <SelectItem value="employee">{translate('employee')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+              {isSuperAdmin || currentUser?.organisation?.id && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">{translate('role')}</label>
+                  <label className="text-sm font-medium mb-2 block">{translate('org')}</label>
                   <Select 
-                  value={editUser.role || 'employee'} 
-                  onValueChange={(v) => setEditUser({...editUser, role: v})}
+                    value={editUser.organisation || ''} 
+                    onValueChange={(v) => setEditUser({...editUser, organisation: v, tahfizcenter: null})}
+                    disabled={isAdmin && !isSuperAdmin && currentUser.organisation}
                   >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isSuperAdmin && <SelectItem value="superadmin">{translate('superAdmin')}</SelectItem>}
-                    <SelectItem value="admin">{translate('admin')}</SelectItem>
-                    <SelectItem value="employee">{translate('employee')}</SelectItem>
-                  </SelectContent>
+                    <SelectTrigger>
+                      <SelectValue placeholder={translate('selectOrg')}/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organisations.items.map(org => (
+                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
-                  </div>
+                </div>
+              )}
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">{translate('org')}</label>
-                <Select 
-                  value={editUser.organisation || ''} 
-                  onValueChange={(v) => setEditUser({...editUser, organisation: v, tahfizcenter: null})}
-                  disabled={isAdmin && !isSuperAdmin && currentUser.organisation}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={translate('selectOrg')}/>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organisations.items.map(org => (
-                      <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">{translate('TahfizCenter')}</label>
-                <Select 
-                  value={editUser.tahfiz_center_id || ''} 
-                  onValueChange={(v) => setEditUser({...editUser, tahfiz_center_id: v, organisation_id: ''})}
-                  disabled={(isAdmin && !isSuperAdmin && currentUser.tahfiz_center_id) || currentUser.organisation_id}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={translate('selectTahfizCenter')} /> 
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tahfizCenters.items.map(center => (
-                      <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {isSuperAdmin || currentUser?.tahfizcenter?.id && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">{translate('TahfizCenter')}</label>
+                  <Select 
+                    value={editUser.tahfizcenter || ''} 
+                    onValueChange={(v) => setEditUser({...editUser, tahfizcenter: v, organisation: ''})}
+                    disabled={(isAdmin && !isSuperAdmin && currentUser.tahfizcenter) || currentUser.organisation}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={translate('selectTahfizCenter')} /> 
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tahfizCenters.items.map(center => (
+                        <SelectItem key={center.id} value={center.id}>{center.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-medium mb-2 block">{translate('state')} <span className="text-red-500">*</span></label>

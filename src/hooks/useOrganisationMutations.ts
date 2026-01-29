@@ -23,7 +23,6 @@ export function useGetOrganisationPaginated({
 }: useGetOrganisationPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
   const currentUserOrganisationId = currentUser?.organisation?.id ?? undefined;
-
   const { data, isLoading, refetch, error } =
     trpc.organisation.getPaginated.useQuery(
       {
@@ -100,4 +99,16 @@ export function useGetOrganisationCoordinates(
   );
 
   return { organisations: data, isLoading, error, refetch };
+}
+
+export function useGetOrganisationByTypeId(organisationTypeId) {
+  const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
+
+  trpc.organisation.getByOrganisationTypeId.useQuery(
+    {
+      organisationTypeId,
+      checkRole,
+    },
+    { enabled: hasAdminAccess && !!currentUser }
+  );
 }

@@ -379,7 +379,14 @@ export default function ManageOrganisations() {
                     </SelectTrigger>
                     <SelectContent>
                       {organisationTypeList.map(type => (
-                        <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                        <SelectItem key={type.id} value={type.id}>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span>{type.name}</span>
+                            <span style={{ fontSize: '0.8em', color: '#666' }}>
+                              {type.description}
+                            </span>
+                          </div>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

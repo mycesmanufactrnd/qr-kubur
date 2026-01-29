@@ -106,7 +106,7 @@ export function useAdminAccess() {
     currentUserStates = STATES_MY;
   }
   else {
-    currentUserStates = Array.isArray(currentUser?.state) ? currentUser.state : [currentUser?.state].filter(Boolean);
+    currentUserStates = Array.isArray(currentUser?.states) ? currentUser.states : [currentUser?.states].filter(Boolean);
   }
 
   const checkRole = {
