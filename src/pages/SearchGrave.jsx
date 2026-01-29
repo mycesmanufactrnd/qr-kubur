@@ -18,15 +18,14 @@ import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SearchGrave() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [manualSearchQuery, setManualSearchQuery] = useState('');
-  const [selectedState, setSelectedState] = useState('nearby');
   const [displayedCount, setDisplayedCount] = useState(10);
   const {
     userLocation,
-    userState,
     locationDenied,
+    userState
   } = useLocationContext();
+  
+  const [filters, setFilters] = useState({ state: userState });
 
   useEffect(() => {
     if (locationDenied) {
@@ -38,8 +37,7 @@ export default function SearchGrave() {
     userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
-    selectedState === 'nearby' ? userState : selectedState,
-    manualSearchQuery
+    filters
   );
 
   return (
@@ -49,39 +47,26 @@ export default function SearchGrave() {
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-3 space-y-2">
           <AdvancedFilters
-            onApplyFilter={(filters) => {
-                setManualSearchQuery(filters.name || '');
-                setSelectedState(filters.state || 'nearby');
-              }}
-            />
-          {/* <div className="flex gap-2">
-            <Input
-              placeholder={translate('Grave')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-            />
-            <Button
-              onClick={() => setManualSearchQuery(searchQuery)}
-              className="h-9"
-            >
-              <Search className="w-4 h-4 mr-1" /> {translate('Search')}
-            </Button>
-          </div>
-
-          <div className="flex gap-2">
-            <Select value={selectedState} onValueChange={setSelectedState}>
-              <SelectTrigger className="h-9 dark:bg-gray-700 dark:text-white dark:border-gray-600">
-                <SelectValue placeholder={translate('state')} />
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-700">
-                <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
-                {STATES_MY.map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div> */}
+            parameter={[
+              { label: "Name", type: "text", searchColumn: "name" },
+              {
+                label: "State",
+                type: "select",
+                searchColumn: "state",
+                options: STATES_MY.map((s) => ({ id: s, name: s })),
+              },
+              {
+                label: "Organisation",
+                type: "select",
+                searchColumn: "organisationId",
+                options: [
+                  { id: 1, name: "Org 1" },
+                  { id: 2, name: "Org 2" },
+                ],
+              },
+            ]}
+            onApplyFilter={setFilters}
+          />
         </CardContent>
       </Card>
 

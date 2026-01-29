@@ -47,6 +47,8 @@ export async function runpaymentConfigSeederProd() {
     await paymentFieldRepo.upsert(fields, ["key", "paymentplatform"]);
 
     console.log("✔ Payment config seeded");
+  } catch (error) {
+    console.error("❌ Payment config seeding failed:", error);
   } finally {
     await AppDataSource.destroy();
   }

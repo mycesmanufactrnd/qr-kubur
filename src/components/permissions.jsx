@@ -46,12 +46,6 @@ export const PERMISSIONS = {
   USERS_CREATE: 'users_create',
   USERS_EDIT: 'users_edit',
   USERS_DELETE: 'users_delete',
-  
-  // Employees
-  EMPLOYEES_VIEW: 'employees_view',
-  EMPLOYEES_CREATE: 'employees_create',
-  EMPLOYEES_EDIT: 'employees_edit',
-  EMPLOYEES_DELETE: 'employees_delete',
 
   // Permission
   PERMISSIONS_VIEW: 'permissions_view',
@@ -118,6 +112,15 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.TAHLIL_ACCEPT, label: 'Terima' },
       { slug: PERMISSIONS.TAHLIL_REJECT, label: 'Tolak' },
       { slug: PERMISSIONS.TAHLIL_COMPLETE, label: 'Selesai' },
+    ]
+  },
+  users: {
+    label: 'Pengguna',
+    permissions: [
+      { slug: PERMISSIONS.USERS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.USERS_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.USERS_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.USERS_DELETE, label: 'Padam' },
     ]
   },
   permissions: {

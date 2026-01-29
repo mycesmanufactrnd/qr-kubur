@@ -12,9 +12,9 @@ async function getOrganisationTreeIds(rootId: number) {
       UNION ALL
       SELECT o.id
       FROM organisation o
-      INNER JOIN org_tree ot ON ot.id = o.parentorganisationId
+      JOIN org_tree ot ON o."parentorganisationId" = ot.id
     )
-    SELECT id FROM org_tree
+    SELECT id FROM org_tree;
   `, [rootId]);
 
   return result.map((r: any) => r.id);
@@ -39,7 +39,13 @@ export const organisationRouter = router({
       })
     )
     .query(async ({ input }) => {
+      console.log('qwer', input)
       const { page, pageSize, search, filterType, filterState, checkRole, currentUserOrganisation } = input;
+
+      if ((checkRole?.admin || checkRole?.employee) && !currentUserOrganisation) {
+        return { items: [], total: 0 };
+      }
+
       const organisationRepo = AppDataSource.getRepository(Organisation);
 
       const query = organisationRepo.createQueryBuilder('organisation')
@@ -48,7 +54,7 @@ export const organisationRouter = router({
 
       if (checkRole?.superadmin) {}
       else if (checkRole?.admin && currentUserOrganisation) {
-        const allowedIds = await getOrganisationTreeIds(currentUserOrganisation);
+        const allowedIds = await getOrganisationTreeIds(Number(currentUserOrganisation));
         query.andWhere('organisation.id IN (:...allowedIds)', { allowedIds });
       }
       else if (checkRole?.employee && currentUserOrganisation) {
@@ -75,7 +81,7 @@ export const organisationRouter = router({
         );
       }
 
-      if (page && pageSize) {
+      if (!checkRole?.superadmin && page && pageSize) {
         query.skip((page - 1) * pageSize).take(pageSize);
       }
 
@@ -186,5 +192,38 @@ export const organisationRouter = router({
         ...entity,
         distance: Number(raw[index].distance),
       }));
+    }),
+
+  getByOrganisationTypeId: protectedProcedure
+  .input(
+      z.object({
+        organisationTypeId: z.number().optional().nullable(),
+        checkRole: z.object({
+          superadmin: z.boolean(),
+          admin: z.boolean(),
+          employee: z.boolean(),
+          tahfiz: z.boolean(),
+        }).optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { organisationTypeId, checkRole } = input;
+
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+
+      const query = organisationRepo.createQueryBuilder('organisation')
+        .where('organisation.status = :active', { active: ActiveInactiveStatus.ACTIVE });
+
+      if (checkRole?.superadmin) {}
+      else if (checkRole?.admin || checkRole?.employee) {
+        if (organisationTypeId) {
+          query.andWhere('organisation.organisationTypeId = :id', {
+            id: organisationTypeId,
+          });
+        }
+      }
+
+      const organisations = await query.getMany();
+      return organisations;
     }),
 });

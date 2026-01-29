@@ -1,4 +1,5 @@
 import { runBucketSeeder } from "./seeder/bucketSeeder.ts";
+import { runOrganisationTypeSeederProd } from "./seeder/production/organisationTypeSeeder.ts";
 import { runpaymentConfigSeederProd } from "./seeder/production/paymentConfigSeeder.ts";
 import { runUserSeederProd } from "./seeder/production/userSeeder.ts";
 
@@ -12,6 +13,9 @@ await runBucketSeeder();
 
 console.log("\nSeeding payment config...");
 await runpaymentConfigSeederProd();
+
+console.log("\nSeeding organisation type...");
+await runOrganisationTypeSeederProd();
 
 console.log("\n✅ Database seed operation completed");
 process.exit(0);

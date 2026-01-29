@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, Unique } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
 
 @Entity("organisationtype")
+@Unique(["name"])
 export class OrganisationType {
   @PrimaryGeneratedColumn()
   id!: number;
