@@ -83,10 +83,9 @@ export default function UserDashboard2() {
           color="from-pink-500 to-rose-500"
         />
       </div>
-
       <div>
-        <h3 className="text-sm font-semibold text-gray-500 mb-3"> 
-          {translate('Guide & Recitations')}
+        <h3 className="text-sm font-semibold text-gray-500 mb-3">
+          Servis Lain
         </h3>
 
         <div className="space-y-3">
@@ -102,15 +101,6 @@ export default function UserDashboard2() {
             desc={translate('Check application')}
             page="CheckTahlilStatus"
           />
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-semibold text-gray-500 mb-3">
-          Servis Lain
-        </h3>
-
-        <div className="space-y-3">
           <GuideRow
             icon={MapPin}
             title="Cari Masjid"

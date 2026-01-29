@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
 import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
@@ -35,7 +35,9 @@ function LayoutContent({ children, currentPageName }) {
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
-    isAdmin, 
+    isAdmin,
+    isTahfizAdmin,
+    isEmployee
   } = useAdminAccess();
 
   const { clearPermissions } = usePermissions();
@@ -72,7 +74,11 @@ function LayoutContent({ children, currentPageName }) {
   useEffect(() => {
     if (loadingUser) return;
     
-    if (isAdmin && (currentPageName === 'AppUserLogin' )) {
+    if (isTahfizAdmin && (currentPageName === 'AppUserLogin' )) {
+      window.location.href = createPageUrl('TahfizDashboard');
+    }
+
+    if ((isAdmin || isEmployee) && (currentPageName === 'AppUserLogin' )) {
       window.location.href = createPageUrl('AdminDashboard');
     }
 
@@ -103,8 +109,15 @@ function LayoutContent({ children, currentPageName }) {
     );
   }
 
+  function getMainPage() {
+    if (isSuperAdmin) return 'SuperadminDashboard';
+    if (isTahfizAdmin) return 'TahfizDashboard';
+    if (isAdmin || isEmployee) return 'AdminDashboard';
+    return 'AppUserLogin';
+  }
+
   const bottomNavItems = [
-    { name: translate('Main'), icon: Home, page: 'UserDashboard2' },
+    { name: translate('Main'), icon: Home, page: 'UserDashboard' },
     { name: translate('Search'), icon: Search, page: 'SearchGrave' },
     { name: translate('QR Code'), icon: QrCode, page: 'ScanQR' },
     { name: translate('Donation'), icon: Heart, page: 'DonationPage' },
@@ -126,8 +139,11 @@ function LayoutContent({ children, currentPageName }) {
               <Menu className="w-6 h-6" />
             </Button>
 
-            <Link to={createPageUrl(isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard')} className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
+            <Link to={createPageUrl(getMainPage())} className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 
+                flex items-center justify-center 
+                shadow-lg shadow-emerald-200/60 
+                hover:scale-105 transition">
                 <QrCode className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -234,7 +250,7 @@ function LayoutContent({ children, currentPageName }) {
       <header className="hidden lg:block sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            <Link to={createPageUrl(isSuperAdmin ? 'SuperadminDashboard' : isAdmin ? 'AdminDashboard' : 'UserDashboard')} className="flex items-center gap-3">
+            <Link to={createPageUrl(getMainPage())} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>

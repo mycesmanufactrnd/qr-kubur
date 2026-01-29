@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import LoadingUser from '../components/PageLoadingComponent';
-import Breadcrumb from '../components/Breadcrumb';
-import ConfirmDialog from '../components/ConfirmDialog';
+import LoadingUser from '@/components/PageLoadingComponent';
+import Breadcrumb from '@/components/Breadcrumb';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { useAdminAccess } from '@/utils/auth';
 import { 
   useCreatePaymentPlatform,
@@ -21,7 +21,7 @@ import {
 import { validateFields } from '@/utils/validations';
 import { translate } from '@/utils/translations';
 import { defaultPaymentConfigField } from '@/utils/defaultformfields';
-import PageLoadingComponent from '../components/PageLoadingComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';

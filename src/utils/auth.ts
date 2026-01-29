@@ -17,7 +17,16 @@ export function handleLoginTRPC() {
 
       localStorage.setItem("permissions", JSON.stringify(permissions));
 
-      window.location.href = createPageUrl("AdminDashboard");
+      if (data.tahfizcenter) {
+        window.location.href = createPageUrl("TahfizDashboard");
+      }
+      else if (data.organisation) {
+        window.location.href = createPageUrl("AdminDashboard");
+      }
+      else {
+        window.location.href = createPageUrl("SuperAdminDashboard");
+      }
+
     },
     onError: (err) => {
       console.error(err);
@@ -97,7 +106,7 @@ export function useAdminAccess() {
   const isSuperAdmin = currentUser?.role === "superadmin";
   const isAdmin = currentUser?.role === "admin";
   const isEmployee = currentUser?.role === "employee";
-  const isTahfizAdmin = isAdmin && !!currentUser?.tahfiz_center_id;
+  const isTahfizAdmin = isAdmin && !!currentUser?.tahfizcenter?.id;
 
   const hasAdminAccess = isSuperAdmin || isAdmin || isEmployee;
 

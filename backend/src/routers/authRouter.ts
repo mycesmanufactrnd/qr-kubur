@@ -30,7 +30,7 @@ export const authRouter = router({
 
       let user = await userRepo.findOne({
         where: { email: input.email },
-        relations: ['organisation', 'tahfizcenter']
+        relations: ['organisation', 'tahfizcenter', 'organisation.organisationtype']
       });
 
       if (!user) throw new Error("Invalid credentials");
