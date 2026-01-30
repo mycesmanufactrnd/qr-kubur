@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, BookOpen, Navigation, Globe, Star, Share2} from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, BookOpen, Navigation, Globe, Star, Share2, Eye} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';

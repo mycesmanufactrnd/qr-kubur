@@ -24,30 +24,28 @@ export async function runOrganisationTypeSeederProd() {
             status: ActiveInactiveStatus.ACTIVE 
         },
         { 
-            name: "Jawatankuasa Kariah", 
+            // Have own Dashboard
+            name: "Jawatankuasa Kariah & Badan Masjid", 
             description: "Jawatankuasa setempat yang mengurus pengurusan masjid dan tanah perkuburan kariah", 
             status: ActiveInactiveStatus.ACTIVE 
         },
         { 
             name: "Syarikat Swasta", 
-            description: "Entiti perniagaan yang menyediakan perkhidmatan pengurusan jenazah secara komersial", 
+            description: "Entiti perniagaan yang menyediakan perkhidmatan secara komersial", 
             status: ActiveInactiveStatus.ACTIVE 
         },
         { 
+            // Have own Dashboard
             name: "Pertubuhan Kebajikan (NGO)", 
             description: "Organisasi bukan keuntungan yang fokus kepada kebajikan dan bantuan komuniti", 
             status: ActiveInactiveStatus.ACTIVE 
         },
         { 
+            // Have own Dashboard
             name: "Persatuan Sukarelawan", 
             description: "Organisasi yang dijalankan oleh sukarelawan untuk aktiviti sosial dan bantuan komuniti", 
             status: ActiveInactiveStatus.ACTIVE 
         },
-        { 
-            name: "Badan Masjid", 
-            description: "Badan rasmi yang mengurus operasi, pentadbiran, dan aktiviti masjid setempat", 
-            status: ActiveInactiveStatus.ACTIVE 
-        }
     ];
 
 
