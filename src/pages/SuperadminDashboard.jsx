@@ -29,25 +29,25 @@
       value: "organisation",
       title: translate('Organisation Management'),
       items: [
-        { name: translate('orgType'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
-        { name: translate('manageOrgs'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
+        { name: translate('Organisation Type'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
+        { name: translate('Manage Organisations'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
       ]
     },
     {
       value: "payment",
       title: translate('Payment Management'), 
       items: [
-        { name: translate('paymentPlatforms'), page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
-        { name: translate('paymentFields'), page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
+        { name: translate('Payment Platform'), page: 'ManagePaymentPlatforms', icon: CreditCard, color: 'green' },
+        { name: translate('Payment Fields'), page: 'ManagePaymentFields', icon: Settings, color: 'indigo' },
       ]
     },
     {
       value: "system",
       title: translate('System Management'),
       items: [
-        { name: translate('activityLogs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
-        { name: translate('iconsLibrary'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
-        { name: translate('ToyyibPay Config'), page: 'ToyyibPayConfigPage', icon: Sparkles, color: 'indigo' },
+        { name: translate('Activity Logs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
+        { name: translate('Icons Library'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
+        { name: translate('ToyyibPay Configuration'), page: 'ToyyibPayConfigPage', icon: Sparkles, color: 'indigo' },
       ]
     },
   ];
