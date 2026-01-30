@@ -9,11 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import Breadcrumb from '../components/Breadcrumb';
-import ConfirmDialog from '../components/ConfirmDialog';
+import Breadcrumb from '@/components/Breadcrumb';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { useAdminAccess } from '@/utils/auth';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import PageLoadingComponent from '../components/PageLoadingComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { 
   useGetOrganisationType, 
   useCreateOrganisationType, 

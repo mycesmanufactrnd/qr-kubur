@@ -25,12 +25,12 @@ export function useGetTahfizPaginated({
   search,
   filterState,
 }: useGetTahfizPaginatedParams) {
-  const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
+  const { currentUser, hasAdminAccess, isTahfizAdmin, isSuperAdmin, checkRole } = useAdminAccess();
   const currentUserTahfizCenterId = currentUser?.tahfizcenter?.id ?? undefined;
 
   const query = trpc.tahfiz.getPaginated.useQuery(
     { page, pageSize, search, filterState, currentUserTahfiz: currentUserTahfizCenterId, checkRole },
-    { enabled: hasAdminAccess && !!currentUser }
+    { enabled: hasAdminAccess && !!currentUser && (isTahfizAdmin || isSuperAdmin) }
   );
 
   return {

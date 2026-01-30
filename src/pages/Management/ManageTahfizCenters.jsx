@@ -11,21 +11,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm, Controller } from "react-hook-form";
-
-import LoadingUser from '../components/PageLoadingComponent';
-import Breadcrumb from '../components/Breadcrumb';
-import ConfirmDialog from '../components/ConfirmDialog';
-import Pagination from '../components/Pagination';
-import { useCrudPermissions, usePermissions } from '../components/PermissionsContext';
-import PaymentConfigDialog from '../components/PaymentConfigDialog';
+import Breadcrumb from '@/components/Breadcrumb';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import Pagination from '@/components/Pagination';
+import { useCrudPermissions, usePermissions } from '@/components/PermissionsContext';
+import PaymentConfigDialog from '@/components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
-
 import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMutations';
 import { useAdminAccess } from '@/utils/auth';
 import { STATES_MY } from '@/utils/enums';
 import { defaultTahfizField } from '@/utils/defaultformfields';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import PageLoadingComponent from '../components/PageLoadingComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 

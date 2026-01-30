@@ -1,50 +1,49 @@
-import AdminDashboard from './pages/AdminDashboard';
-import AppUserLogin from './pages/AppUserLogin';
-import CheckTahlilStatus from './pages/CheckTahlilStatus';
-import DeadPersonDetails from './pages/DeadPersonDetails';
-import DonationPage from './pages/DonationPage';
-import GraveDetails from './pages/GraveDetails';
-import IconLibrary from './pages/IconLibrary';
-import ManageDeadPersons from './pages/ManageDeadPersons';
-import ManageDonations from './pages/ManageDonations';
-import ManageGraves from './pages/ManageGraves';
-import ManageOrganisationTypes from './pages/ManageOrganisationTypes';
-import ManageOrganisations from './pages/ManageOrganisations';
-import ManagePaymentFields from './pages/ManagePaymentFields';
-import ManagePaymentPlatforms from './pages/ManagePaymentPlatforms';
-import ManagePermissions from './pages/ManagePermissions';
-import ManageSuggestions from './pages/ManageSuggestions';
-import ManageTahfizCenters from './pages/ManageTahfizCenters';
-import ManageTahlilRequests from './pages/ManageTahlilRequests';
-import ImpersonateUser from './pages/ImpersonateUser';
-import ManageUsers from './pages/ManageUsers';
-import NotificationPage from './pages/NotificationPage';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import ScanQR from './pages/ScanQR';
-import SearchGrave from './pages/SearchGrave';
-import SearchTahfiz from './pages/SearchTahfiz';
-import SettingsPage from './pages/SettingsPage';
-import SubmitSuggestion from './pages/SubmitSuggestion';
-import SuperadminDashboard from './pages/SuperadminDashboard';
-import SurahPage from './pages/SurahPage';
-import TahlilRequestPage from './pages/TahlilRequestPage';
-import TermsAndConditions from './pages/TermsAndConditions';
-import ViewLogs from './pages/ViewLogs';
-import ToyyibPayConfigPage from './pages/ToyyibPayConfigPage.jsx';
-import BillplzConfigPage from './pages/BillplzConfigPage.jsx';
-import SolatJenazah from './pages/SolatJenazah.jsx';
-import MosquePage from './pages/MosquePage.jsx';
-import __Layout from './Layout.jsx';
-import UserDashboard from './pages/UserDashboard';
-import UserDashboard1 from './pages/Dashboards/UserDashboard1';
-import UserDashboard2 from './pages/Dashboards/UserDashboard2';
-import UserDashboard3 from './pages/Dashboards/UserDashboard3';
-import UserDashboard4 from './pages/Dashboards/UserDashboard4';
-import UserDashboard5 from './pages/Dashboards/UserDashboard5';
+import AppUserLogin from '@/pages/AppUserLogin';
+import CheckTahlilStatus from '@/pages/CheckTahlilStatus';
+import DeadPersonDetails from '@/pages/DeadPersonDetails';
+import DonationPage from '@/pages/DonationPage';
+import GraveDetails from '@/pages/GraveDetails';
+import ManageUsers from '@/pages/Management/ManageUsers';
+import NotificationPage from '@/pages/NotificationPage';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import ScanQR from '@/pages/ScanQR';
+import SearchGrave from '@/pages/SearchGrave';
+import SearchTahfiz from '@/pages/SearchTahfiz';
+import SettingsPage from '@/pages/SettingsPage';
+import SubmitSuggestion from '@/pages/SubmitSuggestion';
+import SurahPage from '@/pages/SurahPage';
+import TahlilRequestPage from '@/pages/TahlilRequestPage';
+import TermsAndConditions from '@/pages/TermsAndConditions';
+import SolatJenazah from '@/pages/SolatJenazah.jsx';
+import MosquePage from '@/pages/MosquePage.jsx';
+// Superadmin
+import ViewLogs from '@/pages/ViewLogs';
+import ImpersonateUser from '@/pages/ImpersonateUser';
+import IconLibrary from '@/pages/IconLibrary';
+// Management
+import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
+import ManageDonations from '@/pages/Management/ManageDonations';
+import ManageGraves from '@/pages/Management/ManageGraves';
+import ManageOrganisationTypes from '@/pages/Management/ManageOrganisationTypes';
+import ManageOrganisations from '@/pages/Management/ManageOrganisations.jsx';
+import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
+import ManagePaymentPlatforms from '@/pages/Management/ManagePaymentPlatforms';
+import ManagePermissions from '@/pages/Management/ManagePermissions.jsx';
+import ManageSuggestions from '@/pages/Management/ManageSuggestions';
+import ManageTahfizCenters from '@/pages/Management/ManageTahfizCenters';
+import ManageTahlilRequests from '@/pages/Management/ManageTahlilRequests';
+// Payment
+import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
+import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
+// Dashboard
+import __Layout from '@/Layout.jsx';
+import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
+import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
+import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
+import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
 
 
 export const PAGES = {
-    "AdminDashboard": AdminDashboard,
     "AppUserLogin": AppUserLogin,
     "CheckTahlilStatus": CheckTahlilStatus,
     "DeadPersonDetails": DeadPersonDetails,
@@ -71,7 +70,6 @@ export const PAGES = {
     "SearchTahfiz": SearchTahfiz,
     "SettingsPage": SettingsPage,
     "SubmitSuggestion": SubmitSuggestion,
-    "SuperadminDashboard": SuperadminDashboard,
     "SurahPage": SurahPage,
     "TahlilRequestPage": TahlilRequestPage,
     "TermsAndConditions": TermsAndConditions,
@@ -80,17 +78,15 @@ export const PAGES = {
     "BillplzConfigPage": BillplzConfigPage,
     "SolatJenazah": SolatJenazah,
     "MosquePage": MosquePage,
-
+    // Dashboard
+    "AdminDashboard": AdminDashboard,
+    "TahfizDashboard": TahfizDashboard,
+    "SuperadminDashboard": SuperadminDashboard,
     "UserDashboard": UserDashboard,
-    "UserDashboard1": UserDashboard1,
-    "UserDashboard2": UserDashboard2,
-    "UserDashboard3": UserDashboard3,
-    "UserDashboard4": UserDashboard4,
-    "UserDashboard5": UserDashboard5,
 }
 
 export const pagesConfig = {
-    mainPage: "UserDashboard2",
+    mainPage: "UserDashboard",
     Pages: PAGES,
     Layout: __Layout,
 };

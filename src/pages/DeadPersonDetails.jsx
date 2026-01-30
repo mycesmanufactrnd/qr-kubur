@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@/utils/trpc';
-import { MapPin, Navigation, Share2 } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import BackNavigation from '@/components/BackNavigation';
 import { calculateAge } from '@/utils/helpers';

@@ -59,6 +59,8 @@ export async function runUserSeederProd() {
     await userRepo.save(userRepo.create(users));
 
     console.log("✔ Users seeded");
+  } catch (error) {
+    console.error("❌ Users seeding failed:", error);
   } finally {
     await AppDataSource.destroy();
   }
