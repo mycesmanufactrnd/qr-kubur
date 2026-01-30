@@ -19,3 +19,4 @@ export * from "./entities/TahfizPaymentConfig.entity.ts";
 export * from "./entities/AdminNotification.entity.ts";
 export * from "./entities/OnlineTransaction.entity.ts";
 export * from "./entities/OnlineTransactionAccount.entity.ts";
+export * from "./entities/Mosque.entity.ts";

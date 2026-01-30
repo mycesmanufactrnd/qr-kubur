@@ -27,7 +27,7 @@ export default function SearchGrave() {
 
   useEffect(() => {
     if (locationDenied) {
-      showWarning('Lokasi tidak tersedia');
+      showWarning(translate('Location not available'));
     }
   }, [locationDenied]);
 
