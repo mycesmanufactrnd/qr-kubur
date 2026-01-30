@@ -7,9 +7,11 @@ import {
   FileText,
   MapPin,
   MoonStar,
-  AlertTriangle
+  AlertTriangle,
+  Globe
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import { translate } from "@/utils/translations";
 
 export default function UserDashboard2() {
   return (
@@ -20,12 +22,12 @@ export default function UserDashboard2() {
 
         <h1 className="text-2xl font-bold">QR Kubur</h1>
         <p className="text-sm opacity-90 mt-1">
-          Panduan & pengurusan jenazah di hujung jari
+          {translate('Funeral Guide & Management at Your Fingertips')}
         </p>
 
         <div className="mt-4 bg-white/15 backdrop-blur rounded-2xl p-4">
           <p className="text-sm italic text-center">
-            “Setiap yang bernyawa pasti akan mati.”
+            {translate('Every living being will surely die')}
           </p>
           <p className="text-xs text-center opacity-80 mt-1">
             Ali ‘Imran : 185
@@ -38,10 +40,10 @@ export default function UserDashboard2() {
           <AlertTriangle className="w-8 h-8 text-red-600" />
           <div>
             <p className="font-semibold text-red-700">
-              Kecemasan: Solat Jenazah
+              {translate('Emergency: Funeral Prayer')}
             </p>
             <p className="text-xs text-red-500">
-              Panduan segera bila berlaku kematian
+              {translate('Immediate guide when death occurs')}
             </p>
           </div>
         </div>
@@ -106,8 +108,8 @@ export default function UserDashboard2() {
             page="MosquePage"
           />
           <GuideRow
-            icon={MapPin}
-            title="Cari Heritage SIte"
+            icon={Globe}
+            title="Cari Heritage Site"
             desc="Lokasi & maklumat"
             page="SearchHeritage"
           />

@@ -5,6 +5,12 @@ export const PERMISSIONS = {
   GRAVES_CREATE: 'graves_create',
   GRAVES_EDIT: 'graves_edit',
   GRAVES_DELETE: 'graves_delete',
+
+  // Heritage
+  HERITAGES_VIEW: 'heritages_view',
+  HERITAGES_CREATE: 'heritages_create',
+  HERITAGES_EDIT: 'heritages_edit',
+  HERITAGES_DELETE: 'heritages_delete',
   
   // Dead Persons
   DEAD_PERSONS_VIEW: 'dead_persons_view',
@@ -53,6 +59,15 @@ export const PERMISSIONS = {
 };
 
 export const PERMISSION_CATEGORIES = {
+  heritages: {
+    label: 'Tanah Perkuburan',
+    permissions: [
+      { slug: PERMISSIONS.HERITAGES_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.HERITAGES_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.HERITAGES_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.HERITAGES_DELETE, label: 'Padam' },
+    ]
+  },
   graves: {
     label: 'Tanah Perkuburan',
     permissions: [

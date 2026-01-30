@@ -206,7 +206,6 @@ const confirmDelete = async () => {
         </div>
       </div>
 
-      {/* 🔹 Standardized Filter Card */}
       <Card className="border-0 shadow-md">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">

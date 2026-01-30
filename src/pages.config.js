@@ -34,6 +34,7 @@ import ManagePermissions from '@/pages/Management/ManagePermissions.jsx';
 import ManageSuggestions from '@/pages/Management/ManageSuggestions';
 import ManageTahfizCenters from '@/pages/Management/ManageTahfizCenters';
 import ManageTahlilRequests from '@/pages/Management/ManageTahlilRequests';
+import ManageHeritageSites from '@/pages/Management/ManageHeritageSites';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -63,6 +64,7 @@ export const PAGES = {
     "ManageSuggestions": ManageSuggestions,
     "ManageTahfizCenters": ManageTahfizCenters,
     "ManageTahlilRequests": ManageTahlilRequests,
+    "ManageHeritageSites": ManageHeritageSites,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,

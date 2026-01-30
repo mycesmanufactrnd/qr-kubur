@@ -9,6 +9,8 @@ import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
+import FoundDataLength from '@/components/FoundDataLength';
+import ShowNearLocation from '@/components/ShowNearLocation';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useGetGravesCoordinates } from '@/hooks/useGraveMutations';
@@ -41,32 +43,24 @@ export default function SearchGrave() {
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title="Search Grave" />
+      <ShowNearLocation/>
+      
+      <div className="flex items-center gap-2 rounded-xl">
+        <AdvancedFilters
+          parameter={[
+            { label: "Name", type: "text", searchColumn: "name" },
+            {
+              label: "State",
+              type: "select",
+              searchColumn: "state",
+              options: STATES_MY.map((s) => ({ id: s, name: s })),
+            },
+          ]}
+          onApplyFilter={setFilters}
+        />
+      </div>
 
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
-        <CardContent className="p-3 space-y-2">
-          <AdvancedFilters
-            parameter={[
-              { label: "Name", type: "text", searchColumn: "name" },
-              {
-                label: "State",
-                type: "select",
-                searchColumn: "state",
-                options: STATES_MY.map((s) => ({ id: s, name: s })),
-              },
-              {
-                label: "Organisation",
-                type: "select",
-                searchColumn: "organisationId",
-                options: [
-                  { id: 1, name: "Org 1" },
-                  { id: 2, name: "Org 2" },
-                ],
-              },
-            ]}
-            onApplyFilter={setFilters}
-          />
-        </CardContent>
-      </Card>
+      {!isLoading && <FoundDataLength dataList={gravesList} data="Grave(s)" />}
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
