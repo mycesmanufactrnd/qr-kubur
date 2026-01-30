@@ -107,6 +107,12 @@ export default function UserDashboard2() {
             desc="Lokasi & maklumat"
             page="MosquePage"
           />
+          <GuideRow
+            icon={MapPin}
+            title="Cari Heritage SIte"
+            desc="Lokasi & maklumat"
+            page="SearchHeritage"
+          />
         </div>
       </div>
     </div>

@@ -39,6 +39,10 @@ export const runBucketSeeder = async () => {
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true)
 
+    ('heritage-site', 'Heritage Site', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true)
+
     ON CONFLICT (id) DO NOTHING;
   `;
 

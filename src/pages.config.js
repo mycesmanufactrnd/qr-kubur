@@ -8,6 +8,8 @@ import NotificationPage from '@/pages/NotificationPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import ScanQR from '@/pages/ScanQR';
 import SearchGrave from '@/pages/SearchGrave';
+import SearchHeritage from '@/pages/SearchHeritage';
+import HeritageDetails from '@/pages/HeritageDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
 import SettingsPage from '@/pages/SettingsPage';
 import SubmitSuggestion from '@/pages/SubmitSuggestion';
@@ -67,6 +69,8 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "ScanQR": ScanQR,
     "SearchGrave": SearchGrave,
+    "SearchHeritage": SearchHeritage,
+    "HeritageDetails": HeritageDetails,
     "SearchTahfiz": SearchTahfiz,
     "SettingsPage": SettingsPage,
     "SubmitSuggestion": SubmitSuggestion,

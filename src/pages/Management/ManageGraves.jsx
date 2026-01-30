@@ -18,7 +18,7 @@ import { STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
-import { useGetGravePaginated, useCreateGrave, useUpdateGrave, useDeleteGrave } from '@/hooks/useGraveMutations';
+import { useGetGravePaginated, useGraveMutations } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
@@ -86,9 +86,7 @@ export default function ManageGraves() {
 
   const { organisationsList } = useGetOrganisationPaginated({})
 
-  const createMutation = useCreateGrave();
-  const updateMutation = useUpdateGrave();
-  const deleteMutation = useDeleteGrave();
+  const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
 
   const openAddDialog = () => {
     setEditingGrave(null);
@@ -138,9 +136,9 @@ export default function ManageGraves() {
 
     try {
       if (editingGrave) {
-        await updateMutation.mutateAsync({ id: editingGrave.id, data: submitData });
+        await updateGrave.mutateAsync({ id: editingGrave.id, data: submitData });
       } else {
-        await createMutation.mutateAsync(submitData);
+        await createGrave.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
     } catch (error) {
@@ -151,7 +149,7 @@ const confirmDelete = async () => {
   if (!graveToDelete) return;
 
   try {
-    await deleteMutation.mutateAsync(graveToDelete.id);
+    await deleteGrave.mutateAsync(graveToDelete.id);
     
     setDeleteDialogOpen(false);
     setGraveToDelete(null);
@@ -495,7 +493,7 @@ const confirmDelete = async () => {
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('Cancel')}
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createGrave.isPending || updateGrave.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {translate('Save')}
               </Button>

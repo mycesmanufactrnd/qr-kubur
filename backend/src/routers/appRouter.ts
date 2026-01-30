@@ -18,6 +18,7 @@ import { tahfizRouter } from "./tahfizRouter.ts";
 import { tahlilRequestRouter } from "./tahlilRequestRouter.ts";
 import { usersRouter } from "./usersRouter.ts";
 import { graveRouter } from "./graveRouter.ts";
+import { heritageRouter } from "./heritageRouter.ts";
 import { visitLogsRouter } from "./visitLogsRouter.ts";
 import { organisationPaymentConfigRouter } from "./organisationPaymentConfigRouter.ts";
 import { deadPersonRouter } from "./deadpersonRouter.ts";
@@ -43,6 +44,7 @@ export const appRouter = trpcRouter({
   organisationPaymentConfig: organisationPaymentConfigRouter,
   organisationType: organisationTypeRouter,
   grave: graveRouter,
+  heritage: heritageRouter,
   suggestion: suggestionRouter,
   donation: donationRouter,
   tahlilRequest: tahlilRequestRouter,

@@ -8,6 +8,7 @@ export * from "./entities/PaymentPlatform.entity.ts";
 export * from "./entities/TahfizCenter.entity.ts";
 export * from "./entities/DeadPerson.entity.ts";
 export * from "./entities/Grave.entity.ts";
+export * from "./entities/HeritageSite.entity.ts";
 export * from "./entities/Suggestion.entity.ts";
 export * from "./entities/Donation.entity.ts";
 export * from "./entities/TahlilRequest.entity.ts";

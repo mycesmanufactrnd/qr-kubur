@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils/index';
+import { createPageUrl } from '@/utils/index';
 import { MapPin, Navigation, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
