@@ -5,7 +5,7 @@ import { showWarning } from '@/components/ToastrNotification.jsx';
 import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
-import CardWithImageList from '@/components/CardWithImageList';
+import HeritageCardList from '@/components/HeritageCardList';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
@@ -69,10 +69,11 @@ export default function SearchGrave() {
       ) : (
         <div className="space-y-3">
           {heritageSiteList.map((heritage, index) => (
-            <CardWithImageList 
+            <HeritageCardList 
               key={heritage.id}
               site={heritage} 
               distance={heritage.distance}
+              bucketId={'heritage-site'}
               index={index}
               nextPageUrl={'HeritageDetails'}
             />

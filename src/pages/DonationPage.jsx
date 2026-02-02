@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess, showWarning } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-import { DONATION_AMOUNTS, paymentToyyibStatus, STATES_MY, VerificationStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, normalizeState, paymentToyyibStatus, STATES_MY, VerificationStatus } from '@/utils/enums';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
@@ -26,6 +26,10 @@ import { translate } from '@/utils/translations';
 
 export default function DonationPage() {
   const [searchParams] = useSearchParams();
+  const urlParamId = searchParams.get('id') ? searchParams.get('id') : null;
+  const urlParamType = searchParams.get('type');
+  const urlParamState = searchParams.get('state') ? searchParams.get('state') : 'nearby';
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [manualSearchQuery, setManualSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
@@ -33,6 +37,20 @@ export default function DonationPage() {
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
   const { userLocation, userState, locationDenied } = useLocationContext();
+
+  useEffect(() => {
+    const normalizedState = normalizeState(urlParamState);
+    setSelectedState(normalizedState);
+
+    if (!urlParamType || !urlParamId) return;
+
+    if (!['tahfiz', 'organisation'].includes(urlParamType)) return;
+
+    setValue('recipientType', urlParamType);
+    setValue('selectedRecipient', urlParamId);
+    setValue('paymentMethod', '');
+
+  }, [urlParamType, urlParamId, urlParamState, setValue]);
   
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
@@ -341,7 +359,11 @@ export default function DonationPage() {
                 </div>
                 <Select
                   value={selectedRecipient ? String(selectedRecipient) : ''}
-                  onValueChange={v => setValue('selectedRecipient', v)}
+                  onValueChange={v => {
+                    if (recipientType === "organisation" && organisations.length > 0) {
+                      setValue('selectedRecipient', v);
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={translate('Select organisation')} />
@@ -403,7 +425,11 @@ export default function DonationPage() {
                 </div>
                 <Select
                   value={selectedRecipient ? String(selectedRecipient) : ''}
-                  onValueChange={v => setValue('selectedRecipient', v)}
+                  onValueChange={v => {
+                    if (recipientType === "tahfiz" && tahfizCenters.length > 0) {
+                      setValue('selectedRecipient', v)
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={translate('Select Tahfiz center')} />

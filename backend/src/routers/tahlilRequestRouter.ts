@@ -87,4 +87,26 @@ export const tahlilRequestRouter = router({
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
             return tahlilRequestRepo.delete(input);
         }),
+
+    countRequestByTahfizId: publicProcedure
+        .input(z.object({ id: z.number().min(1) }))
+        .query(async ({ input }) => {
+            const repo = AppDataSource.getRepository(TahlilRequest);
+
+        const result = await repo
+            .createQueryBuilder("request")
+            .select("request.status", "status")
+            .addSelect("COUNT(request.id)", "count")
+            .where("request.tahfizcenterId = :id", { id: input.id })
+            .groupBy("request.status")
+            .getRawMany();
+
+        return {
+            pending:
+                Number(result.find(r => r.status === "pending")?.count ?? 0),
+            completed:
+                Number(result.find(r => r.status === "completed")?.count ?? 0),
+            };
+    }),
+
 });

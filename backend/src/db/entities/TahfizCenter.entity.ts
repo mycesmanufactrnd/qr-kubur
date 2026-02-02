@@ -3,6 +3,7 @@ import { User } from "./User.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { TahlilRequest } from "./TahlilRequest.entity.js";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
+import { ActivityPost } from "./ActivityPosts.entity.ts";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -36,6 +37,9 @@ export class TahfizCenter {
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
 
+  @Column("varchar", { length: 255, nullable: true })
+  photourl?: string;
+
   @Column("double precision", { nullable: true })
   latitude?: number;
 
@@ -44,6 +48,9 @@ export class TahfizCenter {
 
   @OneToMany(() => User, (users) => users.tahfizcenter)
   users!: User[];
+
+  @OneToMany(() => ActivityPost, (activityposts) => activityposts.tahfizcenter)
+  activityposts!: ActivityPost[];
 
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
   donations!: Donation[];

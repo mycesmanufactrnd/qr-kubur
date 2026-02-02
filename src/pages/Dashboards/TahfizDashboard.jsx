@@ -44,7 +44,6 @@ export default function TahfizDashboard() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
 
-      {/* ================= Header ================= */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -76,7 +75,6 @@ export default function TahfizDashboard() {
         </div>
       </div>
 
-      {/* ================= Stats Overview ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
         <Link to={createPageUrl('ManageTahfizCenters')}>
@@ -143,7 +141,6 @@ export default function TahfizDashboard() {
 
       </div>
 
-      {/* ================= Main Grid ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* -------- Left (2/3) -------- */}
@@ -189,7 +186,6 @@ export default function TahfizDashboard() {
           </Card>
         </div>
 
-        {/* -------- Right (1/3) -------- */}
         <div>
           <Card className="h-full border-0 shadow-xl bg-white/80 backdrop-blur">
             <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-purple-50 to-pink-50">

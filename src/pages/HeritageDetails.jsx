@@ -75,7 +75,7 @@ export default function HeritageDetails() {
             e.stopPropagation();
             shareLink({
               title: site?.name,
-              text: `Check out ${site?.name} on Heritage Locator`,
+              text: `Check out ${site?.name}`,
               url: window.location.href,
             });
           }}

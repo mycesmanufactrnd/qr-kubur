@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 
-export default function CardWithImageList({ site, distance, index = 0, nextPageUrl }) {
+export default function HeritageCardList({ site, distance, bucketId, index = 0, nextPageUrl }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -19,7 +19,7 @@ export default function CardWithImageList({ site, distance, index = 0, nextPageU
           <div className="relative h-48 overflow-hidden">
             {site.photourl ? (
               <img
-                src={`/api/file/bucket-grave/${encodeURIComponent(site.photourl)}`} 
+                src={`/api/file/${bucketId}/${encodeURIComponent(site.photourl)}`} 
                 alt={translate('Preview') + site.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />

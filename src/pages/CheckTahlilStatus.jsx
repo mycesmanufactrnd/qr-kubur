@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { showError } from '@/components/ToastrNotification';
-import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
+import { SERVICE_TYPES, TahlilStatus } from '@/utils/enums';
 import BackNavigation from '@/components/BackNavigation';
 import { trpc } from '@/utils/trpc';
 import { translate } from '@/utils/translations';
@@ -219,14 +219,19 @@ export default function CheckTahlilStatus() {
                 <div className="bg-white border rounded-xl p-5">
                   <p className="text-sm font-semibold mb-3">Jenis Perkhidmatan</p>
                   <div className="flex flex-wrap gap-2">
-                    {request.selectedservices.map((type, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium"
-                      >
-                        {SERVICE_LABELS[type] || type}
-                      </span>
-                    ))}
+                    {request.selectedservices.map((type, i) => {
+                      const service = SERVICE_TYPES.find(s => s.value === type);
+
+                      return (
+                        <span
+                          key={i}
+                          className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium"
+                          title={service?.description || ''}
+                        >
+                          {service?.label || type}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
