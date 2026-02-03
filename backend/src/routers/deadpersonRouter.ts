@@ -15,28 +15,59 @@ export const deadPersonRouter = router({
       filterState: z.string().optional(),
       dateFrom: z.string().optional(),
       dateTo: z.string().optional(),
-      accessibleGravesIds: z.array(z.number()).optional(),
+      organisationIds: z.array(z.number()).optional(), // 🔹 Standardized naming
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterIC, filterGrave, filterState, dateFrom, dateTo, accessibleGravesIds } = input;
+      const { 
+        page, 
+        pageSize, 
+        search, 
+        filterIC, 
+        filterGrave, 
+        filterState, 
+        dateFrom, 
+        dateTo, 
+        organisationIds 
+      } = input;
+      
       const repo = AppDataSource.getRepository(DeadPerson);
 
+      // Start Query Builder with required join for state and organisation filtering
       const query = repo.createQueryBuilder('deadperson')
         .leftJoinAndSelect('deadperson.grave', 'grave');
 
-      // Filter by authorized grave IDs
-      if (accessibleGravesIds && accessibleGravesIds.length > 0) {
-        query.andWhere('deadperson.graveId IN (:...ids)', { ids: accessibleGravesIds });
+      // 🔹 1. Organisation/Context Filtering (Supervisor Rule)
+      if (organisationIds && organisationIds.length > 0) {
+        query.andWhere('grave.organisationId IN (:...ids)', { ids: organisationIds });
       }
 
-      // Search and Filter logic
-      if (search) query.andWhere('deadperson.name ILIKE :search', { search: `%${search}%` });
-      if (filterIC) query.andWhere('deadperson.icnumber ILIKE :ic', { ic: `%${filterIC}%` });
-      if (filterGrave) query.andWhere('deadperson.graveId = :graveId', { graveId: filterGrave });
-      if (filterState) query.andWhere('grave.state = :state', { state: filterState });
+      // 🔹 2. Explicit Search Logic (andWhere)
+      if (search?.trim()) {
+        query.andWhere('deadperson.name ILIKE :search', { search: `%${search.trim()}%` });
+      }
 
-      if (dateFrom && dateTo) { query.andWhere( 'deadperson.dateofdeath BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo } ); } else if (dateFrom) { query.andWhere( 'deadperson.dateofdeath = :dateFrom', { dateFrom } ); } else if (dateTo) { query.andWhere( 'deadperson.dateofdeath = :dateTo', { dateTo } ); }
+      if (filterIC?.trim()) {
+        query.andWhere('deadperson.icnumber ILIKE :ic', { ic: `%${filterIC.trim()}%` });
+      }
 
+      if (filterGrave) {
+        query.andWhere('deadperson.graveId = :graveId', { graveId: filterGrave });
+      }
+
+      if (filterState && filterState !== 'all') {
+        query.andWhere('grave.state = :state', { state: filterState });
+      }
+
+      // 🔹 3. Date Range Filtering
+      if (dateFrom && dateTo) {
+        query.andWhere('deadperson.dateofdeath BETWEEN :dateFrom AND :dateTo', { dateFrom, dateTo });
+      } else if (dateFrom) {
+        query.andWhere('deadperson.dateofdeath >= :dateFrom', { dateFrom });
+      } else if (dateTo) {
+        query.andWhere('deadperson.dateofdeath <= :dateTo', { dateTo });
+      }
+
+      // 🔹 4. Pagination and Execution
       const [items, total] = await query
         .orderBy('deadperson.id', 'DESC')
         .skip((page - 1) * pageSize)
@@ -51,6 +82,8 @@ export const deadPersonRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeadPerson);
       const { graveId, ...personData } = input;
+      
+      // Ensure the target Grave exists
       const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
 
       const person = repo.create({ 
@@ -66,15 +99,15 @@ export const deadPersonRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeadPerson);
       
-      // Ensure record exists
+      // Ensure the deceased record exists
       const person = await repo.findOneByOrFail({ id: input.id });
       
       const { graveId, ...personData } = input.data;
 
-      // Ensure the target Grave exists
+      // Ensure the updated target Grave exists
       const grave = await AppDataSource.getRepository(Grave).findOneByOrFail({ id: graveId });
 
-      // Merge updated data and re-link the grave relation
+      // Standardized Merge and Save
       repo.merge(person, { 
         ...personData, 
         grave 
@@ -86,39 +119,29 @@ export const deadPersonRouter = router({
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
-      return await AppDataSource.getRepository(DeadPerson).delete(input);
+      const repo = AppDataSource.getRepository(DeadPerson);
+      return await repo.delete(input);
     }),
 
   getDeadPersonById: publicProcedure
-    .input(
-        z.object({
-          id: z.number(),
-        })
-    )
+    .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
-      if (!input.id) {
-        return null;
-      }
+      if (!input.id) return null;
 
       return await AppDataSource.getRepository(DeadPerson).findOne({ 
         where: { id: input.id },
-        relations: ['grave']
+        relations: ['grave', 'grave.organisation']
       });
     }),
 
   getDeadPersonByGraveId: publicProcedure
-    .input(
-        z.object({
-          graveId: z.number()
-        })
-    )
+    .input(z.object({ graveId: z.number() }))
     .query(async ({ input }) => {
-      if (!input.graveId) {
-        return null;
-      }
+      if (!input.graveId) return null;
 
       return await AppDataSource.getRepository(DeadPerson).find({ 
-        where: { grave: { id: input.graveId } } 
+        where: { grave: { id: input.graveId } },
+        relations: ['grave']
       });
     }),
 });
