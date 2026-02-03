@@ -8,6 +8,7 @@ import {
   UserCheck,
   CheckCircle2,
   Sparkles,
+  List,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -200,9 +201,10 @@ export default function TahfizDashboard() {
               {[
                 { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters', icon: BookOpen, color: 'amber' },
                 { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests', icon: Calendar, color: 'teal' },
-                { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'rose' },
+                { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'pink' },
+                { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'yellow' },
                 { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'blue' },
-                { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
+                { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'green' },
               ].map((action, i) => (
                 <Link key={i} to={createPageUrl(action.page)}>
                   <Button

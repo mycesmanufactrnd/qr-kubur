@@ -160,7 +160,6 @@ export default function HeritageDetails() {
               </p>
             </section>
           )}
-
           {site.eradescription && (
             <section className="mb-8">
               <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
@@ -171,7 +170,6 @@ export default function HeritageDetails() {
               </p>
             </section>
           )}
-
           {site.historicalsources && (
             <section className="mb-8">
               <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3 flex items-center gap-2">
@@ -186,7 +184,6 @@ export default function HeritageDetails() {
               </div>
             </section>
           )}
-
           {site.address && (
             <section className="mb-8">
               <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">

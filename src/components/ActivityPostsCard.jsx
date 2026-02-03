@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, Building2 } from 'lucide-react';
@@ -31,10 +30,10 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
       </CardHeader>
       
       <CardContent className="pt-0 space-y-3">
-        {post.image_url && (
+        {post.photourl && (
           <div className="rounded-xl overflow-hidden -mx-2">
             <img 
-              src={post.image_url} 
+              src={`/api/file/activity-post/${encodeURIComponent(post.photourl)}`} 
               alt={post.title}
               className="w-full h-48 object-cover"
             />
@@ -43,7 +42,7 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
         
         <div 
           className="prose prose-sm prose-slate max-w-none text-slate-600 line-clamp-4"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: post.content || '' }}
         />
       </CardContent>
     </Card>

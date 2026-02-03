@@ -1,7 +1,3 @@
-// In tRPC, the HTTP method is always POST by default
-// if get error (Unsupported POST-request to query procedure)
-// but to check with Postman interchangeable POST with GET
-
 import { router as trpcRouter } from "../trpc.ts";
 import { activityLogsRouter } from "./activityLogsRouter.ts";
 import { authRouter } from "./authRouter.ts";
@@ -28,6 +24,7 @@ import { toyyibPayRouter } from "./toyyibPayRouter.ts";
 import { runningNoRouter } from "./runningNoRouter.ts";
 import { billplzRouter } from "./billplzRouter.ts";
 import { mosqueRouter } from "./mosqueRouter.ts";
+import { activityPostRouter } from "./activityPostRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
@@ -55,6 +52,7 @@ export const appRouter = trpcRouter({
   deadperson: deadPersonRouter,
   billplz: billplzRouter,
   mosque: mosqueRouter,
+  activityPost: activityPostRouter,
 });
 
 export type AppRouter = typeof appRouter;

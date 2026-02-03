@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
@@ -15,77 +14,73 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import { showSuccess, showError } from '@/components/ToastrNotification';
 import { useCrudPermissions } from '@/components/PermissionsContext';
-import { STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
-import { useGetHeritageSitesPaginated, useHeritageMutations } from '@/hooks/useHeritageMutations';
+import { useGetActivityPostsPaginated, useActivityPostMutations } from '@/hooks/useActivityPostMutations';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { defaultHeritageField } from '@/utils/defaultformfields';
+import { defaultActivityPost } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
 import TextInputForm from '@/components/Forms/TextInputForm';
-import SelectForm from '@/components/Forms/SelectForm';
 import CheckboxForm from '@/components/Forms/CheckboxForm';
 
-export default function ManageHeritageSites() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
+export default function ManageActivityPosts() {
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlName = searchParams.get('name') || '';
-  const urlState = searchParams.get('state') || 'all';
+  const urlTitle = searchParams.get('title') || '';
 
-  const [tempName, setTempName] = useState(urlName);
-  const [tempState, setTempState] = useState(urlState);
+  const [tempTitle, setTempTitle] = useState(urlTitle);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingHeritage, setEditingHeritage] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [heritageToDelete, setHeritageToDelete] = useState(null);
+  const [postToDelete, setPostToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('heritages');
-  const { heritageSiteList, totalPages, isLoading } = useGetHeritageSitesPaginated({
+  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('posts');
+
+  const { activityPostsList, totalPages, isLoading } = useGetActivityPostsPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    filterName: urlName, 
-    filterState: urlState === 'all' ? undefined : urlState,
+    filterTitle: urlTitle, 
   });
-  const { createHeritage, updateHeritage, deleteHeritage } = useHeritageMutations();
+  const { createPost, updatePost, deletePost } = useActivityPostMutations();
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
-    defaultValues: defaultHeritageField,
+    defaultValues: defaultActivityPost,
   });
 
   const photourl = watch('photourl');
-  const stateField = watch('state');
 
   useEffect(() => {
-    setTempName(urlName);
-    setTempState(urlState);
-  }, [urlName, urlState]);
+    setTempTitle(urlTitle);
+  }, [urlTitle]);
 
   const handleSearch = () => {
     const params = { page: '1' };
-    if (tempName) params.name = tempName;
-    if (tempState !== 'all') params.state = tempState;
+    if (tempTitle) params.title = tempTitle;
     setSearchParams(params);
   };
 
-  const handleReset = () => setSearchParams({});
+  const handleReset = () => {
+    setTempTitle('');
+    setSearchParams({});
+  };
 
   const openAddDialog = () => {
-    setEditingHeritage(null);
-    reset(defaultHeritageField);
+    setEditingPost(null);
+    reset(defaultActivityPost);
     setIsDialogOpen(true);
   };
 
-  const openEditDialog = (heritage) => {
-    setEditingHeritage(heritage);
-    reset(heritage);
+  const openEditDialog = (activityPost) => {
+    setEditingPost(activityPost);
+    reset(activityPost);
     setIsDialogOpen(true);
   };
 
@@ -95,7 +90,7 @@ export default function ManageHeritageSites() {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const res = await fetch('/api/upload/heritage-site', { method: 'POST', body: formDataUpload });
+      const res = await fetch('/api/upload/activity-post', { method: 'POST', body: formDataUpload });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         showError(errorData.error || 'Failed to upload photo');
@@ -114,24 +109,27 @@ export default function ManageHeritageSites() {
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
-      { field: 'name', label: 'Name', type: 'text' },
-      { field: 'state', label: 'State', type: 'select' },
+      { field: 'title', label: 'Title', type: 'text' },
+      { field: 'content', label: 'Content', type: 'text' },
       { field: 'photourl', label: 'Photo', type: 'text' },
     ]);
 
     if (!isValid) return;
-
+    
     const submitData = {
       ...formData,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      ...(!isSuperAdmin && {
+        tahfizcenter: currentUser.tahfizcenter
+          ? { id: Number(currentUser.tahfizcenter.id) }
+          : null,
+      }),
     };
 
     try {
-      if (editingHeritage) {
-        await updateHeritage.mutateAsync({ id: editingHeritage.id, data: submitData });
+      if (editingPost) {
+        await updatePost.mutateAsync({ id: editingPost.id, data: submitData });
       } else {
-        await createHeritage.mutateAsync(submitData);
+        await createPost.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
     } catch (error) {
@@ -140,17 +138,16 @@ export default function ManageHeritageSites() {
   };
 
   const confirmDelete = async () => {
-    if (!heritageToDelete) return;
+    if (!postToDelete) return;
     try {
-      await deleteHeritage.mutateAsync(heritageToDelete.id);
+      await deletePost.mutateAsync(postToDelete.id);
       setDeleteDialogOpen(false);
-      setHeritageToDelete(null);
+      setPostToDelete(null);
     } catch (error) {
       console.error('Delete failed:', error);
     }
   };
 
-  
   if (loadingUser || permissionsLoading) {
     return (
       <PageLoadingComponent/>
@@ -167,32 +164,37 @@ export default function ManageHeritageSites() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
-          { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
+          { 
+            label: isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard'), 
+            page: isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard', 
+          },
+          { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts' }
         ]} />
         <AccessDeniedComponent/>
       </div>
     );
   }
 
-
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
-        { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
+        { 
+          label: isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard'), 
+          page: isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard', 
+        },
+        { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts' }
       ]} />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <MapPin className="w-6 h-6 text-emerald-600" />
-          {translate('Manage Heritage Sites')}
+          {translate('Manage Activity Posts')}
         </h1>
         <div className="flex gap-2">
           {canCreate && (
             <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700">
               <Plus className="w-4 h-4 mr-2" />
-              {translate('Add Heritage Sites')}
+              {translate('Add Activity Posts')}
             </Button>
           )}
         </div>
@@ -204,9 +206,9 @@ export default function ManageHeritageSites() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Heritage Site')}
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
+                placeholder={translate('Title')}
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10"
               />
@@ -217,15 +219,6 @@ export default function ManageHeritageSites() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            {isSuperAdmin && (
-              <Select value={tempState} onValueChange={setTempState}>
-                <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{translate('All states')}</SelectItem>
-                  {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
             <Button variant="outline" onClick={handleReset} className="w-full">
               <X className="w-4 h-4 mr-2" /> {translate('Reset')}
             </Button>
@@ -238,28 +231,24 @@ export default function ManageHeritageSites() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('Heritage Site')}</TableHead>
-                <TableHead className="text-center">{translate('Era')}</TableHead>
-                <TableHead className="text-center">{translate('State')}</TableHead>
-                <TableHead className="text-center">{translate('Featured')}</TableHead>
+                <TableHead>{translate('Title')}</TableHead>
+                <TableHead className="text-center">{translate('Published')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <InlineLoadingComponent isTable colSpan={6} />
-              ) : heritageSiteList.items.length === 0 ? (
+              ) : activityPostsList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={6} />
               ) : (
-                heritageSiteList.items.map(site => (
+                activityPostsList.items.map(site => (
                   <TableRow key={site.id}>
-                    <TableCell className="font-medium">{site.name}</TableCell>
-                    <TableCell className="text-center">{site.era}</TableCell>
-                    <TableCell className="text-center">{site.state}</TableCell>
-                    <TableCell className="text-center">{site.isfeatured ? 'Yes' : 'No'}</TableCell>
+                    <TableCell className="font-medium">{site.title}</TableCell>
+                    <TableCell className="text-center">{site.ispublished ? 'Yes' : 'No'}</TableCell>
                     <TableCell className="text-center">
                       {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(site)}><Edit className="w-4 h-4" /></Button>}
-                      {canDelete && <Button variant="ghost" size="sm" onClick={() => { setHeritageToDelete(site); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                      {canDelete && <Button variant="ghost" size="sm" onClick={() => { setPostToDelete(site); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
                     </TableCell>
                   </TableRow>
                 ))
@@ -278,7 +267,7 @@ export default function ManageHeritageSites() {
               setItemsPerPage(v);
               setSearchParams({ ...Object.fromEntries(searchParams), page: '1' });
             }}
-            totalItems={heritageSiteList.total}
+            totalItems={activityPostsList.total}
           />
         )}
       </Card>
@@ -286,109 +275,33 @@ export default function ManageHeritageSites() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingHeritage ? translate('Edit Heritage Site') : translate('Add Heritage Site')}</DialogTitle>
+            <DialogTitle>{editingPost ? translate('Edit Activity Post') : translate('Add Activity Post')}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">    
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <TextInputForm
-              name="name"
+              name="title"
               control={control}
-              label={translate("Name")}
+              label={translate("Title")}
               required
               errors={errors}
-            />        
-            <TextInputForm
-              name="era"
-              control={control}
-              label={translate("Era")}
-            />
-            <TextInputForm
-              name="eradescription"
-              control={control}
-              label={translate("Era Description")}
-              isTextArea
-            />
-            <TextInputForm
-              name="description"
-              control={control}
-              label={translate("Description")}
-              isTextArea
-            />
+            />         
             <Controller
-              name="historicalsources"
+              name="content"
               control={control}
               render={({ field }) => (
                 <div>
-                  <Label>{translate('Historical Sources')}</Label>
+                  <Label>{translate('Content')} <span className="text-red-500 ml-1">*</span></Label>
                   <ReactQuill theme="snow" value={field.value} onChange={field.onChange} className="bg-white" />
                 </div>
               )}
             />
-            <SelectForm
-              name="state"
-              control={control}
-              label={translate("State")}
-              placeholder={translate("Select states")}
-              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-              required
-              errors={errors}
-            />
             <CheckboxForm
-              name="isfeatured"
+              name="ispublished"
               control={control}
-              label={translate("Featured")}
+              label={translate("Published")}
             />
-            <TextInputForm
-              name="url"
-              control={control}
-              label={translate("URL")}
-            />
-            <TextInputForm
-              name="address"
-              control={control}
-              label={translate("Address")}
-              isTextArea
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                      setValue('latitude', pos.coords.latitude.toFixed(16));
-                      setValue('longitude', pos.coords.longitude.toFixed(16));
-                      showSuccess('Lokasi berjaya diperolehi');
-                    },
-                    () => showError('Tidak dapat mendapatkan lokasi.'),
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                  );
-                }
-              }}
-              className="w-full"
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              {translate('Get Current Location')}
-            </Button>
             <div className="space-y-2">
-              <Label>{translate('Photo')}</Label>
+              <Label>{translate('Photo')} <span className="text-red-500 ml-1">*</span></Label>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
@@ -402,13 +315,14 @@ export default function ManageHeritageSites() {
                 />
                 {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
               </div>
-              {photourl && <img src={`/api/file/heritage-site/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
+              {photourl && <img src={`/api/file/activity-post/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
             </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('Cancel')}
               </Button>
-              <Button type="submit" disabled={createHeritage.isPending || updateHeritage.isPending}>
+              <Button type="submit" disabled={createPost.isPending || updatePost.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {translate('Save')}
               </Button>
@@ -420,8 +334,8 @@ export default function ManageHeritageSites() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={translate('Delete Heritage Site')}
-        description={`${translate('Delete')} "${heritageToDelete?.name}"?`}
+        title={translate('Delete Activity Post')}
+        description={`${translate('Delete')} "${postToDelete?.name}"?`}
         onConfirm={confirmDelete}
         confirmText={translate('Delete')}
         variant="destructive"

@@ -1,5 +1,11 @@
 // Permission definitions
 export const PERMISSIONS = {
+  // Posts
+  POSTS_VIEW: 'posts_view',
+  POSTS_CREATE: 'posts_create',
+  POSTS_EDIT: 'posts_edit',
+  POSTS_DELETE: 'posts_delete',
+
   // Graves
   GRAVES_VIEW: 'graves_view',
   GRAVES_CREATE: 'graves_create',
@@ -59,8 +65,17 @@ export const PERMISSIONS = {
 };
 
 export const PERMISSION_CATEGORIES = {
+  posts: {
+    label: 'Activity Post',
+    permissions: [
+      { slug: PERMISSIONS.POSTS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.POSTS_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.POSTS_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.POSTS_DELETE, label: 'Padam' },
+    ]
+  },
   heritages: {
-    label: 'Tanah Perkuburan',
+    label: 'Heritage Site',
     permissions: [
       { slug: PERMISSIONS.HERITAGES_VIEW, label: 'Lihat' },
       { slug: PERMISSIONS.HERITAGES_CREATE, label: 'Tambah' },

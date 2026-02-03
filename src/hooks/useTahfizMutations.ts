@@ -19,6 +19,13 @@ export function useGetTahfizById(tahfizId: number) {
   );
 }
 
+export function useGetTahfizPosts(tahfizId: number) {
+  return trpc.tahfiz.getTahfizPosts.useQuery(
+    { id: tahfizId }, 
+    { enabled: !!tahfizId }
+  );
+}
+
 export function useGetTahfizPaginated({
   page = 1,
   pageSize = 10,

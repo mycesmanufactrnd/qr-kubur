@@ -119,3 +119,11 @@ export const defaultHeritageField = {
   url: '',
   isfeatured: false,
 }
+
+export const defaultActivityPost = {
+  title: '',
+  content: '',
+  photourl: '',
+  ispublished: false,
+  tahfizcenter: null,
+}

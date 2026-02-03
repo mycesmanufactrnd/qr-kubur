@@ -1,7 +1,7 @@
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { TahfizCenter } from "../db/entities.ts";
+import { ActivityPost, TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
@@ -18,6 +18,24 @@ export const tahfizRouter = router({
 
       return await AppDataSource.getRepository(TahfizCenter).findOne({ 
         where: { id: input.id },
+      });
+    }),
+
+  getTahfizPosts: publicProcedure
+    .input(
+        z.object({
+          id: z.number(),
+        })
+    )
+    .query(async ({ input }) => {
+      if (!input.id) {
+        return null;
+      }
+
+      return await AppDataSource.getRepository(ActivityPost).find({
+        where: { tahfizcenter: { id: input.id } },
+        order: { createdat: "DESC" },
+        take: 5,
       });
     }),
 

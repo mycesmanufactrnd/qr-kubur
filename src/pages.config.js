@@ -18,7 +18,7 @@ import SurahPage from '@/pages/SurahPage';
 import TahlilRequestPage from '@/pages/TahlilRequestPage';
 import TermsAndConditions from '@/pages/TermsAndConditions';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
-import MosquePage from '@/pages/MosquePage.jsx';
+import SearchMosque from '@/pages/SearchMosque.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -36,6 +36,7 @@ import ManageSuggestions from '@/pages/Management/ManageSuggestions';
 import ManageTahfizCenters from '@/pages/Management/ManageTahfizCenters';
 import ManageTahlilRequests from '@/pages/Management/ManageTahlilRequests';
 import ManageHeritageSites from '@/pages/Management/ManageHeritageSites';
+import ManageActivityPosts from '@/pages/Management/ManageActivityPosts';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -66,6 +67,7 @@ export const PAGES = {
     "ManageTahfizCenters": ManageTahfizCenters,
     "ManageTahlilRequests": ManageTahlilRequests,
     "ManageHeritageSites": ManageHeritageSites,
+    "ManageActivityPosts": ManageActivityPosts,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,
@@ -85,7 +87,7 @@ export const PAGES = {
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
     "SolatJenazah": SolatJenazah,
-    "MosquePage": MosquePage,
+    "SearchMosque": SearchMosque,
     // Dashboard
     "AdminDashboard": AdminDashboard,
     "TahfizDashboard": TahfizDashboard,
