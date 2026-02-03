@@ -26,6 +26,7 @@ import { dashboardRouter } from "./dashboardRouter.ts";
 import { toyyibPayRouter } from "./toyyibPayRouter.ts";
 import { runningNoRouter } from "./runningNoRouter.ts";
 import { billplzRouter } from "./billplzRouter.ts";
+import { mosqueRouter } from "./mosqueRouter.ts";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
@@ -50,7 +51,8 @@ export const appRouter = trpcRouter({
   visitLogs: visitLogsRouter,
   notification: notificationRouter,
   deadperson: deadPersonRouter,
-  billplz: billplzRouter
+  billplz: billplzRouter,
+  mosque: mosqueRouter,
 });
 
 export type AppRouter = typeof appRouter;

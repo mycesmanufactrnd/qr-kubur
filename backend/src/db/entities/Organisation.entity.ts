@@ -5,6 +5,7 @@ import { ActiveInactiveStatus } from "../enums.js";
 import { Grave } from "./Grave.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
+import { Mosque } from "./Mosque.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
@@ -25,6 +26,9 @@ export class Organisation {
 
   @OneToMany(() => Organisation, (child) => child.parentorganisation)
   children?: Organisation[];
+
+  @OneToMany(() => Mosque, (mosque) => mosque.organisation)
+  mosques?: Mosque[];
 
   @Column("varchar", { length: 255 })
   name!: string;
