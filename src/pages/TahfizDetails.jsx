@@ -11,7 +11,7 @@ import {
 import { createPageUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
-import { useGetTahfizById } from '@/hooks/useTahfizMutations';
+import { useGetTahfizById, useGetTahfizPosts } from '@/hooks/useTahfizMutations';
 import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
 import { useLocationContext } from '@/providers/LocationProvider';
@@ -28,9 +28,8 @@ export default function TahfizDetails() {
   const [searchParams] = useSearchParams();
   const tahfizId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
 
-  const { data: tahfiz, isLoading, isError } = useGetTahfizById(tahfizId);
-
-  const posts = [];
+  const { data: tahfiz, isLoading: isTahfizLoading, isError: isTahfizError } = useGetTahfizById(tahfizId);
+  const { data: tahfizPosts, isLoading: isPostsLoading, isError: isPostsError } = useGetTahfizPosts(tahfizId);
   
   const { data: tahlilCount, isLoading: isRequestLoading } =
     trpc.tahlilRequest.countRequestByTahfizId.useQuery(
@@ -41,17 +40,17 @@ export default function TahfizDetails() {
   const pending = tahlilCount?.pending ?? 0;
   const completed = tahlilCount?.completed ?? 0;
 
-  if (isLoading) {
+  if (isTahfizLoading) {
     return (
       <ListCardSkeletonComponent/>
     );
   }
 
-  if (isError || !tahfiz) {
+  if (isTahfizError || !tahfiz) {
     return (
       <NoDataCardComponent
         isPage={true}
-        description="Site Not Found"
+        description="Tahfiz Not Found"
       />
     );
   }
@@ -197,14 +196,14 @@ export default function TahfizDetails() {
               </CardContent>
             </Card>
 
-            {posts.length > 0 && (
+            {tahfizPosts.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-emerald-600" />
                   Latest Updates
                 </h2>
                 <div className="space-y-4">
-                  {posts.map(post => (
+                  {tahfizPosts.map(post => (
                     <ActivityPostsCard key={post.id} post={post} poster={tahfiz.name} />
                   ))}
                 </div>
@@ -285,7 +284,7 @@ export default function TahfizDetails() {
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <Users className="w-5 h-5 text-yellow-500" />
                       <span className="text-2xl font-bold text-slate-800">
-                        {isLoading ? "—" : pending}
+                        {isTahfizLoading ? "—" : pending}
                       </span>
                     </div>
                     <p className="text-sm text-slate-500">Pending</p>
@@ -294,7 +293,7 @@ export default function TahfizDetails() {
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <Users className="w-5 h-5 text-emerald-600" />
                       <span className="text-2xl font-bold text-slate-800">
-                        {isLoading ? "—" : completed}
+                        {isTahfizLoading ? "—" : completed}
                       </span>
                     </div>
                     <p className="text-sm text-slate-500">Completed</p>

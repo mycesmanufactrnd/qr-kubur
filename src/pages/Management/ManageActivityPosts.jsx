@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { translate } from '@/utils/translations';
@@ -19,18 +19,17 @@ import { STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
+import { Textarea } from '@/components/ui/textarea';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useGetHeritageSitesPaginated, useHeritageMutations } from '@/hooks/useHeritageMutations';
+import { Checkbox } from '@/components/ui/checkbox';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { defaultHeritageField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
-import TextInputForm from '@/components/Forms/TextInputForm';
-import SelectForm from '@/components/Forms/SelectForm';
-import CheckboxForm from '@/components/Forms/CheckboxForm';
 
-export default function ManageHeritageSites() {
+export default function ManageActivityPosts() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -150,31 +149,8 @@ export default function ManageHeritageSites() {
     }
   };
 
-  
-  if (loadingUser || permissionsLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
-  }
-
-  if (!hasAdminAccess) {
-    return (
-      <AccessDeniedComponent/>
-    );
-  }
-
-  if (!canView) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
-          { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
-        ]} />
-        <AccessDeniedComponent/>
-      </div>
-    );
-  }
-
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
@@ -288,31 +264,55 @@ export default function ManageHeritageSites() {
           <DialogHeader>
             <DialogTitle>{editingHeritage ? translate('Edit Heritage Site') : translate('Add Heritage Site')}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">    
-            <TextInputForm
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">            
+            <Controller
               name="name"
               control={control}
-              label={translate("Name")}
-              required
-              errors={errors}
-            />        
-            <TextInputForm
+              rules={{ required: 'Heritage Site is required' }}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Name')} <span className="text-red-500">*</span></Label>
+                  <Input {...field} />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name.message}</p>
+                  )}
+                </div>
+              )}
+            />
+
+            <Controller
               name="era"
               control={control}
-              label={translate("Era")}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Era')}</Label>
+                  <Input {...field} />
+                </div>
+              )}
             />
-            <TextInputForm
+
+            <Controller
               name="eradescription"
               control={control}
-              label={translate("Era Description")}
-              isTextArea
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Era Description')}</Label>
+                  <Textarea {...field} rows={3} />
+                </div>
+              )}
             />
-            <TextInputForm
+
+            <Controller
               name="description"
               control={control}
-              label={translate("Description")}
-              isTextArea
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Description')}</Label>
+                  <Textarea {...field} rows={3} />
+                </div>
+              )}
             />
+
             <Controller
               name="historicalsources"
               control={control}
@@ -323,49 +323,80 @@ export default function ManageHeritageSites() {
                 </div>
               )}
             />
-            <SelectForm
+
+            <Controller
               name="state"
               control={control}
-              label={translate("State")}
-              placeholder={translate("Select states")}
-              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-              required
-              errors={errors}
+              rules={{ required: 'State is required' }}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('State')} <span className="text-red-500">*</span></Label>
+                  <Select value={field.value || ''} onValueChange={field.onChange}>
+                    <SelectTrigger><SelectValue placeholder={translate('Select state')} /></SelectTrigger>
+                    <SelectContent>
+                      {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             />
-            <CheckboxForm
+
+            <Controller
               name="isfeatured"
               control={control}
-              label={translate("Featured")}
+              render={({ field }) => (
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  <Label>{translate('Featured')}</Label>
+                </div>
+              )}
             />
-            <TextInputForm
+
+            <Controller
               name="url"
               control={control}
-              label={translate("URL")}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('URL')}</Label>
+                  <Input {...field} />
+                </div>
+              )}
             />
-            <TextInputForm
+
+            <Controller
               name="address"
               control={control}
-              label={translate("Address")}
-              isTextArea
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Address')}</Label>
+                  <Textarea {...field} rows={3} />
+                </div>
+              )}
             />
+
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
+              <Controller
                 name="latitude"
                 control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
+                render={({ field }) => (
+                  <div>
+                    <Label>{translate('GPS Latitude')}</Label>
+                    <Input type="number" step="any" {...field} />
+                  </div>
+                )}
               />
-              <TextInputForm
+              <Controller
                 name="longitude"
                 control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
+                render={({ field }) => (
+                  <div>
+                    <Label>{translate('GPS Longitude')}</Label>
+                    <Input type="number" step="any" {...field} />
+                  </div>
+                )}
               />
             </div>
+
             <Button
               type="button"
               variant="outline"
@@ -387,6 +418,7 @@ export default function ManageHeritageSites() {
               <MapPin className="w-4 h-4 mr-2" />
               {translate('Get Current Location')}
             </Button>
+
             <div className="space-y-2">
               <Label>{translate('Photo')}</Label>
               <div className="flex items-center gap-3">
@@ -404,6 +436,7 @@ export default function ManageHeritageSites() {
               </div>
               {photourl && <img src={`/api/file/heritage-site/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
             </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('Cancel')}

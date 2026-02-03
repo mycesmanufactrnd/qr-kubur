@@ -105,7 +105,7 @@ export default function UserDashboard2() {
             icon={MapPin}
             title="Cari Masjid"
             desc="Lokasi & maklumat"
-            page="MosquePage"
+            page="SearchMosque"
           />
           <GuideRow
             icon={Globe}
