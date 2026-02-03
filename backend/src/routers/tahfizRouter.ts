@@ -5,33 +5,59 @@ import { ActivityPost, TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
-  getTahfizById: publicProcedure
-    .input(
-        z.object({
-          id: z.number(),
-        })
-    )
+  // 🔹 Standardized getPaginated (Matches the logic in Graves & Organizations)
+  getPaginated: protectedProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      pageSize: z.number().min(1).default(10),
+      search: z.string().optional(),
+      filterState: z.string().optional(),
+      // 🔹 Standardized naming for organization/scope restriction
+      organisationIds: z.array(z.number()).optional(), 
+    }))
     .query(async ({ input }) => {
-      if (!input.id) {
-        return null;
+      const { page, pageSize, search, filterState, organisationIds } = input;
+      const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
+      const query = tahfizRepo.createQueryBuilder("tahfiz");
+
+      // 🔹 1. Context/Role Filtering (Supervisor Rule)
+      // Restricts Tahfiz Admins to only see centers they are authorized for
+      if (organisationIds && organisationIds.length > 0) {
+        query.andWhere("tahfiz.id IN (:...ids)", { ids: organisationIds });
       }
 
+      // 🔹 2. Explicit Search Logic (andWhere + ILIKE)
+      if (search?.trim()) {
+        query.andWhere("tahfiz.name ILIKE :search", { search: `%${search.trim()}%` });
+      }
+
+      if (filterState && filterState !== 'all') {
+        query.andWhere("tahfiz.state = :state", { state: filterState });
+      }
+
+      // 🔹 3. Pagination & Execution (Applied consistently)
+      const [items, total] = await query
+        .orderBy("tahfiz.createdat", "DESC")
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .getManyAndCount();
+
+      return { items, total };
+    }),
+
+  getTahfizById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      if (!input.id) return null;
       return await AppDataSource.getRepository(TahfizCenter).findOne({ 
         where: { id: input.id },
       });
     }),
 
   getTahfizPosts: publicProcedure
-    .input(
-        z.object({
-          id: z.number(),
-        })
-    )
+    .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
-      if (!input.id) {
-        return null;
-      }
-
+      if (!input.id) return null;
       return await AppDataSource.getRepository(ActivityPost).find({
         where: { tahfizcenter: { id: input.id } },
         order: { createdat: "DESC" },
@@ -50,83 +76,34 @@ export const tahfizRouter = router({
     }))
     .query(async ({ input }) => {
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
-
-      if (!input.coordinates) {
-        return [];
-      }
+      if (!input.coordinates) return [];
 
       const { latitude, longitude } = input.coordinates;
-
       const query = tahfizRepo.createQueryBuilder("tahfiz")
-        .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL")
-        .andWhere("tahfiz.state = :state", { state: input.userState });
+        .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL");
+
+      if (input.userState) {
+        query.andWhere("tahfiz.state = :state", { state: input.userState });
+      }
 
       if (input.searchQuery) {
         query.andWhere("tahfiz.name ILIKE :name", { name: `%${input.searchQuery}%` });
       }
 
-      query.orderBy(`
+      query.addSelect(`
           earth_distance(
             ll_to_earth(tahfiz.latitude, tahfiz.longitude),
             ll_to_earth(:lat, :lng)
-          )
-        `, 'ASC')
-      .addSelect(`
-        earth_distance(
-          ll_to_earth(tahfiz.latitude, tahfiz.longitude),
-          ll_to_earth(:lat, :lng)
-        )`, 'distance')
-      .setParameters({ lat: latitude, lng: longitude });
+          )`, 'distance')
+        .orderBy("distance", 'ASC')
+        .setParameters({ lat: latitude, lng: longitude });
 
-    const { entities, raw } = await query.getRawAndEntities();
+      const { entities, raw } = await query.getRawAndEntities();
 
-    return entities.map((entity, index) => ({
-      ...entity,
-      distance: Number(raw[index].distance),
-    }));
-  }),
-
-  getPaginated: protectedProcedure
-    .input(z.object({
-      page: z.number().min(1).optional(),
-      pageSize: z.number().min(1).optional(),
-      search: z.string().optional(),
-      filterState: z.string().optional(),
-      currentUserTahfiz: z.number().optional().nullable(),
-      checkRole: z.object({
-        superadmin: z.boolean(),
-        tahfiz: z.boolean(),
-      }).optional(),
-    }))
-    .query(async ({ input }) => {
-      const { page, pageSize, search, filterState, currentUserTahfiz, checkRole } = input;
-
-      const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
-      const query = tahfizRepo.createQueryBuilder("tahfizcenter");
-
-      if (search) {
-        query.andWhere("tahfizcenter.name ILIKE :search", { search: `%${search}%` });
-      }
-
-      if (filterState) {
-        query.andWhere("tahfizcenter.state = :state", { state: filterState });
-      }
-
-      if (checkRole?.tahfiz && currentUserTahfiz) {
-        query.andWhere("tahfizcenter.id = :id", {
-          id: currentUserTahfiz,
-        });
-      }
-
-      if (page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize);
-      }
-
-      const [items, total] = await query
-        .orderBy("tahfizcenter.createdat", "DESC")
-        .getManyAndCount();
-
-      return { items, total };
+      return entities.map((entity, index) => ({
+        ...entity,
+        distance: Number(raw[index].distance),
+      }));
     }),
 
   create: protectedProcedure

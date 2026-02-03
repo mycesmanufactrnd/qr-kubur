@@ -5,6 +5,10 @@ import { z } from 'zod';
 import { organisationSchema } from '../schemas/organisationSchema.ts';
 import { ActiveInactiveStatus } from '../db/enums.ts';
 
+/**
+ * Recursive function to fetch all child organization IDs.
+ * Used for standard admins to see their own org and all sub-orgs.
+ */
 async function getOrganisationTreeIds(rootId: number) {
   const result = await AppDataSource.query(`
     WITH RECURSIVE org_tree AS (
@@ -24,69 +28,56 @@ export const organisationRouter = router({
   getPaginated: protectedProcedure
     .input(
       z.object({
-        page: z.number().optional().nullable(),
-        pageSize: z.number().optional().nullable(),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).default(10),
         search: z.string().optional(),
         filterType: z.number().optional(),
         filterState: z.string().optional(),
-        currentUserOrganisation: z.number().optional(),
-        checkRole: z.object({
-          superadmin: z.boolean(),
-          admin: z.boolean(),
-          employee: z.boolean(),
-          tahfiz: z.boolean(),
-        }).optional(),
+        // 🔹 Standardized naming for organization context filtering
+        organisationIds: z.array(z.number()).optional(), 
       })
     )
     .query(async ({ input }) => {
-      console.log('qwer', input)
-      const { page, pageSize, search, filterType, filterState, checkRole, currentUserOrganisation } = input;
-
-      if ((checkRole?.admin || checkRole?.employee) && !currentUserOrganisation) {
-        return { items: [], total: 0 };
-      }
-
+      const { page, pageSize, search, filterType, filterState, organisationIds } = input;
       const organisationRepo = AppDataSource.getRepository(Organisation);
 
       const query = organisationRepo.createQueryBuilder('organisation')
         .leftJoinAndSelect('organisation.parentorganisation', 'parent')
         .leftJoinAndSelect('organisation.organisationtype', 'type');
 
-      if (checkRole?.superadmin) {}
-      else if (checkRole?.admin && currentUserOrganisation) {
-        const allowedIds = await getOrganisationTreeIds(Number(currentUserOrganisation));
-        query.andWhere('organisation.id IN (:...allowedIds)', { allowedIds });
-      }
-      else if (checkRole?.employee && currentUserOrganisation) {
-        query.andWhere('organisation.id = :orgId', { orgId: currentUserOrganisation });
+      // 🔹 1. Organisation Context Filtering (Supervisor Rule)
+      // If organisationIds are provided (e.g., for standard Admins), restrict the view
+      if (organisationIds && organisationIds.length > 0) {
+        query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
       }
 
-      if (search) {
+      // 🔹 2. Explicit Search Logic (Supervisor Rule: andWhere)
+      if (search?.trim()) {
         query.andWhere('organisation.name ILIKE :search', {
-          search: `%${search}%`,
+          search: `%${search.trim()}%`,
         });
       }
 
-      if (typeof filterType === 'number') {
+      if (filterType) {
         query.andWhere(
           'organisation.organisationtypeId = :typeId',
           { typeId: filterType }
         );
       }
 
-      if (filterState) {
+      if (filterState && filterState !== 'all') {
+        // Correct PostgreSQL syntax for searching within an array column
         query.andWhere(
           ':state = ANY(organisation.states)',
           { state: filterState }
         );
       }
 
-      if (!checkRole?.superadmin && page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize);
-      }
-
+      // 🔹 3. Execution with DESC order (standard for most admin panels)
       const [items, total] = await query
         .orderBy('organisation.createdat', 'DESC')
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -96,7 +87,6 @@ export const organisationRouter = router({
     .input(organisationSchema)
     .mutation(async ({ input }) => {
       const organisationRepo = AppDataSource.getRepository(Organisation);
-
       const organisation = organisationRepo.create(input);
       return await organisationRepo.save(organisation);
     }),
@@ -117,6 +107,9 @@ export const organisationRouter = router({
       return organisationRepo.delete(input);
     }),
 
+  /**
+   * Helper procedure used by frontend to calculate accessible organization IDs
+   */
   getParentAndChildOrgs: protectedProcedure
     .input(z.object({
       organisationId: z.number(),
@@ -127,12 +120,11 @@ export const organisationRouter = router({
 
       const orgs = await AppDataSource.getRepository(Organisation)
         .createQueryBuilder('org')
-        .where('org.id = :id OR org.parentorganisation = :id', { id: organisationId })
+        .where('org.id = :id OR org."parentorganisationId" = :id', { id: organisationId })
         .getMany();
 
       return isIdOnly ? orgs.map(o => o.id) : orgs;
     }),
-
 
   getAll: protectedProcedure
     .query(async () => {
@@ -164,10 +156,13 @@ export const organisationRouter = router({
       const { latitude, longitude } = input.coordinates;
 
       const query = organisationRepo.createQueryBuilder("organisation")
-        .where("organisation.latitude IS NOT NULL AND organisation.longitude IS NOT NULL")
-        .andWhere(":state = ANY(organisation.states)", {
+        .where("organisation.latitude IS NOT NULL AND organisation.longitude IS NOT NULL");
+
+      if (input.userState) {
+        query.andWhere(":state = ANY(organisation.states)", {
           state: input.userState,
         });
+      }
 
       if (input.searchQuery) {
         query.andWhere("organisation.name ILIKE :name", { name: `%${input.searchQuery}%` });
@@ -198,32 +193,27 @@ export const organisationRouter = router({
   .input(
       z.object({
         organisationTypeId: z.number().optional().nullable(),
-        checkRole: z.object({
-          superadmin: z.boolean(),
-          admin: z.boolean(),
-          employee: z.boolean(),
-          tahfiz: z.boolean(),
-        }).optional(),
+        // Note: For full standardization, use organisationIds approach if possible
+        organisationIds: z.array(z.number()).optional(), 
       })
     )
     .query(async ({ input }) => {
-      const { organisationTypeId, checkRole } = input;
-
+      const { organisationTypeId, organisationIds } = input;
       const organisationRepo = AppDataSource.getRepository(Organisation);
 
       const query = organisationRepo.createQueryBuilder('organisation')
         .where('organisation.status = :active', { active: ActiveInactiveStatus.ACTIVE });
 
-      if (checkRole?.superadmin) {}
-      else if (checkRole?.admin || checkRole?.employee) {
-        if (organisationTypeId) {
-          query.andWhere('organisation.organisationTypeId = :id', {
-            id: organisationTypeId,
-          });
-        }
+      if (organisationIds && organisationIds.length > 0) {
+        query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
       }
 
-      const organisations = await query.getMany();
-      return organisations;
+      if (organisationTypeId) {
+        query.andWhere('organisation.organisationtypeId = :id', {
+          id: organisationTypeId,
+        });
+      }
+
+      return await query.getMany();
     }),
 });
