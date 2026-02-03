@@ -19,20 +19,12 @@ import PaymentConfigDialog from '@/components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
 import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMutations';
 import { useAdminAccess } from '@/utils/auth';
-import { STATES_MY } from '@/utils/enums';
+import { SERVICE_TYPES, STATES_MY } from '@/utils/enums';
 import { defaultTahfizField } from '@/utils/defaultformfields';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
-
-const SERVICES = [
-  { value: 'tahlil_ringkas', label: 'Tahlil Ringkas' },
-  { value: 'tahlil_panjang', label: 'Tahlil Panjang' },
-  { value: 'yasin', label: 'Bacaan Yasin' },
-  { value: 'doa_arwah', label: 'Doa Arwah' },
-  { value: 'custom', label: 'Perkhidmatan Khas' }
-];
 
 export default function ManageTahfizCenters() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -234,7 +226,7 @@ export default function ManageTahfizCenters() {
                       <div className="flex flex-wrap justify-center items-center gap-1">
                         {center.serviceoffered?.slice(0, 2).map(service => (
                           <Badge key={service} variant="secondary" className="text-xs">
-                            {SERVICES.find(s => s.value === service)?.label || service}
+                            {SERVICE_TYPES.find(s => s.value === service)?.label || service}
                           </Badge>
                         ))}
                       </div>
@@ -288,7 +280,7 @@ export default function ManageTahfizCenters() {
             <div>
               <Label>{translate('services')}</Label>
               <div className="space-y-3 mt-2">
-                {SERVICES.map(service => (
+                {SERVICE_TYPES.map(service => (
                   <div key={service.value} className="space-y-2">
                     <div className="flex items-center gap-2 p-2 rounded border">
                       <Checkbox 

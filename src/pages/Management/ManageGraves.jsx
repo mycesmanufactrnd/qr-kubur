@@ -19,7 +19,7 @@ import { STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
-import { useGetGravePaginated, useCreateGrave, useUpdateGrave, useDeleteGrave } from '@/hooks/useGraveMutations';
+import { useGetGravePaginated, useGraveMutations } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
@@ -102,10 +102,7 @@ export default function ManageGraves() {
 
   const { organisationsList } = useGetOrganisationPaginated({});
 
-  // CRUD Mutations
-  const createMutation = useCreateGrave();
-  const updateMutation = useUpdateGrave();
-  const deleteMutation = useDeleteGrave();
+  const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
 
   // 🔹 5. Search Trigger (Updates URL, which then triggers the Hook)
   const handleSearch = () => {
@@ -163,24 +160,26 @@ export default function ManageGraves() {
 
     try {
       if (editingGrave) {
-        await updateMutation.mutateAsync({ id: editingGrave.id, data: submitData });
+        await updateGrave.mutateAsync({ id: editingGrave.id, data: submitData });
       } else {
-        await createMutation.mutateAsync(submitData);
+        await createGrave.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
     } catch (error) {}
   };
 
-  const confirmDelete = async () => {
-    if (!graveToDelete) return;
-    try {
-      await deleteMutation.mutateAsync(graveToDelete.id);
-      setDeleteDialogOpen(false);
-      setGraveToDelete(null);
-    } catch (error) {
-      console.error("Delete failed:", error);
-    }
-  };
+const confirmDelete = async () => {
+  if (!graveToDelete) return;
+
+  try {
+    await deleteGrave.mutateAsync(graveToDelete.id);
+    
+    setDeleteDialogOpen(false);
+    setGraveToDelete(null);
+  } catch (error) {
+    console.error("Delete failed:", error);
+  }
+};
 
   if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
   if (!hasAdminAccess) return <AccessDeniedComponent/>;
@@ -207,7 +206,6 @@ export default function ManageGraves() {
         </div>
       </div>
 
-      {/* 🔹 Standardized Filter Card */}
       <Card className="border-0 shadow-md">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">
@@ -420,9 +418,12 @@ export default function ManageGraves() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                <Save className="w-4 h-4 mr-2" />{translate('Save')}
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                {translate('Cancel')}
+              </Button>
+              <Button type="submit" disabled={createGrave.isPending || updateGrave.isPending}>
+                <Save className="w-4 h-4 mr-2" />
+                {translate('Save')}
               </Button>
             </DialogFooter>
           </form>

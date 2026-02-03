@@ -8,7 +8,10 @@ import NotificationPage from '@/pages/NotificationPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import ScanQR from '@/pages/ScanQR';
 import SearchGrave from '@/pages/SearchGrave';
+import SearchHeritage from '@/pages/SearchHeritage';
+import HeritageDetails from '@/pages/HeritageDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
+import TahfizDetails from '@/pages/TahfizDetails';
 import SettingsPage from '@/pages/SettingsPage';
 import SubmitSuggestion from '@/pages/SubmitSuggestion';
 import SurahPage from '@/pages/SurahPage';
@@ -32,6 +35,7 @@ import ManagePermissions from '@/pages/Management/ManagePermissions.jsx';
 import ManageSuggestions from '@/pages/Management/ManageSuggestions';
 import ManageTahfizCenters from '@/pages/Management/ManageTahfizCenters';
 import ManageTahlilRequests from '@/pages/Management/ManageTahlilRequests';
+import ManageHeritageSites from '@/pages/Management/ManageHeritageSites';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -61,13 +65,17 @@ export const PAGES = {
     "ManageSuggestions": ManageSuggestions,
     "ManageTahfizCenters": ManageTahfizCenters,
     "ManageTahlilRequests": ManageTahlilRequests,
+    "ManageHeritageSites": ManageHeritageSites,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,
     "PrivacyPolicy": PrivacyPolicy,
     "ScanQR": ScanQR,
     "SearchGrave": SearchGrave,
+    "SearchHeritage": SearchHeritage,
+    "HeritageDetails": HeritageDetails,
     "SearchTahfiz": SearchTahfiz,
+    "TahfizDetails": TahfizDetails,
     "SettingsPage": SettingsPage,
     "SubmitSuggestion": SubmitSuggestion,
     "SurahPage": SurahPage,

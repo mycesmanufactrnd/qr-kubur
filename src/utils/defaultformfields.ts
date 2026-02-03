@@ -103,3 +103,11 @@ export const defaultPaymentField = {
   required: false,
   placeholder: ''
 }
+
+export const defaultHeritageField = {
+  name: '',
+  state: '',
+  address: '',
+  latitude: '',
+  longitude: '',
+}

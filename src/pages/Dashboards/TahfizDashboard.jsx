@@ -1,15 +1,20 @@
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils/index';
-import { 
-  BookOpen, Users, Heart, Calendar, UserCheck, TrendingUp,
-  Award, Clock, CheckCircle2, AlertCircle,
-  Sparkles
+import { createPageUrl } from '../../utils';
+import {
+  BookOpen,
+  Users,
+  Heart,
+  Calendar,
+  UserCheck,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { translate } from '@/utils/translations';
-import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
@@ -17,11 +22,10 @@ import useGetAdminDashboardStats from '../../hooks/useDashboardMutations';
 
 export default function TahfizDashboard() {
   const {
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    isTahfizAdmin,
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
   } = useAdminAccess();
 
   const {
@@ -34,234 +38,188 @@ export default function TahfizDashboard() {
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
 
-  if (loadingUser) {
-    return <PageLoadingComponent/>;
-  }
-
-  if (!hasAdminAccess) {
-    return <AccessDeniedComponent/>;
-  }
+  if (loadingUser) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-emerald-50">
-      {/* Header with Islamic Pattern Background */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl mb-6 p-8">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.3) 35px, rgba(255,255,255,.3) 70px)`,
-          }}></div>
-        </div>
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-                {translate('Tahfiz Dashboard')}
-              </h1>
-              <p className="text-emerald-100 text-sm">
-                السلام عليكم • {currentUser?.full_name || translate('Admin')}
-              </p>
-            </div>
-            <div className="flex gap-2">
-                {isSuperAdmin && (
-                    <>
-                    <Link to={createPageUrl('SuperAdminDashboard')}>
-                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:shadow-lg transition-all px-4 py-2 gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            {translate('Super Admin')}
-                        </Badge>
-                        </Link>
-                        <Link to={createPageUrl('AdminDashboard')}>
-                        <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:shadow-lg transition-all px-4 py-2 gap-1">
-                            <BookOpen className="w-3 h-3" />
-                            {translate('Admin')}
-                        </Badge>
-                        </Link>
-                    </>
-                )}
-            </div>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              {translate('Tahfiz Dashboard')}
+            </h1>
+            <p className="text-slate-600 text-sm font-medium">
+              السلام عليكم • {currentUser?.full_name || translate('Admin')}
+            </p>
           </div>
+
+          {isSuperAdmin && (
+            <div className="flex gap-2">
+              <Link to={createPageUrl('AdminDashboard')}>
+                <Button variant="outline" className="gap-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all">
+                  <BookOpen className="w-4 h-4 text-indigo-600" />
+                  <span className="text-indigo-700">{translate('Admin')}</span>
+                </Button>
+              </Link>
+
+              <Link to={createPageUrl('SuperAdminDashboard')}>
+                <Button variant="outline" className="gap-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-all">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <span className="text-purple-700">{translate('Super Admin')}</span>
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Hero Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Tahfiz Centers */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
         <Link to={createPageUrl('ManageTahfizCenters')}>
-          <Card className="group border-0 bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-            <CardContent className="p-6 relative z-10">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <Award className="w-5 h-5 opacity-50" />
+          <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-amber-50 to-orange-50 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <BookOpen className="w-6 h-6 text-white" />
               </div>
-              <div className="text-4xl font-bold mb-1">
-                {isTTRLoading ? (
-                  <div className="w-8 h-8 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-                ) : (
-                  tahfizCount
-                )}
-              </div>
-              <p className="text-amber-100 text-sm font-medium">
+              <p className="text-sm text-amber-700 font-medium mb-1">
                 {translate('Tahfiz Centers')}
               </p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                {isTTRLoading ? '—' : tahfizCount}
+              </p>
             </CardContent>
           </Card>
         </Link>
 
-        {/* Tahlil Requests */}
         <Link to={createPageUrl('ManageTahlilRequests')}>
-          <Card className="group border-0 bg-gradient-to-br from-teal-500 to-cyan-500 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-            <CardContent className="p-6 relative z-10">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Calendar className="w-6 h-6" />
-                </div>
-                <Clock className="w-5 h-5 opacity-50" />
+          <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-teal-50 to-cyan-50 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <Calendar className="w-6 h-6 text-white" />
               </div>
-              <div className="text-4xl font-bold mb-1">
-                {isTTRLoading ? (
-                  <div className="w-8 h-8 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-                ) : (
-                  tahlilRequestCount
-                )}
-              </div>
-              <p className="text-teal-100 text-sm font-medium">
+              <p className="text-sm text-teal-700 font-medium mb-1">
                 {translate('Tahlil Requests')}
               </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Donations */}
-        <Link to={createPageUrl('ManageDonations')}>
-          <Card className="group border-0 bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-            <CardContent className="p-6 relative z-10">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Heart className="w-6 h-6" />
-                </div>
-                <AlertCircle className="w-5 h-5 opacity-50" />
-              </div>
-              <div className="text-4xl font-bold mb-1">
-                {isDDVLoading ? (
-                  <div className="w-8 h-8 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-                ) : (
-                  donationCount
-                )}
-              </div>
-              <p className="text-rose-100 text-sm font-medium">
-                {translate('Total Donations')}
+              <p className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                {isTTRLoading ? '—' : tahlilRequestCount}
               </p>
             </CardContent>
           </Card>
         </Link>
 
-        {/* Verified Donations */}
-        <Card className="border-0 bg-gradient-to-br from-emerald-500 to-green-500 text-white shadow-lg overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-          <CardContent className="p-6 relative z-10">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                <CheckCircle2 className="w-6 h-6" />
+        <Link to={createPageUrl('ManageDonations')}>
+          <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-rose-50 to-pink-50 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <Heart className="w-6 h-6 text-white" />
               </div>
-              <TrendingUp className="w-5 h-5 opacity-50" />
+              <p className="text-sm text-rose-700 font-medium mb-1">
+                {translate('Total Donations')}
+              </p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+                {isDDVLoading ? '—' : donationCount}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Card className="border-0 bg-gradient-to-br from-emerald-50 to-green-50">
+          <CardContent className="p-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+              <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
-            <div className="text-3xl font-bold mb-1">
-              {isDDVLoading ? (
-                <div className="w-8 h-8 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-              ) : (
-                `RM ${(donationVerified || 0).toLocaleString()}`
-              )}
-            </div>
-            <p className="text-emerald-100 text-sm font-medium">
-              {translate('Total Verified')}
+            <p className="text-sm text-emerald-700 font-medium mb-1">
+              {translate('Verified Donations')}
+            </p>
+            <p className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+              {isDDVLoading ? '—' : `RM ${donationVerified.toLocaleString()}`}
             </p>
           </CardContent>
         </Card>
+
       </div>
 
-      {/* Quick Actions Section */}
-      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-100 p-6">
-          <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-              <Award className="w-5 h-5 text-white" />
-            </div>
-            {translate('Management Center')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { 
-                label: translate('Manage Tahfiz Centers'), 
-                page: 'ManageTahfizCenters', 
-                icon: BookOpen,
-                gradient: 'from-amber-500 to-orange-500',
-                description: 'Oversee and manage Tahfiz centers'
-              },
-              { 
-                label: translate('Manage Tahlil Requests'), 
-                page: 'ManageTahlilRequests', 
-                icon: Calendar,
-                gradient: 'from-teal-500 to-cyan-500',
-                description: 'Review and process Tahlil requests'
-              },
-              { 
-                label: translate('Manage Donations'), 
-                page: 'ManageDonations', 
-                icon: Heart,
-                gradient: 'from-rose-500 to-pink-500',
-                description: 'Track and verify donations'
-              },
-              { 
-                label: translate('Manage Users'), 
-                page: 'ManageUsers', 
-                icon: Users,
-                gradient: 'from-blue-500 to-indigo-500',
-                description: 'User accounts and profiles'
-              },
-              { 
-                label: translate('Manage Permissions'), 
-                page: 'ManagePermissions', 
-                icon: UserCheck,
-                gradient: 'from-violet-500 to-purple-500',
-                description: 'Control access and permissions'
-              },
-            ].map((action, i) => (
-              <Link key={i} to={createPageUrl(action.page)}>
-                <div className="group p-5 rounded-2xl border-2 border-gray-100 hover:border-emerald-200 bg-white hover:bg-gradient-to-br hover:from-emerald-50 hover:to-teal-50 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 bg-gradient-to-br ${action.gradient} rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                      <action.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 mb-1 group-hover:text-emerald-700 transition-colors">
-                        {action.label}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        {action.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      {/* Decorative Footer Pattern */}
-      <div className="mt-8 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-gray-200">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-          <span className="text-xs text-gray-600">System Active</span>
+        {/* -------- Left (2/3) -------- */}
+        <div className="lg:col-span-2">
+          <Card className="h-full border-0 shadow-xl bg-white/80 backdrop-blur">
+            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-white" />
+                </div>
+                {translate('Tahfiz Overview')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm pt-6">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
+                <span className="text-amber-700 font-medium">{translate('Tahfiz Centers')}</span>
+                <span className="font-bold text-lg bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                  {tahfizCount}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-100">
+                <span className="text-teal-700 font-medium">{translate('Pending Tahlil Requests')}</span>
+                <span className="font-bold text-lg bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  {tahlilRequestCount}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-100">
+                <span className="text-rose-700 font-medium">{translate('Total Donations')}</span>
+                <span className="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+                  {donationCount}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100">
+                <span className="text-emerald-700 font-medium">{translate('Verified Donations')}</span>
+                <span className="font-bold text-lg bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                  RM {donationVerified.toLocaleString()}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        <div>
+          <Card className="h-full border-0 shadow-xl bg-white/80 backdrop-blur">
+            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                {translate('Quick Actions')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 pt-6">
+              {[
+                { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters', icon: BookOpen, color: 'amber' },
+                { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests', icon: Calendar, color: 'teal' },
+                { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'rose' },
+                { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'blue' },
+                { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'indigo' },
+              ].map((action, i) => (
+                <Link key={i} to={createPageUrl(action.page)}>
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start hover:bg-${action.color}-50 transition-all group mb-2`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg bg-${action.color}-100 group-hover:bg-${action.color}-200 flex items-center justify-center mr-3 transition-all`}>
+                      <action.icon className={`w-4 h-4 text-${action.color}-600`} />
+                    </div>
+                    <span className="text-slate-700 group-hover:text-slate-900 font-medium">{action.label}</span>
+                  </Button>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
       </div>
     </div>
   );

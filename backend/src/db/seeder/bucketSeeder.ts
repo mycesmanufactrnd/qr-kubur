@@ -27,6 +27,10 @@ export const runBucketSeeder = async () => {
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true),
 
+    ('tahfiz-center', 'Tahfiz Center Images', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true),
+
     ('bucket-tahfiz-config', 'Tahfiz Payment Config Images', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true),
@@ -36,6 +40,10 @@ export const runBucketSeeder = async () => {
     107374182400, true),
 
     ('bucket-tahfiz-tahlil', 'Tahfiz Tahlil Request Config', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true)
+
+    ('heritage-site', 'Heritage Site', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true)
 

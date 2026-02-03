@@ -41,40 +41,38 @@ export function useGetGravePaginated({
   return { gravesList, totalPages, isLoading, refetch, error };
 }
 
-export function useCreateGrave() {
+export function useGraveMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.grave.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      trpcUtils.grave.getPaginated.invalidate();
+  const invalidateAll = () => {
+    trpcUtils.grave.getPaginated.invalidate();
+  };
+
+  const createGrave = trpc.grave.create.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'create'); 
+      invalidateAll(); 
     },
-    onError: showApiError,
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useUpdateGrave() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.grave.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      trpcUtils.grave.getPaginated.invalidate();
+  const updateGrave = trpc.grave.update.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'update'); 
+      invalidateAll(); 
     },
-    onError: showApiError,
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useDeleteGrave() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.grave.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      trpcUtils.grave.getPaginated.invalidate();
+  const deleteGrave = trpc.grave.delete.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'delete'); 
+      invalidateAll(); 
     },
-    onError: showApiError,
+    onError: (err) => showApiError(err),
   });
+
+  return { createGrave, updateGrave, deleteGrave };
 }
 
 export function useBulkCreateGraves() {

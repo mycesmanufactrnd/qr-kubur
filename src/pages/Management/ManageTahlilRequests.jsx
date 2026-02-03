@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
 import { useCrudPermissions } from '@/components/PermissionsContext';
-import { SERVICE_LABELS, TahlilStatus } from '@/utils/enums';
+import { getServiceLabels, TahlilStatus } from '@/utils/enums';
 import { translate } from '@/utils/translations';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetTahlilRequestPaginated, useUpdateTahlilRequest } from '@/hooks/useTahlilRequestMutations';
@@ -139,7 +139,7 @@ export default function ManageTahlilRequests() {
                     <TableCell className="font-medium">{request.requestorname}</TableCell>
                     <TableCell className="text-center">{(request.deceasednames || []).join(', ')}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline">{(request.selectedservices || []).map(type => SERVICE_LABELS[type] || type).join(', ')}</Badge>
+                      <Badge variant="outline">{getServiceLabels(request.selectedservices)}</Badge>
                     </TableCell>
                     <TableCell className="max-w-xs text-center">{request.tahfizcenter?.name}</TableCell>
                     <TableCell className="font-mono text-sm text-center">{request.referenceno || '-'}</TableCell>
@@ -197,7 +197,7 @@ export default function ManageTahlilRequests() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">{translate('serviceType')}</p>
-                <Badge variant="outline">{(selectedRequest.selectedservices || []).map(type => SERVICE_LABELS[type] || type).join(', ')}</Badge>
+                <Badge variant="outline">{getServiceLabels(request.selectedservices)}</Badge>
               </div>
               <div>
                 <p className="text-sm text-gray-500">{translate('tahfizCenter')}</p>

@@ -3,4 +3,6 @@ export const getBucketConfig = () => ({
   organisatinPaymentConfBucketId: process.env.ORGANISATION_PAYMENT_CONFIG_STORAGE_ID!,
   graveBucketId: process.env.GRAVE_STORAGE_ID!,
   tahlilRequestBucketId: process.env.TAHLIL_REQUEST_STORAGE_ID!,
+  tahfizCenterBucketId: process.env.TAHFIZ_CENTER_STORAGE_ID!,
+  heritageSiteBucketId: process.env.HERITAGE_SITE_STORAGE_ID!,
 });

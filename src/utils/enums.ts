@@ -14,6 +14,14 @@ export const STATES_MY = [
     "Terengganu", "Kuala Lumpur", "Putrajaya", "Labuan"
 ];
 
+export const normalizeState = (stateFromUrl) => {
+  if (!stateFromUrl) return 'nearby';
+
+  return STATES_MY.find(
+    s => s.toLowerCase() === stateFromUrl.toLowerCase()
+  ) || 'nearby';
+};
+
 const defaultSurahId = 1;
 export const QURAN_API = `https://alquran-api.pages.dev/api/quran/surah/${defaultSurahId}`;
 
@@ -75,14 +83,6 @@ export const SURAH_LIST = [
   { id: 114, label: "An-Nas" },
 ];
 
-export const SERVICE_LABELS = {
-  'tahlil_ringkas': 'Tahlil Ringkas',
-  'tahlil_panjang': 'Tahlil Panjang',
-  'yasin': 'Bacaan Yasin',
-  'doa_arwah': 'Doa Arwah',
-  'custom': 'Perkhidmatan Khas'
-};
-
 export const SERVICE_TYPES = [
   { value: 'tahlil_ringkas', label: 'Tahlil Ringkas', description: 'Bacaan tahlil ringkas untuk arwah' },
   { value: 'tahlil_panjang', label: 'Tahlil Panjang', description: 'Bacaan tahlil lengkap dengan surah-surah pilihan' },
@@ -90,6 +90,15 @@ export const SERVICE_TYPES = [
   { value: 'doa_arwah', label: 'Doa Arwah', description: 'Doa khusus untuk arwah' },
   { value: 'custom', label: 'Perkhidmatan Khas', description: 'Perkhidmatan mengikut permintaan' }
 ];
+
+export const getServiceLabel = (value: string) => {
+  const service = SERVICE_TYPES.find(s => s.value === value);
+  return service?.label || value;
+};
+
+export const getServiceLabels = (values: string[] = []) => {
+  return values.map(v => getServiceLabel(v)).join(', ');
+};
 
 export const ACTION_MAPS = {
   create: 'Created Successfully',
