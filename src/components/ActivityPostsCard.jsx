@@ -33,7 +33,7 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
         {post.photourl && (
           <div className="rounded-xl overflow-hidden -mx-2">
             <img 
-              src={`/api/file/activity-posts/${encodeURIComponent(post.photourl)}`} 
+              src={`/api/file/activity-post/${encodeURIComponent(post.photourl)}`} 
               alt={post.title}
               className="w-full h-48 object-cover"
             />
@@ -42,7 +42,7 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
         
         <div 
           className="prose prose-sm prose-slate max-w-none text-slate-600 line-clamp-4"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: post.content || '' }}
         />
       </CardContent>
     </Card>
