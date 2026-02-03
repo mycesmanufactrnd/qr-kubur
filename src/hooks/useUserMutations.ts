@@ -11,13 +11,10 @@ type useGetUserPaginatedParams = {
 const titleMessage = 'User';
 
 export function useGetUsers(canView: boolean) {
-  const { 
-    currentUser, 
-    checkRole
-  } = useAdminAccess();
-
+  const { currentUser } = useAdminAccess();
+  // Standardized: No input needed, backend uses session context
   const trpcRes = trpc.users.getUsers.useQuery(
-    { currentUser, checkRole },
+    undefined, 
     { enabled: !!currentUser && canView }
   );
   return {
@@ -27,71 +24,51 @@ export function useGetUsers(canView: boolean) {
   };
 }
 
-export function useGetUserPaginated({
-  page,
-  pageSize,
-  search,
-}: useGetUserPaginatedParams) {
-  const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
+export function useGetUserPaginated({ page, pageSize, search }: useGetUserPaginatedParams) {
+  const { currentUser, hasAdminAccess } = useAdminAccess();
 
-  const { data, isLoading, refetch, error } =
-    trpc.users.getPaginated.useQuery(
-      {
-        page,
-        pageSize,
-        search,
-        currentUser,
-        checkRole,
-      },
-      { enabled: hasAdminAccess && !!currentUser }
-    );
+  // 🔹 Standardized: Removed currentUser/checkRole from input
+  const { data, isLoading, refetch, error } = trpc.users.getPaginated.useQuery(
+    {
+      page: page ?? 1,
+      pageSize: pageSize ?? 10,
+      search: search || '',
+    },
+    { 
+      enabled: hasAdminAccess && !!currentUser,
+      keepPreviousData: true 
+    }
+  );
 
-  const userList = {
-    items: data?.items ?? [],
-    total: data?.total ?? 0,
+  return {
+    userList: { items: data?.items ?? [], total: data?.total ?? 0 },
+    totalPages: data ? Math.ceil(data.total / (pageSize ?? 10)) : 1,
+    isLoading,
+    refetch,
+    error 
   };
-
-  const totalPages = pageSize ? Math.ceil(userList.total / pageSize) : 1;
-
-  return { userList, totalPages, isLoading, refetch, error };
 }
 
 export function useUserMutations() {
   const trpcUtils = trpc.useUtils();
-
   const invalidateAll = async () => {
     await trpcUtils.users.getPaginated.invalidate();
   };
 
   const createUser = trpc.users.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      invalidateAll();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onSuccess: () => { showSuccess(titleMessage, 'create'); invalidateAll(); },
+    onError: (err) => showApiError(err),
   });
 
   const updateUser = trpc.users.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      invalidateAll();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onSuccess: () => { showSuccess(titleMessage, 'update'); invalidateAll(); },
+    onError: (err) => showApiError(err),
   });
 
   const deleteUser = trpc.users.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      invalidateAll();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onSuccess: () => { showSuccess(titleMessage, 'delete'); invalidateAll(); },
+    onError: (err) => showApiError(err),
   });
 
-  return { createUser, updateUser, deleteUser }
+  return { createUser, updateUser, deleteUser };
 }

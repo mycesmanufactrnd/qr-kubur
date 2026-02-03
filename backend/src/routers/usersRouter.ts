@@ -6,146 +6,66 @@ import { Permission, User } from "../db/entities.ts";
 import { updateUserSchema, userSchema } from "../schemas/userSchema.ts";
 
 export const usersRouter = router({
-  getUserById: protectedProcedure
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
-    .query(async ({ input }) => {
-      const userRepo = AppDataSource.getRepository(User);
-
-      const user = await userRepo.findOne({
-        where: { id: input.id },
-      });
-
-      if (!user) {
-        throw new Error(`User with id ${input.id} not found`);
-      }
-
-      const { password, ...userWithoutPassword } = user;
-
-      return userWithoutPassword;
-    }),
-  
-  getUsers: protectedProcedure
-    .input(
-      z.object({
-        currentUser: z.object({
-          id: z.number(),
-          organisation: z.object({ id: z.number() }).nullable(),
-          tahfizcenter: z.object({ id: z.number() }).nullable(),
-        }),
-        checkRole: z.object({
-          superadmin: z.boolean(),
-          admin: z.boolean(),
-          employee: z.boolean(),
-          tahfiz: z.boolean(),
-        }),
-      })
-    )
-    .query(async ({ input }) => {
-      const userRepo = AppDataSource.getRepository(User);
-      
-      const { currentUser, checkRole } = input;
-
-      if (!currentUser) return [];
-
-      let where: any = {};
-
-      if (!checkRole.superadmin) {
-        if (checkRole.admin) {
-          where.role = ["admin", "employee"];
-
-          if (currentUser.organisation) {
-            where.organisationId = currentUser.organisation.id;
-          }
-
-          if (currentUser.tahfizcenter) {
-            where.tahfizcenterId = currentUser.tahfizcenter.id;
-          }
-
-        } else if (checkRole.employee) {
-          where.id = currentUser.id;
-        } else {
-          return [];
-        }
-      }
-
-      const users = await userRepo.find({ where });
-
-      const sanitizedUsers = users.map(({ password, ...rest }) => rest);
-
-      return sanitizedUsers;
-
-    }),
-
+  // 🔹 Standardized getPaginated
   getPaginated: protectedProcedure
     .input(
-        z.object({
-        page: z.number().min(1).optional(),
-        pageSize: z.number().min(1).optional(),
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).default(10),
         search: z.string().optional(),
-        currentUser: z.object({
-          id: z.number(),
-          organisation: z.object({ id: z.number() }).nullable(),
-          tahfizcenter: z.object({ id: z.number() }).nullable(),
-        }),
-        checkRole: z.object({
-            superadmin: z.boolean(),
-            admin: z.boolean(),
-            employee: z.boolean(),
-            tahfiz: z.boolean(),
-        }).optional(),
-        })
+        // 🔹 Standardized naming for context filtering
+        organisationIds: z.array(z.number()).optional(),
+        tahfizIds: z.array(z.number()).optional(),
+      })
     )
     .query(async ({ input }) => {
-        const { page, pageSize, search, currentUser, checkRole } = input;
+      const { page, pageSize, search, organisationIds, tahfizIds } = input;
+      const userRepo = AppDataSource.getRepository(User);
 
-        const userRepo = AppDataSource.getRepository(User);
-
-        const query = userRepo.createQueryBuilder("user")
+      const query = userRepo.createQueryBuilder("user")
         .leftJoinAndSelect("user.organisation", "organisation")
         .leftJoinAndSelect("user.tahfizcenter", "tahfizcenter");
 
-        
-        if (!checkRole?.superadmin) {
-          if (!currentUser?.organisation && !currentUser?.tahfizcenter) {
-            query.andWhere("user.id = :id", { id: currentUser.id });
-          }
-          else if (checkRole?.admin) {
-            query.andWhere("user.role IN (:...roles)", { roles: ["admin", "employee"] });
+      // 🔹 1. Role-based Context Filtering (Supervisor Rule)
+      // Restricts standard admins to users within their organizations/centers
+      if (organisationIds && organisationIds.length > 0) {
+        query.andWhere("user.organisationId IN (:...orgIds)", { orgIds: organisationIds });
+      }
 
-            if (currentUser.organisation) {
-              query.andWhere("user.organisationId = :orgId", { orgId: currentUser.organisation.id });
-            }
+      if (tahfizIds && tahfizIds.length > 0) {
+        query.andWhere("user.tahfizcenterId IN (:...tIds)", { tIds: tahfizIds });
+      }
 
-            if (currentUser.tahfizcenter) {
-              query.andWhere("user.tahfizcenterId = :tahfizId", { tahfizId: currentUser.tahfizcenter.id });
-            }
+      // 🔹 2. Explicit Search Logic (andWhere + ILIKE)
+      // Standardized to search both Full Name and Email for easier impersonation
+      if (search?.trim()) {
+        query.andWhere(
+          "(user.fullname ILIKE :search OR user.email ILIKE :search)",
+          { search: `%${search.trim()}%` }
+        );
+      }
 
-          } else if (checkRole?.employee) {
-            query.andWhere("user.id = :id", { id: currentUser.id });
-          } else {
-            return { items: [], total: 0 };
-          }
-        }
+      // 🔹 3. Execution
+      const [items, total] = await query
+        .orderBy("user.createdat", "DESC")
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .getManyAndCount();
 
-        if (search) {
-            query.andWhere("user.fullname ILIKE :search", { search: `%${search}%` });
-        }
+      // 🔹 4. Sanitization (Safety: Never return passwords)
+      const sanitizedItems = items.map(({ password, ...rest }) => rest);
 
-        if (page && pageSize) {
-            query.skip((page - 1) * pageSize).take(pageSize);
-        }
+      return { items: sanitizedItems, total };
+    }),
 
-        const [items, total] = await query
-            .orderBy("user.createdat", "DESC")
-            .getManyAndCount();
-
-        const sanitizedItems = items.map(({ password, ...rest }) => rest);
-
-        return { items: sanitizedItems, total };
+  getUserById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const userRepo = AppDataSource.getRepository(User);
+      const user = await userRepo.findOne({ where: { id: input.id } });
+      if (!user) throw new Error(`User with id ${input.id} not found`);
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
     }),
 
   create: protectedProcedure
@@ -153,30 +73,18 @@ export const usersRouter = router({
     .mutation(async ({ input }) => {
       const userRepo = AppDataSource.getRepository(User);
       const permissionRepo = AppDataSource.getRepository(Permission);
-
       const user = userRepo.create(input);
-
       const savedUser = await userRepo.save(user);
-
-      const { password, ...userWithoutPassword } = savedUser;
 
       if (savedUser) {
         const permissions = permissionRepo.create([
-          {
-            slug: 'permissions_edit',
-            enabled: true,
-            user: savedUser,
-          },
-          {
-            slug: 'permissions_view',
-            enabled: true,
-            user: savedUser,
-          },
+          { slug: 'permissions_edit', enabled: true, user: savedUser },
+          { slug: 'permissions_view', enabled: true, user: savedUser },
         ]);
-
         await permissionRepo.save(permissions);
       }
 
+      const { password, ...userWithoutPassword } = savedUser;
       return userWithoutPassword;
     }),
 
@@ -185,12 +93,9 @@ export const usersRouter = router({
     .mutation(async ({ input }) => {
       const userRepo = AppDataSource.getRepository(User);
       const user = await userRepo.findOneByOrFail({ id: input.id });
-
       userRepo.merge(user, input.data);
-
       const savedUser = await userRepo.save(user);
       const { password, ...userWithoutPassword } = savedUser;
-
       return userWithoutPassword;
     }),
 
@@ -198,7 +103,6 @@ export const usersRouter = router({
     .input(z.number())
     .mutation(async ({ input }) => {
       const userRepo = AppDataSource.getRepository(User);
-      return userRepo.delete(input);
+      return await userRepo.delete(input);
     }),
 });
-
