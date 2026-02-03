@@ -24,8 +24,8 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { defaultActivityPost } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
-import TextInputForm from '@/components/Forms/TextInputForm';
-import CheckboxForm from '@/components/Forms/CheckboxForm';
+import TextInputForm from '@/components/forms/TextInputForm';
+import CheckboxForm from '@/components/forms/CheckboxForm';
 
 export default function ManageActivityPosts() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();

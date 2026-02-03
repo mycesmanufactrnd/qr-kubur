@@ -25,6 +25,7 @@ import { runningNoRouter } from "./runningNoRouter.ts";
 import { billplzRouter } from "./billplzRouter.ts";
 import { mosqueRouter } from "./mosqueRouter.ts";
 import { activityPostRouter } from "./activityPostRouter.ts";
+import { islamicEventRouter } from "./islamicEventRouter.js";
 
 export const appRouter = trpcRouter({
   auth: authRouter,
@@ -53,6 +54,7 @@ export const appRouter = trpcRouter({
   billplz: billplzRouter,
   mosque: mosqueRouter,
   activityPost: activityPostRouter,
+  islamicEvent: islamicEventRouter,
 });
 
 export type AppRouter = typeof appRouter;

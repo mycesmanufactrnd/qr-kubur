@@ -14,12 +14,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import { 
-  useCreatePaymentField,
-  useDeletePaymentField,
-  useGetPaymentField,
-  useUpdatePaymentField,
-} from '@/hooks/usePaymentFieldMutations';
+import { useGetPaymentField, usePaymentFieldMutations } from '@/hooks/usePaymentFieldMutations';
 import { useGetPaymentPlatform } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
 import { defaultPaymentField } from '@/utils/defaultformfields';
@@ -27,11 +22,8 @@ import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManagePaymentFields() {
-  const { 
-    loadingUser, 
-    isSuperAdmin, 
-  } = useAdminAccess();
-
+  const { loadingUser, isSuperAdmin } = useAdminAccess();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,9 +35,7 @@ export default function ManagePaymentFields() {
   const { data: fields, isLoading } = useGetPaymentField(isSuperAdmin);
   const { data: platforms } = useGetPaymentPlatform(isSuperAdmin);
 
-  const createMutation = useCreatePaymentField();
-  const updateMutation = useUpdatePaymentField();
-  const deleteMutation = useDeletePaymentField();
+  const { createPaymentField, updatePaymentField, deletePaymentField } = usePaymentFieldMutations();
 
   const filteredFields = fields.filter(f => {
     const matchesSearch = !searchQuery || 
@@ -94,7 +84,7 @@ export default function ManagePaymentFields() {
     };
 
     if (editingField) {
-      updateMutation.mutateAsync({ id: editingField.id, data: payload })
+      updatePaymentField.mutateAsync({ id: editingField.id, data: payload })
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
@@ -103,7 +93,7 @@ export default function ManagePaymentFields() {
         }
       });
     } else {
-      createMutation.mutateAsync(payload)
+      createPaymentField.mutateAsync(payload)
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
@@ -120,7 +110,7 @@ export default function ManagePaymentFields() {
 
   const confirmDelete = () => {
     if (!fieldToDelete) return;
-    deleteMutation.mutateAsync(fieldToDelete.id);
+    deletePaymentField.mutateAsync(fieldToDelete.id);
     setDeleteDialogOpen(false);
     setFieldToDelete(null);
   };
@@ -317,7 +307,7 @@ export default function ManagePaymentFields() {
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createPaymentField.isPending || updatePaymentField.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 Save
               </Button>

@@ -21,3 +21,4 @@ export * from "./entities/OnlineTransaction.entity.ts";
 export * from "./entities/OnlineTransactionAccount.entity.ts";
 export * from "./entities/Mosque.entity.ts";
 export * from "./entities/ActivityPosts.entity.ts";
+export * from "./entities/IslamicEvent.entity.ts";

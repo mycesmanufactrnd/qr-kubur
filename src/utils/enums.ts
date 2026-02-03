@@ -8,6 +8,14 @@ export type Coordinates = {
 
 export const DONATION_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
+export const HIJRI_MONTHS = [
+  'Muharram', 'Safar', 'Rabi\' al-Awwal', 'Rabi\' al-Thani',
+  'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban',
+  'Ramadan', 'Shawwal', 'Dhul-Qi\'dah', 'Dhul-Hijjah'
+];
+
+export const ISLAMIC_EVENTS_CATEGORIES = ['Event', 'Fasting', 'Prayer', 'Hajj'];
+
 export const STATES_MY = [
     "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
     "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", 

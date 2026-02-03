@@ -15,44 +15,36 @@ export function useGetPaymentField(isSuperadmin: boolean) {
   };
 }
 
-export function useCreatePaymentField() {
+export function usePaymentFieldMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.paymentField.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      trpcUtils.paymentField.getField.invalidate();
+  const invalidateAll = () => {
+    trpcUtils.paymentField.getField.invalidate();
+  };
+
+  const createPaymentField = trpc.paymentField.create.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'create'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useUpdatePaymentField() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.paymentField.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      trpcUtils.paymentField.getField.invalidate();
+  const updatePaymentField = trpc.paymentField.update.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'update'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useDeletePaymentField() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.paymentField.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      trpcUtils.paymentField.getField.invalidate();
+  const deletePaymentField = trpc.paymentField.delete.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'delete'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
+
+  return { createPaymentField, updatePaymentField, deletePaymentField };
 }

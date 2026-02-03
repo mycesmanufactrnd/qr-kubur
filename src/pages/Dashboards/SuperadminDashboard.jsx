@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX, Moon, Sun, Globe } from 'lucide-react';
+import { Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX, Moon, Sun, Globe, Calendar } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,9 +47,10 @@ const superadminConfig = [
     value: "system",
     title: translate('System Management'),
     items: [
-      { name: translate('Activity Logs'), page: 'ViewLogs', icon: Terminal, color: 'teal' },
+      { name: translate('Activity Logs'), page: 'ViewLogs', icon: Terminal, color: 'pink' },
       { name: translate('Icons Library'), page: 'IconLibrary', icon: Sparkles, color: 'purple' },
       { name: translate('Manage Heritage'), page: 'ManageHeritageSites', icon: Globe, color: 'red' },
+      { name: translate('Manage Islamic Events'), page: 'ManageIslamicEvent', icon: Calendar, color: 'emerald' },
     ]
   },
 ];

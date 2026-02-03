@@ -15,44 +15,36 @@ export function useGetPaymentPlatform(isSuperadmin: boolean) {
   };
 }
 
-export function useCreatePaymentPlatform() {
+export function usePaymentPlatformMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.paymentPlatform.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      trpcUtils.paymentPlatform.getPlatform.invalidate();
+  const invalidateAll = () => {
+    trpcUtils.paymentPlatform.getPlatform.invalidate();
+  };
+
+  const createPaymentPlatform = trpc.paymentPlatform.create.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'create'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useUpdatePaymentPlatform() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.paymentPlatform.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      trpcUtils.paymentPlatform.getPlatform.invalidate();
+  const updatePaymentPlatform = trpc.paymentPlatform.update.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'update'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useDeletePaymentPlatform() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.paymentPlatform.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      trpcUtils.paymentPlatform.getPlatform.invalidate();
+  const deletePaymentPlatform = trpc.paymentPlatform.delete.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'delete'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
+
+  return { createPaymentPlatform, updatePaymentPlatform, deletePaymentPlatform };
 }

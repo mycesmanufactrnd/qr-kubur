@@ -8,16 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import LoadingUser from '@/components/PageLoadingComponent';
 import Breadcrumb from '@/components/Breadcrumb';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useAdminAccess } from '@/utils/auth';
-import { 
-  useCreatePaymentPlatform,
-  useDeletePaymentPlatform,
-  useGetPaymentPlatform,
-  useUpdatePaymentPlatform, 
-} from '@/hooks/usePaymentPlatformMutations';
+import { useGetPaymentPlatform, usePaymentPlatformMutations } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
 import { translate } from '@/utils/translations';
 import { defaultPaymentConfigField } from '@/utils/defaultformfields';
@@ -25,6 +19,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import { ActiveInactiveStatus } from '@/utils/enums';
 
 
 export default function ManagePaymentPlatforms() {
@@ -35,9 +30,7 @@ export default function ManagePaymentPlatforms() {
   const [platformToDelete, setPlatformToDelete] = useState(null);
   const { loadingUser, isSuperAdmin } = useAdminAccess();
   const { data: platforms, isLoading } = useGetPaymentPlatform(isSuperAdmin);
-  const createMutation = useCreatePaymentPlatform();
-  const updateMutation = useUpdatePaymentPlatform();
-  const deleteMutation = useDeletePaymentPlatform();
+  const { createPaymentPlatform, updatePaymentPlatform, deletePaymentPlatform } = usePaymentPlatformMutations();
 
   const openAddDialog = () => {
     setEditingPlatform(null);
@@ -51,8 +44,7 @@ export default function ManagePaymentPlatforms() {
       code: platform.code || '',
       name: platform.name || '',
       category: platform.category || 'manual',
-      status: platform.status || 'active',
-      icon: platform.icon || ''
+      status: platform.status || ActiveInactiveStatus.ACTIVE,
     });
     setIsDialogOpen(true);
   };
@@ -68,7 +60,7 @@ export default function ManagePaymentPlatforms() {
     if (!isValid) return;
     
     if (editingPlatform) {
-      updateMutation.mutateAsync({ id: editingPlatform.id, data: formData })
+      updatePaymentPlatform.mutateAsync({ id: editingPlatform.id, data: formData })
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
@@ -77,7 +69,7 @@ export default function ManagePaymentPlatforms() {
         }
       })
     } else {
-      createMutation.mutateAsync(formData)
+      createPaymentPlatform.mutateAsync(formData)
       .then((res) => {
         if (res) {
           setIsDialogOpen(false);
@@ -94,13 +86,13 @@ export default function ManagePaymentPlatforms() {
 
   const confirmDelete = () => {
     if (!platformToDelete) return;
-    deleteMutation.mutate(platformToDelete.id);
+    deletePaymentPlatform.mutate(platformToDelete.id);
     setDeleteDialogOpen(false);
     setPlatformToDelete(null);
   };
 
   const getStatusBadge = (status) => {
-    return status === 'active' ? (
+    return status === ActiveInactiveStatus.ACTIVE ? (
       <Badge className="bg-green-100 text-green-700">
         <CheckCircle className="w-3 h-3 mr-1" />
         Active
@@ -235,24 +227,16 @@ export default function ManagePaymentPlatforms() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value={ActiveInactiveStatus.ACTIVE}>Active</SelectItem>
+                  <SelectItem value={ActiveInactiveStatus.INACTIVE}>Inactive</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label>Icon Name (Optional)</Label>
-              <Input
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                placeholder="e.g. CreditCard"
-              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createPaymentPlatform.isPending || updatePaymentPlatform.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 Save
               </Button>

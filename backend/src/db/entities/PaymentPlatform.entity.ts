@@ -27,9 +27,6 @@ export class PaymentPlatform {
     })
     status!: ActiveInactiveStatus;
 
-    @Column("varchar", { length: 50, nullable: true })
-    icon?: string;
-
     @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.paymentplatform)
     organisationpaymentconfigs!: OrganisationPaymentConfig[];
 
