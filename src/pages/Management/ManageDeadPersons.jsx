@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Plus, Edit, Trash2, Search, Save, Upload, MapPin, QrCode } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Save, MapPin, QrCode } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +18,7 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
-import { 
-  useGetDeadPersonPaginated, 
-  useCreateDeadPerson, 
-  useUpdateDeadPerson, 
-  useDeleteDeadPerson 
-} from '@/hooks/useDeadPersonMutations';
+import { useGetDeadPersonPaginated, useDeadPersonMutations } from '@/hooks/useDeadPersonMutations';
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,12 +28,7 @@ import NoDataTableComponent from '@/components/NoDataTableComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 export default function ManageDeadPersons() {
-  const { 
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-  } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
   const [filterName, setFilterName] = useState('');
   const [filterIC, setFilterIC] = useState('');
@@ -91,9 +81,7 @@ export default function ManageDeadPersons() {
     organisationIds: accessibleOrgIds
   });
 
-  const createMutation = useCreateDeadPerson();
-  const updateMutation = useUpdateDeadPerson();
-  const deleteMutation = useDeleteDeadPerson();
+  const { createDeadPerson, updateDeadPerson, deleteDeadPerson } = useDeadPersonMutations();
 
   const openAddDialog = () => {
     setEditingPerson(null);
@@ -103,18 +91,7 @@ export default function ManageDeadPersons() {
 
   const openEditDialog = (person) => {
     setEditingPerson(person);
-    setFormData({
-      name: person.name || '',
-      icnumber: person.icnumber || '',
-      dateofbirth: person.dateofbirth || '',
-      dateofdeath: person.dateofdeath || '',
-      causeofdeath: person.causeofdeath || '',
-      grave: person.grave?.id || '',
-      biography: person.biography || '',
-      photourl: person.photourl || '',
-      gpslatitude: person.latitude || '',
-      gpslongitude: person.longitude || '',
-    });
+    setFormData({...person});
     setIsDialogOpen(true);
   };
 
@@ -148,13 +125,7 @@ export default function ManageDeadPersons() {
     if (!isValid) return;
 
     const submitData = {
-      name: formData.name,
-      icnumber: formData.icnumber || null,
-      dateofbirth: formData.dateofbirth || null,
-      dateofdeath: formData.dateofdeath || null,
-      causeofdeath: formData.causeofdeath || null,
-      biography: formData.biography || null,
-      photourl: formData.photourl || null,
+      ...formData,
       latitude: formData.gpslatitude ? parseFloat(formData.gpslatitude) : null,
       longitude: formData.gpslongitude ? parseFloat(formData.gpslongitude) : null,
       graveId: Number(formData.grave)
@@ -162,9 +133,9 @@ export default function ManageDeadPersons() {
 
     try {
       if (editingPerson) {
-        await updateMutation.mutateAsync({ id: editingPerson.id, data: submitData });
+        await updateDeadPerson.mutateAsync({ id: editingPerson.id, data: submitData });
       } else {
-        await createMutation.mutateAsync(submitData);
+        await createDeadPerson.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
     } catch (error) {}
@@ -172,7 +143,7 @@ export default function ManageDeadPersons() {
 
   const confirmDelete = async () => {
     if (!personToDelete) return;
-    await deleteMutation.mutateAsync(personToDelete.id);
+    await deleteDeadPerson.mutateAsync(personToDelete.id);
     setDeleteDialogOpen(false);
     setPersonToDelete(null);
   };
@@ -480,7 +451,7 @@ export default function ManageDeadPersons() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createDeadPerson.isPending || updateDeadPerson.isPending}>
                 <Save className="w-4 h-4 mr-2" />{translate('Save')}
               </Button>
             </DialogFooter>

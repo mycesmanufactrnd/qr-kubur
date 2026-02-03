@@ -73,7 +73,6 @@ export default function SearchGrave() {
               key={heritage.id}
               site={heritage} 
               distance={heritage.distance}
-              bucketId={'heritage-site'}
               index={index}
               nextPageUrl={'HeritageDetails'}
             />

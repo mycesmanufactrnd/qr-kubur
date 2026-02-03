@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
 import { translate } from '@/utils/translations';
-import { MapPin, Plus, Edit, Trash2, Search, X, Save, Upload, QrCode } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, X, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,52 +20,52 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
 import { Textarea } from '@/components/ui/textarea';
-import { validateFields } from '@/utils/validations';
-import { defaultGraveField, defaultHeritageField } from '@/utils/defaultformfields';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useGetHeritageSitesPaginated, useHeritageMutations } from '@/hooks/useHeritageMutations';
+import { Checkbox } from '@/components/ui/checkbox';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { defaultHeritageField } from '@/utils/defaultformfields';
+import { validateFields } from '@/utils/validations';
 
 export default function ManageHeritageSites() {
-  const { 
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    currentUserStates 
-  } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlName = searchParams.get('name') || '';
   const urlState = searchParams.get('state') || 'all';
 
   const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
-  
-  useEffect(() => {
-    setTempName(urlName);
-    setTempState(urlState);
-  }, [urlName, urlState]);
-
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingHeritage, setEditingHeritage] = useState(null);
-  const [formData, setFormData] = useState(defaultHeritageField);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [heritageToDelete, setHeritageToDelete] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('heritages');
-
   const { heritageSiteList, totalPages, isLoading } = useGetHeritageSitesPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName, 
     filterState: urlState === 'all' ? undefined : urlState,
-  }); 
-
+  });
   const { createHeritage, updateHeritage, deleteHeritage } = useHeritageMutations();
+
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+    defaultValues: defaultHeritageField,
+  });
+
+  const photourl = watch('photourl');
+  const stateField = watch('state');
+
+  useEffect(() => {
+    setTempName(urlName);
+    setTempState(urlState);
+  }, [urlName, urlState]);
 
   const handleSearch = () => {
     const params = { page: '1' };
@@ -73,34 +74,48 @@ export default function ManageHeritageSites() {
     setSearchParams(params);
   };
 
-  const handleReset = () => {
-    setSearchParams({});
-  };
+  const handleReset = () => setSearchParams({});
 
   const openAddDialog = () => {
     setEditingHeritage(null);
-    setFormData(defaultGraveField);
+    reset(defaultHeritageField);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (heritage) => {
     setEditingHeritage(heritage);
-    setFormData({
-      name: heritage.name || '',
-      state: heritage.state || '',
-      address: heritage.address || '',
-      latitude: heritage.latitude || '',
-      longitude: heritage.longitude || '',
-    });
+    reset(heritage);
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleFileUpload = async (file) => {
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
 
+      const res = await fetch('/api/upload/heritage-site', { method: 'POST', body: formDataUpload });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
+      const data = await res.json();
+      setValue('photourl', data.file_url);
+      showSuccess('Photo uploaded');
+    } catch (err) {
+      console.error(err);
+      showError('Failed to upload photo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
-      { field: 'name', label: 'Heritage Site', type: 'text' },
+      { field: 'name', label: 'Name', type: 'text' },
       { field: 'state', label: 'State', type: 'select' },
+      { field: 'photourl', label: 'Photo', type: 'text' },
     ]);
 
     if (!isValid) return;
@@ -118,24 +133,24 @@ export default function ManageHeritageSites() {
         await createHeritage.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const confirmDelete = async () => {
     if (!heritageToDelete) return;
-
     try {
       await deleteHeritage.mutateAsync(heritageToDelete.id);
-      
       setDeleteDialogOpen(false);
       setHeritageToDelete(null);
     } catch (error) {
-      console.error("Delete failed:", error);
+      console.error('Delete failed:', error);
     }
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
-  if (!hasAdminAccess) return <AccessDeniedComponent/>;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
@@ -143,7 +158,7 @@ export default function ManageHeritageSites() {
         { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
         { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
       ]} />
-      
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <MapPin className="w-6 h-6 text-emerald-600" />
@@ -187,10 +202,8 @@ export default function ManageHeritageSites() {
                 </SelectContent>
               </Select>
             )}
-            
             <Button variant="outline" onClick={handleReset} className="w-full">
-              <X className="w-4 h-4 mr-2" />
-              {translate('Reset')}
+              <X className="w-4 h-4 mr-2" /> {translate('Reset')}
             </Button>
           </div>
         </CardContent>
@@ -202,23 +215,27 @@ export default function ManageHeritageSites() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Heritage Site')}</TableHead>
+                <TableHead className="text-center">{translate('Era')}</TableHead>
                 <TableHead className="text-center">{translate('State')}</TableHead>
+                <TableHead className="text-center">{translate('Featured')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={6}/>
+                <InlineLoadingComponent isTable colSpan={6} />
               ) : heritageSiteList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={6}/>
+                <NoDataTableComponent colSpan={6} />
               ) : (
                 heritageSiteList.items.map(site => (
                   <TableRow key={site.id}>
                     <TableCell className="font-medium">{site.name}</TableCell>
+                    <TableCell className="text-center">{site.era}</TableCell>
                     <TableCell className="text-center">{site.state}</TableCell>
+                    <TableCell className="text-center">{site.isfeatured ? 'Yes' : 'No'}</TableCell>
                     <TableCell className="text-center">
                       {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(site)}><Edit className="w-4 h-4" /></Button>}
-                      {canDelete && <Button variant="ghost" size="sm" onClick={() => {setHeritageToDelete(site); setDeleteDialogOpen(true);}}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                      {canDelete && <Button variant="ghost" size="sm" onClick={() => { setHeritageToDelete(site); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
                     </TableCell>
                   </TableRow>
                 ))
@@ -226,6 +243,7 @@ export default function ManageHeritageSites() {
             </TableBody>
           </Table>
         </CardContent>
+
         {totalPages > 0 && (
           <Pagination
             currentPage={urlPage}
@@ -242,52 +260,152 @@ export default function ManageHeritageSites() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingHeritage ? translate('Edit Heritage Site') : translate('Add Heritage Site')}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>{translate('Heritage Site')} <span className="text-red-500">*</span></Label>
-              <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-            </div>
-            <div>
-              <Label>{translate('State')} <span className="text-red-500">*</span></Label>
-              <Select value={formData.state || ""} onValueChange={(v) => setFormData({ ...formData, state: v })}>
-                <SelectTrigger><SelectValue placeholder={translate('Select states')} /></SelectTrigger>
-                <SelectContent>
-                  {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((state) => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>{translate('Address')}</Label>
-              <Textarea value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} rows={3} />
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">            
+            <Controller
+              name="name"
+              control={control}
+              rules={{ required: 'Heritage Site is required' }}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Name')} <span className="text-red-500">*</span></Label>
+                  <Input {...field} />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name.message}</p>
+                  )}
+                </div>
+              )}
+            />
+
+            <Controller
+              name="era"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Era')}</Label>
+                  <Input {...field} />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="eradescription"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Era Description')}</Label>
+                  <Textarea {...field} rows={3} />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Description')}</Label>
+                  <Textarea {...field} rows={3} />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="historicalsources"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Historical Sources')}</Label>
+                  <ReactQuill theme="snow" value={field.value} onChange={field.onChange} className="bg-white" />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="state"
+              control={control}
+              rules={{ required: 'State is required' }}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('State')} <span className="text-red-500">*</span></Label>
+                  <Select value={field.value || ''} onValueChange={field.onChange}>
+                    <SelectTrigger><SelectValue placeholder={translate('Select state')} /></SelectTrigger>
+                    <SelectContent>
+                      {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
+
+            <Controller
+              name="isfeatured"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  <Label>{translate('Featured')}</Label>
+                </div>
+              )}
+            />
+
+            <Controller
+              name="url"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('URL')}</Label>
+                  <Input {...field} />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>{translate('Address')}</Label>
+                  <Textarea {...field} rows={3} />
+                </div>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>{translate('GPS Latitude')}</Label>
-                <Input type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({...formData, latitude: e.target.value})} />
-              </div>
-              <div>
-                <Label>{translate('GPS Longitude')}</Label>
-                <Input type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({...formData, longitude: e.target.value})} />
-              </div>
+              <Controller
+                name="latitude"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <Label>{translate('GPS Latitude')}</Label>
+                    <Input type="number" step="any" {...field} />
+                  </div>
+                )}
+              />
+              <Controller
+                name="longitude"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <Label>{translate('GPS Longitude')}</Label>
+                    <Input type="number" step="any" {...field} />
+                  </div>
+                )}
+              />
             </div>
+
             <Button
               type="button"
               variant="outline"
               onClick={() => {
                 if (navigator.geolocation) {
                   navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      setFormData({
-                        ...formData,
-                        latitude: position.coords.latitude.toFixed(16),
-                        longitude: position.coords.longitude.toFixed(16)
-                      });
+                    (pos) => {
+                      setValue('latitude', pos.coords.latitude.toFixed(16));
+                      setValue('longitude', pos.coords.longitude.toFixed(16));
                       showSuccess('Lokasi berjaya diperolehi');
                     },
                     () => showError('Tidak dapat mendapatkan lokasi.'),
@@ -299,7 +417,26 @@ export default function ManageHeritageSites() {
             >
               <MapPin className="w-4 h-4 mr-2" />
               {translate('Get Current Location')}
-            </Button>                       
+            </Button>
+
+            <div className="space-y-2">
+              <Label>{translate('Photo')}</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    handleFileUpload(file);
+                  }}
+                  disabled={uploading}
+                />
+                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
+              </div>
+              {photourl && <img src={`/api/file/heritage-site/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('Cancel')}
@@ -313,7 +450,15 @@ export default function ManageHeritageSites() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={translate('Delete Heritage Site')} description={`${translate('Delete')} "${heritageToDelete?.name}"?`} onConfirm={confirmDelete} confirmText={translate('Delete')} variant="destructive" />
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={translate('Delete Heritage Site')}
+        description={`${translate('Delete')} "${heritageToDelete?.name}"?`}
+        onConfirm={confirmDelete}
+        confirmText={translate('Delete')}
+        variant="destructive"
+      />
     </div>
   );
 }

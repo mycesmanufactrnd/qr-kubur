@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
+import TextInputForm from '@/components/Forms/TextInputForm';
+import SelectForm from '@/components/Forms/SelectForm';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import { showSuccess, showError } from '@/components/ToastrNotification';
@@ -28,19 +30,12 @@ import { validateFields } from '@/utils/validations';
 import { defaultGraveField } from '@/utils/defaultformfields';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
+import { Controller, useForm } from 'react-hook-form';
 
 export default function ManageGraves() {
-  const { 
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    currentUserStates 
-  } = useAdminAccess();
-
-  // 🔹 1. URL State Management (The "Source of Truth")
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
   
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlSearch = searchParams.get('search') || '';
   const urlBlock = searchParams.get('block') || '';
@@ -48,14 +43,12 @@ export default function ManageGraves() {
   const urlState = searchParams.get('state') || 'all';
   const urlStatus = searchParams.get('status') || 'all';
 
-  // 🔹 2. Temporary State (What the user types before clicking Search)
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [tempBlock, setTempBlock] = useState(urlBlock);
   const [tempLot, setTempLot] = useState(urlLot);
   const [tempState, setTempState] = useState(urlState);
   const [tempStatus, setTempStatus] = useState(urlStatus);
   
-  // 🔹 3. Sync Inputs with URL (Fixes the "Reset" and "Back Button" issues)
   useEffect(() => {
     setTempSearch(urlSearch);
     setTempBlock(urlBlock);
@@ -67,7 +60,9 @@ export default function ManageGraves() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
-  const [formData, setFormData] = useState(defaultGraveField);
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
+    defaultValues: defaultGraveField
+  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [graveToDelete, setGraveToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
@@ -76,7 +71,6 @@ export default function ManageGraves() {
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('graves');
 
-  // Organisation logic
   const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
     { organisationId: currentUser?.organisation?.id },
     { enabled: !!currentUser && !!currentUser?.organisation?.id && !isSuperAdmin }
@@ -88,7 +82,6 @@ export default function ManageGraves() {
     }
   }, [parentAndChildQuery.data]);
 
-  // 🔹 4. Backend Query (Explicitly using URL parameters only)
   const { gravesList, totalPages, isLoading } = useGetGravePaginated({
     page: urlPage,
     pageSize: itemsPerPage,
@@ -104,7 +97,6 @@ export default function ManageGraves() {
 
   const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
 
-  // 🔹 5. Search Trigger (Updates URL, which then triggers the Hook)
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -116,48 +108,45 @@ export default function ManageGraves() {
   };
 
   const handleReset = () => {
-    setSearchParams({}); // Clears URL, useEffect handles input clearing
+    setSearchParams({});
   };
 
   const openAddDialog = () => {
     setEditingGrave(null);
-    setFormData(defaultGraveField);
+    reset(defaultGraveField);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (grave) => {
     setEditingGrave(grave);
-    setFormData({
-      name: grave.name || '',
-      state: grave.state || '',
-      block: grave.block || '',
-      lot: grave.lot || '',
-      address: grave.address || '',
-      latitude: grave.latitude || '',
-      longitude: grave.longitude || '',
-      organisation: grave.organisation?.id || null,
-      status: grave.status || 'active',
-      totalgraves: grave.totalgraves || 0
+    reset({
+      ...grave,
+      organisation: grave.organisation?.id?.toString() ?? '',
+      status: grave.status ?? 'active',
+      totalgraves: grave.totalgraves ?? 0
     });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
       { field: 'name', label: 'Grave', type: 'text' },
       { field: 'state', label: 'State', type: 'select' },
+      { field: 'latitude', label: 'Latitude', type: 'text' },
+      { field: 'longitude', label: 'Longitude', type: 'text' },
+      { field: 'status', label: 'Status', type: 'select' },
     ]);
+
     if (!isValid) return;
 
     const submitData = {
       ...formData,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : '',
+      longitude: formData.longitude ? parseFloat(formData.longitude) : '',
       organisation: formData.organisation ? { id: Number(formData.organisation) } : null,
       totalgraves: Number(formData.totalgraves) || 0
     };
-
+    
     try {
       if (editingGrave) {
         await updateGrave.mutateAsync({ id: editingGrave.id, data: submitData });
@@ -165,24 +154,47 @@ export default function ManageGraves() {
         await createGrave.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-const confirmDelete = async () => {
-  if (!graveToDelete) return;
+  const confirmDelete = async () => {
+    if (!graveToDelete) return;
 
-  try {
-    await deleteGrave.mutateAsync(graveToDelete.id);
-    
-    setDeleteDialogOpen(false);
-    setGraveToDelete(null);
-  } catch (error) {
-    console.error("Delete failed:", error);
+    try {
+      await deleteGrave.mutateAsync(graveToDelete.id);
+      
+      setDeleteDialogOpen(false);
+      setGraveToDelete(null);
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
+
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
   }
-};
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
-  if (!hasAdminAccess) return <AccessDeniedComponent/>;
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+          { label: translate('Manage Graves'), page: 'ManageGraves' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -225,7 +237,6 @@ const confirmDelete = async () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            {/* 🔹 Supervisor Rule: Hide State/Org if normal admin */}
             {isSuperAdmin && (
               <Select value={tempState} onValueChange={setTempState}>
                 <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
@@ -257,7 +268,6 @@ const confirmDelete = async () => {
         </CardContent>
       </Card>
 
-      {/* Table Section */}
       <Card className="border-0 shadow-md">
         <CardContent className="p-0">
           <Table>
@@ -303,7 +313,6 @@ const confirmDelete = async () => {
             </TableBody>
           </Table>
         </CardContent>
-        {/* 🔹 Supervisor Rule: Pagination tied to URL */}
         {totalPages > 0 && (
           <Pagination
             currentPage={urlPage}
@@ -319,109 +328,121 @@ const confirmDelete = async () => {
         )}
       </Card>
 
-      {/* Dialogs */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingGrave ? translate('Edit Grave') : translate('Add Grave')}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>{translate('Cemetery name')} <span className="text-red-500">*</span></Label>
-              <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-            </div>
-            <div>
-              <Label>{translate('State')} <span className="text-red-500">*</span></Label>
-              <Select value={formData.state || ""} onValueChange={(v) => setFormData({ ...formData, state: v })}>
-                <SelectTrigger><SelectValue placeholder={translate('Select states')} /></SelectTrigger>
-                <SelectContent>
-                  {(isSuperAdmin ? STATES_MY : (currentUserStates || [])).map((state) => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <TextInputForm
+              name="name"
+              control={control}
+              label={translate("Cemetery name")}
+              required
+              errors={errors}
+            />
+            <SelectForm
+              name="state"
+              control={control}
+              label={translate("State")}
+              placeholder={translate("Select states")}
+              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+              required
+              errors={errors}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>{translate('Block')}</Label>
-                <Input value={formData.block} onChange={(e) => setFormData({...formData, block: e.target.value})} />
-              </div>
-              <div>
-                <Label>{translate('Lot')}</Label>
-                <Input value={formData.lot} onChange={(e) => setFormData({...formData, lot: e.target.value})} />
-              </div>
+              <TextInputForm
+                name="block"
+                control={control}
+                label={translate("Block")}
+              />
+              <TextInputForm
+                name="lot"
+                control={control}
+                label={translate("Lot")}
+              />
             </div>
-            <div>
-              <Label>{translate('Address')}</Label>
-              <Textarea value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} rows={3} />
-            </div>
+            <TextInputForm
+              name="address"
+              control={control}
+              label={translate("Address")}
+              isTextArea
+            />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>{translate('GPS Latitude')}</Label>
-                <Input type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({...formData, latitude: e.target.value})} />
-              </div>
-              <div>
-                <Label>{translate('GPS Longitude')}</Label>
-                <Input type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({...formData, longitude: e.target.value})} />
-              </div>
+              <TextInputForm
+                name="latitude"
+                control={control}
+                label={translate("Latitude")}
+                isNumber
+                required
+                errors={errors}
+              />
+              <TextInputForm
+                name="longitude"
+                control={control}
+                label={translate("Longitude")}
+                isNumber
+                required
+                errors={errors}
+              />
             </div>
             <Button
               type="button"
               variant="outline"
               onClick={() => {
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      setFormData({
-                        ...formData,
-                        latitude: position.coords.latitude.toFixed(16),
-                        longitude: position.coords.longitude.toFixed(16)
-                      });
-                      showSuccess('Lokasi berjaya diperolehi');
-                    },
-                    () => showError('Tidak dapat mendapatkan lokasi.'),
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                  );
-                }
+                if (!navigator.geolocation) return;
+
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    setValue('latitude', position.coords.latitude.toFixed(16));
+                    setValue('longitude', position.coords.longitude.toFixed(16));
+                    showSuccess('Lokasi berjaya diperolehi');
+                  },
+                  () => showError('Tidak dapat mendapatkan lokasi.'),
+                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
               }}
               className="w-full"
             >
               <MapPin className="w-4 h-4 mr-2" />
               {translate('Get Current Location')}
             </Button>
-            <div>
-              <Label>{translate('Managing Organisation')}</Label>
-              <Select value={String(formData.organisation)} onValueChange={(value) => setFormData({...formData, organisation: value})}>
-                <SelectTrigger><SelectValue placeholder={translate('All managing organisations')} /></SelectTrigger>
-                <SelectContent>
-                  {organisationsList.items.map(org => (
-                    <SelectItem key={org.id} value={String(org.id)}>{org.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <SelectForm
+              name="organisation"
+              control={control}
+              label={translate("Managing Organisation")}
+              placeholder={translate("All managing organisations")}
+              options={organisationsList.items.map(org => ({
+                value: org.id,
+                label: org.name,
+              }))}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>{translate('Total Graves')}</Label>
-                <Input type="number" value={formData.totalgraves} onChange={(e) => setFormData({...formData, totalgraves: e.target.value})} />
-              </div>
-              <div>
-                <Label>{translate('Status')}</Label>
-                <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">{translate('Active')}</SelectItem>
-                    <SelectItem value="full">{translate('Full')}</SelectItem>
-                    <SelectItem value="maintenance">{translate('Maintenance')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <TextInputForm
+                name="totalgraves"
+                control={control}
+                label={translate("Total Graves")}
+                isNumber
+              />
+              <SelectForm
+                name="status"
+                control={control}
+                label={translate("Status")}
+                placeholder={translate("Select status")}
+                options={[
+                  { value: "active", label: translate('Active') },
+                  { value: "full", label: translate('Full') },
+                  { value: "maintenance", label: translate('Maintenance') },
+                ]}
+                required
+                errors={errors}
+              />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('Cancel')}
               </Button>
-              <Button type="submit" disabled={createGrave.isPending || updateGrave.isPending}>
+              <Button type="submit" disabled={isSubmitting || createGrave.isPending || updateGrave.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {translate('Save')}
               </Button>

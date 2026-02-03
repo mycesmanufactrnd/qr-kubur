@@ -73,17 +73,16 @@ export default function SearchTahfiz() {
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
-      ) : tahfizCenters.length === 0 ? (
+      ) : tahfizCenters?.length === 0 ? (
         <NoDataCardComponent
           title={translate('noTahfizFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
         <div className="space-y-2">
-          {tahfizCenters.map(tahfiz => (
+          {tahfizCenters?.map(tahfiz => (
             <TahfizCardList 
               key={tahfiz.id}
-              bucketId={'bucket-grave'}
               tahfiz={tahfiz}
             />
           ))}

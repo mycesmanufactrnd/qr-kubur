@@ -127,6 +127,12 @@ export enum ActiveInactiveStatus {
   INACTIVE = "inactive"
 }
 
+export enum GraveStatus {
+  ACTIVE = "active",
+  FULL = "full",
+  MAINTENANCE = "maintenance"
+}
+
 export enum ApprovalStatus {
   PENDING = "pending",
   APPROVED = "approved",

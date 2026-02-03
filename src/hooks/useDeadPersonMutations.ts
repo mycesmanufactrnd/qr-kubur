@@ -30,44 +30,36 @@ export function useGetDeadPersonPaginated(params: useGetDeadPersonPaginatedParam
   };
 }
 
-export function useCreateDeadPerson() {
-  const utils = trpc.useUtils();
-
-  return trpc.deadperson.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      utils.deadperson.getPaginated.invalidate();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
-  });
-}
-
-export function useUpdateDeadPerson() {
-  const utils = trpc.useUtils();
-
-  return trpc.deadperson.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      utils.deadperson.getPaginated.invalidate();
-    },
-    onError: (err) => {
-      showApiError(err);
-    },
-  });
-}
-
-export function useDeleteDeadPerson() {
+export function useDeadPersonMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.deadperson.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      trpcUtils.deadperson.getPaginated.invalidate();
+  const invalidateAll = () => {
+    trpcUtils.deadperson.getPaginated.invalidate();
+  };
+
+  const createDeadPerson = trpc.deadperson.create.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'create'); 
+      invalidateAll(); 
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: (err) => showApiError(err),
   });
+
+  const updateDeadPerson = trpc.deadperson.update.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'update'); 
+      invalidateAll(); 
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  const deleteDeadPerson = trpc.deadperson.delete.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'delete'); 
+      invalidateAll(); 
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createDeadPerson, updateDeadPerson, deleteDeadPerson };
 }

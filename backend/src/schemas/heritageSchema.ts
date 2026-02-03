@@ -12,6 +12,9 @@ export const heritageSchema = z.object({
     address: z.string().optional().nullable(),
     state: z.string().min(1, "Negeri diperlukan"),
     url: z.string().optional().nullable(),
-    viewcount: z.number().default(0),
     isfeatured: z.boolean().default(false),
+});
+
+export const heritageFeaturedSchema = z.object({
+    isfeatured: z.boolean().default(false), 
 });
