@@ -51,7 +51,7 @@ export default function HeritageDetails() {
       <div className="relative h-72 md:h-96">
         {site.photourl ? (
           <img
-            src={`/api/file/bucket-grave/${encodeURIComponent(site.photourl)}`} 
+            src={`/api/file/heritage-site/${encodeURIComponent(site.photourl)}`} 
             alt={site.name}
             className="w-full h-full object-cover"
           />
@@ -178,10 +178,11 @@ export default function HeritageDetails() {
                 <BookOpen className="w-5 h-5 text-amber-600" />
                 Historical Sources
               </h2>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <p className="text-stone-700 leading-relaxed whitespace-pre-line">
-                  {site.historicalsources}
-                </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 prose max-w-full">
+                <div
+                  className="text-stone-700 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: site.historicalsources || '' }}
+                />
               </div>
             </section>
           )}

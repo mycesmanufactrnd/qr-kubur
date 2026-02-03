@@ -1,6 +1,10 @@
 export enum ActiveInactiveStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
+}
+
+export enum GraveStatus {
+  ACTIVE = "active",
   FULL = "full",
   MAINTENANCE = "maintenance"
 }

@@ -6,14 +6,15 @@ import { MapPin, Navigation, ExternalLink, Phone } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
+import { getServiceLabel } from '@/utils/enums';
 
-export default function TahfizCardList({ tahfiz, bucketId }) {
+export default function TahfizCardList({ tahfiz }) {
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
       <div className="relative h-40 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
         {tahfiz.photourl ? (
           <img 
-            src={`/api/file/${bucketId}/${encodeURIComponent(tahfiz.photourl)}`} 
+            src={`/api/file/tahfiz-center/${encodeURIComponent(tahfiz.photourl)}`} 
             alt={tahfiz.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -46,11 +47,11 @@ export default function TahfizCardList({ tahfiz, bucketId }) {
           <div className="flex flex-wrap gap-1.5">
             {tahfiz.serviceoffered.slice(0, 3).map((service, idx) => (
               <Badge                 
-                key={idx} 
-                variant="secondary" 
-                className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium"
+              key={idx} 
+              variant="secondary" 
+              className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium"
               >
-                {service}
+                {getServiceLabel(service)}
               </Badge>
             ))}
             {tahfiz.serviceoffered.length > 3 && (

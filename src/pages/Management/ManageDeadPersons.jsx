@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { translate } from '@/utils/translations';
-import { Users, Plus, Edit, Trash2, Search, X, Save, Upload, MapPin, QrCode } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Save, MapPin, QrCode } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +21,7 @@ import { showSuccess, showError } from '@/components/ToastrNotification';
 import { useCrudPermissions } from '@/components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
-import { trpc } from '@/utils/trpc';
-import { validateFields } from '@/utils/validations';
-import { defaultDeadPersonField } from '@/utils/defaultformfields';
-import { 
-  useGetDeadPersonPaginated, 
-  useCreateDeadPerson, 
-  useUpdateDeadPerson, 
-  useDeleteDeadPerson 
-} from '@/hooks/useDeadPersonMutations';
+import { useGetDeadPersonPaginated, useDeadPersonMutations } from '@/hooks/useDeadPersonMutations';
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 
 export default function ManageDeadPersons() {
@@ -108,30 +98,8 @@ export default function ManageDeadPersons() {
     organisationIds: accessibleOrgIds
   });
 
-  // Safe calculation of total pages
-  const totalPages = deadPersonsList?.total ? Math.ceil(deadPersonsList.total / itemsPerPage) : 0;
+  const { createDeadPerson, updateDeadPerson, deleteDeadPerson } = useDeadPersonMutations();
 
-  const createMutation = useCreateDeadPerson();
-  const updateMutation = useUpdateDeadPerson();
-  const deleteMutation = useDeleteDeadPerson();
-
-  // 🔹 5. Search Handlers
-  const handleSearch = () => {
-    const params = { page: '1' };
-    if (tempSearch) params.search = tempSearch;
-    if (tempIC) params.ic = tempIC;
-    if (tempGrave !== 'all') params.grave = tempGrave;
-    if (tempState !== 'all') params.state = tempState;
-    if (tempDateFrom) params.dateFrom = tempDateFrom;
-    if (tempDateTo) params.dateTo = tempDateTo;
-    setSearchParams(params);
-  };
-
-  const handleReset = () => {
-    setSearchParams({}); // Wipes the URL clean
-  };
-
-  // 🔹 6. Modal Handlers
   const openAddDialog = () => {
     setEditingPerson(null);
     setFormData(defaultDeadPersonField);
@@ -140,18 +108,7 @@ export default function ManageDeadPersons() {
 
   const openEditDialog = (person) => {
     setEditingPerson(person);
-    setFormData({
-      name: person.name || '',
-      icnumber: person.icnumber || '',
-      dateofbirth: person.dateofbirth || '',
-      dateofdeath: person.dateofdeath || '',
-      causeofdeath: person.causeofdeath || '',
-      grave: person.grave?.id || '',
-      biography: person.biography || '',
-      photourl: person.photourl || '',
-      gpslatitude: person.latitude || '',
-      gpslongitude: person.longitude || '',
-    });
+    setFormData({...person});
     setIsDialogOpen(true);
   };
 
@@ -163,13 +120,7 @@ export default function ManageDeadPersons() {
     ])) return;
 
     const submitData = {
-      name: formData.name,
-      icnumber: formData.icnumber || null,
-      dateofbirth: formData.dateofbirth || null,
-      dateofdeath: formData.dateofdeath || null,
-      causeofdeath: formData.causeofdeath || null,
-      biography: formData.biography || null,
-      photourl: formData.photourl || null,
+      ...formData,
       latitude: formData.gpslatitude ? parseFloat(formData.gpslatitude) : null,
       longitude: formData.gpslongitude ? parseFloat(formData.gpslongitude) : null,
       graveId: Number(formData.grave)
@@ -177,12 +128,19 @@ export default function ManageDeadPersons() {
 
     try {
       if (editingPerson) {
-        await updateMutation.mutateAsync({ id: editingPerson.id, data: submitData });
+        await updateDeadPerson.mutateAsync({ id: editingPerson.id, data: submitData });
       } else {
-        await createMutation.mutateAsync(submitData);
+        await createDeadPerson.mutateAsync(submitData);
       }
       setIsDialogOpen(false);
     } catch (error) {}
+  };
+
+  const confirmDelete = async () => {
+    if (!personToDelete) return;
+    await deleteDeadPerson.mutateAsync(personToDelete.id);
+    setDeleteDialogOpen(false);
+    setPersonToDelete(null);
   };
 
   const handleFileUpload = async (file) => {
@@ -430,7 +388,7 @@ export default function ManageDeadPersons() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-blue-600">
+              <Button type="submit" disabled={createDeadPerson.isPending || updateDeadPerson.isPending}>
                 <Save className="w-4 h-4 mr-2" />{translate('Save')}
               </Button>
             </DialogFooter>

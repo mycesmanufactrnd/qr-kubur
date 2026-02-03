@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GraveStatus } from '../db/enums.ts';
 
 export const graveSchema = z.object({
   name: z.string().min(1, "Nama tanah perkuburan diperlukan"),
@@ -10,6 +11,6 @@ export const graveSchema = z.object({
   longitude: z.number().optional().nullable(),
   icnumber: z.string().optional().nullable(),
   totalgraves: z.number().int().nonnegative().optional().nullable(),
-  status: z.string().optional().nullable(),
+  status: z.enum(GraveStatus),
   organisation: z.object({ id: z.number() }).nullable().optional(),
 });

@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne, OneToMany, CreateDateColumn } from "typeorm"; 
 import { Organisation } from "./Organisation.entity.ts";
-import { ActiveInactiveStatus } from "../enums.ts";
+import { GraveStatus } from "../enums.ts";
 import { DeadPerson } from "./DeadPerson.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
 @Entity("grave")
@@ -34,10 +34,10 @@ export class Grave {
 
   @Column({
     type: "enum",
-    enum: ActiveInactiveStatus,
-    default: ActiveInactiveStatus.ACTIVE,
+    enum: GraveStatus,
+    default: GraveStatus.ACTIVE,
   })
-  status!: ActiveInactiveStatus;
+  status!: GraveStatus;
   
   @OneToMany(() => DeadPerson, (deadPerson) => deadPerson.grave)
   deadPerson?: DeadPerson | null;

@@ -61,7 +61,7 @@ export default function TahfizDetails() {
       <div className="relative h-72 md:h-80 overflow-hidden">
         {tahfiz.photourl ? (
           <img 
-            src={`/api/file/bucket-grave/${encodeURIComponent(tahfiz.photourl)}`} 
+            src={`/api/file/tahfiz-center/${encodeURIComponent(tahfiz.photourl)}`} 
             alt={tahfiz.name}
             className="w-full h-full object-cover"
           />

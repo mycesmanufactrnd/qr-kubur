@@ -25,6 +25,7 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManageTahfizCenters() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +39,7 @@ export default function ManageTahfizCenters() {
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedCenterForPayment, setSelectedCenterForPayment] = useState(null);
   const { isTahfizAdmin, isSuperAdmin, loadingUser } = useAdminAccess();
+  const [uploading, setUploading] = useState(false);
 
   const {
     loading: permissionsLoading,
@@ -58,6 +60,7 @@ export default function ManageTahfizCenters() {
   });
 
   const selectedServices = watch('serviceoffered') || [];
+  const photourl = watch('photourl') || '';
 
   const openAddDialog = () => {
     setEditingCenter(null);
@@ -77,7 +80,8 @@ export default function ManageTahfizCenters() {
       phone: center.phone || '',
       email: center.email || '',
       latitude: center.latitude?.toString() || '', 
-      longitude: center.longitude?.toString() || ''
+      longitude: center.longitude?.toString() || '',
+      photourl: center.photourl || '',
     });
     setIsDialogOpen(true);
   };
@@ -103,6 +107,7 @@ export default function ManageTahfizCenters() {
       serviceprice: data.serviceprice,
       latitude: data.latitude ? parseFloat(data.latitude) : null,
       longitude: data.longitude ? parseFloat(data.longitude) : null,
+      photourl: data.photourl,
     };
 
     if (editingCenter) {
@@ -128,6 +133,36 @@ export default function ManageTahfizCenters() {
       onSuccess: () => setDeleteDialogOpen(false)
     });
   };
+
+  const handleFileUpload = async (file) => {
+    setUploading(true);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const res = await fetch('/api/upload/tahfiz-center', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
+
+      const data = await res.json();
+      
+      setValue('photourl', data.file_url);
+      showSuccess('Photo uploaded');
+    } catch (err) {
+      console.error(err);
+      showError('Failed to upload photo');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   if (loadingUser || permissionsLoading) {
     return (
@@ -325,9 +360,32 @@ export default function ManageTahfizCenters() {
                 setValue('longitude', pos.coords.longitude.toFixed(8));
               });
             }}><MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}</Button>
+            <div className="space-y-2">
+              <Label>{translate('Photo')}</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    handleFileUpload(file);                    
+                  }}
+                  disabled={uploading}
+                />
+
+                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
+              </div>
+              {photourl && (
+                  <img 
+                    src={`/api/file/tahfiz-center/${encodeURIComponent(photourl)}`} 
+                    alt={translate('Preview')}
+                  />
+                )}
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('cancel')}</Button>
-              <Button type="submit" disabled={createTahfiz.isLoading || updateTahfiz.isLoading}><Save className="w-4 h-4 mr-2" /> {translate('save')}</Button>
+              <Button type="submit" disabled={createTahfiz.isPending || updateTahfiz.isPending}><Save className="w-4 h-4 mr-2" /> {translate('save')}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

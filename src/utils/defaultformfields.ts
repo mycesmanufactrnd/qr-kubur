@@ -44,7 +44,8 @@ export const defaultTahfizField = {
   phone: '',
   email: '',
   latitude: '', 
-  longitude: ''
+  longitude: '',
+  photourl: '',
 }
 
 export const defaultDonationField = {
@@ -106,8 +107,15 @@ export const defaultPaymentField = {
 
 export const defaultHeritageField = {
   name: '',
-  state: '',
-  address: '',
+  era: '',
+  eradescription: '',
+  description: '',
+  historicalsources: '',
   latitude: '',
   longitude: '',
+  photourl: '',
+  address: '',
+  state: '',
+  url: '',
+  isfeatured: false,
 }

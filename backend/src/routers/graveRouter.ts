@@ -42,7 +42,9 @@ export const graveRouter = router({
     .input(graveSchema)
     .mutation(async ({ input }) => {
       const graveRepo = AppDataSource.getRepository(Grave);
+
       const grave = graveRepo.create(input);
+      
       return await graveRepo.save(grave);
     }),
 
@@ -51,7 +53,9 @@ export const graveRouter = router({
     .mutation(async ({ input }) => {
       const graveRepo = AppDataSource.getRepository(Grave);
       const grave = await graveRepo.findOneByOrFail({ id: input.id });
+
       graveRepo.merge(grave, input.data);
+
       return await graveRepo.save(grave);
     }),
 
