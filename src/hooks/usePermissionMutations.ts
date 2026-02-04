@@ -1,35 +1,21 @@
+import { showApiError, showSuccess } from '@/components/ToastrNotification';
 import { trpc } from '@/utils/trpc';
-import { showSuccess, showApiError } from '@/components/ToastrNotification';
 
-const titleMessage = 'Permissions';
-
-/**
- * Fetch permissions for a specific user
- * Maps to trpc.permission.getPermission
- */
-export function useGetPermission(userId: number | undefined, enabled: boolean) {
-  return trpc.permission.getPermission.useQuery(
-    { userId: userId as number },
-    { enabled: !!userId && enabled }
-  );
+export function useGetPermission(userId?: number, canView?: boolean) {
+    return trpc.permission.getByUser.useQuery(
+        { userId: userId },
+        { enabled: !!userId && canView }
+    );
 }
 
-/**
- * Update many permissions at once
- * Maps to trpc.permission.upsertPermission
- */
 export function useUpsertPermission() {
-  const trpcUtils = trpc.useUtils();
+  const utils = trpc.useUtils();
 
-  return trpc.permission.upsertPermission.useMutation({
+  return trpc.permission.upsertMany.useMutation({
     onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      // Invalidate both paginated users and specific permission queries
-      trpcUtils.users.getPaginated.invalidate();
-      trpcUtils.permission.getPermission.invalidate();
+      utils.permission.getByUser.invalidate();
+      showSuccess('Permission', 'update');
     },
-    onError: (err) => {
-      showApiError(err);
-    },
+    onError: showApiError,
   });
 }

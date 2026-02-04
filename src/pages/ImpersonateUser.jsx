@@ -1,54 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import Breadcrumb from "@/components/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserX, UserSearch, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Search, UserX, UserSearch } from "lucide-react";
+import { useState } from "react";
 import { impersonateUser } from "@/utils/auth";
 import { useGetUserPaginated } from "@/hooks/useUserMutations";
 import Pagination from "@/components/Pagination";
 import { translate } from "@/utils/translations";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
-import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 export default function ImpersonateUser() {
-  // 🔹 1. URL Source of Truth (Supervisor Rule)
-  const [searchParams, setSearchParams] = useSearchParams();
-  const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlSearch = searchParams.get('search') || '';
-
-  // 🔹 2. Temporary Input States (Doesn't trigger filter until Search is clicked)
-  const [tempSearch, setTempSearch] = useState(urlSearch);
+  const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // 🔹 3. Sync UI with URL (Ensures Reset button and Back button work)
-  useEffect(() => {
-    setTempSearch(urlSearch);
-  }, [urlSearch]);
-
-  // 🔹 4. Backend Query (Only listens to URL parameters)
   const { userList: users, totalPages, isLoading: loadingUsers } = useGetUserPaginated({
-    page: urlPage,
+    page,
     pageSize: itemsPerPage,
-    search: urlSearch,
+    search: searchQuery,
   });
 
-  // 🔹 5. Search Handlers
-  const handleSearch = () => {
-    const params = { page: '1' };
-    if (tempSearch) params.search = tempSearch;
-    setSearchParams(params);
-  };
-
-  const handleReset = () => {
-    setSearchParams({}); // Clears URL, useEffect handles UI clearing
-  };
-
-  if (loadingUsers) return <PageLoadingComponent />;
+  
+  if (loadingUsers) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -64,28 +46,18 @@ export default function ImpersonateUser() {
         </div>
       </div>
 
-      {/* 🔹 Unified Filter Card (Supervisor Style) */}
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
+      <Card className="border-0 shadow-sm bg-white dark:bg-gray-800">
+        <CardContent className="p-4">
+            <Label className="text-sm font-medium mb-2 block">{translate('Search User')}</Label>
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Enter user\'s name or email...')}
-                value={tempSearch}
-                onChange={(e) => setTempSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder={translate('Enter user\'s name or email...')} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button onClick={handleSearch} className="bg-purple-600 hover:bg-purple-700 px-6 text-white">
-              {translate('Search')}
-            </Button>
-            <Button variant="outline" onClick={handleReset}>
-              <X className="w-4 h-4 mr-2" />
-              {translate('Reset')}
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
@@ -97,15 +69,13 @@ export default function ImpersonateUser() {
                 <TableHead className="w-[300px]">{translate('Username')}</TableHead>
                 <TableHead>{translate('Email')}</TableHead>
                 <TableHead className="text-center">{translate('Role')}</TableHead>
-                <TableHead className="text-center">{translate('Phone No.')}</TableHead>
+                <TableHead className="text-center">{translate('Status')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loadingUsers ? (
-                <InlineLoadingComponent isTable={true} colSpan={5} />
-              ) : users.items.length === 0 ? (
-                <NoDataTableComponent colSpan={5} message={translate("noUserFound")} />
+              { users.items.length === 0 ? (
+                <NoDataTableComponent colSpan={5} message={translate("noUserFound")}/>
               ) : (
                 users.items.map((user) => (
                   <TableRow key={user.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
@@ -114,17 +84,17 @@ export default function ImpersonateUser() {
                         <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
                           {user.fullname?.[0] || 'X'}
                         </div>
-                        <span className="dark:text-white">{user.fullname || 'Tiada Nama'}</span>
+                        {user.fullname || 'Tiada Nama'}
                       </div>
                     </TableCell>
-                    <TableCell className="dark:text-gray-300">{user.email}</TableCell>
+                    <TableCell className="text-center">{user.email}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant="outline" className="capitalize">
                         {user.role}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center dark:text-gray-300">
-                      {user.phoneno || '-'}
+                    <TableCell className="text-center">
+                        {user.phoneno}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button 
@@ -142,20 +112,20 @@ export default function ImpersonateUser() {
               )}
             </TableBody>
           </Table>
+          {users.total > 0 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value);
+                setPage(1);
+              }}
+              totalItems={users.total}
+            />
+          )}
         </CardContent>
-        {users.total > 0 && (
-          <Pagination
-            currentPage={urlPage}
-            totalPages={totalPages}
-            onPageChange={(p) => setSearchParams({ ...Object.fromEntries(searchParams), page: p.toString() })}
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(v) => {
-              setItemsPerPage(v);
-              setSearchParams({ ...Object.fromEntries(searchParams), page: '1' });
-            }}
-            totalItems={users.total}
-          />
-        )}
       </Card>
     </div>
   );
