@@ -27,7 +27,7 @@ export default function SettingsPage() {
     applyFontSize(savedSize);
     applyTheme(savedTheme);
 
-    const appUserAuth = localStorage.getItem('appUserAuth');
+    const appUserAuth = sessionStorage.getItem('appUserAuth');
     if (appUserAuth) {
       setIsAdmin(true);
     }

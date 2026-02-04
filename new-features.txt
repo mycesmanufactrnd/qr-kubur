@@ -4,6 +4,9 @@
 ~ Volunteering page (NGO)
 ~ Short Tazkirah / Hadith of the Day
 ~ Waqf Projects with progress
-~ Make tahlil to localstorage, so use can check again
+~ Make tahlil to localstorage, so user can check again
 ~ Kumpulan doa2 harian, bacaan zikri pagi dan petang (dari utube) (done)
 ~ Masjid2 boleh buat online class, zoom link... kuliah maghrib and so on
+~ after tahlil or ongoun tahlil (add picture)
+~ if ongoing can do live tahlil
+~ add to favorite masjid apa2, untuk sedekah

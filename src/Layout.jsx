@@ -55,7 +55,7 @@ function LayoutContent({ children, currentPageName }) {
   
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
-    const isImpersonating = localStorage.getItem('isImpersonating');
+    const isImpersonating = sessionStorage.getItem('isImpersonating');
     
     setIsImpersonating(isImpersonating);
 

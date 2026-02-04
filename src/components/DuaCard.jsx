@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function DuaCard({ dua }) {
-  const [open, setOpen] = useState(false);
+  const [openTransliteration, setOpenTransliteration] = useState(false);
+  const [openTranslation, setOpenTranslation] = useState(false);
 
   return (
     <Card className="border border-slate-100 shadow-sm overflow-hidden">
@@ -17,29 +18,39 @@ export default function DuaCard({ dua }) {
         </div>
 
         <div className="bg-slate-50 rounded-lg p-3">
-          <p className="text-right text-xl leading-loose font-arabic text-slate-900">
+          <p className="text-right text-lg leading-loose font-arabic text-slate-900">
             {dua.arabic}
           </p>
         </div>
 
         {dua.latin && (
           <button
-            onClick={() => setOpen(!open)}
+            onClick={() => setOpenTransliteration(!openTransliteration)}
             className="flex items-center gap-1 text-xs text-emerald-600 font-medium"
           >
-            {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {open ? 'Hide' : 'Show'} Transliteration
+            {openTransliteration ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {openTransliteration ? 'Hide' : 'Show'} Transliteration
           </button>
         )}
 
-        {open && dua.latin && (
+        {openTransliteration && dua.latin && (
           <p className="text-xs italic text-slate-600 bg-slate-50 p-2 rounded">
             {dua.latin}
           </p>
         )}
 
         {dua.translation && (
-          <p className="text-sm text-slate-700 leading-relaxed">
+          <button
+            onClick={() => setOpenTranslation(!openTranslation)}
+            className="flex items-center gap-1 text-xs text-emerald-600 font-medium"
+          >
+            {openTranslation ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {openTranslation ? 'Hide' : 'Show'} Translation
+          </button>
+        )}
+
+        {openTranslation && dua.translation && (
+          <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded">
             {dua.translation}
           </p>
         )}

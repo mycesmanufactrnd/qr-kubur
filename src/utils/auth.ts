@@ -9,13 +9,13 @@ export function handleLoginTRPC() {
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("clientIP", data.clientIp);
-      localStorage.setItem("appUserAuth", JSON.stringify(data));
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("clientIP", data.clientIp);
+      sessionStorage.setItem("appUserAuth", JSON.stringify(data));
 
       const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
 
-      localStorage.setItem("permissions", JSON.stringify(permissions));
+      sessionStorage.setItem("permissions", JSON.stringify(permissions));
 
       if (data.tahfizcenter) {
         window.location.href = createPageUrl("TahfizDashboard");
@@ -47,22 +47,22 @@ export function handleLoginTRPC() {
 export function handleLogout(clearPermissions?: () => void) {
     clearPermissions?.();
     
-    localStorage.removeItem('appUserAuth');
-    localStorage.removeItem('superAdminAuth');
-    localStorage.removeItem('isImpersonating');
+    sessionStorage.removeItem('appUserAuth');
+    sessionStorage.removeItem('superAdminAuth');
+    sessionStorage.removeItem('isImpersonating');
     window.location.href = createPageUrl('AppUserLogin');
 }
 
 export function removeImpersonation() {
-  const superAdminAuth = localStorage.getItem("superAdminAuth");
+  const superAdminAuth = sessionStorage.getItem("superAdminAuth");
   if (!superAdminAuth) {
     handleLogout();
     return;
   }
 
-  localStorage.setItem("appUserAuth", superAdminAuth);
-  localStorage.removeItem("superAdminAuth");
-  localStorage.removeItem("isImpersonating");
+  sessionStorage.setItem("appUserAuth", superAdminAuth);
+  sessionStorage.removeItem("superAdminAuth");
+  sessionStorage.removeItem("isImpersonating");
 
   location.href = createPageUrl("ImpersonateUser");
 }
@@ -70,12 +70,12 @@ export function removeImpersonation() {
 export function impersonateUser(user: any) {
   if (!user || !user.id) return;
 
-  const currentAuth = localStorage.getItem("appUserAuth");
+  const currentAuth = sessionStorage.getItem("appUserAuth");
   if (!currentAuth) return;
 
-  localStorage.setItem("superAdminAuth", currentAuth);
-  localStorage.setItem("isImpersonating", "true");
-  localStorage.setItem("appUserAuth", JSON.stringify(user));
+  sessionStorage.setItem("superAdminAuth", currentAuth);
+  sessionStorage.setItem("isImpersonating", "true");
+  sessionStorage.setItem("appUserAuth", JSON.stringify(user));
 
   location.href = createPageUrl("AdminDashboard");
 }
@@ -87,7 +87,7 @@ export function useAdminAccess() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const appUserAuth = localStorage.getItem("appUserAuth");
+        const appUserAuth = sessionStorage.getItem("appUserAuth");
         if (appUserAuth) {
           setCurrentUser(JSON.parse(appUserAuth));
         }

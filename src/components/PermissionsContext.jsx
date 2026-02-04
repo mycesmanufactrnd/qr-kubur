@@ -13,13 +13,13 @@ export function PermissionsProvider({ children }) {
 
   const loadUserAndPermissions = async () => {
     try {
-      const appUserAuth = localStorage.getItem('appUserAuth');
+      const appUserAuth = sessionStorage.getItem('appUserAuth');
       if (appUserAuth) {
         const userData = JSON.parse(appUserAuth);
         setUser(userData);
         
         if (userData.id) {
-          const userPermissions = JSON.parse(localStorage.getItem("permissions"));
+          const userPermissions = JSON.parse(sessionStorage.getItem("permissions"));
           setPermissions(userPermissions.map(p => p.slug));
         }
       }
@@ -33,7 +33,7 @@ export function PermissionsProvider({ children }) {
   const clearPermissions = () => {
     setPermissions([]);
     setUser(null);
-    localStorage.removeItem('appUserAuth');
+    sessionStorage.removeItem('appUserAuth');
   };
 
   const hasPermission = (permissionSlug) => {
