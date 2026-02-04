@@ -26,9 +26,9 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { defaultHeritageField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
-import TextInputForm from '@/components/Forms/TextInputForm';
-import SelectForm from '@/components/Forms/SelectForm';
-import CheckboxForm from '@/components/Forms/CheckboxForm';
+import TextInputForm from '@/components/forms/TextInputForm';
+import SelectForm from '@/components/forms/SelectForm';
+import CheckboxForm from '@/components/forms/CheckboxForm';
 
 export default function ManageHeritageSites() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();

@@ -1,3 +1,5 @@
+import { ActiveInactiveStatus } from "./enums";
+
 export const defaultGraveField = {
   name: '',
   state: '',
@@ -72,15 +74,14 @@ export const defaultOrganisationField = {
   latitude: '',
   longitude: '',
   canbedonated: false,
-  status: 'active'
+  status: ActiveInactiveStatus.ACTIVE,
 }
 
 export const defaultPaymentConfigField = {
   code: '',
   name: '',
   category: 'manual',
-  status: 'active',
-  icon: ''
+  status: ActiveInactiveStatus.ACTIVE,
 }
 
 export const defaultDeadPersonField = {

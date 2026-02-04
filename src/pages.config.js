@@ -19,6 +19,7 @@ import TahlilRequestPage from '@/pages/TahlilRequestPage';
 import TermsAndConditions from '@/pages/TermsAndConditions';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
 import SearchMosque from '@/pages/SearchMosque.jsx';
+import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -37,6 +38,7 @@ import ManageTahfizCenters from '@/pages/Management/ManageTahfizCenters';
 import ManageTahlilRequests from '@/pages/Management/ManageTahlilRequests';
 import ManageHeritageSites from '@/pages/Management/ManageHeritageSites';
 import ManageActivityPosts from '@/pages/Management/ManageActivityPosts';
+import ManageIslamicEvent from '@/pages/Management/ManageIslamicEvent';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -55,6 +57,7 @@ export const PAGES = {
     "DonationPage": DonationPage,
     "GraveDetails": GraveDetails,
     "IconLibrary": IconLibrary,
+    "IslamicCalendar": IslamicCalendar,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageDonations": ManageDonations,
     "ManageGraves": ManageGraves,
@@ -68,6 +71,7 @@ export const PAGES = {
     "ManageTahlilRequests": ManageTahlilRequests,
     "ManageHeritageSites": ManageHeritageSites,
     "ManageActivityPosts": ManageActivityPosts,
+    "ManageIslamicEvent": ManageIslamicEvent,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,

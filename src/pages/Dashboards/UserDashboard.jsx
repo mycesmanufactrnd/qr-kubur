@@ -8,7 +8,8 @@ import {
   MapPin,
   MoonStar,
   AlertTriangle,
-  Globe
+  Globe,
+  Calendar
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -89,6 +90,12 @@ export default function UserDashboard2() {
         </h3>
 
         <div className="space-y-3">
+          <GuideRow
+            icon={Calendar}
+            title="Islamic Events"
+            desc="Acara dalam Kalendar Hijriyyah"
+            page="IslamicCalendar"
+          />
           <GuideRow
             icon={BookOpen}
             title="Surah, Doa & Tahlil"
