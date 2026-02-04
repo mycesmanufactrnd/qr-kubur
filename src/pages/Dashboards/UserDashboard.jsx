@@ -9,7 +9,8 @@ import {
   MoonStar,
   AlertTriangle,
   Globe,
-  Calendar
+  Calendar,
+  Video
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -90,6 +91,12 @@ export default function UserDashboard2() {
         </h3>
 
         <div className="space-y-3">
+          <GuideRow
+            icon={Video}
+            title="Daily Dua"
+            desc="Supplement Dua"
+            page="DailyDua"
+          />
           <GuideRow
             icon={Calendar}
             title="Islamic Events"

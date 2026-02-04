@@ -20,6 +20,7 @@ import TermsAndConditions from '@/pages/TermsAndConditions';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
 import SearchMosque from '@/pages/SearchMosque.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
+import DailyDua from '@/pages/DailyDua.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -58,6 +59,7 @@ export const PAGES = {
     "GraveDetails": GraveDetails,
     "IconLibrary": IconLibrary,
     "IslamicCalendar": IslamicCalendar,
+    "DailyDua": DailyDua,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageDonations": ManageDonations,
     "ManageGraves": ManageGraves,
