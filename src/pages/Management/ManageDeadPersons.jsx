@@ -32,7 +32,6 @@ import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 export default function ManageDeadPersons() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
-  // 🔹 1. URL Source of Truth (Supervisor Instruction)
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlSearch = searchParams.get('search') || '';
@@ -42,7 +41,6 @@ export default function ManageDeadPersons() {
   const urlDateFrom = searchParams.get('dateFrom') || '';
   const urlDateTo = searchParams.get('dateTo') || '';
 
-  // 🔹 2. Temporary Input States (Doesn't trigger filter until Search is clicked)
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [tempIC, setTempIC] = useState(urlIC);
   const [tempGrave, setTempGrave] = useState(urlGrave);
@@ -50,7 +48,6 @@ export default function ManageDeadPersons() {
   const [tempDateFrom, setTempDateFrom] = useState(urlDateFrom);
   const [tempDateTo, setTempDateTo] = useState(urlDateTo);
 
-  // 🔹 3. Modal & Table States
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
@@ -64,7 +61,6 @@ export default function ManageDeadPersons() {
 
   const { loading: permissionsLoading, canEdit, canDelete } = useCrudPermissions('dead_persons');
 
-  // 🔹 4. Sync UI with URL (Ensures Reset button and Back button work)
   useEffect(() => {
     setTempSearch(urlSearch);
     setTempIC(urlIC);
@@ -83,7 +79,6 @@ export default function ManageDeadPersons() {
     if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
   }, [parentAndChildQuery.data]);
 
-  // 🔹 5. Backend Query (Only listens to URL parameters)
   const { deadPersonsList, isLoading: isLoadingDeadPerson } = useGetDeadPersonPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
@@ -105,7 +100,6 @@ export default function ManageDeadPersons() {
 
   const totalPages = Math.ceil((deadPersonsList?.total || 0) / itemsPerPage);
 
-  // 🔹 6. Action Handlers
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -118,7 +112,7 @@ export default function ManageDeadPersons() {
   };
 
   const handleReset = () => {
-    setSearchParams({}); // Clears URL, useEffect handles UI clearing
+    setSearchParams({});
   };
 
   const openAddDialog = () => {

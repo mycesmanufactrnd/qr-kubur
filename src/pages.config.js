@@ -8,6 +8,7 @@ import NotificationPage from '@/pages/NotificationPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import ScanQR from '@/pages/ScanQR';
 import SearchGrave from '@/pages/SearchGrave';
+import SearchWaqf from '@/pages/SearchWaqf';
 import SearchHeritage from '@/pages/SearchHeritage';
 import HeritageDetails from '@/pages/HeritageDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
@@ -21,6 +22,9 @@ import SolatJenazah from '@/pages/SolatJenazah.jsx';
 import SearchMosque from '@/pages/SearchMosque.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
 import DailyDua from '@/pages/DailyDua.jsx';
+import JitsiRoom from '@/pages/JitsiRoom.jsx';
+import WaqfDetail from '@/pages/WaqfDetail.jsx';
+import Ollama from '@/pages/Ollama.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -40,6 +44,7 @@ import ManageTahlilRequests from '@/pages/Management/ManageTahlilRequests';
 import ManageHeritageSites from '@/pages/Management/ManageHeritageSites';
 import ManageActivityPosts from '@/pages/Management/ManageActivityPosts';
 import ManageIslamicEvent from '@/pages/Management/ManageIslamicEvent';
+import ManageWaqfProject from '@/pages/Management/ManageWaqfProject';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -52,6 +57,8 @@ import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
 
 
 export const PAGES = {
+    "Ollama": Ollama,
+    "JitsiRoom": JitsiRoom,
     "AppUserLogin": AppUserLogin,
     "CheckTahlilStatus": CheckTahlilStatus,
     "DeadPersonDetails": DeadPersonDetails,
@@ -74,12 +81,14 @@ export const PAGES = {
     "ManageHeritageSites": ManageHeritageSites,
     "ManageActivityPosts": ManageActivityPosts,
     "ManageIslamicEvent": ManageIslamicEvent,
+    "ManageWaqfProject": ManageWaqfProject,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,
     "PrivacyPolicy": PrivacyPolicy,
     "ScanQR": ScanQR,
     "SearchGrave": SearchGrave,
+    "SearchWaqf": SearchWaqf,
     "SearchHeritage": SearchHeritage,
     "HeritageDetails": HeritageDetails,
     "SearchTahfiz": SearchTahfiz,
@@ -94,6 +103,7 @@ export const PAGES = {
     "BillplzConfigPage": BillplzConfigPage,
     "SolatJenazah": SolatJenazah,
     "SearchMosque": SearchMosque,
+    "WaqfDetail": WaqfDetail,
     // Dashboard
     "AdminDashboard": AdminDashboard,
     "TahfizDashboard": TahfizDashboard,

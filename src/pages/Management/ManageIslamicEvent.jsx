@@ -3,7 +3,6 @@ import { trpc } from '@/utils/trpc';
 import { useIslamicEventMutations } from '@/hooks/useIslamicEventMutations';
 import { Plus, Edit, Trash2, Save, X, Calendar, Loader2, Calendar1 } from 'lucide-react';
 import { HIJRI_MONTHS, ISLAMIC_EVENTS_CATEGORIES } from '@/utils/enums';
-import { showSuccess, showError } from '@/components/ToastrNotification';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +16,13 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import Breadcrumb from '@/components/Breadcrumb';
 import { translate } from '@/utils/translations';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import { useCrudPermissions } from '@/components/PermissionsContext';
+import { useAdminAccess } from '@/utils/auth';
 
 export default function ManageIslamicEvent() {
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('islamic_events');
   const [showDialog, setShowDialog] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [formData, setFormData] = useState({
@@ -40,7 +44,6 @@ export default function ManageIslamicEvent() {
   const trpcUtils = trpc.useContext();
   const { createEvent, updateEvent, deleteEvent } = useIslamicEventMutations();
 
-  // Fetch events for current Hijri year
   const { data: events = [], isLoading } = trpc.islamicEvent.getEventsByHijriYear.useQuery();
 
   const resetForm = () => {
@@ -125,6 +128,30 @@ export default function ManageIslamicEvent() {
     Umrah: 'orange',
     Education: 'teal',
   };
+
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={[
+          { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+          { label: translate('Manage Islamic Events'), page: 'ManageIslamicEvent' }
+        ]} />
+        <AccessDeniedComponent/>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

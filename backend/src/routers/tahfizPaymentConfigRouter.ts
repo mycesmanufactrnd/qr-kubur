@@ -1,10 +1,10 @@
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { TahfizPaymentConfig } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
 export const tahfizPaymentConfigRouter = router({
-  getConfigByTahfizId: protectedProcedure
+  getConfigByTahfizId: publicProcedure
     .input(
       z.object({
         tahfiz: z.object({ id: z.number() }).nullable().optional(),

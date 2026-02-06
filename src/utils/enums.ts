@@ -171,3 +171,25 @@ export const paymentToyyibStatus = {
 
 export const SST_PERCENTAGE = 0.06;
 export const SERVICE_FEE_PERCENTAGE = 0.05;
+
+export enum WaqfCategory {
+  EDUCATION = 'Education',
+  MOSQUE = 'Mosque',
+  HEALTHCARE = 'Healthcare',
+  ORPHANS = 'Orphans',
+  WATER = 'Water',
+  GENERALCHARITY = 'General Charity',
+}
+
+export enum ProjectStatus {
+  PLANNED = 'Planned',
+  ONGOING = 'Ongoing',
+  COMPLETED = 'Completed',
+  ONHOLD = 'On Hold',
+}
+
+export enum WaqfType {
+  CASH = 'Cash Waqf',
+  PROPERTY = 'Property Waqf',
+  ASSET = 'Asset Waqf',
+}

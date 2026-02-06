@@ -44,15 +44,16 @@ function LayoutContent({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState('false');
 
-  const { data: unreadNotiCount, isLoading } =
-    trpc.notification.getUnreadNotificationCount.useQuery(
-      { receiveremail: currentUser?.email },
-      { 
-        enabled: !!currentUser?.email,
-        ...notificationQueryOptions,
-       }
-    );
+  const { data: unreadData , isLoading } = trpc.notification.getUnreadNotificationCount.useQuery(
+    { receiveremail: currentUser?.email ?? '' },
+    { 
+      enabled: !!currentUser?.email,
+      ...notificationQueryOptions,
+    }
+  );
   
+  const unreadNotiCount = unreadData?.count ?? 0;
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     const isImpersonating = sessionStorage.getItem('isImpersonating');

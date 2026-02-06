@@ -13,8 +13,6 @@ export const islamicEventRouter = router({
       order: { hijrimonth: 'ASC', hijriday: 'ASC' }
     });
 
-    console.log('events', events);
-
     return events;
   }),
 

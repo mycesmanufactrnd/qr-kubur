@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
+import { BookOpen, CheckCircle, XCircle, Clock, Eye, Video } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +16,19 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Pagination from '@/components/Pagination';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
+import JitsiController from '@/components/jitsi/JitsiController';
+import { createPageUrl } from '@/utils';
+import { useNavigate } from 'react-router-dom';
 
 export default function ManageTahlilRequests() {
+  const navigate = useNavigate();
   const { loadingUser, isTahfizAdmin, isSuperAdmin, currentUser } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isLiveDialogOpen, setIsLiveDialogOpen] = useState(false);
 
   const { loading: permissionsLoading, canView } = useCrudPermissions('tahlil');
 
@@ -46,6 +52,28 @@ export default function ManageTahlilRequests() {
     setIsDialogOpen(false);
     setSelectedRequest(null);
     refetch();
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id)
+        ? prev.filter(x => x !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === tahlilRequestList.items.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(tahlilRequestList.items.map(r => r.id));
+    }
+  };
+
+  const joinRoom = (liveRoom) => {
+    if (!liveRoom) return;
+
+    navigate(createPageUrl('JitsiRoom') + `?room=${liveRoom}`);
   };
 
   const getStatusBadge = (status) => {
@@ -116,16 +144,35 @@ export default function ManageTahlilRequests() {
 
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
+          <div className="p-2">
+            <Button
+              disabled={selectedIds.length === 0}
+              onClick={() => setIsLiveDialogOpen(true)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Live Tahlil ({selectedIds.length})
+            </Button>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('requesterName')}</TableHead>
-                <TableHead className="text-center">{translate('deceasedName')}</TableHead>
-                <TableHead className="text-center">{translate('serviceType')}</TableHead>
-                <TableHead className="text-center">{translate('tahfizCenter')}</TableHead>
-                <TableHead className="text-center">{translate('referenceId')}</TableHead>
-                <TableHead className="text-center">{translate('status')}</TableHead>
-                <TableHead className="text-center">{translate('actions')}</TableHead>
+                <TableHead className="text-center w-10">
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedIds.length === tahlilRequestList.items.length &&
+                      tahlilRequestList.items.length > 0
+                    }
+                    onChange={toggleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>{translate('Requestor Name')}</TableHead>
+                <TableHead className="text-center">{translate('Deceased Name')}</TableHead>
+                <TableHead className="text-center">{translate('Service Type')}</TableHead>
+                <TableHead className="text-center">{translate('Tahfiz Center')}</TableHead>
+                <TableHead className="text-center">{translate('Reference ID')}</TableHead>
+                <TableHead className="text-center">{translate('Status')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,7 +182,14 @@ export default function ManageTahlilRequests() {
                 <NoDataTableComponent colSpan={7}/>
               ) : (
                 tahlilRequestList.items.map(request => (
-                  <TableRow key={request.id}>
+                  <TableRow key={request.id} className={selectedIds.includes(request.id) ? 'bg-blue-50 dark:bg-gray-700' : ''}>
+                    <TableCell className="text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(request.id)}
+                        onChange={() => toggleSelect(request.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{request.requestorname}</TableCell>
                     <TableCell className="text-center">{(request.deceasednames || []).join(', ')}</TableCell>
                     <TableCell className="text-center">
@@ -148,6 +202,11 @@ export default function ManageTahlilRequests() {
                       <Button variant="ghost" size="sm" onClick={() => openDetailDialog(request)}>
                         <Eye className="w-4 h-4" />
                       </Button>
+                      { request.liveurl && (
+                        <Button variant="ghost" size="sm" onClick={() => joinRoom(request.liveurl)}>
+                          <Video className="w-4 h-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -197,7 +256,7 @@ export default function ManageTahlilRequests() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">{translate('serviceType')}</p>
-                <Badge variant="outline">{getServiceLabels(request.selectedservices)}</Badge>
+                <Badge variant="outline">{getServiceLabels(selectedRequest.selectedservices)}</Badge>
               </div>
               <div>
                 <p className="text-sm text-gray-500">{translate('tahfizCenter')}</p>
@@ -262,6 +321,51 @@ export default function ManageTahlilRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={isLiveDialogOpen} onOpenChange={setIsLiveDialogOpen}>
+  <DialogContent className="max-w-4xl">
+    <DialogHeader>
+      <DialogTitle className="text-xl">
+        Live Tahlil
+        <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+          ({selectedIds.length} selected)
+        </span>
+      </DialogTitle>
+    </DialogHeader>
+
+    <div className="grid grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2">
+      {tahlilRequestList.items
+        .filter(r => selectedIds.includes(r.id))
+        .map(request => (
+          <div 
+            key={request.id} 
+            className="px-4 py-3 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+          >
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Requestor: {request.requestorname}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Reference No.: {request.referenceno}
+            </p>
+          </div>
+        ))}
+    </div>
+
+    <DialogFooter>
+      <JitsiController 
+        ids={selectedIds} 
+        onClose={() => setIsLiveDialogOpen(false)}
+      />
+      <Button
+        variant="outline"
+        onClick={() => setIsLiveDialogOpen(false)}
+      >
+        {translate('Close')}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
     </div>
   );
 }

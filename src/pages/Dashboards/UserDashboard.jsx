@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   Globe,
   Calendar,
-  Video
+  Video,
+  MessageCircle
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -126,6 +127,12 @@ export default function UserDashboard2() {
             title="Cari Heritage Site"
             desc="Lokasi & maklumat"
             page="SearchHeritage"
+          />
+          <GuideRow
+            icon={MessageCircle}
+            title="Cari Waqf"
+            desc="Projek Waqf Seluruh Malaysia"
+            page="SearchWaqf"
           />
         </div>
       </div>

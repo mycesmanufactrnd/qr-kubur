@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
+import { createPageUrl } from '@/utils';
 import {
   BookOpen,
   Users,
@@ -12,14 +12,13 @@ import {
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { translate } from '@/utils/translations';
-
+import JitsiController from '@/components/jitsi/JitsiController'
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
-import useGetAdminDashboardStats from '../../hooks/useDashboardMutations';
+import useGetAdminDashboardStats from '@/hooks/useDashboardMutations';
 
 export default function TahfizDashboard() {
   const {
@@ -44,7 +43,7 @@ export default function TahfizDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-
+      <JitsiController/>
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>

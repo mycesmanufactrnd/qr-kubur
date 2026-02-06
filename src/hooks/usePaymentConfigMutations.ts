@@ -12,7 +12,7 @@ export function useGetConfigByEntity({
 }) {
   const organisationQuery =
     trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
-      { organisation: entityId ? { id: entityId } : null },
+      { organisation: entityId ? { id: entityId } : undefined },
       {
         enabled: enabled && entityType === 'organisation' && !!entityId,
       }
@@ -20,7 +20,7 @@ export function useGetConfigByEntity({
 
   const tahfizQuery =
     trpc.tahfizPaymentConfig.getConfigByTahfizId.useQuery(
-      { tahfiz: entityId ? { id: entityId } : null },
+      { tahfiz: entityId ? { id: entityId } : undefined },
       {
         enabled: enabled && entityType === 'tahfiz' && !!entityId,
       }

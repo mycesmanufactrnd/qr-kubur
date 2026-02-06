@@ -1,4 +1,4 @@
-import { ActiveInactiveStatus } from "./enums";
+import { ActiveInactiveStatus, ProjectStatus, WaqfCategory, WaqfType } from "./enums";
 
 export const defaultGraveField = {
   name: '',
@@ -127,4 +127,22 @@ export const defaultActivityPost = {
   photourl: '',
   ispublished: false,
   tahfizcenter: null,
+}
+
+export const defaultWaqfProjectField = {
+  waqfname: '',
+  description: '',
+  category: WaqfCategory.MOSQUE,
+  beneficiaries: '',
+  startdate: '',
+  enddate: '',
+  status: ProjectStatus.PLANNED,
+  progresspercentage: 0,
+  totalrequired: 0,
+  amountcollected: 0,
+  location: '',
+  responsibleperson: '',
+  waqftype: WaqfType.CASH,
+  photourl: '',
+  notes: ''
 }
