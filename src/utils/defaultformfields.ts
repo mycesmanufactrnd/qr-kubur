@@ -127,4 +127,18 @@ export const defaultActivityPost = {
   photourl: '',
   ispublished: false,
   tahfizcenter: null,
+  mosque: null,
 }
+
+export const defaultMosqueField = {
+  name: '',
+  state: '',
+  address: '',
+  phone: '',
+  email: '',
+  url: '',
+  latitude: '',
+  longitude: '',
+  organisation: '',
+  photourl: '',
+};

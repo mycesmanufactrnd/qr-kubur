@@ -9,6 +9,7 @@ import {
 import { Organisation } from "./Organisation.entity.ts";
 import { TahfizCenter } from "./TahfizCenter.entity.ts";
 import { Permission } from "./Permission.entity.ts";
+import { Mosque } from "./Mosque.entity.ts";
 
 @Entity("users")
 export class User {
@@ -41,6 +42,12 @@ export class User {
     onDelete: "SET NULL",
   })
   tahfizcenter?: TahfizCenter | null;
+
+  @ManyToOne(() => Mosque, (mosque) => mosque.users, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  mosque?: Mosque | null;
 
   @OneToMany(() => Permission, (permissions) => permissions.user)
   permissions!: Permission[];

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils/index';
-import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, Book, UserCheck, BarChart3, Activity, Sparkles, ArrowUpRight } from 'lucide-react';
+import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, Book, UserCheck, BarChart3,List,Activity,  Sparkles, ArrowUpRight, Landmark } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -261,6 +261,9 @@ export default function AdminDashboard() {
                   { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'red' },
                   { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'indigo' },
                   { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'purple' },
+                  { label: translate('Manage Mosques'), page: 'ManageMosques', icon: Landmark, color: 'stone' },
+                  { label: translate('Manage Mosques Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'amber' },
+
                 ].map((action, i) => (
                   <Link key={i} to={createPageUrl(action.page)}>
                     <Button

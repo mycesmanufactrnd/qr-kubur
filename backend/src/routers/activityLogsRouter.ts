@@ -1,40 +1,48 @@
 import z from "zod";
-import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
+import { router, superAdminProcedure, publicProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { ActivityLog } from "../db/entities/ActivityLog.entity.ts";
 
 export const activityLogsRouter = router({
-    getPaginated: protectedProcedure
+    /**
+     * Standardized: getPaginated
+     * Uses server-side search, level filtering, and pagination.
+     */
+    getPaginated: superAdminProcedure
         .input(
             z.object({
-                page: z.number().min(1).optional(),
-                pageSize: z.number().min(1).optional(),
-                checkRole: z.object({
-                    superadmin: z.boolean(),
-                }).optional(),
+                page: z.number().min(1).default(1),
+                pageSize: z.number().min(1).default(20),
+                search: z.string().optional(),
+                level: z.string().optional(),
             })
         )
         .query(async ({ input }) => {
-            const { page, pageSize , checkRole } = input;
-            
-            if(!checkRole?.superadmin) {
-                return { items: [], total: 0 };
-            }
-            
+            const { page, pageSize, search, level } = input;
             const logRepo = AppDataSource.getRepository(ActivityLog);
-
             const query = logRepo.createQueryBuilder("activitylog");
-            
-            if (page && pageSize) {
-                query.skip((page - 1) * pageSize).take(pageSize);
+
+            // 🔹 1. Standardized Search Logic (Search Summary, Email, or Type)
+            if (search?.trim()) {
+                query.andWhere(
+                    "(activitylog.summary ILIKE :search OR activitylog.useremail ILIKE :search OR activitylog.activitytype ILIKE :search)",
+                    { search: `%${search.trim()}%` }
+                );
             }
 
+            // 🔹 2. Level Filtering
+            if (level && level !== 'all') {
+                query.andWhere("activitylog.level = :level", { level });
+            }
+
+            // 🔹 3. Execution with Pagination and DESC ordering
             const [items, total] = await query
                 .orderBy("activitylog.createdat", "DESC")
+                .skip((page - 1) * pageSize)
+                .take(pageSize)
                 .getManyAndCount();
 
             return { items, total };
-
         }),
 
     create: publicProcedure
@@ -47,9 +55,8 @@ export const activityLogsRouter = router({
             extramessage: z.string().optional().nullable(),
         }))
         .mutation(async ({ input }) => {
-          const organisationRepo = AppDataSource.getRepository(ActivityLog);
-    
-          const organisation = organisationRepo.create(input);
-          return await organisationRepo.save(organisation);
+            const logRepo = AppDataSource.getRepository(ActivityLog);
+            const log = logRepo.create(input);
+            return await logRepo.save(log);
         }),
 });

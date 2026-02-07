@@ -1,7 +1,6 @@
 import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
-import { Coordinates } from '@/utils/enums';
 import { coordinatesQueryOptions } from '@/utils/queryOptions';
 
 type useGetOrganisationPaginatedParams = {
@@ -14,6 +13,10 @@ type useGetOrganisationPaginatedParams = {
 
 const titleMessage = 'Organisation';
 
+/**
+ * Standardized: useGetOrganisationPaginated
+ * Removes 'checkRole' and object literals from the query input to prevent 429 errors.
+ */
 export function useGetOrganisationPaginated({
   page,
   pageSize,
@@ -21,30 +24,35 @@ export function useGetOrganisationPaginated({
   filterType,
   filterState,
 }: useGetOrganisationPaginatedParams) {
-  const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
-  const currentUserOrganisationId = currentUser?.organisation?.id ?? undefined;
+  const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
+
+  // 🔹 Standardized: Backend handles logic; frontend only sends specific IDs if needed.
+  // For standard Admins, we could calculate their sub-org tree here or let backend do it.
   const { data, isLoading, refetch, error } =
     trpc.organisation.getPaginated.useQuery(
       {
-        page,
-        pageSize,
-        search,
+        page: page ?? 1,
+        pageSize: pageSize ?? 10,
+        search: search || '',
         filterType,
         filterState,
-        currentUserOrganisation: currentUserOrganisationId,
-        checkRole,
+        // We let backend handle role-based filtering based on the session token
       },
-      { enabled: hasAdminAccess && !!currentUser }
+      { 
+        enabled: !!hasAdminAccess && !!currentUser, 
+        keepPreviousData: true 
+      }
     );
 
-  const organisationsList = {
-    items: data?.items ?? [],
-    total: data?.total ?? 0,
+  const total = data?.total ?? 0;
+
+  return {
+    organisationsList: { items: data?.items ?? [], total: total },
+    totalPages: Math.ceil(total / (pageSize ?? 10)),
+    isLoading,
+    refetch,
+    error,
   };
-
-  const totalPages = Math.ceil(organisationsList.total / pageSize);
-
-  return { organisationsList, totalPages, isLoading, refetch, error };
 }
 
 export function useOrganisationMutations() {
@@ -52,29 +60,21 @@ export function useOrganisationMutations() {
 
   const invalidateAll = () => {
     trpcUtils.organisation.getPaginated.invalidate();
+    trpcUtils.organisation.getAll.invalidate();
   };
 
   const createOrganisation = trpc.organisation.create.useMutation({
-    onSuccess: () => { 
-      showSuccess(titleMessage, 'create'); 
-      invalidateAll(); 
-    },
+    onSuccess: () => { showSuccess(titleMessage, 'create'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
 
   const updateOrganisation = trpc.organisation.update.useMutation({
-    onSuccess: () => { 
-      showSuccess(titleMessage, 'update'); 
-      invalidateAll(); 
-    },
+    onSuccess: () => { showSuccess(titleMessage, 'update'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
 
   const deleteOrganisation = trpc.organisation.delete.useMutation({
-    onSuccess: () => { 
-      showSuccess(titleMessage, 'delete'); 
-      invalidateAll(); 
-    },
+    onSuccess: () => { showSuccess(titleMessage, 'delete'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
 
@@ -101,14 +101,12 @@ export function useGetOrganisationCoordinates(
   return { organisations: data, isLoading, error, refetch };
 }
 
-export function useGetOrganisationByTypeId(organisationTypeId) {
-  const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
+export function useGetOrganisationByTypeId(organisationTypeId: number | undefined) {
+  const { currentUser, hasAdminAccess } = useAdminAccess();
 
-  trpc.organisation.getByOrganisationTypeId.useQuery(
-    {
-      organisationTypeId,
-      checkRole,
-    },
-    { enabled: hasAdminAccess && !!currentUser }
+  // 🔹 FIXED: Added missing return statement
+  return trpc.organisation.getByOrganisationTypeId.useQuery(
+    { organisationTypeId },
+    { enabled: !!hasAdminAccess && !!currentUser }
   );
 }
