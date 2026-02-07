@@ -13,20 +13,26 @@ export function handleLoginTRPC() {
       localStorage.setItem("clientIP", data.clientIp);
       localStorage.setItem("appUserAuth", JSON.stringify(data));
 
-      const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
-
-      localStorage.setItem("permissions", JSON.stringify(permissions));
-
-      if (data.tahfizcenter) {
-        window.location.href = createPageUrl("TahfizDashboard");
+      try {
+        // 🔹 FIXED: Changed 'getByUser' to 'getPermission' to match refactored backend
+        const permissions = await trpcClient.permission.getPermission.query({ userId: data.id });
+        localStorage.setItem("permissions", JSON.stringify(permissions));
+      } catch (permError) {
+        console.error("Failed to fetch permissions during login:", permError);
+        // We still allow login to proceed, but log the error
       }
-      else if (data.organisation) {
+
+      // 🔹 Standardized Redirection Logic
+      if (data.role === "superadmin") {
+        window.location.href = createPageUrl("SuperadminDashboard");
+      } else if (data.tahfizcenter) {
+        window.location.href = createPageUrl("TahfizDashboard");
+      } else if (data.organisation) {
+        window.location.href = createPageUrl("AdminDashboard");
+      } else {
+        // Default fallback
         window.location.href = createPageUrl("AdminDashboard");
       }
-      else {
-        window.location.href = createPageUrl("SuperAdminDashboard");
-      }
-
     },
     onError: (err) => {
       console.error(err);
@@ -50,6 +56,8 @@ export function handleLogout(clearPermissions?: () => void) {
     localStorage.removeItem('appUserAuth');
     localStorage.removeItem('superAdminAuth');
     localStorage.removeItem('isImpersonating');
+    localStorage.removeItem('token'); // 🔹 Added token removal
+    localStorage.removeItem('permissions'); // 🔹 Added permissions removal
     window.location.href = createPageUrl('AppUserLogin');
 }
 

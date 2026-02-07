@@ -6,48 +6,65 @@ import { paymentPlatformSchema } from "../schemas/paymentPlatformSchema.ts";
 import { ActiveInactiveStatus } from "../db/enums.ts";
 
 export const paymentPlatformRouter = router({
-  getPlatform: superAdminProcedure
-    .query(() => {
-      const platformRepo = AppDataSource.getRepository(PaymentPlatform);
+  getPaginated: superAdminProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      pageSize: z.number().min(1).default(10),
+      search: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const { page, pageSize, search } = input;
+      const repo = AppDataSource.getRepository(PaymentPlatform);
+      const query = repo.createQueryBuilder('platform');
 
-      return platformRepo.find();
+      if (search?.trim()) {
+        query.andWhere('platform.name ILIKE :search OR platform.code ILIKE :search', { 
+          search: `%${search.trim()}%` 
+        });
+      }
+
+      const [items, total] = await query
+        .orderBy('platform.id', 'DESC')
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .getManyAndCount();
+
+      return { items, total };
     }),
 
   getActivePlatform: protectedProcedure
     .query(() => {
-      const platformRepo = AppDataSource.getRepository(PaymentPlatform);
-
-      return platformRepo.find({
+      return AppDataSource.getRepository(PaymentPlatform).find({
         where: { status: ActiveInactiveStatus.ACTIVE },
         relations: ['paymentfields']
       });
     }),
 
   create: superAdminProcedure
-      .input(paymentPlatformSchema)
-      .mutation(async ({ input }) => {
-        const platformRepo = AppDataSource.getRepository(PaymentPlatform);
-  
-        const platform = platformRepo.create(input);
-  
-        return await platformRepo.save(platform);
-      }),
+    .input(paymentPlatformSchema)
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(PaymentPlatform);
+      return await repo.save(repo.create(input));
+    }),
   
   update: superAdminProcedure
     .input(z.object({ id: z.number(), data: paymentPlatformSchema }))
     .mutation(async ({ input }) => {
-      const platformRepo = AppDataSource.getRepository(PaymentPlatform);
-      const platform = await platformRepo.findOneByOrFail({ id: input.id });
-
-      platformRepo.merge(platform, input.data);
-
-      return await platformRepo.save(platform);
+      const repo = AppDataSource.getRepository(PaymentPlatform);
+      // findOneByOrFail expects the direct object { id: input.id }
+      const platform = await repo.findOneByOrFail({ id: input.id });
+      repo.merge(platform, input.data);
+      return await repo.save(platform);
     }),
 
+  /**
+   * 🔹 FIXED: input is a number, so we use it directly as the criteria.
+   */
   delete: superAdminProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
-      const platformRepo = AppDataSource.getRepository(PaymentPlatform);
-      return platformRepo.delete(input);
+      const repo = AppDataSource.getRepository(PaymentPlatform);
+      // We use 'input' directly because the schema is z.number()
+      return await repo.delete(input);
     }),
 });

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { translate } from '@/utils/translations';
-import { Building2, Plus, Edit, Trash2, Search, Save, CreditCard, MapPin } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Building2, Plus, Edit, Trash2, Search, X, Save, CreditCard, MapPin } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,533 +18,197 @@ import { useCrudPermissions } from '@/components/PermissionsContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import PaymentConfigDialog from '@/components/PaymentConfigDialog';
+import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { getLabelFromId } from '@/utils/helpers';
 import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetOrganisationType } from '@/hooks/useOrganisationTypeMutations';
 import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
 import { validateFields } from '@/utils/validations';
-import { Checkbox } from '@/components/ui/checkbox';
+import { translate } from '@/utils/translations';
 import { defaultOrganisationField } from '@/utils/defaultformfields';
-import InlineLoadingComponent from '@/components/InlineLoadingComponent';
-import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageOrganisations() {
-  const { 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    currentUserStates 
-  } = useAdminAccess();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterState, setFilterState] = useState(undefined);
-  const [filterType, setFilterType] = useState(undefined);
-  const [page, setPage] = useState(1);
+  const { loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
+
+  // 🔹 1. URL Source of Truth (Supervisor Instruction)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlPage = parseInt(searchParams.get('page') || '1');
+  const urlSearch = searchParams.get('search') || '';
+  const urlType = searchParams.get('type') || 'all';
+  const urlState = searchParams.get('state') || 'all';
+
+  // 🔹 2. Temporary States (typing won't trigger API)
+  const [tempSearch, setTempSearch] = useState(urlSearch);
+  const [tempType, setTempType] = useState(urlType);
+  const [tempState, setTempState] = useState(urlState);
+
+  // 🔹 3. Sync UI with URL
+  useEffect(() => {
+    setTempSearch(urlSearch);
+    setTempType(urlType);
+    setTempState(urlState);
+  }, [urlSearch, urlType, urlState]);
+
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
-  const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
-    defaultValues: defaultOrganisationField
-  });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
-  const {
-    loading: permissionsLoading,
-    canView, canCreate, canEdit, canDelete
-  } = useCrudPermissions('organisations');
-  
-  const {
-    organisationsList,
-    totalPages,
-    isLoading,
-  } = useGetOrganisationPaginated({
-    page,
-    pageSize: itemsPerPage,
-    search: searchQuery,
-    filterType,
-    filterState
-  });
-  
-  const { 
-    data: organisationTypeList, 
-    isLoading: typesLoading, 
-  } = useGetOrganisationType(hasAdminAccess);
 
+  const { control, handleSubmit: handleFormSubmit, reset, setValue } = useForm({ defaultValues: defaultOrganisationField });
+  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('organisations');
+  
+  // 🔹 4. Backend Query (Only reacts to URL params)
+  const { organisationsList, isLoading } = useGetOrganisationPaginated({
+    page: urlPage,
+    pageSize: itemsPerPage,
+    search: urlSearch,
+    filterType: urlType === 'all' ? undefined : Number(urlType),
+    filterState: urlState === 'all' ? undefined : urlState
+  });
+
+  const totalPages = Math.ceil((organisationsList?.total || 0) / itemsPerPage);
+  const { data: organisationTypeList = [] } = useGetOrganisationType({ hasAccess: hasAdminAccess });
   const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
 
-  const openAddDialog = () => {
-    setEditingOrg(null);
-    const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    reset({...defaultOrganisationField, states: defaultState});
-    setIsDialogOpen(true);
+  // 🔹 5. Handlers
+  const handleSearch = () => {
+    const params = { page: '1' };
+    if (tempSearch) params.search = tempSearch;
+    if (tempType !== 'all') params.type = tempType;
+    if (tempState !== 'all') params.state = tempState;
+    setSearchParams(params);
   };
 
-  const openEditDialog = (org) => {
-    setEditingOrg(org);
-    reset({
-      name: org.name || '',
-      parentorganisation: org.parentorganisation?.id || '',
-      organisationtype: org.organisationtype?.id || '',
-      states: Array.isArray(org.states) ? org.states[0] : org.states || '',
-      address: org.address || '',
-      phone: org.phone || '',
-      email: org.email || '',
-      url: org.url || '',
-      latitude: org.latitude || '',
-      longitude: org.longitude || '',
-      canbedonated: org.canbedonated || false,
-      status: org.status || ActiveInactiveStatus.ACTIVE
-    });
-    setIsDialogOpen(true);
-  };
+  const handleReset = () => setSearchParams({});
 
   const onSubmit = (data) => {
-    const isValid = validateFields(data, [
-      { field: 'name', label: 'Organisation Name', type: 'text' },
-      { field: 'organisationtype', label: 'Organisation Type', type: 'select' },
-      { field: 'states', label: 'State', type: 'select' },
-      { field: 'email', label: 'Email', type: 'email', required: false },
-      { field: 'phone', label: 'Phone No.', type: 'phone', required: false },
-    ]);
-
-    if (!isValid) return;
+    if (!validateFields(data, [{ field: 'name', label: 'Name', type: 'text' }, { field: 'organisationtype', label: 'Type', type: 'select' }, { field: 'states', label: 'State', type: 'select' }])) return;
 
     const submitData = {
-      name: data.name,
-      parentorganisation: data.parentorganisation
-        ? { id: Number(data.parentorganisation) }
-        : null,
-      organisationtype: data.organisationtype
-        ? { id: Number(data.organisationtype) }
-        : null,
+      ...data,
+      parentorganisation: data.parentorganisation ? { id: Number(data.parentorganisation) } : null,
+      organisationtype: data.organisationtype ? { id: Number(data.organisationtype) } : null,
       states: Array.isArray(data.states) ? data.states : [data.states],
-      address: data.address || '',
-      phone: data.phone || '',
-      email: data.email || '',
-      url: data.url || '',
-      latitude: data.latitude ? parseFloat(data.latitude) : null,
-      longitude: data.longitude ? parseFloat(data.longitude) : null,
-      canbedonated: data.canbedonated || false,
-      status: data.status || 'active'
     };
 
-    if (editingOrg) {
-      updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
-      .then((res) => {
-        if(res) {
-          setIsDialogOpen(false);
-          setEditingOrg(null);
-          reset(defaultOrganisationField);
-        }
-      })
-    } else {
-      createOrganisation.mutateAsync(submitData)
-      .then((res) => {
-        if(res) {
-          setIsDialogOpen(false);
-          reset(defaultOrganisationField);
-        }
-      });
-    }
+    const mutation = editingOrg 
+      ? updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData }) 
+      : createOrganisation.mutateAsync(submitData);
+
+    mutation.then((res) => { if(res) { setIsDialogOpen(false); reset(defaultOrganisationField); } });
   };
 
-  const handleDelete = (org) => {
-    setOrgToDelete(org);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (!orgToDelete) return;
-    deleteOrganisation.mutate(orgToDelete.id);
-    setDeleteDialogOpen(false);
-    setOrgToDelete(null);
-  };
-
-  if (loadingUser || permissionsLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
-  }
-
-  if (!hasAdminAccess) {
-    return (
-      <AccessDeniedComponent/>
-    );
-  }
-
-  if (!canView) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-          { label: translate('Manage Organisations'), page: 'ManageOrganisations' }
-        ]} />
-        <AccessDeniedComponent/>
-      </div>
-    );
-  }
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
+  if (!hasAdminAccess || !canView) return <AccessDeniedComponent/>;
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('Admin Dashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-        { label: translate('Manage Organisations'), page: 'ManageOrganisations' }
-      ]} />
+      <Breadcrumb items={[{ label: translate('Admin Dashboard'), page: 'AdminDashboard' }, { label: translate('Manage Organisations'), page: 'ManageOrganisations' }]} />
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-violet-600" />
-            {translate('Manage Organisations')}
-          </h1>
-        </div>
-        { canCreate && (
-          <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
-            <Plus className="w-4 h-4 mr-2" />
-            {translate('Add New')}
-          </Button>
-        )}
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Building2 className="w-6 h-6 text-violet-600" /> {translate('Manage Organisations')}
+        </h1>
+        {canCreate && <Button onClick={() => { setEditingOrg(null); reset(defaultOrganisationField); setIsDialogOpen(true); }} className="bg-violet-600"><Plus className="w-4 h-4 mr-2" />{translate('Add New')}</Button>}
       </div>
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-        <CardContent className="p-4 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Search className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">{translate('Advanced Search')}</h3>
-          </div>
-          <div>
-            <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('Organisation Name')}</Label>
-            <Input
-              placeholder={translate('Search organisation name...')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border-gray-300 dark:border-white dark:text-white dark:placeholder-gray-400"
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('Organisation Type')}</Label>
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder="" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={undefined}>{translate('All types')}</SelectItem>
-                  {organisationTypeList.map(type => (
-                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>            
-            <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">{translate('State')}</Label>
-              <Select value={filterState} onValueChange={setFilterState}>
-                <SelectTrigger className="border-gray-300 dark:border-white dark:text-white">
-                  <SelectValue placeholder="" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={undefined}>{translate('All states')}</SelectItem>
-                  {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+      <Card className="border-0 shadow-md">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input placeholder={translate('Search organisation name...')} value={tempSearch} onChange={(e) => setTempSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="pl-10" />
             </div>
+            <Button onClick={handleSearch} className="bg-violet-600 px-6">{translate('Search')}</Button>
           </div>
-          {(searchQuery || filterType !== undefined || filterState !== undefined) && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery('');
-                  setFilterType(undefined);
-                  setFilterState(undefined);
-                }}
-              >
-                Reset Semua Carian
-              </Button>
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Select value={String(tempType)} onValueChange={setTempType}>
+              <SelectTrigger><SelectValue placeholder={translate('Type')} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translate('All types')}</SelectItem>
+                {(Array.isArray(organisationTypeList.items) ? organisationTypeList.items : []).map(type => <SelectItem key={type.id} value={String(type.id)}>{type.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={tempState} onValueChange={setTempState}>
+              <SelectTrigger><SelectValue placeholder={translate('State')} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translate('All states')}</SelectItem>
+                {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={handleReset}><X className="w-4 h-4 mr-2" />{translate('Reset')}</Button>
+          </div>
         </CardContent>
       </Card>
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+
+      <Card className="border-0 shadow-md">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Name')}</TableHead>
-                <TableHead className="text-center">{translate('Organisation Type')}</TableHead>
+                <TableHead className="text-center">{translate('Type')}</TableHead>
                 <TableHead className="text-center">{translate('State')}</TableHead>
-                 { (canEdit || canDelete) && (
-                   <TableHead  className="text-center">{translate('Actions')}</TableHead>
-                 ) }
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={4}/>
-              ) : organisationsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={4}/>
-              ) : (
-                organisationsList.items.map(org => (
-                  <TableRow key={org.id}>
-                    <TableCell className="font-medium">{org.name}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="secondary">{getLabelFromId(organisationTypeList, org.organisationtype?.id)}</Badge>
-                    </TableCell>
-                    <TableCell className="text-center">{Array.isArray(org.states) ? org.states.join(', ') : org.states}</TableCell>
-                    <TableCell className="text-center">
-                      { canEdit && (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => openEditDialog(org)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => {
-                              setSelectedOrgForPayment(org);
-                              setPaymentConfigOpen(true);
-                            }}
-                            title="Payment Config"
-                          >
-                            <CreditCard className="w-4 h-4 text-green-600" />
-                          </Button>
-                        </>
-                      )}
-                      { canDelete && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDelete(org)}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      ) }
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              {isLoading ? <InlineLoadingComponent isTable={true} colSpan={4}/> : organisationsList.items.length === 0 ? <NoDataTableComponent colSpan={4}/> : organisationsList.items.map(org => (
+                <TableRow key={org.id}>
+                  <TableCell className="font-medium">{org.name}</TableCell>
+                  <TableCell className="text-center"><Badge variant="secondary">{org.organisationtype?.name}</Badge></TableCell>
+                  <TableCell className="text-center">{Array.isArray(org.states) ? org.states.join(', ') : org.states}</TableCell>
+                  <TableCell className="text-center">
+                    {canEdit && <><Button variant="ghost" size="sm" onClick={() => { setEditingOrg(org); reset({ ...org, organisationtype: org.organisationtype?.id, parentorganisation: org.parentorganisation?.id, states: Array.isArray(org.states) ? org.states[0] : org.states }); setIsDialogOpen(true); }}><Edit className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setSelectedOrgForPayment(org); setPaymentConfigOpen(true); }}><CreditCard className="w-4 h-4 text-green-600" /></Button></>}
+                    {canDelete && <Button variant="ghost" size="sm" onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
-          {totalPages > 0 && (
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={(value) => {
-                setItemsPerPage(value);
-                setPage(1);
-              }}
-              totalItems={organisationsList.total}
-            />
-          )}
         </CardContent>
+        {totalPages > 0 && <Pagination currentPage={urlPage} totalPages={totalPages} onPageChange={(p) => setSearchParams({...Object.fromEntries(searchParams), page: p.toString()})} itemsPerPage={itemsPerPage} onItemsPerPageChange={(v) => { setItemsPerPage(v); setSearchParams({...Object.fromEntries(searchParams), page: '1'}); }} totalItems={organisationsList.total} />}
       </Card>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="dark:text-white">
-              {editingOrg ? translate('Edit') : translate('Add New')}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label>{translate('Name')} <span className="text-red-500">*</span></Label>
-              <Controller
-                name="name"
-                control={control}
-                rules={{ required: 'Nama organisasi diperlukan' }}
-                render={({ field }) => <Input {...field} />}
-              />
-            </div>
-            <div>
-              <Label>{translate('Organisation Type')} <span className="text-red-500">*</span></Label>
-              <Controller
-                name="organisationtype"
-                control={control}
-                rules={{ required: 'Jenis organisasi diperlukan' }}
-                render={({ field }) => (
-                  <Select value={field.value || ''} onValueChange={(val) => field.onChange(Number(val))}>
-                    <SelectTrigger>
-                      <SelectValue>
-                        {organisationTypeList.find(t => t.id === field.value)?.name || translate('Select organisation type')}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {organisationTypeList.map(type => (
-                        <SelectItem key={type.id} value={type.id}>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span>{type.name}</span>
-                            <span style={{ fontSize: '0.8em', color: '#666' }}>
-                              {type.description}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            <div>
-              <Label>{translate('Parent Organisation')}</Label>
-              <Controller
-                name="parentorganisation"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value || ''} onValueChange={(val) => field.onChange(Number(val))}>
-                    <SelectTrigger>
-                      <SelectValue>
-                        {organisationsList.items.find(o => o.id === field.value)?.name || translate('Select parent organisation')}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        {organisationsList.items.map(type => (
-                          <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            <div>
-              <Label>{translate('State')} <span className="text-red-500">*</span></Label>
-              <Controller
-                name="states"
-                control={control}
-                rules={{ required: 'Negeri diperlukan' }}
-                render={({ field }) => (
-                  <Select 
-                    value={field.value} 
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={translate('Select states')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
-                        <SelectItem key={state} value={state}>{state}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-            <div>
-              <Label>{translate('Address')}</Label>
-              <Controller
-                name="address"
-                control={control}
-                render={({ field }) => <Textarea {...field} />}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>{translate('Phone No.')}</Label>
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => <Input {...field} />}
-                />
-              </div>
-              <div>
-                <Label>{translate('Email')}</Label>
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => <Input type="email" {...field} />}
-                />
-              </div>
-            </div>
-            <div>
-                <Label>URL</Label>
-                <Controller
-                  name="url"
-                  control={control}
-                  render={({ field }) => <Input {...field} />}
-                />
-              </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label>{translate('GPS Latitude')}</Label><Controller name="latitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
-              <div><Label>{translate('GPS Longitude')}</Label><Controller name="longitude" control={control} render={({ field }) => <Input type="number" step="any" {...field} />} /></div>
-            </div>
-            <Button type="button" variant="outline" className="w-full" onClick={() => {
-              navigator.geolocation.getCurrentPosition((pos) => {
-                setValue('latitude', pos.coords.latitude.toFixed(8));
-                setValue('longitude', pos.coords.longitude.toFixed(8));
-              });
-            }}><MapPin className="w-4 h-4 mr-2" /> {translate('Get Current Location')}</Button>
-            <div className="flex items-center gap-3 rounded-lg border p-3">
-              <Controller
-                name="Can be Donated"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
-                  />
-                )}
-              />
 
-              <Label className="cursor-pointer">
-                {translate('Can be Donated')}
-              </Label>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingOrg ? translate('Edit') : translate('Add New')}</DialogTitle></DialogHeader>
+          <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
+            <div><Label>{translate('Name')} *</Label><Controller name="name" control={control} render={({ field }) => <Input {...field} />} /></div>
+            <div>
+              <Label>{translate('Type')} *</Label>
+              <Controller name="organisationtype" control={control} render={({ field }) => (
+                <Select value={String(field.value || '')} onValueChange={(v) => field.onChange(Number(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{(Array.isArray(organisationTypeList.items) ? organisationTypeList.items : []).map(t => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}</SelectContent>
+                </Select>
+              )} />
             </div>
             <div>
-              <Label>{translate('Status')}</Label>
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">{translate('Active')}</SelectItem>
-                      <SelectItem value="inactive">{translate('Inactive')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              <Label>{translate('State')} *</Label>
+              <Controller name="states" control={control} render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+              )} />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {translate('Cancel')}
-              </Button>
-              <Button type="submit" disabled={createOrganisation.isPending || updateOrganisation.isPending}>
-                <Save className="w-4 h-4 mr-2" />
-                {translate('Save')}
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
+              <Button type="submit" className="bg-violet-600" disabled={createOrganisation.isPending || updateOrganisation.isPending}><Save className="w-4 h-4 mr-2" /> {translate('Save')}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title={translate('Delete')}
-        description={`${translate('Confirm delete')} "${orgToDelete?.name}"?`}
-        onConfirm={confirmDelete}
-        confirmText={translate('Delete')}
-        variant="destructive"
-      />
-
-      <PaymentConfigDialog
-        open={paymentConfigOpen}
-        hasAdminAccess={hasAdminAccess}
-        onOpenChange={setPaymentConfigOpen}
-        entityId={selectedOrgForPayment?.id}
-        entityType="organisation"
-      />
+      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={() => deleteOrganisation.mutate(orgToDelete.id)} title={translate('Delete')} description={translate('Confirm delete')} variant="destructive" />
+      <PaymentConfigDialog open={paymentConfigOpen} onOpenChange={setPaymentConfigOpen} entityId={selectedOrgForPayment?.id} entityType="organisation" />
     </div>
   );
 }
