@@ -20,13 +20,16 @@ export function handleLoginTRPC() {
       if (data.tahfizcenter) {
         window.location.href = createPageUrl("TahfizDashboard");
       }
-      else if (data.organisation) {
+
+      if (data.role === "superadmin") {
+        window.location.href = createPageUrl("SuperadminDashboard");
+      } else if (data.tahfizcenter) {
+        window.location.href = createPageUrl("TahfizDashboard");
+      } else if (data.organisation) {
+        window.location.href = createPageUrl("AdminDashboard");
+      } else {
         window.location.href = createPageUrl("AdminDashboard");
       }
-      else {
-        window.location.href = createPageUrl("SuperAdminDashboard");
-      }
-
     },
     onError: (err) => {
       console.error(err);
@@ -50,6 +53,8 @@ export function handleLogout(clearPermissions?: () => void) {
     sessionStorage.removeItem('appUserAuth');
     sessionStorage.removeItem('superAdminAuth');
     sessionStorage.removeItem('isImpersonating');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('permissions'); 
     window.location.href = createPageUrl('AppUserLogin');
 }
 

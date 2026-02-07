@@ -4,44 +4,56 @@ import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
 export const organisationTypeRouter = router({
-  getTypes: protectedProcedure.query(async () => {
-    return AppDataSource
-      .getRepository(OrganisationType)
-      .find();
-  }),
+  getTypes: protectedProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      pageSize: z.number().min(1).default(10),
+      search: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const { page, pageSize, search } = input;
+      const repo = AppDataSource.getRepository(OrganisationType);
+      const query = repo.createQueryBuilder('type');
+
+      // Standardized: andWhere with ILIKE and trimming
+      if (search?.trim()) {
+        query.andWhere('type.name ILIKE :search', { search: `%${search.trim()}%` });
+      }
+
+      const [items, total] = await query
+        .orderBy('type.id', 'DESC')
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .getManyAndCount();
+
+      return { items, total };
+    }),
   
   createType: superAdminProcedure
-    .input(
-      z.object({
-        name: z.string().min(1),
-        description: z.string().optional(),
-        status: z.enum(['active', 'inactive']).default('active'),
-      })
-    )
+    .input(z.object({
+      name: z.string().min(1),
+      description: z.string().optional(),
+      status: z.enum(['active', 'inactive']).default('active'),
+    }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
-
       const type = repo.create(input);
       return await repo.save(type);
     }),
 
   updateType: superAdminProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        name: z.string().optional(),
-        description: z.string().optional(),
-        status: z.enum(['active', 'inactive']).optional(),
-      })
-    )
+    .input(z.object({
+      id: z.number(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      status: z.enum(['active', 'inactive']).optional(),
+    }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
 
-      const existing = await repo.findOne({ where: { id: input.id } });
-      if (!existing) {
-        throw new Error(`OrganisationType ${input.id} not found`);
-      }
-
+      // 🔹 FIX: findOneByOrFail expects { id: input.id }, NOT { where: { id: input.id } }
+      const existing = await repo.findOneByOrFail({ id: input.id });
+      
       repo.merge(existing, input);
       return await repo.save(existing);
     }),
@@ -51,6 +63,7 @@ export const organisationTypeRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
 
+      // 🔹 Consistency FIX: Use the same direct object pattern here
       const result = await repo.delete(input.id);
       if (result.affected === 0) {
         throw new Error(`OrganisationType ${input.id} not found`);
