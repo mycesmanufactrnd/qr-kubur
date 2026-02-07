@@ -102,12 +102,12 @@ export default function CheckTahlilStatus() {
     <div className="min-h-screen">
       <BackNavigation title="Tahlil Status" />
 
-      <div className="max-w-2xl mx-auto space-y-6 py-8">
+      <div className="max-w-2xl mx-auto space-y-6 py-1">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-600 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-600 mb-2">
             <BookOpen className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{translate('Check Tahlil Application Status')}</h1>
+          <h5 className="text-lg font-bold text-gray-900 dark:text-white">{translate('Check Tahlil Application Status')}</h5>
           <p className="text-gray-600 dark:text-gray-400">
             Masukkan ID rujukan untuk menyemak status permohonan anda
           </p>

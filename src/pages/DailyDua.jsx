@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Heart, Sun, Moon, Book, Sparkles, Clock } from 'lucide-react';
 import DuaCard from '@/components/DuaCard';
@@ -6,12 +6,12 @@ import BackNavigation from '@/components/BackNavigation';
 import { translate } from '@/utils/translations';
 
 const CATEGORIES = [
-  { id: 'all', label: 'All Du\'a', icon: Book, color: 'emerald' },
-  { id: 'daily-dua', label: 'Daily Du\'a', icon: Heart, color: 'rose' },
-  { id: 'morning-dhikr', label: 'Morning Dhikr', icon: Sun, color: 'amber' },
-  { id: 'evening-dhikr', label: 'Evening Dhikr', icon: Moon, color: 'indigo' },
-  { id: 'dhikr-after-salah', label: 'After Salah', icon: Sparkles, color: 'teal' },
-  { id: 'selected-dua', label: 'Selected Du\'a', icon: Clock, color: 'purple' },
+  { id: 'all', label: "All", color: 'emerald' },
+  { id: 'daily-dua', label: 'Daily', color: 'rose' },
+  { id: 'morning-dhikr', label: 'Morning', color: 'amber' },
+  { id: 'evening-dhikr', label: 'Evening', color: 'indigo' },
+  { id: 'dhikr-after-salah', label: 'After Salah', color: 'teal' },
+  { id: 'selected-dua', label: 'Selected', color: 'purple' },
 ];
 
 export default function DailyDua() {
@@ -80,49 +80,35 @@ export default function DailyDua() {
     <div className="pb-12 min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <BackNavigation title={translate('Daily Dua & Dhikr')} />
 
-      <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 py-10 px-4 text-center text-white shadow-lg">
-        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs mb-4 shadow-sm">
-          <Heart className="w-3.5 h-3.5" />
-          Daily Remembrance
-        </div>
-        <h1 className="text-3xl font-bold mb-2">Du'a & Dhikr Collection</h1>
+      <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 pb-8 pt-4 px-4 text-center text-white shadow-lg">
+        <h5 className="text-xl font-bold mb-2">Du'a & Dhikr Collection</h5>
         <p className="text-sm text-white/90 max-w-md mx-auto">
-          Strengthen your heart with remembrance of Allah ﷻ
+          A strong heart remembers Allah
         </p>
       </div>
-
-      <div className="max-w-5xl mx-auto px-4 space-y-6 -mt-6">
-        
-        <Card className="p-4 shadow-lg border-0 bg-white">
+      <div className="max-w-5xl mx-auto space-y-6 -mt-2">
+        <Card className="p-4 shadow-lg border-0 bg-white rounded-b-lg rounded-t-none">
           <div className="flex items-center gap-2 mb-3">
             <Book className="w-4 h-4 text-emerald-600" />
             <span className="text-sm font-semibold text-slate-700">Browse by Category</span>
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((category) => {
-              const Icon = category.icon;
-              const isSelected = selectedCategory === category.id;
-              
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-                    transition-all duration-200 border-2
-                    ${isSelected 
-                      ? getCategoryColor(category.color) + ' shadow-md scale-105' 
-                      : getCategoryOutline(category.color) + ' bg-white'
-                    }
-                  `}
-                >
-                  <Icon className="w-4 h-4" />
-                  {category.label}
-                </button>
-              );
-            })}
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-200
+                  ${
+                    selectedCategory === c.id
+                      ? `${getCategoryColor(c.color)} shadow-md`
+                      : `${getCategoryOutline(c.color)} bg-white`
+                  }`}
+              >
+                {c.label}
+              </button>
+            ))}
           </div>
+
         </Card>
 
         {(selectedCategory === 'all' || selectedCategory === 'morning-dhikr' || selectedCategory === 'evening-dhikr') && (

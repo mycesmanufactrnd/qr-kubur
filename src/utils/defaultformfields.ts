@@ -8,6 +8,9 @@ export const defaultGraveField = {
   address: '',
   latitude: '',
   longitude: '',
+  photourl: '',
+  picname: '',
+  picphoneno: '',
   organisation: '',
   status: 'active',
   totalgraves: 0,
@@ -132,6 +135,7 @@ export const defaultActivityPost = {
 export const defaultWaqfProjectField = {
   waqfname: '',
   description: '',
+  state: '',
   category: WaqfCategory.MOSQUE,
   beneficiaries: '',
   startdate: '',

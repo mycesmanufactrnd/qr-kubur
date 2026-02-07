@@ -89,6 +89,8 @@ function LayoutContent({ children, currentPageName }) {
     
   }, [isAdmin, currentPageName, currentUser, loadingUser]);
 
+  const isUserDashboard = currentPageName === 'UserDashboard';
+
   const onLogoutClick = () => {
     handleLogout(clearPermissions);
   };
@@ -350,7 +352,11 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6 w-full">
+      <main
+        className={`flex-1 max-w-7xl mx-auto w-full
+          ${isUserDashboard ? 'pb-10' : 'px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6'}          
+        `}
+      >
         {children}
       </main>
 

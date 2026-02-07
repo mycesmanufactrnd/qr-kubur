@@ -2,7 +2,7 @@
 ~ Heritage Site macam maqam (done)
 ~ Islamic Events in Calendar (done)
 ~ Volunteering page (NGO)
-~ Waqf Projects with progress 
+~ Waqf Projects with progress (done)
 ~ Make tahlil to localstorage, so user can check again
 ~ Kumpulan doa2 harian, bacaan zikir pagi dan petang (dari utube) (done)
 ~ Masjid2 boleh buat online class, zoom link... kuliah maghrib and so on
@@ -10,3 +10,5 @@
 ~ if ongoing can do live tahlil check at tahlil status (done)
 ~ add to favorite masjid apa2, untuk sedekah
 ~ buat bayar untuk bersihkan kubur, service bersihkan
+~ khairat kematian
+~ PIC jenazah

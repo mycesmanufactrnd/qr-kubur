@@ -123,7 +123,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           isTextArea
         />
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <TextInputForm
             name="beneficiaries"
@@ -138,6 +138,15 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
             name="location"
             control={control}
             label={translate("Location")}
+            required
+            errors={errors}
+          />
+        </div>
+        <div className="space-y-2">
+          <TextInputForm
+            name="state"
+            control={control}
+            label={translate("State")}
             required
             errors={errors}
           />

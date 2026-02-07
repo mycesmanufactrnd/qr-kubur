@@ -12,6 +12,9 @@ export class WaqfProject {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Column("varchar", { length: 255, nullable: true })
+  state!: string;
+
   @Column({
     type: 'enum',
     enum: WaqfCategory,
