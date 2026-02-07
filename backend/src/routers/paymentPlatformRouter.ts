@@ -51,20 +51,15 @@ export const paymentPlatformRouter = router({
     .input(z.object({ id: z.number(), data: paymentPlatformSchema }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(PaymentPlatform);
-      // findOneByOrFail expects the direct object { id: input.id }
       const platform = await repo.findOneByOrFail({ id: input.id });
       repo.merge(platform, input.data);
       return await repo.save(platform);
     }),
 
-  /**
-   * 🔹 FIXED: input is a number, so we use it directly as the criteria.
-   */
   delete: superAdminProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(PaymentPlatform);
-      // We use 'input' directly because the schema is z.number()
       return await repo.delete(input);
     }),
 });

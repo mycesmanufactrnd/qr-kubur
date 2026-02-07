@@ -5,10 +5,6 @@ import { paymentFieldSchema } from "../schemas/paymentFieldSchema.ts";
 import { router, superAdminProcedure } from "../trpc.ts";
 
 export const paymentFieldRouter = router({
-  /**
-   * Standardized: getPaginated
-   * Server-side search, platform filtering, and pagination.
-   */
   getPaginated: superAdminProcedure
     .input(z.object({
       page: z.number().min(1).default(1),
@@ -22,19 +18,16 @@ export const paymentFieldRouter = router({
       const query = repo.createQueryBuilder('field')
         .leftJoinAndSelect('field.paymentplatform', 'platform');
 
-      // 🔹 Standardized Search Pattern
       if (search?.trim()) {
         query.andWhere('(field.label ILIKE :search OR field.key ILIKE :search)', { 
           search: `%${search.trim()}%` 
         });
       }
 
-      // 🔹 Platform Filtering
       if (platformId) {
         query.andWhere('platform.id = :platformId', { platformId });
       }
 
-      // 🔹 Standardized Pagination
       const [items, total] = await query
         .orderBy('field.id', 'DESC')
         .skip((page - 1) * pageSize)
@@ -55,7 +48,6 @@ export const paymentFieldRouter = router({
     .input(z.object({ id: z.number(), data: paymentFieldSchema }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(PaymentField);
-      // 🔹 FIX: Use direct criteria object
       const field = await repo.findOneByOrFail({ id: input.id });
       repo.merge(field, input.data);
       return await repo.save(field);
@@ -65,7 +57,6 @@ export const paymentFieldRouter = router({
     .input(z.number())
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(PaymentField);
-      // 🔹 FIX: input is a raw number (ID)
       return await repo.delete(input);
     }),
 });
