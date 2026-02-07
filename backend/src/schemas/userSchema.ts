@@ -9,6 +9,7 @@ export const userSchema = z.object({
     states: z.array(z.string()).optional(),
     organisation: z.object({ id: z.number() }).nullable().optional(),
     tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
+    mosque: z.object({ id: z.number() }).nullable().optional(),
 });
 
 export const updateUserSchema = userSchema.partial().extend({

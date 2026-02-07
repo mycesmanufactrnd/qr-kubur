@@ -28,7 +28,7 @@ import TextInputForm from '@/components/Forms/TextInputForm';
 import CheckboxForm from '@/components/Forms/CheckboxForm';
 
 export default function ManageActivityPosts() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin, isMosqueAdmin } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
@@ -51,7 +51,7 @@ export default function ManageActivityPosts() {
   });
   const { createPost, updatePost, deletePost } = useActivityPostMutations();
 
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     defaultValues: defaultActivityPost,
   });
 
@@ -60,6 +60,14 @@ export default function ManageActivityPosts() {
   useEffect(() => {
     setTempTitle(urlTitle);
   }, [urlTitle]);
+
+  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : 
+                         isMosqueAdmin ? translate('Mosque Dashboard') : 
+                         translate('Admin Dashboard');
+  
+  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 
+                        isMosqueAdmin ? 'MosqueDashboard' : 
+                        'AdminDashboard';
 
   const handleSearch = () => {
     const params = { page: '1' };
@@ -115,13 +123,15 @@ export default function ManageActivityPosts() {
     ]);
 
     if (!isValid) return;
-    
+  
     const submitData = {
       ...formData,
-      ...(!isSuperAdmin && {
-        tahfizcenter: currentUser.tahfizcenter
-          ? { id: Number(currentUser.tahfizcenter.id) }
-          : null,
+      ...(!isSuperAdmin ? {
+        tahfizcenter: currentUser?.tahfizcenter ? { id: Number(currentUser.tahfizcenter.id) } : null,
+        mosque: currentUser?.mosque ? { id: Number(currentUser.mosque.id) } : null,
+      } : {
+        tahfizcenter: editingPost?.tahfizcenter ? { id: Number(editingPost.tahfizcenter.id) } : null,
+        mosque: editingPost?.mosque ? { id: Number(editingPost.mosque.id) } : null,
       }),
     };
 
@@ -148,26 +158,14 @@ export default function ManageActivityPosts() {
     }
   };
 
-  if (loadingUser || permissionsLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
-  }
-
-  if (!hasAdminAccess) {
-    return (
-      <AccessDeniedComponent/>
-    );
-  }
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
+  if (!hasAdminAccess) return <AccessDeniedComponent/>;
 
   if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { 
-            label: isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard'), 
-            page: isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard', 
-          },
+          { label: dashboardLabel, page: dashboardPage },
           { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts' }
         ]} />
         <AccessDeniedComponent/>
@@ -175,13 +173,12 @@ export default function ManageActivityPosts() {
     );
   }
 
+  const tableColSpan = 3;
+
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { 
-          label: isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard'), 
-          page: isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard', 
-        },
+        { label: dashboardLabel, page: dashboardPage },
         { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts' }
       ]} />
 
@@ -217,9 +214,8 @@ export default function ManageActivityPosts() {
               {translate('Search')}
             </Button>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            <Button variant="outline" onClick={handleReset} className="w-full">
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleReset} size="sm">
               <X className="w-4 h-4 mr-2" /> {translate('Reset')}
             </Button>
           </div>
@@ -238,17 +234,19 @@ export default function ManageActivityPosts() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={6} />
+                <InlineLoadingComponent isTable colSpan={tableColSpan} />
               ) : activityPostsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={6} />
+                <NoDataTableComponent colSpan={tableColSpan} />
               ) : (
                 activityPostsList.items.map(site => (
                   <TableRow key={site.id}>
                     <TableCell className="font-medium">{site.title}</TableCell>
                     <TableCell className="text-center">{site.ispublished ? 'Yes' : 'No'}</TableCell>
                     <TableCell className="text-center">
-                      {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(site)}><Edit className="w-4 h-4" /></Button>}
-                      {canDelete && <Button variant="ghost" size="sm" onClick={() => { setPostToDelete(site); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                      <div className="flex justify-center gap-1">
+                        {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(site)}><Edit className="w-4 h-4" /></Button>}
+                        {canDelete && <Button variant="ghost" size="sm" onClick={() => { setPostToDelete(site); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -315,7 +313,15 @@ export default function ManageActivityPosts() {
                 />
                 {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
               </div>
-              {photourl && <img src={`/api/file/activity-post/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
+              {photourl && (
+                <div className="mt-2 relative inline-block">
+                   <img 
+                    src={`/api/file/activity-post/${encodeURIComponent(photourl)}`} 
+                    alt={translate('Preview')} 
+                    className="max-h-40 rounded border shadow-sm"
+                   />
+                </div>
+              )}
             </div>
 
             <DialogFooter>
@@ -335,7 +341,7 @@ export default function ManageActivityPosts() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title={translate('Delete Activity Post')}
-        description={`${translate('Delete')} "${postToDelete?.name}"?`}
+        description={`${translate('Delete')} "${postToDelete?.title}"?`}
         onConfirm={confirmDelete}
         confirmText={translate('Delete')}
         variant="destructive"
