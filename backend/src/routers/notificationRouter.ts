@@ -13,12 +13,14 @@ export const notificationRouter = router({
         .query(async ({ input }) => {
             const { receiveremail } = input;
 
-        return await AppDataSource.getRepository(AdminNotification).count({
+        const count = await AppDataSource.getRepository(AdminNotification).count({
             where: {
                 receiveremail,
                 isread: false,
             },
-        })
+        });
+
+        return { count };
     }),
 
     getPaginated: protectedProcedure

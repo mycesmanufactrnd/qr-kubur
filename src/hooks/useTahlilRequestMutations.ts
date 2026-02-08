@@ -61,6 +61,20 @@ export function useUpdateTahlilRequest() {
   });
 }
 
+export function useUpdateLiveURLTahlilRequest() {
+  const trpcUtils = trpc.useUtils();
+
+  return trpc.tahlilRequest.updateLiveURL.useMutation({
+    onSuccess: () => {
+      showSuccess(`${titleMessage} URL`, 'update');
+      trpcUtils.tahlilRequest.getPaginated.invalidate();
+    },
+    onError: (err) => {
+      showApiError(err);
+    },
+  });
+}
+
 export function useDeleteTahlilRequest() {
   const trpcUtils = trpc.useUtils();
 

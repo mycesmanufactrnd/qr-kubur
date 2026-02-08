@@ -41,7 +41,7 @@ export default function DeadPersonDetails() {
   const age = calculateAge(deadPersonDetails.dateofbirth, deadPersonDetails.dateofdeath);
 
   return (
-    <div className="space-y-3 pb-2 p-4">
+    <div className="space-y-3 pb-2 p-1">
       <BackNavigation title={deadPersonDetails.name} />
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">

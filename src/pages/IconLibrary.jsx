@@ -123,7 +123,7 @@ export default function IconLibrary() {
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const appUserAuth = localStorage.getItem('appUserAuth');
+        const appUserAuth = sessionStorage.getItem('appUserAuth');
         if (appUserAuth) {
           setCurrentUser(JSON.parse(appUserAuth));
         }

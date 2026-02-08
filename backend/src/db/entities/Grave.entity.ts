@@ -8,6 +8,9 @@ export class Grave {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column("varchar", { nullable: true })
+  photourl?: string;
+
   @Column("varchar", { length: 255, nullable: true })
   name?: string;
 
@@ -28,6 +31,12 @@ export class Grave {
 
   @Column("varchar", { length: 255, nullable: true })
   state?: string;
+
+  @Column("varchar", { length: 255, nullable: true })
+  picname?: string;
+
+  @Column("varchar", { nullable: true })
+  picphoneno?: string;
 
   @Column("int", { nullable: true }) 
   totalgraves?: number;

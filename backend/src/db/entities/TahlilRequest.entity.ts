@@ -47,6 +47,9 @@ export class TahlilRequest {
     })
     status!: TahlilStatus;
 
+    @Column("text", { nullable: true })
+    liveurl?: string;
+
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;
 }

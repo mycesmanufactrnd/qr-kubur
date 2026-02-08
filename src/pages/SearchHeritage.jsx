@@ -62,10 +62,7 @@ export default function SearchGrave() {
       {isLoading ? (
         <ListCardSkeletonComponent/>
       ) : heritageSiteList.length === 0 ? (
-        <NoDataCardComponent
-          title={translate('noGravesFound')}
-          description="Sila cuba carian lain atau ubah penapis."
-        />
+        <NoDataCardComponent/>
       ) : (
         <div className="space-y-3">
           {heritageSiteList.map((heritage, index) => (

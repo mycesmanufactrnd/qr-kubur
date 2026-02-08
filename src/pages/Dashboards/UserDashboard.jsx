@@ -9,147 +9,188 @@ import {
   MoonStar,
   AlertTriangle,
   Globe,
-  Calendar
+  Calendar,
+  Video,
+  MessageCircle,
+  ChevronRight,
+  Newspaper
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 
 export default function UserDashboard2() {
   return (
-    <div className="space-y-6 pb-10">
-
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-indigo-600 p-6 text-white shadow-xl">
-        <MoonStar className="absolute right-4 top-4 opacity-20 w-20 h-20" />
-
-        <h1 className="text-2xl font-bold">QR Kubur</h1>
-        <p className="text-sm opacity-90 mt-1">
-          {translate('Funeral Guide & Management at Your Fingertips')}
-        </p>
-
-        <div className="mt-4 bg-white/15 backdrop-blur rounded-2xl p-4">
-          <p className="text-sm italic text-center">
-            {translate('Every living being will surely die')}
-          </p>
-          <p className="text-xs text-center opacity-80 mt-1">
-            Ali ‘Imran : 185
-          </p>
-        </div>
-      </div>
-
-      <Link to={createPageUrl("SolatJenazah")}>
-        <div className="mt-3 relative rounded-2xl bg-red-50 border border-red-200 p-4 flex items-center gap-4 hover:shadow-md transition">
-          <AlertTriangle className="w-8 h-8 text-red-600" />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 pt-6 pb-16 rounded-b-3xl">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="font-semibold text-red-700">
-              {translate('Emergency: Funeral Prayer')}
-            </p>
-            <p className="text-xs text-red-500">
-              {translate('Immediate guide when death occurs')}
+            <h1 className="text-xl font-bold text-white">QR Kubur</h1>
+            <p className="text-[10px] text-emerald-50 mt-0.5">
+              {translate('Funeral Guide & Management')}
             </p>
           </div>
+          <div className="bg-white/20 backdrop-blur-sm p-2 rounded-full">
+            <MoonStar className="w-5 h-5 text-white" />
+          </div>
         </div>
-      </Link>
-
-      <div className="grid grid-cols-2 gap-4">
-
-        <ActionCard
-          icon={Search}
-          title="Cari Kubur"
-          subtitle="Lokasi & maklumat"
-          page="SearchGrave"
-          color="from-blue-500 to-indigo-500"
-        />
-
-        <ActionCard
-          icon={QrCode}
-          title="Imbas QR"
-          subtitle="Maklumat arwah"
-          page="ScanQR"
-          color="from-emerald-500 to-teal-500"
-        />
-
-        <ActionCard
-          icon={MapPin}
-          title="Cari Tahfiz"
-          subtitle="Sekitar anda"
-          page="SearchTahfiz"
-          color="from-violet-500 to-fuchsia-500"
-        />
-
-        <ActionCard
-          icon={Heart}
-          title="Infaq & Sedekah"
-          subtitle="Pahala berterusan"
-          page="DonationPage"
-          color="from-pink-500 to-rose-500"
-        />
+        <div className="bg-white/95 dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <p className="text-[11px] text-gray-600 dark:text-gray-300 italic text-center">
+            {translate('Every living being will surely die')}
+          </p>
+          <p className="text-[9px] text-gray-500 dark:text-gray-400 text-center mt-1">
+            Ali 'Imran : 185
+          </p>
+        </div>
       </div>
-      <div>
-        <h3 className="text-sm font-semibold text-gray-500 mb-3">
-          Servis Lain
-        </h3>
 
-        <div className="space-y-3">
-          <GuideRow
-            icon={Calendar}
-            title="Islamic Events"
-            desc="Acara dalam Kalendar Hijriyyah"
-            page="IslamicCalendar"
+      <div className="px-4 -mt-10 space-y-5">
+        <div className="grid grid-cols-4 gap-3">
+          <RoundedIconButton
+            icon={Search}
+            label="Cari Kubur"
+            page="SearchGrave"
+            bgColor="bg-blue-500"
           />
-          <GuideRow
-            icon={BookOpen}
-            title="Surah, Doa & Tahlil"
-            desc="Bacaan untuk arwah"
-            page="SurahPage"
+          <RoundedIconButton
+            icon={QrCode}
+            label="Imbas QR"
+            page="ScanQR"
+            bgColor="bg-emerald-500"
           />
-          <GuideRow
-            icon={FileText}
-            title="Status Tahlil"
-            desc="Semak permohonan"
-            page="CheckTahlilStatus"
-          />
-          <GuideRow
+          <RoundedIconButton
             icon={MapPin}
-            title="Cari Masjid"
-            desc="Lokasi & maklumat"
-            page="SearchMosque"
+            label="Cari Tahfiz"
+            page="SearchTahfiz"
+            bgColor="bg-violet-500"
           />
-          <GuideRow
-            icon={Globe}
-            title="Cari Heritage Site"
-            desc="Lokasi & maklumat"
-            page="SearchHeritage"
+          <RoundedIconButton
+            icon={Heart}
+            label="Infaq"
+            page="DonationPage"
+            bgColor="bg-pink-500"
           />
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+          <div className="p-3 pb-2">
+            <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              Perkhidmatan Agama
+            </h3>
+            <div className="space-y-0">
+              <ListItem
+                icon={BookOpen}
+                title="Surah, Doa & Tahlil"
+                page="SurahPage"
+                iconColor="text-emerald-600"
+                iconBg="bg-emerald-50"
+              />
+              <ListItem
+                icon={FileText}
+                title="Status Tahlil"
+                page="CheckTahlilStatus"
+                iconColor="text-blue-600"
+                iconBg="bg-blue-50"
+              />
+              <ListItem
+                icon={Video}
+                title="Daily Dua"
+                page="DailyDua"
+                iconColor="text-purple-600"
+                iconBg="bg-purple-50"
+              />
+              <ListItem
+                icon={Calendar}
+                title="Islamic Events"
+                page="IslamicCalendar"
+                iconColor="text-orange-600"
+                iconBg="bg-orange-50"
+              />
+              <ListItem
+                icon={Newspaper}
+                title="Panduan Solat Jenazah"
+                page="SolatJenazah"
+                iconColor="text-red-600"
+                iconBg="bg-red-50"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 dark:border-gray-700"></div>
+          <div className="p-3 pt-2">
+            <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              Lokasi & Tempat
+            </h3>
+            <div className="space-y-0">
+              <ListItem
+                icon={MapPin}
+                title="Cari Masjid"
+                page="SearchMosque"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
+              />
+              <ListItem
+                icon={Globe}
+                title="Cari Heritage Site"
+                page="SearchHeritage"
+                iconColor="text-amber-600"
+                iconBg="bg-amber-50"
+              />
+              <ListItem
+                icon={MessageCircle}
+                title="Cari Waqf"
+                page="SearchWaqf"
+                iconColor="text-rose-600"
+                iconBg="bg-rose-50"
+                showDivider={false}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function ActionCard({ icon: Icon, title, subtitle, page, color }) {
+function RoundedIconButton({ icon: Icon, label, page, bgColor }) {
   return (
     <Link to={createPageUrl(page)}>
-      <div
-        className={`rounded-2xl p-4 text-white bg-gradient-to-br ${color} shadow-lg hover:scale-[1.02] transition`}
-      >
-        <Icon className="w-7 h-7 mb-3 opacity-90" />
-        <p className="font-semibold">{title}</p>
-        <p className="text-xs opacity-90">{subtitle}</p>
+      <div className="flex flex-col items-center gap-1.5 active:scale-95 transition">
+        <div className={`${bgColor} w-12 h-12 rounded-xl flex items-center justify-center shadow-sm`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+        <p className="text-[10px] text-white-700 dark:text-white-300 text-center font-medium leading-tight px-1">
+          {label}
+        </p>
       </div>
     </Link>
   );
 }
 
-function GuideRow({ icon: Icon, title, desc, page }) {
+function ListItem({ 
+  icon: Icon, 
+  title, 
+  page, 
+  iconColor, 
+  iconBg,
+  showDivider = true 
+}) {
   return (
-    <Link to={createPageUrl(page)}>
-      <div className="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl p-4 hover:shadow transition">
-        <Icon className="w-6 h-6 text-emerald-600" />
-        <div>
-          <p className="font-semibold text-sm">{title}</p>
-          <p className="text-xs text-gray-500">{desc}</p>
+    <>
+      <Link to={createPageUrl(page)}>
+        <div className="flex items-center gap-2.5 py-2.5 active:bg-gray-50 dark:active:bg-gray-700/50 -mx-1 px-1 rounded-lg transition">
+          <div className={`${iconBg} dark:bg-opacity-20 p-1.5 rounded-lg flex-shrink-0`}>
+            <Icon className={`w-4 h-4 ${iconColor}`} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-800 dark:text-white">
+              {title}
+            </p>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
         </div>
-      </div>
-    </Link>
+      </Link>
+      {showDivider && (
+        <div className="border-b border-gray-100 dark:border-gray-700/50 ml-9"></div>
+      )}
+    </>
   );
 }

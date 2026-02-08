@@ -5,7 +5,6 @@ import { ActivityPost, TahfizCenter } from "../db/entities.ts";
 import { tahfizSchema } from '../schemas/tahfizSchema.ts';
 
 export const tahfizRouter = router({
-  // 🔹 Standardized getPaginated (Matches the logic in Graves & Organizations)
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).default(1),
@@ -20,13 +19,10 @@ export const tahfizRouter = router({
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
       const query = tahfizRepo.createQueryBuilder("tahfiz");
 
-      // 🔹 1. Context/Role Filtering (Supervisor Rule)
-      // Restricts Tahfiz Admins to only see centers they are authorized for
       if (organisationIds && organisationIds.length > 0) {
         query.andWhere("tahfiz.id IN (:...ids)", { ids: organisationIds });
       }
 
-      // 🔹 2. Explicit Search Logic (andWhere + ILIKE)
       if (search?.trim()) {
         query.andWhere("tahfiz.name ILIKE :search", { search: `%${search.trim()}%` });
       }
@@ -35,7 +31,6 @@ export const tahfizRouter = router({
         query.andWhere("tahfiz.state = :state", { state: filterState });
       }
 
-      // 🔹 3. Pagination & Execution (Applied consistently)
       const [items, total] = await query
         .orderBy("tahfiz.createdat", "DESC")
         .skip((page - 1) * pageSize)

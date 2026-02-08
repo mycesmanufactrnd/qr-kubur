@@ -54,6 +54,7 @@ export default function ManageHeritageSites() {
     filterName: urlName, 
     filterState: urlState === 'all' ? undefined : urlState,
   });
+  
   const { createHeritage, updateHeritage, deleteHeritage } = useHeritageMutations();
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
@@ -61,7 +62,6 @@ export default function ManageHeritageSites() {
   });
 
   const photourl = watch('photourl');
-  const stateField = watch('state');
 
   useEffect(() => {
     setTempName(urlName);
@@ -167,7 +167,7 @@ export default function ManageHeritageSites() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+          { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
           { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
         ]} />
         <AccessDeniedComponent/>
@@ -179,7 +179,7 @@ export default function ManageHeritageSites() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+        { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
         { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
       ]} />
 

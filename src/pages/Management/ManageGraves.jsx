@@ -419,6 +419,18 @@ export default function ManageGraves() {
             />
             <div className="grid grid-cols-2 gap-4">
               <TextInputForm
+                name="picname"
+                control={control}
+                label={translate("PIC Name")}
+              />
+              <TextInputForm
+                name="picphoneno"
+                control={control}
+                label={translate("PIC Phone No.")}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <TextInputForm
                 name="totalgraves"
                 control={control}
                 label={translate("Total Graves")}

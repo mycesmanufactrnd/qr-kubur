@@ -168,7 +168,7 @@ export default function TahlilRequestPage() {
   }, [searchParams]);
 
   const { data: paymentConfigs } = useGetConfigByEntity({
-    entityId: Number(tahfizId),
+     entityId: tahfizId ? Number(tahfizId) : undefined,
     entityType: 'tahfiz',
     enabled: !!tahfizId
   });

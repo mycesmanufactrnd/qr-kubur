@@ -2,7 +2,8 @@ import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { TahlilRequest } from "../db/entities.ts";
-import { tahlilRequestApprovalSchema, tahlilRequestSchema } from "../schemas/tahlilRequestSchema.ts";
+import { tahlilRequestApprovalSchema, tahlilRequestLiveURL, tahlilRequestSchema } from "../schemas/tahlilRequestSchema.ts";
+import { In } from "typeorm";
 
 export const tahlilRequestRouter = router({
     getByReferenceNo: publicProcedure
@@ -64,21 +65,40 @@ export const tahlilRequestRouter = router({
         .input(tahlilRequestSchema)
         .mutation(async ({ input }) => {
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
-            const donation = tahlilRequestRepo.create(input);
-            return tahlilRequestRepo.save(donation);
+            const tahlilRequest = tahlilRequestRepo.create(input);
+            return tahlilRequestRepo.save(tahlilRequest);
         }),
             
     update: protectedProcedure
         .input(z.object({ id: z.number(), data: tahlilRequestApprovalSchema }))
         .mutation(async ({ input }) => {
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
-            const suggestion = await tahlilRequestRepo.findOneByOrFail({ id: input.id });
+            const tahlilRequests = await tahlilRequestRepo.findOneByOrFail({ id: input.id });
     
-            tahlilRequestRepo.merge(suggestion, input.data);
+            tahlilRequestRepo.merge(tahlilRequests, input.data);
     
-            const savedSuggestion = await tahlilRequestRepo.save(suggestion);
+            const savedTahlilRequests = await tahlilRequestRepo.save(tahlilRequests);
     
-            return savedSuggestion;
+            return savedTahlilRequests;
+        }),
+
+    updateLiveURL: protectedProcedure
+        .input(z.object({ 
+            ids: z.array(z.number()), 
+            data: tahlilRequestLiveURL 
+        }))
+        .mutation(async ({ input }) => {
+            const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
+            
+            const tahlilRequests = await tahlilRequestRepo.findBy({ id: In(input.ids) });
+
+            tahlilRequests.forEach(tr => {
+                tahlilRequestRepo.merge(tr, input.data);
+            });
+
+            const saved = await tahlilRequestRepo.save(tahlilRequests);
+
+            return saved;
         }),
     
     delete: protectedProcedure

@@ -52,6 +52,18 @@ export const PERMISSIONS = {
   TAHLIL_ACCEPT: 'tahlil_accept',
   TAHLIL_REJECT: 'tahlil_reject',
   TAHLIL_COMPLETE: 'tahlil_complete',
+
+  // Waqf
+  WAQF_VIEW: 'waqf_view',
+  WAQF_CREATE: 'waqf_create',
+  WAQF_EDIT: 'waqf_edit',
+  WAQF_DELETE: 'waqf_delete',
+
+  // Islamic Events
+  ISLAMIC_EVENTS_VIEW: 'islamic_events_view',
+  ISLAMIC_EVENTS_CREATE: 'islamic_events_create',
+  ISLAMIC_EVENTS_EDIT: 'islamic_events_edit',
+  ISLAMIC_EVENTS_DELETE: 'islamic_events_delete',
   
   // Users
   USERS_VIEW: 'users_view',
@@ -65,6 +77,24 @@ export const PERMISSIONS = {
 };
 
 export const PERMISSION_CATEGORIES = {
+  islamic_events: {
+    label: 'Islamic Events',
+    permissions: [
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_DELETE, label: 'Padam' },
+    ]
+  },
+  waqf: {
+    label: 'Waqf Project',
+    permissions: [
+      { slug: PERMISSIONS.WAQF_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.WAQF_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.WAQF_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.WAQF_DELETE, label: 'Padam' },
+    ]
+  },
   posts: {
     label: 'Activity Post',
     permissions: [

@@ -12,6 +12,8 @@ export default function TextInputForm({
   isTextArea = false,
   rows = 3,
   isNumber = false,
+  isDate = false,
+  isMoney = false,
   step = "any",
 }) {
   const errorMessage = errors?.[name]?.message;
@@ -37,15 +39,35 @@ export default function TextInputForm({
           }
 
           return (
-            <Input
-              {...field}
-              type={isNumber ? "number" : "text"}
-              step={isNumber ? step || "any" : undefined}
-              value={field.value ?? ""}
-              onChange={(e) => {
-                field.onChange(isNumber ? e.target.valueAsNumber : e.target.value);
-              }}
-            />
+            <div className="relative">
+              <Input
+                {...field}
+                type={isNumber ? "number" : isDate ? "date" : "text"}
+                step={isNumber ? step || "any" : undefined}
+                value={
+                    isMoney
+                      ? field.value !== undefined && field.value !== null
+                        ? Number(field.value)
+                        : ""
+                      : field.value ?? ""
+                  }
+                onChange={(e) => {
+                  if (isNumber || isMoney) {
+                    field.onChange(Number(e.target.value) || 0);
+                  } else if (isDate) {
+                    field.onChange(e.target.value);
+                  } else {
+                    field.onChange(e.target.value);
+                  }
+                }}
+                className={isMoney ? "pr-12" : undefined}
+              />
+              {isMoney && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                  RM
+                </span>
+              )}
+            </div>
           );
         }}
       />

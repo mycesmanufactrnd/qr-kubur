@@ -18,3 +18,7 @@ export const tahlilRequestSchema = z.object({
 export const tahlilRequestApprovalSchema = z.object({
   status: z.enum(TahlilStatus),
 });
+
+export const tahlilRequestLiveURL = z.object({
+  liveurl: z.string().nullable(),
+});
