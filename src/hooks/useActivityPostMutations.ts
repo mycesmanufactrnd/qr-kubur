@@ -4,7 +4,6 @@ import { showApiError, showSuccess } from '@/components/ToastrNotification';
 
 const titleMessage = 'Activity Posts';
 
-// Hook for Public Mosque/Tahfiz Details
 export function useGetActivityPosts({ mosqueId, tahfizId }) {
   const { data, isLoading, isError } = trpc.activityPost.getPaginated.useQuery(
     { 

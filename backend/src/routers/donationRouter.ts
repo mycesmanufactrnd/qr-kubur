@@ -5,7 +5,6 @@ import { Donation } from "../db/entities.ts";
 import { donationSchema, donationApprovalSchema } from "../schemas/donationSchema.ts";
 
 export const donationRouter = router({
-  // 🔹 Get paginated donations
   getPaginated: protectedProcedure
     .input(
       z.object({

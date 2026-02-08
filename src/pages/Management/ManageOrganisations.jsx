@@ -32,19 +32,16 @@ import { defaultOrganisationField } from '@/utils/defaultformfields';
 export default function ManageOrganisations() {
   const { loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
 
-  // 🔹 1. URL Source of Truth (Supervisor Instruction)
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlSearch = searchParams.get('search') || '';
   const urlType = searchParams.get('type') || 'all';
   const urlState = searchParams.get('state') || 'all';
 
-  // 🔹 2. Temporary States (typing won't trigger API)
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [tempType, setTempType] = useState(urlType);
   const [tempState, setTempState] = useState(urlState);
 
-  // 🔹 3. Sync UI with URL
   useEffect(() => {
     setTempSearch(urlSearch);
     setTempType(urlType);
@@ -62,7 +59,6 @@ export default function ManageOrganisations() {
   const { control, handleSubmit: handleFormSubmit, reset, setValue } = useForm({ defaultValues: defaultOrganisationField });
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('organisations');
   
-  // 🔹 4. Backend Query (Only reacts to URL params)
   const { organisationsList, isLoading } = useGetOrganisationPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
@@ -75,7 +71,6 @@ export default function ManageOrganisations() {
   const { data: organisationTypeList = [] } = useGetOrganisationType({ hasAccess: hasAdminAccess });
   const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
 
-  // 🔹 5. Handlers
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;

@@ -20,20 +20,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 
-import TextInputForm from '@/components/Forms/TextInputForm';
-import SelectForm from '@/components/Forms/SelectForm';
+import TextInputForm from '@/components/forms/TextInputForm';
+import SelectForm from '@/components/forms/SelectForm';
 
 import { useAdminAccess } from '@/utils/auth';
 import { useCrudPermissions } from '@/components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
 import { validateFields } from '@/utils/validations';
 
-import {
-  useGetMosquePaginated,
-  useCreateMosque,
-  useUpdateMosque,
-  useDeleteMosque
-} from '@/hooks/useMosqueMutations';
+import { useGetMosquePaginated, useMosqueMutations } from '@/hooks/useMosqueMutations';
 
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import { defaultMosqueField } from '@/utils/defaultformfields';
@@ -86,11 +81,8 @@ export default function ManageMosques() {
     pageSize: 100
   });
 
-  const createMosque = useCreateMosque();
-  const updateMosque = useUpdateMosque();
-  const deleteMosque = useDeleteMosque();
+  const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
-  // --- Image Helper Logic ---
   const getPreviewUrl = (path) => {
     if (!path) return '';
     if (path.startsWith('http') || path.startsWith('blob')) return path;
@@ -127,7 +119,6 @@ export default function ManageMosques() {
     }
   };
 
-  // --- Handlers ---
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -144,16 +135,9 @@ export default function ManageMosques() {
   const openEditDialog = (mosque) => {
     setEditingMosque(mosque);
     reset({
-      name: mosque.name,
-      state: mosque.state,
-      address: mosque.address || '',
-      phone: mosque.phone || '',
-      email: mosque.email || '',
-      url: mosque.url || '',
+      ...mosque,
       latitude: mosque.latitude?.toString() || '',
       longitude: mosque.longitude?.toString() || '',
-      organisation: mosque.organisation?.id || '',
-      photourl: mosque.photourl || '',
     });
     setIsDialogOpen(true);
   };
@@ -163,19 +147,14 @@ export default function ManageMosques() {
       { field: 'name', label: 'Mosque', type: 'text' },
       { field: 'state', label: 'State', type: 'select' },
     ]);
+
     if (!isValid) return;
 
     const payload = {
-      name: formData.name,
-      state: formData.state,
-      address: formData.address || '',
-      phone: formData.phone || '',
-      email: formData.email || '',
-      url: formData.url || '',
+      ...formData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       organisation: formData.organisation ? { id: Number(formData.organisation) } : null,
-      photourl: formData.photourl || '',
     };
 
     try {
@@ -200,14 +179,20 @@ export default function ManageMosques() {
 
   if (loadingUser || permissionsLoading || orgLoading) return <PageLoadingComponent />;
 
-  if (!hasAdminAccess || !canView) {
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent />
+    );
+  }
+
+  if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
           { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
           { label: translate('Manage Mosques'), page: 'ManageMosques' }
         ]} />
-        <AccessDeniedComponent />
+        <AccessDeniedComponent/>
       </div>
     );
   }
@@ -326,8 +311,8 @@ export default function ManageMosques() {
             <TextInputForm name="url" control={control} label={translate('Website / URL')} placeholder="https://..." />
 
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm name="latitude" control={control} label={translate('Latitude')} isNumber step="any" />
-              <TextInputForm name="longitude" control={control} label={translate('Longitude')} isNumber step="any" />
+              <TextInputForm name="latitude" control={control} label={translate('Latitude')} isNumber />
+              <TextInputForm name="longitude" control={control} label={translate('Longitude')} isNumber />
             </div>
 
             <SelectForm
@@ -335,8 +320,12 @@ export default function ManageMosques() {
               control={control}
               label={translate('Organisation')}
               options={(organisationsList?.items || []).map(org => ({ label: org.name, value: org.id }))}
-              isOptional
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <TextInputForm name="picname" control={control} label={translate('PIC Name')} />
+              <TextInputForm name="picphoneno" control={control} label={translate('PIC Phone No.')} />
+            </div>
 
             <div className="space-y-2">
               <Label>{translate('Photo')}</Label>

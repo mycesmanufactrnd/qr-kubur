@@ -8,11 +8,9 @@ export default function BillplzConfigPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🔹 FIX: Call the billplz mutation instead of toyyibPay
   const createBillMutation = trpc.billplz.createBill.useMutation();
 
   useEffect(() => {
-    // 🔹 Billplz standard return params usually include id and paid status
     const billId = searchParams.get("billplz[id]") || undefined;
     const isPaid = searchParams.get("billplz[paid]") === "true";
     
@@ -27,9 +25,8 @@ export default function BillplzConfigPage() {
     setError(null);
 
     try {
-      // 🔹 Call your billplz router
       const bill = await createBillMutation.mutateAsync({
-        amount: 1, // Let's test with RM 10
+        amount: 1,
         referenceNo: `TEST-BP-${Date.now()}`,
         name: "Billplz Test User",
         email: "test@example.com",

@@ -20,24 +20,20 @@ import { translate } from '@/utils/translations';
 export default function ViewLogs() {
   const { loadingUser, isSuperAdmin } = useAdminAccess();
 
-  // 🔹 1. URL Source of Truth (Supervisor Requirement)
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlSearch = searchParams.get('search') || '';
   const urlLevel = searchParams.get('level') || 'all';
 
-  // 🔹 2. Temporary States (Explicit Trigger Pattern)
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [tempLevel, setTempLevel] = useState(urlLevel);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  // 🔹 3. Sync UI with URL (Ensures Reset/Back buttons work)
   useEffect(() => {
     setTempSearch(urlSearch);
     setTempLevel(urlLevel);
   }, [urlSearch, urlLevel]);
 
-  // 🔹 4. Backend Query (Only listens to URL parameters)
   const {
     activityLogList: logs,
     totalPages,
@@ -50,7 +46,6 @@ export default function ViewLogs() {
     hasAccess: isSuperAdmin
   });
 
-  // 🔹 5. Search Handler (Updates URL to trigger fetch)
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -59,7 +54,7 @@ export default function ViewLogs() {
   };
 
   const handleReset = () => {
-    setSearchParams({}); // Clears all filters
+    setSearchParams({});
   };
 
   if (loadingUser) return <PageLoadingComponent/>;
@@ -89,7 +84,6 @@ export default function ViewLogs() {
         </h1>
       </div>
 
-      {/* 🔹 Standardized Unified Filter Card */}
       <Card className="border-0 shadow-md">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">

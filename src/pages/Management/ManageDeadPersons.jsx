@@ -202,7 +202,6 @@ export default function ManageDeadPersons() {
         </Button>
       </div>
 
-      {/* 🔹 Standardized Filter Card (Explicit Search Button) */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">

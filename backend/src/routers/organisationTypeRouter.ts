@@ -51,7 +51,6 @@ export const organisationTypeRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
 
-      // 🔹 FIX: findOneByOrFail expects { id: input.id }, NOT { where: { id: input.id } }
       const existing = await repo.findOneByOrFail({ id: input.id });
       
       repo.merge(existing, input);
@@ -63,7 +62,6 @@ export const organisationTypeRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
 
-      // 🔹 Consistency FIX: Use the same direct object pattern here
       const result = await repo.delete(input.id);
       if (result.affected === 0) {
         throw new Error(`OrganisationType ${input.id} not found`);

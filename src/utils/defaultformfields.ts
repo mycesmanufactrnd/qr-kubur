@@ -141,4 +141,6 @@ export const defaultMosqueField = {
   longitude: '',
   organisation: '',
   photourl: '',
+  picname: '',
+  picphoneno: '',
 };

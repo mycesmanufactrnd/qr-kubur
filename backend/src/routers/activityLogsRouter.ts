@@ -22,7 +22,6 @@ export const activityLogsRouter = router({
             const logRepo = AppDataSource.getRepository(ActivityLog);
             const query = logRepo.createQueryBuilder("activitylog");
 
-            // 🔹 1. Standardized Search Logic (Search Summary, Email, or Type)
             if (search?.trim()) {
                 query.andWhere(
                     "(activitylog.summary ILIKE :search OR activitylog.useremail ILIKE :search OR activitylog.activitytype ILIKE :search)",
@@ -30,12 +29,10 @@ export const activityLogsRouter = router({
                 );
             }
 
-            // 🔹 2. Level Filtering
             if (level && level !== 'all') {
                 query.andWhere("activitylog.level = :level", { level });
             }
 
-            // 🔹 3. Execution with Pagination and DESC ordering
             const [items, total] = await query
                 .orderBy("activitylog.createdat", "DESC")
                 .skip((page - 1) * pageSize)

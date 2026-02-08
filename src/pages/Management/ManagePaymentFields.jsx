@@ -63,7 +63,6 @@ export default function ManagePaymentFields() {
 
   const { createPaymentField, updatePaymentField, deletePaymentField } = usePaymentFieldMutations();
 
-  // 🔹 5. Search Handlers
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -102,7 +101,6 @@ export default function ManagePaymentFields() {
         <Button onClick={() => { setEditingField(null); setFormData(defaultPaymentField); setIsDialogOpen(true); }} className="bg-purple-600"><Plus className="w-4 h-4 mr-2" />{translate('Add Field')}</Button>
       </div>
 
-      {/* 🔹 Standardized Filter Card */}
       <Card className="border-0 shadow-md">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">

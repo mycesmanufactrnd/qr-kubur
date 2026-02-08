@@ -31,17 +31,14 @@ import { showError, showSuccess } from '@/components/ToastrNotification';
 export default function ManageTahfizCenters() {
   const { isTahfizAdmin, isSuperAdmin, loadingUser } = useAdminAccess();
 
-  // 🔹 1. URL Source of Truth (Supervisor Instruction)
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlSearch = searchParams.get('search') || '';
   const urlState = searchParams.get('state') || 'all';
 
-  // 🔹 2. Temporary Input States (Doesn't trigger filter until Search is clicked)
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [tempState, setTempState] = useState(urlState);
 
-  // 🔹 3. Sync UI with URL (Ensures Reset button and Back button work)
   useEffect(() => {
     setTempSearch(urlSearch);
     setTempState(urlState);
@@ -58,7 +55,6 @@ export default function ManageTahfizCenters() {
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('tahfiz');
 
-  // 🔹 4. Backend Query (Explicitly using URL parameters only)
   const { tahfizCenterList, isLoading } = useGetTahfizPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
@@ -76,7 +72,6 @@ export default function ManageTahfizCenters() {
   const selectedServices = watch('serviceoffered') || [];
   const photourl = watch('photourl') || '';
 
-  // 🔹 5. Search Handlers
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -85,7 +80,7 @@ export default function ManageTahfizCenters() {
   };
 
   const handleReset = () => {
-    setSearchParams({}); // Clears URL, useEffect handles UI clearing
+    setSearchParams({});
   };
 
   const openAddDialog = () => {
@@ -182,7 +177,6 @@ export default function ManageTahfizCenters() {
         )}
       </div>
 
-      {/* 🔹 Standardized Filter Card (Supervisor Style) */}
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">

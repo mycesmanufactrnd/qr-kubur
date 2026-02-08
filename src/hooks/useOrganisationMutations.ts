@@ -13,10 +13,6 @@ type useGetOrganisationPaginatedParams = {
 
 const titleMessage = 'Organisation';
 
-/**
- * Standardized: useGetOrganisationPaginated
- * Removes 'checkRole' and object literals from the query input to prevent 429 errors.
- */
 export function useGetOrganisationPaginated({
   page,
   pageSize,
@@ -26,8 +22,6 @@ export function useGetOrganisationPaginated({
 }: useGetOrganisationPaginatedParams) {
   const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
-  // 🔹 Standardized: Backend handles logic; frontend only sends specific IDs if needed.
-  // For standard Admins, we could calculate their sub-org tree here or let backend do it.
   const { data, isLoading, refetch, error } =
     trpc.organisation.getPaginated.useQuery(
       {
@@ -36,11 +30,9 @@ export function useGetOrganisationPaginated({
         search: search || '',
         filterType,
         filterState,
-        // We let backend handle role-based filtering based on the session token
       },
       { 
         enabled: !!hasAdminAccess && !!currentUser, 
-        keepPreviousData: true 
       }
     );
 
@@ -104,7 +96,6 @@ export function useGetOrganisationCoordinates(
 export function useGetOrganisationByTypeId(organisationTypeId: number | undefined) {
   const { currentUser, hasAdminAccess } = useAdminAccess();
 
-  // 🔹 FIXED: Added missing return statement
   return trpc.organisation.getByOrganisationTypeId.useQuery(
     { organisationTypeId },
     { enabled: !!hasAdminAccess && !!currentUser }

@@ -11,11 +11,10 @@ export const billplzRouter = router({
         referenceNo: z.string(),
         name: z.string(),
         email: z.string().email(),
-        phone: z.string().optional().nullable(), // 🔹 ADD THIS
+        phone: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ input }) => {
-      // 🔹 Pass the phone to the service
       const bill = await createBill({
         ...input,
         phone: input.phone || '0123456789' 

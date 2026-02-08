@@ -4,22 +4,15 @@ import { AppDataSource } from "../../datasource.js";
 import { User } from "../entities/User.entity.js";
 import type { DeepPartial } from "typeorm";
 
-/**
- * Standardized User Seeder
- * Includes Superadmins and a Standard Admin for testing.
- */
 export async function runUserSeeder() {
   console.log("🌱 Seeding users...");
 
-  // Ensure Data Source is ready
   if (!AppDataSource.isInitialized) {
     await AppDataSource.initialize();
   }
 
   const userRepo = AppDataSource.getRepository(User);
 
-  // 🔹 1. Check for the NEW Admin email to determine if we should seed
-  // We use the new admin email as the anchor point for this update.
   const adminExists = await userRepo.findOne({
     where: { email: "admin@example.com" },
   });
@@ -32,7 +25,6 @@ export async function runUserSeeder() {
   const inputPassword = "password";
   const hashedPassword = crypto.createHash("sha256").update(inputPassword).digest("hex");
 
-  // 🔹 2. Define User Data
   const userData: DeepPartial<User>[] = [
     {
       fullname: "Super Admin",
@@ -63,8 +55,6 @@ export async function runUserSeeder() {
     }
   ];
 
-  // 🔹 3. Logic to handle partial seeding
-  // We loop through to see which specific users are missing
   for (const user of userData) {
     const exists = await userRepo.findOne({ where: { email: user.email } });
     

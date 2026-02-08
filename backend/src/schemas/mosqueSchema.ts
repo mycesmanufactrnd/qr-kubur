@@ -11,4 +11,6 @@ export const mosqueSchema = z.object({
   longitude: z.number().optional().nullable(),
   organisationid: z.number().optional().nullable(),
   photourl: z.string().optional().nullable(),
+  picname: z.string().optional().nullable(),
+  picphoneno: z.string().optional().nullable(),
 });

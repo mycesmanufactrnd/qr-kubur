@@ -30,16 +30,13 @@ import { translate } from '@/utils/translations';
 export default function ManageOrganisationTypes() {
   const { loadingUser, isSuperAdmin, hasAdminAccess } = useAdminAccess();
 
-  // 🔹 1. URL Source of Truth
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
   const urlSearch = searchParams.get('search') || '';
 
-  // 🔹 2. Temporary Input State (Explicit Trigger)
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // 🔹 3. Sync UI with URL
   useEffect(() => {
     setTempSearch(urlSearch);
   }, [urlSearch]);
@@ -50,7 +47,6 @@ export default function ManageOrganisationTypes() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
 
-  // 🔹 4. Backend Query (Only reacts to URL changes)
   const { data: result, isLoading: typesLoading } = useGetOrganisationType({
     page: urlPage,
     pageSize: itemsPerPage,
@@ -66,7 +62,6 @@ export default function ManageOrganisationTypes() {
   const updateMutation = useUpdateOrganisationType();
   const deleteMutation = useDeleteOrganisationType();
 
-  // 🔹 5. Search Handler (Updates the URL)
   const handleSearch = () => {
     const params = { page: '1' };
     if (tempSearch) params.search = tempSearch;
@@ -134,7 +129,6 @@ export default function ManageOrganisationTypes() {
         </Button>
       </div>
 
-      {/* 🔹 Standardized Filter Card */}
       <Card className="border-0 shadow-md">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">

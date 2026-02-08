@@ -3,9 +3,6 @@ import { showApiError, showSuccess } from '@/components/ToastrNotification';
 
 const titleMessage = 'Organisation Type';
 
-/**
- * Standardized Fetcher: Supports URL-driven search and pagination
- */
 export function useGetOrganisationType({ page, pageSize, search, hasAccess }) {
   const { data, isLoading, refetch } = trpc.organisationType.getTypes.useQuery(
     {
@@ -14,14 +11,11 @@ export function useGetOrganisationType({ page, pageSize, search, hasAccess }) {
       search: search || '',
     },
     {
-      // 🔹 Strict boolean cast to prevent TanStack Query runtime errors
       enabled: !!hasAccess,
-      keepPreviousData: true,
     }
   );
 
   return {
-    // 🔹 Ensure we return a safe default structure
     data: data ?? { items: [], total: 0 },
     isLoading,
     refetch,

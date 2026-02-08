@@ -32,40 +32,38 @@ export function useGetMosquePaginated({
   return { mosquesList, totalPages, isLoading, refetch, error };
 }
 
-export function useCreateMosque() {
+export function useMosqueMutations() {
   const trpcUtils = trpc.useUtils();
 
-  return trpc.mosque.create.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'create');
-      trpcUtils.mosque.getPaginated.invalidate();
+  const invalidateAll = () => {
+    trpcUtils.mosque.getPaginated.invalidate();
+  };
+
+  const createMosque = trpc.mosque.create.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'create'); 
+      invalidateAll(); 
     },
-    onError: showApiError,
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useUpdateMosque() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.mosque.update.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'update');
-      trpcUtils.mosque.getPaginated.invalidate();
+  const updateMosque = trpc.mosque.update.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'update'); 
+      invalidateAll(); 
     },
-    onError: showApiError,
+    onError: (err) => showApiError(err),
   });
-}
 
-export function useDeleteMosque() {
-  const trpcUtils = trpc.useUtils();
-
-  return trpc.mosque.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(titleMessage, 'delete');
-      trpcUtils.mosque.getPaginated.invalidate();
+  const deleteMosque = trpc.mosque.delete.useMutation({
+    onSuccess: () => { 
+      showSuccess(titleMessage, 'delete'); 
+      invalidateAll(); 
     },
-    onError: showApiError,
+    onError: (err) => showApiError(err),
   });
+
+  return { createMosque, updateMosque, deleteMosque };
 }
 
 export function useGetMosqueCoordinates(
@@ -78,7 +76,6 @@ export function useGetMosqueCoordinates(
       filters: filters ?? {}, 
     },
     {
- 
       enabled: !!coordinates || !!filters?.name || !!filters?.state,
       ...coordinatesQueryOptions,
     }

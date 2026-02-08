@@ -18,23 +18,20 @@ export const organisationRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const { page, pageSize, search, filterType, filterState } = input;
-      const { user } = ctx; // 🔹 Extract user from context for secure filtering
+      const { user } = ctx;
       const repo = AppDataSource.getRepository(Organisation);
 
       const query = repo.createQueryBuilder('organisation')
         .leftJoinAndSelect('organisation.parentorganisation', 'parent')
         .leftJoinAndSelect('organisation.organisationtype', 'type');
 
-      // 🔹 1. Role-Based Data Isolation (Supervisor Standard)
       if (user.role !== 'superadmin') {
-        // Standard admins only see their own organization or its descendants
         query.andWhere(
           '(organisation.id = :userOrgId OR organisation."parentorganisationId" = :userOrgId)',
           { userOrgId: user.organisationId }
         );
       }
 
-      // 🔹 2. Explicit Search Logic (ILIKE)
       if (search?.trim()) {
         query.andWhere('organisation.name ILIKE :search', {
           search: `%${search.trim()}%`,

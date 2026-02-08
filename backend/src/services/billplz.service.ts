@@ -3,7 +3,6 @@ import { getBillplzConfig } from "../config/billplz.config.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
 
-// billplz.service.ts
 export async function createBill({
   amount, referenceNo, name, email, phone
 }: {
@@ -12,7 +11,6 @@ export async function createBill({
   try {
     const config = getBillplzConfig();
     
-    // 🔹 DEBUG: Check if callbackUrl is actually loaded
     console.log("Debug - Callback URL:", config.callbackUrl);
 
     const payload = {
@@ -21,7 +19,6 @@ export async function createBill({
       name: name || 'ANONYMOUS',
       mobile: phone || '60123456789',
       amount: Math.round(Number(amount) * 100), 
-      // 🔹 FIX: Billplz API requires snake_case keys
       callback_url: config.callbackUrl, 
       redirect_url: config.redirectUrl,
       description: `Tahlil Ref: ${referenceNo}`,
@@ -39,7 +36,6 @@ export async function createBill({
     return res.data;
   } catch (error: any) {
     if (error.response) {
-      // This caught your "Callback url can't be blank" error
       console.error('Billplz 422 Error Detail:', JSON.stringify(error.response.data, null, 2));
     }
     return null;

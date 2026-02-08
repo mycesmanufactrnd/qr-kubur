@@ -47,6 +47,12 @@ export class Mosque {
   @JoinColumn({ name: "organisationid" })
   organisation?: Organisation | null;
 
+  @Column("varchar", { length: 255, nullable: true })
+  picname?: string;
+
+  @Column("varchar", { nullable: true })
+  picphoneno?: string;
+
   @OneToMany(() => User, (user) => user.mosque)
   users!: User[];
   
