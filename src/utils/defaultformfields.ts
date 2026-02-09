@@ -12,7 +12,7 @@ export const defaultGraveField = {
   picname: '',
   picphoneno: '',
   organisation: '',
-  status: 'active',
+  status: ActiveInactiveStatus.ACTIVE,
   totalgraves: 0,
 };
 

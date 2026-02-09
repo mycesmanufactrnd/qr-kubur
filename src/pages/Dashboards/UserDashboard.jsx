@@ -7,7 +7,6 @@ import {
   FileText,
   MapPin,
   MoonStar,
-  AlertTriangle,
   Globe,
   Calendar,
   Video,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
+import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton";
 
 export default function UserDashboard2() {
   return (
@@ -42,7 +42,6 @@ export default function UserDashboard2() {
           </p>
         </div>
       </div>
-
       <div className="px-4 -mt-10 space-y-5">
         <div className="grid grid-cols-4 gap-3">
           <RoundedIconButton
@@ -146,6 +145,7 @@ export default function UserDashboard2() {
           </div>
         </div>
       </div>
+      <DraggableFloatingButton/>
     </div>
   );
 }

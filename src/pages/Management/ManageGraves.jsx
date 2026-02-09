@@ -17,7 +17,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import { showSuccess, showError } from '@/components/ToastrNotification';
 import { useCrudPermissions } from '@/components/PermissionsContext';
-import { STATES_MY } from '@/utils/enums';
+import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
@@ -25,9 +25,9 @@ import { useGetGravePaginated, useGraveMutations } from '@/hooks/useGraveMutatio
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
-import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
 import { defaultGraveField } from '@/utils/defaultformfields';
+import { defaultGraveFilter } from '@/utils/defaultfilter';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { Controller, useForm } from 'react-hook-form';
@@ -101,7 +101,7 @@ export default function ManageGraves() {
   const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
 
   const handleSearch = () => {
-    const params = { page: '1' };
+    const params = { ...defaultGraveFilter };
     if (tempSearch) params.search = tempSearch;
     if (tempBlock) params.block = tempBlock;
     if (tempLot) params.lot = tempLot;
@@ -125,7 +125,7 @@ export default function ManageGraves() {
     reset({
       ...grave,
       organisation: grave.organisation?.id?.toString() ?? '',
-      status: grave.status ?? 'active',
+      status: grave.status ?? ActiveInactiveStatus.ACTIVE,
       totalgraves: grave.totalgraves ?? 0
     });
     setIsDialogOpen(true);
