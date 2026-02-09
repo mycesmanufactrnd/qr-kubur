@@ -26,6 +26,7 @@ import JitsiRoom from '@/pages/JitsiRoom.jsx';
 import WaqfDetail from '@/pages/WaqfDetail.jsx';
 import Ollama from '@/pages/Ollama.jsx';
 import MosqueDetails from '@/pages/MosqueDetails.jsx';
+import AsmaulHusna from '@/pages/Asmaulhusna.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -108,6 +109,7 @@ export const PAGES = {
     "SearchMosque": SearchMosque,
     "WaqfDetail": WaqfDetail,
     "MosqueDetailsPage": MosqueDetails,
+    "Asmaulhusna": AsmaulHusna,
     
     // Dashboard
     "AdminDashboard": AdminDashboard,

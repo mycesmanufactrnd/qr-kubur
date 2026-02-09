@@ -13,7 +13,9 @@ import {
   Video,
   MessageCircle,
   ChevronRight,
-  Newspaper
+  Newspaper,
+  List,
+  BookMarked,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -111,6 +113,15 @@ export default function UserDashboard2() {
                 iconColor="text-red-600"
                 iconBg="bg-red-50"
               />
+              
+              <ListItem
+                icon={BookMarked}
+                title="Asmaul Husna"
+                page="AsmaulHusna"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
+              />
+              
             </div>
           </div>
 
