@@ -24,9 +24,6 @@ export class Mosque {
 
   @Column("text", { nullable: true })
   address?: string;
-
-  @Column("varchar", { length: 255, nullable: true })
-  phone?: string;
   
   @Column("varchar", { length: 255, nullable: true })
   email?: string;
@@ -40,11 +37,10 @@ export class Mosque {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @ManyToOne(() => Organisation, (organisation) => organisation.mosques, {
+  @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
     nullable: true,
     onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "organisationid" })
   organisation?: Organisation | null;
 
   @Column("varchar", { length: 255, nullable: true })

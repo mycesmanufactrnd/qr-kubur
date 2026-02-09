@@ -156,7 +156,6 @@ export const defaultMosqueField = {
   name: '',
   state: '',
   address: '',
-  phone: '',
   email: '',
   url: '',
   latitude: '',

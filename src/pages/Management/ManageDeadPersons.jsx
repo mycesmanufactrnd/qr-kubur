@@ -164,7 +164,7 @@ export default function ManageDeadPersons() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/upload/bucket-grave', { method: 'POST', body: fd });
+      const res = await fetch('/api/upload/dead-person', { method: 'POST', body: fd });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setFormData({ ...formData, photourl: data.file_url });
@@ -313,7 +313,7 @@ export default function ManageDeadPersons() {
             <div className="space-y-2">
               <Label>{translate('Photo')}</Label>
               <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files?.[0])} disabled={uploading} />
-              {formData.photourl && <img className="w-20 h-20 rounded object-cover mt-2" src={`/api/file/bucket-grave/${encodeURIComponent(formData.photourl)}`} alt="Preview" />}
+              {formData.photourl && <img className="w-20 h-20 rounded object-cover mt-2" src={`/api/file/dead-person/${encodeURIComponent(formData.photourl)}`} alt="Preview" />}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>

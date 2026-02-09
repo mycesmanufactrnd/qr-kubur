@@ -83,7 +83,7 @@ export const mosqueRouter = router({
     .query(async ({ input }) => {
       const { page, pageSize, search, filterState } = input;
       const mosqueRepo = AppDataSource.getRepository(Mosque);
-      const query = mosqueRepo.createQueryBuilder("mosque");
+      const query = mosqueRepo.createQueryBuilder("mosque").leftJoinAndSelect('mosque.organisation', 'organisation');
 
       if (search) query.andWhere("mosque.name ILIKE :search", { search: `%${search}%` });
       if (filterState) query.andWhere("mosque.state = :state", { state: filterState });

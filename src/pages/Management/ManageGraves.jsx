@@ -68,6 +68,9 @@ export default function ManageGraves() {
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
   const [qrGrave, setQRGrave] = useState({});
+  const [uploading, setUploading] = useState(false);
+
+  const photourl = watch('photourl');
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('graves');
 
@@ -127,6 +130,29 @@ export default function ManageGraves() {
     });
     setIsDialogOpen(true);
   };
+
+    const handleFileUpload = async (file) => {
+      setUploading(true);
+      try {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+  
+        const res = await fetch('/api/upload/bucket-grave', { method: 'POST', body: formDataUpload });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          showError(errorData.error || 'Failed to upload photo');
+          return;
+        }
+        const data = await res.json();
+        setValue('photourl', data.file_url);
+        showSuccess('Photo uploaded');
+      } catch (err) {
+        console.error(err);
+        showError('Failed to upload photo');
+      } finally {
+        setUploading(false);
+      }
+    };
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
@@ -449,6 +475,23 @@ export default function ManageGraves() {
                 required
                 errors={errors}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>{translate('Photo')}</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    handleFileUpload(file);
+                  }}
+                  disabled={uploading}
+                />
+                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
+              </div>
+              {photourl && <img src={`/api/file/bucket-grave/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
