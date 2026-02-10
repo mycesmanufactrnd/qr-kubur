@@ -75,6 +75,7 @@ export default function Tasbih() {
   };
 
   return (
+    
     <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-6">
       <BackNavigation title={translate('Tasbih')} />
       <div className="max-w-md w-full">

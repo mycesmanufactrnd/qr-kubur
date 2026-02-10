@@ -103,7 +103,7 @@ const malaysiaZones = [
 ];
 
 export default function PrayerTimes() {
-const language = localStorage.getItem('language') || 'ms';
+  const language = localStorage.getItem('language') || 'ms';
   const t = translations[language];
   
   const [selectedZone, setSelectedZone] = useState(() => {

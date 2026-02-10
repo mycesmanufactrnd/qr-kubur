@@ -18,6 +18,7 @@ import {
   BookMarked,
   NotebookTabs,
   Clock,
+  BookHeart
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -136,6 +137,14 @@ export default function UserDashboard2() {
                 icon={Clock}
                 title="Prayer Times"
                 page="PrayerTimes"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
+              />
+
+              <ListItem
+                icon={BookHeart}
+                title="Rukun Islam"
+                page="RukunIslam"
                 iconColor="text-teal-600"
                 iconBg="bg-teal-50"
               />
