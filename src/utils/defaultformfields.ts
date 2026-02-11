@@ -164,4 +164,31 @@ export const defaultMosqueField = {
   photourl: '',
   picname: '',
   picphoneno: '',
+  canarrangefuneral: false,
 };
+
+export const defaultDeathCharityField = {
+  name: "",
+  description: "",
+  state: "",
+  contactperson: "",
+  contactphone: "",
+  registrationfee: 0,
+  monthlyfee: 0,
+  deathbenefitamount: 0,
+  coversspouse: true,
+  coverschildren: true,
+  maxdependents: 0,
+  isactive: true,
+  organisation: '',
+};
+
+export const defaultDeathCharityMemberField = {
+  fullname: "",
+  icnumber: "",
+  phone: "",
+  address: "",
+  isactive: true,
+  deathcharity: "",
+};
+

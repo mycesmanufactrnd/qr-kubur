@@ -12,4 +12,5 @@ export const mosqueSchema = z.object({
   photourl: z.string().optional().nullable(),
   picname: z.string().optional().nullable(),
   picphoneno: z.string().optional().nullable(),
+  canarrangefuneral: z.boolean().default(false),
 });

@@ -33,6 +33,7 @@ import { useGetMosquePaginated, useMosqueMutations } from '@/hooks/useMosqueMuta
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import { defaultMosqueField } from '@/utils/defaultformfields';
 import { useForm } from 'react-hook-form';
+import CheckboxForm from '@/components/forms/CheckboxForm';
 
 export default function ManageMosques() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
@@ -64,7 +65,7 @@ export default function ManageMosques() {
     reset,
     setValue,
     watch,
-    formState: { isSubmitting }
+    formState: { errors, isSubmitting }
   } = useForm({ defaultValues: defaultMosqueField });
 
   const photourl = watch('photourl') || '';
@@ -296,7 +297,7 @@ export default function ManageMosques() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingMosque ? translate('Edit Mosque') : translate('Add Mosque')}</DialogTitle>
           </DialogHeader>
@@ -323,9 +324,15 @@ export default function ManageMosques() {
             />
 
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm name="picname" control={control} label={translate('PIC Name')} />
-              <TextInputForm name="picphoneno" control={control} label={translate('PIC Phone No.')} />
+              <TextInputForm name="picname" control={control} label={translate('PIC Name')} required errors={errors}/>
+              <TextInputForm name="picphoneno" control={control} label={translate('PIC Phone No.')} required errors={errors}/>
             </div>
+
+            <CheckboxForm
+              name="canarrangefuneral"
+              control={control}
+              label={translate("Can Arrange Funeral")}
+            />
 
             <div className="space-y-2">
               <Label>{translate('Photo')}</Label>

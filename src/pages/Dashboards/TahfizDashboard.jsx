@@ -18,7 +18,7 @@ import JitsiController from '@/components/jitsi/JitsiController'
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
-import useGetAdminDashboardStats from '@/hooks/useDashboardMutations';
+import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
 
 export default function TahfizDashboard() {
   const {
@@ -28,10 +28,12 @@ export default function TahfizDashboard() {
     isSuperAdmin,
   } = useAdminAccess();
 
-  const {
-    TTRStats, isTTRLoading,
-    DDVStats, isDDVLoading,
-  } = useGetAdminDashboardStats(currentUser, isSuperAdmin);
+  const { TTRStats, DDVStats, isTTRLoading, isDDVLoading } =
+  useGetAdminDashboardStats({
+    currentUser,
+    isSuperAdmin,
+    statsNeeded: ["TTR", "DDV"],
+  });
 
   const tahfizCount = TTRStats?.tahfizCount ?? 0;
   const tahlilRequestCount = TTRStats?.tahlilRequestCount ?? 0;
@@ -43,7 +45,6 @@ export default function TahfizDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <JitsiController/>
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>

@@ -26,6 +26,7 @@ import JitsiRoom from '@/pages/JitsiRoom.jsx';
 import WaqfDetail from '@/pages/WaqfDetail.jsx';
 import Ollama from '@/pages/Ollama.jsx';
 import MosqueDetails from '@/pages/MosqueDetails.jsx';
+import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -47,6 +48,8 @@ import ManageActivityPosts from '@/pages/Management/ManageActivityPosts';
 import ManageIslamicEvent from '@/pages/Management/ManageIslamicEvent';
 import ManageWaqfProject from '@/pages/Management/ManageWaqfProject';
 import ManageMosques from '@/pages/Management/ManageMosques.jsx';
+import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
+import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -85,6 +88,8 @@ export const PAGES = {
     "ManageIslamicEvent": ManageIslamicEvent,
     "ManageWaqfProject": ManageWaqfProject,
     "ManageMosques": ManageMosques,
+    "ManageDeathCharity": ManageDeathCharity,
+    "ManageDeathCharityMember": ManageDeathCharityMember,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,
@@ -108,6 +113,7 @@ export const PAGES = {
     "SearchMosque": SearchMosque,
     "WaqfDetail": WaqfDetail,
     "MosqueDetailsPage": MosqueDetails,
+    "JenazahEmergency": JenazahEmergency,
     
     // Dashboard
     "AdminDashboard": AdminDashboard,

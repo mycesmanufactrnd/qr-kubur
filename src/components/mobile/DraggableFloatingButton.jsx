@@ -23,8 +23,8 @@ export function DraggableFloatingButton() {
 
     const menuItems = [
         { icon: AlertTriangle, label: "Emergency", color: "bg-red-500", page: 'JenazahEmergency' },
-        { icon: MapPinned, label: "Favorited Grave", color: "bg-pink-500", page: 'FavoritedGrave' },
-        { icon: MapPinHouse, label: "Favorited Mosque", color: "bg-blue-500", page: 'FavoritedMosque' },
+        { icon: MapPinned, label: "Favorited Grave", color: "bg-pink-500", page: 'SearchGrave', isFavorited: true },
+        { icon: MapPinHouse, label: "Favorited Mosque", color: "bg-blue-500", page: 'SearchMosque', isFavorited: true },
         { icon: Repeat, label: "Digital Tasbih", color: "bg-emerald-500", page: 'DigitalTasbih' },
     ];
 
@@ -89,7 +89,9 @@ export function DraggableFloatingButton() {
     const handleMenuClick = (e, item) => {
         e.preventDefault();
         e.stopPropagation();
-        navigate(createPageUrl(item.page));
+         navigate(createPageUrl(item.page), { 
+            state: { isFavorited: item.isFavorited || false } 
+        });
         setIsExpanded(false);
     };
 

@@ -10,8 +10,8 @@ export const activityPostRouter = router({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
       filterTitle: z.string().optional(),
-      mosqueId: z.number().optional(),
-      tahfizId: z.number().optional(),
+      mosqueId: z.number().optional().nullable(),
+      tahfizId: z.number().optional().nullable(),
     }))
     .query(async ({ input, ctx }) => {
       const { page, pageSize, filterTitle, mosqueId, tahfizId } = input;

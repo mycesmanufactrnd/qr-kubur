@@ -27,26 +27,17 @@ export class ActivityPost {
   @Column({ type: 'boolean', default: true })
   ispublished!: boolean;
 
-  // Explicitly defined as 'int' to fix the "cannot be guessed" error
-  @Column({ type: 'int', nullable: true })
-  mosqueId?: number | null;
-
-  @Column({ type: 'int', nullable: true })
-  tahfizId?: number | null;
-
-  @ManyToOne(() => TahfizCenter, (tahfizcenter) => tahfizcenter.activityposts, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
-  @JoinColumn({ name: "tahfizId" }) 
-  tahfizcenter?: TahfizCenter | null;
-
   @ManyToOne(() => Mosque, (mosque) => mosque.activityposts, {
     nullable: true,
     onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "mosqueId" }) 
   mosque?: Mosque | null;
+
+  @ManyToOne(() => TahfizCenter, (tahfiz) => tahfiz.activityposts, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  tahfiz?: TahfizCenter | null;
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

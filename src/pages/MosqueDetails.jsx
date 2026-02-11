@@ -8,7 +8,6 @@ import {
   ExternalLink, Share2, Info, Users,
   BookOpen, FileText
 } from 'lucide-react';
-import { createPageUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
 import { useGetMosqueById } from '@/hooks/useMosqueMutations';
@@ -16,10 +15,9 @@ import { useGetActivityPosts } from '@/hooks/useActivityPostMutations';
 import DirectionButton from '@/components/DirectionButton';
 import { useLocationContext } from '@/providers/LocationProvider';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
-import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
-import { trpc } from '@/utils/trpc';
+import DonationButton from '@/components/DonationButton';
 
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
@@ -27,24 +25,12 @@ export default function MosqueDetailsPage() {
   const [searchParams] = useSearchParams();
   const mosqueId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
 
-  // 1. Fetch Mosque Core Data
   const { data: mosque, isLoading: isMosqueLoading, isError: isMosqueError } = useGetMosqueById(mosqueId);
 
-  // 2. Fetch Activity Posts
   const { data: mosquePosts } = useGetActivityPosts({ 
-    mosqueId: mosqueId 
+    mosqueId: mosqueId,
+    tahfizId: null,
   });
-
-  // 3. Fetch Request Counts
-  const { data: requestCounts, isLoading: isCountsLoading } = trpc.mosque.countRequestByMosqueId.useQuery(
-    { id: mosqueId },
-    { enabled: !!mosqueId }
-  );
-
-  const pending = requestCounts?.pending ?? 0;
-  const completed = requestCounts?.completed ?? 0;
-
-  if (isMosqueLoading) return <ListCardSkeletonComponent />;
 
   if (isMosqueError || !mosque) {
     return <NoDataCardComponent isPage={true} description="Mosque Not Found" />;
@@ -68,11 +54,11 @@ export default function MosqueDetailsPage() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         
-        <button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
+        <Button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
           <ArrowLeft className="w-5 h-5 text-stone-700" />
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={(e) => {
             e.stopPropagation();
             shareLink({
@@ -84,7 +70,7 @@ export default function MosqueDetailsPage() {
           className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
         >
           <Share2 className="w-5 h-5 text-stone-700" />
-        </button>
+        </Button>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="max-w-6xl mx-auto">
@@ -100,7 +86,8 @@ export default function MosqueDetailsPage() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-wrap gap-3 mb-8 -mt-12 relative z-10">
-          <DirectionButton latitude={mosque.latitude} longitude={mosque.longitude}/>        
+          <DirectionButton latitude={mosque.latitude} longitude={mosque.longitude}/>      
+          <DonationButton recipientId={mosque.organisation.id} recipientType={'organisation'} state={mosque.organisation.state}/>          
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -155,14 +142,14 @@ export default function MosqueDetailsPage() {
                 <CardTitle className="text-lg">{translate('Contact Information')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mosque.phone && (
-                  <a href={`tel:${mosque.phone}`} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                {mosque.picphoneno && (
+                  <a href={`tel:${mosque.picphoneno}`} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
                     <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                         <Phone className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                        <p className="text-xs text-slate-500">{translate('Phone')}</p>
-                        <p className="font-medium text-slate-700">{mosque.phone}</p>
+                        <p className="text-xs text-slate-500">{translate('Phone No.')}</p>
+                        <p className="font-medium text-slate-700">{mosque.picphoneno}</p>
                     </div>
                   </a>
                 )}

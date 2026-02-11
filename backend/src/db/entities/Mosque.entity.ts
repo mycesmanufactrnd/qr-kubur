@@ -49,11 +49,14 @@ export class Mosque {
   @Column("varchar", { nullable: true })
   picphoneno?: string;
 
+  @Column("boolean", { default: false })
+  canarrangefuneral!: boolean;
+
   @OneToMany(() => User, (user) => user.mosque)
   users!: User[];
   
   @OneToMany(() => ActivityPost, (activitypost) => activitypost.mosque) 
-  activityposts!: ActivityPost[];
+  activityposts?: ActivityPost[] | [];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

@@ -117,6 +117,23 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                       </SelectContent>
                     </Select>
                   );
+                } else if (p.type === "checkbox") {
+                  return (
+                    <div key={p.searchColumn} className="flex flex-col gap-1">
+                      <span className="text-sm font-medium">{translate(p.label)}</span>
+                      <label className="flex items-center gap-2 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={filterValues[p.searchColumn] === true}
+                          onChange={(e) =>
+                            handleChange(p.searchColumn, e.target.checked ? true : false)
+                          }
+                          className="w-4 h-4"
+                        />
+                        {filterValues[p.searchColumn] ? "Yes" : "No"}
+                      </label>
+                    </div>
+                  );
                 }
               })}
             </div>

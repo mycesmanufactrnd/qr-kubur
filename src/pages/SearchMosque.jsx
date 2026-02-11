@@ -1,78 +1,107 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGetMosqueCoordinates } from '@/hooks/useMosqueMutations';
-import { Search } from 'lucide-react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
-import LocationDeniedComponent from '@/components/LocationDeniedComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useLocationContext } from '@/providers/LocationProvider';
-import { requestLocation } from '@/utils/helpers';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import MosqueCardList from '@/components/MosqueCardList';
+import AdvancedFilters from '@/components/mobile/AdvancedFilters';
+import FoundDataLength from '@/components/FoundDataLength';
+import { useLocation } from 'react-router-dom';
 
 export default function SearchMosque() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [manualSearchQuery, setManualSearchQuery] = useState('');
-  const [selectedState, setSelectedState] = useState('nearby');
-  const [displayedCount, setDisplayedCount] = useState(10);
-
+  const location = useLocation();
+  const defaultFilter = location.state || {};
   const { userLocation, userState, locationDenied } = useLocationContext();
+
+  const [favoriteVersion, setFavoriteVersion] = useState(0);
+
+  const favoritedMosqueIds = JSON.parse(localStorage.getItem('favoritedmosque') || '[]'); 
+  
+  
+  const [filters, setFilters] = useState(() => {
+    if (defaultFilter.isFavorited && favoritedMosqueIds.length > 0) {
+      return { ids: favoritedMosqueIds };
+    }
+    
+    return { state: userState };
+  });
+  
+  const [displayedCount, setDisplayedCount] = useState(10);
   
   const { data: mosques = [], isLoading } = useGetMosqueCoordinates(
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
-    {
-        state: selectedState === 'nearby' ? userState : selectedState,
-        name: manualSearchQuery
-    }
+    filters
   );
 
-  const handleSearchTrigger = () => {
-    setManualSearchQuery(searchQuery);
-    setDisplayedCount(10);
-  };
+  useEffect(() => {
+    if (defaultFilter.isFavorited) {
+      const updatedFavorites = JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
+      setFilters({ ids: updatedFavorites });
+    }
+  }, [favoriteVersion]);
+
+  if (defaultFilter.isFavorited && favoritedMosqueIds.length === 0) {
+    return (
+      <div className="space-y-3 pb-2">
+        <BackNavigation title={translate('Search Mosque') || "Cari Masjid"} />
+        <div className="flex items-center gap-2 rounded-xl">
+        <AdvancedFilters
+          parameter={[
+            { label: "Name", type: "text", searchColumn: "name" },
+            {
+              label: "State",
+              type: "select",
+              searchColumn: "state",
+              options: STATES_MY.map((s) => ({ id: s, name: s })),
+            },
+            {
+              label: "Can Arrange Funeral",
+              type: "checkbox",
+              searchColumn: "canarrangefuneral",
+            },
+          ]}
+          onApplyFilter={setFilters}
+        />
+      </div>
+        <FoundDataLength dataList={[]} data="Mosque(s)" />
+        <NoDataCardComponent isPage title={translate('No Favorited Mosques Found')} />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title={translate('Search Mosque') || "Cari Masjid"} />
+      <div className="flex items-center gap-2 rounded-xl">
+        <AdvancedFilters
+          parameter={[
+            { label: "Name", type: "text", searchColumn: "name" },
+            {
+              label: "State",
+              type: "select",
+              searchColumn: "state",
+              options: STATES_MY.map((s) => ({ id: s, name: s })),
+            },
+            {
+              label: "Can Arrange Funeral",
+              type: "checkbox",
+              searchColumn: "canarrangefuneral",
+            },
+          ]}
+          onApplyFilter={(newFilters) => {
+            setFilters(prev => ({
+              ...newFilters,
+              ...(defaultFilter.isFavorited ? { ids: favoritedMosqueIds } : {})
+            }));
+          }}
+        />
+      </div>
 
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-3 space-y-2">
-          <div className="flex gap-2">
-            <Input
-              placeholder={translate('mosqueName') || "Nama Masjid"}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearchTrigger()}
-              className="h-9"
-            />
-
-            <Button onClick={handleSearchTrigger} className="h-9">
-              <Search className="w-4 h-4 mr-1" /> {translate('Search')}
-            </Button>
-          </div>
-
-          <Select value={selectedState} onValueChange={setSelectedState}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder={translate('state')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
-              {STATES_MY.map(state => (
-                <SelectItem key={state} value={state}>{state}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      {locationDenied && selectedState === "nearby" && (
-        <LocationDeniedComponent onRetry={requestLocation}/>
-      )}
+      {!isLoading && <FoundDataLength dataList={mosques} data="Mosque(s)" />}
 
       {isLoading ? (
         <ListCardSkeletonComponent />
@@ -83,7 +112,8 @@ export default function SearchMosque() {
           {mosques.slice(0, displayedCount).map(item => (
             <MosqueCardList 
               key={item.id} 
-              mosque={item} 
+              mosque={item}
+              onFavoriteChange={() => setFavoriteVersion(prev => prev + 1)}
             />
           ))}
 

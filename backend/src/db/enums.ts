@@ -55,3 +55,9 @@ export enum WaqfType {
   PROPERTY = 'Property Waqf',
   ASSET = 'Asset Waqf',
 }
+
+export enum ClaimStatus {
+  PENDING = 'Pending',
+  APPROVED = 'Approved',
+  PAID = 'Paid',
+}

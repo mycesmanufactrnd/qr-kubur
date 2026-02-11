@@ -7,6 +7,7 @@ import { createPageUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 import { getServiceLabel } from '@/utils/enums';
+import DonationButton from './DonationButton';
 
 export default function TahfizCardList({ tahfiz }) {
   return (
@@ -79,15 +80,19 @@ export default function TahfizCardList({ tahfiz }) {
               View Details
             </Button>
           </Link>
-          <Button 
-            onClick={(e) => {
-                e.stopPropagation();
-                openDirections(tahfiz.latitude, tahfiz.longitude);
-            }}
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
-          >
-            <Navigation className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            <DonationButton recipientId={tahfiz.id} recipientType={'tahfiz'} state={tahfiz.state}/>
+            <Button 
+              onClick={(e) => {
+                  e.stopPropagation();
+                  openDirections(tahfiz.latitude, tahfiz.longitude);
+              }}
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
+            >
+              <Navigation className="w-4 h-4" />
+            </Button>
+
+          </div>
         </div>
       </CardContent>
     </Card>

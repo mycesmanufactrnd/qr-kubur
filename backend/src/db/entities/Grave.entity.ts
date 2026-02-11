@@ -49,7 +49,7 @@ export class Grave {
   status!: GraveStatus;
   
   @OneToMany(() => DeadPerson, (deadPerson) => deadPerson.grave)
-  deadPerson?: DeadPerson | null;
+  deadPerson?: DeadPerson[] | [];
 
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
     nullable: true,
@@ -58,7 +58,7 @@ export class Grave {
   organisation?: Organisation | null;
 
   @OneToMany(() => Suggestion, (suggestions) => suggestions.grave)
-  suggestions!: Suggestion[];
+  suggestions?: Suggestion[] | [];
 
   @CreateDateColumn ({ name: "createdat" })
   createdat!: Date;

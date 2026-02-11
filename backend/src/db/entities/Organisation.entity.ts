@@ -6,6 +6,7 @@ import { Grave } from "./Grave.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 import { Mosque } from "./Mosque.entity.ts";
+import { DeathCharity } from "../entities.ts";
 
 @Entity("organisation")
 export class Organisation {
@@ -29,6 +30,9 @@ export class Organisation {
 
   @OneToMany(() => Mosque, (mosque) => mosque.organisation)
   mosques?: Mosque[];
+
+  @OneToMany(() => DeathCharity, (deathcharites) => deathcharites.organisation)
+  deathcharites?: DeathCharity[];
 
   @Column("varchar", { length: 255 })
   name!: string;
