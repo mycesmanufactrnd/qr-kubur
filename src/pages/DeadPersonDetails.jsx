@@ -15,7 +15,9 @@ export default function DeadPersonDetails() {
   const personId = Number(searchParams.get('id'));
 
   const {
-    data: deadPersonDetails, isLoading, isError,
+    data: deadPersonDetails, 
+    isLoading, 
+    isError,
   } = trpc.deadperson.getDeadPersonById.useQuery(
     { id: personId }, 
     { enabled: !!personId }
@@ -24,9 +26,7 @@ export default function DeadPersonDetails() {
   const graveDetails = deadPersonDetails?.grave;
 
   if (isLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
+    return <PageLoadingComponent />;
   }
 
   if (isError || !deadPersonDetails) {
@@ -38,22 +38,33 @@ export default function DeadPersonDetails() {
     );
   }
 
+  const getImageSrc = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `/api/file/dead-person/${encodeURIComponent(url)}`;
+  };
+
   const age = calculateAge(deadPersonDetails.dateofbirth, deadPersonDetails.dateofdeath);
 
   return (
     <div className="space-y-3 pb-2 p-1">
       <BackNavigation title={deadPersonDetails.name} />
+      
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
           {deadPersonDetails.photourl && (
             <div className="flex justify-center">
               <img
-                src={`/api/file/bucket-grave/${encodeURIComponent(deadPersonDetails.photourl)}`}
+                src={getImageSrc(deadPersonDetails.photourl)}
                 alt={translate('Preview')}
-                className="w-24 h-32 object-cover rounded-md"
+                className="w-24 h-32 object-cover rounded-md shadow-sm border dark:border-gray-700"
+                onError={(e) => {
+                  e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${deadPersonDetails.name}`;
+                }}
               />
             </div>
           )}
+
           <div className="space-y-3">
             {deadPersonDetails.icnumber && (
               <div>
@@ -63,6 +74,7 @@ export default function DeadPersonDetails() {
                 </p>
               </div>
             )}
+
             <div className="flex justify-between gap-4">
               {deadPersonDetails.dateofbirth && (
                 <div>
@@ -72,6 +84,7 @@ export default function DeadPersonDetails() {
                   </p>
                 </div>
               )}
+              
               <div className="mr-4">
                 {deadPersonDetails.dateofdeath && (
                   <div>
@@ -86,6 +99,7 @@ export default function DeadPersonDetails() {
                 )}
               </div>
             </div>
+
             {deadPersonDetails.biography && (
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{translate('Biography')}</p>
@@ -95,6 +109,7 @@ export default function DeadPersonDetails() {
               </div>
             )}
           </div>
+
           {(deadPersonDetails.latitude && deadPersonDetails.longitude) && (
             <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
               <DirectionButton
@@ -111,6 +126,7 @@ export default function DeadPersonDetails() {
           )}
         </CardContent>
       </Card>
+
       {graveDetails && (
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-3">
@@ -133,19 +149,19 @@ export default function DeadPersonDetails() {
             </div>
 
             {(graveDetails.latitude && graveDetails.longitude) && (
-            <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
-              <DirectionButton
-                addClass="flex-1"
-                latitude={graveDetails.latitude}
-                longitude={graveDetails.longitude}
-              />
-              <ShareButton
-                addClass="flex-1"
-                title={graveDetails?.name || 'Grave'}
-                textMessage={`Lokasi Kubur: ${graveDetails?.name || ''}`}
-              />
-            </div>
-          )}
+              <div className="flex gap-2 pt-2 border-t dark:border-gray-700">
+                <DirectionButton
+                  addClass="flex-1"
+                  latitude={graveDetails.latitude}
+                  longitude={graveDetails.longitude}
+                />
+                <ShareButton
+                  addClass="flex-1"
+                  title={graveDetails?.name || 'Grave'}
+                  textMessage={`Lokasi Kubur: ${graveDetails?.name || ''}`}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

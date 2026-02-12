@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { translate } from '@/utils/translations';
-import { MapPin, Plus, Edit, Trash2, Search, X, Save, Upload, QrCode } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Search, X, Save, QrCode } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
 import TextInputForm from '@/components/forms/TextInputForm';
@@ -25,12 +25,11 @@ import { useGetGravePaginated, useGraveMutations } from '@/hooks/useGraveMutatio
 import { trpc } from '@/utils/trpc';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
-import { Textarea } from '@/components/ui/textarea';
 import { validateFields } from '@/utils/validations';
 import { defaultGraveField } from '@/utils/defaultformfields';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
 export default function ManageGraves() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
@@ -60,9 +59,14 @@ export default function ManageGraves() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  
   const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
     defaultValues: defaultGraveField
   });
+
+  const photourl = watch('photourl') || '';
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [graveToDelete, setGraveToDelete] = useState(null);
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
@@ -94,8 +98,25 @@ export default function ManageGraves() {
   }); 
 
   const { organisationsList } = useGetOrganisationPaginated({});
-
   const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
+
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      const res = await fetch('/api/upload/bucket-grave', { method: 'POST', body: formDataUpload });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setValue('photourl', data.file_url);
+      showSuccess(translate('Photo uploaded'));
+    } catch (err) {
+      showError(translate('Failed to upload photo'));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSearch = () => {
     const params = { page: '1' };
@@ -123,22 +144,13 @@ export default function ManageGraves() {
       ...grave,
       organisation: grave.organisation?.id?.toString() ?? '',
       status: grave.status ?? 'active',
-      totalgraves: grave.totalgraves ?? 0
+      totalgraves: grave.totalgraves ?? 0,
+      photourl: grave.photourl ?? ''
     });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (formData) => {
-    const isValid = validateFields(formData, [
-      { field: 'name', label: 'Grave', type: 'text' },
-      { field: 'state', label: 'State', type: 'select' },
-      { field: 'latitude', label: 'Latitude', type: 'text' },
-      { field: 'longitude', label: 'Longitude', type: 'text' },
-      { field: 'status', label: 'Status', type: 'select' },
-    ]);
-
-    if (!isValid) return;
-
     const submitData = {
       ...formData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : '',
@@ -147,54 +159,26 @@ export default function ManageGraves() {
       totalgraves: Number(formData.totalgraves) || 0
     };
     
-    try {
-      if (editingGrave) {
-        await updateGrave.mutateAsync({ id: editingGrave.id, data: submitData });
-      } else {
-        await createGrave.mutateAsync(submitData);
-      }
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error(error);
+    if (editingGrave) {
+      await updateGrave.mutateAsync({ id: editingGrave.id, data: submitData }, {
+        onSuccess: () => setIsDialogOpen(false)
+      });
+    } else {
+      await createGrave.mutateAsync(submitData, {
+        onSuccess: () => setIsDialogOpen(false)
+      });
     }
   };
 
   const confirmDelete = async () => {
     if (!graveToDelete) return;
-
-    try {
-      await deleteGrave.mutateAsync(graveToDelete.id);
-      
-      setDeleteDialogOpen(false);
-      setGraveToDelete(null);
-    } catch (error) {
-      console.error("Delete failed:", error);
-    }
+    await deleteGrave.mutateAsync(graveToDelete.id, {
+      onSuccess: () => setDeleteDialogOpen(false)
+    });
   };
 
-  if (loadingUser || permissionsLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
-  }
-
-  if (!hasAdminAccess) {
-    return (
-      <AccessDeniedComponent/>
-    );
-  }
-
-  if (!canView) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
-          { label: translate('Manage Graves'), page: 'ManageGraves' }
-        ]} />
-        <AccessDeniedComponent/>
-      </div>
-    );
-  }
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
+  if (!hasAdminAccess) return <AccessDeniedComponent/>;
 
   return (
     <div className="space-y-6">
@@ -204,18 +188,16 @@ export default function ManageGraves() {
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
           <MapPin className="w-6 h-6 text-emerald-600" />
           {translate('Manage Graves')}
         </h1>
-        <div className="flex gap-2">
-          {canCreate && (
-            <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700">
-              <Plus className="w-4 h-4 mr-2" />
-              {translate('Add Grave')}
-            </Button>
-          )}
-        </div>
+        {canCreate && (
+          <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700">
+            <Plus className="w-4 h-4 mr-2" />
+            {translate('Add Grave')}
+          </Button>
+        )}
       </div>
 
       <Card className="border-0 shadow-md">
@@ -231,7 +213,7 @@ export default function ManageGraves() {
                 className="pl-10"
               />
             </div>
-            <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700 px-6">
+            <Button onClick={handleSearch} className="bg-emerald-600 px-6">
               {translate('Search')}
             </Button>
           </div>
@@ -246,7 +228,6 @@ export default function ManageGraves() {
                 </SelectContent>
               </Select>
             )}
-            
             <Select value={tempStatus} onValueChange={setTempStatus}>
               <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
@@ -256,13 +237,10 @@ export default function ManageGraves() {
                 <SelectItem value="maintenance">{translate('Maintenance')}</SelectItem>
               </SelectContent>
             </Select>
-            
             <Input placeholder={translate('Block')} value={tempBlock} onChange={(e) => setTempBlock(e.target.value)} />
             <Input placeholder={translate('Lot')} value={tempLot} onChange={(e) => setTempLot(e.target.value)} />
-            
             <Button variant="outline" onClick={handleReset} className="w-full">
-              <X className="w-4 h-4 mr-2" />
-              {translate('Reset')}
+              <X className="w-4 h-4 mr-2" /> {translate('Reset')}
             </Button>
           </div>
         </CardContent>
@@ -319,10 +297,7 @@ export default function ManageGraves() {
             totalPages={totalPages}
             onPageChange={(p) => setSearchParams({ ...Object.fromEntries(searchParams), page: p.toString() })}
             itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(v) => {
-              setItemsPerPage(v);
-              setSearchParams({ ...Object.fromEntries(searchParams), page: '1' });
-            }}
+            onItemsPerPageChange={(v) => { setItemsPerPage(v); setSearchParams({ ...Object.fromEntries(searchParams), page: '1' }); }}
             totalItems={gravesList.total}
           />
         )}
@@ -334,13 +309,7 @@ export default function ManageGraves() {
             <DialogTitle>{editingGrave ? translate('Edit Grave') : translate('Add Grave')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm
-              name="name"
-              control={control}
-              label={translate("Cemetery name")}
-              required
-              errors={errors}
-            />
+            <TextInputForm name="name" control={control} label={translate("Cemetery name")} required errors={errors} />
             <SelectForm
               name="state"
               control={control}
@@ -351,96 +320,33 @@ export default function ManageGraves() {
               errors={errors}
             />
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="block"
-                control={control}
-                label={translate("Block")}
-              />
-              <TextInputForm
-                name="lot"
-                control={control}
-                label={translate("Lot")}
-              />
+              <TextInputForm name="block" control={control} label={translate("Block")} />
+              <TextInputForm name="lot" control={control} label={translate("Lot")} />
             </div>
-            <TextInputForm
-              name="address"
-              control={control}
-              label={translate("Address")}
-              isTextArea
-            />
+            <TextInputForm name="address" control={control} label={translate("Address")} isTextArea />
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />
+              <TextInputForm name="latitude" control={control} label={translate("Latitude")} isNumber required errors={errors} />
+              <TextInputForm name="longitude" control={control} label={translate("Longitude")} isNumber required errors={errors} />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (!navigator.geolocation) return;
-
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    setValue('latitude', position.coords.latitude.toFixed(16));
-                    setValue('longitude', position.coords.longitude.toFixed(16));
-                    showSuccess('Lokasi berjaya diperolehi');
-                  },
-                  () => showError('Tidak dapat mendapatkan lokasi.'),
-                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-              }}
-              className="w-full"
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              {translate('Get Current Location')}
+            <Button type="button" variant="outline" className="w-full" onClick={() => navigator.geolocation.getCurrentPosition((pos) => { setValue('latitude', pos.coords.latitude.toFixed(16)); setValue('longitude', pos.coords.longitude.toFixed(16)); })}>
+              <MapPin className="w-4 h-4 mr-2" /> {translate('Get Current Location')}
             </Button>
             <SelectForm
               name="organisation"
               control={control}
               label={translate("Managing Organisation")}
-              placeholder={translate("All managing organisations")}
-              options={organisationsList.items.map(org => ({
-                value: org.id,
-                label: org.name,
-              }))}
+              options={organisationsList.items.map(org => ({ value: org.id, label: org.name }))}
             />
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="picname"
-                control={control}
-                label={translate("PIC Name")}
-              />
-              <TextInputForm
-                name="picphoneno"
-                control={control}
-                label={translate("PIC Phone No.")}
-              />
+              <TextInputForm name="picname" control={control} label={translate("PIC Name")} />
+              <TextInputForm name="picphoneno" control={control} label={translate("PIC Phone No.")} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="totalgraves"
-                control={control}
-                label={translate("Total Graves")}
-                isNumber
-              />
+              <TextInputForm name="totalgraves" control={control} label={translate("Total Graves")} isNumber />
               <SelectForm
                 name="status"
                 control={control}
                 label={translate("Status")}
-                placeholder={translate("Select status")}
                 options={[
                   { value: "active", label: translate('Active') },
                   { value: "full", label: translate('Full') },
@@ -450,20 +356,36 @@ export default function ManageGraves() {
                 errors={errors}
               />
             </div>
+
+            {/* EXACT TAHFIZ STYLE PHOTO UPLOAD */}
+            <div className="space-y-2">
+              <Label>{translate('Photo')}</Label>
+              <Input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => handleFileUpload(e.target.files?.[0])} 
+                disabled={uploading} 
+              />
+              {photourl && (
+                <img 
+                  className="w-20 h-20 rounded object-cover mt-2" 
+                  src={`/api/file/bucket-grave/${encodeURIComponent(photourl)}`} 
+                  alt="Preview" 
+                />
+              )}
+            </div>
+
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {translate('Cancel')}
-              </Button>
-              <Button type="submit" disabled={isSubmitting || createGrave.isPending || updateGrave.isPending}>
-                <Save className="w-4 h-4 mr-2" />
-                {translate('Save')}
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
+              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isSubmitting || uploading}>
+                <Save className="w-4 h-4 mr-2" /> {translate('Save')}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-
-      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={translate('Delete Grave')} description={`${translate('Delete')} "${graveToDelete?.name}"?`} onConfirm={confirmDelete} confirmText={translate('Delete')} variant="destructive" />
+      
+      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={confirmDelete} title={translate('Delete Grave')} description={`${translate('Delete')} "${graveToDelete?.name}"?`} variant="destructive" />
       <QRCodeDialog open={qrDialogOpen} onOpenChange={setQRDialogOpen} data={qrGrave} />
     </div>
   );

@@ -1,91 +1,106 @@
-import { useState } from 'react';
-import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
-import { Building2, Navigation, MapPin, Search } from 'lucide-react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect, useMemo } from 'react';
 import { translate } from '@/utils/translations';
-import BackNavigation from '@/components/BackNavigation';
-import LocationDeniedComponent from '@/components/LocationDeniedComponent';
+import { showWarning } from '@/components/ToastrNotification.jsx';
 import { STATES_MY } from '@/utils/enums';
+import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations'; 
 import { useLocationContext } from '@/providers/LocationProvider';
-import { requestLocation } from '@/utils/helpers';
+import { Button } from "@/components/ui/button";
+import BackNavigation from '@/components/BackNavigation';
+import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
+import FoundDataLength from '@/components/FoundDataLength';
+import ShowNearLocation from '@/components/ShowNearLocation';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
-import TahfizCardList from '@/components/TahfizCardList';
+import TahfizCardList from '@/components/TahfizCardList'; 
 
 export default function SearchTahfiz() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [manualSearchQuery, setManualSearchQuery] = useState('');
-  const [selectedState, setSelectedState] = useState('nearby');
+  const [displayedCount, setDisplayedCount] = useState(10);
+  const {
+    userLocation,
+    locationDenied,
+    userState: currentUserLocationState 
+  } = useLocationContext();
 
-  const { userLocation, userState, locationDenied } = useLocationContext();
-  
-  const { data: tahfizCenters, isLoading } = useGetTahfizCoordinates(
-    userLocation
-      ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : null,
-    selectedState === 'nearby' ? userState : selectedState,
-    manualSearchQuery
+  const [filters, setFilters] = useState(null);
+
+  useEffect(() => {
+    if (locationDenied) {
+      showWarning(translate('Location not available'));
+    }
+  }, [locationDenied]);
+
+  const finalState = useMemo(() => {
+    if (filters === null) return currentUserLocationState;
+    return filters.state || "";
+  }, [filters, currentUserLocationState]);
+
+  const finalSearch = useMemo(() => {
+    return filters?.name || "";
+  }, [filters]);
+
+  const { data: tahfizList, isLoading } = useGetTahfizCoordinates(
+    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
+    finalState, 
+    finalSearch
   );
 
   return (
-    <div className="space-y-3 pb-2">
-      <BackNavigation title={translate('Search Tahfiz') || "Search Tahfiz Center"} />
+    <div className="space-y-3 pb-6 px-1">
+      <BackNavigation title={translate('Search Tahfiz')} />
+      <ShowNearLocation />
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-1">
+        <AdvancedFilters
+          parameter={[
+            { label: translate("Name"), type: "text", searchColumn: "name" },
+            {
+              label: translate("State"),
+              type: "select",
+              searchColumn: "state",
+              options: STATES_MY.map((s) => ({ id: s, name: s })),
+            },
+          ]}
+          onApplyFilter={(newFilters) => {
+            const cleanedFilters = Object.fromEntries(
+              Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== null)
+            );
+            if (Object.keys(cleanedFilters).length === 0) {
+              setFilters(null);
+            } else {
+              setFilters(cleanedFilters);
+            }
 
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
-        <CardContent className="p-3 space-y-2">
-          <div className="flex gap-2">
-            <Input
-              placeholder={translate('tahfizName')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 dark:bg-gray-700"
-            />
-            <Button
-              onClick={() => setManualSearchQuery(searchQuery)}
-              className="h-9"
-            >
-              <Search className="w-4 h-4 mr-1" /> {translate('Search')}
-            </Button>
-          </div>
-
-          <div className="flex gap-2">
-            <Select value={selectedState} onValueChange={setSelectedState}>
-              <SelectTrigger className="h-9 dark:bg-gray-700">
-                <SelectValue placeholder={translate('state')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="nearby">{translate('Nearby')}</SelectItem>
-                {STATES_MY.map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {locationDenied && selectedState === "nearby" && (
-        <LocationDeniedComponent onRetry={requestLocation}/>
+            setDisplayedCount(10);
+          }}
+        />
+      </div>
+      {!isLoading && tahfizList && (
+        <div className="px-1">
+          <FoundDataLength dataList={tahfizList} data="Tahfiz" />
+        </div>
       )}
-
       {isLoading ? (
-        <ListCardSkeletonComponent/>
-      ) : tahfizCenters?.length === 0 ? (
+        <ListCardSkeletonComponent />
+      ) : !tahfizList || tahfizList.length === 0 ? (
         <NoDataCardComponent
           title={translate('noTahfizFound')}
           description="Sila cuba carian lain atau ubah penapis."
         />
       ) : (
-        <div className="space-y-2">
-          {tahfizCenters?.map(tahfiz => (
-            <TahfizCardList 
-              key={tahfiz.id}
-              tahfiz={tahfiz}
-            />
+        <div className="space-y-4">
+          {tahfizList.slice(0, displayedCount).map((tahfiz) => (
+            <TahfizCardList key={tahfiz.id} tahfiz={tahfiz} />
           ))}
+          {displayedCount < tahfizList.length && (
+            <div className="flex justify-center pt-4">
+              <Button 
+                variant="outline" 
+                className="rounded-full px-10 border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm"
+                onClick={() => setDisplayedCount(prev => prev + 10)}
+              >
+                {translate('Load more')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
