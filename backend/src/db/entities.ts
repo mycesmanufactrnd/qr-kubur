@@ -23,3 +23,9 @@ export * from "./entities/Mosque.entity.ts";
 export * from "./entities/ActivityPosts.entity.ts";
 export * from "./entities/IslamicEvent.entity.ts";
 export * from "./entities/WaqfProject.entity.ts";
+//Death Charity
+export * from "./entities/DeathCharity/DeathCharity.entity.ts";
+export * from "./entities/DeathCharity/DeathCharityClaim.entity.ts";
+export * from "./entities/DeathCharity/DeathCharityMember.entity.ts";
+export * from "./entities/DeathCharity/DeathCharityDependent.entity.ts";
+export * from "./entities/DeathCharity/DeathCharityPayment.entity.ts";

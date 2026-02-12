@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils/index';
-import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, Book, UserCheck, BarChart3,List,Activity,  Sparkles, ArrowUpRight, Landmark } from 'lucide-react';
+import { createPageUrl } from '@/utils/index';
+import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, Book, UserCheck, BarChart3,List,Activity,  Sparkles, ArrowUpRight, Landmark, User2, Diamond, ListCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
-import useGetAdminDashboardStats from '../../hooks/useDashboardMutations';
+import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
 
 export default function AdminDashboard() {
   const {
@@ -20,12 +20,12 @@ export default function AdminDashboard() {
     isTahfizAdmin,
   } = useAdminAccess();
 
-  const {
-    OGDSStats,
-    isOGDSLoading,
-    DDVStats,
-    isDDVLoading,
-  } = useGetAdminDashboardStats(currentUser, isSuperAdmin);
+  const { OGDSStats, DDVStats, CMCStats, isOGDSLoading, isDDVLoading, isCMCLoading } =
+  useGetAdminDashboardStats({
+    currentUser,
+    isSuperAdmin,
+    statsNeeded: ["OGDS", "DDV", "CMC"],
+  });
 
   const organisationCount = OGDSStats?.organisationCount ?? 0;
   const graveCount = OGDSStats?.graveCount ?? 0;
@@ -33,6 +33,9 @@ export default function AdminDashboard() {
   const suggestionCount = OGDSStats?.suggestionCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
+  const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
+  const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
+  const deathCharityTotalPayout = CMCStats?.deathCharityTotalPayout ?? 0;
 
   const quickStats = [
     {
@@ -71,6 +74,50 @@ export default function AdminDashboard() {
       textGradient: 'from-violet-600 to-purple-600',
       textColor: 'text-violet-700',
     },
+  ];
+  
+  const deathCharity = [
+    {
+      label: translate('Total Khairat Kematian'),
+      value: deathCharityCount || 0,
+      icon: ListCheck,
+      page: 'ManageDeathCharity',
+      loading: isCMCLoading,
+  
+      cardGradient: 'from-amber-50 to-red-50',
+      iconGradient: 'from-amber-500 to-red-500',
+      textGradient: 'from-amber-600 to-red-600',
+      textColor: 'text-amber-700',
+    },
+    {
+      label: translate('Total Ahli Khairat'),
+      value: deathCharityMemberCount || 0,
+      icon: User2,
+      page: 'ManageDeathCharityMember',
+      loading: isCMCLoading,
+  
+      cardGradient: 'from-orange-50 to-blue-50',
+      iconGradient: 'from-orange-500 to-blue-500',
+      textGradient: 'from-orange-600 to-blue-600',
+      textColor: 'text-orange-700',
+    },
+    {
+      label: translate('Total Khairat Payout'),
+      value: deathCharityTotalPayout || 0,
+      icon: Diamond,
+      page: 'ManageDeathCharity',
+      loading: isCMCLoading,
+  
+      cardGradient: 'from-green-50 to-red-50',
+      iconGradient: 'from-green-500 to-red-500',
+      textGradient: 'from-green-600 to-red-600',
+      textColor: 'text-green-700',
+    },
+  ];
+
+  const fullQuickStats = [
+    ...quickStats,
+    ...deathCharity,
   ];
 
   const pendingItems = [
@@ -132,7 +179,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {quickStats.map((stat, i) => (
+        {fullQuickStats.map((stat, i) => (
           <Link
             key={i}
             to={createPageUrl(stat.page)}
@@ -143,32 +190,32 @@ export default function AdminDashboard() {
               bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}
             >
               <CardContent className="p-6">
-                <div
-                  className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} 
-                  rounded-xl flex items-center justify-center mb-4 shadow-lg`}
-                >
-                  <stat.icon className="w-6 h-6 text-white" />
+                <div className="flex justify-between">
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} 
+                    rounded-xl flex items-center justify-center mb-4 shadow-lg`}
+                  >
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>
+                      {stat.label}
+                    </p>
+                    <p
+                      className={`text-right text-3xl font-bold bg-gradient-to-r 
+                      ${stat.textGradient} bg-clip-text text-transparent`}
+                    >
+                      {stat.loading ? '—' : stat.value.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-
-                <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>
-                  {stat.label}
-                </p>
-
-                <p
-                  className={`text-3xl font-bold bg-gradient-to-r 
-                  ${stat.textGradient} bg-clip-text text-transparent`}
-                >
-                  {stat.loading ? '—' : stat.value.toLocaleString()}
-                </p>
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
 
-      {/* Main Content Grid - 2/3 and 1/3 split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Pending Approvals - 2/3 width */}
         <div className="lg:col-span-2">
           <Card className="border-0 shadow-lg h-full">
             <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-purple-50">
@@ -213,7 +260,6 @@ export default function AdminDashboard() {
                 ))}
               </div>
 
-              {/* Verified Donations */}
               <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between">
@@ -240,7 +286,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions - 1/3 width */}
         <div className="lg:col-span-1">
           <Card className="border-0 shadow-lg h-full">
             <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-purple-50 to-pink-50">
@@ -261,8 +306,8 @@ export default function AdminDashboard() {
                   { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'red' },
                   { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'indigo' },
                   { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'purple' },
-                  { label: translate('Manage Mosques'), page: 'ManageMosques', icon: Landmark, color: 'stone' },
-                  { label: translate('Manage Mosques Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'amber' },
+                  { label: translate('Manage Mosque'), page: 'ManageMosques', icon: Landmark, color: 'stone' },
+                  { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'amber' },
 
                 ].map((action, i) => (
                   <Link key={i} to={createPageUrl(action.page)}>

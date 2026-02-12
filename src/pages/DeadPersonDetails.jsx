@@ -55,6 +55,7 @@ export default function DeadPersonDetails() {
           {deadPersonDetails.photourl && (
             <div className="flex justify-center">
               <img
+                src={`/api/file/dead-person/${encodeURIComponent(deadPersonDetails.photourl)}`}
                 src={getImageSrc(deadPersonDetails.photourl)}
                 alt={translate('Preview')}
                 className="w-24 h-32 object-cover rounded-md shadow-sm border dark:border-gray-700"

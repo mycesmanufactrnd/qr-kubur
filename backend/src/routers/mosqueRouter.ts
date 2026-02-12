@@ -21,17 +21,17 @@ export const mosqueRouter = router({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
       }).optional().nullable(),
-      // Changed to match Grave style: dynamic filters record
       filters: z.record(z.string(), z.any()).optional()
     }))
     .query(async ({ input }) => {
       const mosqueRepo = AppDataSource.getRepository(Mosque);
       const query = mosqueRepo.createQueryBuilder("mosque")
         .leftJoinAndSelect("mosque.organisation", "organisation");
-
-      // Apply dynamic filters (matching SearchGrave logic)
+      
       if (input.filters) {
         for (const [key, value] of Object.entries(input.filters)) {
+          if (!value) continue;
+
           if (value) {
             if (key === 'name') {
               query.andWhere("mosque.name ILIKE :name", { name: `%${value}%` });
@@ -39,18 +39,23 @@ export const mosqueRouter = router({
               query.andWhere("mosque.state = :state", { state: value });
             } else if (key === 'organisationId') {
               query.andWhere("organisation.id = :orgId", { orgId: value });
-            } else if (Object.keys(mosqueRepo.metadata.propertiesMap).includes(key)) {
-              // Generic fallback for other columns
+            } else if (key === 'ids' && Array.isArray(value) && value.length > 0) {
+              const ids = value.map((v: any) => v.id);
+              query.andWhere("mosque.id IN (:...ids)", { ids });
+            }  else if (Object.keys(mosqueRepo.metadata.propertiesMap).includes(key)) {
               query.andWhere(`mosque.${key} = :${key}`, { [key]: value });
             }
           }
         }
       }
 
+      if (input.filters?.limit) {
+        query.limit(input.filters.limit);
+      }
+
       if (input.coordinates) {
         const { latitude, longitude } = input.coordinates;
         
-        // Hide entries without coords for distance calculation safety
         query.andWhere("mosque.latitude IS NOT NULL AND mosque.longitude IS NOT NULL");
 
         query.addSelect(`
@@ -69,7 +74,6 @@ export const mosqueRouter = router({
         }));
       }
 
-      // Default alphabetical sort if no coordinates provided
       return await query.orderBy("mosque.name", "ASC").getMany();
     }),
 
@@ -83,7 +87,7 @@ export const mosqueRouter = router({
     .query(async ({ input }) => {
       const { page, pageSize, search, filterState } = input;
       const mosqueRepo = AppDataSource.getRepository(Mosque);
-      const query = mosqueRepo.createQueryBuilder("mosque");
+      const query = mosqueRepo.createQueryBuilder("mosque").leftJoinAndSelect('mosque.organisation', 'organisation');
 
       if (search) query.andWhere("mosque.name ILIKE :search", { search: `%${search}%` });
       if (filterState) query.andWhere("mosque.state = :state", { state: filterState });

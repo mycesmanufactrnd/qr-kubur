@@ -24,9 +24,6 @@ export class Mosque {
 
   @Column("text", { nullable: true })
   address?: string;
-
-  @Column("varchar", { length: 255, nullable: true })
-  phone?: string;
   
   @Column("varchar", { length: 255, nullable: true })
   email?: string;
@@ -40,11 +37,10 @@ export class Mosque {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @ManyToOne(() => Organisation, (organisation) => organisation.mosques, {
+  @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
     nullable: true,
     onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "organisationid" })
   organisation?: Organisation | null;
 
   @Column("varchar", { length: 255, nullable: true })
@@ -53,11 +49,14 @@ export class Mosque {
   @Column("varchar", { nullable: true })
   picphoneno?: string;
 
+  @Column("boolean", { default: false })
+  canarrangefuneral!: boolean;
+
   @OneToMany(() => User, (user) => user.mosque)
   users!: User[];
   
   @OneToMany(() => ActivityPost, (activitypost) => activitypost.mosque) 
-  activityposts!: ActivityPost[];
+  activityposts?: ActivityPost[] | [];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

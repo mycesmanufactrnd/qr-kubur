@@ -1,8 +1,8 @@
 import z from "zod";
 import { protectedProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { DeadPerson, Donation, Grave, Organisation, Suggestion, TahfizCenter, TahlilRequest } from "../db/entities.ts";
-import { TahlilStatus, VerificationStatus } from "../db/enums.ts";
+import { DeadPerson, DeathCharity, DeathCharityClaim, DeathCharityMember, Donation, Grave, Organisation, Suggestion, TahfizCenter, TahlilRequest } from "../db/entities.ts";
+import { ClaimStatus, TahlilStatus, VerificationStatus } from "../db/enums.ts";
 
 export const dashboardRouter = router({
     // OGDS: Organisations, Graves, DeadPerson, Suggestion
@@ -45,7 +45,7 @@ export const dashboardRouter = router({
           const gravesIds = await graveRepo
             .createQueryBuilder('graves')
             .select('graves.id', 'id')
-            .where('graves.organisation IN (:...ids)', { ids: organisationsIdArr })
+            .where('graves.organisationId IN (:...ids)', { ids: organisationsIdArr })
             .getRawMany();
     
           const gravesIdArr = gravesIds.map(grave => grave.id);
@@ -53,7 +53,7 @@ export const dashboardRouter = router({
           const suggestionIds = await suggestionRepo
             .createQueryBuilder('suggestion')
             .select('suggestion.id', 'id')
-            .where('suggestion.grave IN (:...ids)', { ids: gravesIdArr })
+            .where('suggestion.graveId IN (:...ids)', { ids: gravesIdArr })
             .getRawMany();
     
           const suggestionIdArr = suggestionIds.map(suggestion => suggestion.id);
@@ -61,7 +61,7 @@ export const dashboardRouter = router({
           const deadPersonIds = await deadPersonRepo
             .createQueryBuilder('deadperson')
             .select('deadperson.id', 'id')
-            .where('deadperson.grave IN (:...ids)', { ids: gravesIdArr })
+            .where('deadperson.graveId IN (:...ids)', { ids: gravesIdArr })
             .getRawMany();
     
           const deadPersonIdArr = deadPersonIds.map(deadperson => deadperson.id);
@@ -112,7 +112,7 @@ export const dashboardRouter = router({
           const tahlilReqIds = await tahlilRequestRepo
             .createQueryBuilder('tahlilrequest')
             .select('tahlilrequest.id', 'id')
-            .where('tahlilrequest.tahfizcenter IN (:...ids)', { ids: tahfizIdArr })
+            .where('tahlilrequest.tahfizcenterId IN (:...ids)', { ids: tahfizIdArr })
             .andWhere('tahlilrequest.status = :status', { status: TahlilStatus.PENDING })
             .getRawMany();
 
@@ -158,11 +158,11 @@ export const dashboardRouter = router({
             const query = donationRepo.createQueryBuilder('donation').select('donation.id', 'id');
 
             if (currentUserTahfiz) {
-                query.orWhere('donation.tahfizcenter = :tahfizId', { tahfizId: currentUserTahfiz });
+                query.orWhere('donation.tahfizcenterId = :tahfizId', { tahfizId: currentUserTahfiz });
             }
 
             if (currentUserOrganisation) {
-                query.orWhere('donation.organisation = :orgId', { orgId: currentUserOrganisation });
+                query.orWhere('donation.organisationId = :orgId', { orgId: currentUserOrganisation });
             }
 
             const donationIds = await query.getRawMany();
@@ -183,6 +183,65 @@ export const dashboardRouter = router({
             return {
                 donationCount: donationIdArr.length ?? 0,
                 donationVerified: totalVerifiedAmount,
+            };
+        }),
+    
+    // CMC: Charity, Member, Claim
+    getCMCAdminStates: protectedProcedure
+        .input(
+            z.object({
+                currentUserOrganisation: z.number().optional().nullable(),
+                isSuperAdmin: z.boolean().optional().default(false)
+            })
+        )
+        .query(async ({ input }) => {
+            const { isSuperAdmin, currentUserOrganisation } = input;
+
+            const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
+            const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
+            const deathCharityClaimRepo = AppDataSource.getRepository(DeathCharityClaim);
+
+            if (isSuperAdmin) {
+                const totalPaidClaim = await deathCharityClaimRepo
+                    .createQueryBuilder("claim")
+                    .select("SUM(claim.payoutamount)", "total")
+                    .where("claim.status = :status", { status: ClaimStatus.PAID })
+                    .getRawOne();
+
+                const totalPayoutAmount = Number(totalPaidClaim.total ?? 0);
+
+                return {
+                    deathCharityCount: await deathCharityRepo.count(),
+                    deathCharityMemberCount: await deathCharityMemberRepo.count(),
+                    deathCharityTotalPayout: totalPayoutAmount,
+                }
+            }
+
+            const deathCharityCount = await deathCharityRepo
+              .createQueryBuilder("deathcharity")
+              .where('deathcharity.organisationId = :id', { id: currentUserOrganisation })
+              .getCount();
+
+            const totalDeathCharityMember = await deathCharityMemberRepo
+              .createQueryBuilder("member")
+              .leftJoin("member.deathcharity", "deathcharity")
+              .where('deathcharity.organisationId = :id', { id: currentUserOrganisation })
+              .getCount();
+
+            const totalPaidClaim = await deathCharityClaimRepo
+              .createQueryBuilder("claim")
+              .leftJoin('claim.deathcharity', 'deathcharity')
+              .where('deathcharity.organisationId = :id', { id: currentUserOrganisation })
+              .andWhere("claim.status = :status", { status: ClaimStatus.PAID })
+              .select("SUM(claim.payoutamount)", "total")
+              .getRawOne();
+
+            const totalPayoutAmount = Number(totalPaidClaim.total ?? 0);
+
+            return {
+                deathCharityCount: deathCharityCount,
+                deathCharityMemberCount: totalDeathCharityMember,
+                deathCharityTotalPayout: totalPayoutAmount,
             };
         }),
 });

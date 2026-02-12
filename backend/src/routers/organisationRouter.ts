@@ -5,6 +5,21 @@ import { z } from 'zod';
 import { organisationSchema } from '../schemas/organisationSchema.ts';
 import { ActiveInactiveStatus } from '../db/enums.ts';
 
+async function getOrganisationTreeIds(rootId: number) {
+  const result = await AppDataSource.query(`
+    WITH RECURSIVE org_tree AS (
+      SELECT id FROM organisation WHERE id = $1
+      UNION ALL
+      SELECT o.id
+      FROM organisation o
+      JOIN org_tree ot ON o."parentorganisationId" = ot.id
+    )
+    SELECT id FROM org_tree;
+  `, [rootId]);
+
+  return result.map((r: any) => r.id);
+}
+
 export const organisationRouter = router({
   getPaginated: protectedProcedure
     .input(
@@ -14,14 +29,15 @@ export const organisationRouter = router({
         search: z.string().optional(),
         filterType: z.number().optional(),
         filterState: z.string().optional(),
+        organisationIds: z.array(z.number()).optional(), 
       })
     )
     .query(async ({ input, ctx }) => {
       const { page, pageSize, search, filterType, filterState } = input;
       const { user } = ctx;
-      const repo = AppDataSource.getRepository(Organisation);
+      const organisationRepo = AppDataSource.getRepository(Organisation);
 
-      const query = repo.createQueryBuilder('organisation')
+      const query = organisationRepo.createQueryBuilder('organisation')
         .leftJoinAndSelect('organisation.parentorganisation', 'parent')
         .leftJoinAndSelect('organisation.organisationtype', 'type');
 
@@ -58,28 +74,31 @@ export const organisationRouter = router({
   create: protectedProcedure
     .input(organisationSchema)
     .mutation(async ({ input }) => {
-      const repo = AppDataSource.getRepository(Organisation);
-      return await repo.save(repo.create(input));
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      const organisation = organisationRepo.create(input);
+      return await organisationRepo.save(organisation);
     }),
 
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: organisationSchema }))
     .mutation(async ({ input }) => {
-      const repo = AppDataSource.getRepository(Organisation);
-      const organisation = await repo.findOneByOrFail({ id: input.id });
-      repo.merge(organisation, input.data);
-      return await repo.save(organisation);
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      const organisation = await organisationRepo.findOneByOrFail({ id: input.id });
+      organisationRepo.merge(organisation, input.data);
+      return organisationRepo.save(organisation);
     }),
 
   delete: protectedProcedure
     .input(z.number())
     .mutation(async ({ input }) => {
-      return await AppDataSource.getRepository(Organisation).delete(input);
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      return organisationRepo.delete(input);
     }),
 
   getAll: protectedProcedure
     .query(async () => {
-      return await AppDataSource.getRepository(Organisation).find({ 
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      return organisationRepo.find({ 
         where: { status: ActiveInactiveStatus.ACTIVE },
         order: { name: 'ASC' }
       });
@@ -110,4 +129,45 @@ export const organisationRouter = router({
 
       return await query.getMany();
     }),
+
+    getParentAndChildOrgs: protectedProcedure
+    .input(z.object({
+      organisationId: z.number(),
+      isIdOnly: z.boolean().optional(),
+    }))
+    .query(async ({ input }) => {
+      const { organisationId, isIdOnly = true } = input;
+
+      const orgs = await AppDataSource.getRepository(Organisation)
+        .createQueryBuilder('org')
+        .where('org.id = :id OR org."parentorganisationId" = :id', { id: organisationId })
+        .getMany();
+
+      return isIdOnly ? orgs.map(o => o.id) : orgs;
+    }),
+
+    getByOrganisationTypeId: protectedProcedure
+    .input(
+        z.object({
+          organisationTypeId: z.number().optional().nullable(),
+          organisationIds: z.array(z.number()).optional(), 
+        })
+      )
+      .query(async ({ input }) => {
+        const { organisationTypeId, organisationIds } = input;
+        const organisationRepo = AppDataSource.getRepository(Organisation);
+
+        const query = organisationRepo.createQueryBuilder('organisation')
+          .where('organisation.status = :active', { active: ActiveInactiveStatus.ACTIVE });
+
+        if (organisationIds && organisationIds.length > 0) {
+          query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
+        }
+
+        if (organisationTypeId) {
+          query.andWhere('organisation.organisationtypeId = :id', {
+            id: organisationTypeId,
+          });
+        }
+      }),
 });

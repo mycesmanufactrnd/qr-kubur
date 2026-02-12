@@ -38,20 +38,6 @@ export default function DonationPage() {
   const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
   const { userLocation, userState, locationDenied } = useLocationContext();
 
-  useEffect(() => {
-    const normalizedState = normalizeState(urlParamState);
-    setSelectedState(normalizedState);
-
-    if (!urlParamType || !urlParamId) return;
-
-    if (!['tahfiz', 'organisation'].includes(urlParamType)) return;
-
-    setValue('recipientType', urlParamType);
-    setValue('selectedRecipient', urlParamId);
-    setValue('paymentMethod', '');
-
-  }, [urlParamType, urlParamId, urlParamState, setValue]);
-  
   const recipientType = watch('recipientType');
   const selectedRecipient = watch('selectedRecipient');
   const amount = watch('amount');
@@ -160,6 +146,26 @@ export default function DonationPage() {
     selectedState === 'nearby' ? userState : selectedState,
     manualSearchQuery
   );
+
+  useEffect(() => {
+    if (!urlParamType) return;
+
+    if (!['tahfiz', 'organisation'].includes(urlParamType)) return;
+
+    setValue('recipientType', urlParamType);
+    setValue('paymentMethod', '');
+  }, [urlParamType, urlParamState, setValue]);
+
+  useEffect(() => {
+    if (!urlParamId) return;
+
+    if (urlParamType === 'tahfiz' && tahfizCenters.length > 0) {
+      setValue('selectedRecipient', urlParamId);
+    }
+    if (urlParamType === 'organisation' && organisations.length > 0) {
+      setValue('selectedRecipient', urlParamId);
+    }
+  }, [urlParamId, urlParamType, tahfizCenters, organisations, setValue]);
 
   const { data: paymentConfigs } = useGetConfigByEntity({
     entityId: Number(selectedRecipient),
@@ -295,7 +301,6 @@ export default function DonationPage() {
       <BackNavigation title="Donation" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
         <Card>
           <CardHeader>
             <CardTitle>{translate('Donation Recipient')}</CardTitle>

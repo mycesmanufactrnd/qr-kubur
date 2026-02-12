@@ -8,7 +8,15 @@
 ~ Masjid2 boleh buat online class, zoom link... kuliah maghrib and so on
 ~ after tahlil or ongoing tahlil (add picture)
 ~ if ongoing can do live tahlil check at tahlil status (done)
-~ add to favorite masjid apa2, untuk sedekah
+~ add to favorite masjid apa2 (done), untuk sedekah (done)
 ~ buat bayar untuk bersihkan kubur, service bersihkan
 ~ khairat kematian
-~ PIC jenazah
+~ PIC jenazah (done)
+1. Digital tasbih (done)
+2. Qibla
+3. Asma ulhusna ( with video ) (done)
+4. Prayer time (done)
+5. Rukun2 (done)
+6. Calculation Zakat (by negeri)
+7. Sirah
+8. Musafir

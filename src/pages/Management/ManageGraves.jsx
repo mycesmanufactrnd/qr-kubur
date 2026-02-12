@@ -17,7 +17,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
 import { showSuccess, showError } from '@/components/ToastrNotification';
 import { useCrudPermissions } from '@/components/PermissionsContext';
-import { STATES_MY } from '@/utils/enums';
+import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import { useAdminAccess } from '@/utils/auth';
@@ -27,6 +27,7 @@ import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import QRCodeDialog from '@/components/QRCodeDialog';
 import { validateFields } from '@/utils/validations';
 import { defaultGraveField } from '@/utils/defaultformfields';
+import { defaultGraveFilter } from '@/utils/defaultfilter';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useForm } from 'react-hook-form';
@@ -72,6 +73,9 @@ export default function ManageGraves() {
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
   const [qrGrave, setQRGrave] = useState({});
+  const [uploading, setUploading] = useState(false);
+
+  const photourl = watch('photourl');
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('graves');
 
@@ -119,7 +123,7 @@ export default function ManageGraves() {
   };
 
   const handleSearch = () => {
-    const params = { page: '1' };
+    const params = { ...defaultGraveFilter };
     if (tempSearch) params.search = tempSearch;
     if (tempBlock) params.block = tempBlock;
     if (tempLot) params.lot = tempLot;
@@ -149,6 +153,29 @@ export default function ManageGraves() {
     });
     setIsDialogOpen(true);
   };
+
+    const handleFileUpload = async (file) => {
+      setUploading(true);
+      try {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+  
+        const res = await fetch('/api/upload/bucket-grave', { method: 'POST', body: formDataUpload });
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          showError(errorData.error || 'Failed to upload photo');
+          return;
+        }
+        const data = await res.json();
+        setValue('photourl', data.file_url);
+        showSuccess('Photo uploaded');
+      } catch (err) {
+        console.error(err);
+        showError('Failed to upload photo');
+      } finally {
+        setUploading(false);
+      }
+    };
 
   const onSubmit = async (formData) => {
     const submitData = {

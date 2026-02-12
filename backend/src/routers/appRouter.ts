@@ -28,6 +28,8 @@ import { activityPostRouter } from "./activityPostRouter.ts";
 import { islamicEventRouter } from "./islamicEventRouter.js";
 import { waqfProjectRouter } from "./waqfProjectRouter.ts";
 import { ollamaRouter } from "./ollamaRouter.ts";
+import { deathCharityRouter } from "./deathCharityRouter.ts";
+import { deathCharityMemberRouter } from "./deathCharityMemberRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -58,7 +60,9 @@ export const appRouter = trpcRouter({
   mosque: mosqueRouter,
   activityPost: activityPostRouter,
   islamicEvent: islamicEventRouter,
-  waqfProject: waqfProjectRouter, 
+  waqfProject: waqfProjectRouter,
+  deathCharity: deathCharityRouter,
+  deathCharityMember: deathCharityMemberRouter,
 });
 
 export type AppRouter = typeof appRouter;

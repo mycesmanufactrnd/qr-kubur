@@ -17,6 +17,18 @@ export const PERMISSIONS = {
   HERITAGES_CREATE: 'heritages_create',
   HERITAGES_EDIT: 'heritages_edit',
   HERITAGES_DELETE: 'heritages_delete',
+
+  // Mosques
+  MOSQUES_VIEW: 'mosques_view',
+  MOSQUES_CREATE: 'mosques_create',
+  MOSQUES_EDIT: 'mosques_edit',
+  MOSQUES_DELETE: 'mosques_delete',
+
+  // Death Charity
+  DEATH_CHARITY_VIEW: 'death_charity_view',
+  DEATH_CHARITY_CREATE: 'death_charity_create',
+  DEATH_CHARITY_EDIT: 'death_charity_edit',
+  DEATH_CHARITY_DELETE: 'death_charity_delete',
   
   // Dead Persons
   DEAD_PERSONS_VIEW: 'dead_persons_view',
@@ -111,6 +123,24 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.HERITAGES_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.HERITAGES_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.HERITAGES_DELETE, label: 'Padam' },
+    ]
+  },
+  mosques: {
+    label: 'Mosques',
+    permissions: [
+      { slug: PERMISSIONS.MOSQUES_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.MOSQUES_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.MOSQUES_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.MOSQUES_DELETE, label: 'Padam' },
+    ]
+  },
+  death_charity: {
+    label: 'Death Charity',
+    permissions: [
+      { slug: PERMISSIONS.DEATH_CHARITY_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.DEATH_CHARITY_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: 'Padam' },
     ]
   },
   graves: {
