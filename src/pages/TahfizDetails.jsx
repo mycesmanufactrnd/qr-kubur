@@ -2,12 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  MapPin, Phone, Mail, Globe, Navigation, Heart, 
-  BookOpen, ArrowLeft, Clock, DollarSign, Users,
-  FileText, ExternalLink,
-  Share2
-} from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, Navigation, Heart, BookOpen, ArrowLeft, Clock, DollarSign, Users,FileText, ExternalLink,Share2} from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
@@ -29,7 +24,8 @@ export default function TahfizDetails() {
   const tahfizId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
 
   const { data: tahfiz, isLoading: isTahfizLoading, isError: isTahfizError } = useGetTahfizById(tahfizId);
-  const { data: tahfizPosts, isLoading: isPostsLoading, isError: isPostsError } = useGetTahfizPosts(tahfizId);
+
+  const { data: tahfizPosts = [], isLoading: isPostsLoading, isError: isPostsError } = useGetTahfizPosts(tahfizId);
   
   const { data: tahlilCount, isLoading: isRequestLoading } =
     trpc.tahlilRequest.countRequestByTahfizId.useQuery(
@@ -273,7 +269,7 @@ export default function TahfizDetails() {
               <CardContent className="p-6 space-y-5">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-slate-800">
-                    🕌 Tahlil Requests
+                    ### Tahlil Requests
                   </h3>
                   <p className="text-sm text-slate-500">
                     Current request status

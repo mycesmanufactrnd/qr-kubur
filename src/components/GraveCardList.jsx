@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, ExternalLink, Hammer, ImageIcon } from 'lucide-react';
+import { MapPin, Navigation, ExternalLink, Hammer, ImageIcon, Heart } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 const STATUS_CONFIG = {
   active: {
@@ -26,7 +26,39 @@ const STATUS_CONFIG = {
   }
 };
 
-export default function GraveCardList({ grave }) {
+export default function GraveCardList({ grave, onFavoriteChange }) {
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('favoritedgrave') || '[]');
+    const isAlreadyFavorited = favorites.some(fav => fav.id === grave.id);
+    setIsFavorited(isAlreadyFavorited);
+  }, [grave.id]);
+
+  const toggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const favorites = JSON.parse(localStorage.getItem('favoritedgrave') || '[]');
+    
+    if (isFavorited) {
+      const updatedFavorites = favorites.filter(fav => fav.id !== grave.id);
+      localStorage.setItem('favoritedgrave', JSON.stringify(updatedFavorites));
+      setIsFavorited(false);
+    } else {
+      const favGrave = {
+        id: grave.id,
+        name: grave.name,
+      };
+      
+      favorites.push(favGrave);
+      localStorage.setItem('favoritedgrave', JSON.stringify(favorites));
+      setIsFavorited(true);
+    }
+
+    if (onFavoriteChange) onFavoriteChange();
+  };
+
   const imageUrl = useMemo(() => {
     if (!grave.photourl) return null;
     if (grave.photourl.startsWith('http')) return grave.photourl;
@@ -54,15 +86,30 @@ export default function GraveCardList({ grave }) {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
-        {grave.distance && (
-          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
-            <span className="text-sm font-semibold text-emerald-700 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" />
-              {showEarthDistance(grave.distance)}
-            </span>
-          </div>
-        )}
+
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {grave.distance && (
+            <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+              <span className="text-sm font-semibold text-emerald-700 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                {showEarthDistance(grave.distance)}
+              </span>
+            </div>
+          )}
+
+          <Button
+            onClick={toggleFavorite}
+            variant="ghost"
+            size="icon"
+            className="bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg rounded-full h-9 w-9"
+          >
+            <Heart
+              className={`w-5 h-5 transition-colors ${
+                isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              }`}
+            />
+          </Button>
+        </div>
         
         <div className="absolute bottom-3 left-4 right-4">
           <h3 className="text-xl font-bold text-white mb-1 line-clamp-1 uppercase tracking-tight">
@@ -76,7 +123,6 @@ export default function GraveCardList({ grave }) {
       </div>
       
       <CardContent className="p-4 space-y-4">
-        {/* Status Badges Section */}
         <div className="flex flex-wrap gap-1.5">
           <Badge 
             variant="secondary" 

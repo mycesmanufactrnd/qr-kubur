@@ -12,8 +12,11 @@ import FoundDataLength from '@/components/FoundDataLength';
 import ShowNearLocation from '@/components/ShowNearLocation';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import TahfizCardList from '@/components/TahfizCardList'; 
+import { useLocation } from 'react-router-dom';
 
 export default function SearchTahfiz() {
+  const location = useLocation();
+  const defaultFilter = location.state || {};
   const [displayedCount, setDisplayedCount] = useState(10);
   const {
     userLocation,
@@ -21,13 +24,33 @@ export default function SearchTahfiz() {
     userState: currentUserLocationState 
   } = useLocationContext();
 
-  const [filters, setFilters] = useState(null);
+  const [favoriteVersion, setFavoriteVersion] = useState(0);
+  
+  const favoritedTahfizIds = useMemo(() => {
+    const favs = JSON.parse(localStorage.getItem('favoritedtahfiz') || '[]');
+    return favs.map(f => f.id);
+  }, [favoriteVersion]);
+
+  const [filters, setFilters] = useState(() => {
+    if (defaultFilter.isFavorited && favoritedTahfizIds.length > 0) {
+      return { ids: favoritedTahfizIds };
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (locationDenied) {
       showWarning(translate('Location not available'));
     }
   }, [locationDenied]);
+
+  useEffect(() => {
+    if (defaultFilter.isFavorited) {
+      const updatedFavorites = JSON.parse(localStorage.getItem('favoritedtahfiz') || '[]');
+      const updatedIds = updatedFavorites.map(f => f.id);
+      setFilters(prev => ({ ...prev, ids: updatedIds }));
+    }
+  }, [favoriteVersion]);
 
   const finalState = useMemo(() => {
     if (filters === null) return currentUserLocationState;
@@ -40,9 +63,20 @@ export default function SearchTahfiz() {
 
   const { data: tahfizList, isLoading } = useGetTahfizCoordinates(
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
-    finalState, 
-    finalSearch
+    filters?.ids ? null : finalState, 
+    filters?.ids ? null : finalSearch,
+    filters?.ids || null 
   );
+
+  if (defaultFilter.isFavorited && favoritedTahfizIds.length === 0) {
+    return (
+      <div className="space-y-3 pb-6 px-1">
+        <BackNavigation title={translate('Search Tahfiz')} />
+        <FoundDataLength dataList={[]} data="Tahfiz" />
+        <NoDataCardComponent isPage title={translate('No Favorited Tahfiz Found')} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 pb-6 px-1">
@@ -63,12 +97,12 @@ export default function SearchTahfiz() {
             const cleanedFilters = Object.fromEntries(
               Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== null)
             );
-            if (Object.keys(cleanedFilters).length === 0) {
-              setFilters(null);
-            } else {
-              setFilters(cleanedFilters);
-            }
+            const mergedFilters = {
+              ...cleanedFilters,
+              ...(defaultFilter.isFavorited ? { ids: favoritedTahfizIds } : {})
+            };
 
+            setFilters(Object.keys(mergedFilters).length === 0 ? null : mergedFilters);
             setDisplayedCount(10);
           }}
         />
@@ -88,7 +122,11 @@ export default function SearchTahfiz() {
       ) : (
         <div className="space-y-4">
           {tahfizList.slice(0, displayedCount).map((tahfiz) => (
-            <TahfizCardList key={tahfiz.id} tahfiz={tahfiz} />
+            <TahfizCardList 
+              key={tahfiz.id} 
+              tahfiz={tahfiz} 
+              onFavoriteChange={() => setFavoriteVersion(prev => prev + 1)}
+            />
           ))}
           {displayedCount < tahfizList.length && (
             <div className="flex justify-center pt-4">

@@ -73,9 +73,6 @@ export default function ManageGraves() {
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
   const [qrGrave, setQRGrave] = useState({});
-  const [uploading, setUploading] = useState(false);
-
-  const photourl = watch('photourl');
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('graves');
 
@@ -111,11 +108,16 @@ export default function ManageGraves() {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       const res = await fetch('/api/upload/bucket-grave', { method: 'POST', body: formDataUpload });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
       const data = await res.json();
       setValue('photourl', data.file_url);
       showSuccess(translate('Photo uploaded'));
     } catch (err) {
+      console.error(err);
       showError(translate('Failed to upload photo'));
     } finally {
       setUploading(false);
@@ -153,29 +155,6 @@ export default function ManageGraves() {
     });
     setIsDialogOpen(true);
   };
-
-    const handleFileUpload = async (file) => {
-      setUploading(true);
-      try {
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-  
-        const res = await fetch('/api/upload/bucket-grave', { method: 'POST', body: formDataUpload });
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          showError(errorData.error || 'Failed to upload photo');
-          return;
-        }
-        const data = await res.json();
-        setValue('photourl', data.file_url);
-        showSuccess('Photo uploaded');
-      } catch (err) {
-        console.error(err);
-        showError('Failed to upload photo');
-      } finally {
-        setUploading(false);
-      }
-    };
 
   const onSubmit = async (formData) => {
     const submitData = {
@@ -384,7 +363,6 @@ export default function ManageGraves() {
               />
             </div>
 
-            {/* EXACT TAHFIZ STYLE PHOTO UPLOAD */}
             <div className="space-y-2">
               <Label>{translate('Photo')}</Label>
               <Input 

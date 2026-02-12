@@ -127,7 +127,7 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
             </Button>
           </Link>
           <div className="flex gap-2">
-            <DonationButton recipientId={mosque.organisation.id} recipientType={'organisation'} state={mosque.state}/>
+            <DonationButton recipientId={mosque.organisation?.id} recipientType={'organisation'} state={mosque.state}/>
             <Button 
               onClick={(e) => {
                   e.stopPropagation();
