@@ -13,7 +13,12 @@ import {
   Video,
   MessageCircle,
   ChevronRight,
-  Newspaper
+  Newspaper,
+  List,
+  BookMarked,
+  NotebookTabs,
+  Clock,
+  BookHeart
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -110,6 +115,38 @@ export default function UserDashboard2() {
                 page="SolatJenazah"
                 iconColor="text-red-600"
                 iconBg="bg-red-50"
+              />
+              
+              <ListItem
+                icon={BookMarked}
+                title="Asmaul Husna"
+                page="AsmaulHusna"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
+              />
+
+              <ListItem
+                icon={NotebookTabs}
+                title="Tasbih"
+                page="Tasbih"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
+              />
+
+              <ListItem
+                icon={Clock}
+                title="Prayer Times"
+                page="PrayerTimes"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
+              />
+
+              <ListItem
+                icon={BookHeart}
+                title="Rukun Islam"
+                page="RukunIslam"
+                iconColor="text-teal-600"
+                iconBg="bg-teal-50"
               />
             </div>
           </div>
