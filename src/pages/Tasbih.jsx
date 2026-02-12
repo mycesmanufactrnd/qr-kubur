@@ -32,7 +32,7 @@ export default function Tasbih() {
   const [targetGoal, setTargetGoal] = useState(33);
   const [showGoalMenu, setShowGoalMenu] = useState(false);
   
-  
+  const [showZikirMenu, setShowZikirMenu] = useState(false);
   const [count, setCount] = useState(() => {
     const saved = localStorage.getItem('tasbihCount');
     return saved ? parseInt(saved, 10) : 0;
@@ -258,20 +258,20 @@ export default function Tasbih() {
 
        
         <div className="mt-8 flex items-center justify-center gap-2 w-full">
-          
           {mode === 'guided' ? (
             <>
-          
+             
               <div className="relative">
                 <button 
-                  onClick={() => setShowGoalMenu(!showGoalMenu)}
+                  onClick={() => {
+                    setShowGoalMenu(!showGoalMenu);
+                    setShowZikirMenu(false);
+                  }}
                   className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 transition-all active:scale-95"
                 >
                   <span className="text-xs font-bold text-gray-500 uppercase">Goal:</span>
                   <span className="text-sm font-black text-teal-600">{targetGoal}</span>
                 </button>
-
-              
                 {showGoalMenu && (
                   <div className="absolute bottom-full mb-2 left-0 bg-white dark:bg-gray-800 border-2 border-teal-100 dark:border-teal-900 rounded-xl shadow-2xl z-50 overflow-hidden min-w-[100px]">
                     {[33, 66, 99, 100].map((num) => (
@@ -282,9 +282,7 @@ export default function Tasbih() {
                           setShowGoalMenu(false);
                         }}
                         className={`block w-full px-6 py-3 text-sm font-bold transition-colors border-b last:border-none ${
-                          targetGoal === num 
-                            ? 'bg-teal-500 text-white' 
-                            : 'text-gray-700 dark:text-gray-200 hover:bg-teal-50 dark:hover:bg-teal-900/30'
+                          targetGoal === num ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-teal-50'
                         }`}
                       >
                         {num}
@@ -294,7 +292,7 @@ export default function Tasbih() {
                 )}
               </div>
 
-            
+             
               <Button
                 onClick={handleReset}
                 variant="outline"
@@ -304,7 +302,47 @@ export default function Tasbih() {
                 {t.reset}
               </Button>
 
-            
+              <div className="relative">
+                <button 
+                  onClick={() => {
+                    setShowZikirMenu(!showZikirMenu);
+                    setShowGoalMenu(false);
+                  }}
+                  className="flex flex-col items-center gap-0.5 px-4 py-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 transition-all active:scale-95 min-w-[100px]"
+                >
+        
+                  <span className="text-[10px] font-bold text-gray-500 uppercase leading-none">
+                    Zikir:
+                  </span>
+
+                  <span className="text-sm font-black text-teal-600 truncate max-w-[80px]">
+                    {currentStage.transliteration}
+                  </span>
+                </button>
+
+             
+                {showZikirMenu && (
+                  <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 border-2 border-teal-100 dark:border-teal-900 rounded-xl shadow-2xl z-50 overflow-hidden min-w-[150px]">
+                    {GUIDED_STAGES.map((stage, index) => (
+                      <button
+                        key={stage.id}
+                        onClick={() => {
+                          setStageIndex(index);
+                          setGuidedCount(0);
+                          setShowZikirMenu(false);
+                        }}
+                        className={`block w-full px-4 py-3 text-left text-sm font-bold transition-colors border-b last:border-none ${
+                          stageIndex === index ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-200 hover:bg-teal-50'
+                        }`}
+                      >
+                        {stage.transliteration}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+   
               <button 
                 onClick={speakZikir}
                 className="p-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 text-gray-700 dark:text-teal-400 transition-all active:scale-90"
@@ -313,7 +351,7 @@ export default function Tasbih() {
               </button>
             </>
           ) : (
-         
+    
             <Button
               onClick={handleReset}
               variant="outline"
