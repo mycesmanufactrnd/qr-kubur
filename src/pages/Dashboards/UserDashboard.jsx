@@ -133,8 +133,8 @@ export default function UserDashboard2() {
                 icon={Clock}
                 title="Prayer Times"
                 page="PrayerTimes"
-                iconColor="text-teal-600"
-                iconBg="bg-teal-50"
+                iconColor="text-fuchsia-600"
+                iconBg="bg-fuchsia-50"
               />
               <ListItem
                 icon={BookHeart}
