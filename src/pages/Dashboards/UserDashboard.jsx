@@ -115,15 +115,13 @@ export default function UserDashboard2() {
                 iconColor="text-red-600"
                 iconBg="bg-red-50"
               />
-              
               <ListItem
                 icon={BookMarked}
                 title="Asmaul Husna"
                 page="AsmaulHusna"
-                iconColor="text-teal-600"
-                iconBg="bg-teal-50"
+                iconColor="text-yellow-600"
+                iconBg="bg-yellow-50"
               />
-
               <ListItem
                 icon={NotebookTabs}
                 title="Tasbih"
@@ -131,7 +129,6 @@ export default function UserDashboard2() {
                 iconColor="text-teal-600"
                 iconBg="bg-teal-50"
               />
-
               <ListItem
                 icon={Clock}
                 title="Prayer Times"
@@ -139,13 +136,12 @@ export default function UserDashboard2() {
                 iconColor="text-teal-600"
                 iconBg="bg-teal-50"
               />
-
               <ListItem
                 icon={BookHeart}
                 title="Rukun Islam"
                 page="RukunIslam"
-                iconColor="text-teal-600"
-                iconBg="bg-teal-50"
+                iconColor="text-pink-600"
+                iconBg="bg-pink-50"
               />
             </div>
           </div>

@@ -28,9 +28,11 @@ export default function ManageDeathCharityLedger() {
   const currentYear = new Date().getFullYear();
   const [selectedDeathCharity, setSelectedDeathCharity] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [yearsToShow, setYearsToShow] = useState(5);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
+
+  const [startYear, setStartYear] = useState(currentYear);
+  const [endYear, setEndYear] = useState(currentYear + 4);
 
   const { data: deathCharityList = [] } = useGetDeathCharityByOrganisation();
 
@@ -73,11 +75,27 @@ export default function ManageDeathCharityLedger() {
 
   const columns = useMemo(() => {
     const years = [];
-    for (let i = 0; i < yearsToShow; i++) {
-      years.push(currentYear + i);
+    for (let y = startYear; y <= endYear; y++) {
+      years.push(y);
     }
     return years;
-  }, [yearsToShow, currentYear]);
+  }, [startYear, endYear]);
+
+  useEffect(() => {
+    if (startYear > endYear) {
+      setEndYear(startYear);
+    }
+  }, [startYear, endYear]);
+
+  const chunkColumns = (columns, size) => {
+    const chunks = [];
+    for (let i = 0; i < columns.length; i += size) {
+      chunks.push(columns.slice(i, i + size));
+    }
+    return chunks;
+  };
+
+  const columnRows = chunkColumns(columns, 5);
 
   const paymentsByPeriod = useMemo(() => {
     const grouped = {};
@@ -100,10 +118,9 @@ export default function ManageDeathCharityLedger() {
 
   const stats = useMemo(() => {
     const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-    const yearlyPayments = payments.filter(p => p.paymenttype === 'yearly').length;
     const registrationPayments = payments.filter(p => p.paymenttype === 'registration').length;
     
-    return { totalPaid, yearlyPayments, registrationPayments, totalPayments: payments.length };
+    return { totalPaid, registrationPayments, totalPayments: payments.length };
   }, [payments]);
 
   const handleCellClick = (period) => {
@@ -237,7 +254,7 @@ export default function ManageDeathCharityLedger() {
             </div>
 
             {selectedMember && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-xs text-blue-600 mb-1">Total Paid</p>
                   <p className="text-lg font-bold text-blue-700">RM {stats.totalPaid.toFixed(2)}</p>
@@ -245,10 +262,6 @@ export default function ManageDeathCharityLedger() {
                 <div className="bg-emerald-50 rounded-lg p-3">
                   <p className="text-xs text-emerald-600 mb-1">Total Payments</p>
                   <p className="text-lg font-bold text-emerald-700">{stats.totalPayments}</p>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-3">
-                  <p className="text-xs text-purple-600 mb-1">Yearly</p>
-                  <p className="text-lg font-bold text-purple-700">{stats.yearlyPayments}</p>
                 </div>
                 <div className="bg-pink-50 rounded-lg p-3">
                   <p className="text-xs text-pink-600 mb-1">Registration</p>
@@ -267,95 +280,115 @@ export default function ManageDeathCharityLedger() {
                   <div className="text-sm font-medium text-slate-700">
                     Yearly Payment Ledger
                   </div>
-
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-600">Show years:</span>
-                    <Select value={yearsToShow.toString()} onValueChange={(v) => setYearsToShow(parseInt(v))}>
-                      <SelectTrigger className="w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
-                          <SelectItem key={num} value={num.toString()}>
-                            {num} {num === 1 ? 'year' : 'years'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Start Year</label>
+                        <Select value={startYear.toString()} onValueChange={v => setStartYear(Number(v))}>
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 20 }, (_, i) => currentYear - 10 + i).map(year => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">End Year</label>
+                        <Select value={endYear.toString()} onValueChange={v => setEndYear(Number(v))}>
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 20 }, (_, i) => currentYear + i).map(year => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Ledger Table */}
             <Card className="border-0 shadow-lg overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Payment Ledger</span>
+                  <span>Payment Ledger</span>                  
                   <Button onClick={() => setShowPaymentDialog(true)} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Payment
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 border-b">
-                        <th className="sticky left-0 bg-slate-50 px-4 py-3 text-left text-xs font-semibold text-slate-700 border-r">
-                          Period
-                        </th>
-                        {columns.map((col, idx) => (
-                          <th key={idx} className="px-4 py-3 text-center text-xs font-semibold text-slate-700 min-w-[150px]">
-                            {col}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="sticky left-0 bg-white px-4 py-3 text-sm font-medium text-slate-700 border-r">
-                          Payments
-                        </td>
-                        {columns.map((col, idx) => {
-                          const periodPayments = paymentsByPeriod[col] || [];
-                          const totalAmount = periodPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-
-                          return (
-                            <td 
-                              key={idx} 
-                              className="px-4 py-3 border-l cursor-pointer hover:bg-slate-50 transition-colors"
-                              onClick={() => handleCellClick(col)}
+              <CardContent className="p-0">                
+                <div className="space-y-4 p-4">
+                  {columnRows.map((yearRow, rowIndex) => (
+                    <table
+                      key={rowIndex}
+                      className="w-full border border-slate-200 border-collapse mb-4 shadow-sm"
+                    >
+                      <thead>
+                        <tr className="bg-slate-50 border-b">
+                          {yearRow.map((year, idx) => (
+                            <th
+                              key={idx}
+                              className="px-4 py-2 text-center text-xs font-semibold text-slate-700 border-l"
                             >
-                              {periodPayments.length > 0 ? (
-                                <div className="text-center">
-                                  <p className="text-lg font-bold text-emerald-600">
-                                    RM {totalAmount.toFixed(2)}
-                                  </p>
-                                  <div className="flex flex-wrap gap-1 justify-center mt-1">
-                                    {periodPayments.map((payment, i) => (
-                                      <Badge key={i} variant="outline" className="text-xs">
-                                        {payment.paymentmethod}
-                                      </Badge>
-                                    ))}
+                              {year}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          {yearRow.map((year, idx) => {
+                            const periodPayments = paymentsByPeriod[year] || [];
+                            const totalAmount = periodPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+                            return (
+                              <td
+                                key={idx}
+                                className="px-4 py-3 border-l cursor-pointer hover:bg-slate-50 transition-colors"
+                                onClick={() => handleCellClick(year)}
+                              >
+                                {periodPayments.length > 0 ? (
+                                  <div className="text-center">
+                                    <p className="text-lg font-bold text-emerald-600">
+                                      RM {totalAmount.toFixed(2)}
+                                    </p>
+                                    <div className="flex flex-wrap gap-1 justify-center mt-1">
+                                      {periodPayments.map((payment, i) => (
+                                        <Badge key={i} variant="outline" className="text-xs">
+                                          {payment.paymentmethod}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                      {periodPayments.length} payment{periodPayments.length > 1 ? 's' : ''}
+                                    </p>
                                   </div>
-                                  <p className="text-xs text-slate-500 mt-1">
-                                    {periodPayments.length} payment{periodPayments.length > 1 ? 's' : ''}
-                                  </p>
-                                </div>
-                              ) : (
-                                <div className="text-center text-slate-300">
-                                  <Plus className="w-6 h-6 mx-auto mb-1" />
-                                  <p className="text-xs">Add</p>
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    </tbody>
-                  </table>
+                                ) : (
+                                  <div className="text-center text-slate-300">
+                                    <Plus className="w-6 h-6 mx-auto mb-1" />
+                                    <p className="text-xs">Add</p>
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      </tbody>
+                    </table>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -376,17 +409,19 @@ export default function ManageDeathCharityLedger() {
       </div>
 
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Payment</DialogTitle>
           </DialogHeader>
           <PaymentForm
             memberId={selectedMember?.id}
+            payments={payments}
             onSubmit={handleCreatePayment}
             onCancel={() => {
               setShowPaymentDialog(false);
               setSelectedCell(null);
             }}
+            selectedYear={selectedCell}
           />
         </DialogContent>
       </Dialog>
