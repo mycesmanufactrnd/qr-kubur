@@ -2,11 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  MapPin, Phone, Mail, Globe, 
-  ArrowLeft, Clock, Landmark,
-  ExternalLink, Share2, Info, Users,
-  BookOpen, FileText
+import { MapPin, Phone, Mail, Globe, ArrowLeft, Clock, Landmark,ExternalLink, Share2, Info, Users,BookOpen, FileText
 } from 'lucide-react';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
@@ -32,6 +28,14 @@ export default function MosqueDetailsPage() {
     tahfizId: null,
   });
 
+  if (isMosqueLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
   if (isMosqueError || !mosque) {
     return <NoDataCardComponent isPage={true} description="Mosque Not Found" />;
   }
@@ -42,6 +46,7 @@ export default function MosqueDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-12">
+      {/* Header / Hero Section */}
       <div className="relative h-72 md:h-80 overflow-hidden">
         {imageSrc ? (
           <img src={imageSrc} alt={mosque.name} className="w-full h-full object-cover" />
@@ -87,7 +92,7 @@ export default function MosqueDetailsPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-wrap gap-3 mb-8 -mt-12 relative z-10">
           <DirectionButton latitude={mosque.latitude} longitude={mosque.longitude}/>      
-          <DonationButton recipientId={mosque.organisation.id} recipientType={'organisation'} state={mosque.organisation.state}/>          
+          <DonationButton recipientId={mosque.organisation?.id} recipientType={'organisation'} state={mosque.organisation?.state}/>        
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -136,6 +141,7 @@ export default function MosqueDetailsPage() {
             )}
           </div>
 
+          {/* Sidebar / Contact */}
           <div className="space-y-6">
             <Card className="border-0 shadow-md">
               <CardHeader>

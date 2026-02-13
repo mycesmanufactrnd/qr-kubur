@@ -2,14 +2,49 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, ExternalLink, Phone } from 'lucide-react';
+import { MapPin, Navigation, ExternalLink, Phone, Heart, Landmark } from 'lucide-react'; 
 import { createPageUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 import { getServiceLabel } from '@/utils/enums';
+import { useState, useEffect } from 'react'; 
 import DonationButton from './DonationButton';
 
-export default function TahfizCardList({ tahfiz }) {
+export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
+  if (!tahfiz) return null;
+
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('favoritedtahfiz') || '[]');
+    const isAlreadyFavorited = favorites.some(fav => fav.id === tahfiz.id);
+    setIsFavorited(isAlreadyFavorited);
+  }, [tahfiz.id]);
+
+  const toggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const favorites = JSON.parse(localStorage.getItem('favoritedtahfiz') || '[]');
+    
+    if (isFavorited) {
+      const updatedFavorites = favorites.filter(fav => fav.id !== tahfiz.id);
+      localStorage.setItem('favoritedtahfiz', JSON.stringify(updatedFavorites));
+      setIsFavorited(false);
+    } else {
+      const favTahfiz = {
+        id: tahfiz.id,
+        name: tahfiz.name,
+      };
+      
+      favorites.push(favTahfiz);
+      localStorage.setItem('favoritedtahfiz', JSON.stringify(favorites));
+      setIsFavorited(true);
+    }
+
+    if (onFavoriteChange) onFavoriteChange();
+  };
+
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
       <div className="relative h-40 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
@@ -21,18 +56,34 @@ export default function TahfizCardList({ tahfiz }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
+             <Landmark className="w-12 h-12 text-white/20" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
-        {tahfiz.distance && (
-          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
-            <span className="text-sm font-semibold text-emerald-700 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" />
-              {showEarthDistance(tahfiz.distance)}
-            </span>
-          </div>
-        )}
+
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {tahfiz.distance && (
+            <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+              <span className="text-sm font-semibold text-emerald-700 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                {showEarthDistance(tahfiz.distance)}
+              </span>
+            </div>
+          )}
+
+          <Button
+            onClick={toggleFavorite}
+            variant="ghost"
+            size="icon"
+            className="bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg rounded-full h-9 w-9"
+          >
+            <Heart
+              className={`w-5 h-5 transition-colors ${
+                isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              }`}
+            />
+          </Button>
+        </div>
         
         <div className="absolute bottom-3 left-4 right-4">
           <h3 className="text-xl font-bold text-white mb-1 line-clamp-1">{tahfiz.name}</h3>
@@ -47,10 +98,10 @@ export default function TahfizCardList({ tahfiz }) {
         {tahfiz.serviceoffered && tahfiz.serviceoffered.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {tahfiz.serviceoffered.slice(0, 3).map((service, idx) => (
-              <Badge                 
-              key={idx} 
-              variant="secondary" 
-              className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium"
+              <Badge                   
+                key={idx} 
+                variant="secondary" 
+                className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium"
               >
                 {getServiceLabel(service)}
               </Badge>
@@ -77,7 +128,7 @@ export default function TahfizCardList({ tahfiz }) {
               className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              View Details
+              {translate('Details') || 'View Details'}
             </Button>
           </Link>
           <div className="flex gap-2">
@@ -91,7 +142,6 @@ export default function TahfizCardList({ tahfiz }) {
             >
               <Navigation className="w-4 h-4" />
             </Button>
-
           </div>
         </div>
       </CardContent>

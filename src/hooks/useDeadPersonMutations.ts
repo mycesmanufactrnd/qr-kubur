@@ -30,11 +30,24 @@ export function useGetDeadPersonPaginated(params: useGetDeadPersonPaginatedParam
   };
 }
 
+export function useGetDeadPersonByGraveId(params: { graveId: number }) {
+  const { data, isLoading, refetch, error } = 
+    trpc.deadperson.getDeadPersonByGraveId.useQuery(params);
+
+  return { 
+    data, 
+    isLoading, 
+    refetch,
+    error
+  };
+}
+
 export function useDeadPersonMutations() {
   const trpcUtils = trpc.useUtils();
 
   const invalidateAll = () => {
     trpcUtils.deadperson.getPaginated.invalidate();
+    trpcUtils.deadperson.getDeadPersonByGraveId.invalidate();
   };
 
   const createDeadPerson = trpc.deadperson.create.useMutation({

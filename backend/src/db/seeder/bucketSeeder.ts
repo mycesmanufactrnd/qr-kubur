@@ -49,17 +49,21 @@ export const runBucketSeeder = async () => {
 
     ('bucket-tahfiz-tahlil', 'Tahfiz Tahlil Request Config', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
-    107374182400, true)
+    107374182400, true),
 
     ('heritage-site', 'Heritage Site', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
-    107374182400, true)
+    107374182400, true),
 
     ('activity-post', 'Activity Post', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
-    107374182400, true)
+    107374182400, true),
 
     ('waqf-project', 'Waqf Project', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true),
+
+    ('dead-person', 'Dead Person', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true)
 

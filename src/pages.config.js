@@ -27,6 +27,10 @@ import WaqfDetail from '@/pages/WaqfDetail.jsx';
 import Ollama from '@/pages/Ollama.jsx';
 import MosqueDetails from '@/pages/MosqueDetails.jsx';
 import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
+import AsmaulHusna from '@/pages/Asmaulhusna.jsx';
+import Tasbih from '@/pages/Tasbih.jsx';
+import PrayerTimes from '@/pages/PrayerTimes.jsx';
+import RukunIslam from '@/pages/RukunIslam.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -118,6 +122,10 @@ export const PAGES = {
     "WaqfDetail": WaqfDetail,
     "MosqueDetailsPage": MosqueDetails,
     "JenazahEmergency": JenazahEmergency,
+    "Asmaulhusna": AsmaulHusna,
+    "Tasbih": Tasbih,
+    "PrayerTimes": PrayerTimes,
+    "RukunIslam": RukunIslam,
     
     // Dashboard
     "AdminDashboard": AdminDashboard,
