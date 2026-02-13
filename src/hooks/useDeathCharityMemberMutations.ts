@@ -60,17 +60,36 @@ export function useDeathCharityMemberMutations() {
     onError: (err) => showApiError(err),
   });
 
-  return { createDeathCharityMember, updateDeathCharityMember, deleteDeathCharityMember }
+  const upsertDeathCharityDependents = trpc.deathCharityMember.upsertDependents.useMutation({
+    onSuccess: () => {
+      showSuccess(titleMessage, 'save');
+      invalidateAll();
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  return { 
+    createDeathCharityMember, 
+    updateDeathCharityMember, 
+    deleteDeathCharityMember, 
+    upsertDeathCharityDependents,
+  }
 }
 
+export function useGetMemberByDeathCharity(deathCharityId) {
+  const { isSuperAdmin } = useAdminAccess();
 
-export function useGetDeathCharityByOrganisation() {
-  const { currentUser, isSuperAdmin } = useAdminAccess();
+  return trpc.deathCharityMember.getMemberByDeathCharity.useQuery(
+    { deathcharityId: Number(deathCharityId), isSuperAdmin: isSuperAdmin }, 
+    { enabled: !!deathCharityId }
+  );
+}
 
-  const organisationId = currentUser?.organisation?.id ?? null;
+export function useGetDependentsByMember(memberId) {
+  const { isSuperAdmin } = useAdminAccess();
 
-  return trpc.deathCharityMember.getDeathCharityByOrganisation.useQuery(
-    { organisationId: Number(organisationId), isSuperAdmin: isSuperAdmin }, 
-    { enabled: !!organisationId || isSuperAdmin }
+  return trpc.deathCharityMember.getDependentsByMember.useQuery(
+    { memberId: Number(memberId), isSuperAdmin: isSuperAdmin }, 
+    { enabled: !!memberId }
   );
 }

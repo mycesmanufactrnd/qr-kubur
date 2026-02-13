@@ -105,8 +105,9 @@ export default function AdminDashboard() {
       label: translate('Total Khairat Payout'),
       value: deathCharityTotalPayout || 0,
       icon: Diamond,
-      page: 'ManageDeathCharity',
+      page: 'ManageDeathCharityClaim',
       loading: isCMCLoading,
+      key: 'money',
   
       cardGradient: 'from-green-50 to-red-50',
       iconGradient: 'from-green-500 to-red-500',
@@ -205,8 +206,13 @@ export default function AdminDashboard() {
                       className={`text-right text-3xl font-bold bg-gradient-to-r 
                       ${stat.textGradient} bg-clip-text text-transparent`}
                     >
-                      {stat.loading ? '—' : stat.value.toLocaleString()}
+                      {stat.loading
+                        ? '—'
+                        : stat.key === 'money'
+                          ? `RM ${stat.value.toLocaleString()}`
+                          : stat.value.toLocaleString()}
                     </p>
+
                   </div>
                 </div>
               </CardContent>

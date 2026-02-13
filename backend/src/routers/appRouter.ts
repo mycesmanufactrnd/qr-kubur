@@ -30,6 +30,8 @@ import { waqfProjectRouter } from "./waqfProjectRouter.ts";
 import { ollamaRouter } from "./ollamaRouter.ts";
 import { deathCharityRouter } from "./deathCharityRouter.ts";
 import { deathCharityMemberRouter } from "./deathCharityMemberRouter.ts";
+import { deathCharityClaimRouter } from "./deathCharityClaimRouter.ts";
+import { deathCharityPaymentRouter } from "./deathCharityPaymentRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -63,6 +65,8 @@ export const appRouter = trpcRouter({
   waqfProject: waqfProjectRouter,
   deathCharity: deathCharityRouter,
   deathCharityMember: deathCharityMemberRouter,
+  deathCharityClaim: deathCharityClaimRouter,
+  deathCharityPayment: deathCharityPaymentRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -50,6 +50,8 @@ import ManageWaqfProject from '@/pages/Management/ManageWaqfProject';
 import ManageMosques from '@/pages/Management/ManageMosques.jsx';
 import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
 import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
+import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
+import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -90,6 +92,8 @@ export const PAGES = {
     "ManageMosques": ManageMosques,
     "ManageDeathCharity": ManageDeathCharity,
     "ManageDeathCharityMember": ManageDeathCharityMember,
+    "ManageDeathCharityClaim": ManageDeathCharityClaim,
+    "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,

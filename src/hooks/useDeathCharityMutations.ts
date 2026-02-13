@@ -17,11 +17,15 @@ export function useGetDeathCharityPaginated({
   filterName,
   filterState,
 }: useGetDeathCharityPaginatedParams) {
-  const { hasAdminAccess } = useAdminAccess();
+  const { currentUser, isSuperAdmin, hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =
     trpc.deathCharity.getPaginated.useQuery(
-      { page, pageSize, filterName, filterState },
+      { 
+        page, pageSize, filterName, filterState,
+        organisationId: ( currentUser && currentUser.organisation ) ? currentUser.organisation.id : null,
+        isSuperAdmin,
+      },
       { enabled: hasAdminAccess }
     );
 
@@ -63,4 +67,15 @@ export function useDeathCharityMutations() {
   });
 
   return { createDeathCharity, updateDeathCharity, deleteDeathCharity }
+}
+
+export function useGetDeathCharityByOrganisation() {
+  const { currentUser, isSuperAdmin } = useAdminAccess();
+
+  const organisationId = currentUser?.organisation?.id ?? null;
+
+  return trpc.deathCharity.getDeathCharityByOrganisation.useQuery(
+    { organisationId: Number(organisationId), isSuperAdmin: isSuperAdmin }, 
+    { enabled: !!organisationId || isSuperAdmin }
+  );
 }

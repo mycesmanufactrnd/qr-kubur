@@ -5,32 +5,44 @@ import { DeathCharity } from "../db/entities.ts";
 import { deathCharitySchema } from "../schemas/deathCharitySchema.ts";
 
 export const deathCharityRouter = router({
-    getPaginated: protectedProcedure
-      .input(z.object({
-        page: z.number().min(1).default(1),
-        pageSize: z.number().min(1).default(10),
-        filterName: z.string().optional(),
-        filterState: z.string().optional(),
-      }))
-      .query(async ({ input }) => {
-        const { page, pageSize, filterName, filterState } = input;
-  
-        const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
-  
-        const query = deathCharityRepo.createQueryBuilder('deathcharity');
+  getPaginated: protectedProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      pageSize: z.number().min(1).default(10),
+      filterName: z.string().optional(),
+      filterState: z.string().optional(),
+      organisationId: z.number().optional().nullable(),
+      isSuperAdmin: z.boolean().default(false),
+    }))
+    .query(async ({ input }) => {
+      const { page, pageSize, filterName, filterState, organisationId, isSuperAdmin } = input;
+
+      const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
+
+      const query = deathCharityRepo.createQueryBuilder('deathcharity');
         query.leftJoinAndSelect('deathcharity.organisation', 'organisation');
-  
-        if (filterName) query.andWhere('deathcharity.name ILIKE :name', { name: `%${filterName}%` });
-        if (filterState && filterState !== 'all') query.andWhere('deathcharity.state = :state', { state: filterState });
-  
-        const [items, total] = await query
-          .orderBy('deathcharity.id', 'DESC')
-          .skip((page - 1) * pageSize)
-          .take(pageSize)
-          .getManyAndCount();
-  
-        return { items, total };
-      }),
+
+      if (!isSuperAdmin) {
+        if (!organisationId) {
+          return { items: [], total: 0 };
+        }
+
+        query.andWhere("organisation.id = :organisationId", {
+          organisationId,
+        });
+      }
+
+      if (filterName) query.andWhere('deathcharity.name ILIKE :name', { name: `%${filterName}%` });
+      if (filterState && filterState !== 'all') query.andWhere('deathcharity.state = :state', { state: filterState });
+
+      const [items, total] = await query
+        .orderBy('deathcharity.id', 'DESC')
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .getManyAndCount();
+
+      return { items, total };
+    }),
 
   create: protectedProcedure
       .input(deathCharitySchema)
@@ -54,5 +66,37 @@ export const deathCharityRouter = router({
     .mutation(async ({ input }) => {
       const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
       return await deathCharityRepo.delete(input);
+    }),
+
+  getDeathCharityByOrganisation: protectedProcedure
+    .input(z.object({
+        organisationId: z.number(),
+        isSuperAdmin: z.boolean().default(false),
+      }))
+    .query(async ({ input }) => {
+      const { organisationId, isSuperAdmin } = input;
+
+      const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
+
+      if (isSuperAdmin) {
+        return await deathCharityRepo.find({
+          select: {
+            id: true,
+            name: true,
+          }
+        });
+      }
+
+      return await deathCharityRepo.find({
+        where: { 
+          organisation: { 
+            id: organisationId 
+          } 
+        },
+        select: {
+          id: true,
+          name: true,
+        }
+      });
     }),
 });

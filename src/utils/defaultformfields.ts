@@ -1,4 +1,4 @@
-import { ActiveInactiveStatus, ProjectStatus, WaqfCategory, WaqfType } from "./enums";
+import { ActiveInactiveStatus, ClaimStatus, ProjectStatus, WaqfCategory, WaqfType } from "./enums";
 
 export const defaultGraveField = {
   name: '',
@@ -192,3 +192,12 @@ export const defaultDeathCharityMemberField = {
   deathcharity: "",
 };
 
+export const defaultDeathCharityClaimField = {
+  deceasedname: "",
+  relationship: "",
+  payoutamount: 0,
+  deathcharity: "",
+  member: "",
+  dependent: "",
+  status: ClaimStatus.PENDING,
+};

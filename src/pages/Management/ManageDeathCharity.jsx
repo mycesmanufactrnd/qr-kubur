@@ -393,15 +393,11 @@ export default function ManageDeathCharity() {
                             name="coversspouse"
                             control={control}
                             label={translate("Covers Spouse")}
-                            required
-                            errors={errors}
                         />
                         <CheckboxForm
                             name="coverschildren"
                             control={control}
                             label={translate("Covers Children")}
-                            required
-                            errors={errors}
                         />
                         </div>
                         <TextInputForm

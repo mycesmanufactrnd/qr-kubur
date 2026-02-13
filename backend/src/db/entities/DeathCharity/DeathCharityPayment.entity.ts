@@ -23,9 +23,18 @@ export class DeathCharityPayment {
 
   @Column("varchar", { length: 255, })
   paymenttype!: string; // registration | monthly | yearly
+  
+  @Column("varchar", { length: 255, })
+  paymentmethod!: string;
 
   @Column("varchar", { nullable: true })
   referenceno?: string;
+  
+  @Column("int", { nullable: true })
+  coversfromyear?: string;
+  
+  @Column("int", { nullable: true })
+  coverstoyear?: string;
 
   @CreateDateColumn({ name: "paidat" })
   paidat!: Date;

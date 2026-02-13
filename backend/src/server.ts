@@ -17,6 +17,8 @@ import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
 import { registerAPIRoutes } from "./api/api.ts";
 import { getBucketConfig } from "./config/bucket.config.ts";
 import { getBillplzConfig } from "./config/billplz.config.ts";
+import { verifyToken } from "./auth.ts";
+import { asyncLocalStorage } from "./helpers/requestContext.ts";
 
 const app = Fastify({
   trustProxy: true,
@@ -53,6 +55,19 @@ app.register(fastifyTRPCPlugin, {
 
 app.get("/", async () => {
   return { message: "tRPC backend is running" };
+});
+
+app.addHook("onRequest", (req, reply, done) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  const user = token ? verifyToken(token) : null;
+
+  asyncLocalStorage.run(
+    { userId: user?.id ? Number(user.id) : null },
+    () => {
+      req.user = user;
+      done();
+    }
+  );
 });
 
 const toyyibpayConfig = getToyyibpayConfig();
