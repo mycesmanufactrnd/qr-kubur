@@ -1,56 +1,54 @@
 import { trpc } from '@/utils/trpc';
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
+
+type useGetOrganisationTypePaginatedParams = {
+  page?: number;
+  pageSize?: number;
+  filterName?: string;
+};
 
 const titleMessage = 'Organisation Type';
 
-export function useGetOrganisationType({ page, pageSize, search, hasAccess }) {
-  const { data, isLoading, refetch } = trpc.organisationType.getTypes.useQuery(
-    {
-      page: page ?? 1,
-      pageSize: pageSize ?? 10,
-      search: search || '',
-    },
-    {
-      enabled: !!hasAccess,
-    }
+export function useGetOrganisationTypePaginated({ 
+  page, 
+  pageSize, 
+  filterName 
+} : useGetOrganisationTypePaginatedParams ) {
+  const { isSuperAdmin } = useAdminAccess();
+
+  const { data, isLoading, refetch, error } = trpc.organisationType.getTypes.useQuery(
+    { page, pageSize, filterName },
+    { enabled: isSuperAdmin }
   );
 
-  return {
-    data: data ?? { items: [], total: 0 },
-    isLoading,
-    refetch,
+  const organisationTypeList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(organisationTypeList.total / (pageSize ?? 10));
+
+  return { organisationTypeList, totalPages, isLoading, refetch, error };
+}
+
+export function useOrganisationTypeMutations() {
+  const trpcUtils = trpc.useUtils();
+
+  const invalidateAll = () => {
+    trpcUtils.organisationType.getTypes.invalidate();
   };
-}
 
-export function useCreateOrganisationType() {
-  const trpcUtils = trpc.useUtils();
-  return trpc.organisationType.createType.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationType.getTypes.invalidate();
-      showSuccess(titleMessage, 'create');
-    },
+  const createOrganisationType = trpc.organisationType.create.useMutation({
+    onSuccess: () => { showSuccess(titleMessage, 'create'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
-}
 
-export function useUpdateOrganisationType() {
-  const trpcUtils = trpc.useUtils();
-  return trpc.organisationType.updateType.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationType.getTypes.invalidate();
-      showSuccess(titleMessage, 'update');
-    },
+  const updateOrganisationType = trpc.organisationType.update.useMutation({
+    onSuccess: () => { showSuccess(titleMessage, 'update'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
-}
 
-export function useDeleteOrganisationType() {
-  const trpcUtils = trpc.useUtils();
-  return trpc.organisationType.deleteType.useMutation({
-    onSuccess: () => {
-      trpcUtils.organisationType.getTypes.invalidate();
-      showSuccess(titleMessage, 'delete');
-    },
+  const deleteOrganisationType = trpc.organisationType.delete.useMutation({
+    onSuccess: () => { showSuccess(titleMessage, 'delete'); invalidateAll(); },
     onError: (err) => showApiError(err),
   });
+
+  return { createOrganisationType, updateOrganisationType, deleteOrganisationType };
 }

@@ -6,7 +6,6 @@ import { MapPin, Plus, Edit, Trash2, Search, X, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
@@ -20,15 +19,14 @@ import { useAdminAccess } from '@/utils/auth';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useGetActivityPostsPaginated, useActivityPostMutations } from '@/hooks/useActivityPostMutations';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { defaultActivityPost } from '@/utils/defaultformfields';
-import { validateFields } from '@/utils/validations';
 import TextInputForm from '@/components/forms/TextInputForm';
 import CheckboxForm from '@/components/forms/CheckboxForm';
+import FileUploadForm from '@/components/forms/FileUploadForm';
+import RichTextEditorForm from '@/components/forms/RichTextEditorForm';
 
 export default function ManageActivityPosts() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin, isMosqueAdmin } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
@@ -37,9 +35,9 @@ export default function ManageActivityPosts() {
   const [tempTitle, setTempTitle] = useState(urlTitle);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState(null);
+  const [editingPost, setEditingPost] = useState({ id: null });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState(null);
+  const [postToDelete, setPostToDelete] = useState({ id: null, title: '' });
   const [uploading, setUploading] = useState(false);
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('posts');
@@ -49,28 +47,22 @@ export default function ManageActivityPosts() {
     pageSize: itemsPerPage,
     filterTitle: urlTitle, 
   });
+
   const { createPost, updatePost, deletePost } = useActivityPostMutations();
 
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultActivityPost,
   });
-
-  const photourl = watch('photourl');
 
   useEffect(() => {
     setTempTitle(urlTitle);
   }, [urlTitle]);
 
-  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : 
-                         isMosqueAdmin ? translate('Mosque Dashboard') : 
-                         translate('Admin Dashboard');
-  
-  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 
-                        isMosqueAdmin ? 'MosqueDashboard' : 
-                        'AdminDashboard';
+  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
+  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
 
   const handleSearch = () => {
-    const params = { page: '1' };
+    const params = { page: '1', title: '' };
     if (tempTitle) params.title = tempTitle;
     setSearchParams(params);
   };
@@ -81,63 +73,61 @@ export default function ManageActivityPosts() {
   };
 
   const openAddDialog = () => {
-    setEditingPost(null);
+    setEditingPost({ id: null });
     reset(defaultActivityPost);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (activityPost) => {
-    setEditingPost(activityPost);
-    reset(activityPost);
+    setEditingPost({ id: activityPost.id ?? null });
+    reset({
+      ...activityPost,
+      tahfiz: activityPost?.tahfiz?.id ?? null,
+      mosque: activityPost?.mosque?.id ?? null,
+    });
     setIsDialogOpen(true);
   };
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (file, bucketName) => {
     setUploading(true);
     try {
       const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
+      formDataUpload.append("file", file);
 
-      const res = await fetch('/api/upload/activity-post', { method: 'POST', body: formDataUpload });
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        showError(errorData.error || 'Failed to upload photo');
-        return;
+        showError(errorData.error || "Failed to upload photo");
+        return null;
       }
+
       const data = await res.json();
-      setValue('photourl', data.file_url);
-      showSuccess('Photo uploaded');
+      showSuccess("Photo uploaded");
+
+      return data.file_url;
     } catch (err) {
       console.error(err);
-      showError('Failed to upload photo');
+      showError("Failed to upload photo");
+      return null;
     } finally {
       setUploading(false);
     }
   };
 
   const onSubmit = async (formData) => {
-    const isValid = validateFields(formData, [
-      { field: 'title', label: 'Title', type: 'text' },
-      { field: 'content', label: 'Content', type: 'text' },
-      { field: 'photourl', label: 'Photo', type: 'text' },
-    ]);
-
-    if (!isValid) return;
-  
     const submitData = {
       ...formData,
-      ...(!isSuperAdmin ? {
-        tahfizcenter: currentUser?.tahfizcenter ? { id: Number(currentUser.tahfizcenter.id) } : null,
-        mosque: currentUser?.mosque ? { id: Number(currentUser.mosque.id) } : null,
-      } : {
-        tahfizcenter: editingPost?.tahfizcenter ? { id: Number(editingPost.tahfizcenter.id) } : null,
-        mosque: editingPost?.mosque ? { id: Number(editingPost.mosque.id) } : null,
-      }),
+      tahfiz: formData?.tahfiz ? { id: Number(formData.tahfiz.id) } : null,
+      mosque: formData?.mosque ? { id: Number(formData.mosque.id) } : null,
     };
 
     try {
-      if (editingPost) {
-        await updatePost.mutateAsync({ id: editingPost.id, data: submitData });
+      if (editingPost && editingPost.id) {
+        await updatePost.mutateAsync({ id: Number(editingPost.id), data: submitData });
       } else {
         await createPost.mutateAsync(submitData);
       }
@@ -148,18 +138,40 @@ export default function ManageActivityPosts() {
   };
 
   const confirmDelete = async () => {
-    if (!postToDelete) return;
+    if (!postToDelete?.id) return;
+
     try {
-      await deletePost.mutateAsync(postToDelete.id);
+      await deletePost.mutateAsync(Number(postToDelete.id));
       setDeleteDialogOpen(false);
-      setPostToDelete(null);
+      setPostToDelete({ id: null, title: '' });
     } catch (error) {
       console.error('Delete failed:', error);
     }
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
-  if (!hasAdminAccess) return <AccessDeniedComponent/>;
+  const getPublisher = (post) => {
+    if (!post) return '';
+
+    const { mosque, tahfiz } = post;
+
+    if (mosque?.name) return mosque.name;
+
+    if (tahfiz?.name) return tahfiz.name;
+
+    return '';
+  };
+
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
 
   if (!canView) {
     return (
@@ -172,8 +184,6 @@ export default function ManageActivityPosts() {
       </div>
     );
   }
-
-  const tableColSpan = 3;
 
   return (
     <div className="space-y-6">
@@ -203,7 +213,6 @@ export default function ManageActivityPosts() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Title')}
                 value={tempTitle}
                 onChange={(e) => setTempTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -228,24 +237,46 @@ export default function ManageActivityPosts() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Title')}</TableHead>
+                <TableHead className="text-center">{translate('Publisher')}</TableHead>
                 <TableHead className="text-center">{translate('Published')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={tableColSpan} />
+                <InlineLoadingComponent isTable colSpan={4} />
               ) : activityPostsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={tableColSpan} />
+                <NoDataTableComponent colSpan={4} />
               ) : (
-                activityPostsList.items.map(site => (
-                  <TableRow key={site.id}>
-                    <TableCell className="font-medium">{site.title}</TableCell>
-                    <TableCell className="text-center">{site.ispublished ? 'Yes' : 'No'}</TableCell>
+                activityPostsList.items.map(post => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell className="text-center">
+                      {getPublisher(post)}
+                    </TableCell>
+                    <TableCell className="text-center">{post.ispublished ? 'Yes' : 'No'}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
-                        {canEdit && <Button variant="ghost" size="sm" onClick={() => openEditDialog(site)}><Edit className="w-4 h-4" /></Button>}
-                        {canDelete && <Button variant="ghost" size="sm" onClick={() => { setPostToDelete(site); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
+                        {canEdit && 
+                          <Button variant="ghost" size="sm" 
+                            onClick={() => openEditDialog(post)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        }
+                        {
+                          canDelete && 
+                          <Button variant="ghost" size="sm" 
+                            onClick={() => { 
+                              setPostToDelete({
+                                id: post && post.id != null ? Number(post.id) : null,
+                                title: post?.title ?? '',
+                              });
+                              setDeleteDialogOpen(true); 
+                            }}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        }
                       </div>
                     </TableCell>
                   </TableRow>
@@ -282,53 +313,34 @@ export default function ManageActivityPosts() {
               label={translate("Title")}
               required
               errors={errors}
-            />         
-            <Controller
+            /> 
+            <RichTextEditorForm
               name="content"
               control={control}
-              render={({ field }) => (
-                <div>
-                  <Label>{translate('Content')} <span className="text-red-500 ml-1">*</span></Label>
-                  <ReactQuill theme="snow" value={field.value} onChange={field.onChange} className="bg-white" />
-                </div>
-              )}
-            />
+              label={translate("Content")}
+              required
+              errors={errors}
+              translate={translate}
+            />        
             <CheckboxForm
               name="ispublished"
               control={control}
               label={translate("Published")}
             />
-            <div className="space-y-2">
-              <Label>{translate('Photo')} <span className="text-red-500 ml-1">*</span></Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    handleFileUpload(file);
-                  }}
-                  disabled={uploading}
-                />
-                {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
-              </div>
-              {photourl && (
-                <div className="mt-2 relative inline-block">
-                   <img 
-                    src={`/api/file/activity-post/${encodeURIComponent(photourl)}`} 
-                    alt={translate('Preview')} 
-                    className="max-h-40 rounded border shadow-sm"
-                   />
-                </div>
-              )}
-            </div>
-
+            <FileUploadForm
+              name="photourl"
+              control={control}
+              label={translate("Photo")}
+              bucketName="activity-post"
+              uploading={uploading}
+              handleFileUpload={handleFileUpload}
+              translate={translate}
+            />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 {translate('Cancel')}
               </Button>
-              <Button type="submit" disabled={createPost.isPending || updatePost.isPending}>
+              <Button type="submit" disabled={isSubmitting || createPost.isPending || updatePost.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {translate('Save')}
               </Button>

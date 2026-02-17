@@ -6,7 +6,7 @@ import { coordinatesQueryOptions } from '@/utils/queryOptions';
 type useGetOrganisationPaginatedParams = {
   page?: number;
   pageSize?: number;
-  search?: string;
+  filterName?: string;
   filterType?: number;
   filterState?: string;
 };
@@ -16,7 +16,7 @@ const titleMessage = 'Organisation';
 export function useGetOrganisationPaginated({
   page,
   pageSize,
-  search,
+  filterName,
   filterType,
   filterState,
 }: useGetOrganisationPaginatedParams) {
@@ -27,24 +27,21 @@ export function useGetOrganisationPaginated({
       {
         page: page ?? 1,
         pageSize: pageSize ?? 10,
-        search: search || '',
+        filterName,
         filterType,
         filterState,
+        organisationId: currentUser?.organisation ? Number(currentUser.organisation.id) : null,
+        isSuperAdmin,
       },
       { 
         enabled: !!hasAdminAccess && !!currentUser, 
       }
     );
 
-  const total = data?.total ?? 0;
+  const organisationsList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(organisationsList.total / (pageSize ?? 10));
 
-  return {
-    organisationsList: { items: data?.items ?? [], total: total },
-    totalPages: Math.ceil(total / (pageSize ?? 10)),
-    isLoading,
-    refetch,
-    error,
-  };
+  return { organisationsList, totalPages, isLoading, refetch, error };
 }
 
 export function useOrganisationMutations() {

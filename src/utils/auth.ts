@@ -86,7 +86,7 @@ export function impersonateUser(user: any) {
 }
 
 export function useAdminAccess() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {

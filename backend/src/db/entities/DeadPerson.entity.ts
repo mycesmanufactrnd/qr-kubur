@@ -11,38 +11,37 @@ export class DeadPerson {
   name!: string;
 
   @Column("varchar", { length: 255, nullable: true })
-  icnumber?: string;
+  icnumber?: string | null;
 
-  @Column({ type: "date", nullable: true })
+  @Column({ type: "date" })
   dateofbirth!: Date;
 
-  @Column({ type: "date", nullable: true })
+  @Column({ type: "date" })
   dateofdeath!: Date;
 
   @Column("varchar", { length: 255, nullable: true })
-  causeofdeath?: string;
+  causeofdeath?: string | null;
   
-  @ManyToOne(() => Grave, (grave) => grave.deadPerson, {
-    nullable: true,
-    onDelete: "SET NULL",
+  @ManyToOne(() => Grave, (grave) => grave.deadPersons, {
+      nullable: true,
+      onDelete: "SET NULL",
   })
-  @JoinColumn()
   grave?: Grave | null;
 
   @Column("varchar", { length: 255, nullable: true })
-  biography?: string;
+  biography?: string | null;
 
   @Column("varchar", { length: 255, nullable: true })
-  photourl?: string;
+  photourl?: string | null;
 
   @Column("double precision", { nullable: true })
-  latitude?: number;
+  latitude?: number | null;
   
   @Column("double precision", { nullable: true })
-  longitude?: number;
+  longitude?: number | null;
 
   @OneToMany(() => Suggestion, (suggestions) => suggestions.deadperson)
-  suggestions!: Suggestion[];
+  suggestions?: Suggestion[] | [];
 
   @CreateDateColumn ({ name: "createdat" })
   createdat!: Date;

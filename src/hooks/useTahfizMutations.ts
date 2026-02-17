@@ -6,45 +6,49 @@ import { coordinatesQueryOptions } from '@/utils/queryOptions';
 type useGetTahfizPaginatedParams = {
   page?: number;
   pageSize?: number;
-  search?: string;
+  filterName?: string;
   filterState?: string;
 };
 
 const TITLE_MESSAGE = 'Tahfiz Center';
 
-export function useGetTahfizById(tahfizId: number) {
-  return trpc.tahfiz.getTahfizById.useQuery(
-    { id: tahfizId }, 
+export function useGetTahfizById(tahfizId: number | null) {
+  const query = trpc.tahfiz.getTahfizById.useQuery(
+    { id: tahfizId as number },
     { enabled: !!tahfizId }
-  );
-}
-
-export function useGetTahfizPosts(tahfizId: number) {
-  return trpc.tahfiz.getTahfizPosts.useQuery(
-    { id: tahfizId }, 
-    { enabled: !!tahfizId }
-  );
-}
-
-export function useGetTahfizPaginated({
-  page = 1,
-  pageSize = 10,
-  search,
-  filterState,
-}: useGetTahfizPaginatedParams) {
-  const { currentUser, hasAdminAccess, isTahfizAdmin, isSuperAdmin, checkRole } = useAdminAccess();
-  const currentUserTahfizCenterId = currentUser?.tahfizcenter?.id ?? undefined;
-
-  const query = trpc.tahfiz.getPaginated.useQuery(
-    { page, pageSize, search, filterState, currentUserTahfiz: currentUserTahfizCenterId, checkRole },
-    { enabled: hasAdminAccess && !!currentUser && (isTahfizAdmin || isSuperAdmin) }
   );
 
   return {
-    tahfizCenterList: { items: query.data?.items ?? [], total: query.data?.total ?? 0 },
-    totalPages: Math.ceil((query.data?.total ?? 0) / pageSize),
     ...query,
+    data: tahfizId ? query.data : null,
   };
+}
+
+export function useGetTahfizPaginated({
+  page,
+  pageSize,
+  filterName,
+  filterState,
+}: useGetTahfizPaginatedParams) {
+  const { currentUser, hasAdminAccess, isTahfizAdmin, isSuperAdmin } = useAdminAccess();
+  const currentUserTahfizCenterId = currentUser?.tahfizcenter ? Number(currentUser.tahfizcenter) : undefined;
+
+  const { data, isLoading, refetch, error } = trpc.tahfiz.getPaginated.useQuery(
+    { 
+      page, 
+      pageSize, 
+      filterName, 
+      filterState, 
+      currentUserTahfizCenterId, 
+      isSuperAdmin 
+    },
+    { enabled: hasAdminAccess && !!currentUser && (isTahfizAdmin || isSuperAdmin) }
+  );
+
+  const tahfizCenterList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(tahfizCenterList.total / (pageSize ?? 10));
+
+  return { tahfizCenterList, totalPages, isLoading, refetch, error };
 }
 
 export function useGetTahfizCoordinates(
@@ -73,17 +77,26 @@ export function useTahfizMutations() {
   };
 
   const createTahfiz = trpc.tahfiz.create.useMutation({
-    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Created successfully'); invalidateAll(); },
+    onSuccess: () => { 
+      showSuccess(TITLE_MESSAGE, 'create'); 
+      invalidateAll(); 
+    },
     onError: (err) => showApiError(err),
   });
 
   const updateTahfiz = trpc.tahfiz.update.useMutation({
-    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Updated successfully'); invalidateAll(); },
+    onSuccess: () => { 
+      showSuccess(TITLE_MESSAGE, 'update'); 
+      invalidateAll(); 
+    },
     onError: (err) => showApiError(err),
   });
 
   const deleteTahfiz = trpc.tahfiz.delete.useMutation({
-    onSuccess: () => { showSuccess(TITLE_MESSAGE, 'Deleted successfully'); invalidateAll(); },
+    onSuccess: () => { 
+      showSuccess(TITLE_MESSAGE, 'delete'); 
+      invalidateAll(); 
+    },
     onError: (err) => showApiError(err),
   });
 

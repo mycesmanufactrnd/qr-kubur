@@ -9,7 +9,7 @@ export const graveRouter = router({
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterName: z.string().optional(),
       filterState: z.string().optional(),
       filterStatus: z.string().optional(),
       filterBlock: z.string().optional(),
@@ -17,22 +17,41 @@ export const graveRouter = router({
       organisationIds: z.array(z.number()).optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterState, filterStatus, filterBlock, filterLot, organisationIds } = input;
+      const { page, pageSize, filterName, filterState, filterStatus, filterBlock, filterLot, organisationIds } = input;
       const graveRepo = AppDataSource.getRepository(Grave);
 
       const query = graveRepo.createQueryBuilder('grave').leftJoinAndSelect('grave.organisation', 'organisation');
 
-      if (organisationIds?.length) query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
-      if (search) query.andWhere('grave.name ILIKE :search', { search: `%${search}%` });
-      if (filterState && filterState !== 'all') query.andWhere('grave.state = :state', { state: filterState });
-      if (filterBlock) query.andWhere('grave.block ILIKE :block', { block: `%${filterBlock}%` });
-      if (filterLot) query.andWhere('grave.lot ILIKE :lot', { lot: `%${filterLot}%` });
-      if (filterStatus && filterStatus !== 'all') query.andWhere('grave.status = :status', { status: filterStatus });
+      if (organisationIds?.length) {
+        query.andWhere('organisation.id IN (:...ids)', { ids: organisationIds });
+      }
+      
+      if (filterName) {
+        query.andWhere('grave.name ILIKE :name', { name: `%${filterName}%` });
+      }
+
+      if (filterState && filterState !== 'all') {
+        query.andWhere('grave.state = :state', { state: filterState });
+      }
+
+      if (filterBlock) {
+        query.andWhere('grave.block ILIKE :block', { block: `%${filterBlock}%` });
+      }
+
+      if (filterLot) {
+        query.andWhere('grave.lot ILIKE :lot', { lot: `%${filterLot}%` });
+      }
+
+      if (filterStatus && filterStatus !== 'all') {
+        query.andWhere('grave.status = :status', { status: filterStatus });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
 
       const [items, total] = await query
         .orderBy('grave.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -54,7 +73,11 @@ export const graveRouter = router({
       const graveRepo = AppDataSource.getRepository(Grave);
       const grave = await graveRepo.findOneByOrFail({ id: input.id });
 
-      graveRepo.merge(grave, input.data);
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      graveRepo.merge(grave, cleanedInput);
 
       return await graveRepo.save(grave);
     }),

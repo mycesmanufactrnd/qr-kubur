@@ -6,7 +6,7 @@ import { MapPin, Phone, Mail, Globe, Navigation, Heart, BookOpen, ArrowLeft, Clo
 import { createPageUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
-import { useGetTahfizById, useGetTahfizPosts } from '@/hooks/useTahfizMutations';
+import { useGetTahfizById } from '@/hooks/useTahfizMutations';
 import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
 import { useLocationContext } from '@/providers/LocationProvider';
@@ -16,6 +16,7 @@ import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
 import { SERVICE_TYPES } from '@/utils/enums';
 import { trpc } from '@/utils/trpc';
+import { useGetActivityPostsByRelationId } from '@/hooks/useActivityPostMutations';
 
 export default function TahfizDetails() {
   const navigate = useNavigate();
@@ -25,7 +26,10 @@ export default function TahfizDetails() {
 
   const { data: tahfiz, isLoading: isTahfizLoading, isError: isTahfizError } = useGetTahfizById(tahfizId);
 
-  const { data: tahfizPosts = [], isLoading: isPostsLoading, isError: isPostsError } = useGetTahfizPosts(tahfizId);
+  const { data: tahfizPosts } = useGetActivityPostsByRelationId({ 
+    mosqueId: null,
+    tahfizId: tahfizId,
+  });
   
   const { data: tahlilCount, isLoading: isRequestLoading } =
     trpc.tahlilRequest.countRequestByTahfizId.useQuery(
@@ -269,7 +273,7 @@ export default function TahfizDetails() {
               <CardContent className="p-6 space-y-5">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-slate-800">
-                    ### Tahlil Requests
+                    Tahlil Requests
                   </h3>
                   <p className="text-sm text-slate-500">
                     Current request status

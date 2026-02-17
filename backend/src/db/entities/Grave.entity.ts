@@ -49,7 +49,7 @@ export class Grave {
   status!: GraveStatus;
   
   @OneToMany(() => DeadPerson, (deadPerson) => deadPerson.grave)
-  deadPerson?: DeadPerson[] | [];
+  deadPersons?: DeadPerson[] | [];
 
   @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
     nullable: true,

@@ -2,6 +2,7 @@ import { Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "../ui/textarea";
+import { validateFields } from "@/utils/validations";
 
 export default function TextInputForm({
   name,
@@ -13,13 +14,15 @@ export default function TextInputForm({
   rows = 3,
   isNumber = false,
   isDate = false,
+  isPhone = false,
+  isEmail = false,
   isMoney = false,
   step = "any",
 }) {
   const errorMessage = errors?.[name]?.message;
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <Label>
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
@@ -28,11 +31,28 @@ export default function TextInputForm({
       <Controller
         name={name}
         control={control}
-        rules={
-          required
-            ? { required: `${label} is required` }
-            : undefined
-        }
+        rules={{
+          required: required ? `${label} is required` : false,
+          validate: (value) => {
+            if (isEmail && value) {
+              const isValid = validateFields(
+                { [name]: value },
+                [{ field: name, label, type: "email", required: false }]
+              );
+              return isValid || `${label} tidak sah`;
+            }
+
+            if (isPhone && value) {
+              const isValid = validateFields(
+                { [name]: value },
+                [{ field: name, label, type: "phone", required: false }]
+              );
+              return isValid || `${label} tidak sah`;
+            }
+            
+            return true;
+          },
+        }}
         render={({ field }) => {
           if (isTextArea) {
             return <Textarea {...field} value={field.value ?? ""} rows={rows} />;

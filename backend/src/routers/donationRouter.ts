@@ -52,7 +52,9 @@ export const donationRouter = router({
         }
       }
 
-      query.skip((page - 1) * pageSize).take(pageSize);
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
 
       const [items, total] = await query
         .orderBy("donation.createdat", "DESC")
@@ -74,7 +76,12 @@ export const donationRouter = router({
     .mutation(async ({ input }) => {
       const donationRepo = AppDataSource.getRepository(Donation);
       const donation = await donationRepo.findOneByOrFail({ id: input.id });
-      donationRepo.merge(donation, input.data);
+
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      donationRepo.merge(donation, cleanedInput);
       return donationRepo.save(donation);
     }),
 });

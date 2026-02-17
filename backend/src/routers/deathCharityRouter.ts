@@ -32,13 +32,20 @@ export const deathCharityRouter = router({
         });
       }
 
-      if (filterName) query.andWhere('deathcharity.name ILIKE :name', { name: `%${filterName}%` });
-      if (filterState && filterState !== 'all') query.andWhere('deathcharity.state = :state', { state: filterState });
+      if (filterName) {
+        query.andWhere('deathcharity.name ILIKE :name', { name: `%${filterName}%` });
+      }
+
+      if (filterState && filterState !== 'all') {
+        query.andWhere('deathcharity.state = :state', { state: filterState });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
 
       const [items, total] = await query
         .orderBy('deathcharity.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -57,7 +64,12 @@ export const deathCharityRouter = router({
     .mutation(async ({ input }) => {
       const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
       const deathCharity = await deathCharityRepo.findOneByOrFail({ id: input.id });
-      deathCharityRepo.merge(deathCharity, input.data);
+
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      deathCharityRepo.merge(deathCharity, cleanedInput);
       return await deathCharityRepo.save(deathCharity);
     }),
 

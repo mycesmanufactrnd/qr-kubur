@@ -2,12 +2,9 @@ import z from "zod";
 import { router, superAdminProcedure, publicProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { ActivityLog } from "../db/entities/ActivityLog.entity.ts";
+import type { DeepPartial } from "@trpc/server";
 
 export const activityLogsRouter = router({
-    /**
-     * Standardized: getPaginated
-     * Uses server-side search, level filtering, and pagination.
-     */
     getPaginated: superAdminProcedure
         .input(
             z.object({
@@ -19,6 +16,7 @@ export const activityLogsRouter = router({
         )
         .query(async ({ input }) => {
             const { page, pageSize, search, level } = input;
+
             const logRepo = AppDataSource.getRepository(ActivityLog);
             const query = logRepo.createQueryBuilder("activitylog");
 
@@ -33,10 +31,12 @@ export const activityLogsRouter = router({
                 query.andWhere("activitylog.level = :level", { level });
             }
 
+            if (page && pageSize) {
+                query.skip((page - 1) * pageSize).take(pageSize)
+            }
+
             const [items, total] = await query
                 .orderBy("activitylog.createdat", "DESC")
-                .skip((page - 1) * pageSize)
-                .take(pageSize)
                 .getManyAndCount();
 
             return { items, total };
@@ -53,7 +53,17 @@ export const activityLogsRouter = router({
         }))
         .mutation(async ({ input }) => {
             const logRepo = AppDataSource.getRepository(ActivityLog);
-            const log = logRepo.create(input);
+
+            const cleanedInput: DeepPartial<ActivityLog> = {
+                activitytype: input?.activitytype ?? null,
+                functionname: input?.functionname ?? null,
+                useremail: input?.useremail ?? null,
+                level: input?.level ?? 'debug',
+                summary: input?.summary ?? null,
+                extramessage: input?.extramessage ?? null,
+            }
+
+            const log = logRepo.create(cleanedInput);
             return await logRepo.save(log);
         }),
 });

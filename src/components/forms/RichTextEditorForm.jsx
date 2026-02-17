@@ -1,39 +1,40 @@
 import { Controller } from "react-hook-form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
-export default function CheckboxForm({
+export default function RichTextEditorForm({
   name,
   control,
   label,
   required = false,
   errors = {},
+  translate = (v) => v,
 }) {
   const errorMessage = errors?.[name]?.message;
 
   return (
     <div className="space-y-2">
+      <Label>
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </Label>
+
       <Controller
         name={name}
         control={control}
         rules={
           required
-            ? {
-                validate: (v) => v === true || `${label} is required`,
-              }
+            ? { required: `${label} is required` }
             : undefined
         }
         render={({ field }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={!!field.value}
-              onCheckedChange={(val) => field.onChange(val === true)}
-            />
-            <Label>
-              {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
-            </Label>
-          </div>
+          <ReactQuill
+            theme="snow"
+            value={field.value ?? ""}
+            onChange={field.onChange}
+            className="bg-white"
+          />
         )}
       />
 

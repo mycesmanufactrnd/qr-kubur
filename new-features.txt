@@ -9,7 +9,6 @@
 ~ after tahlil or ongoing tahlil (add picture)
 ~ if ongoing can do live tahlil check at tahlil status (done)
 ~ add to favorite masjid apa2 (done), untuk sedekah (done)
-~ buat bayar untuk bersihkan kubur, service bersihkan
 ~ khairat kematian (done)
 ~ PIC jenazah (done)
 1. Digital tasbih (done)
@@ -20,3 +19,7 @@
 6. Calculation Zakat (by negeri)
 7. Sirah
 8. Musafir
+
+######################################
+~ buat bayar untuk bersihkan kubur, service bersihkan
+~ bayaran user luar khairat kematian

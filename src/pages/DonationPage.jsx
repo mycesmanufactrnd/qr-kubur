@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Heart, Building2, CheckCircle, CreditCard, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,14 +25,30 @@ import { activityLogError, clearQueryParams } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 
 export default function DonationPage() {
+  const hasAppliedUrlRecipient = useRef(false);
+
   const [searchParams] = useSearchParams();
   const urlParamId = searchParams.get('id') ? searchParams.get('id') : null;
   const urlParamType = searchParams.get('type');
-  const urlParamState = searchParams.get('state') ? searchParams.get('state') : 'nearby';
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [manualSearchQuery, setManualSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
+
+  useEffect(() => {
+    const rawState = searchParams.get('state');
+
+    const matchedState = STATES_MY.find(
+      s => normalizeState(s) === normalizeState(rawState)
+    );
+
+    const initialState =
+      rawState === 'nearby'
+        ? 'nearby'
+        : matchedState || 'nearby';
+
+    setSelectedState(initialState);
+  }, []);
+
   const [submitted, setSubmitted] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
@@ -154,24 +170,42 @@ export default function DonationPage() {
 
     setValue('recipientType', urlParamType);
     setValue('paymentMethod', '');
-  }, [urlParamType, urlParamState, setValue]);
+  }, [urlParamType, setValue]);
 
   useEffect(() => {
-    if (!urlParamId) return;
+    if (hasAppliedUrlRecipient.current) return;
+    if (!urlParamId || !urlParamType) return;
 
     if (urlParamType === 'tahfiz' && tahfizCenters.length > 0) {
-      setValue('selectedRecipient', urlParamId);
+      setValue('selectedRecipient', String(urlParamId));
+      hasAppliedUrlRecipient.current = true;
     }
-    if (urlParamType === 'organisation' && organisations.length > 0) {
-      setValue('selectedRecipient', urlParamId);
-    }
-  }, [urlParamId, urlParamType, tahfizCenters, organisations, setValue]);
 
-  const { data: paymentConfigs } = useGetConfigByEntity({
+    if (urlParamType === 'organisation' && organisations.length > 0) {
+      setValue('selectedRecipient', String(urlParamId));
+      hasAppliedUrlRecipient.current = true;
+    }
+  }, [urlParamId, urlParamType, tahfizCenters.length, organisations.length, setValue]);
+
+  const { data: paymentConfigs = [] } = useGetConfigByEntity({
     entityId: Number(selectedRecipient),
     entityType: recipientType,
     enabled: !!selectedRecipient && !!recipientType,
   });
+
+  useEffect(() => {
+    if (!selectedRecipient) return;
+
+    const exists =
+      recipientType === 'organisation'
+        ? organisations.some(o => String(o.id) === String(selectedRecipient))
+        : tahfizCenters.some(t => String(t.id) === String(selectedRecipient));
+
+    if (!exists) {
+      setValue('selectedRecipient', '');
+      setValue('paymentMethod', '');
+    }
+  }, [organisations, tahfizCenters, selectedRecipient, recipientType, setValue]);
 
   const paymentPlatforms = useMemo(() => {
     const map = {};

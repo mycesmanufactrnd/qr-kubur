@@ -9,18 +9,18 @@ export const paymentFieldRouter = router({
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterLabelKey: z.string().optional(),
       platformId: z.number().optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, platformId } = input;
+      const { page, pageSize, filterLabelKey, platformId } = input;
       const repo = AppDataSource.getRepository(PaymentField);
       const query = repo.createQueryBuilder('field')
         .leftJoinAndSelect('field.paymentplatform', 'platform');
 
-      if (search?.trim()) {
-        query.andWhere('(field.label ILIKE :search OR field.key ILIKE :search)', { 
-          search: `%${search.trim()}%` 
+      if (filterLabelKey?.trim()) {
+        query.andWhere('(field.label ILIKE :labelkey OR field.key ILIKE :labelkey)', { 
+          labelkey: `%${filterLabelKey.trim()}%` 
         });
       }
 
@@ -28,10 +28,12 @@ export const paymentFieldRouter = router({
         query.andWhere('platform.id = :platformId', { platformId });
       }
 
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
+
       const [items, total] = await query
         .orderBy('field.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };

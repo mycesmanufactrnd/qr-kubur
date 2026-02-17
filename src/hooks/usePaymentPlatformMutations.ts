@@ -1,25 +1,37 @@
 import { trpc } from '@/utils/trpc';
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
+
+type useGetPaymentPlatformPaginatedParams = {
+  page?: number;
+  pageSize?: number;
+  filterCodeName?: string;
+};
 
 const titleMessage = "Payment Platform";
 
-export function useGetPaymentPlatform({ page, pageSize, search, hasAccess }) {
-  const trpcRes = trpc.paymentPlatform.getPaginated.useQuery(
+export function useGetPaymentPlatform({ 
+  page,
+  pageSize,
+  filterCodeName,
+ } : useGetPaymentPlatformPaginatedParams) {
+  const { isSuperAdmin } = useAdminAccess();
+
+  const { data, isLoading, refetch, error } = trpc.paymentPlatform.getPaginated.useQuery(
     {
-      page: page ?? 1,
-      pageSize: pageSize ?? 10,
-      search: search || '',
+      page,
+      pageSize,
+      filterCodeName,
     },
     { 
-      enabled: !!hasAccess,
+      enabled: isSuperAdmin,
     }
   );
 
-  return {
-    data: trpcRes.data ?? { items: [], total: 0 },
-    isLoading: trpcRes.isLoading,
-    refetch: trpcRes.refetch,
-  };
+  const paymentPlatformList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(paymentPlatformList.total / (pageSize ?? 10));
+
+  return { paymentPlatformList, totalPages, isLoading, refetch, error };
 }
 
 export function usePaymentPlatformMutations() {

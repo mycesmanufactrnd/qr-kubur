@@ -18,12 +18,16 @@ export const waqfProjectRouter = router({
                 const tahfizRepo = AppDataSource.getRepository(WaqfProject);
                 const query = tahfizRepo.createQueryBuilder("waqf");
 
-                if (filterWaqfName) query.andWhere('waqf.waqfname ILIKE :waqfname', { waqfname: `%${filterWaqfName}%` });
+                if (filterWaqfName) {
+                    query.andWhere('waqf.waqfname ILIKE :waqfname', { waqfname: `%${filterWaqfName}%` });
+                }
+
+                if (page && pageSize) {
+                    query.skip((page - 1) * pageSize).take(pageSize)
+                }
             
                 const [items, total] = await query
                     .orderBy("waqf.createdat", "DESC")
-                    .skip((page - 1) * pageSize)
-                    .take(pageSize)
                     .getManyAndCount();
     
                 const statsRaw = await tahfizRepo
@@ -123,10 +127,12 @@ export const waqfProjectRouter = router({
               }
             }
 
-             const [items, total] = await query
+            if (page && pageSize) {
+                query.skip((page - 1) * pageSize).take(pageSize)
+            }
+
+            const [items, total] = await query
                 .orderBy("waqf.createdat", "DESC")
-                .skip((page - 1) * pageSize)
-                .take(pageSize)
                 .getManyAndCount();
         
             return {

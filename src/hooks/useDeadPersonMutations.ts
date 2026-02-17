@@ -4,30 +4,46 @@ import { showSuccess, showApiError } from '@/components/ToastrNotification';
 type useGetDeadPersonPaginatedParams = {
   page?: number;
   pageSize?: number;
-  search?: string;
+  filterName?: string;
   filterIC?: string;
   filterGrave?: number;
   filterState?: string;
   dateFrom?: string;
   dateTo?: string;
-  accessibleOrgIds?: number[];
+  organisationIds?: number[];
 };
 
 const titleMessage = 'Deceased Record';
 
-export function useGetDeadPersonPaginated(params: useGetDeadPersonPaginatedParams) {
-  const { data, isLoading, refetch, error } = 
-    trpc.deadperson.getPaginated.useQuery(params);
-
-  return { 
-    deadPersonsList: { 
-      items: data?.items ?? [], 
-      total: data?.total ?? 0 
+export function useGetDeadPersonPaginated({
+  page,
+  pageSize,
+  filterName,
+  filterIC,
+  filterGrave,
+  filterState,
+  dateFrom,
+  dateTo,
+  organisationIds,
+} : useGetDeadPersonPaginatedParams) {
+  const { data, isLoading, refetch, error } = trpc.deadperson.getPaginated.useQuery(
+    {
+      page,
+      pageSize,
+      filterName,
+      filterIC,
+      filterGrave,
+      filterState,
+      dateFrom,
+      dateTo,
+      organisationIds,
     },
-    isLoading, 
-    refetch,
-    error
-  };
+  );
+
+  const deadPersonsList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(deadPersonsList.total / (pageSize ?? 10));
+
+  return { deadPersonsList, totalPages, isLoading, refetch, error };
 }
 
 export function useGetDeadPersonByGraveId(params: { graveId: number }) {

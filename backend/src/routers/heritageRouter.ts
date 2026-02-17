@@ -19,13 +19,20 @@ export const heritageRouter = router({
 
       const query = heritageRepo.createQueryBuilder('heritage');
 
-      if (filterName) query.andWhere('heritage.name ILIKE :name', { name: `%${filterName}%` });
-      if (filterState && filterState !== 'all') query.andWhere('heritage.state = :state', { state: filterState });
+      if (filterName) {
+        query.andWhere('heritage.name ILIKE :name', { name: `%${filterName}%` });
+      }
+
+      if (filterState && filterState !== 'all') {
+        query.andWhere('heritage.state = :state', { state: filterState });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
 
       const [items, total] = await query
         .orderBy('heritage.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -44,7 +51,12 @@ export const heritageRouter = router({
     .mutation(async ({ input }) => {
       const heritageRepo = AppDataSource.getRepository(HeritageSite);
       const heritage = await heritageRepo.findOneByOrFail({ id: input.id });
-      heritageRepo.merge(heritage, input.data);
+
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      heritageRepo.merge(heritage, cleanedInput);
       return await heritageRepo.save(heritage);
     }),
 

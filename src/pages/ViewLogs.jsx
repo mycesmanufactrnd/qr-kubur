@@ -43,11 +43,10 @@ export default function ViewLogs() {
     pageSize: itemsPerPage,
     search: urlSearch,
     level: urlLevel === 'all' ? undefined : urlLevel,
-    hasAccess: isSuperAdmin
   });
 
   const handleSearch = () => {
-    const params = { page: '1' };
+    const params = { page: '1', search: '', level: '' };
     if (tempSearch) params.search = tempSearch;
     if (tempLevel !== 'all') params.level = tempLevel;
     setSearchParams(params);

@@ -118,12 +118,6 @@ export default function ManageDeathCharityMember() {
   };
 
   const onSubmit = async (formData) => {
-    const isValid = validateFields(formData, [
-      { field: 'fullname', label: 'Full Name', type: 'text' },
-    ]);
-
-    if (!isValid) return;
-
     const submitData = { 
         ...formData,
         deathcharity: formData.deathcharity ? { id: Number(formData.deathcharity) } : null,

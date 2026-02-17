@@ -7,12 +7,12 @@ import { coordinatesQueryOptions } from '@/utils/queryOptions';
 type useGetGravePaginatedParams = {
   page?: number;
   pageSize?: number;
-  search?: string;
+  filterName?: string;
   filterState?: string;
   filterStatus?: string;
-  organisationIds?: number[];
   filterBlock?: string;
   filterLot?: string;
+  organisationIds?: number[];
 };
 
 const titleMessage = 'Grave';
@@ -20,18 +20,18 @@ const titleMessage = 'Grave';
 export function useGetGravePaginated({
   page,
   pageSize,
-  search,
+  filterName,
   filterState,
   filterStatus,
-  organisationIds,
   filterBlock,
   filterLot,
+  organisationIds,
 }: useGetGravePaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =
     trpc.grave.getPaginated.useQuery(
-      { page, pageSize, search, filterState, filterStatus, organisationIds, filterBlock, filterLot },
+      { page, pageSize, filterName, filterState, filterStatus, filterBlock, filterLot, organisationIds },
       { enabled: hasAdminAccess }
     );
 

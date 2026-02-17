@@ -3,13 +3,14 @@ import { DeadPerson } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 import { deadPersonSchema } from '../schemas/deadpersonSchema.ts';
+import type { DeepPartial } from '@trpc/server';
 
 export const deadPersonRouter = router({
   getPaginated: protectedProcedure
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterName: z.string().optional(),
       filterIC: z.string().optional(),
       filterGrave: z.number().optional(),
       filterState: z.string().optional(),
@@ -21,7 +22,7 @@ export const deadPersonRouter = router({
       const { 
         page, 
         pageSize, 
-        search, 
+        filterName, 
         filterIC, 
         filterGrave, 
         filterState, 
@@ -39,8 +40,8 @@ export const deadPersonRouter = router({
         query.andWhere('grave.organisationId IN (:...ids)', { ids: organisationIds });
       }
 
-      if (search?.trim()) {
-        query.andWhere('deadperson.name ILIKE :search', { search: `%${search.trim()}%` });
+      if (filterName?.trim()) {
+        query.andWhere('deadperson.name ILIKE :name', { name: `%${filterName.trim()}%` });
       }
 
       if (filterIC?.trim()) {
@@ -63,10 +64,12 @@ export const deadPersonRouter = router({
         query.andWhere('deadperson.dateofdeath <= :dateTo', { dateTo });
       }
 
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
+
       const [items, total] = await query
         .orderBy('deadperson.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -75,11 +78,9 @@ export const deadPersonRouter = router({
   create: protectedProcedure
     .input(deadPersonSchema)
     .mutation(async ({ input }) => {
-      const repo = AppDataSource.getRepository(DeadPerson);
-
-      const person = repo.create(input);
-
-      return await repo.save(person);
+      const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
+      const person = deadPersonRepo.create(input);
+      return await deadPersonRepo.save(person);
     }),
 
   update: protectedProcedure
@@ -88,7 +89,11 @@ export const deadPersonRouter = router({
       const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
       const person = await deadPersonRepo.findOneByOrFail({ id: input.id });
 
-      deadPersonRepo.merge(person, input.data);
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      deadPersonRepo.merge(person, cleanedInput);
       
       return await deadPersonRepo.save(person);
     }),

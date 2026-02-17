@@ -18,12 +18,7 @@ import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageDonations() {
-  const { 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    currentUserStates 
-  } = useAdminAccess();
+  const { loadingUser, hasAdminAccess } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedDonation, setSelectedDonation] = useState(null);

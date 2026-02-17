@@ -14,7 +14,7 @@ import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from '@/providers/LocationProvider';
 import { useGetTahfizById, useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
-import { DONATION_AMOUNTS, paymentToyyibStatus, SERVICE_FEE_PERCENTAGE, SERVICE_TYPES, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, SERVICE_FEE, SERVICE_FEE_PERCENTAGE, SERVICE_TYPES, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
 import { defaultTahlilRequestField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
 import { activityLogError, clearQueryParams, trimEmptyArray } from '@/utils/helpers';
@@ -102,10 +102,19 @@ export default function TahlilRequestPage() {
     return Number(customAmount || amount) || 0;
   }, [amount, customAmount]);
 
+  // const platformFee = useMemo(() => {
+  //   if (!hasService) return 0;
+  //   return (serviceAmount) * SERVICE_FEE_PERCENTAGE;
+  // }, [hasService, serviceAmount]);
+
+  const hasDonation = donationAmount > 0;
+
   const platformFee = useMemo(() => {
-    if (!hasService) return 0;
-    return (serviceAmount) * SERVICE_FEE_PERCENTAGE;
-  }, [hasService, serviceAmount]);
+    if (!hasDonation && !hasService) return 0;
+
+    return SERVICE_FEE;
+  }, [hasDonation, hasService]);
+
 
   const finalAmountWithoutFee = donationAmount + serviceAmount;
   const finalAmountWithFee = finalAmountWithoutFee + platformFee;
@@ -529,9 +538,6 @@ export default function TahlilRequestPage() {
                   <div>
                     <strong>Jumlah Derma:</strong> RM {(Number(customAmount || amount) || 0).toFixed(2)}
                   </div>
-                  <span className="text-xs text-gray-400">
-                    *Tidak termasuk yuran platform
-                  </span>
                 </>
               )}
               <hr className="my-3" />
@@ -542,7 +548,7 @@ export default function TahlilRequestPage() {
 
                 {hasService && (
                   <p>
-                    <strong>Yuran Platform (5%):</strong> RM {platformFee.toFixed(2)}
+                    <strong>Yuran Platform (RM {SERVICE_FEE}):</strong> RM {platformFee.toFixed(2)}
                   </p>
                 )}
 

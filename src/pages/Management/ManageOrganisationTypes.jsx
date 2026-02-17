@@ -4,9 +4,6 @@ import { Tag, Plus, Edit, Trash2, Save, Search, X } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -18,53 +15,46 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
-import { 
-  useGetOrganisationType, 
-  useCreateOrganisationType, 
-  useUpdateOrganisationType, 
-  useDeleteOrganisationType 
-} from '@/hooks/useOrganisationTypeMutations';
-import { validateFields } from '@/utils/validations';
+import { useGetOrganisationTypePaginated, useOrganisationTypeMutations } from '@/hooks/useOrganisationTypeMutations';
 import { translate } from '@/utils/translations';
+import { ActiveInactiveStatus } from '@/utils/enums';
+import { defaultOrganisationTypeField } from '@/utils/defaultformfields';
+import { useForm } from 'react-hook-form';
+import TextInputForm from '@/components/forms/TextInputForm';
+import SelectForm from '@/components/forms/SelectForm';
 
 export default function ManageOrganisationTypes() {
   const { loadingUser, isSuperAdmin, hasAdminAccess } = useAdminAccess();
-
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlSearch = searchParams.get('search') || '';
-
-  const [tempSearch, setTempSearch] = useState(urlSearch);
+  const urlName = searchParams.get('name') || '';
+  const [tempName, setTempName] = useState(urlName);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  useEffect(() => {
-    setTempSearch(urlSearch);
-  }, [urlSearch]);
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingType, setEditingType] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '', status: 'active' });
+  const [editingType, setEditingType] = useState({ id: null });
+
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
+    defaultValues: defaultOrganisationTypeField
+  });
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
 
-  const { data: result, isLoading: typesLoading } = useGetOrganisationType({
+  useEffect(() => {
+    setTempName(urlName);
+  }, [urlName]);
+  
+  const { organisationTypeList, totalPages, isLoading } = useGetOrganisationTypePaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    search: urlSearch,
-    hasAccess: hasAdminAccess
+    filterName: urlName,
   });
 
-  const types = result?.items || [];
-  const totalItems = result?.total || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const createMutation = useCreateOrganisationType();
-  const updateMutation = useUpdateOrganisationType();
-  const deleteMutation = useDeleteOrganisationType();
+  const { createOrganisationType, updateOrganisationType, deleteOrganisationType } = useOrganisationTypeMutations();
 
   const handleSearch = () => {
-    const params = { page: '1' };
-    if (tempSearch) params.search = tempSearch;
+    const params = { page: '1', name: '' };
+    if (tempName) params.name = tempName;
     setSearchParams(params);
   };
 
@@ -73,43 +63,51 @@ export default function ManageOrganisationTypes() {
   };
 
   const openAddDialog = () => {
-    setEditingType(null);
-    setFormData({ name: '', description: '', status: 'active' });
+    setEditingType({ id: null });
+    reset(defaultOrganisationTypeField);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (type) => {
-    setEditingType(type);
-    setFormData({
-      name: type.name || '',
-      description: type.description || '',
-      status: type.status || 'active'
+    setEditingType({ id: type.id });
+    reset({
+      ...type,
+      status: type.status || ActiveInactiveStatus.ACTIVE
     });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validateFields(formData, [{ field: 'name', label: 'Name', type: 'text' }])) return;
-
-    const action = editingType 
-      ? updateMutation.mutateAsync({ id: editingType.id, ...formData }) 
-      : createMutation.mutateAsync(formData);
-
-    action.then((res) => {
-      if(res) setIsDialogOpen(false);
-    });
+  const onSubmit = async (formData) => {
+    try {
+      if (editingType && editingType.id) {
+        await updateOrganisationType.mutateAsync({ id: Number(editingType.id), ...formData });
+      } else {
+        await createOrganisationType.mutateAsync(formData);
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const confirmDelete = () => {
     if (!typeToDelete) return;
-    deleteMutation.mutate({ id: typeToDelete.id }, {
+    deleteOrganisationType.mutate({ id: typeToDelete.id }, {
       onSuccess: () => setDeleteDialogOpen(false)
     });
   };
 
-  if (loadingUser) return <PageLoadingComponent/>;
-  if (!isSuperAdmin) return <AccessDeniedComponent/>;
+  if (loadingUser) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    )
+  };
 
   return (
     <div className="space-y-6">
@@ -136,8 +134,8 @@ export default function ManageOrganisationTypes() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder={translate('Search organization type name...')}
-                value={tempSearch}
-                onChange={(e) => setTempSearch(e.target.value)}
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10"
               />
@@ -158,27 +156,27 @@ export default function ManageOrganisationTypes() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Name')}</TableHead>
-                <TableHead>{translate('Description')}</TableHead>
+                <TableHead className="text-center">{translate('Description')}</TableHead>
                 <TableHead className="text-center">{translate('Status')}</TableHead>
-                <TableHead className="text-right">{translate('Actions')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {typesLoading ? (
+              {isLoading ? (
                 <InlineLoadingComponent isTable={true} colSpan={4}/>
-              ) : types.length === 0 ? (
+              ) : organisationTypeList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={4}/>
               ) : (
-                types.map(type => (
+                organisationTypeList.items.map(type => (
                   <TableRow key={type.id}>
                     <TableCell className="font-medium">{type.name}</TableCell>
-                    <TableCell>{type.description || '-'}</TableCell>
+                    <TableCell className="text-center">{type.description || '-'}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant={type.status === 'active' ? 'default' : 'secondary'}>
                         {type.status === 'active' ? translate('Active') : translate('Inactive')}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(type)}>
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -192,43 +190,81 @@ export default function ManageOrganisationTypes() {
             </TableBody>
           </Table>
         </CardContent>
-        {totalItems > 0 && (
+
+        {totalPages > 0 && (
           <Pagination
             currentPage={urlPage}
             totalPages={totalPages}
-            onPageChange={(p) => setSearchParams({...Object.fromEntries(searchParams), page: p.toString()})}
+            onPageChange={(p) => setSearchParams({ ...Object.fromEntries(searchParams), page: p.toString() })}
             itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(v) => { setItemsPerPage(v); setSearchParams({...Object.fromEntries(searchParams), page: '1'}); }}
-            totalItems={totalItems}
+            onItemsPerPageChange={(v) => {
+              setItemsPerPage(v);
+              setSearchParams({ ...Object.fromEntries(searchParams), page: '1' });
+            }}
+            totalItems={organisationTypeList.total}
           />
         )}
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800">
-          <DialogHeader><DialogTitle>{editingType ? translate('Edit Organization Type') : translate('Add New Organization Type')}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div><Label>{translate('Name')} *</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
-            <div><Label>{translate('Description')}</Label><Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} /></div>
-            <div>
-              <Label>{translate('Status')}</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">{translate('Active')}</SelectItem>
-                  <SelectItem value="inactive">{translate('Inactive')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <DialogHeader>
+            <DialogTitle>
+              {editingType ? translate('Edit Organization Type') : translate('Add New Organization Type')}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <TextInputForm
+              name="name"
+              control={control}
+              label={translate("Name")}
+              required
+              errors={errors}
+            /> 
+            <TextInputForm
+              name="description"
+              control={control}
+              label={translate("Description")}
+              isTextArea
+            /> 
+            <SelectForm
+              name="status"
+              control={control}
+              placeholder={translate("Select status")}
+              label={translate("Status")}
+              options={Object.values(ActiveInactiveStatus).map((status) => ({
+                value: status,
+                label: status.toUpperCase(),
+              }))}
+              required
+              errors={errors}
+            />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-purple-600"><Save className="w-4 h-4 mr-2" /> {translate('Save')}</Button>
+              <Button 
+                type="button" variant="outline" 
+                onClick={() => setIsDialogOpen(false)}>
+                {translate('Cancel')}
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createOrganisationType.isPending || updateOrganisationType.isPending || isSubmitting} 
+                className="bg-purple-600">
+                <Save className="w-4 h-4 mr-2" /> 
+                {translate('Save')}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={translate('Delete Organization Type')} description={`${translate('Are you sure you want to delete')} "${typeToDelete?.name}"?`} onConfirm={confirmDelete} variant="destructive" />
+      <ConfirmDialog 
+        open={deleteDialogOpen} 
+        onOpenChange={setDeleteDialogOpen} 
+        title={translate('Delete Organization Type')} 
+        description={`${translate('Are you sure you want to delete')} "${typeToDelete?.name}"?`} 
+        onConfirm={confirmDelete} 
+        variant="destructive" 
+      />
     </div>
   );
 }

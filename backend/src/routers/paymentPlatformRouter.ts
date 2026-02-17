@@ -10,23 +10,25 @@ export const paymentPlatformRouter = router({
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterCodeName: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search } = input;
+      const { page, pageSize, filterCodeName } = input;
       const repo = AppDataSource.getRepository(PaymentPlatform);
       const query = repo.createQueryBuilder('platform');
 
-      if (search?.trim()) {
-        query.andWhere('platform.name ILIKE :search OR platform.code ILIKE :search', { 
-          search: `%${search.trim()}%` 
+      if (filterCodeName?.trim()) {
+        query.andWhere('platform.name ILIKE :codeName OR platform.code ILIKE :codeName', { 
+          codeName: `%${filterCodeName.trim()}%` 
         });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
       }
 
       const [items, total] = await query
         .orderBy('platform.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };

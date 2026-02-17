@@ -5,8 +5,6 @@ export const activityPostSchema = z.object({
     content: z.string().min(1),
     photourl: z.string().optional().nullable(),
     ispublished: z.boolean().default(false),
-    mosqueId: z.number().nullable().optional(), 
-    tahfizId: z.number().nullable().optional(),
-    tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
+    tahfiz: z.object({ id: z.number() }).nullable().optional(),
     mosque: z.object({ id: z.number() }).nullable().optional(),
 });

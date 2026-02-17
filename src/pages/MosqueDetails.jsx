@@ -7,7 +7,7 @@ import { MapPin, Phone, Mail, Globe, ArrowLeft, Clock, Landmark,ExternalLink, Sh
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
 import { useGetMosqueById } from '@/hooks/useMosqueMutations';
-import { useGetActivityPosts } from '@/hooks/useActivityPostMutations'; 
+import { useGetActivityPostsByRelationId } from '@/hooks/useActivityPostMutations'; 
 import DirectionButton from '@/components/DirectionButton';
 import { useLocationContext } from '@/providers/LocationProvider';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
@@ -23,7 +23,7 @@ export default function MosqueDetailsPage() {
 
   const { data: mosque, isLoading: isMosqueLoading, isError: isMosqueError } = useGetMosqueById(mosqueId);
 
-  const { data: mosquePosts } = useGetActivityPosts({ 
+  const { data: mosquePosts } = useGetActivityPostsByRelationId({ 
     mosqueId: mosqueId,
     tahfizId: null,
   });

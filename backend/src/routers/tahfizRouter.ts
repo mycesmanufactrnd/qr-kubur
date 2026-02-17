@@ -9,32 +9,41 @@ export const tahfizRouter = router({
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterName: z.string().optional(),
       filterState: z.string().optional(),
-      // 🔹 Standardized naming for organization/scope restriction
-      organisationIds: z.array(z.number()).optional(), 
+      currentUserTahfizCenterId: z.number().optional(),
+      isSuperAdmin: z.boolean().default(false), 
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterState, organisationIds } = input;
+      const { page, pageSize, filterName, filterState, currentUserTahfizCenterId, isSuperAdmin } = input;
+
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
       const query = tahfizRepo.createQueryBuilder("tahfiz");
 
-      if (organisationIds && organisationIds.length > 0) {
-        query.andWhere("tahfiz.id IN (:...ids)", { ids: organisationIds });
+      if (!isSuperAdmin) {
+        if (!currentUserTahfizCenterId) {
+          return { items: [], total: 0 };
+        }
+
+        query.andWhere("tahfiz.id = :id", {
+          id: currentUserTahfizCenterId,
+        });
       }
 
-      if (search?.trim()) {
-        query.andWhere("tahfiz.name ILIKE :search", { search: `%${search.trim()}%` });
+      if (filterName?.trim()) {
+        query.andWhere("tahfiz.name ILIKE :name", { name: `%${filterName.trim()}%` });
       }
 
       if (filterState && filterState !== 'all') {
         query.andWhere("tahfiz.state = :state", { state: filterState });
       }
 
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
+
       const [items, total] = await query
-        .orderBy("tahfiz.createdat", "DESC")
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
+        .orderBy("tahfiz.id", "DESC")
         .getManyAndCount();
 
       return { items, total };
@@ -49,16 +58,6 @@ export const tahfizRouter = router({
       });
     }),
 
-  getTahfizPosts: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      if (!input.id) return null;
-      return await AppDataSource.getRepository(ActivityPost).find({
-        where: { tahfizcenter: { id: input.id } },
-        order: { createdat: "DESC" },
-        take: 5,
-      });
-    }),
 
   getTahfizByCoordinates: publicProcedure
     .input(z.object({

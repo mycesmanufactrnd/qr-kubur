@@ -6,7 +6,7 @@ import { coordinatesQueryOptions } from '@/utils/queryOptions';
 type useGetMosquePaginatedParams = {
   page?: number;
   pageSize?: number;
-  search?: string;
+  filterName?: string;
   filterState?: string;
 };
 
@@ -15,14 +15,14 @@ const titleMessage = 'Mosque';
 export function useGetMosquePaginated({
   page,
   pageSize,
-  search,
+  filterName,
   filterState,
 }: useGetMosquePaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =
     trpc.mosque.getPaginated.useQuery(
-      { page, pageSize, search, filterState },
+      { page, pageSize, filterName, filterState },
       { enabled: hasAdminAccess }
     );
 

@@ -6,26 +6,26 @@ export class ActivityLog {
     id!: number;
 
     @Column("varchar", { length: 255, nullable: true })
-    activitytype?: string;
+    activitytype?: string | null;
     // define which activity
     
     @Column("varchar", { length: 255, nullable: true })
-    functionname?: string;
+    functionname?: string | null;
     // define which function it call from
     
     @Column("varchar", { length: 255, nullable: true })
-    useremail?: string;
+    useremail?: string | null;
     
     @Column("varchar", { length: 255, nullable: true })
-    level?: string;
+    level?: string | null;
     // info, warn, error, debug
     
     @Column("text", { nullable: true })
-    summary?: string;
+    summary?: string | null;
     // messages, if error, use error message at catch
     
     @Column("text", { nullable: true })
-    extramessage?: string;
+    extramessage?: string | null;
     // extra messages, if error, use error message at catch
 
     @CreateDateColumn({ name: "createdat" })

@@ -3,7 +3,6 @@ import { protectedProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { DeathCharityClaim } from "../db/entities.ts";
 import { deathCharityClaimSchema } from "../schemas/deathCharityClaimSchema.ts";
-import { getCurrentUserId } from "../helpers/requestContext.ts";
 
 export const deathCharityClaimRouter = router({
     getPaginated: protectedProcedure
@@ -22,13 +21,17 @@ export const deathCharityClaimRouter = router({
                 .leftJoinAndSelect('claim.member', 'member')
                 .leftJoinAndSelect('claim.dependent', 'dependent');
 
-            if (filterDeceasedName) query.andWhere('claim.deceasedname ILIKE :deceasedname', { deceasedname: `%${filterDeceasedName}%` });
+            if (filterDeceasedName) {
+                query.andWhere('claim.deceasedname ILIKE :name', { name: `%${filterDeceasedName}%` });
+            }
+
+            if (page && pageSize) {
+                query.skip((page - 1) * pageSize).take(pageSize)
+            }
 
             const [items, total] = await query
-            .orderBy('claim.createdat', 'DESC')
-            .skip((page - 1) * pageSize)
-            .take(pageSize)
-            .getManyAndCount();
+                .orderBy('claim.createdat', 'DESC')
+                .getManyAndCount();
 
             return { items, total };
         }),
@@ -44,11 +47,15 @@ export const deathCharityClaimRouter = router({
     
     update: protectedProcedure
         .input(z.object({ id: z.number(), data: deathCharityClaimSchema }))
-        .mutation(async ({ input, ctx }) => {
+        .mutation(async ({ input }) => {
             const claimRepo = AppDataSource.getRepository(DeathCharityClaim);
             const deathCharityClaim = await claimRepo.findOneByOrFail({ id: input.id });
+
+            const cleanedInput = Object.fromEntries(
+                Object.entries(input.data).filter(([_, v]) => v !== undefined)
+            );
             
-            claimRepo.merge(deathCharityClaim, input.data);
+            claimRepo.merge(deathCharityClaim, cleanedInput);
             return await claimRepo.save(deathCharityClaim);
         }),
 

@@ -32,7 +32,11 @@ export const islamicEventRouter = router({
       const eventRepo = AppDataSource.getRepository(IslamicEvent);
       const event = await eventRepo.findOneByOrFail({ id: input.id });
 
-      eventRepo.merge(event, input.data);
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      eventRepo.merge(event, cleanedInput);
 
       return await eventRepo.save(event);
     }),

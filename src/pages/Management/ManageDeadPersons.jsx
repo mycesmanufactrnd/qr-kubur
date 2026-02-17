@@ -4,10 +4,8 @@ import { Users, Plus, Edit, Trash2, Search, X, Save, MapPin, QrCode } from 'luci
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import QRCodeDialog from "@/components/QRCodeDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
@@ -23,25 +21,27 @@ import { useAdminAccess } from '@/utils/auth';
 import { useGetDeadPersonPaginated, useDeadPersonMutations } from '@/hooks/useDeadPersonMutations';
 import { useGetGravePaginated } from '@/hooks/useGraveMutations';
 import { trpc } from '@/utils/trpc';
-import { Textarea } from '@/components/ui/textarea';
-import { validateFields } from '@/utils/validations';
 import { defaultDeadPersonField } from '@/utils/defaultformfields';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
+import TextInputForm from '@/components/forms/TextInputForm';
+import { useForm } from 'react-hook-form';
+import SelectForm from '@/components/forms/SelectForm';
+import FileUploadForm from '@/components/forms/FileUploadForm';
 
 export default function ManageDeadPersons() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlSearch = searchParams.get('search') || '';
+  const urlName = searchParams.get('name') || '';
   const urlIC = searchParams.get('ic') || '';
   const urlGrave = searchParams.get('grave') || 'all';
   const urlState = searchParams.get('state') || 'all';
   const urlDateFrom = searchParams.get('dateFrom') || '';
   const urlDateTo = searchParams.get('dateTo') || '';
 
-  const [tempSearch, setTempSearch] = useState(urlSearch);
+  const [tempName, setTeampName] = useState(urlName);
   const [tempIC, setTempIC] = useState(urlIC);
   const [tempGrave, setTempGrave] = useState(urlGrave);
   const [tempState, setTempState] = useState(urlState);
@@ -51,7 +51,11 @@ export default function ManageDeadPersons() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
-  const [formData, setFormData] = useState(defaultDeadPersonField);
+
+  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+    defaultValues: defaultDeadPersonField,
+  });
+
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
@@ -62,27 +66,32 @@ export default function ManageDeadPersons() {
   const { loading: permissionsLoading, canEdit, canDelete } = useCrudPermissions('dead_persons');
 
   useEffect(() => {
-    setTempSearch(urlSearch);
+    setTeampName(urlName);
     setTempIC(urlIC);
     setTempGrave(urlGrave);
     setTempState(urlState);
     setTempDateFrom(urlDateFrom);
     setTempDateTo(urlDateTo);
-  }, [urlSearch, urlIC, urlGrave, urlState, urlDateFrom, urlDateTo]);
+  }, [urlName, urlIC, urlGrave, urlState, urlDateFrom, urlDateTo]);
 
   const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
-    { organisationId: currentUser?.organisation?.id },
+    { 
+      organisationId: currentUser?.organisation?.id ,
+      isIdOnly: true,
+    },
     { enabled: !!currentUser?.organisation?.id && !isSuperAdmin }
   );
 
   useEffect(() => {
-    if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
-  }, [parentAndChildQuery.data]);
+    if (parentAndChildQuery && parentAndChildQuery.data) {
+      setAccessibleOrgIds(parentAndChildQuery?.data ?? [])
+    };
+  }, [parentAndChildQuery && parentAndChildQuery]);
 
-  const { deadPersonsList, isLoading: isLoadingDeadPerson } = useGetDeadPersonPaginated({
+  const { deadPersonsList, totalPages, isLoading: isLoadingDeadPerson } = useGetDeadPersonPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    search: urlSearch,
+    filterName: urlName,
     filterIC: urlIC,
     filterGrave: urlGrave === 'all' ? undefined : Number(urlGrave),
     filterState: urlState === 'all' ? undefined : urlState,
@@ -92,17 +101,14 @@ export default function ManageDeadPersons() {
   });
 
   const { gravesList } = useGetGravePaginated({
-    pageSize: 1000,
     organisationIds: accessibleOrgIds
   });
 
   const { createDeadPerson, updateDeadPerson, deleteDeadPerson } = useDeadPersonMutations();
 
-  const totalPages = Math.ceil((deadPersonsList?.total || 0) / itemsPerPage);
-
   const handleSearch = () => {
-    const params = { page: '1' };
-    if (tempSearch) params.search = tempSearch;
+    const params = { page: '1', name: '', ic: '', grave: '', state: '', dateFrom: '', dateTo: '' };
+    if (tempName) params.name = tempName;
     if (tempIC) params.ic = tempIC;
     if (tempGrave !== 'all') params.grave = tempGrave;
     if (tempState !== 'all') params.state = tempState;
@@ -117,60 +123,66 @@ export default function ManageDeadPersons() {
 
   const openAddDialog = () => {
     setEditingPerson(null);
-    setFormData(defaultDeadPersonField);
+    reset(defaultDeadPersonField);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (person) => {
     setEditingPerson(person);
-    setFormData({
-      name: person.name || '',
-      icnumber: person.icnumber || '',
-      dateofbirth: person.dateofbirth || '',
-      dateofdeath: person.dateofdeath || '',
-      causeofdeath: person.causeofdeath || '',
-      grave: person.grave?.id || '',
-      biography: person.biography || '',
-      photourl: person.photourl || '',
-      gpslatitude: person.latitude || '',
-      gpslongitude: person.longitude || '',
+    reset({
+      ...person,
+      grave: person.grave?.id.toString() || '',
     });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateFields(formData, [
-      { field: 'name', label: 'Name', type: 'text' },
-      { field: 'grave', label: 'Grave', type: 'select' },
-    ])) return;
-
+  const onSubmit = async (formData) => {
     const submitData = {
       ...formData,
-      latitude: formData.gpslatitude ? parseFloat(formData.gpslatitude) : null,
-      longitude: formData.gpslongitude ? parseFloat(formData.gpslongitude) : null,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       graveId: Number(formData.grave)
     };
 
     try {
-      if (editingPerson) await updateDeadPerson.mutateAsync({ id: editingPerson.id, data: submitData });
-      else await createDeadPerson.mutateAsync(submitData);
+      if (editingPerson) {
+        await updateDeadPerson.mutateAsync({ id: editingPerson.id, data: submitData });
+      }
+      else {
+        await createDeadPerson.mutateAsync(submitData);
+      }
       setIsDialogOpen(false);
     } catch (error) {}
   };
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (file, bucketName) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/upload/dead-person', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error();
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || "Failed to upload photo");
+        return null;
+      }
+
       const data = await res.json();
-      setFormData({ ...formData, photourl: data.file_url });
-      showSuccess('Photo uploaded');
-    } catch (err) { showError('Failed to upload photo'); } 
-    finally { setUploading(false); }
+      showSuccess("Photo uploaded");
+
+      return data.file_url;
+    } catch (err) {
+      console.error(err);
+      showError("Failed to upload photo");
+      return null;
+    } finally {
+      setUploading(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -182,15 +194,29 @@ export default function ManageDeadPersons() {
     } catch (error) {}
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
-  if (!hasAdminAccess) return <AccessDeniedComponent/>;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent/>
+    );
+  }
+
+  if (!hasAdminAccess) {
+    return (
+      <AccessDeniedComponent/>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: translate('Admin Dashboard'), page: 'AdminDashboard' }, { label: translate('Manage Deceased'), page: 'ManageDeadPersons' }]} />
+      <Breadcrumb items={[
+        { label: translate('Admin Dashboard'), page: 'AdminDashboard' }, 
+        { label: translate('Manage Deceased'), page: 'ManageDeadPersons' }
+      ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Users className="w-6 h-6 text-blue-600" />{translate('Manage Deceased')}</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Users className="w-6 h-6 text-blue-600" />
+          {translate('Manage Deceased')}
+        </h1>
         <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />{translate('Add New')}
         </Button>
@@ -203,8 +229,8 @@ export default function ManageDeadPersons() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input 
                 placeholder={translate('Full Name')} 
-                value={tempSearch} 
-                onChange={(e) => setTempSearch(e.target.value)} 
+                value={tempName} 
+                onChange={(e) => setTeampName(e.target.value)} 
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10" 
               />
@@ -247,7 +273,7 @@ export default function ManageDeadPersons() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Full Name')}</TableHead>
-                <TableHead className="text-center">{translate('IC Number')}</TableHead>
+                <TableHead className="text-center">{translate('IC No.')}</TableHead>
                 <TableHead className="text-center">{translate('Date of Death')}</TableHead>
                 <TableHead className="text-center">{translate('Cemetery Name')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
@@ -286,45 +312,137 @@ export default function ManageDeadPersons() {
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
-          <DialogHeader><DialogTitle className="dark:text-white">{editingPerson ? translate('edit') : translate('Add New')}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2"><Label>{translate('Full Name')} *</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
-            <div className="space-y-2"><Label>{translate('IC Number')}</Label><Input value={formData.icnumber} onChange={(e) => setFormData({...formData, icnumber: e.target.value})} placeholder="XXXXXX-XX-XXXX" /></div>
+          <DialogHeader>
+            <DialogTitle className="dark:text-white">
+              {editingPerson ? translate('edit') : translate('Add New')}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <TextInputForm
+              name="name"
+              control={control}
+              label={translate("Name")}
+              required
+              errors={errors}
+            /> 
+            <TextInputForm
+              name="icnumber"
+              control={control}
+              label={translate("IC No.")}
+              required
+              errors={errors}
+            /> 
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>{translate('Date of Birth')}</Label><Input type="date" value={formData.dateofbirth} onChange={(e) => setFormData({...formData, dateofbirth: e.target.value})} /></div>
-              <div><Label>{translate('Date of Death')}</Label><Input type="date" value={formData.dateofdeath} onChange={(e) => setFormData({...formData, dateofdeath: e.target.value})} /></div>
+              <TextInputForm
+                name="dateofbirth"
+                control={control}
+                label={translate("Date of Birth")}
+                isDate
+              /> 
+              <TextInputForm
+                name="dateofdeath"
+                control={control}
+                label={translate("Date of Birth")}
+                isDate
+              /> 
             </div>
-            <div className="space-y-2"><Label>{translate('Cause of Death')}</Label><Input value={formData.causeofdeath} onChange={(e) => setFormData({...formData, causeofdeath: e.target.value})} /></div>
-            <div className="space-y-2">
-              <Label>{translate('Cemetery Name')} *</Label>
-              <Select value={String(formData.grave)} onValueChange={(v) => setFormData({...formData, grave: v})}>
-                <SelectTrigger><SelectValue placeholder={translate('Select cemetery')} /></SelectTrigger>
-                <SelectContent>{gravesList.items.map(g => <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
+            <TextInputForm
+              name="causeofdeath"
+              control={control}
+              label={translate("Cause of Death")}
+              required
+              errors={errors}
+            />
+            <SelectForm
+              name="grave"
+              control={control}
+              label={translate("Grave")}
+              placeholder={translate("Select Grave")}
+              options={gravesList.items.map(grave => ({
+                  value: grave.id,
+                  label: grave.name,
+              }))}
+              required
+              errors={errors}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>{translate('GPS Latitude')}</Label><Input type="number" step="any" value={formData.gpslatitude} onChange={(e) => setFormData({...formData, gpslatitude: e.target.value})} /></div>
-              <div><Label>{translate('GPS Longitude')}</Label><Input type="number" step="any" value={formData.gpslongitude} onChange={(e) => setFormData({...formData, gpslongitude: e.target.value})} /></div>
+              <TextInputForm 
+                name="latitude" 
+                control={control} 
+                label={translate("Latitude")} 
+                isNumber 
+                required 
+                errors={errors} 
+              />
+              <TextInputForm 
+                name="longitude" 
+                control={control} 
+                label={translate("Longitude")} 
+                isNumber 
+                required 
+                errors={errors} 
+              />
             </div>
-            <Button type="button" variant="outline" onClick={() => navigator.geolocation.getCurrentPosition((p) => setFormData({...formData, gpslatitude: p.coords.latitude.toFixed(16), gpslongitude: p.coords.longitude.toFixed(16)}))} className="w-full">
+            <Button 
+              type="button" variant="outline" 
+              className="w-full" 
+              onClick={() => navigator.geolocation.getCurrentPosition((pos) => { 
+                setValue('latitude', pos.coords.latitude.toFixed(16)); 
+                setValue('longitude', pos.coords.longitude.toFixed(16)); 
+              })}>
               <MapPin className="w-4 h-4 mr-2" /> {translate('Get Current Location')}
             </Button>
-            <div className="space-y-2"><Label>{translate('Biography')}</Label><Textarea value={formData.biography} onChange={(e) => setFormData({...formData, biography: e.target.value})} rows={3} /></div>
-            <div className="space-y-2">
-              <Label>{translate('Photo')}</Label>
-              <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files?.[0])} disabled={uploading} />
-              {formData.photourl && <img className="w-20 h-20 rounded object-cover mt-2" src={`/api/file/dead-person/${encodeURIComponent(formData.photourl)}`} alt="Preview" />}
-            </div>
+            <TextInputForm 
+              name="biography" 
+              control={control} 
+              label={translate("Biography")} 
+              required 
+              errors={errors} 
+            />
+            <FileUploadForm
+              name="photourl"
+              control={control}
+              label={translate("Photo")}
+              required
+              errors={errors}
+              bucketName="dead-person"
+              uploading={uploading}
+              handleFileUpload={handleFileUpload}
+              translate={translate}
+            />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('Cancel')}</Button>
-              <Button type="submit" disabled={createDeadPerson.isPending || updateDeadPerson.isPending} className="bg-blue-600 text-white"><Save className="w-4 h-4 mr-2" />{translate('Save')}</Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsDialogOpen(false)}
+              >
+                {translate('Cancel')}
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createDeadPerson.isPending || updateDeadPerson.isPending || isSubmitting} 
+                className="bg-blue-600 text-white">
+                <Save className="w-4 h-4 mr-2" />
+                {translate('Save')}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={translate('delete')} description={`Padam rekod "${personToDelete?.name}"?`} onConfirm={confirmDelete} variant="destructive" />
-      <QRCodeDialog open={qrDialogOpen} onOpenChange={setQRDialogOpen} data={qrPerson} />
+      <ConfirmDialog 
+        open={deleteDialogOpen} 
+        onOpenChange={setDeleteDialogOpen} 
+        title={translate('delete')} 
+        description={`Padam rekod "${personToDelete?.name}"?`} 
+        onConfirm={confirmDelete} 
+        variant="destructive" 
+      />
+      <QRCodeDialog 
+        open={qrDialogOpen} 
+        onOpenChange={setQRDialogOpen} 
+        data={qrPerson} 
+      />
     </div>
   );
 }

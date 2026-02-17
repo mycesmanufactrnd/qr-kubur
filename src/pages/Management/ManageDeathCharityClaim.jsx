@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
@@ -25,9 +24,6 @@ import { defaultDeathCharityClaimField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
 import TextInputForm from '@/components/forms/TextInputForm';
 import SelectForm from '@/components/forms/SelectForm';
-import CheckboxForm from '@/components/forms/CheckboxForm';
-import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
-import { Switch } from '@/components/ui/switch';
 import { useGetDependentsByMember, useGetMemberByDeathCharity } from '@/hooks/useDeathCharityMemberMutations';
 import { useGetDeathCharityByOrganisation } from '@/hooks/useDeathCharityMutations';
 
@@ -135,12 +131,6 @@ export default function ManageDeathCharityClaim() {
     }, [selectedMember, selectedDependent, deathCharityMemberList, memberDependentsList, setValue]);
 
     const onSubmit = async (formData) => {
-        const isValid = validateFields(formData, [
-            { field: 'deceasedname', label: 'Deceased Name', type: 'text' },
-        ]);
-
-        if (!isValid) return;
-
         const submitData = { 
             ...formData,
             payoutamount: Number(formData.payoutamount) || 0,

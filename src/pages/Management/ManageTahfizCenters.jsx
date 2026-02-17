@@ -27,22 +27,25 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import TextInputForm from '@/components/forms/TextInputForm';
+import SelectForm from '@/components/forms/SelectForm';
+import FileUploadForm from '@/components/forms/FileUploadForm';
 
 export default function ManageTahfizCenters() {
-  const { isTahfizAdmin, isSuperAdmin, loadingUser } = useAdminAccess();
+  const { isTahfizAdmin, isSuperAdmin, loadingUser, currentUserStates } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlSearch = searchParams.get('search') || '';
+  const urlName = searchParams.get('name') || '';
   const urlState = searchParams.get('state') || 'all';
 
-  const [tempSearch, setTempSearch] = useState(urlSearch);
+  const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
 
   useEffect(() => {
-    setTempSearch(urlSearch);
+    setTempName(urlName);
     setTempState(urlState);
-  }, [urlSearch, urlState]);
+  }, [urlName, urlState]);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,17 +58,16 @@ export default function ManageTahfizCenters() {
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('tahfiz');
 
-  const { tahfizCenterList, isLoading } = useGetTahfizPaginated({
+  const { tahfizCenterList, totalPages, isLoading } = useGetTahfizPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    search: urlSearch,
+    filterName: urlName,
     filterState: urlState === 'all' ? undefined : urlState,
   });
 
-  const totalPages = Math.ceil((tahfizCenterList?.total || 0) / itemsPerPage);
-
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
-  const { control, handleSubmit: handleFormSubmit, reset, setValue, watch } = useForm({
+
+  const { control, handleSubmit: handleFormSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultTahfizField
   });
 
@@ -73,8 +75,8 @@ export default function ManageTahfizCenters() {
   const photourl = watch('photourl') || '';
 
   const handleSearch = () => {
-    const params = { page: '1' };
-    if (tempSearch) params.search = tempSearch;
+    const params = { page: '1', name: '', state: '' };
+    if (tempName) params.name = tempName;
     if (tempState !== 'all') params.state = tempState;
     setSearchParams(params);
   };
@@ -108,51 +110,91 @@ export default function ManageTahfizCenters() {
     }
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = async (formData) => {
     const payload = {
-      ...data,
-      latitude: data.latitude ? parseFloat(data.latitude) : null,
-      longitude: data.longitude ? parseFloat(data.longitude) : null,
+      ...formData,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      serviceprice: Object.fromEntries(
+        Object.entries(formData.serviceprice || {}).map(([key, value]) => [
+          key,
+          value ? parseFloat(Number(value).toFixed(2)) : 0
+        ])
+      )
     };
 
-    const mutation = editingCenter ? updateTahfiz : createTahfiz;
-    mutation.mutate(editingCenter ? { id: editingCenter.id, data: payload } : payload, {
-      onSuccess: () => {
-        setIsDialogOpen(false);
-        reset(defaultTahfizField);
+    try {
+      if (editingCenter) {
+        await updateTahfiz.mutateAsync({ id: Number(editingCenter.id), data: payload });
+      } else {
+        await createTahfiz.mutateAsync(payload);
       }
-    });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (file, bucketName) => {
     setUploading(true);
     try {
       const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
-      const res = await fetch('/api/upload/tahfiz-center', { method: 'POST', body: formDataUpload });
-      if (!res.ok) throw new Error();
+      formDataUpload.append("file", file);
+
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || "Failed to upload photo");
+        return null;
+      }
+
       const data = await res.json();
-      setValue('photourl', data.file_url);
-      showSuccess('Photo uploaded');
+      showSuccess("Photo uploaded");
+
+      return data.file_url;
     } catch (err) {
-      showError('Failed to upload photo');
+      console.error(err);
+      showError("Failed to upload photo");
+      return null;
     } finally {
       setUploading(false);
     }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!centerToDelete) return;
-    deleteTahfiz.mutate(centerToDelete.id, {
-      onSuccess: () => setDeleteDialogOpen(false)
-    });
+
+    try {
+      await deleteTahfiz.mutateAsync(Number(centerToDelete.id));
+      setDeleteDialogOpen(false);
+      setCenterToDelete(null);
+    } catch (error) {
+      console.error('Delete failed:', error);
+    }
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!isTahfizAdmin && !isSuperAdmin) return <AccessDeniedComponent />;
+  if (loadingUser || permissionsLoading) {
+    return (
+      <PageLoadingComponent />
+    )
+  }
+
+  if (!isTahfizAdmin && !isSuperAdmin) {
+    return ( 
+      <AccessDeniedComponent />
+    )
+  }
+
   if (!canView) return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: translate('adminDashboard'), page: 'AdminDashboard' }, { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }]} />
+      <Breadcrumb items={[
+        { label: translate('Admin Dashboard'), page: 'AdminDashboard' }, 
+        { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters' }
+      ]} />
       <AccessDeniedComponent />
     </div>
   );
@@ -160,8 +202,8 @@ export default function ManageTahfizCenters() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('adminDashboard'), page: 'AdminDashboard' }, 
-        { label: translate('manageTahfiz'), page: 'ManageTahfizCenters' }
+        { label: translate('Admin Dashboard'), page: 'AdminDashboard' }, 
+        { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -172,7 +214,7 @@ export default function ManageTahfizCenters() {
         {canCreate && (
           <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
             <Plus className="w-4 h-4 mr-2" />
-            {translate('addNew')}
+            {translate('Add New')}
           </Button>
         )}
       </div>
@@ -183,9 +225,9 @@ export default function ManageTahfizCenters() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('search...')}
-                value={tempSearch}
-                onChange={(e) => setTempSearch(e.target.value)}
+                placeholder={translate('Name')}
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10"
               />
@@ -199,10 +241,10 @@ export default function ManageTahfizCenters() {
             {isSuperAdmin && (
               <Select value={tempState} onValueChange={setTempState}>
                 <SelectTrigger>
-                  <SelectValue placeholder={translate('allStates')} />
+                  <SelectValue placeholder={translate('All States')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('allStates')}</SelectItem>
+                  <SelectItem value="all">{translate('All States')}</SelectItem>
                   {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -219,10 +261,10 @@ export default function ManageTahfizCenters() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('name')}</TableHead>
-                <TableHead className="text-center">{translate('state')}</TableHead>
-                <TableHead className="text-center">{translate('services')}</TableHead>
-                <TableHead className="text-center">{translate('actions')}</TableHead>
+                <TableHead>{translate('Name')}</TableHead>
+                <TableHead className="text-center">{translate('State')}</TableHead>
+                <TableHead className="text-center">{translate('Services')}</TableHead>
+                <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -247,12 +289,31 @@ export default function ManageTahfizCenters() {
                     <TableCell className="text-center">
                       {canEdit && (
                         <>
-                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(center)}><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setSelectedCenterForPayment(center); setPaymentConfigOpen(true); }}><CreditCard className="w-4 h-4 text-green-600" /></Button>
+                          <Button 
+                            variant="ghost" size="sm" 
+                            onClick={() => openEditDialog(center)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" size="sm" 
+                            onClick={() => { 
+                              setSelectedCenterForPayment(center); 
+                              setPaymentConfigOpen(true); }}
+                          >
+                            <CreditCard className="w-4 h-4 text-green-600" />
+                          </Button>
                         </>
                       )}
                       {canDelete && (
-                        <Button variant="ghost" size="sm" onClick={() => { setCenterToDelete(center); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                        <Button 
+                          variant="ghost" size="sm" 
+                          onClick={() => { 
+                            setCenterToDelete(center); 
+                            setDeleteDialogOpen(true); 
+                          }}>
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>
@@ -273,25 +334,40 @@ export default function ManageTahfizCenters() {
         )}
       </Card>
 
-      {/* Dialogs */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editingCenter ? translate('edit') : translate('addNew')}</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCenter ? translate('Edit') : translate('Add')}
+            </DialogTitle>
+          </DialogHeader>
           <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
-            <div><Label>{translate('name')} *</Label><Controller name="name" control={control} render={({ field }) => <Input {...field} required />} /></div>
-            <div><Label>{translate('state')} *</Label><Controller name="state" control={control} render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger><SelectValue placeholder={translate('selectStates')} /></SelectTrigger>
-                <SelectContent>{STATES_MY.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
-            )} /></div>
+            <TextInputForm
+              name="name"
+              control={control}
+              label={translate("Name")}
+              required
+              errors={errors}
+            /> 
+            <SelectForm
+              name="state"
+              control={control}
+              label={translate("State")}
+              placeholder={translate("Select states")}
+              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+              required
+              errors={errors}
+            />
             <div>
-              <Label>{translate('services')}</Label>
+              <Label>{translate('Services')}</Label>
               <div className="space-y-3 mt-2">
                 {SERVICE_TYPES.map(service => (
                   <div key={service.value} className="space-y-2">
                     <div className="flex items-center gap-2 p-2 rounded border">
-                      <Checkbox checked={selectedServices.includes(service.value)} onCheckedChange={() => toggleService(service.value)} />
+                      <Checkbox 
+                        checked={selectedServices.includes(service.value)} 
+                        onCheckedChange={() => toggleService(service.value)} 
+                      />
                       <span className="text-sm font-medium">{service.label}</span>
                     </div>
                     {selectedServices.includes(service.value) && (
@@ -299,7 +375,14 @@ export default function ManageTahfizCenters() {
                         <Controller 
                           name={`serviceprice.${service.value}`} 
                           control={control} 
-                          render={({ field }) => <Input type="number" step="0.01" placeholder="RM 0.00" value={field.value || ''} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} />} 
+                          render={({ field }) => 
+                            <Input 
+                              type="number" step="0.01" 
+                              placeholder="RM 0.00" 
+                              value={field.value || ''} 
+                              onChange={(e) => field.onChange(e.target.value)}
+                            />
+                          } 
                         />
                       </div>
                     )}
@@ -307,22 +390,76 @@ export default function ManageTahfizCenters() {
                 ))}
               </div>
             </div>
-            <div><Label>{translate('address')}</Label><Controller name="address" control={control} render={({ field }) => <Textarea {...field} rows={3} />} /></div>
+            <TextInputForm 
+              name="address" 
+              control={control} 
+              label={translate("Address")}
+              isTextArea 
+            />
             <div className="grid grid-cols-2 gap-4">
-              <div><Label>{translate('phone')}</Label><Controller name="phone" control={control} render={({ field }) => <Input {...field} />} /></div>
-              <div><Label>{translate('email')}</Label><Controller name="email" control={control} render={({ field }) => <Input type="email" {...field} />} /></div>
+              <TextInputForm
+                name="phone"
+                control={control}
+                label={translate("Phone No.")}
+                required
+                errors={errors}
+              /> 
+              <TextInputForm
+                name="email"
+                control={control}
+                label={translate("Email")}
+                required
+                errors={errors}
+              /> 
             </div>
-            <Button type="button" variant="outline" className="w-full" onClick={() => navigator.geolocation.getCurrentPosition((pos) => { setValue('latitude', pos.coords.latitude.toFixed(8)); setValue('longitude', pos.coords.longitude.toFixed(8)); })}>
-              <MapPin className="w-4 h-4 mr-2" /> {translate('getCurrentLocation')}
+            <div className="grid grid-cols-2 gap-4">
+              <TextInputForm 
+                name="latitude" 
+                control={control} 
+                label={translate("Latitude")} 
+                isNumber 
+                required 
+                errors={errors} 
+              />
+              <TextInputForm 
+                name="longitude" 
+                control={control} 
+                label={translate("Longitude")} 
+                isNumber 
+                required 
+                errors={errors} 
+              />
+            </div>
+            <Button 
+              type="button" variant="outline" 
+              className="w-full" 
+              onClick={() => navigator.geolocation.getCurrentPosition((pos) => { 
+                setValue('latitude', pos.coords.latitude.toFixed(16)); 
+                setValue('longitude', pos.coords.longitude.toFixed(16)); 
+              })}>
+              <MapPin className="w-4 h-4 mr-2" /> 
+              {translate('Get Current Location')}
             </Button>
-            <div className="space-y-2">
-              <Label>{translate('Photo')}</Label>
-              <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files?.[0])} disabled={uploading} />
-              {photourl && <img className="w-20 h-20 rounded object-cover mt-2" src={`/api/file/tahfiz-center/${encodeURIComponent(photourl)}`} alt="Preview" />}
-            </div>
+            <FileUploadForm
+              name="photourl"
+              control={control}
+              label={translate("Photo")}
+              required
+              errors={errors}
+              bucketName="tahfiz-center"
+              uploading={uploading}
+              handleFileUpload={handleFileUpload}
+              translate={translate}
+            />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('cancel')}</Button>
-              <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={createTahfiz.isPending || updateTahfiz.isPending}>
+              <Button 
+                type="button" variant="outline" 
+                onClick={() => setIsDialogOpen(false)}>
+                {translate('cancel')}
+              </Button>
+              <Button 
+                type="submit" className="bg-amber-600 hover:bg-amber-700" 
+                disabled={createTahfiz.isPending || updateTahfiz.isPending || isSubmitting || uploading}>
                 <Save className="w-4 h-4 mr-2" /> {translate('save')}
               </Button>
             </DialogFooter>
@@ -330,8 +467,21 @@ export default function ManageTahfizCenters() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={confirmDelete} title={translate('delete')} description={translate('confirmDelete')} variant="destructive" />
-      <PaymentConfigDialog open={paymentConfigOpen} onOpenChange={setPaymentConfigOpen} entityId={selectedCenterForPayment?.id} entityType="tahfiz" />
+      <ConfirmDialog 
+        open={deleteDialogOpen} 
+        onOpenChange={setDeleteDialogOpen} 
+        onConfirm={confirmDelete} 
+        title={translate('delete')} 
+        description={translate('confirmDelete')} 
+        variant="destructive" 
+      />
+      <PaymentConfigDialog 
+        open={paymentConfigOpen} 
+        hasAdminAccess
+        onOpenChange={setPaymentConfigOpen} 
+        entityId={selectedCenterForPayment?.id} 
+        entityType="tahfiz" 
+      />
     </div>
   );
 }

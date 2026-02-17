@@ -16,6 +16,7 @@ export default function SelectForm({
   options,
   required = false,
   errors = {},
+  disabled = false,
 }) {
   const errorMessage = errors?.[name]?.message;
 
@@ -29,6 +30,7 @@ export default function SelectForm({
       <Controller
         name={name}
         control={control}
+        disabled={disabled}
         rules={
           required
             ? { required: `${label} is required` }

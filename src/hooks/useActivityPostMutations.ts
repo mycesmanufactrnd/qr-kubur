@@ -2,14 +2,29 @@ import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
 
+type useGetActivityPostsPaginatedParams = {
+  page?: number;
+  pageSize?: number;
+  filterTitle?: string;
+  mosqueId?: number | null;
+  tahfizId?: number | null;
+};
+
 const titleMessage = 'Activity Posts';
 
-export function useGetActivityPosts({ mosqueId, tahfizId }) {
+export function useGetActivityPostsByRelationId({ 
+  mosqueId, 
+  tahfizId 
+} : useGetActivityPostsPaginatedParams) {
+  const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
+
   const { data, isLoading, isError } = trpc.activityPost.getPaginated.useQuery(
     { 
+      page: 1,
+      pageSize: 5,
       mosqueId, 
-      tahfizId, 
-      pageSize: 20 
+      tahfizId,
+      isSuperAdmin
     },
     { enabled: !!mosqueId || !!tahfizId }
   );
@@ -21,20 +36,27 @@ export function useGetActivityPosts({ mosqueId, tahfizId }) {
   };
 }
 
-// Hook for Admin Dashboard Table
-export function useGetActivityPostsPaginated({ page, pageSize, filterTitle }) {
-  const { hasAdminAccess } = useAdminAccess();
+export function useGetActivityPostsPaginated({ 
+  page, 
+  pageSize, 
+  filterTitle 
+} : useGetActivityPostsPaginatedParams) {
+  const { hasAdminAccess, isSuperAdmin } = useAdminAccess();
+
   const { data, isLoading, refetch, error } = trpc.activityPost.getPaginated.useQuery(
-    { page, pageSize, filterTitle },
+    { 
+      page, 
+      pageSize, 
+      filterTitle,
+      isSuperAdmin 
+    },
     { enabled: hasAdminAccess }
   );
 
-  return { 
-    activityPostsList: { items: data?.items ?? [], total: data?.total ?? 0 }, 
-    isLoading, 
-    refetch, 
-    error 
-  };
+  const activityPostsList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(activityPostsList.total / (pageSize ?? 10));
+
+  return { activityPostsList, totalPages, isLoading, refetch, error };
 }
 
 export function useActivityPostMutations() {

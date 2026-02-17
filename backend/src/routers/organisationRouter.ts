@@ -4,6 +4,7 @@ import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 import { organisationSchema } from '../schemas/organisationSchema.ts';
 import { ActiveInactiveStatus } from '../db/enums.ts';
+import { Brackets } from 'typeorm';
 
 async function getOrganisationTreeIds(rootId: number) {
   const result = await AppDataSource.query(`
@@ -26,31 +27,36 @@ export const organisationRouter = router({
       z.object({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).default(10),
-        search: z.string().optional(),
+        filterName: z.string().optional(),
         filterType: z.number().optional(),
         filterState: z.string().optional(),
-        organisationIds: z.array(z.number()).optional(), 
+        organisationId: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().default(false),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const { page, pageSize, search, filterType, filterState } = input;
-      const { user } = ctx;
+    .query(async ({ input }) => {
+      const { page, pageSize, filterName, filterType, filterState, organisationId, isSuperAdmin } = input;
+
       const organisationRepo = AppDataSource.getRepository(Organisation);
 
       const query = organisationRepo.createQueryBuilder('organisation')
         .leftJoinAndSelect('organisation.parentorganisation', 'parent')
         .leftJoinAndSelect('organisation.organisationtype', 'type');
 
-      if (user.role !== 'superadmin') {
-        query.andWhere(
-          '(organisation.id = :userOrgId OR organisation."parentorganisationId" = :userOrgId)',
-          { userOrgId: user.organisationId }
-        );
+      if (!isSuperAdmin) {
+        if (organisationId) {
+          query.andWhere(
+            new Brackets((qb) => {
+              qb.where('organisation.id = :id', { id: organisationId })
+                .orWhere('organisation.parentorganisationId = :id', { id: organisationId });
+            })
+          );
+        }
       }
 
-      if (search?.trim()) {
-        query.andWhere('organisation.name ILIKE :search', {
-          search: `%${search.trim()}%`,
+      if (filterName?.trim()) {
+        query.andWhere('organisation.name ILIKE :name', {
+          name: `%${filterName.trim()}%`,
         });
       }
 
@@ -62,10 +68,12 @@ export const organisationRouter = router({
         query.andWhere(':state = ANY(organisation.states)', { state: filterState });
       }
 
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
+
       const [items, total] = await query
         .orderBy('organisation.createdat', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -84,7 +92,12 @@ export const organisationRouter = router({
     .mutation(async ({ input }) => {
       const organisationRepo = AppDataSource.getRepository(Organisation);
       const organisation = await organisationRepo.findOneByOrFail({ id: input.id });
-      organisationRepo.merge(organisation, input.data);
+
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      organisationRepo.merge(organisation, cleanedInput);
       return organisationRepo.save(organisation);
     }),
 

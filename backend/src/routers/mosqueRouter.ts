@@ -81,21 +81,28 @@ export const mosqueRouter = router({
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterName: z.string().optional(),
       filterState: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search, filterState } = input;
+      const { page, pageSize, filterName, filterState } = input;
       const mosqueRepo = AppDataSource.getRepository(Mosque);
       const query = mosqueRepo.createQueryBuilder("mosque").leftJoinAndSelect('mosque.organisation', 'organisation');
 
-      if (search) query.andWhere("mosque.name ILIKE :search", { search: `%${search}%` });
-      if (filterState) query.andWhere("mosque.state = :state", { state: filterState });
+      if (filterName) {
+        query.andWhere("mosque.name ILIKE :name", { search: `%${filterName}%` });
+      }
+
+      if (filterState) {
+        query.andWhere("mosque.state = :state", { state: filterState });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
 
       const [items, total] = await query
         .orderBy("mosque.createdat", "DESC")
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -114,7 +121,12 @@ export const mosqueRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(Mosque);
       const mosque = await repo.findOneByOrFail({ id: input.id });
-      repo.merge(mosque, input.data);
+
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      repo.merge(mosque, cleanedInput);
       return repo.save(mosque);
     }),
 

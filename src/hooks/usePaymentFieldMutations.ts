@@ -1,26 +1,38 @@
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
+import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
+
+type useGetPaymentFieldPaginatedParams = {
+  page?: number;
+  pageSize?: number;
+  filterLabelKey?: string;
+  platformId?: number;
+};
 
 const titleMessage = "Payment Field";
 
-export function useGetPaymentField({ page, pageSize, search, platformId, hasAccess }) {
-  const trpcRes = trpc.paymentField.getPaginated.useQuery(
+export function useGetPaymentField({ 
+  page, 
+  pageSize,
+  filterLabelKey, 
+  platformId 
+} : useGetPaymentFieldPaginatedParams) {
+  const { isSuperAdmin } = useAdminAccess();
+
+  const { data, isLoading, refetch, error } = trpc.paymentField.getPaginated.useQuery(
     {
-      page: page ?? 1,
-      pageSize: pageSize ?? 10,
-      search: search || '',
-      platformId: platformId || undefined,
+      page,
+      pageSize,
+      filterLabelKey,
+      platformId,
     },
-    {
-      enabled: !!hasAccess,
-    }
+    { enabled: isSuperAdmin }
   );
 
-  return {
-    data: trpcRes.data ?? { items: [], total: 0 },
-    isLoading: trpcRes.isLoading,
-    refetch: trpcRes.refetch,
-  };
+  const paymentFieldList = { items: data?.items ?? [], total: data?.total ?? 0 };
+  const totalPages = Math.ceil(paymentFieldList.total / (pageSize ?? 10));
+
+  return { paymentFieldList, totalPages, isLoading, refetch, error };
 }
 
 export function usePaymentFieldMutations() {

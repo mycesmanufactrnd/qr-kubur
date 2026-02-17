@@ -58,7 +58,7 @@ export const notificationRouter = router({
             z.object({
                 id: z.number(),
                 data: z.object({ 
-                isread: z.boolean()
+                    isread: z.boolean().default(false)
                 })
             })
         )

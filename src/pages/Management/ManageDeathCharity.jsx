@@ -95,13 +95,6 @@ export default function ManageDeathCharity() {
   };
 
   const onSubmit = async (formData) => {
-    const isValid = validateFields(formData, [
-      { field: 'name', label: 'Name', type: 'text' },
-      { field: 'state', label: 'State', type: 'select' },
-    ]);
-
-    if (!isValid) return;
-
     const submitData = { 
         ...formData,
         registrationfee: Number(formData.registrationfee) || 0,
@@ -301,7 +294,7 @@ export default function ManageDeathCharity() {
                             options={organisationsList.items.map(org => ({
                             value: org.id,
                             label: org.name,
-                            }))}
+                          }))}
                         />
                         </div>
                     </div>
@@ -310,26 +303,26 @@ export default function ManageDeathCharity() {
                         Basic Information
                         </h3>
                         <TextInputForm
-                        name="name"
-                        control={control}
-                        label={translate("Name")}
-                        required
-                        errors={errors}
+                          name="name"
+                          control={control}
+                          label={translate("Name")}
+                          required
+                          errors={errors}
                         />
                         <SelectForm
-                        name="state"
-                        control={control}
-                        label={translate("State")}
-                        placeholder={translate("Select states")}
-                        options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-                        required
-                        errors={errors}
+                          name="state"
+                          control={control}
+                          label={translate("State")}
+                          placeholder={translate("Select states")}
+                          options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+                          required
+                          errors={errors}
                         />    
                         <TextInputForm
-                        name="description"
-                        control={control}
-                        label={translate("Description")}
-                        isTextArea
+                          name="description"
+                          control={control}
+                          label={translate("Description")}
+                          isTextArea
                         />
                     </div>
                     <div className="space-y-4">
@@ -338,18 +331,18 @@ export default function ManageDeathCharity() {
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                         <TextInputForm
-                            name="contactperson"
-                            control={control}
-                            label={translate("Contact Person")}
-                            required
-                            errors={errors}
+                          name="contactperson"
+                          control={control}
+                          label={translate("Contact Person")}
+                          required
+                          errors={errors}
                         />    
                         <TextInputForm
-                            name="contactphone"
-                            control={control}
-                            label={translate("Contact Phone No.")}
-                            required
-                            errors={errors}
+                          name="contactphone"
+                          control={control}
+                          label={translate("Contact Phone No.")}
+                          required
+                          errors={errors}
                         />
                         </div>
                     </div>
@@ -359,29 +352,29 @@ export default function ManageDeathCharity() {
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                         <TextInputForm
-                            name="registrationfee"
-                            control={control}
-                            label={translate("Registration Fee")}
-                            isMoney
-                            required
-                            errors={errors}
+                          name="registrationfee"
+                          control={control}
+                          label={translate("Registration Fee")}
+                          isMoney
+                          required
+                          errors={errors}
                         />    
                         <TextInputForm
-                            name="monthlyfee"
-                            control={control}
-                            label={translate("Monthly Fee")}
-                            isMoney
-                            required
-                            errors={errors}
+                          name="monthlyfee"
+                          control={control}
+                          label={translate("Monthly Fee")}
+                          isMoney
+                          required
+                          errors={errors}
                         />
                         </div>
                         <TextInputForm
-                        name="deathbenefitamount"
-                        control={control}
-                        label={translate("Death Benefit Amount")}
-                        isMoney
-                        required
-                        errors={errors}
+                          name="deathbenefitamount"
+                          control={control}
+                          label={translate("Death Benefit Amount")}
+                          isMoney
+                          required
+                          errors={errors}
                         />
                     </div>
                     <div className="space-y-4">
@@ -390,23 +383,23 @@ export default function ManageDeathCharity() {
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                         <CheckboxForm
-                            name="coversspouse"
-                            control={control}
-                            label={translate("Covers Spouse")}
+                          name="coversspouse"
+                          control={control}
+                          label={translate("Covers Spouse")}
                         />
                         <CheckboxForm
-                            name="coverschildren"
-                            control={control}
-                            label={translate("Covers Children")}
+                          name="coverschildren"
+                          control={control}
+                          label={translate("Covers Children")}
                         />
                         </div>
                         <TextInputForm
-                        name="maxdependents"
-                        control={control}
-                        label={translate("Max Dependents")}
-                        isNumber
-                        required
-                        errors={errors}
+                          name="maxdependents"
+                          control={control}
+                          label={translate("Max Dependents")}
+                          isNumber
+                          required
+                          errors={errors}
                         />
                     </div>
                     <div className="space-y-4">
@@ -422,10 +415,19 @@ export default function ManageDeathCharity() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                        {translate('Cancel')}
+                        <Button type="button" variant="outline" 
+                          onClick={() => setIsDialogOpen(false)}
+                        >
+                          {translate('Cancel')}
                         </Button>
-                        <Button type="submit" disabled={createDeathCharity.isPending || updateDeathCharity.isPending}>
+                        <Button 
+                          type="submit" 
+                          disabled={
+                            createDeathCharity.isPending || 
+                            updateDeathCharity.isPending ||
+                            isSubmitting
+                          }
+                        >
                         <Save className="w-4 h-4 mr-2" />
                         {translate('Save')}
                         </Button>
@@ -438,7 +440,7 @@ export default function ManageDeathCharity() {
             open={deleteDialogOpen}
             onOpenChange={setDeleteDialogOpen}
             title={translate('Delete Death Charity')}
-            description={`${translate('Delete')} "${deathCharityToDelete?.name}"?`}
+            description={`${translate('Delete')} "${deathCharityToDelete?.name ?? ''}"?`}
             onConfirm={confirmDelete}
             confirmText={translate('Delete')}
             variant="destructive"

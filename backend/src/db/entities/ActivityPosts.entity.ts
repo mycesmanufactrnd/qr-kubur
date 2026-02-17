@@ -22,7 +22,7 @@ export class ActivityPost {
   content!: string;
 
   @Column({ type: 'varchar', nullable: true })
-  photourl?: string;
+  photourl?: string | null;
 
   @Column({ type: 'boolean', default: true })
   ispublished!: boolean;

@@ -36,21 +36,21 @@ import { useForm } from 'react-hook-form';
 import CheckboxForm from '@/components/forms/CheckboxForm';
 
 export default function ManageMosques() {
-  const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('mosques');
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlSearch = searchParams.get('search') || '';
+  const urlName = searchParams.get('name') || '';
   const urlState = searchParams.get('state') || 'all';
 
-  const [tempSearch, setTempSearch] = useState(urlSearch);
+  const [setName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
 
   useEffect(() => {
-    setTempSearch(urlSearch);
+    setTempName(urlName);
     setTempState(urlState);
-  }, [urlSearch, urlState]);
+  }, [urlName, urlState]);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,7 +73,7 @@ export default function ManageMosques() {
   const { mosquesList, totalPages, isLoading } = useGetMosquePaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    search: urlSearch,
+    filterName: urlName,
     filterState: urlState === 'all' ? undefined : urlState,
   });
 
@@ -122,13 +122,13 @@ export default function ManageMosques() {
 
   const handleSearch = () => {
     const params = { page: '1' };
-    if (tempSearch) params.search = tempSearch;
+    if (setName) params.search = setName;
     if (tempState !== 'all') params.state = tempState;
     setSearchParams(params);
   };
 
   const handleReset = () => {
-    setTempSearch('');
+    setTempName('');
     setTempState('all');
     setSearchParams({ page: '1' });
   };
@@ -226,8 +226,8 @@ export default function ManageMosques() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder={translate('Mosque name')}
-                value={tempSearch}
-                onChange={(e) => setTempSearch(e.target.value)}
+                value={setName}
+                onChange={(e) => setTempName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10"
               />
@@ -303,7 +303,15 @@ export default function ManageMosques() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <TextInputForm name="name" control={control} label={translate('Mosque name')} required />
-            <SelectForm name="state" control={control} label={translate('State')} options={STATES_MY} required />
+            <SelectForm
+              name="state"
+              control={control}
+              label={translate("State")}
+              placeholder={translate("Select states")}
+              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+              required
+              errors={errors}
+            />
             <TextInputForm name="address" control={control} label={translate('Address')} isTextArea />
 
             <div className="grid grid-cols-2 gap-4">

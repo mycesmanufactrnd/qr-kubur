@@ -65,6 +65,13 @@ export const defaultDonationField = {
   notes: 'Sedeqah',
 }
 
+export const defaultOrganisationTypeField = {
+  organisations: '',
+  name: '',
+  description: '',
+  status: ActiveInactiveStatus.ACTIVE,
+}
+
 export const defaultOrganisationField = {
   name: '',
   parentorganisation: null,
@@ -96,8 +103,8 @@ export const defaultDeadPersonField = {
   grave: '',
   biography: '',
   photourl: '',
-  gpslatitude: '',
-  gpslongitude: '',
+  latitude: '',
+  longitude: '',
 }
 
 export const defaultPaymentField = {

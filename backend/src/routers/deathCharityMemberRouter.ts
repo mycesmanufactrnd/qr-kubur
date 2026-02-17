@@ -23,12 +23,16 @@ export const deathCharityMemberRouter = router({
         query.leftJoinAndSelect('member.dependents', 'dependents');
         query.leftJoinAndSelect('dependents.claims', 'dependentsclaims');
 
-      if (filterFullName) query.andWhere('member.fullname ILIKE :fullname', { fullname: `%${filterFullName}%` });
+      if (filterFullName) {
+        query.andWhere('member.fullname ILIKE :fullname', { fullname: `%${filterFullName}%` });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
+      }
 
       const [items, total] = await query
         .orderBy('member.createdat', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
@@ -47,7 +51,12 @@ export const deathCharityMemberRouter = router({
     .mutation(async ({ input }) => {
       const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
       const deathCharity = await deathCharityMemberRepo.findOneByOrFail({ id: input.id });
-      deathCharityMemberRepo.merge(deathCharity, input.data);
+
+      const cleanedInput = Object.fromEntries(
+        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+      );
+
+      deathCharityMemberRepo.merge(deathCharity, cleanedInput);
       return await deathCharityMemberRepo.save(deathCharity);
     }),
 
@@ -118,7 +127,7 @@ export const deathCharityMemberRouter = router({
         ),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const { member, dependents } = input;
 
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);

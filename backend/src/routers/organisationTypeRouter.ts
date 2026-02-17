@@ -2,38 +2,40 @@ import { protectedProcedure, router, superAdminProcedure } from '../trpc.ts';
 import { OrganisationType } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
+import { ActiveInactiveStatus } from '../db/enums.ts';
 
 export const organisationTypeRouter = router({
   getTypes: protectedProcedure
     .input(z.object({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
-      search: z.string().optional(),
+      filterName: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, search } = input;
+      const { page, pageSize, filterName } = input;
       const repo = AppDataSource.getRepository(OrganisationType);
       const query = repo.createQueryBuilder('type');
 
-      // Standardized: andWhere with ILIKE and trimming
-      if (search?.trim()) {
-        query.andWhere('type.name ILIKE :search', { search: `%${search.trim()}%` });
+      if (filterName?.trim()) {
+        query.andWhere('type.name ILIKE :name', { name: `%${filterName.trim()}%` });
+      }
+
+      if (page && pageSize) {
+        query.skip((page - 1) * pageSize).take(pageSize)
       }
 
       const [items, total] = await query
         .orderBy('type.id', 'DESC')
-        .skip((page - 1) * pageSize)
-        .take(pageSize)
         .getManyAndCount();
 
       return { items, total };
     }),
   
-  createType: superAdminProcedure
+  create: superAdminProcedure
     .input(z.object({
       name: z.string().min(1),
       description: z.string().optional(),
-      status: z.enum(['active', 'inactive']).default('active'),
+      status: z.enum(ActiveInactiveStatus).default(ActiveInactiveStatus.ACTIVE),
     }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
@@ -41,12 +43,12 @@ export const organisationTypeRouter = router({
       return await repo.save(type);
     }),
 
-  updateType: superAdminProcedure
+  update: superAdminProcedure
     .input(z.object({
       id: z.number(),
       name: z.string().optional(),
       description: z.string().optional(),
-      status: z.enum(['active', 'inactive']).optional(),
+      status: z.enum(ActiveInactiveStatus).optional(),
     }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
@@ -57,7 +59,7 @@ export const organisationTypeRouter = router({
       return await repo.save(existing);
     }),
 
-  deleteType: superAdminProcedure
+  delete: superAdminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(OrganisationType);
