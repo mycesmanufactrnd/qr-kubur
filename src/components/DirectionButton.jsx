@@ -23,7 +23,7 @@ export default function DirectionButton({
         addClass
       )}
     >
-      <Navigation className="w-3 h-3 mr-1" />
+      <Navigation className="w-4 h-4 mr-2" />
       {translate('Direction')}
     </Button>
   );

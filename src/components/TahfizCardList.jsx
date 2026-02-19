@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, ExternalLink, Phone, Heart, Landmark } from 'lucide-react'; 
+import BannerImageWithFallback from "@/components/BannerImageWithFallback";
+import { MapPin, Navigation, ExternalLink, Phone, Heart } from 'lucide-react'; 
 import { createPageUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
-import { getServiceLabel } from '@/utils/enums';
 import { useState, useEffect } from 'react'; 
 import DonationButton from './DonationButton';
 
@@ -47,18 +47,12 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
 
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
-      <div className="relative h-40 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
-        {tahfiz.photourl ? (
-          <img 
-            src={`/api/file/tahfiz-center/${encodeURIComponent(tahfiz.photourl)}`} 
-            alt={tahfiz.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-             <Landmark className="w-12 h-12 text-white/20" />
-          </div>
-        )}
+      <div className="relative h-40 bg-gradient-to-br from-indigo-500 via-teal-500 to-cyan-600 overflow-hidden">
+        <BannerImageWithFallback
+          src={tahfiz.photourl ? `/api/file/tahfiz-center/${encodeURIComponent(tahfiz.photourl)}` : undefined}
+          alt={tahfiz.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
         <div className="absolute top-3 right-3 flex items-center gap-2">
@@ -103,7 +97,7 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
                 variant="secondary" 
                 className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium"
               >
-                {getServiceLabel(service)}
+                {service}
               </Badge>
             ))}
             {tahfiz.serviceoffered.length > 3 && (
@@ -123,7 +117,8 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
         
         <div className="flex gap-2 pt-2">
           <Link to={createPageUrl(`TahfizDetails?id=${tahfiz.id}`)} className="flex-1">
-            <Button 
+            <Button
+              size="sm"
               variant="outline" 
               className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
             >
@@ -133,7 +128,8 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
           </Link>
           <div className="flex gap-2">
             <DonationButton recipientId={tahfiz.id} recipientType={'tahfiz'} state={tahfiz.state}/>
-            <Button 
+            <Button
+              size="sm"
               onClick={(e) => {
                   e.stopPropagation();
                   openDirections(tahfiz.latitude, tahfiz.longitude);

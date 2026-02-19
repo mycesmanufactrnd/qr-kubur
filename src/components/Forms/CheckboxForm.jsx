@@ -8,6 +8,7 @@ export default function CheckboxForm({
   label,
   required = false,
   errors = {},
+  disabled = false,
 }) {
   const errorMessage = errors?.[name]?.message;
 
@@ -28,6 +29,7 @@ export default function CheckboxForm({
             <Checkbox
               checked={!!field.value}
               onCheckedChange={(val) => field.onChange(val === true)}
+              disabled={disabled}
             />
             <Label>
               {label}

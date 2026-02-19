@@ -28,7 +28,7 @@ export default function SearchTahfiz() {
   
   const favoritedTahfizIds = useMemo(() => {
     const favs = JSON.parse(localStorage.getItem('favoritedtahfiz') || '[]');
-    return favs.map(f => f.id);
+    return favs.map(fav => fav.id);
   }, [favoriteVersion]);
 
   const [filters, setFilters] = useState(() => {
@@ -65,7 +65,6 @@ export default function SearchTahfiz() {
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
     filters?.ids ? null : finalState, 
     filters?.ids ? null : finalSearch,
-    filters?.ids || null 
   );
 
   if (defaultFilter.isFavorited && favoritedTahfizIds.length === 0) {

@@ -1,10 +1,17 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 import { ActiveInactiveStatus } from '../db/enums.ts';
+
+export const tahfizServiceOfferedSchema = z.object({
+  id: z.number().optional(),
+  service: z.string().min(1),
+  price: z.number().min(0),
+  tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
+});
 
 export const tahfizSchema = z.object({
   name: z.string().min(1),
-  serviceoffered: z.array(z.string()).optional(),
-  serviceprice: z.object({}).catchall(z.number()).optional(),
+  description: z.string().optional(),
+  services: z.array(tahfizServiceOfferedSchema).optional(),
   state: z.string().min(1),
   address: z.string().optional(),
   phone: z.string().optional(),
@@ -15,3 +22,4 @@ export const tahfizSchema = z.object({
   status: z.enum(ActiveInactiveStatus).optional(),
   photourl: z.string().optional().nullable(),
 });
+

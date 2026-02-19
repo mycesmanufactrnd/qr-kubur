@@ -14,7 +14,6 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
-import { SERVICE_TYPES } from '@/utils/enums';
 import { trpc } from '@/utils/trpc';
 import { useGetActivityPostsByRelationId } from '@/hooks/useActivityPostMutations';
 
@@ -111,13 +110,13 @@ export default function TahfizDetails() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex flex-wrap gap-3 mb-8 -mt-12 relative z-10">
+      <div className="max-w-6xl mx-auto py-8">
+        <div className="flex flex-wrap gap-3 mb-8 -mt-12 relative z-10 px-4">
           <DirectionButton latitude={tahfiz.latitude} longitude={tahfiz.longitude}/>
           <DonationButton recipientId={tahfiz.id} recipientType={'tahfiz'} state={tahfiz.state}/>          
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8 px-1">
           <div className="lg:col-span-2 space-y-6">
             {tahfiz.description && (
               <Card className="border-0 shadow-md">
@@ -159,16 +158,16 @@ export default function TahfizDetails() {
                 <CardContent>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {tahfiz.serviceoffered.map((serviceValue, idx) => {
-                      const service = SERVICE_TYPES.find(s => s.value === serviceValue);
+                      const servicePrice = Number(tahfiz.serviceprice?.[serviceValue] || 0);
 
                       return (
                         <div key={idx} className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
                           <div className="flex flex-col">
-                            <span className="font-medium text-slate-700">{service?.label || serviceValue}</span>
-                            {service?.description && (
-                              <span className="text-xs text-slate-500">{service.description}</span>
-                            )}
+                            <span className="font-medium text-slate-700">{serviceValue}</span>
                           </div>
+                          {servicePrice > 0 && (
+                            <span className="text-sm font-semibold text-emerald-700">RM {servicePrice}</span>
+                          )}
                         </div>
                       );
                     })}

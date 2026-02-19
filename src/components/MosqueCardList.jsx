@@ -8,6 +8,7 @@ import { translate } from '@/utils/translations';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import DonationButton from './DonationButton';
+import BannerImageWithFallback from './BannerImageWithFallback';
 
 export default function MosqueCardList({ mosque, onFavoriteChange  }) {
   if (!mosque) return null;
@@ -44,35 +45,15 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
     if (onFavoriteChange) onFavoriteChange();
   };
 
-  const getImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('blob')) return url;
-    return `/api/file/bucket-mosque/${encodeURIComponent(url)}`;
-  };
-
-  const imageSrc = getImageUrl(mosque.photourl);
-
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
-      <div className="relative h-40 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
-        {imageSrc ? (
-          <img 
-            src={imageSrc} 
-            alt={mosque.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.parentNode.classList.add('flex', 'items-center', 'justify-center');
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Landmark className="w-12 h-12 text-white/20" />
-          </div>
-        )}
-        
+      <div className="relative h-40 bg-gradient-to-br from-pink-500 via-red-500 to-orange-600 overflow-hidden">
+        <BannerImageWithFallback
+          src={mosque.photourl ? `/api/file/bucket-mosque/${encodeURIComponent(mosque.photourl)}` : undefined}
+          alt={mosque.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
         <div className="absolute top-3 right-3 flex items-center gap-2">
           {mosque.distance && (
             <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">

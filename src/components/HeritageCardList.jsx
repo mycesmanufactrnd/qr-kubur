@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
+import BannerImageWithFallback from './BannerImageWithFallback';
 
 export default function HeritageCardList({ site, distance, index = 0, nextPageUrl }) {
   return (
@@ -16,18 +17,12 @@ export default function HeritageCardList({ site, distance, index = 0, nextPageUr
     >
       <Link to={createPageUrl(nextPageUrl) + `?id=${site.id}`}>
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 hover:shadow-lg transition-all duration-300 group">
-          <div className="relative h-48 overflow-hidden">
-            {site.photourl ? (
-              <img
-                src={`/api/file/heritage-site/${encodeURIComponent(site.photourl)}`} 
-                alt={translate('Preview') + site.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center">
-                <MapPin className="w-12 h-12 text-stone-400" />
-              </div>
-            )}
+          <div className="relative h-48 bg-gradient-to-br from-green-500 via-blue-500 to-emerald-600 overflow-hidden">
+            <BannerImageWithFallback
+              src={site.photourl ? `/api/file/heritage-site/${encodeURIComponent(site.photourl)}` : undefined}
+              alt={site.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
             
             {site.isfeatured && (
               <div className="absolute top-3 left-3">

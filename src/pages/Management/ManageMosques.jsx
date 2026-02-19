@@ -84,12 +84,6 @@ export default function ManageMosques() {
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
-  const getPreviewUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http') || path.startsWith('blob')) return path;
-    return `/api/file/bucket-mosque/${encodeURIComponent(path)}`;
-  };
-
   const handlePhotoUpload = async (file) => {
     if (!file) return;
     setUploading(true);
@@ -362,12 +356,9 @@ export default function ManageMosques() {
               {photourl && (
                 <div className="mt-3 relative w-40 h-40 group">
                   <img 
-                    src={getPreviewUrl(photourl)} 
+                    src={`/api/file/bucket-mosque/${encodeURIComponent(photourl)}`} 
                     alt="Mosque preview"
                     className="w-full h-full object-cover rounded-lg border-2 border-stone-100 shadow-sm"
-                    onError={(e) => {
-                       if (!photourl.startsWith('http')) e.target.src = photourl;
-                    }}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                     <ImageIcon className="text-white w-8 h-8" />

@@ -14,13 +14,16 @@ import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from '@/providers/LocationProvider';
 import { useGetTahfizById, useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
-import { DONATION_AMOUNTS, paymentToyyibStatus, SERVICE_FEE, SERVICE_FEE_PERCENTAGE, SERVICE_TYPES, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, SERVICE_FEE, SERVICE_FEE_PERCENTAGE, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
 import { defaultTahlilRequestField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
 import { activityLogError, clearQueryParams, trimEmptyArray } from '@/utils/helpers';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { trpc } from '@/utils/trpc';
 import { useSearchParams } from 'react-router-dom';
+
+const CUSTOM_SERVICE_KEY = 'custom';
+const CUSTOM_SERVICE_LABEL = 'Perkhidmatan Khas (Nota)';
 
 export default function TahlilRequestPage() {
   const [searchParams] = useSearchParams();
@@ -81,22 +84,51 @@ export default function TahlilRequestPage() {
     return tahfizCenters.find(c => c.id === Number(tahfizId)) || null;
   }, [tahfizCenters, tahfizId]);
 
+  const selectedTahfizServices = useMemo(() => {
+    return Array.isArray(selectedTahfiz?.services) ? selectedTahfiz.services : [];
+  }, [selectedTahfiz]);
+
+  const selectedTahfizServicePrice = useMemo(() => {
+    return selectedTahfizServices.reduce((acc, service) => {
+      acc[service.service] = Number(service.price || 0);
+      return acc;
+    }, {});
+  }, [selectedTahfizServices]);
+
+  const availableTahfizServices = useMemo(() => {
+    return selectedTahfizServices
+      .map((service) => service.service?.trim())
+      .filter(Boolean);
+  }, [selectedTahfizServices]);
+
+  const hasTahfizService = (serviceValue) =>
+    selectedTahfizServicePrice[serviceValue] !== undefined;
+
+  const hasTahfizServicePrice = (serviceValue) =>
+    Number(selectedTahfizServicePrice[serviceValue] || 0) > 0;
+
+  const selectableTahfizServices = useMemo(() => {
+    return availableTahfizServices.includes(CUSTOM_SERVICE_KEY)
+      ? availableTahfizServices
+      : [...availableTahfizServices, CUSTOM_SERVICE_KEY];
+  }, [availableTahfizServices]);
+
   const validServiceTypes = useMemo(() => {
     return (selectedservices || []).filter(
       (type) =>
-        type && selectedTahfiz?.serviceprice?.[type]
+        type && hasTahfizServicePrice(type)
     );
-  }, [selectedservices, selectedTahfiz]);
+  }, [selectedservices, selectedTahfizServicePrice]);
   
   const hasService = (selectedservices || []).some(
-    type => type && selectedTahfiz?.serviceprice?.[type]
+    type => type && hasTahfizServicePrice(type)
   );
 
   const serviceAmount = useMemo(() => {
     return validServiceTypes.reduce((sum, type) => {
-      return sum + Number(selectedTahfiz?.serviceprice?.[type] || 0);
+      return sum + Number(selectedTahfizServicePrice[type] || 0);
     }, 0);
-  }, [validServiceTypes, selectedTahfiz]);
+  }, [validServiceTypes, selectedTahfizServicePrice]);
 
   const donationAmount = useMemo(() => {
     return Number(customAmount || amount) || 0;
@@ -214,11 +246,16 @@ export default function TahlilRequestPage() {
 
   const toggleServiceType = (value) => {
     const current = watch('selectedservices') || [];
-    const updated = current.includes(value)
+    const isSelected = current.includes(value);
+    const updated = isSelected
       ? current.filter(v => v !== value)
       : [...current, value];
-      
+
     setValue('selectedservices', updated);
+
+    if (value === CUSTOM_SERVICE_KEY && isSelected) {
+      setValue('customservice', '');
+    }
   };
   const handleAddDeceased = () => {
     const names = watch('deceasednames');
@@ -290,6 +327,14 @@ export default function TahlilRequestPage() {
     ]);
 
     if (!isValid) return;
+    if (formData.selectedservices?.includes(CUSTOM_SERVICE_KEY) && !formData.customservice?.trim()) {
+      showError('Sila jelaskan perkhidmatan khas.');
+      return;
+    }
+
+    if (!formData.selectedservices?.includes(CUSTOM_SERVICE_KEY)) {
+      formData.customservice = '';
+    }
 
     let tahlilRequest = {
       tahfizcenter: { id: Number(tahfizId) },
@@ -380,35 +425,40 @@ export default function TahlilRequestPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
-              {SERVICE_TYPES.filter(s => selectedTahfiz.serviceoffered?.includes(s.value) || s.value === 'custom').map(service => (
-                <Label
-                  key={service.value}
-                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                    selectedservices.includes(service.value)
-                      ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
-                      : 'dark:border-gray-600'
-                  }`}
-                >
-                  <Checkbox
-                    checked={(watch('selectedservices') || []).includes(service.value)}
-                    onCheckedChange={() => toggleServiceType(service.value)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold dark:text-white">{service.label}</span>
-                      {selectedTahfiz.serviceprice?.[service.value] && (
-                        <span className="text-violet-600 dark:text-violet-400 font-bold">
-                          RM {selectedTahfiz.serviceprice[service.value]}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
-                  </div>
-                </Label>
-              ))}
+              {selectableTahfizServices.map(serviceValue => {
+                const serviceLabel = serviceValue === CUSTOM_SERVICE_KEY
+                  ? CUSTOM_SERVICE_LABEL
+                  : serviceValue;
 
-              {selectedservices.includes('custom') && (
+                return (
+                  <Label
+                    key={serviceValue}
+                    className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                      selectedservices.includes(serviceValue)
+                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
+                        : 'dark:border-gray-600'
+                    }`}
+                  >
+                    <Checkbox
+                      checked={(watch('selectedservices') || []).includes(serviceValue)}
+                      onCheckedChange={() => toggleServiceType(serviceValue)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold dark:text-white">{serviceLabel}</span>
+                        {hasTahfizService(serviceValue) && (
+                          <span className="text-violet-600 dark:text-violet-400 font-bold">
+                            RM {selectedTahfizServicePrice[serviceValue]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Label>
+                );
+              })}
+
+              {selectedservices.includes(CUSTOM_SERVICE_KEY) && (
                 <Textarea
                   placeholder="Jelaskan perkhidmatan khas..."
                   value={customservice}
@@ -521,10 +571,10 @@ export default function TahlilRequestPage() {
                   <p><strong>Servis Dipilih:</strong></p>
                   <ol className="list-disc ml-5 space-y-1">
                     {validServiceTypes.map(type =>
-                      selectedTahfiz?.serviceprice?.[type] && (
+                      hasTahfizServicePrice(type) && (
                         <li key={type}>
-                          {SERVICE_TYPES.find(s => s.value === type)?.label}:
-                          <span className="font-medium"> RM {selectedTahfiz.serviceprice[type]}</span>
+                          {type}:
+                          <span className="font-medium"> RM {selectedTahfizServicePrice[type]}</span>
                         </li>
                       )
                     )}

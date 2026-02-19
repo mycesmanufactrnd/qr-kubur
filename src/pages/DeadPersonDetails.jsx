@@ -38,12 +38,6 @@ export default function DeadPersonDetails() {
     );
   }
 
-  const getImageSrc = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `/api/file/dead-person/${encodeURIComponent(url)}`;
-  };
-
   const age = calculateAge(deadPersonDetails.dateofbirth, deadPersonDetails.dateofdeath);
 
   return (
@@ -55,12 +49,9 @@ export default function DeadPersonDetails() {
           {deadPersonDetails.photourl && (
             <div className="flex justify-center">
               <img
-                src={getImageSrc(deadPersonDetails.photourl)}
+                src={`/api/file/dead-person/${encodeURIComponent(deadPersonDetails.photourl)}`}
                 alt={translate('Preview')}
                 className="w-24 h-32 object-cover rounded-md shadow-sm border dark:border-gray-700"
-                onError={(e) => {
-                  e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${deadPersonDetails.name}`;
-                }}
               />
             </div>
           )}

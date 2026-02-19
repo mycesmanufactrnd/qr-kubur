@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+﻿import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { User } from "./User.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { TahlilRequest } from "./TahlilRequest.entity.js";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 import { ActivityPost } from "./ActivityPosts.entity.ts";
+import { ServiceOffered } from "./ServiceOffered.entity.ts";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -15,12 +16,6 @@ export class TahfizCenter {
 
   @Column("varchar", { length: 255, nullable: true})
   description?: string;
-
-  @Column("text", { array: true, nullable: true })
-  serviceoffered?: string[];
-
-  @Column("jsonb", { nullable: true })
-  serviceprice?: Record<string, number>;
 
   @Column("varchar", { length: 255 })
   state!: string;
@@ -46,10 +41,13 @@ export class TahfizCenter {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
+  @OneToMany(() => ServiceOffered, (services) => services.tahfizcenter)
+  services!: ServiceOffered[];
+
   @OneToMany(() => User, (users) => users.tahfizcenter)
   users!: User[];
 
-  @OneToMany(() => ActivityPost, (activityposts) => activityposts.tahfizcenter)
+  @OneToMany(() => ActivityPost, (activityposts) => activityposts.tahfiz)
   activityposts!: ActivityPost[];
 
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)

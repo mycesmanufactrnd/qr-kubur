@@ -6,7 +6,8 @@ import { MapPin, Navigation, ExternalLink, Hammer, ImageIcon, Heart } from 'luci
 import { createPageUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import BannerImageWithFallback from './BannerImageWithFallback';
 
 const STATUS_CONFIG = {
   active: {
@@ -59,12 +60,6 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
     if (onFavoriteChange) onFavoriteChange();
   };
 
-  const imageUrl = useMemo(() => {
-    if (!grave.photourl) return null;
-    if (grave.photourl.startsWith('http')) return grave.photourl;
-    return `/api/file/bucket-grave/${encodeURIComponent(grave.photourl)}`;
-  }, [grave.photourl]);
-
   const status = STATUS_CONFIG[grave.status?.toLowerCase()] || {
     label: grave.status,
     className: 'bg-slate-50 text-slate-600 border-slate-100',
@@ -74,19 +69,12 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
   return (
     <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
       <div className="relative h-40 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
-        {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt={grave.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center opacity-20">
-             <ImageIcon className="w-16 h-16 text-white" />
-          </div>
-        )}
+        <BannerImageWithFallback
+          src={grave.photourl ? `/api/file/bucket-grave/${encodeURIComponent(grave.photourl)}` : undefined}
+          alt={grave.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
         <div className="absolute top-3 right-3 flex items-center gap-2">
           {grave.distance && (
             <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
@@ -148,9 +136,10 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
 
         <div className="flex gap-2 pt-2">
           <Link to={createPageUrl(`GraveDetails?id=${grave.id}`)} className="flex-1">
-            <Button 
+            <Button
+              size="sm"
               variant="outline" 
-              className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 h-10"
+              className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               {translate('View Details')}
@@ -158,11 +147,12 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
           </Link>
 
           <Button 
+            size="sm"
             onClick={(e) => {
                 e.stopPropagation();
                 openDirections(grave.latitude, grave.longitude);
             }}
-            className="h-10 w-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
           >
             <Navigation className="w-4 h-4" />
           </Button>

@@ -31,7 +31,7 @@ export default function DonationPage() {
   const urlParamId = searchParams.get('id') ? searchParams.get('id') : null;
   const urlParamType = searchParams.get('type');
   const [searchQuery, setSearchQuery] = useState('');
-  const [manualSearchQuery, setManualSearchQuery] = useState('');
+  const [filterName, setFilterName] = useState('');
   const [selectedState, setSelectedState] = useState('nearby');
 
   useEffect(() => {
@@ -147,12 +147,15 @@ export default function DonationPage() {
   const shouldFetchOrganisation = !!userLocation && recipientType === 'organisation';
   const shouldFetchTahfiz = !!userLocation && recipientType === 'tahfiz';
 
+  const canBeDonated = true;
+
   const { organisations = [] } = useGetOrganisationCoordinates(
     shouldFetchOrganisation 
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
     selectedState === 'nearby' ? userState : selectedState,
-    manualSearchQuery
+    filterName,
+    canBeDonated,
   );
 
   const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
@@ -160,7 +163,7 @@ export default function DonationPage() {
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
     selectedState === 'nearby' ? userState : selectedState,
-    manualSearchQuery
+    filterName
   );
 
   useEffect(() => {
@@ -368,7 +371,7 @@ export default function DonationPage() {
                   <Button
                     type="button"
                     onClick={() => {
-                      setManualSearchQuery(searchQuery);
+                      setFilterName(searchQuery);
                       setValue('selectedRecipient', '');
                       setValue('paymentMethod', '');
                     }}
@@ -437,7 +440,7 @@ export default function DonationPage() {
                   />
                   <Button
                     type="button"
-                    onClick={() => setManualSearchQuery(searchQuery)}
+                    onClick={() => setFilterName(searchQuery)}
                     className="h-9"
                   >
                     <Search className="w-4 h-4 mr-1" /> {translate('Search')}

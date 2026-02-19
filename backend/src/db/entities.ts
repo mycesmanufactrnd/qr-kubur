@@ -1,4 +1,4 @@
-export * from "./entities/User.entity.ts";
+﻿export * from "./entities/User.entity.ts";
 export * from "./entities/RunningNo.entity.ts";
 export * from "./entities/Organisation.entity.ts";
 export * from "./entities/OrganisationType.entity.ts";
@@ -6,6 +6,7 @@ export * from "./entities/Permission.entity.ts";
 export * from "./entities/PaymentField.entity.ts";
 export * from "./entities/PaymentPlatform.entity.ts";
 export * from "./entities/TahfizCenter.entity.ts";
+export * from "./entities/ServiceOffered.entity.ts";
 export * from "./entities/DeadPerson.entity.ts";
 export * from "./entities/Grave.entity.ts";
 export * from "./entities/HeritageSite.entity.ts";

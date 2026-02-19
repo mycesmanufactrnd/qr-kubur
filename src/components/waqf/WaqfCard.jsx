@@ -6,6 +6,7 @@ import { MapPin, Calendar, Users, ArrowRight, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPageUrl } from '@/utils';
 import ProgressBar from '@/components/ProgressBar';
+import BannerImageWithFallback from '../BannerImageWithFallback';
 
 const CATEGORY_COLORS = {
   Education: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -33,13 +34,13 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
         project.status === 'Ongoing' ? 'bg-blue-500' : 'bg-slate-300'
       )} />
       
-      {project.photourl && (
-        <div className="relative h-40 overflow-hidden">
-          <img 
-            src={`/api/file/waqf-project/${encodeURIComponent(project.photourl)}`} 
-            alt={project.waqfname}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+      <div className="-mt-2 relative h-48 bg-gradient-to-br from-yellow-500 via-orange-500 to-gold-600 overflow-hidden">
+        <BannerImageWithFallback
+          src={project.photourl ? `/api/file/waqf-project/${encodeURIComponent(project.photourl)}` : undefined}
+          alt={project.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        {project.photourl && (
           <div className="absolute top-2 right-2 flex gap-2">
             <Badge className={CATEGORY_COLORS[project.category]}>
               {project.category}
@@ -48,8 +49,8 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
               {project.status}
             </Badge>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">

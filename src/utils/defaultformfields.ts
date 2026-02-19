@@ -76,6 +76,8 @@ export const defaultOrganisationField = {
   name: '',
   parentorganisation: null,
   organisationtype: null,
+  serviceoffered: [],
+  serviceprice: {},
   states: '',
   address: '',
   phone: '',
@@ -84,6 +86,7 @@ export const defaultOrganisationField = {
   latitude: '',
   longitude: '',
   canbedonated: false,
+  isgraveservices: false,
   status: ActiveInactiveStatus.ACTIVE,
 }
 

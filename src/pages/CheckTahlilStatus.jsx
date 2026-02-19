@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { showError } from '@/components/ToastrNotification';
-import { SERVICE_TYPES, TahlilStatus } from '@/utils/enums';
+import { TahlilStatus } from '@/utils/enums';
 import BackNavigation from '@/components/BackNavigation';
 import JoinLiveButton from '@/components/jitsi/JoinLiveButton';
 import { trpc } from '@/utils/trpc';
@@ -247,18 +247,14 @@ export default function CheckTahlilStatus() {
                     Jenis Perkhidmatan
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {request.selectedservices.map((type, i) => {
-                      const service = SERVICE_TYPES.find(s => s.value === type);
-                      return (
-                        <span
-                          key={i}
-                          className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold border border-blue-200 dark:border-blue-700 shadow-sm"
-                          title={service?.description || ''}
-                        >
-                          {service?.label || type}
-                        </span>
-                      );
-                    })}
+                    {request.selectedservices.map((type, i) => (
+                      <span
+                        key={i}
+                        className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold border border-blue-200 dark:border-blue-700 shadow-sm"
+                      >
+                        {type}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}

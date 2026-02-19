@@ -7,6 +7,7 @@ import { Donation } from "./Donation.entity.ts";
 import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
 import { Mosque } from "./Mosque.entity.ts";
 import { DeathCharity } from "../entities.ts";
+import { ServiceOffered } from "./ServiceOffered.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
@@ -52,6 +53,9 @@ export class Organisation {
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
 
+  @Column("varchar", { length: 255, nullable: true })
+  photourl?: string;
+
   @Column("double precision", { nullable: true })
   latitude?: number;
 
@@ -60,6 +64,9 @@ export class Organisation {
 
   @Column({ type: "boolean", default: false })
   canbedonated!: boolean;
+
+  @Column({ type: "boolean", default: false })
+  isgraveservices!: boolean;
 
   @Column({
     type: "enum",
@@ -77,9 +84,13 @@ export class Organisation {
   @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.organisation)
   organisationpaymentconfigs!: OrganisationPaymentConfig[];
 
+  @OneToMany(() => ServiceOffered, (services) => services.organisation)
+  services!: ServiceOffered[];
+
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 
   @OneToMany(() => Grave, (grave) => grave.organisation)
   graves?: Grave[];
 }
+

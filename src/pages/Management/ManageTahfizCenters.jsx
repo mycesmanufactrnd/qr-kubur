@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BookOpen, Plus, Edit, Trash2, Search, X, Save, MapPin, CreditCard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import Breadcrumb from '@/components/Breadcrumb';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
@@ -20,7 +18,7 @@ import PaymentConfigDialog from '@/components/PaymentConfigDialog';
 import { translate } from '@/utils/translations';
 import { useGetTahfizPaginated, useTahfizMutations } from '@/hooks/useTahfizMutations';
 import { useAdminAccess } from '@/utils/auth';
-import { SERVICE_TYPES, STATES_MY } from '@/utils/enums';
+import { STATES_MY } from '@/utils/enums';
 import { defaultTahfizField } from '@/utils/defaultformfields';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
@@ -55,6 +53,7 @@ export default function ManageTahfizCenters() {
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedCenterForPayment, setSelectedCenterForPayment] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [serviceEntries, setServiceEntries] = useState([]);
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('tahfiz');
 
@@ -67,12 +66,56 @@ export default function ManageTahfizCenters() {
 
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
 
-  const { control, handleSubmit: handleFormSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+  const { control, handleSubmit: handleFormSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultTahfizField
   });
 
-  const selectedServices = watch('serviceoffered') || [];
-  const photourl = watch('photourl') || '';
+  const syncServiceDraftToForm = (entries) => {
+    const normalized = [];
+    const seen = new Set();
+
+    for (const entry of entries) {
+      const service = (entry.service || '').trim();
+      if (!service) continue;
+
+      const serviceKey = service.toLowerCase();
+      if (seen.has(serviceKey)) continue;
+      seen.add(serviceKey);
+
+      normalized.push({
+        service,
+        price: entry.price === '' ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+      });
+    }
+
+    const serviceoffered = normalized.map((item) => item.service);
+    const serviceprice = Object.fromEntries(
+      normalized.map((item) => [item.service, Number(item.price) || 0])
+    );
+
+    setValue('serviceoffered', serviceoffered);
+    setValue('serviceprice', serviceprice);
+  };
+
+  const addServiceEntry = () => {
+    const nextEntries = [...serviceEntries, { id: `${Date.now()}-${Math.random()}`, service: '', price: '' }];
+    setServiceEntries(nextEntries);
+    syncServiceDraftToForm(nextEntries);
+  };
+
+  const updateServiceEntry = (entryId, field, fieldValue) => {
+    const nextEntries = serviceEntries.map((entry) =>
+      entry.id === entryId ? { ...entry, [field]: fieldValue } : entry
+    );
+    setServiceEntries(nextEntries);
+    syncServiceDraftToForm(nextEntries);
+  };
+
+  const removeServiceEntry = (entryId) => {
+    const nextEntries = serviceEntries.filter((entry) => entry.id !== entryId);
+    setServiceEntries(nextEntries);
+    syncServiceDraftToForm(nextEntries);
+  };
 
   const handleSearch = () => {
     const params = { page: '1', name: '', state: '' };
@@ -88,40 +131,82 @@ export default function ManageTahfizCenters() {
   const openAddDialog = () => {
     setEditingCenter(null);
     reset(defaultTahfizField);
+    setServiceEntries([]);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (center) => {
     setEditingCenter(center);
+
+    const relationalServices = Array.isArray(center.services) ? center.services : [];
+    const serviceoffered = relationalServices.length > 0
+      ? relationalServices.map(service => service.service)
+      : (center.serviceoffered || []);
+    const serviceprice = relationalServices.length > 0
+      ? Object.fromEntries(
+          relationalServices.map(service => [
+            service.service,
+            service.price ? parseFloat(Number(service.price).toFixed(2)) : 0
+          ])
+        )
+      : (center.serviceprice || {});
+
     reset({
       ...center,
+      serviceoffered,
+      serviceprice,
       latitude: center.latitude?.toString() || '',
       longitude: center.longitude?.toString() || ''
     });
+
+    const nextEntries = serviceoffered.map((service, index) => ({
+      id: `${Date.now()}-${index}`,
+      service,
+      price: (serviceprice[service] ?? 0).toString(),
+    }));
+
+    setServiceEntries(nextEntries);
     setIsDialogOpen(true);
   };
 
-  const toggleService = (serviceValue) => {
-    const current = selectedServices;
-    if (current.includes(serviceValue)) {
-      setValue('serviceoffered', current.filter(s => s !== serviceValue));
-    } else {
-      setValue('serviceoffered', [...current, serviceValue]);
-    }
-  };
-
   const onSubmit = async (formData) => {
+    const normalizedServices = [];
+    const seen = new Set();
+
+    for (const entry of serviceEntries) {
+      const service = (entry.service || '').trim();
+      if (!service) continue;
+
+      const serviceKey = service.toLowerCase();
+      if (seen.has(serviceKey)) continue;
+      seen.add(serviceKey);
+
+      normalizedServices.push({
+        service,
+        price: entry.price === '' ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+      });
+    }
+
+    const { serviceoffered, serviceprice, ...restFormData } = formData;
+
     const payload = {
-      ...formData,
+      ...restFormData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-      serviceprice: Object.fromEntries(
-        Object.entries(formData.serviceprice || {}).map(([key, value]) => [
-          key,
-          value ? parseFloat(Number(value).toFixed(2)) : 0
-        ])
-      )
+      services: normalizedServices.map((serviceItem) => ({
+        service: serviceItem.service,
+        price: Number(serviceItem.price) || 0,
+        tahfizcenter: editingCenter ? { id: Number(editingCenter.id) } : null,
+      })),
     };
+
+    syncServiceDraftToForm(
+      normalizedServices.map((item, index) => ({
+        id: `${Date.now()}-${index}`,
+        service: item.service,
+        price: item.price.toString(),
+      }))
+    );
 
     try {
       if (editingCenter) {
@@ -209,7 +294,7 @@ export default function ManageTahfizCenters() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-amber-600" />
-          {translate('manageTahfiz')}
+          {translate('Manage Tahfiz Centers')}
         </h1>
         {canCreate && (
           <Button onClick={openAddDialog} className="bg-amber-600 hover:bg-amber-700">
@@ -281,7 +366,7 @@ export default function ManageTahfizCenters() {
                       <div className="flex flex-wrap justify-center items-center gap-1">
                         {center.serviceoffered?.slice(0, 2).map(service => (
                           <Badge key={service} variant="secondary" className="text-xs">
-                            {SERVICE_TYPES.find(s => s.value === service)?.label || service}
+                            {service}
                           </Badge>
                         ))}
                       </div>
@@ -361,33 +446,36 @@ export default function ManageTahfizCenters() {
             <div>
               <Label>{translate('Services')}</Label>
               <div className="space-y-3 mt-2">
-                {SERVICE_TYPES.map(service => (
-                  <div key={service.value} className="space-y-2">
-                    <div className="flex items-center gap-2 p-2 rounded border">
-                      <Checkbox 
-                        checked={selectedServices.includes(service.value)} 
-                        onCheckedChange={() => toggleService(service.value)} 
-                      />
-                      <span className="text-sm font-medium">{service.label}</span>
-                    </div>
-                    {selectedServices.includes(service.value) && (
-                      <div className="ml-8">
-                        <Controller 
-                          name={`serviceprice.${service.value}`} 
-                          control={control} 
-                          render={({ field }) => 
-                            <Input 
-                              type="number" step="0.01" 
-                              placeholder="RM 0.00" 
-                              value={field.value || ''} 
-                              onChange={(e) => field.onChange(e.target.value)}
-                            />
-                          } 
-                        />
-                      </div>
-                    )}
+                {serviceEntries.map((entry) => (
+                  <div key={entry.id} className="grid grid-cols-12 gap-2 items-center">
+                    <Input
+                      className="col-span-7"
+                      placeholder={translate('Service Name')}
+                      value={entry.service}
+                      onChange={(e) => updateServiceEntry(entry.id, 'service', e.target.value)}
+                    />
+                    <Input
+                      className="col-span-4"
+                      type="number"
+                      step="0.01"
+                      placeholder="RM 0.00"
+                      value={entry.price}
+                      onChange={(e) => updateServiceEntry(entry.id, 'price', e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="col-span-1"
+                      onClick={() => removeServiceEntry(entry.id)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
+                <Button type="button" variant="outline" onClick={addServiceEntry}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  {translate('Add Service')}
+                </Button>
               </div>
             </div>
             <TextInputForm 

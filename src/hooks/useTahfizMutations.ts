@@ -54,13 +54,13 @@ export function useGetTahfizPaginated({
 export function useGetTahfizCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
   userState?: string,
-  searchQuery?: string,
+  filterName?: string,
 ) {
   return trpc.tahfiz.getTahfizByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
       userState,
-      searchQuery
+      filterName
     },
     {
       enabled: !!coordinates,
@@ -73,7 +73,7 @@ export function useTahfizMutations() {
   const trpcUtils = trpc.useUtils();
 
   const invalidateAll = () => {
-    trpcUtils.tahfiz.getPaginated.invalidate();
+    trpcUtils.tahfiz.invalidate();
   };
 
   const createTahfiz = trpc.tahfiz.create.useMutation({

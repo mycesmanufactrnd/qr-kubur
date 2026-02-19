@@ -73,13 +73,15 @@ export function useOrganisationMutations() {
 export function useGetOrganisationCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
   userState?: string,
-  searchQuery?: string,
+  filterName?: string,
+  filterCanBeDonated?: boolean,
 ) {
   const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
       userState,
-      searchQuery
+      filterName,
+      filterCanBeDonated
     },
     {
       enabled: !!coordinates,

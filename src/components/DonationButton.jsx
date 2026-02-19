@@ -15,14 +15,16 @@ export default function DonationButton({
 
   return (
     <Link to={createPageUrl(`DonationPage?id=${recipientId}&type=${recipientType}&state=${state}`)} className="flex-1">
-        <Button variant="outline" 
-            className={clsx(
-                "bg-white border-pink-200 text-pink-600 hover:bg-pink-50 shadow-md",
-                addClass
-            )}
+        <Button 
+          size="sm"
+          variant="outline" 
+          className={clsx(
+            "bg-white border-pink-200 text-pink-600 hover:bg-pink-50 shadow-md",
+            addClass
+          )}
         >
-            <Heart className="w-4 h-4 mr-2" />
-            {translate('Donate')}
+          <Heart className="w-4 h-4 mr-2" />
+          {translate('Donate')}
         </Button>
     </Link>
   );
