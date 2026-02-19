@@ -13,6 +13,7 @@ import SearchHeritage from '@/pages/SearchHeritage';
 import HeritageDetails from '@/pages/HeritageDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
 import TahfizDetails from '@/pages/TahfizDetails';
+import OrganisationDetails from '@/pages/OrganisationDetails.jsx';
 import SettingsPage from '@/pages/SettingsPage';
 import SubmitSuggestion from '@/pages/SubmitSuggestion';
 import SurahPage from '@/pages/SurahPage';
@@ -109,6 +110,7 @@ export const PAGES = {
     "HeritageDetails": HeritageDetails,
     "SearchTahfiz": SearchTahfiz,
     "TahfizDetails": TahfizDetails,
+    "OrganisationDetails": OrganisationDetails,
     "SettingsPage": SettingsPage,
     "SubmitSuggestion": SubmitSuggestion,
     "SurahPage": SurahPage,

@@ -35,6 +35,10 @@ export const runBucketSeeder = async () => {
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true),
 
+    ('bucket-organisation', 'Organisation Images', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true),
+
     ('tahfiz-center', 'Tahfiz Center Images', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true),

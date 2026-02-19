@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { translate } from '@/utils/translations';
 import { Building2, Plus, Edit, Trash2, Search, X, Save, CreditCard, MapPin } from 'lucide-react';
@@ -29,6 +29,8 @@ import NoDataTableComponent from '@/components/NoDataTableComponent';
 import TextInputForm from '@/components/forms/TextInputForm';
 import SelectForm from '@/components/forms/SelectForm';
 import CheckboxForm from '@/components/forms/CheckboxForm';
+import FileUploadForm from '@/components/forms/FileUploadForm';
+import { showError, showSuccess } from '@/components/ToastrNotification';
 
 export default function ManageOrganisations() {
   const { 
@@ -62,6 +64,7 @@ export default function ManageOrganisations() {
   const [paymentConfigOpen, setPaymentConfigOpen] = useState(false);
   const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
   const [serviceEntries, setServiceEntries] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting} } = useForm({
     defaultValues: defaultOrganisationField
@@ -150,6 +153,36 @@ export default function ManageOrganisations() {
     setSearchParams({});
   };
 
+  const handleFileUpload = async (file, bucketName) => {
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || "Failed to upload photo");
+        return null;
+      }
+
+      const data = await res.json();
+      showSuccess("Photo uploaded");
+
+      return data.file_url;
+    } catch (err) {
+      console.error(err);
+      showError("Failed to upload photo");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const openAddDialog = () => {
     setEditingOrg(null);
     const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
@@ -212,7 +245,7 @@ export default function ManageOrganisations() {
       });
     }
 
-    const { serviceoffered, serviceprice, ...restFormData } = formData;
+    const { serviceoffered: _serviceoffered, serviceprice: _serviceprice, ...restFormData } = formData;
 
     const submitData = {
       ...restFormData,
@@ -502,6 +535,15 @@ export default function ManageOrganisations() {
               label={translate("Address")}
               isTextArea
             />   
+            <FileUploadForm
+              name="photourl"
+              control={control}
+              label={translate("Photo")}
+              bucketName="bucket-organisation"
+              uploading={uploading}
+              handleFileUpload={handleFileUpload}
+              translate={translate}
+            />
             <div className="grid grid-cols-2 gap-4">
               <TextInputForm
                 name="phone"
@@ -560,7 +602,7 @@ export default function ManageOrganisations() {
               </Button>
               <Button 
                 type="submit" className="bg-violet-600" 
-                disabled={createOrganisation.isPending || updateOrganisation.isPending || isSubmitting}
+                disabled={createOrganisation.isPending || updateOrganisation.isPending || isSubmitting || uploading}
               >
                 <Save className="w-4 h-4 mr-2" /> {translate('Save')}
               </Button>

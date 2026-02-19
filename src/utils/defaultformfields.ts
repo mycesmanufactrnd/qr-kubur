@@ -80,6 +80,7 @@ export const defaultOrganisationField = {
   serviceprice: {},
   states: '',
   address: '',
+  photourl: '',
   phone: '',
   email: '',
   url: '',

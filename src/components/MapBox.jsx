@@ -61,8 +61,8 @@ export default function MapBox({ dataMap, userLocation, pageToUrl }) {
     <MapContainer
       center={defaultCenter}
       zoom={14}
-      className="h-full w-full rounded-2xl"
-      style={{ minHeight: '400px' }}
+      className="relative z-0 h-full w-full rounded-2xl"
+      style={{ minHeight: '400px', zIndex: 0 }}
     >
       <TileLayer
         attribution='&copy; OpenStreetMap'
