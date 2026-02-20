@@ -9,7 +9,7 @@ import PaymentForm from '@/components/deathcharity/PaymentForm';
 import { useGetDeathCharityMemberPaginated, useGetMemberByDeathCharity } from '@/hooks/useDeathCharityMemberMutations';
 import { useDeathCharityPaymentMutations, useGetPaymentByMemberId } from '@/hooks/useDeathCharityPaymentMutations';
 import { useSearchParams } from 'react-router-dom';
-import { useGetDeathCharityByOrganisation, useGetDeathCharityPaginated } from '@/hooks/useDeathCharityMutations';
+import { useGetDeathCharityByOrganisation } from '@/hooks/useDeathCharityMutations';
 import { translate } from '@/utils/translations';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import Breadcrumb from '@/components/Breadcrumb';

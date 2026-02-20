@@ -13,7 +13,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Breadcrumb from '@/components/Breadcrumb';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Pagination from '@/components/Pagination';
-import { showSuccess, showError } from '@/components/ToastrNotification';
 import { useCrudPermissions } from '@/components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
@@ -23,12 +22,12 @@ import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useGetDeathCharityPaginated, useDeathCharityMutations } from '@/hooks/useDeathCharityMutations';
 import { defaultDeathCharityField } from '@/utils/defaultformfields';
-import { validateFields } from '@/utils/validations';
 import TextInputForm from '@/components/forms/TextInputForm';
 import SelectForm from '@/components/forms/SelectForm';
 import CheckboxForm from '@/components/forms/CheckboxForm';
 import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import { Switch } from '@/components/ui/switch';
+import { useGetMosquesByOrganisationId } from '@/hooks/useMosqueMutations';
 
 export default function ManageDeathCharity() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
@@ -61,9 +60,14 @@ export default function ManageDeathCharity() {
     defaultValues: defaultDeathCharityField,
   });
 
-    const { organisationsList } = useGetOrganisationPaginated({});
+  const isactive = watch("isactive");
+  const organisationId = watch('organisation');
 
-    const isactive = watch("isactive");
+  const { organisationsList } = useGetOrganisationPaginated({});
+
+  const { data: mosqueList = [] } = useGetMosquesByOrganisationId(
+    organisationId ? Number(organisationId) : null
+  );
 
   useEffect(() => {
     setTempName(urlName);
@@ -97,8 +101,9 @@ export default function ManageDeathCharity() {
   const onSubmit = async (formData) => {
     const submitData = { 
         ...formData,
+        mosqueid: Number(formData.mosqueid) || null,
         registrationfee: Number(formData.registrationfee) || 0,
-        monthlyfee: Number(formData.monthlyfee) || 0,
+        yearlyfee: Number(formData.yearlyfee) || 0,
         deathbenefitamount: Number(formData.deathbenefitamount) || 0,
         maxdependents: Number(formData.maxdependents) || 0,
         organisation: formData.organisation ? { id: Number(formData.organisation) } : null,
@@ -282,21 +287,37 @@ export default function ManageDeathCharity() {
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+                      <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
                         Organization Details
-                        </h3>
-                        <div className="grid grid-cols-1 gap-4">
+                      </h3>
+                      <div className="grid grid-cols-1 gap-4">
                         <SelectForm
-                            name="organisation"
-                            control={control}
-                            label={translate("Managing Organisation")}
-                            placeholder={translate("All managing organisations")}
-                            options={organisationsList.items.map(org => ({
+                          name="organisation"
+                          control={control}
+                          label={translate("Managing Organisation")}
+                          placeholder={translate("All managing organisations")}
+                          options={organisationsList.items.map(org => ({
                             value: org.id,
                             label: org.name,
                           }))}
+                          required
+                          errors={errors}
                         />
+                        <div className="grid grid-cols-1 gap-4">
+                          <SelectForm
+                            name="mosqueid"
+                            control={control}
+                            label={translate("Managing Mosque")}
+                            placeholder={translate("Select managing mosque")}
+                            options={mosqueList.map(mosque => ({
+                              value: mosque.id,
+                              label: mosque.name,
+                            }))}
+                            required
+                            errors={errors}
+                          />
                         </div>
+                      </div>
                     </div>
                     <div className="space-y-4">
                         <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
@@ -360,9 +381,9 @@ export default function ManageDeathCharity() {
                           errors={errors}
                         />    
                         <TextInputForm
-                          name="monthlyfee"
+                          name="yearlyfee"
                           control={control}
-                          label={translate("Monthly Fee")}
+                          label={translate("Yearly Fee")}
                           isMoney
                           required
                           errors={errors}

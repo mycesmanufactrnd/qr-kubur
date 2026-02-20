@@ -64,6 +64,7 @@ export default function ManageDeathCharityMember() {
   const [deathCharityId, setDeathCharityId] = useState(null);
   const [isCoverSpouse, setIsCoverSpouse] = useState(false);
   const [isCoverChildren, setIsCoverChildren] = useState(false);
+  const [deathBenefitAmount, setDeathBenefitAmount] = useState(0);
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('death_charity');
 
@@ -232,7 +233,13 @@ export default function ManageDeathCharityMember() {
   };
 
   const openClaimDialog = (member) => {
-    const { id: memberId, fullname, claims = [], dependents = [] } = member;
+    const { id: memberId, fullname, claims = [], dependents = [], deathcharity } = member;
+
+    setDeathBenefitAmount(
+      (deathcharity && deathcharity.deathbenefitamount) 
+        ? Number(deathcharity.deathbenefitamount) 
+        : 0
+    );
     
     setMemberId(member.id);
     setDeathCharityId(member?.deathcharity?.id ?? null);
@@ -290,7 +297,7 @@ export default function ManageDeathCharityMember() {
     } else {
       setSelectedClaims([
         ...selectedClaims,
-        { ...item, payoutamount: 0 }
+        { ...item, payoutamount: deathBenefitAmount }
       ]);
     }
   };

@@ -1,8 +1,8 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Mail, ArrowLeft, Clock, Share2, BookOpen
+import { MapPin, Phone, Mail, ArrowLeft, Clock, Share2, BookOpen, CreditCard
 } from 'lucide-react';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
@@ -15,6 +15,7 @@ import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
 import DonationButton from '@/components/DonationButton';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { createPageUrl } from '@/utils';
 
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
@@ -84,85 +85,103 @@ export default function MosqueDetailsPage() {
       </div>
 
       <div className="max-w-6xl mx-auto py-8">
-        <div className="flex flex-wrap gap-2 mb-6 px-4 -mt-12 relative z-10">
+        <div className="flex flex-wrap gap-2 mb-2 px-4 -mt-12 relative z-10">
           <DirectionButton latitude={mosque.latitude} longitude={mosque.longitude}/>      
           <DonationButton recipientId={mosque.organisation?.id} recipientType={'organisation'} state={mosque.organisation?.state}/>        
         </div>
 
+        { mosque.hasdeathcharity 
+          ? (
+            <Link to={createPageUrl(`DeathCharityUserPayment`)} className="flex-1">
+              <Button
+                className="mb-5 mx-4 w-[calc(100%-2rem)] 
+                          bg-orange-600 text-white font-semibold shadow-md"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                {translate('Register & Payment of Death Charity')}
+              </Button>
+            </Link>
+          )
+          : (
+            <div className="mb-5"></div>
+          ) }
+
         <div className="space-y-6 px-1">
-            
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="px-4 py-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-emerald-600" />
-                  {translate('About')}
-                </CardTitle>
-              </CardHeader>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="px-4 py-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-emerald-600" />
+                {translate('About')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 px-4 pb-3 space-y-3">
+              <p className="text-sm text-slate-600 leading-snug">
+                {mosque.description ||
+                  `${translate('Welcome to')} ${mosque.name}. ${translate('This mosque serves as a spiritual hub.')}`}
+              </p>
 
-              <CardContent className="pt-0 px-4 pb-3 space-y-3">
-                <p className="text-sm text-slate-600 leading-snug">
-                  {mosque.description ||
-                    `${translate('Welcome to')} ${mosque.name}. ${translate('This mosque serves as a spiritual hub.')}`}
-                </p>
-
-                {(mosque.picphoneno || mosque.email) && (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {mosque.picphoneno && (
-                      <a
-                        href={`tel:${mosque.picphoneno}`}
-                        className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors"
-                      >
-                        <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-[11px] text-slate-500">{translate('Phone No.')}</p>
-                          <p className="text-sm font-medium text-slate-700 truncate">{mosque.picphoneno}</p>
-                        </div>
-                      </a>
-                    )}
-                    {mosque.email && (
-                      <a
-                        href={`mailto:${mosque.email}`}
-                        className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors"
-                      >
-                        <Mail className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-[11px] text-slate-500">{translate('Email')}</p>
-                          <p className="text-sm font-medium text-slate-700 truncate">{mosque.email}</p>
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-md overflow-hidden">
-              <CardHeader className="px-4 py-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-emerald-600" />
-                  {translate('Location')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="h-56">
-                  <MapBox dataMap={mosque} userLocation={userLocation} pageToUrl={'MosqueDetailsPage'} />
+              {(mosque.picphoneno || mosque.email) && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {mosque.picphoneno && (
+                    <a
+                      href={`tel:${mosque.picphoneno}`}
+                      className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors"
+                    >
+                      <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] text-slate-500">{translate('Phone No.')}</p>
+                        <p className="text-sm font-medium text-slate-700 truncate">{mosque.picphoneno}</p>
+                      </div>
+                    </a>
+                  )}
+                  {mosque.email && (
+                    <a
+                      href={`mailto:${mosque.email}`}
+                      className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors"
+                    >
+                      <Mail className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[11px] text-slate-500">{translate('Email')}</p>
+                        <p className="text-sm font-medium text-slate-700 truncate">{mosque.email}</p>
+                      </div>
+                    </a>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
 
-            {mosquePosts && mosquePosts.length > 0 && (
-              <div className="space-y-4">
-                <p className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-600" />
-                  {translate('Latest Updates')}
-                </p>
-                <div className="space-y-4">
-                  {mosquePosts.map(post => (
-                    <ActivityPostsCard key={post.id} post={post} poster={mosque.name} />
-                  ))}
-                </div>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="px-4 py-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-emerald-600" />
+                {translate('Location')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="h-56">
+                <MapBox dataMap={mosque} userLocation={userLocation} pageToUrl={'MosqueDetailsPage'} />
               </div>
-            )}
+            </CardContent>
+          </Card>
+
+          {mosquePosts && mosquePosts.length > 0 && (
+            <div className="space-y-4">
+              <p className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-emerald-600" />
+                {translate('Latest Updates')}
+              </p>
+              <div className="space-y-4">
+                {mosquePosts.map(post => (
+                  <ActivityPostsCard key={post.id} post={post} poster={mosque.name} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

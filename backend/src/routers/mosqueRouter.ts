@@ -15,6 +15,20 @@ export const mosqueRouter = router({
       });
     }),
 
+  getMosquesByOrganisationId: protectedProcedure
+    .input(z.object({ organisationId: z.number() }))
+    .query(async ({ input }) => {
+      if (!input.organisationId) return null;
+
+      return await AppDataSource.getRepository(Mosque).find({ 
+        where: { 
+          organisation: {
+            id: input.organisationId
+          } 
+        },
+      });
+    }),
+
   getMosqueByCoordinates: publicProcedure
     .input(z.object({
       coordinates: z.object({

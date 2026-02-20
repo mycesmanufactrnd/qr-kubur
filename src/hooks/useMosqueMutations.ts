@@ -88,3 +88,10 @@ export function useGetMosqueById(id: number | null) {
     { enabled: !!id }
   );
 }
+
+export function useGetMosquesByOrganisationId(organisationId: number | null) {
+  return trpc.mosque.getMosquesByOrganisationId.useQuery(
+    { organisationId: Number(organisationId) }, 
+    { enabled: !!organisationId }
+  );
+}

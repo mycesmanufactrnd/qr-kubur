@@ -186,13 +186,14 @@ export const defaultDeathCharityField = {
   contactperson: "",
   contactphone: "",
   registrationfee: 0,
-  monthlyfee: 0,
+  yearlyfee: 0,
   deathbenefitamount: 0,
   coversspouse: true,
   coverschildren: true,
   maxdependents: 0,
   isactive: true,
   organisation: '',
+  mosqueid: null,
 };
 
 export const defaultDeathCharityMemberField = {

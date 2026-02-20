@@ -10,6 +10,7 @@ import {
 import { DeathCharityMember } from "./DeathCharityMember.entity.ts";
 import { DeathCharityClaim } from "./DeathCharityClaim.entity.ts";
 import { Organisation } from "../Organisation.entity.ts";
+import { Mosque } from "../Mosque.entity.ts";
 
 @Entity("deathcharity")
 export class DeathCharity {
@@ -35,7 +36,7 @@ export class DeathCharity {
   registrationfee!: number;
 
   @Column({ type: "decimal", precision: 10, scale: 2, default: 0 })
-  monthlyfee!: number;
+  yearlyfee!: number;
 
   @Column({ type: "decimal", precision: 10, scale: 2 })
   deathbenefitamount!: number;
@@ -63,6 +64,9 @@ export class DeathCharity {
     onDelete: "SET NULL",
   })
   organisation?: Organisation | null;
+
+  @Column({ type: "int", nullable: true })
+  mosqueid?: number;
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

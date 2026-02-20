@@ -32,6 +32,7 @@ import AsmaulHusna from '@/pages/Asmaulhusna.jsx';
 import Tasbih from '@/pages/Tasbih.jsx';
 import PrayerTimes from '@/pages/PrayerTimes.jsx';
 import RukunIslam from '@/pages/RukunIslam.jsx';
+import DeathCharityUserPayment from '@/pages/DeathCharityUserPayment.jsx';
 // Superadmin
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -128,6 +129,7 @@ export const PAGES = {
     "Tasbih": Tasbih,
     "PrayerTimes": PrayerTimes,
     "RukunIslam": RukunIslam,
+    "DeathCharityUserPayment": DeathCharityUserPayment,
     
     // Dashboard
     "AdminDashboard": AdminDashboard,
