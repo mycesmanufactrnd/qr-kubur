@@ -1,5 +1,5 @@
 import z from "zod";
-import { protectedProcedure, router } from "../trpc.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { DeathCharity, DeathCharityClaim, DeathCharityDependent, DeathCharityMember } from "../db/entities.ts";
 import { deathCharityMemberSchema } from "../schemas/deathCharityMemberSchema.ts";
@@ -88,6 +88,61 @@ export const deathCharityMemberRouter = router({
           } 
         },
       });
+    }),
+
+  searchByDeathCharity: publicProcedure
+    .input(z.object({
+      deathcharityId: z.number(),
+      keyword: z.string().trim().min(1),
+      limit: z.number().min(1).max(25).default(10),
+    }))
+    .query(async ({ input }) => {
+      const { deathcharityId, keyword, limit } = input;
+      const memberRepo = AppDataSource.getRepository(DeathCharityMember);
+
+      return await memberRepo
+        .createQueryBuilder("member")
+        .leftJoin("member.deathcharity", "deathcharity")
+        .where("deathcharity.id = :deathcharityId", { deathcharityId })
+        .andWhere("(member.fullname ILIKE :keyword OR member.icnumber ILIKE :keyword)")
+        .setParameter("keyword", `%${keyword}%`)
+        .orderBy("member.fullname", "ASC")
+        .take(limit)
+        .getMany();
+    }),
+
+  createPublic: publicProcedure
+    .input(deathCharityMemberSchema)
+    .mutation(async ({ input }) => {
+      const memberRepo = AppDataSource.getRepository(DeathCharityMember);
+      const deathCharityId = input.deathcharity?.id;
+
+      if (!deathCharityId) {
+        throw new Error("Death charity is required.");
+      }
+
+      const icnumber = (input.icnumber || "").trim();
+      const existingMember = await memberRepo
+        .createQueryBuilder("member")
+        .leftJoin("member.deathcharity", "deathcharity")
+        .where("deathcharity.id = :deathcharityId", { deathcharityId })
+        .andWhere("LOWER(member.icnumber) = LOWER(:icnumber)", { icnumber })
+        .getOne();
+
+      if (existingMember) {
+        return existingMember;
+      }
+
+      const payload = {
+        ...input,
+        fullname: (input.fullname || "").trim(),
+        icnumber,
+        phone: input.phone?.trim() || null,
+        address: input.address?.trim() || null,
+      };
+
+      const member = memberRepo.create(payload);
+      return await memberRepo.save(member);
     }),
 
   getDependentsByMember: protectedProcedure

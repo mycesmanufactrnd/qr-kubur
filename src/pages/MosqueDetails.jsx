@@ -92,7 +92,7 @@ export default function MosqueDetailsPage() {
 
         { mosque.hasdeathcharity 
           ? (
-            <Link to={createPageUrl(`DeathCharityUserPayment`)} className="flex-1">
+            <Link to={`${createPageUrl(`DeathCharityUserPayment`)}?mosque=${mosque.id}`} className="flex-1">
               <Button
                 className="mb-5 mx-4 w-[calc(100%-2rem)] 
                           bg-orange-600 text-white font-semibold shadow-md"

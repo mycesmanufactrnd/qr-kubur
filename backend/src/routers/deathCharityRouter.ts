@@ -1,5 +1,5 @@
 import z from "zod";
-import { protectedProcedure, router } from "../trpc.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { DeathCharity } from "../db/entities.ts";
 import { deathCharitySchema } from "../schemas/deathCharitySchema.ts";
@@ -110,5 +110,20 @@ export const deathCharityRouter = router({
           name: true,
         }
       });
+    }),
+
+  getDeathCharityByMosqueId: publicProcedure
+    .input(z.object({
+      mosqueId: z.number(),
+    }))
+    .query(async ({ input }) => {
+      const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
+
+      return await deathCharityRepo
+        .createQueryBuilder("deathcharity")
+        .where("deathcharity.mosqueid = :mosqueId", { mosqueId: input.mosqueId })
+        .andWhere("deathcharity.isactive = :isactive", { isactive: true })
+        .orderBy("deathcharity.id", "DESC")
+        .getOne();
     }),
 });

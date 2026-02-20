@@ -79,3 +79,10 @@ export function useGetDeathCharityByOrganisation() {
     { enabled: !!organisationId || isSuperAdmin }
   );
 }
+
+export function useGetDeathCharityByMosque(mosqueId: number | null) {
+  return trpc.deathCharity.getDeathCharityByMosqueId.useQuery(
+    { mosqueId: Number(mosqueId) },
+    { enabled: !!mosqueId }
+  );
+}

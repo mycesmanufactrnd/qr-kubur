@@ -34,6 +34,8 @@ export function useDeathCharityMemberMutations() {
 
   const invalidateAll = () => {
     trpcUtils.deathCharityMember.getPaginated.invalidate();
+    trpcUtils.deathCharityMember.searchByDeathCharity.invalidate();
+    trpcUtils.deathCharityMember.getMemberByDeathCharity.invalidate();
   };
 
   const createDeathCharityMember = trpc.deathCharityMember.create.useMutation({
@@ -68,11 +70,20 @@ export function useDeathCharityMemberMutations() {
     onError: (err) => showApiError(err),
   });
 
+  const createPublicDeathCharityMember = trpc.deathCharityMember.createPublic.useMutation({
+    onSuccess: () => {
+      showSuccess(titleMessage, 'create');
+      invalidateAll();
+    },
+    onError: (err) => showApiError(err),
+  });
+
   return { 
     createDeathCharityMember, 
     updateDeathCharityMember, 
     deleteDeathCharityMember, 
     upsertDeathCharityDependents,
+    createPublicDeathCharityMember,
   }
 }
 
@@ -91,5 +102,18 @@ export function useGetDependentsByMember(memberId) {
   return trpc.deathCharityMember.getDependentsByMember.useQuery(
     { memberId: Number(memberId), isSuperAdmin: isSuperAdmin }, 
     { enabled: !!memberId }
+  );
+}
+
+export function useSearchMemberByDeathCharity(
+  deathCharityId: number | null,
+  keyword: string,
+  limit: number = 10,
+) {
+  const trimmedKeyword = (keyword || '').trim();
+
+  return trpc.deathCharityMember.searchByDeathCharity.useQuery(
+    { deathcharityId: Number(deathCharityId), keyword: trimmedKeyword, limit },
+    { enabled: !!deathCharityId && trimmedKeyword.length > 1 }
   );
 }
