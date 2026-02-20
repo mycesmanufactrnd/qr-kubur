@@ -9,14 +9,14 @@ export const runningNoRouter = router({
         let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
         if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0 });
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0 });
           await manager.save(running);
         }
 
-        running.donation = (running.donation || 0) + 1;
+        running.quotation = (running.quotation || 0) + 1;
         await manager.save(running);
 
-        return running.donation;
+        return running.quotation;
       });
     }),
 
@@ -26,7 +26,7 @@ export const runningNoRouter = router({
         let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
         if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0 });
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0 });
           await manager.save(running);
         }
 
@@ -43,7 +43,7 @@ export const runningNoRouter = router({
         let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
         if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0 });
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0 });
           await manager.save(running);
         }
 

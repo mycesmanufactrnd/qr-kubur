@@ -25,7 +25,7 @@ export function DraggableFloatingButton() {
         { icon: AlertTriangle, label: "Emergency", color: "bg-red-500", page: 'JenazahEmergency' },
         { icon: MapPinned, label: "Favorited Grave", color: "bg-pink-500", page: 'SearchGrave', isFavorited: true },
         { icon: MapPinHouse, label: "Favorited Mosque", color: "bg-blue-500", page: 'SearchMosque', isFavorited: true },
-        { icon: Repeat, label: "Digital Tasbih", color: "bg-emerald-500", page: 'DigitalTasbih' },
+        { icon: Repeat, label: "Digital Tasbih", color: "bg-emerald-500", page: 'Tasbih' },
     ];
 
     const start = (e) => {

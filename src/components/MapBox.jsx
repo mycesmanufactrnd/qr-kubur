@@ -58,58 +58,60 @@ export default function MapBox({ dataMap, userLocation, pageToUrl }) {
   }
 
   return (
-    <MapContainer
-      center={defaultCenter}
-      zoom={14}
-      className="relative z-0 h-full w-full rounded-2xl"
-      style={{ minHeight: '400px', zIndex: 0 }}
-    >
-      <TileLayer
-        attribution='&copy; OpenStreetMap'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <div className="px-2">
+      <MapContainer
+        center={defaultCenter}
+        zoom={14}
+        className="relative z-0 h-full w-full rounded-2xl"
+        style={{ minHeight: '400px', zIndex: 0 }}
+      >
+        <TileLayer
+          attribution='&copy; OpenStreetMap'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
-      {userLocation && (
-        <Marker
-          position={[userLocation.lat, userLocation.lng]}
-          icon={userIcon}
-        >
-          <Popup>Your Location</Popup>
-        </Marker>
-      )}
+        {userLocation && (
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={userIcon}
+          >
+            <Popup>Your Location</Popup>
+          </Marker>
+        )}
 
-      {hasCenterLocation && (
-        <Marker
-          position={[dataMap.latitude, dataMap.longitude]}
-          icon={tahfizIcon}
-        >
-          <Popup>
-            <div className="min-w-[200px]">
-              <h3 className="font-bold text-emerald-700">
-                {dataMap.name}
-              </h3>
-              <div className="flex gap-2">
-                <Link to={createPageUrl(`${pageToUrl}?id=${dataMap.id}`)}>
-                  <Button size="sm" variant="outline" className="text-xs">
-                    View
+        {hasCenterLocation && (
+          <Marker
+            position={[dataMap.latitude, dataMap.longitude]}
+            icon={tahfizIcon}
+          >
+            <Popup>
+              <div className="min-w-[200px]">
+                <h3 className="font-bold text-emerald-700">
+                  {dataMap.name}
+                </h3>
+                <div className="flex gap-2">
+                  <Link to={createPageUrl(`${pageToUrl}?id=${dataMap.id}`)}>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      View
+                    </Button>
+                  </Link>
+                  <Button
+                    size="sm"
+                    className="text-xs bg-emerald-500 hover:bg-emerald-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDirections(dataMap.latitude, dataMap.longitude);
+                    }}
+                  >
+                    <Navigation className="w-3 h-3 mr-1" />
+                    Directions
                   </Button>
-                </Link>
-                <Button
-                  size="sm"
-                  className="text-xs bg-emerald-500 hover:bg-emerald-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openDirections(dataMap.latitude, dataMap.longitude);
-                  }}
-                >
-                  <Navigation className="w-3 h-3 mr-1" />
-                  Directions
-                </Button>
+                </div>
               </div>
-            </div>
-          </Popup>
-        </Marker>
-      )}
-    </MapContainer>
+            </Popup>
+          </Marker>
+        )}
+      </MapContainer>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,13 @@ import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
+import PaymentSuccessfulComponent from '@/components/PaymentSuccessfulComponent';
 import { useLocationContext } from '@/providers/LocationProvider';
-import { paymentToyyibStatus, SERVICE_FEE } from '@/utils/enums';
+import { SERVICE_FEE, paymentToyyibStatus } from '@/utils/enums';
 import { activityLogError, clearQueryParams, shareLink } from '@/utils/helpers';
 import { trpc } from '@/utils/trpc';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import TextInputForm from '@/components/forms/TextInputForm';
 
 export default function OrganisationDetails() {
   const navigate = useNavigate();
@@ -26,10 +29,19 @@ export default function OrganisationDetails() {
   const deadpersonId = searchParams.get('deadpersonId') ? Number(searchParams.get('deadpersonId')) : null;
   const [selectedServices, setSelectedServices] = useState([]);
   const [isQuotationDialogOpen, setIsQuotationDialogOpen] = useState(false);
+  const { control, setValue, getValues, trigger, formState: { errors } } = useForm({
+    defaultValues: { payername: '', payeremail: '', payerphone: '' },
+  });
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createQuoteRunningNoMutation = trpc.runningNo.createQuotationRunningNo.useMutation();
+  const createOrganisationQuotation = trpc.quotation.create.useMutation();
+
+  const pendingQuotationRaw = sessionStorage.getItem("quotationPending") || '{}';
+
+  const status_id = searchParams.get("status_id");
+  const order_id = searchParams.get("order_id");
 
   const { data: organisation, isLoading, isError } = trpc.organisation.getById.useQuery(
     { id: organisationId ?? 0 },
@@ -58,7 +70,7 @@ export default function OrganisationDetails() {
     return selectedServiceItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [selectedServiceItems]);
 
-  const quotationTotal = quotationSubtotal + SERVICE_FEE; 
+  const quotationTotal = quotationSubtotal + SERVICE_FEE;
 
   const toggleSelectedService = (serviceName) => {
     setSelectedServices((previous) =>
@@ -69,52 +81,74 @@ export default function OrganisationDetails() {
   };
 
   useEffect(() => {
-    const status_id = searchParams.get("status_id");
-    const order_id = searchParams.get("order_id");
+    if (!isQuotationDialogOpen) return;
+
+    setValue('payername', deadPerson?.name ?? '');
+
+    if (!getValues('payeremail')) {
+      setValue('payeremail', '');
+    }
+    if (!getValues('payerphone')) {
+      setValue('payerphone', '');
+    }
+  }, [isQuotationDialogOpen, deadPerson?.id, organisation?.id, setValue, getValues]);
+
+  useEffect(() => {
     const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
+    
+    if (!status_id) return;    
+   
+    if (!pendingQuotationRaw) return;
 
-    if (!status_id) return;
+    const formData = JSON.parse(pendingQuotationRaw);
 
-    const pendingTahlil = sessionStorage.getItem("quotationPending");
-    if (!pendingTahlil) return;
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = new URL(baseUrl);
 
-    const formData = JSON.parse(pendingTahlil);
+    if (formData?.organisation?.id) {
+      url.searchParams.set("id", formData.organisation.id);
+    }
+
+    if (formData?.deadperson?.id) {
+      url.searchParams.set("deadpersonId", formData.deadperson.id);
+    }    
+
+    const handleFinally = () => {
+      window.location.href = url.toString();
+      sessionStorage.removeItem("quotationPending");
+      setSelectedServices([]);
+      setIsQuotationDialogOpen(false);
+      setLoadingPayment(false);
+    };
 
     if (statusText === "Success") {
-
+      setLoadingPayment(true);
+      
       showSuccess("Pembayaran berjaya!");
-      // createOrganisationQuotation.mutateAsync({
-      //   requestorname: formData.requestorname || "",
-      //   requestorphoneno: formData.requestorphoneno || "",
-      //   requestoremail: formData.requestoremail || "",
-      //   deceasednames: formData.deceasednames || [],
-      //   selectedservices: formData.selectedservices || [],
-      //   tahfizcenter: formData.tahfizcenter || null,
-      //   customservice: formData.customservice || null,
-      //   referenceno: order_id || formData.referenceno || null,
-      //   serviceamount: Number(formData.serviceamount) || 0,
-      //   platformfeeamount: Number(formData.platformfeeamount) || 0,
-      //   status: TahlilStatus.PENDING,
-      // })
-      // .then((res) => {
-      //   if (res) {
-      //     sessionStorage.removeItem("quotationPending");
-      //     clearQueryParams();
-      //   }
-      // })
-      // .catch((error) => {
-      //   createLogMutation.mutateAsync({
-      //     activitytype: 'Create Organisation Quaotation',
-      //     functionname: 'createOrganisationQuotation.mutateAsync',
-      //     useremail: '',
-      //     level: 'error',
-      //     summary: activityLogError(error),
-      //     extramessage: pendingTahlil,
-      //   })
 
-      //   sessionStorage.removeItem("quotationPending");
-      //   clearQueryParams();
-      // })
+      createOrganisationQuotation.mutateAsync({
+        ...formData,
+        referenceno: order_id || formData.referenceno || null,
+      })
+      .then((res) => {
+        if (res) {
+          setSelectedServices([]);
+          setIsQuotationDialogOpen(false);
+        }
+      })
+      .catch((error) => {
+        createLogMutation.mutateAsync({
+          activitytype: 'Create Organisation Quotation',
+          functionname: 'createOrganisationQuotation.mutateAsync',
+          useremail: '',
+          level: 'error',
+          summary: activityLogError(error),
+          extramessage: pendingQuotationRaw,
+        })
+      })
+      .finally(() => {
+        handleFinally();
+      });
 
     } else if (statusText === "Pending") {
       showError("Pembayaran masih dalam proses.");
@@ -124,10 +158,34 @@ export default function OrganisationDetails() {
   }, [searchParams]);
 
   const handlePayment = async () => {
-    let quotationDetails = {
+    if (!selectedServiceItems.length) {
+      showError("Pilih sekurang-kurangnya satu servis.");
+      return;
+    }
+
+    const isPayerValid = await trigger(['payername', 'payeremail', 'payerphone']);
+    if (!isPayerValid) {
+      showError('Sila isi maklumat pembayar yang sah.');
+      return;
+    }
+
+    const payername = (getValues('payername') || '').trim() || (deadPerson?.name ?? 'ANONYMOUS');
+    const payeremail = (getValues('payeremail') || '').trim() || 'noreply@gmail.com';
+    const payerphone = (getValues('payerphone') || '').trim() || '0123456789';
+
+    const quotationDetails = {
       organisation: { id: Number(organisationId) },
       deadperson: { id: Number(deadpersonId) },
-      serviceamount: quotationTotal,
+      selectedservices: selectedServiceItems.map((item) => ({
+        service: item.name,
+        price: Number(item.price || 0),
+      })),
+      serviceamount: Number(quotationSubtotal.toFixed(2)),
+      maintenancefeeamount: Number(SERVICE_FEE.toFixed(2)),
+      totalamount: Number(quotationTotal.toFixed(2)),
+      payername,
+      payeremail,
+      payerphone,
     };
 
     const resPayment = await handlePaymentConfig(quotationDetails);
@@ -144,38 +202,30 @@ export default function OrganisationDetails() {
     
     setLoadingPayment(true);
 
-    sessionStorage.setItem("quotationPending", JSON.stringify({ quotationDetails }));
-
     const nextRunningNo = await createQuoteRunningNoMutation.mutateAsync();
     
     const year = new Date().getFullYear();
-    const runningNo = `QUO-${year}-${String(nextRunningNo).padStart(4, '0')}`
+    const runningNo = `QUO-${year}-${String(nextRunningNo).padStart(4, '0')}`;
+
+    const payloadWithReferenceNo = {
+      ...quotationDetails,
+      referenceno: runningNo,
+    };
+
+    sessionStorage.setItem("quotationPending", JSON.stringify(payloadWithReferenceNo));
 
     try {
-      const bill = await createBillMutation.mutateAsync({
-        amount: quotationDetails?.serviceamount ?? 0,
+      const quotation = await createBillMutation.mutateAsync({
+        amount: quotationDetails?.totalamount ?? 0,
         referenceNo: runningNo,
-        name: quotationDetails?.donorname ?? 'ANONYMOUS',
-        email: quotationDetails?.donoremail ?? 'noreply@gmail.com',
-        phone: quotationDetails?.donorphoneno ?? '0123456789',
+        name: quotationDetails?.payername ?? deadPerson?.name ?? 'ANONYMOUS',
+        email: quotationDetails?.payeremail ?? 'noreply@gmail.com',
+        phone: quotationDetails?.payerphone ?? '0123456789',
         returnTo: 'organisation',
       });
 
-      if (bill && bill.paymentUrl) {
-        const sessionData = JSON.parse(sessionStorage.getItem("quotationPending") || "{}");
-        const quotationDetails = sessionData?.quotationDetails;
-
-        const url = new URL(bill.paymentUrl);
-
-        if (quotationDetails?.organisation?.id) {
-          url.searchParams.set("id", quotationDetails.organisation.id);
-        }
-
-        if (quotationDetails?.deadperson?.id) {
-          url.searchParams.set("deadpersonId", quotationDetails.deadperson.id);
-        }
-
-        window.location.href = url.toString();
+      if (quotation && quotation.paymentUrl) {
+        window.location.href = quotation.paymentUrl;
         return true;
       } else {
         setLoadingPayment(false);
@@ -189,6 +239,10 @@ export default function OrganisationDetails() {
 
   if (isLoading || loadingPayment) {
     return <PageLoadingComponent />;
+  }
+
+  if (status_id) {
+    return <PaymentSuccessfulComponent />;
   }
 
   if (isError || !organisation) {
@@ -434,6 +488,32 @@ export default function OrganisationDetails() {
             <DialogTitle>Quotation</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 text-sm">
+            <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+              <TextInputForm
+                name="payername"
+                control={control}
+                label="Name"
+                required
+                errors={errors}
+              />
+              <TextInputForm
+                name="payeremail"
+                control={control}
+                label="Email"
+                isEmail
+                required
+                errors={errors}
+              />
+              <TextInputForm
+                name="payerphone"
+                control={control}
+                label="Phone"
+                isPhone
+                required
+                errors={errors}
+              />
+            </form>
+
             {deadPerson?.name && (
               <p className="text-slate-600">
                 <span className="font-semibold text-slate-900">For:</span> {deadPerson.name}

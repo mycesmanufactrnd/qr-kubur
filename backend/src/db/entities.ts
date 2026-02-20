@@ -13,6 +13,7 @@ export * from "./entities/HeritageSite.entity.ts";
 export * from "./entities/Suggestion.entity.ts";
 export * from "./entities/Donation.entity.ts";
 export * from "./entities/TahlilRequest.entity.ts";
+export * from "./entities/Quotation.entity.ts";
 export * from "./entities/ActivityLog.entity.ts";
 export * from "./entities/VisitLog.entity.ts";
 export * from "./entities/OrganisationPaymentConfig.entity.ts";

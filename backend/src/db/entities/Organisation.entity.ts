@@ -8,6 +8,7 @@ import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts
 import { Mosque } from "./Mosque.entity.ts";
 import { DeathCharity } from "../entities.ts";
 import { ServiceOffered } from "./ServiceOffered.entity.ts";
+import { Quotation } from "./Quotation.entity.ts";
 
 @Entity("organisation")
 export class Organisation {
@@ -86,6 +87,9 @@ export class Organisation {
 
   @OneToMany(() => ServiceOffered, (services) => services.organisation)
   services!: ServiceOffered[];
+
+  @OneToMany(() => Quotation, (quotations) => quotations.organisation)
+  quotations?: Quotation[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

@@ -176,6 +176,7 @@ export const defaultMosqueField = {
   picname: '',
   picphoneno: '',
   canarrangefuneral: false,
+  hasdeathcharity: false,
 };
 
 export const defaultDeathCharityField = {

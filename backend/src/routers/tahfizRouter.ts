@@ -198,7 +198,7 @@ export const tahfizRouter = router({
     }),
 
   update: protectedProcedure
-    .input(z.object({ id: z.number(), data: tahfizSchema.partial() }))
+    .input(z.object({ id: z.number(), data: tahfizSchema }))
     .mutation(async ({ input }) => {
       return await AppDataSource.transaction(async (manager) => {
         const tahfizRepo = manager.getRepository(TahfizCenter);

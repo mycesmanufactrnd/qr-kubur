@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn, OneToMany} from "typeorm";
 import { Grave } from "./Grave.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
+import { Quotation } from "./Quotation.entity.ts";
 
 @Entity("deadperson")
 export class DeadPerson {
@@ -42,6 +43,9 @@ export class DeadPerson {
 
   @OneToMany(() => Suggestion, (suggestions) => suggestions.deadperson)
   suggestions?: Suggestion[] | [];
+
+  @OneToMany(() => Quotation, (quotations) => quotations.deadperson)
+  quotations?: Quotation[];
 
   @CreateDateColumn ({ name: "createdat" })
   createdat!: Date;

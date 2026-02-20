@@ -163,95 +163,81 @@ export default function CheckTahlilStatus() {
           }
         }}
       >
-        <DialogContent className="max-w-3xl w-full max-h-[95vh] overflow-y-auto rounded-2xl p-0">
-          <DialogHeader className="border-b px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
-            <DialogTitle className="text-center text-xl font-bold tracking-wide text-gray-900 dark:text-gray-100">
-              Status Permohonan Tahlil
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white dark:bg-gray-900">
 
-          {request && (
-            <div className="px-6 py-6 space-y-6">
-              <div className="flex flex-col items-center space-y-4 pb-6 border-b">
-                <div className="text-4xl font-bold tracking-widest font-mono text-gray-900 dark:text-gray-100">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-gray-800">
+            <DialogTitle className="text-center text-base font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500 mb-4">
+              Status Permohonan
+            </DialogTitle>
+            {request && (
+              <div className="flex flex-col items-center gap-3">
+                <p className="text-3xl font-bold tracking-widest font-mono text-gray-900 dark:text-white">
                   {request.referenceno}
-                </div>
+                </p>
                 {getStatusBadge(request.status)}
               </div>
+            )}
+          </div>
 
+          {request && (
+            <div className="px-6 py-5 space-y-5">
+
+              {/* Live */}
               {request.liveurl && (
                 <div className="flex justify-center">
                   <JoinLiveButton room={request.liveurl} />
                 </div>
               )}
 
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Info rows */}
+              <div className="space-y-3">
                 {request.requestorname && (
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-5 border border-gray-200 dark:border-gray-600">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                      Pemohon
-                    </p>
-                    <p className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                      {request.requestorname}
-                    </p>
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                    <span className="text-xs uppercase tracking-widest text-gray-400">Pemohon</span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm">{request.requestorname}</span>
                   </div>
                 )}
                 {tahfizCenter && (
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-5 border border-gray-200 dark:border-gray-600">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                      Pusat Tahfiz
-                    </p>
-                    <p className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                      {tahfizCenter.name}
-                    </p>
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                    <span className="text-xs uppercase tracking-widest text-gray-400">Pusat Tahfiz</span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm text-right max-w-[60%]">{tahfizCenter.name}</span>
                   </div>
                 )}
                 {request.preferreddate && (
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-5 border border-blue-200 dark:border-blue-700">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">
-                      Tarikh Pilihan
-                    </p>
-                    <p className="font-semibold text-gray-900 dark:text-gray-100">
-                      {new Date(request.preferreddate).toLocaleDateString('ms-MY')}
-                    </p>
+                  <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                    <span className="text-xs uppercase tracking-widest text-gray-400">Tarikh Pilihan</span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm">{new Date(request.preferreddate).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
                 )}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl p-5 border border-gray-200 dark:border-gray-600">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-                    Tarikh Permohonan
-                  </p>
-                  <p className="font-semibold text-gray-900 dark:text-gray-100">
-                    {new Date(request.createdat).toLocaleDateString('ms-MY')}
-                  </p>
+                <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                  <span className="text-xs uppercase tracking-widest text-gray-400">Tarikh Mohon</span>
+                  <span className="font-medium text-gray-900 dark:text-white text-sm">{new Date(request.createdat).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                 </div>
               </div>
 
+              {/* Deceased */}
               {request.deceasednames?.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-6 shadow-sm">
-                  <p className="text-sm font-bold mb-4 text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <span className="w-1 h-5 bg-blue-500 rounded-full"></span>
-                    Nama Arwah
-                  </p>
-                  <ol className="list-decimal pl-6 space-y-2 font-medium text-gray-900 dark:text-gray-100">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">Nama Arwah</p>
+                  <div className="space-y-2">
                     {request.deceasednames.map((name, i) => (
-                      <li key={i} className="leading-relaxed">{name}</li>
+                      <div key={i} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <span className="text-xs font-bold text-gray-400 w-5 text-center">{i + 1}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{name}</span>
+                      </div>
                     ))}
-                  </ol>
+                  </div>
                 </div>
               )}
 
+              {/* Services */}
               {request.selectedservices?.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-6 shadow-sm">
-                  <p className="text-sm font-bold mb-4 text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <span className="w-1 h-5 bg-green-500 rounded-full"></span>
-                    Jenis Perkhidmatan
-                  </p>
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">Perkhidmatan</p>
                   <div className="flex flex-wrap gap-2">
                     {request.selectedservices.map((type, i) => (
-                      <span
-                        key={i}
-                        className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold border border-blue-200 dark:border-blue-700 shadow-sm"
-                      >
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                         {type}
                       </span>
                     ))}
@@ -259,28 +245,22 @@ export default function CheckTahlilStatus() {
                 </div>
               )}
 
+              {/* Notes */}
               {request.notes && (
-                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-2 border-amber-200 dark:border-amber-700 rounded-xl p-6 shadow-sm">
-                  <p className="text-sm font-bold mb-3 text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                    <span className="w-1 h-5 bg-amber-500 rounded-full"></span>
-                    Catatan
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {request.notes}
-                  </p>
+                <div className="px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+                  <p className="text-xs uppercase tracking-widest text-amber-500 mb-1.5">Catatan</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{request.notes}</p>
                 </div>
               )}
 
               <Button
-                onClick={() => {
-                  setIsDialogOpen(false);
-                  setSearchKey(null);
-                }}
-                className="w-full h-12 text-base font-semibold rounded-xl shadow-sm hover:shadow-md transition-all"
                 variant="outline"
+                onClick={() => { setIsDialogOpen(false); setSearchKey(null); }}
+                className="w-full rounded-xl h-11 text-sm font-medium"
               >
                 Tutup
               </Button>
+
             </div>
           )}
         </DialogContent>

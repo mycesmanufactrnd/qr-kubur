@@ -52,6 +52,9 @@ export class Mosque {
   @Column("boolean", { default: false })
   canarrangefuneral!: boolean;
 
+  @Column("boolean", { default: false })
+  hasdeathcharity!: boolean;
+
   @OneToMany(() => User, (user) => user.mosque)
   users!: User[];
   

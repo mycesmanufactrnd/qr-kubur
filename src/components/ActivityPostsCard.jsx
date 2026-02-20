@@ -1,49 +1,48 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Building2 } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import moment from 'moment';
 
 export default function ActivityPostsCard({ post, poster, showPoster = false }) {
   return (
-    <Card className="overflow-hidden bg-white border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-      <CardHeader className="pb-3">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10 bg-gradient-to-br from-emerald-400 to-teal-500">
-            <AvatarFallback className="bg-transparent text-white font-semibold">
-              {(poster || 'T')[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            {showPoster && poster && (
-              <div className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium mb-0.5">
-                <Building2 className="w-3.5 h-3.5" />
-                {poster}
-              </div>
-            )}
-            <h3 className="font-semibold text-slate-800 line-clamp-1">{post.title}</h3>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-              <Calendar className="w-3 h-3" />
-              {moment(post.createdat).fromNow()}
-            </div>
-          </div>
+    <Card className="overflow-hidden bg-white border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-2xl">
+      {post.photourl && (
+        <div className="overflow-hidden">
+          <img
+            src={`/api/file/activity-post/${encodeURIComponent(post.photourl)}`}
+            alt={post.title}
+            className="w-full h-40 object-cover hover:scale-105 transition-transform duration-500"
+          />
         </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0 space-y-3">
-        {post.photourl && (
-          <div className="rounded-xl overflow-hidden -mx-2">
-            <img 
-              src={`/api/file/activity-post/${encodeURIComponent(post.photourl)}`} 
-              alt={post.title}
-              className="w-full h-48 object-cover"
-            />
+      )}
+
+      <CardContent className="p-4 space-y-2.5">
+        {showPoster && poster && (
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6 bg-gradient-to-br from-emerald-400 to-teal-500 shrink-0">
+              <AvatarFallback className="bg-transparent text-white text-xs font-semibold">
+                {poster[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 truncate">
+              <Building2 className="w-3 h-3 shrink-0" />
+              {poster}
+            </span>
           </div>
         )}
-        
-        <div 
-          className="prose prose-sm prose-slate max-w-none text-slate-600 line-clamp-4"
+
+        <h3 className="font-semibold text-slate-800 text-sm leading-snug line-clamp-2">
+          {post.title}
+        </h3>
+
+        <div
+          className="prose prose-xs prose-slate max-w-none text-slate-500 text-xs leading-relaxed line-clamp-3"
           dangerouslySetInnerHTML={{ __html: post.content || '' }}
         />
+
+        <p className="text-[11px] text-slate-400 pt-0.5">
+          {moment(post.createdat).fromNow()}
+        </p>
       </CardContent>
     </Card>
   );

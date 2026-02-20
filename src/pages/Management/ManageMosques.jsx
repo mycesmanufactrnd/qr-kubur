@@ -309,8 +309,8 @@ export default function ManageMosques() {
             <TextInputForm name="address" control={control} label={translate('Address')} isTextArea />
 
             <div className="grid grid-cols-2 gap-4">
-              <TextInputForm name="email" control={control} label={translate('Email')} placeholder="mosque@example.com" />
-              <TextInputForm name="url" control={control} label={translate('Website / URL')} placeholder="https://..." />
+              <TextInputForm name="email" control={control} label={translate('Email')} />
+              <TextInputForm name="url" control={control} label={translate('Website / URL')} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -321,6 +321,7 @@ export default function ManageMosques() {
             <SelectForm
               name="organisation"
               control={control}
+              placeholder={translate('Select Organisation')}
               label={translate('Organisation')}
               options={(organisationsList?.items || []).map(org => ({ label: org.name, value: org.id }))}
             />
@@ -334,6 +335,12 @@ export default function ManageMosques() {
               name="canarrangefuneral"
               control={control}
               label={translate("Can Arrange Funeral")}
+            />
+
+            <CheckboxForm
+              name="hasdeathcharity"
+              control={control}
+              label={translate("Has Death Charity")}
             />
 
             <div className="space-y-2">

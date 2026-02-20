@@ -63,6 +63,11 @@ export default function SearchMosque() {
               type: "checkbox",
               searchColumn: "canarrangefuneral",
             },
+            {
+              label: "Has Death Charity",
+              type: "checkbox",
+              searchColumn: "hasdeathcharity",
+            },
           ]}
           onApplyFilter={setFilters}
         />
@@ -90,6 +95,11 @@ export default function SearchMosque() {
               label: "Can Arrange Funeral",
               type: "checkbox",
               searchColumn: "canarrangefuneral",
+            },
+            {
+              label: "Has Death Charity",
+              type: "checkbox",
+              searchColumn: "hasdeathcharity",
             },
           ]}
           onApplyFilter={(newFilters) => {

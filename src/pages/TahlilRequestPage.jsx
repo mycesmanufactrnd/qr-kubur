@@ -169,9 +169,7 @@ export default function TahlilRequestPage() {
       
       showSuccess("Pembayaran berjaya!");
       createTahlilRequest.mutateAsync({
-        requestorname: formData.requestorname || "",
-        requestorphoneno: formData.requestorphoneno || "",
-        requestoremail: formData.requestoremail || "",
+        ...formData,
         deceasednames: formData.deceasednames || [],
         selectedservices: formData.selectedservices || [],
         tahfizcenter: formData.tahfizcenter || null,

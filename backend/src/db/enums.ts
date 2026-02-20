@@ -28,6 +28,12 @@ export enum TahlilStatus {
   REJECTED = "rejected",
 }
 
+export enum QuotationStatus {
+  PENDING = "pending",
+  COMPLETED = "completed",
+  REJECTED = "rejected",
+}
+
 export enum NotificationType {
   SUGGESTION = "suggestion",
   DONATION = "donation",

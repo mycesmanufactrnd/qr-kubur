@@ -10,6 +10,9 @@ export class RunningNo {
     
     @Column("integer", { default: 0 })
     tahlil!: number;
+
+    @Column("integer", { default: 0 })
+    quotation!: number;
     
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;

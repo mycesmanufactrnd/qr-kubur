@@ -32,6 +32,7 @@ import { deathCharityRouter } from "./deathCharityRouter.ts";
 import { deathCharityMemberRouter } from "./deathCharityMemberRouter.ts";
 import { deathCharityClaimRouter } from "./deathCharityClaimRouter.ts";
 import { deathCharityPaymentRouter } from "./deathCharityPaymentRouter.ts";
+import { quotationRouter } from "./quotationRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -67,6 +68,7 @@ export const appRouter = trpcRouter({
   deathCharityMember: deathCharityMemberRouter,
   deathCharityClaim: deathCharityClaimRouter,
   deathCharityPayment: deathCharityPaymentRouter,
+  quotation: quotationRouter,
 });
 
 export type AppRouter = typeof appRouter;

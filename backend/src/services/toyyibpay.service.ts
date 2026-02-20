@@ -22,25 +22,43 @@ export async function createBill({
     const toyyibpayConfig = getToyyibpayConfig();
 
     let returnUrl = toyyibpayConfig.returnUrl;
+    let billName = '';
+    let billDescription = '';
+    let billContentEmail = '';
     
     if (returnTo === "donation") {
       returnUrl = toyyibpayConfig.returnUrlDonation;
-    }
-    else if (returnTo === 'tahfiz') {
+
+      billName = "Donation Payment";
+      billDescription = "Donation contribution";
+      billContentEmail = "Thank you for your donation. Your contribution is greatly appreciated.";
+
+    } else if (returnTo === "tahfiz") {
       returnUrl = toyyibpayConfig.returnUrlTahlil;
-    }
-    else if (returnTo === 'organisation') {
+
+      billName = "Tahlil Contribution";
+      billDescription = "Tahlil service contribution";
+      billContentEmail = "Thank you for your Tahlil contribution. May your kindness be rewarded.";
+
+    } else if (returnTo === "organisation") {
       returnUrl = toyyibpayConfig.returnUrlOrganisation;
+
+      billName = "Service Payment";
+      billDescription = "Payment for services provided";
+      billContentEmail = "Thank you for your payment. The requested services will be processed accordingly.";
     }
+    
+    // 100 cent to RM1
+    const finalAmount = amount * 100; 
 
     const payload = {
       userSecretKey: toyyibpayConfig.secretKey,
       categoryCode: toyyibpayConfig.categoryCode,
-      billName: "QR Kubur Tahlil",
-      billDescription: "Tahlil & Doa Contribution",
+      billName: billName,
+      billDescription: billDescription,
       billPriceSetting: 1, // 0 - for user to set the amount
       billPayorInfo: 1, // 0 - if not require payer info
-      billAmount: amount * 10,
+      billAmount: finalAmount,
       billReturnUrl: returnUrl,
       billCallbackUrl: toyyibpayConfig.callbackUrl,
       billExternalReferenceNo: referenceNo,
@@ -48,7 +66,7 @@ export async function createBill({
       billEmail: email ?? 'noreply@gmail.com',
       billPhone: phone ?? '0123456798',
       billPaymentChannel: 0, // Set 0 for FPX, 1 Credit Card and 2 for both FPX & Credit Car
-      billContentEmail: 'Meow, Thank you for purchasing our product!',
+      billContentEmail: billContentEmail,
       billChargeToCustomer: 0, //Set 0 to charge FPX to customer.
     };
 
@@ -57,7 +75,7 @@ export async function createBill({
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
-  
+
     return res.data[0];
   } catch (error) {
     console.error('error', error)

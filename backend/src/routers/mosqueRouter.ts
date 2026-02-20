@@ -86,8 +86,10 @@ export const mosqueRouter = router({
     }))
     .query(async ({ input }) => {
       const { page, pageSize, filterName, filterState } = input;
+      
       const mosqueRepo = AppDataSource.getRepository(Mosque);
-      const query = mosqueRepo.createQueryBuilder("mosque").leftJoinAndSelect('mosque.organisation', 'organisation');
+      const query = mosqueRepo.createQueryBuilder("mosque")
+        .leftJoinAndSelect('mosque.organisation', 'organisation');
 
       if (filterName) {
         query.andWhere("mosque.name ILIKE :name", { search: `%${filterName}%` });
@@ -102,7 +104,7 @@ export const mosqueRouter = router({
       }
 
       const [items, total] = await query
-        .orderBy("mosque.createdat", "DESC")
+        .orderBy("mosque.id", "DESC")
         .getManyAndCount();
 
       return { items, total };
@@ -117,7 +119,7 @@ export const mosqueRouter = router({
     }),
 
   update: protectedProcedure
-    .input(z.object({ id: z.number(), data: mosqueSchema.partial() }))
+    .input(z.object({ id: z.number(), data: mosqueSchema }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(Mosque);
       const mosque = await repo.findOneByOrFail({ id: input.id });

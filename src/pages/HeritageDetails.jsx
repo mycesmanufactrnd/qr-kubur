@@ -63,14 +63,11 @@ export default function HeritageDetails() {
         
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
-        >
+        <Button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
           <ArrowLeft className="w-5 h-5 text-stone-700" />
-        </button>
+        </Button>
         
-        <button
+        <Button
           onClick={(e) => {
             e.stopPropagation();
             shareLink({
@@ -82,7 +79,7 @@ export default function HeritageDetails() {
           className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
         >
           <Share2 className="w-5 h-5 text-stone-700" />
-        </button>
+        </Button>
 
         {site.isfeatured && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2">

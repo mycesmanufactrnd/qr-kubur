@@ -1,8 +1,8 @@
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Mail, Globe, ArrowLeft, Clock, Landmark,ExternalLink, Share2, Info, Users,BookOpen, FileText
+import { MapPin, Phone, Mail, ArrowLeft, Clock, Share2, BookOpen
 } from 'lucide-react';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
@@ -14,6 +14,7 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
 import DonationButton from '@/components/DonationButton';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
@@ -29,32 +30,25 @@ export default function MosqueDetailsPage() {
   });
 
   if (isMosqueLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-      </div>
-    );
+    return <PageLoadingComponent />;
   }
 
   if (isMosqueError || !mosque) {
     return <NoDataCardComponent isPage={true} description="Mosque Not Found" />;
   }
 
-  const imageSrc = mosque.photourl 
-    ? `/api/file/bucket-mosque/${encodeURIComponent(mosque.photourl)}`
-    : null;
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-12">
-      {/* Header / Hero Section */}
-      <div className="relative h-72 md:h-80 overflow-hidden">
-        {imageSrc ? (
-          <img src={imageSrc} alt={mosque.name} className="w-full h-full object-cover" />
+    <div className="min-h-screen">
+      <div className="relative h-72 md:h-96">
+        {mosque.photourl ? (
+          <img 
+            src={`/api/file/bucket-mosque/${encodeURIComponent(mosque.photourl)}`} 
+            alt={mosque.name} 
+            className="w-full h-full object-cover" 
+          />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-white/10 text-[200px] font-arabic">﷽</div>
-            </div>
+          <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 flex items-center justify-center">
+            <MapPin className="w-16 h-16 text-stone-400" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -89,38 +83,68 @@ export default function MosqueDetailsPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex flex-wrap gap-3 mb-8 -mt-12 relative z-10">
+      <div className="max-w-6xl mx-auto py-8">
+        <div className="flex flex-wrap gap-2 mb-6 px-4 -mt-12 relative z-10">
           <DirectionButton latitude={mosque.latitude} longitude={mosque.longitude}/>      
           <DonationButton recipientId={mosque.organisation?.id} recipientType={'organisation'} state={mosque.organisation?.state}/>        
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 px-1">
             
-            <Card className="border-0 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-emerald-600" />
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="px-4 py-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-600" />
                   {translate('About')}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-slate-600 leading-relaxed">
-                  {mosque.description || `${translate('Welcome to')} ${mosque.name}. ${translate('This mosque serves as a spiritual hub.')}`}
+
+              <CardContent className="pt-0 px-4 pb-3 space-y-3">
+                <p className="text-sm text-slate-600 leading-snug">
+                  {mosque.description ||
+                    `${translate('Welcome to')} ${mosque.name}. ${translate('This mosque serves as a spiritual hub.')}`}
                 </p>
+
+                {(mosque.picphoneno || mosque.email) && (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {mosque.picphoneno && (
+                      <a
+                        href={`tel:${mosque.picphoneno}`}
+                        className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors"
+                      >
+                        <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-[11px] text-slate-500">{translate('Phone No.')}</p>
+                          <p className="text-sm font-medium text-slate-700 truncate">{mosque.picphoneno}</p>
+                        </div>
+                      </a>
+                    )}
+                    {mosque.email && (
+                      <a
+                        href={`mailto:${mosque.email}`}
+                        className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors"
+                      >
+                        <Mail className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-[11px] text-slate-500">{translate('Email')}</p>
+                          <p className="text-sm font-medium text-slate-700 truncate">{mosque.email}</p>
+                        </div>
+                      </a>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             <Card className="border-0 shadow-md overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
+              <CardHeader className="px-4 py-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
                   {translate('Location')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-72">
+                <div className="h-56">
                   <MapBox dataMap={mosque} userLocation={userLocation} pageToUrl={'MosqueDetailsPage'} />
                 </div>
               </CardContent>
@@ -128,10 +152,10 @@ export default function MosqueDetailsPage() {
 
             {mosquePosts && mosquePosts.length > 0 && (
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-emerald-600" />
+                <p className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-600" />
                   {translate('Latest Updates')}
-                </h2>
+                </p>
                 <div className="space-y-4">
                   {mosquePosts.map(post => (
                     <ActivityPostsCard key={post.id} post={post} poster={mosque.name} />
@@ -139,40 +163,6 @@ export default function MosqueDetailsPage() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Sidebar / Contact */}
-          <div className="space-y-6">
-            <Card className="border-0 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">{translate('Contact Information')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mosque.picphoneno && (
-                  <a href={`tel:${mosque.picphoneno}`} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <Phone className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-slate-500">{translate('Phone No.')}</p>
-                        <p className="font-medium text-slate-700">{mosque.picphoneno}</p>
-                    </div>
-                  </a>
-                )}
-                {mosque.email && (
-                  <a href={`mailto:${mosque.email}`} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <Mail className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-slate-500">{translate('Email')}</p>
-                        <p className="font-medium text-slate-700 text-sm">{mosque.email}</p>
-                    </div>
-                  </a>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
