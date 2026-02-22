@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess, showWarning } from '@/components/ToastrNotification';
 import BackNavigation from '@/components/BackNavigation';
-import { DONATION_AMOUNTS, normalizeState, paymentToyyibStatus, STATES_MY, VerificationStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, normalizeState, paymentToyyibStatus, MAINTENANCE_FEE, STATES_MY, VerificationStatus } from '@/utils/enums';
 import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetOrganisationCoordinates } from '@/hooks/useOrganisationMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
@@ -81,11 +81,16 @@ export default function DonationPage() {
     }
   }, [locationDenied]);
 
-  const finalAmount = useMemo(() => {
-    const baseAmount = customAmount || amount;
-    if (!baseAmount) return 0;
-    return Number(baseAmount);
+  const baseAmount = useMemo(() => {
+    const selectedAmount = customAmount || amount;
+    if (!selectedAmount) return 0;
+    return Number(selectedAmount);
   }, [amount, customAmount]);
+
+  const payableAmount = useMemo(() => {
+    if (baseAmount <= 0) return 0;
+    return Number(baseAmount) + Number(MAINTENANCE_FEE || 0);
+  }, [baseAmount]);
 
   useEffect(() => {
     const status_id = searchParams.get("status_id");
@@ -97,7 +102,7 @@ export default function DonationPage() {
     const pendingDonation = sessionStorage.getItem("donationPending");
     if (!pendingDonation) return;
 
-    const { formData, finalAmount } = JSON.parse(pendingDonation);
+    const { formData, baseAmount, payableAmount } = JSON.parse(pendingDonation);
 
     if (statusText === "Success") {
       showSuccess("Pembayaran berjaya!");
@@ -106,7 +111,7 @@ export default function DonationPage() {
         donorname: formData.donorname || null,
         donorphoneno: formData.donorphoneno || null,
         donoremail: formData.donoremail || null,
-        amount: Number(finalAmount) || null,
+        amount: Number(baseAmount ?? payableAmount ?? 0) || null,
         tahfizcenter: formData.recipientType === 'tahfiz' && formData.selectedRecipient
           ? { id: Number(formData.selectedRecipient) }
           : null,
@@ -256,7 +261,7 @@ export default function DonationPage() {
     
     setLoadingPayment(true);
 
-    sessionStorage.setItem("donationPending", JSON.stringify({ formData, finalAmount }));
+    sessionStorage.setItem("donationPending", JSON.stringify({ formData, baseAmount, payableAmount }));
 
     const nextRunningNo = await createDonationRunningNoMutation.mutateAsync();
     
@@ -265,7 +270,7 @@ export default function DonationPage() {
 
     try {
       const bill = await createBillMutation.mutateAsync({
-        amount: finalAmount,
+        amount: payableAmount,
         referenceNo: runningNo,
         name: formData?.donorname ?? 'ANONYMOUS',
         email: formData?.donoremail ?? 'noreply@gmail.com',
@@ -296,9 +301,7 @@ export default function DonationPage() {
 
     if (!isValid) return;
 
-    const finalAmount = formData.customAmount || formData.amount;
-
-    if (!finalAmount) {
+    if (!baseAmount) {
       showError('Sila lengkapkan maklumat derma');
       return;
     }
@@ -517,6 +520,23 @@ export default function DonationPage() {
                 setValue('amount', '');
               }}
             />
+
+            {baseAmount > 0 && (
+              <div className="rounded-lg bg-slate-100 p-3 text-sm space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">Donation Amount</span>
+                  <span className="font-medium text-slate-800">RM {baseAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">Maintenance Fee</span>
+                  <span className="font-medium text-slate-800">RM {Number(MAINTENANCE_FEE).toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-semibold text-slate-700">Total to Pay</span>
+                  <span className="font-semibold text-slate-900">RM {payableAmount.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -540,7 +540,7 @@ export default function ManageDeathCharityMember() {
                           required
                           errors={errors}
                       />
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                           <TextInputForm
                               name="icnumber"
                               control={control}
@@ -553,6 +553,13 @@ export default function ManageDeathCharityMember() {
                               control={control}
                               label={translate("Phone")}
                               required
+                              errors={errors}
+                          />
+                          <TextInputForm
+                              name="email"
+                              control={control}
+                              label={translate("Email")}
+                              isEmail
                               errors={errors}
                           />
                       </div>

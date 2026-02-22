@@ -42,6 +42,9 @@ export class DeathCharityMember extends AuditableEntity {
   @Column("varchar", { length: 255, nullable: true })
   phone?: string;
 
+  @Column("varchar", { length: 255, nullable: true })
+  email?: string;
+
   @Column("text", { nullable: true })
   address?: string;
 

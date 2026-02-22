@@ -13,6 +13,9 @@ export class RunningNo {
 
     @Column("integer", { default: 0 })
     quotation!: number;
+
+    @Column("integer", { default: 0 })
+    deathcharity!: number;
     
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;

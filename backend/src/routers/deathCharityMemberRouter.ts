@@ -138,6 +138,7 @@ export const deathCharityMemberRouter = router({
         fullname: (input.fullname || "").trim(),
         icnumber,
         phone: input.phone?.trim() || null,
+        email: input.email?.trim() || null,
         address: input.address?.trim() || null,
       };
 

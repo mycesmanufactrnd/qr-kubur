@@ -9,7 +9,7 @@ export const runningNoRouter = router({
         let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
         if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0 });
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
           await manager.save(running);
         }
 
@@ -20,13 +20,30 @@ export const runningNoRouter = router({
       });
     }),
 
+  createDeathCharityRunningNo: publicProcedure
+    .mutation(async () => {
+      return AppDataSource.transaction(async (manager) => {
+        let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+
+        if (!running) {
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
+          await manager.save(running);
+        }
+
+        running.deathcharity = (running.deathcharity || 0) + 1;
+        await manager.save(running);
+
+        return running.deathcharity;
+      });
+    }),
+
   createDonationRunningNo: publicProcedure
     .mutation(async () => {
       return AppDataSource.transaction(async (manager) => {
         let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
         if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0 });
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
           await manager.save(running);
         }
 
@@ -43,7 +60,7 @@ export const runningNoRouter = router({
         let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
         if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0 });
+          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
           await manager.save(running);
         }
 

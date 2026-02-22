@@ -24,9 +24,17 @@ export const toyyibPayRouter = router({
         returnTo: input.returnTo,
       });
 
+      if (!bill?.status || !bill?.data?.BillCode) {
+        return {
+          message: bill?.message ?? 'Payment Failed',
+          billCode: null,
+          paymentUrl: null,
+        };
+      }
+
       return {
-        billCode: bill.BillCode,
-        paymentUrl: `https://dev.toyyibpay.com/${bill.BillCode}`,
+        billCode: bill.data.BillCode,
+        paymentUrl: `https://dev.toyyibpay.com/${bill.data.BillCode}`,
       };
     }),
 });

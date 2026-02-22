@@ -27,10 +27,20 @@ export class OnlineTransaction {
   // ToyyibPay: null
   // App: When user initiated the payment
 
-  @Column("decimal", { precision: 18, scale: 2 })
+  @Column("decimal", { precision: 18, scale: 2, default: 0 })
   orderamount!: number;
   // ToyyibPay: amount
   // App: Total amount for the transaction
+
+  @Column("decimal", { precision: 18, scale: 2, default: 0 })
+  originalamount!: number;
+  // ToyyibPay: null
+  // App: Original amount for the transaction
+
+  @Column("decimal", { precision: 18, scale: 2, default: 0 })
+  maintenancefee!: number;
+  // ToyyibPay: null
+  // App: From app MAINTENANCE_FEE
 
   @Column("varchar", { length: 10, nullable: true })
   orderstatus?: string;

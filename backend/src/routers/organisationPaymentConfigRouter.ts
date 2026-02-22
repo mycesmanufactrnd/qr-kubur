@@ -1,10 +1,10 @@
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { OrganisationPaymentConfig } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
 export const organisationPaymentConfigRouter = router({
-  getConfigByOrganisationId: protectedProcedure
+  getConfigByOrganisationId: publicProcedure
     .input(
       z.object({
         organisation: z.object({ id: z.number() }).nullable().optional(),

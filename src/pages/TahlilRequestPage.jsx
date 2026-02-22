@@ -14,7 +14,7 @@ import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from '@/providers/LocationProvider';
 import { useGetTahfizById, useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
-import { DONATION_AMOUNTS, paymentToyyibStatus, SERVICE_FEE, SERVICE_FEE_PERCENTAGE, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, MAINTENANCE_FEE, MAINTENANCE_FEE_PERCENTAGE, SST_PERCENTAGE, TahlilStatus } from '@/utils/enums';
 import { defaultTahlilRequestField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
 import { activityLogError, clearQueryParams, trimEmptyArray } from '@/utils/helpers';
@@ -136,7 +136,7 @@ export default function TahlilRequestPage() {
 
   // const platformFee = useMemo(() => {
   //   if (!hasService) return 0;
-  //   return (serviceAmount) * SERVICE_FEE_PERCENTAGE;
+  //   return (serviceAmount) * MAINTENANCE_FEE_PERCENTAGE;
   // }, [hasService, serviceAmount]);
 
   const hasDonation = donationAmount > 0;
@@ -144,7 +144,7 @@ export default function TahlilRequestPage() {
   const platformFee = useMemo(() => {
     if (!hasDonation && !hasService) return 0;
 
-    return SERVICE_FEE;
+    return MAINTENANCE_FEE;
   }, [hasDonation, hasService]);
 
 
@@ -596,7 +596,7 @@ export default function TahlilRequestPage() {
 
                 {hasService && (
                   <p>
-                    <strong>Yuran Platform (RM {SERVICE_FEE}):</strong> RM {platformFee.toFixed(2)}
+                    <strong>Yuran Platform (RM {MAINTENANCE_FEE}):</strong> RM {platformFee.toFixed(2)}
                   </p>
                 )}
 

@@ -2,6 +2,7 @@ import axios from "axios";
 import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
+import { SERVICE_FEE } from "../db/enums.ts";
 
 export async function createBill({
   amount,
@@ -46,6 +47,12 @@ export async function createBill({
       billName = "Service Payment";
       billDescription = "Payment for services provided";
       billContentEmail = "Thank you for your payment. The requested services will be processed accordingly.";
+    } else if (returnTo === "deathcharity") {
+      returnUrl = toyyibpayConfig.returnUrlDeathCharity;
+
+      billName = "Death Charity Payment";
+      billDescription = "Death charity registration and yearly payment";
+      billContentEmail = "Thank you for your payment. Your death charity payment has been received.";
     }
     
     // 100 cent to RM1
@@ -67,16 +74,46 @@ export async function createBill({
       billPhone: phone ?? '0123456798',
       billPaymentChannel: 0, // Set 0 for FPX, 1 Credit Card and 2 for both FPX & Credit Car
       billContentEmail: billContentEmail,
-      billChargeToCustomer: 0, //Set 0 to charge FPX to customer.
+      billChargeToCustomer: 1, //Set 0 to charge FPX to customer.
     };
 
+    
     const res = await axios.post(
       `${toyyibpayConfig.baseUrl}/index.php/api/createBill`,
       payload,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
-    return res.data[0];
+    if (!Array.isArray(res.data)) {
+      const rawMessage = res.data?.msg || 'ToyyibPay Error';
+
+      let friendlyMessage = rawMessage;
+
+      if (rawMessage.toLowerCase().includes('billphone')) {
+        friendlyMessage = 'Please enter a valid phone number.';
+      } 
+      else if (rawMessage.toLowerCase().includes('billemail')) {
+        friendlyMessage = 'Please enter a valid email address.';
+      } 
+      else if (rawMessage.toLowerCase().includes('billname')) {
+        friendlyMessage = 'Please enter your name.';
+      } 
+      else if (rawMessage.toLowerCase().includes('amount')) {
+        friendlyMessage = 'Invalid payment amount.';
+      }
+
+      return {
+        status: false,
+        message: friendlyMessage,
+        data: null,
+      };
+    }
+
+    return {
+      status: true,
+      message: 'Success',
+      data: res.data[0],
+    };
   } catch (error) {
     console.error('error', error)
   }
@@ -108,7 +145,11 @@ export async function handleToyyibPayCallback(data: any) {
     "03": "unsuccessful",
   }
 
+  const billChargeToCustomer = 0;
+  const serviceFee = Number(SERVICE_FEE || 0);
   const gatewayStatus = paymentToyyibStatus[String(status)] || status;
+  const orderAmount = Number(amount || 0);
+  const originalAmount = Math.max(0, orderAmount - serviceFee - billChargeToCustomer);
 
   const onlineTransactionRepo = AppDataSource.getRepository(OnlineTransaction);
   const onlineTransactionAccountRepo = AppDataSource.getRepository(OnlineTransactionAccount);
@@ -117,7 +158,9 @@ export async function handleToyyibPayCallback(data: any) {
     referenceno: refno,
     orderno: order_id,
     ordertime: transaction_time ? new Date(transaction_time) : null,
-    orderamount: parseFloat(amount),
+    orderamount: Number(orderAmount.toFixed(2)),
+    originalamount: Number(originalAmount.toFixed(2)),
+    maintenancefee: Number(serviceFee.toFixed(2)),
     orderstatus: status_id,
     transactionid: transaction_id,
     userid: null,
@@ -137,7 +180,7 @@ export async function handleToyyibPayCallback(data: any) {
   const transactionAccount = onlineTransactionAccountRepo.create({
     type: 'QR Kubur',
     accountno: '123456789',
-    amount: parseFloat(amount),
+    amount: Number(orderAmount.toFixed(2)),
     transaction: savedTransaction, 
   });
 

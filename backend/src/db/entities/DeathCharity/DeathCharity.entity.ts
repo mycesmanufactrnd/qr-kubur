@@ -50,6 +50,9 @@ export class DeathCharity {
   @Column({ type: "int", default: 0 })
   maxdependents!: number;
 
+  @Column({ type: "boolean", default: false })
+  isselfregister!: boolean;
+
   @Column({ type: "boolean", default: true })
   isactive!: boolean;
 

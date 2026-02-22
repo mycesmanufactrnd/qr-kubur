@@ -7,4 +7,5 @@ export const getToyyibpayConfig = () => ({
   returnUrlDonation: process.env.DEV_TOYYIBPAY_RETURN_URL_DONATION!,
   returnUrlOrganisation: process.env.DEV_TOYYIBPAY_RETURN_URL_ORGANISATION!,
   returnUrlTahlil: process.env.DEV_TOYYIBPAY_RETURN_URL_TAHLIL!,
+  returnUrlDeathCharity: process.env.DEV_TOYYIBPAY_RETURN_URL_DEATH_CHARITY!,
 });

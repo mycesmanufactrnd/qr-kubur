@@ -94,6 +94,7 @@ export default function ManageDeathCharity() {
     reset({
         ...deathCharity,
         organisation: deathCharity.organisation?.id?.toString() ?? '',
+        isselfregister: deathCharity.isselfregister ?? true,
     });
     setIsDialogOpen(true);
   };
@@ -421,6 +422,11 @@ export default function ManageDeathCharity() {
                           isNumber
                           required
                           errors={errors}
+                        />
+                        <CheckboxForm
+                          name="isselfregister"
+                          control={control}
+                          label={translate("Allow Self Register")}
                         />
                     </div>
                     <div className="space-y-4">

@@ -1,3 +1,5 @@
+export const SERVICE_FEE = 2;
+
 export enum ActiveInactiveStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",

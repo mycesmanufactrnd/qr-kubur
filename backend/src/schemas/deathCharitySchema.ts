@@ -12,6 +12,7 @@ export const deathCharitySchema = z.object({
     coversspouse: z.boolean().default(true),
     coverschildren: z.boolean().default(true),
     maxdependents: z.number().int().min(0).default(0),
+    isselfregister: z.boolean().default(true),
     isactive: z.boolean().default(true),
     mosqueid: z.number().nullable(),
     organisation: z.object({ id: z.number() }).nullable().optional(),

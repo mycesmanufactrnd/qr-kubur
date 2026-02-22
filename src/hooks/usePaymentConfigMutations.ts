@@ -1,10 +1,10 @@
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-import { trpc } from "@/utils/trpc.js";
+import { trpc } from "@/utils/trpc";
 
 export function useGetConfigByEntity({
   entityId,
   entityType,
-  enabled = true,
+  enabled = false,
 }: {
   entityId?: number;
   entityType?: string;
@@ -15,6 +15,8 @@ export function useGetConfigByEntity({
       { organisation: entityId ? { id: entityId } : undefined },
       {
         enabled: enabled && entityType === 'organisation' && !!entityId,
+        retry: false,
+        trpc: { context: { skipBatch: true } },
       }
     );
 
@@ -23,6 +25,8 @@ export function useGetConfigByEntity({
       { tahfiz: entityId ? { id: entityId } : undefined },
       {
         enabled: enabled && entityType === 'tahfiz' && !!entityId,
+        retry: false,
+        trpc: { context: { skipBatch: true } },
       }
     );
 

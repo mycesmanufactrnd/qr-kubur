@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Building2, ExternalLink, FileText, Globe, Mail, MapPin, Phone, Share2 } from 'lucide-react';
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ArrowLeft, Building2, CreditCard, ExternalLink, FileText, Globe, Mail, MapPin, Phone, Share2 } from 'lucide-react';
 import MapBox from '@/components/MapBox';
 import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
@@ -14,9 +16,11 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import PaymentSuccessfulComponent from '@/components/PaymentSuccessfulComponent';
 import { useLocationContext } from '@/providers/LocationProvider';
-import { SERVICE_FEE, paymentToyyibStatus } from '@/utils/enums';
+import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
+import { MAINTENANCE_FEE, paymentToyyibStatus } from '@/utils/enums';
 import { activityLogError, clearQueryParams, shareLink } from '@/utils/helpers';
 import { trpc } from '@/utils/trpc';
+import { validateFields } from '@/utils/validations';
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import TextInputForm from '@/components/forms/TextInputForm';
 
@@ -29,9 +33,10 @@ export default function OrganisationDetails() {
   const deadpersonId = searchParams.get('deadpersonId') ? Number(searchParams.get('deadpersonId')) : null;
   const [selectedServices, setSelectedServices] = useState([]);
   const [isQuotationDialogOpen, setIsQuotationDialogOpen] = useState(false);
-  const { control, setValue, getValues, trigger, formState: { errors } } = useForm({
-    defaultValues: { payername: '', payeremail: '', payerphone: '' },
+  const { control, watch, setValue, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: { payername: '', payeremail: '', payerphone: '', paymentMethod: '' },
   });
+  const paymentMethod = watch('paymentMethod');
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
@@ -53,7 +58,45 @@ export default function OrganisationDetails() {
     { enabled: !!deadpersonId }
   );
 
+  const { data: paymentConfigs = [] } = useGetConfigByEntity({
+    entityId: organisationId ?? undefined,
+    entityType: 'organisation',
+    enabled: !!organisationId,
+  });
+
+  const paymentPlatforms = useMemo(() => {
+    const map = {};
+
+    paymentConfigs.forEach((config) => {
+      if (!config.paymentplatform) return;
+
+      const code = config.paymentplatform.code;
+
+      if (!map[code]) {
+        map[code] = {
+          code,
+          name: config.paymentplatform.name,
+          fields: [],
+        };
+      }
+
+      if (config.paymentfield) {
+        map[code].fields.push({
+          key: config.paymentfield.key,
+          label: config.paymentfield.label,
+          fieldtype: config.paymentfield.fieldtype,
+          value: config.value,
+        });
+      }
+    });
+
+    return Object.values(map);
+  }, [paymentConfigs]);
+
+  const selectedPlatform = paymentPlatforms.find((platform) => platform.code === paymentMethod);
+
   const isFromDeadPerson = !!deadpersonId;
+
   const serviceItems = useMemo(() => {
     if (!organisation) return [];
     return (organisation.serviceoffered || []).map((serviceName) => ({
@@ -70,7 +113,7 @@ export default function OrganisationDetails() {
     return selectedServiceItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [selectedServiceItems]);
 
-  const quotationTotal = quotationSubtotal + SERVICE_FEE;
+  const quotationTotal = quotationSubtotal + MAINTENANCE_FEE;
 
   const toggleSelectedService = (serviceName) => {
     setSelectedServices((previous) =>
@@ -81,17 +124,14 @@ export default function OrganisationDetails() {
   };
 
   useEffect(() => {
-    if (!isQuotationDialogOpen) return;
+    if (!paymentPlatforms.length) return;
 
-    setValue('payername', deadPerson?.name ?? '');
+    const exists = paymentPlatforms.some((platform) => platform.code === paymentMethod);
 
-    if (!getValues('payeremail')) {
-      setValue('payeremail', '');
+    if (!exists) {
+      setValue('paymentMethod', paymentPlatforms[0].code);
     }
-    if (!getValues('payerphone')) {
-      setValue('payerphone', '');
-    }
-  }, [isQuotationDialogOpen, deadPerson?.id, organisation?.id, setValue, getValues]);
+  }, [paymentPlatforms, paymentMethod, setValue]);
 
   useEffect(() => {
     const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
@@ -157,21 +197,27 @@ export default function OrganisationDetails() {
     }
   }, [searchParams]);
 
-  const handlePayment = async () => {
-    if (!selectedServiceItems.length) {
-      showError("Pilih sekurang-kurangnya satu servis.");
-      return;
-    }
+  const onSubmit = async (formData) => {
+    const validationData = {
+      ...formData,
+      selectedServiceItems,
+      paymentPlatforms,
+      paymentMethod,
+    };
 
-    const isPayerValid = await trigger(['payername', 'payeremail', 'payerphone']);
-    if (!isPayerValid) {
-      showError('Sila isi maklumat pembayar yang sah.');
-      return;
-    }
+    const isValid = validateFields(validationData,
+      [
+        { field: 'selectedServiceItems', label: 'Service Type', type: 'array' },
+        { field: 'paymentPlatforms', label: 'Payment Platform', type: 'array' },
+        { field: 'paymentMethod', label: 'Payment Method', type: 'text' },
+      ]
+    );
 
-    const payername = (getValues('payername') || '').trim() || (deadPerson?.name ?? 'ANONYMOUS');
-    const payeremail = (getValues('payeremail') || '').trim() || 'noreply@gmail.com';
-    const payerphone = (getValues('payerphone') || '').trim() || '0123456789';
+    if (!isValid) return;
+
+    const payername = (formData.payername || '').trim() || 'ANONYMOUS';
+    const payeremail = (formData.payeremail || '').trim() || 'noreply@gmail.com';
+    const payerphone = (formData.payerphone || '').trim() || '0123456789';
 
     const quotationDetails = {
       organisation: { id: Number(organisationId) },
@@ -181,7 +227,7 @@ export default function OrganisationDetails() {
         price: Number(item.price || 0),
       })),
       serviceamount: Number(quotationSubtotal.toFixed(2)),
-      maintenancefeeamount: Number(SERVICE_FEE.toFixed(2)),
+      maintenancefeeamount: Number(MAINTENANCE_FEE.toFixed(2)),
       totalamount: Number(quotationTotal.toFixed(2)),
       payername,
       payeremail,
@@ -218,7 +264,7 @@ export default function OrganisationDetails() {
       const quotation = await createBillMutation.mutateAsync({
         amount: quotationDetails?.totalamount ?? 0,
         referenceNo: runningNo,
-        name: quotationDetails?.payername ?? deadPerson?.name ?? 'ANONYMOUS',
+        name: quotationDetails?.payername ?? 'ANONYMOUS',
         email: quotationDetails?.payeremail ?? 'noreply@gmail.com',
         phone: quotationDetails?.payerphone ?? '0123456789',
         returnTo: 'organisation',
@@ -483,12 +529,12 @@ export default function OrganisationDetails() {
       </div>
 
       <Dialog open={isQuotationDialogOpen} onOpenChange={setIsQuotationDialogOpen}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-md z-[9999]">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto z-[9999]">
           <DialogHeader>
             <DialogTitle>Quotation</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 text-sm">
-            <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
               <TextInputForm
                 name="payername"
                 control={control}
@@ -512,44 +558,87 @@ export default function OrganisationDetails() {
                 required
                 errors={errors}
               />
-            </form>
 
-            {deadPerson?.name && (
-              <p className="text-slate-600">
-                <span className="font-semibold text-slate-900">For:</span> {deadPerson.name}
-              </p>
-            )}
+              {deadPerson?.name && (
+                <p className="text-slate-600">
+                  <span className="font-semibold text-slate-900">For:</span> {deadPerson.name}
+                </p>
+              )}
 
-            <div className="space-y-2">
-              {selectedServiceItems.map((item) => (
-                <div key={item.name} className="flex items-center justify-between">
-                  <span>{item.name}</span>
-                  <span className="font-medium">RM {item.price.toFixed(2)}</span>
+              <div className="space-y-2">
+                {selectedServiceItems.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between">
+                    <span>{item.name}</span>
+                    <span className="font-medium">RM {item.price.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2 border-t space-y-1">
+                <div className="flex items-center justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-medium">RM {quotationSubtotal.toFixed(2)}</span>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center justify-between">
+                  <span>Maintenance Fee</span>
+                  <span className="font-medium">RM {MAINTENANCE_FEE.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-semibold">Total</span>
+                  <span className="font-semibold text-violet-700">RM {quotationTotal.toFixed(2)}</span>
+                </div>
+              </div>
 
-            <div className="pt-2 border-t space-y-1">
-              <div className="flex items-center justify-between">
-                <span>Subtotal</span>
-                <span className="font-medium">RM {quotationSubtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Maintenance Fee</span>
-                <span className="font-medium">RM {SERVICE_FEE.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between pt-1">
-                <span className="font-semibold">Total</span>
-                <span className="font-semibold text-violet-700">RM {quotationTotal.toFixed(2)}</span>
-              </div>
-            </div>
+              {paymentPlatforms.length > 0 && (
+                <div className="pt-2 border-t space-y-2">
+                  <p className="font-semibold">Kaedah Pembayaran</p>
+                  <RadioGroup
+                    value={paymentMethod}
+                    onValueChange={(value) => setValue('paymentMethod', value)}
+                  >
+                    <div className="grid gap-2">
+                      {paymentPlatforms.map((platform) => (
+                        <Label
+                          key={platform.code}
+                          className="flex items-center gap-3 p-3 border rounded cursor-pointer"
+                        >
+                          <RadioGroupItem value={platform.code} />
+                          <CreditCard className="w-4 h-4" />
+                          {platform.name}
+                        </Label>
+                      ))}
+                    </div>
+                  </RadioGroup>
 
-            <Button
-              onClick={handlePayment} 
-              className="w-full h-8 bg-violet-600 hover:bg-violet-700 text-white"
-            >
-              Pay
-            </Button>
+                  {selectedPlatform && (
+                    <div className="mt-2 space-y-2">
+                      {selectedPlatform.fields.map((field) => (
+                        field.fieldtype === 'image' ? (
+                          <img key={field.key} src={field.value} alt={field.label} className="max-w-xs rounded border" />
+                        ) : (
+                          <p key={field.key}>
+                            <strong>{field.label}:</strong> {field.value}
+                          </p>
+                        )
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {paymentPlatforms.length === 0 && (
+                <p className="text-xs text-red-600">
+                  Kaedah pembayaran belum dikonfigurasi untuk organisasi ini.
+                </p>
+              )}
+
+              <Button
+                type="submit" 
+                className="w-full h-8 bg-violet-600 hover:bg-violet-700 text-white"
+              >
+                Pay
+              </Button>
+            </form>
           </div>
         </DialogContent>
       </Dialog>
