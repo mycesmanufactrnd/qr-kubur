@@ -28,6 +28,8 @@ const STATUS_CONFIG = {
 };
 
 export default function GraveCardList({ grave, onFavoriteChange }) {
+  if (!grave) return null;
+
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
@@ -67,36 +69,28 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
   };
 
   return (
-    <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
-      <div className="relative h-40 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="relative h-36 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
           src={grave.photourl ? `/api/file/bucket-grave/${encodeURIComponent(grave.photourl)}` : undefined}
           alt={grave.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute top-3 right-3 flex items-center gap-2">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
           {grave.distance && (
-            <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
-              <span className="text-sm font-semibold text-emerald-700 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
-                {showEarthDistance(grave.distance)}
-              </span>
+            <div className="flex items-center gap-1 px-2 py-1 bg-black/30 backdrop-blur-md rounded-full border border-white/20">
+              <MapPin className="w-3 h-3 text-white" />
+              <span className="text-xs font-semibold text-white">{showEarthDistance(grave.distance)}</span>
             </div>
           )}
-
-          <Button
+          <button
             onClick={toggleFavorite}
-            variant="ghost"
-            size="icon"
-            className="bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg rounded-full h-9 w-9"
+            className="w-8 h-8 flex items-center justify-center bg-black/30 backdrop-blur-md border border-white/20 rounded-full transition-all active:scale-90"
           >
-            <Heart
-              className={`w-5 h-5 transition-colors ${
-                isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'
-              }`}
-            />
-          </Button>
+            <Heart className={`w-4 h-4 transition-colors ${isFavorited ? 'fill-red-400 text-red-400' : 'text-white'}`} />
+          </button>
         </div>
         
         <div className="absolute bottom-3 left-4 right-4">
@@ -110,7 +104,7 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
         </div>
       </div>
       
-      <CardContent className="p-4 space-y-4">
+      <div className="px-3.5 pt-3 pb-3.5 space-y-3">
         <div className="flex flex-wrap gap-1.5">
           <Badge 
             variant="secondary" 
@@ -136,16 +130,11 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
 
         <div className="flex gap-2 pt-2">
           <Link to={createPageUrl(`GraveDetails?id=${grave.id}`)} className="flex-1">
-            <Button
-              size="sm"
-              variant="outline" 
-              className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              {translate('View Details')}
+            <Button size="sm" className="w-full rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-100 transition-colors active:opacity-75">
+              <ExternalLink className="w-3.5 h-3.5" />
+              {translate('Details') || 'View Details'}
             </Button>
           </Link>
-
           <Button 
             size="sm"
             onClick={(e) => {
@@ -157,7 +146,7 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
             <Navigation className="w-4 h-4" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

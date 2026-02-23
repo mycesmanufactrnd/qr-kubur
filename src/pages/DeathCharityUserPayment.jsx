@@ -26,7 +26,7 @@ import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus, MAINTENANCE_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
-import { activityLogError } from "@/utils/helpers";
+import { activityLogError, clearQueryParams } from "@/utils/helpers";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 
 const PAYMENT_PLAN = {
@@ -60,8 +60,10 @@ function formatCoverage(payment) {
 export default function DeathCharityUserPayment() {
   const [searchParams] = useSearchParams();
   const mosqueId = searchParams.get("mosque") ? Number(searchParams.get("mosque")) : null;
+  
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
+
   const currentYear = new Date().getFullYear();
 
   const backUrl = mosqueId
@@ -89,6 +91,7 @@ export default function DeathCharityUserPayment() {
   });
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const saveTransactionAccountMutation = trpc.toyyibPay.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createDeathCharityRunningNoMutation = trpc.runningNo.createDeathCharityRunningNo.useMutation();
 
@@ -145,6 +148,19 @@ export default function DeathCharityUserPayment() {
   }, [paymentConfigs]);
 
   const selectedPlatform = paymentPlatforms.find((platform) => platform.code === paymentMethod);
+  const selectedAccount = useMemo(() => {
+    if (!selectedPlatform?.fields?.length) {
+      return { bankname: '', accountno: '' };
+    }
+
+    const fields = selectedPlatform.fields;
+
+    const bankname = fields.find(f => f.key === 'bank_name')?.value?.trim() || '';
+
+    const accountno = fields.find(f => f.key === 'account_no')?.value?.trim() || '';
+
+    return { bankname, accountno };
+  }, [selectedPlatform]);
 
   useEffect(() => {
     if (!paymentPlatforms.length) {
@@ -168,25 +184,6 @@ export default function DeathCharityUserPayment() {
       }
       return new Date(b.paidat || 0).getTime() - new Date(a.paidat || 0).getTime();
     });
-  }, [payments]);
-
-  const paidYears = useMemo(() => {
-    const years = new Set();
-
-    payments.forEach((payment) => {
-      const fromYear = Number(payment.coversfromyear || 0);
-      const toYear = Number(payment.coverstoyear || payment.coversfromyear || 0);
-
-      if (!fromYear) {
-        return;
-      }
-
-      for (let year = fromYear; year <= toYear; year += 1) {
-        years.add(year);
-      }
-    });
-
-    return Array.from(years).sort((a, b) => a - b);
   }, [payments]);
 
   const availablePlans = useMemo(() => {
@@ -243,17 +240,21 @@ export default function DeathCharityUserPayment() {
 
     const pendingPayment = JSON.parse(pendingPaymentRaw);
 
-    const baseUrl = window.location.origin + window.location.pathname;
-    const url = new URL(baseUrl);
-
-    if (pendingPayment?.mosqueid) {
-      url.searchParams.set("mosque", String(pendingPayment.mosqueid));
-    }
-
     const handleFinally = () => {
-      window.location.href = url.toString();
+      const cleanUrl = clearQueryParams(); 
+
+      if (!cleanUrl) return;
+
+      const url = new URL(cleanUrl);
+
+      if (pendingPayment?.mosqueid) {
+        url.searchParams.set("mosque", String(pendingPayment.mosqueid));
+      }
+
       sessionStorage.removeItem("charityPaymentPending");
       setLoadingPayment(false);
+
+      window.location.href = url.toString();
     };
 
     if (statusText === "Success") {
@@ -308,6 +309,27 @@ export default function DeathCharityUserPayment() {
             coversfromyear: Number(pendingPayment.coversfromyear),
             coverstoyear: Number(pendingPayment.coverstoyear),
           });
+        }
+
+        const orderNo = String(order_id || '');
+        if (orderNo && pendingPayment?.selectedAccount?.accountno && pendingPayment?.selectedAccount?.bankname) {
+          try {
+            await saveTransactionAccountMutation.mutateAsync({
+              orderNo,
+              accountNo: String(pendingPayment.selectedAccount.accountno),
+              bankName: String(pendingPayment.selectedAccount.bankname),
+              type: 'Death Charity',
+            });
+          } catch (accountError) {
+            await createLogMutation.mutateAsync({
+              activitytype: 'Save Transaction Account',
+              functionname: 'saveTransactionAccountMutation.mutateAsync',
+              useremail: '',
+              level: 'error',
+              summary: activityLogError(accountError),
+              extramessage: JSON.stringify({ orderNo, selectedAccount: pendingPayment?.selectedAccount }),
+            });
+          }
         }
       };
 
@@ -365,6 +387,7 @@ export default function DeathCharityUserPayment() {
     const payloadWithReferenceNo = {
       ...paymentData,
       referenceno: runningNo,
+      selectedAccount,
     };
 
     sessionStorage.setItem("charityPaymentPending", JSON.stringify(payloadWithReferenceNo));

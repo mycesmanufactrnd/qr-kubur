@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Mail, Globe, Navigation, Heart, BookOpen, ArrowLeft, Clock, DollarSign, Users,FileText, ExternalLink,Share2} from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, ArrowLeft, Clock, Users, FileText, ExternalLink, Share2, ChevronRight } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
@@ -11,21 +11,22 @@ import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
 import { useLocationContext } from '@/providers/LocationProvider';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
-import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
 import { trpc } from '@/utils/trpc';
 import { useGetActivityPostsByRelationId } from '@/hooks/useActivityPostMutations';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
+import BackNavigation from '@/components/BackNavigation';
 
 export default function TahfizDetails() {
   const navigate = useNavigate();
-  const { userLocation, userState, locationDenied } = useLocationContext();
+  const { userLocation } = useLocationContext();
   const [searchParams] = useSearchParams();
   const tahfizId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
 
-  const { data: tahfiz, isLoading: isTahfizLoading, isError: isTahfizError } = useGetTahfizById(tahfizId);
+  const { data: tahfizDetails, isLoading: isTahfizLoading, isError: isTahfizError } = useGetTahfizById(tahfizId);
 
-  const { data: tahfizPosts } = useGetActivityPostsByRelationId({ 
+  const { data: tahfizPosts = [] } = useGetActivityPostsByRelationId({ 
     mosqueId: null,
     tahfizId: tahfizId,
   });
@@ -39,269 +40,210 @@ export default function TahfizDetails() {
   const pending = tahlilCount?.pending ?? 0;
   const completed = tahlilCount?.completed ?? 0;
 
-  if (isTahfizLoading) {
+  if (isTahfizLoading) return <PageLoadingComponent />;
+
+  if (isTahfizError || !tahfizDetails) {
     return (
-      <ListCardSkeletonComponent/>
+      <div>
+        <BackNavigation title={translate('Tahfiz Details')} />
+        <NoDataCardComponent isPage={true} />
+      </div>
     );
   }
 
-  if (isTahfizError || !tahfiz) {
-    return (
-      <NoDataCardComponent
-        isPage={true}
-        description="Tahfiz Not Found"
-      />
-    );
-  }
+  const hasContacts = tahfizDetails.phone || tahfizDetails.email || tahfizDetails.url;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="relative h-72 md:h-80 overflow-hidden">
-        {tahfiz.photourl ? (
+    <div className="min-h-screen bg-slate-50">
+
+      <div className="relative h-64 md:h-80 overflow-hidden">
+        {tahfizDetails.photourl ? (
           <img 
-            src={`/api/file/tahfiz-center/${encodeURIComponent(tahfiz.photourl)}`} 
-            alt={tahfiz.name}
+            src={`/api/file/tahfiz-center/${encodeURIComponent(tahfizDetails.photourl)}`} 
+            alt={tahfizDetails.name}
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-white/10 text-[200px] font-arabic">﷽</div>
+          <div className="w-full h-full bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500">
+            <div className="absolute inset-0 flex items-center justify-center opacity-10">
+              <div className="text-white text-[180px] font-arabic leading-none">﷽</div>
             </div>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
-        >
-          <ArrowLeft className="w-5 h-5 text-stone-700" />
-        </button>
 
-        <button
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/10" />
+
+        <Button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center bg-black/30 backdrop-blur-md border border-white/20 rounded-full shadow-lg text-white transition-all active:scale-95"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+
+        <Button
           onClick={(e) => {
             e.stopPropagation();
-            shareLink({
-              title: tahfiz?.name,
-              text: `Visit ${tahfiz?.name}`,
-              url: window.location.href,
-            });
+            shareLink({ title: tahfizDetails?.name, text: `Visit ${tahfizDetails?.name}`, url: window.location.href });
           }}
-          className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
+          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-black/30 backdrop-blur-md border border-white/20 rounded-full shadow-lg text-white transition-all active:scale-95"
         >
-          <Share2 className="w-5 h-5 text-stone-700" />
-        </button>
-        
+          <Share2 className="w-4 h-4" />
+        </Button>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 mb-3">
-              <Badge className="bg-white/20 backdrop-blur-sm text-white border-0">
-                <MapPin className="w-3 h-3 mr-1" />
-                {tahfiz.state}
-              </Badge>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{tahfiz.name}</h1>
-            {tahfiz.address && (
-              <p className="text-white/80 text-sm md:text-base max-w-2xl">{tahfiz.address}</p>
-            )}
+        <div className="absolute bottom-0 left-0 right-0 p-5 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-white/15 backdrop-blur-sm text-white border border-white/20">
+              <MapPin className="w-3 h-3" />
+              {tahfizDetails.state}
+            </span>
           </div>
+          <h1 className="text-2xl font-bold text-white leading-tight mb-1">{tahfizDetails.name}</h1>
+          {tahfizDetails.address && (
+            <p className="text-white/70 text-xs md:text-sm line-clamp-2">{tahfizDetails.address}</p>
+          )}
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto py-8">
-        <div className="flex flex-wrap gap-3 mb-8 -mt-12 relative z-10 px-4">
-          <DirectionButton latitude={tahfiz.latitude} longitude={tahfiz.longitude}/>
-          <DonationButton recipientId={tahfiz.id} recipientType={'tahfiz'} state={tahfiz.state}/>          
+      <div className="px-4 -mt-4 mb-5 relative z-10 flex gap-2">
+        <DirectionButton latitude={tahfizDetails.latitude} longitude={tahfizDetails.longitude} />
+        <DonationButton recipientId={String(tahfizDetails.id)} recipientType={'tahfiz'} state={tahfizDetails.state} />
+      </div>
+
+      <div className="px-4 pb-10 space-y-4 max-w-2xl mx-auto">
+
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+          {tahfizDetails.description && (
+            <div className="p-4 border-b border-slate-100">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 mb-1.5">About</p>
+              <p className="text-sm text-slate-600 leading-relaxed">{tahfizDetails.description}</p>
+            </div>
+          )}
+
+          {hasContacts && (
+            <div className="p-4 space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 mb-2">Contact</p>
+
+              {tahfizDetails.phone && (
+                <a href={`tel:${tahfizDetails.phone}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors group">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Phone</p>
+                    <p className="text-sm font-semibold text-slate-700 truncate">{tahfizDetails.phone}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400 shrink-0" />
+                </a>
+              )}
+
+              {tahfizDetails.email && (
+                <a href={`mailto:${tahfizDetails.email}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors group">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                    <Mail className="w-3.5 h-3.5 text-blue-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Email</p>
+                    <p className="text-sm font-semibold text-slate-700 truncate">{tahfizDetails.email}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400 shrink-0" />
+                </a>
+              )}
+
+              {tahfizDetails.url && (
+                <a href={tahfizDetails.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors group">
+                  <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                    <Globe className="w-3.5 h-3.5 text-purple-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Website</p>
+                    <p className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                      Visit Website <ExternalLink className="w-3 h-3 text-slate-400" />
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400 shrink-0" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 px-1">
-          <div className="lg:col-span-2 space-y-6">
-            {tahfiz.description && (
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-emerald-600" />
-                    About
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600 leading-relaxed">{tahfiz.description}</p>
-                </CardContent>
-              </Card>
-            )}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 mb-3">Tahlil Requests</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col items-center justify-center gap-1 py-4 bg-amber-50 rounded-xl border border-amber-100">
+              <span className="text-2xl font-bold text-amber-600">{isRequestLoading ? "—" : pending}</span>
+              <span className="text-xs font-medium text-amber-500">Pending</span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 py-4 bg-emerald-50 rounded-xl border border-emerald-100">
+              <span className="text-2xl font-bold text-emerald-600">{isRequestLoading ? "—" : completed}</span>
+              <span className="text-xs font-medium text-emerald-500">Completed</span>
+            </div>
+          </div>
+        </div>
 
-            {tahfiz.serviceoffered && tahfiz.serviceoffered.length > 0 && (
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-lg flex justify-between items-center gap-2">
-                    <div className='flex gap-2 items-center'>
-                      <FileText className="w-5 h-5 text-emerald-600" />
-                      Services Offered
-                    </div >
-                    <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${tahfiz.id}`}>
-                      <Button
-                        size="sm"
-                        className="h-8 w-full text-xs font-medium
-                          bg-gradient-to-r from-pink-500 to-rose-500
-                          text-white
-                          hover:from-pink-600 hover:to-rose-600
-                          shadow-sm hover:shadow
-                          transition-all"
-                      >
-                        {translate('Request Service')}
-                      </Button>
-                    </Link>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {tahfiz.serviceoffered.map((serviceValue, idx) => {
-                      const servicePrice = Number(tahfiz.serviceprice?.[serviceValue] || 0);
-
-                      return (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-slate-700">{serviceValue}</span>
-                          </div>
-                          {servicePrice > 0 && (
-                            <span className="text-sm font-semibold text-emerald-700">RM {servicePrice}</span>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="border-0 shadow-md overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
-                  Location
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="h-72">
-                  <MapBox 
-                    dataMap={tahfiz}
-                    userLocation={userLocation} 
-                    pageToUrl={'TahfizDetails'}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {tahfizPosts.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-emerald-600" />
-                  Latest Updates
-                </h2>
-                <div className="space-y-4">
-                  {tahfizPosts.map(post => (
-                    <ActivityPostsCard key={post.id} post={post} poster={tahfiz.name} />
-                  ))}
-                </div>
+        {tahfizDetails.serviceoffered && tahfizDetails.serviceoffered.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-emerald-600" />
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">Services</p>
               </div>
-            )}
+              <Link to={createPageUrl('TahlilRequestPage') + `?tahfiz=${tahfizDetails.id}`}>
+                <button className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm active:opacity-80 transition-opacity">
+                  {translate('Request Service')}
+                </button>
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {tahfizDetails.serviceoffered.map((serviceValue, idx) => {
+                const servicePrice = Number(tahfizDetails.serviceprice?.[serviceValue] || 0);
+                return (
+                  <div key={idx} className="flex items-center justify-between px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                      <span className="text-sm font-medium text-slate-700">{serviceValue}</span>
+                    </div>
+                    {servicePrice > 0 ? (
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
+                        RM {servicePrice}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">Free</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
+        )}
 
-          <div className="space-y-6">
-            <Card className="border-0 shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {tahfiz.phone && (
-                  <a 
-                    href={`tel:${tahfiz.phone}`}
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                  >
-                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">Phone</p>
-                      <p className="font-medium text-slate-700">{tahfiz.phone}</p>
-                    </div>
-                  </a>
-                )}
-                
-                {tahfiz.email && (
-                  <a 
-                    href={`mailto:${tahfiz.email}`}
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                  >
-                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">Email</p>
-                      <p className="font-medium text-slate-700 text-sm">{tahfiz.email}</p>
-                    </div>
-                  </a>
-                )}
-                
-                {tahfiz.url && (
-                  <a 
-                    href={tahfiz.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                  >
-                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">Website</p>
-                      <p className="font-medium text-slate-700 flex items-center gap-1">
-                        Visit Website
-                        <ExternalLink className="w-3 h-3" />
-                      </p>
-                    </div>
-                  </a>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
-              <CardContent className="p-6 space-y-5">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-slate-800">
-                    Tahlil Requests
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    Current request status
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:shadow-md transition">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Users className="w-5 h-5 text-yellow-500" />
-                      <span className="text-2xl font-bold text-slate-800">
-                        {isTahfizLoading ? "—" : pending}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-500">Pending</p>
-                  </div>
-                  <div className="text-center p-4 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:shadow-md transition">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Users className="w-5 h-5 text-emerald-600" />
-                      <span className="text-2xl font-bold text-slate-800">
-                        {isTahfizLoading ? "—" : completed}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-500">Completed</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+            <MapPin className="w-4 h-4 text-emerald-600" />
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">Location</p>
+          </div>
+          <div className="h-52">
+            <MapBox 
+              dataMap={tahfizDetails}
+              userLocation={userLocation} 
+              pageToUrl={'TahfizDetails'}
+            />
           </div>
         </div>
+
+        {tahfizPosts.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <Clock className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-sm font-semibold text-slate-700">Latest Updates</h2>
+            </div>
+            <div className="space-y-3">
+              {tahfizPosts.map(post => (
+                <ActivityPostsCard key={post.id} post={post} poster={tahfizDetails.name} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

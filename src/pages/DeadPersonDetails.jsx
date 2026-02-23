@@ -11,16 +11,14 @@ import ShareButton from '@/components/ShareButton';
 import DirectionButton from '@/components/DirectionButton';
 import { translate } from '@/utils/translations';
 import { createPageUrl } from '@/utils';
+import InitialAvatarImage from '@/components/InitialAvatarImage';
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get('id'));
 
-  const {
-    data: deadPersonDetails, 
-    isLoading, 
-    isError,
-  } = trpc.deadperson.getDeadPersonById.useQuery(
+  const { data: deadPersonDetails, isLoading, isError } = 
+    trpc.deadperson.getDeadPersonById.useQuery(
     { id: personId }, 
     { enabled: !!personId }
   );
@@ -28,10 +26,8 @@ export default function DeadPersonDetails() {
   const graveDetails = deadPersonDetails?.grave;
   const graveState = graveDetails?.state?.trim() || '';
 
-  const {
-    data: graveServiceOrganisations = [],
-    isLoading: isGraveServiceOrganisationsLoading,
-  } = trpc.organisation.getGraveServiceByState.useQuery(
+  const { data: graveServiceOrganisations = [], isLoading: isGraveServiceOrganisationsLoading } = 
+    trpc.organisation.getGraveServiceByState.useQuery(
     { state: graveState },
     { enabled: !!graveState }
   );
@@ -42,10 +38,10 @@ export default function DeadPersonDetails() {
 
   if (isError || !deadPersonDetails) {
     return (
-      <NoDataCardComponent
-        isPage={true}
-        description="Tiada Maklumat Dijumpai"
-      />
+      <>
+        <BackNavigation />
+        <NoDataCardComponent isPage={true}/>
+      </>
     );
   }
 
@@ -57,26 +53,18 @@ export default function DeadPersonDetails() {
       
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">
-          {deadPersonDetails.photourl && (
-            <div className="flex justify-center">
-              <img
-                src={`/api/file/dead-person/${encodeURIComponent(deadPersonDetails.photourl)}`}
-                alt={translate('Preview')}
-                className="w-24 h-32 object-cover rounded-md shadow-sm border dark:border-gray-700"
-              />
-            </div>
-          )}
-
+          <div className="flex justify-center">
+            <InitialAvatarImage
+              src={
+                deadPersonDetails.photourl
+                  ? `/api/file/dead-person/${encodeURIComponent(deadPersonDetails.photourl)}`
+                  : undefined
+              }
+              name={deadPersonDetails.name}
+              className="w-32 h-32"
+            />
+          </div>
           <div className="space-y-3">
-            {deadPersonDetails.icnumber && (
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{translate('IC Number')}</p>
-                <p className="text-sm font-medium dark:text-white">
-                  {deadPersonDetails.icnumber}
-                </p>
-              </div>
-            )}
-
             <div className="flex justify-between gap-4">
               {deadPersonDetails.dateofbirth && (
                 <div>
@@ -86,7 +74,6 @@ export default function DeadPersonDetails() {
                   </p>
                 </div>
               )}
-              
               <div className="mr-4">
                 {deadPersonDetails.dateofdeath && (
                   <div>
@@ -213,11 +200,21 @@ export default function DeadPersonDetails() {
                               <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {(organisation.serviceoffered || []).map((serviceName) => (
-                                <Badge key={`${organisation.id}-${serviceName}`} variant="secondary" className="text-[10px]">
+                              {((organisation.serviceoffered || []).slice(0, 2)).map((serviceName) => (
+                                <Badge
+                                  key={`${organisation.id}-${serviceName}`}
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
                                   {serviceName}
                                 </Badge>
                               ))}
+
+                              {(organisation.serviceoffered || []).length > 2 && (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  +{(organisation.serviceoffered || []).length - 2}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>

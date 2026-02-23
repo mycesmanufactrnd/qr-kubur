@@ -19,9 +19,13 @@ export class OnlineTransactionAccount {
   type!: string;
   // App: QR Kubur
 
+  @Column("varchar", { length: 50, nullable: true })
+  bankname!: string;
+  // App: Bank recieving
+
   @Column("varchar", { length: 50 })
   accountno!: string;
-  // App: QR Kubur receiving
+  // App: Account No receiving
 
   @Column("decimal", { precision: 18, scale: 2 })
   amount!: number;

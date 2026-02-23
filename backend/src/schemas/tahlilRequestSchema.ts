@@ -17,6 +17,7 @@ export const tahlilRequestSchema = z.object({
 
 export const tahlilRequestApprovalSchema = z.object({
   status: z.enum(TahlilStatus),
+  suggesteddate: z.coerce.date().optional().nullable(),
 });
 
 export const tahlilRequestLiveURL = z.object({

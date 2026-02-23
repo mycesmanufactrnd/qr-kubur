@@ -52,19 +52,24 @@ export default function SearchTahfiz() {
     }
   }, [favoriteVersion]);
 
-  const finalState = useMemo(() => {
+  const filterState = useMemo(() => {
     if (filters === null) return currentUserLocationState;
     return filters.state || "";
   }, [filters, currentUserLocationState]);
 
-  const finalSearch = useMemo(() => {
+  const filterName = useMemo(() => {
     return filters?.name || "";
+  }, [filters]);
+
+  const filterAddress = useMemo(() => {
+    return filters?.address || "";
   }, [filters]);
 
   const { data: tahfizList, isLoading } = useGetTahfizCoordinates(
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
-    filters?.ids ? null : finalState, 
-    filters?.ids ? null : finalSearch,
+    filters?.ids ? null : filterState, 
+    filters?.ids ? null : filterName,
+    filters?.ids ? null : filterAddress,
   );
 
   if (defaultFilter.isFavorited && favoritedTahfizIds.length === 0) {
@@ -81,43 +86,37 @@ export default function SearchTahfiz() {
     <div className="space-y-3 pb-6 px-1">
       <BackNavigation title={translate('Search Tahfiz')} />
       <ShowNearLocation />
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-1">
-        <AdvancedFilters
-          parameter={[
-            { label: translate("Name"), type: "text", searchColumn: "name" },
-            {
-              label: translate("State"),
-              type: "select",
-              searchColumn: "state",
-              options: STATES_MY.map((s) => ({ id: s, name: s })),
-            },
-          ]}
-          onApplyFilter={(newFilters) => {
-            const cleanedFilters = Object.fromEntries(
-              Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== null)
-            );
-            const mergedFilters = {
-              ...cleanedFilters,
-              ...(defaultFilter.isFavorited ? { ids: favoritedTahfizIds } : {})
-            };
+      <AdvancedFilters
+        parameter={[
+          { label: translate("Name"), type: "text", searchColumn: "name" },
+          { label: translate("Address"), type: "text", searchColumn: "address" },
+          {
+            label: translate("State"),
+            type: "select",
+            searchColumn: "state",
+            options: STATES_MY.map((s) => ({ id: s, name: s })),
+          },
+        ]}
+        onApplyFilter={(newFilters) => {
+          const cleanedFilters = Object.fromEntries(
+            Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== null)
+          );
+          const mergedFilters = {
+            ...cleanedFilters,
+            ...(defaultFilter.isFavorited ? { ids: favoritedTahfizIds } : {})
+          };
 
-            setFilters(Object.keys(mergedFilters).length === 0 ? null : mergedFilters);
-            setDisplayedCount(10);
-          }}
-        />
-      </div>
-      {!isLoading && tahfizList && (
-        <div className="px-1">
-          <FoundDataLength dataList={tahfizList} data="Tahfiz" />
-        </div>
-      )}
+          setFilters(Object.keys(mergedFilters).length === 0 ? null : mergedFilters);
+          setDisplayedCount(10);
+        }}
+      />
+
+      <br/>
+      
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : !tahfizList || tahfizList.length === 0 ? (
-        <NoDataCardComponent
-          title={translate('noTahfizFound')}
-          description="Sila cuba carian lain atau ubah penapis."
-        />
+        <NoDataCardComponent/>
       ) : (
         <div className="space-y-4">
           {tahfizList.slice(0, displayedCount).map((tahfiz) => (

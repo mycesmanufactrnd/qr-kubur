@@ -18,7 +18,7 @@ import PaymentSuccessfulComponent from '@/components/PaymentSuccessfulComponent'
 import { useLocationContext } from '@/providers/LocationProvider';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 import { MAINTENANCE_FEE, paymentToyyibStatus } from '@/utils/enums';
-import { activityLogError, clearQueryParams, shareLink } from '@/utils/helpers';
+import { activityLogError, shareLink } from '@/utils/helpers';
 import { trpc } from '@/utils/trpc';
 import { validateFields } from '@/utils/validations';
 import { showError, showSuccess } from '@/components/ToastrNotification';
@@ -39,6 +39,7 @@ export default function OrganisationDetails() {
   const paymentMethod = watch('paymentMethod');
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const saveTransactionAccountMutation = trpc.toyyibPay.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createQuoteRunningNoMutation = trpc.runningNo.createQuotationRunningNo.useMutation();
   const createOrganisationQuotation = trpc.quotation.create.useMutation();
@@ -94,6 +95,19 @@ export default function OrganisationDetails() {
   }, [paymentConfigs]);
 
   const selectedPlatform = paymentPlatforms.find((platform) => platform.code === paymentMethod);
+  const selectedAccount = useMemo(() => {
+    if (!selectedPlatform?.fields?.length) {
+      return { bankname: '', accountno: '' };
+    }
+
+    const fields = selectedPlatform.fields;
+
+    const bankname = fields.find(f => f.key === 'bank_name')?.value?.trim() || '';
+
+    const accountno = fields.find(f => f.key === 'account_no')?.value?.trim() || '';
+
+    return { bankname, accountno };
+  }, [selectedPlatform]);
 
   const isFromDeadPerson = !!deadpersonId;
 
@@ -170,8 +184,30 @@ export default function OrganisationDetails() {
         ...formData,
         referenceno: order_id || formData.referenceno || null,
       })
-      .then((res) => {
+      .then(async (res) => {
         if (res) {
+          const orderNo = String(order_id || '');
+
+          if (orderNo && formData?.selectedAccount?.accountno && formData?.selectedAccount?.bankname) {
+            try {
+              await saveTransactionAccountMutation.mutateAsync({
+                orderNo,
+                accountNo: String(formData.selectedAccount.accountno),
+                bankName: String(formData.selectedAccount.bankname),
+                type: 'Organisation',
+              });
+            } catch (accountError) {
+              await createLogMutation.mutateAsync({
+                activitytype: 'Save Transaction Account',
+                functionname: 'saveTransactionAccountMutation.mutateAsync',
+                useremail: '',
+                level: 'error',
+                summary: activityLogError(accountError),
+                extramessage: JSON.stringify({ orderNo, selectedAccount: formData?.selectedAccount }),
+              })
+            }
+          }
+
           setSelectedServices([]);
           setIsQuotationDialogOpen(false);
         }
@@ -256,6 +292,7 @@ export default function OrganisationDetails() {
     const payloadWithReferenceNo = {
       ...quotationDetails,
       referenceno: runningNo,
+      selectedAccount,
     };
 
     sessionStorage.setItem("quotationPending", JSON.stringify(payloadWithReferenceNo));
@@ -370,8 +407,8 @@ export default function OrganisationDetails() {
             {organisation.serviceoffered?.length > 0 && (
               <Card className="border-0 shadow-md">
                 <CardHeader className="px-4 py-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-violet-600" />
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-violet-600" />
                     Services Offered
                   </CardTitle>
                 </CardHeader>

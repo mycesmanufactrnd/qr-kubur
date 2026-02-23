@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { X, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { X, Filter, RotateCcw, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { translate } from "@/utils/translations";
 import { useLocationContext } from "@/providers/LocationProvider";
+import { Button } from "../ui/button";
 
 /**
  * parameter example:
@@ -17,149 +16,163 @@ import { useLocationContext } from "@/providers/LocationProvider";
  */
 
 export default function AdvancedFilters({ parameter, onApplyFilter }) {
-  const {
-    userState
-  } = useLocationContext();
-
+  const { userState } = useLocationContext();
   const [open, setOpen] = useState(false);
 
   const [filterValues, setFilterValues] = useState(
-    () =>
-      parameter.reduce((acc, curr) => {
-        acc[curr.searchColumn] = "";
-        return acc;
-      }, {})
+    () => parameter.reduce((acc, curr) => { acc[curr.searchColumn] = ""; return acc; }, {})
   );
 
+  const activeCount = Object.values(filterValues).filter(v => v !== "" && v !== false).length;
+
   const handleChange = (column, value) => {
-    setFilterValues((prev) => ({ ...prev, [column]: value }));
+    setFilterValues(prev => ({ ...prev, [column]: value }));
   };
 
   const handleApply = () => {
-    onApplyFilter(filterValues); 
+    onApplyFilter(filterValues);
     setOpen(false);
+  };
+
+  const handleClear = () => {
+    setFilterValues(
+      Object.keys(filterValues).reduce((acc, key) => {
+        acc[key] = key === "state" ? userState || "" : "";
+        return acc;
+      }, {})
+    );
   };
 
   return (
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-full bg-emerald-500 text-white font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+        className={`relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95 shadow-sm ${
+          activeCount > 0
+            ? 'bg-emerald-500 text-white shadow-emerald-200'
+            : 'bg-emerald-500 border border-slate-200 text-white'
+        }`}
       >
+        <Filter className="w-3.5 h-3.5" />
         {translate("Filter")}
-        <Filter className="w-4 h-4" />
-        {Object.entries(filterValues)
-          .filter(([_, v]) => v)
-          .map(([k, v]) => (
-            <span
-              key={k}
-              className="bg-white/20 px-2 py-0.5 rounded-full text-xs truncate max-w-[60px]"
-            >
-              {translate(k)}: {v}
-            </span>
-          ))}
-        {Object.values(filterValues).every(v => !v)}
+        {activeCount > 0 && (
+          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-emerald-600 text-[11px] font-bold">
+            {activeCount}
+          </span>
+        )}
       </Button>
 
       {open && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-[98]"
+          className="fixed inset-0 bg-black/40 z-[98] backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
 
       <div
-        className={`fixed bottom-0 left-0 w-full h-3/4 bg-white dark:bg-gray-800 shadow-lg
-          z-[99] transform transition-transform duration-300
-          ${open ? "translate-y-0" : "translate-y-full"}
-          rounded-t-xl`}
+        className={`fixed bottom-0 left-0 w-full z-[99] transform transition-transform duration-300 ease-out ${
+          open ? "translate-y-0" : "translate-y-full"
+        }`}
       >
-        <Card className="h-full flex flex-col">
-          <CardContent className="p-4 flex-1 flex flex-col">
-            <div className="px-4 py-2 flex justify-center">
-              <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full" />
-            </div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">{translate("Advanced Filter")}</h3>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+        <div className="bg-white rounded-t-3xl shadow-2xl max-h-[80vh] flex flex-col">
 
-            <div className="space-y-4 flex-1 overflow-y-auto">
-              {parameter.map((p) => {
-                if (p.type === "text") {
-                  return (
-                    <Input
-                      key={p.searchColumn}
-                      placeholder={translate(p.label)}
-                      value={filterValues[p.searchColumn]}
-                      onChange={(e) => handleChange(p.searchColumn, e.target.value)}
-                      className="h-9"
-                    />
-                  );
-                } else if (p.type === "select") {
-                  return (
-                    <Select
-                      key={p.searchColumn}
-                      value={filterValues[p.searchColumn]}
-                      onValueChange={(value) => handleChange(p.searchColumn, value)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder={translate(p.label)} />
-                      </SelectTrigger>
-                      <SelectContent className="z-[1000]">
-                        {p.options?.map((opt) => (
-                          <SelectItem key={opt.id} value={opt.id.toString()}>
-                            {opt.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  );
-                } else if (p.type === "checkbox") {
-                  return (
-                    <div key={p.searchColumn} className="flex flex-col gap-1">
-                      <span className="text-sm font-medium">{translate(p.label)}</span>
-                      <label className="flex items-center gap-2 cursor-pointer text-sm">
-                        <input
-                          type="checkbox"
-                          checked={filterValues[p.searchColumn] === true}
-                          onChange={(e) =>
-                            handleChange(p.searchColumn, e.target.checked ? true : false)
-                          }
-                          className="w-4 h-4"
-                        />
-                        {filterValues[p.searchColumn] ? "Yes" : "No"}
-                      </label>
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="w-10 h-1 bg-slate-200 rounded-full" />
+          </div>
+
+          <div className="flex items-center justify-between px-5 py-3 shrink-0">
+            <div>
+              <h3 className="text-base font-bold text-slate-800">{translate("Advanced Filter")}</h3>
+              {activeCount > 0 && (
+                <p className="text-xs text-emerald-600 font-medium mt-0.5">{activeCount} filter aktif</p>
+              )}
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="w-full h-px bg-slate-100 shrink-0" />
+
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+            {parameter.map((p) => (
+              <div key={p.searchColumn} className="space-y-1.5">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                  {translate(p.label)}
+                </label>
+
+                {p.type === "text" && (
+                  <Input
+                    placeholder={translate(p.label)}
+                    value={filterValues[p.searchColumn]}
+                    onChange={e => handleChange(p.searchColumn, e.target.value)}
+                    className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm"
+                  />
+                )}
+
+                {p.type === "select" && (
+                  <Select
+                    value={filterValues[p.searchColumn]}
+                    onValueChange={value => handleChange(p.searchColumn, value)}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm">
+                      <SelectValue placeholder={translate(p.label)} />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000]">
+                      {p.options?.map(opt => (
+                        <SelectItem key={opt.id} value={opt.id.toString()}>
+                          {opt.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {p.type === "checkbox" && (
+                  <Button
+                    type="button"
+                    onClick={() => handleChange(p.searchColumn, !filterValues[p.searchColumn])}
+                    className={`flex items-center gap-3 w-full p-3.5 rounded-xl border text-sm font-medium transition-all ${
+                      filterValues[p.searchColumn]
+                        ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
+                        : 'border-slate-200 bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                      filterValues[p.searchColumn]
+                        ? 'border-emerald-500 bg-emerald-500'
+                        : 'border-slate-300'
+                    }`}>
+                      {filterValues[p.searchColumn] && <Check className="w-3 h-3 text-white" />}
                     </div>
-                  );
-                }
-              })}
-            </div>
+                    {translate(p.label)}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
 
-            <div className="mt-auto flex gap-2">
-              <Button
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-                onClick={() => {
-                  const resetValues = Object.keys(filterValues).reduce((acc, key) => {
-                    acc[key] = key === "state" ? userState || "" : "";
-                    return acc;
-                  }, {});
-                  setFilterValues(resetValues);
-                }}
-              >
-                {translate("Clear Filter")}
-              </Button>
-              <Button
-                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
-                onClick={handleApply}
-              >
-                {translate("Apply Filter")}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="shrink-0 px-5 pb-6 pt-3 flex gap-3">
+            <Button
+              type="button"
+              onClick={handleClear}
+              className="flex items-center justify-center gap-2 h-12 px-5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-75 transition-opacity"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              {translate("Clear")}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleApply}
+              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-200 active:opacity-80 transition-all"
+            >
+              {translate("Apply Filter")}
+            </Button>
+          </div>
+        </div>
       </div>
     </>
   );

@@ -131,7 +131,8 @@ export const tahfizRouter = router({
         longitude: z.number().min(-180).max(180),
       }).optional().nullable(),
       userState: z.string().optional().nullable(),
-      filterName: z.string().optional().nullable()
+      filterName: z.string().optional().nullable(),
+      filterAddress: z.string().optional().nullable()
     }))
     .query(async ({ input }) => {
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
@@ -147,6 +148,10 @@ export const tahfizRouter = router({
 
       if (input.filterName) {
         query.andWhere("tahfiz.name ILIKE :name", { name: `%${input.filterName}%` });
+      }
+
+      if (input.filterAddress) {
+        query.andWhere("tahfiz.address ILIKE :address", { address: `%${input.filterAddress}%` });
       }
 
       query.addSelect(`

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc.ts";
-import { createBill } from "../services/toyyibpay.service.ts";
+import { createBill, upsertTransactionAccountByOrderNo } from "../services/toyyibpay.service.ts";
 
 export const toyyibPayRouter = router({
   createBill: publicProcedure
@@ -36,5 +36,23 @@ export const toyyibPayRouter = router({
         billCode: bill.data.BillCode,
         paymentUrl: `https://dev.toyyibpay.com/${bill.data.BillCode}`,
       };
+    }),
+
+  saveTransactionAccount: publicProcedure
+    .input(
+      z.object({
+        orderNo: z.string().trim().min(1),
+        accountNo: z.string().trim().min(1),
+        bankName: z.string().trim().min(1),
+        type: z.string().trim().optional().default("QR Kubur"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await upsertTransactionAccountByOrderNo({
+        orderNo: input.orderNo,
+        accountNo: input.accountNo,
+        bankName: input.bankName,
+        type: input.type,
+      });
     }),
 });

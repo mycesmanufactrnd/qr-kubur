@@ -50,6 +50,9 @@ export class TahlilRequest {
     @Column("text", { nullable: true })
     liveurl?: string;
 
+    @Column({ type: "date", nullable: true })
+    suggesteddate?: Date;
+
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;
 }

@@ -238,11 +238,11 @@ export default function ManageDonations() {
                   <p>{selectedDonation.notes}</p>
                 </div>
               )}
-              {selectedDonation.reference_id && (
+              {selectedDonation.referenceno && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">{translate('Reference ID')}</p>
+                  <p className="text-sm text-gray-500 mb-1">{translate('Reference No.')}</p>
                   <p className="font-mono font-semibold text-sm break-all bg-gray-50 p-2 rounded">
-                    {selectedDonation.reference_id}
+                    {selectedDonation.referenceno}
                   </p>
                 </div>
               )}

@@ -120,7 +120,10 @@ export function clearQueryParams() {
   if (typeof window !== "undefined") {
     const cleanUrl = window.location.origin + window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
+    return cleanUrl;
   }
+
+  return null;
 }
 
 export function showEarthDistance(distanceMeters?: number | null): string {

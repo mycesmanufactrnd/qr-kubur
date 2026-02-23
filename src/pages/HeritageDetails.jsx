@@ -47,7 +47,7 @@ export default function HeritageDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <div className="relative h-72 md:h-96">
         {site.photourl ? (
           <img

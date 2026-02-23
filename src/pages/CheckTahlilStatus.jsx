@@ -1,243 +1,250 @@
 import { useEffect, useState } from 'react';
-import { Search, BookOpen, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, BookOpen, Clock, CheckCircle, XCircle, MapPin, User, Calendar } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { showError } from '@/components/ToastrNotification';
 import { TahlilStatus } from '@/utils/enums';
 import BackNavigation from '@/components/BackNavigation';
 import JoinLiveButton from '@/components/jitsi/JoinLiveButton';
 import { trpc } from '@/utils/trpc';
 import { translate } from '@/utils/translations';
+import { defaultTahlilStatus } from '@/utils/defaultformfields';
+import { skipToken } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+const STATUS_CONFIG = {
+  [TahlilStatus.PENDING]: {
+    label: 'Menunggu',
+    icon: Clock,
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    text: 'text-amber-700',
+    iconColor: 'text-amber-500',
+    dot: 'bg-amber-400',
+  },
+  [TahlilStatus.ACCEPTED]: {
+    label: 'Diterima',
+    icon: CheckCircle,
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    text: 'text-blue-700',
+    iconColor: 'text-blue-500',
+    dot: 'bg-blue-400',
+  },
+  [TahlilStatus.COMPLETED]: {
+    label: 'Selesai',
+    icon: CheckCircle,
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    text: 'text-emerald-700',
+    iconColor: 'text-emerald-500',
+    dot: 'bg-emerald-400',
+  },
+  [TahlilStatus.REJECTED]: {
+    label: 'Ditolak',
+    icon: XCircle,
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    text: 'text-red-700',
+    iconColor: 'text-red-500',
+    dot: 'bg-red-400',
+  },
+};
+
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status];
+  if (!cfg) return <span className="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-500">{status}</span>;
+  const Icon = cfg.icon;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-semibold ${cfg.bg} ${cfg.border} ${cfg.text}`}>
+      <Icon className={`w-4 h-4 ${cfg.iconColor}`} />
+      {cfg.label}
+    </span>
+  );
+}
 
 export default function CheckTahlilStatus() {
-  const [referenceId, setReferenceId] = useState('');
-  const [searchKey, setSearchKey] = useState(null);
+  const [referenceId, setReferenceId] = useState("");
+  const [searchKey, setSearchKey] = useState("");
   const [searching, setSearching] = useState(false);
-  const [request, setRequest] = useState(null);
+  const [request, setRequest] = useState(defaultTahlilStatus);
   const [tahfizCenter, setTahfizCenter] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const {
-    data: tahlilRequest,
-    isLoading,
-  } = trpc.tahlilRequest.getByReferenceNo.useQuery(
-    searchKey ? { referenceno: searchKey } : null,
+  const { data: tahlilRequest, isLoading } = trpc.tahlilRequest.getByReferenceNo.useQuery(
+    searchKey ? { referenceno: searchKey } : skipToken,
     { enabled: !!searchKey }
   );
 
   useEffect(() => {
     if (!searchKey) return;
-
     if (!isLoading) {
       setSearching(false);
-
       if (!tahlilRequest) {
         showError('Permohonan Tidak Dijumpa');
         return;
       }
-
-      setRequest(tahlilRequest);
-
-      if (tahlilRequest.tahfizcenter) {
-        setTahfizCenter(tahlilRequest.tahfizcenter);
-      }
-
+      setRequest({
+        referenceno: tahlilRequest.referenceno ?? '',
+        status: String(tahlilRequest.status ?? ''),
+        liveurl: tahlilRequest.liveurl ?? '',
+        requestorname: tahlilRequest.requestorname ?? '',
+        createdat: tahlilRequest.createdat ?? '',
+        deceasednames: tahlilRequest.deceasednames ?? [],
+        selectedservices: tahlilRequest.selectedservices ?? [],
+      });
+      if (tahlilRequest.tahfizcenter) setTahfizCenter(tahlilRequest.tahfizcenter);
       setIsDialogOpen(true);
     }
   }, [tahlilRequest, isLoading, searchKey]);
 
   const handleSearch = () => {
-    if (!referenceId.trim()) {
-      showError('Sila Masukkan ID Rujukan');
-      return;
-    }
-
+    if (!referenceId.trim()) { showError('Sila Masukkan ID Rujukan'); return; }
     setSearching(true);
     setSearchKey(referenceId.trim());
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case TahlilStatus.PENDING:
-        return (
-          <Badge className="bg-yellow-100 text-yellow-700 text-lg px-4 py-2">
-            <Clock className="w-5 h-5 mr-2" />
-            Menunggu
-          </Badge>
-        );
-      case TahlilStatus.ACCEPTED:
-        return (
-          <Badge className="bg-blue-100 text-blue-700 text-lg px-4 py-2">
-            <CheckCircle className="w-5 h-5 mr-2" />
-            Diterima
-          </Badge>
-        );
-      case TahlilStatus.COMPLETED:
-        return (
-          <Badge className="bg-green-100 text-green-700 text-lg px-4 py-2">
-            <CheckCircle className="w-5 h-5 mr-2" />
-            Selesai
-          </Badge>
-        );
-      case TahlilStatus.REJECTED:
-        return (
-          <Badge className="bg-red-100 text-red-700 text-lg px-4 py-2">
-            <XCircle className="w-5 h-5 mr-2" />
-            Ditolak
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="secondary" className="text-lg px-4 py-2">
-            {status}
-          </Badge>
-        );
-    }
+  const handleClose = () => {
+    setIsDialogOpen(false);
+    setSearchKey("");
+    setRequest(defaultTahlilStatus);
+    setTahfizCenter(null);
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50 pb-10">
       <BackNavigation title="Tahlil Status" />
 
-      <div className="max-w-2xl mx-auto space-y-6 py-1">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-600 mb-2">
+      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-4">
+
+        <div className="flex flex-col items-center text-center gap-2 pb-2">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-200 mb-1">
             <BookOpen className="w-8 h-8 text-white" />
           </div>
-          <h5 className="text-lg font-bold text-gray-900 dark:text-white">{translate('Check Tahlil Application Status')}</h5>
-          <p className="text-gray-600 dark:text-gray-400">
-            Masukkan ID rujukan untuk menyemak status permohonan anda
+          <h2 className="text-base font-bold text-slate-800">
+            {translate('Check Tahlil Application Status')}
+          </h2>
+          <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed">
+            Masukkan No. rujukan untuk menyemak status permohonan anda
           </p>
         </div>
 
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-center">Carian Permohonan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                ID Rujukan Transaksi
-              </label>
-              <Input
-                placeholder="ID Rujukan"
-                value={referenceId}
-                onChange={(e) => setReferenceId(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              />
-            </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+          <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">Carian Permohonan</p>
+          </div>
 
-            <Button
-              onClick={handleSearch}
-              disabled={searching}
-              className="w-full bg-gradient-to-r from-blue-500 to-teal-600 hover:from-blue-600 hover:to-teal-700 text-white"
-              size="lg"
-            >
-              <Search className="w-5 h-5 mr-2" />
-              {searching ? 'Mencari...' : 'Cari'}
-            </Button>
-          </CardContent>
-        </Card>
+          <div className="space-y-1.5 pt-1">
+            <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+              No. Rujukan Transaksi
+            </label>
+            <Input
+              placeholder="Contoh: THL-2024-0001"
+              value={referenceId}
+              onChange={e => setReferenceId(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 transition"
+            />
+          </div>
 
-        <Card className="border-0 shadow-md bg-blue-50">
-          <CardContent className="p-4">
-            <p className="text-sm text-gray-600 text-center">
-              💡 <strong>Tip:</strong> ID rujukan boleh didapati daripada resit pembayaran anda.
-            </p>
-          </CardContent>
-        </Card>
+          <Button
+            onClick={handleSearch}
+            disabled={searching}
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 active:opacity-80 transition-all disabled:opacity-50"
+          >
+            <Search className="w-4 h-4" />
+            {searching ? 'Mencari...' : 'Cari Status'}
+          </Button>
+        </div>
+
+        <div className="flex gap-2.5 items-start px-4 py-3.5 bg-blue-50 border border-blue-100 rounded-2xl">
+          <span className="text-base mt-0.5">💡</span>
+          <p className="text-xs text-blue-600 leading-relaxed">
+            <span className="font-bold">Tip:</span> No. rujukan boleh didapati daripada resit pembayaran yang dihantar ke emel anda.
+          </p>
+        </div>
       </div>
 
-      <Dialog
-        open={isDialogOpen}
-        onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) {
-            setSearchKey(null);
-            setRequest(null);
-            setTahfizCenter(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white dark:bg-gray-900">
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
 
-          {/* Header */}
-          <div className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-gray-800">
-            <DialogTitle className="text-center text-base font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500 mb-4">
+          <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
+            <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
               Status Permohonan
             </DialogTitle>
             {request && (
-              <div className="flex flex-col items-center gap-3">
-                <p className="text-3xl font-bold tracking-widest font-mono text-gray-900 dark:text-white">
+              <div className="flex flex-col items-center gap-2.5">
+                <span className="text-lg font-bold tracking-widest font-mono text-slate-800">
                   {request.referenceno}
-                </p>
-                {getStatusBadge(request.status)}
+                </span>
+                <StatusBadge status={request.status} />
               </div>
             )}
           </div>
 
           {request && (
-            <div className="px-6 py-5 space-y-5">
+            <div className="px-5 py-4 space-y-5">
 
-              {/* Live */}
               {request.liveurl && (
                 <div className="flex justify-center">
                   <JoinLiveButton room={request.liveurl} />
                 </div>
               )}
 
-              {/* Info rows */}
-              <div className="space-y-3">
+              <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
                 {request.requestorname && (
-                  <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                    <span className="text-xs uppercase tracking-widest text-gray-400">Pemohon</span>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm">{request.requestorname}</span>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <User className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Pemohon</span>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700">{request.requestorname}</span>
                   </div>
                 )}
                 {tahfizCenter && (
-                  <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                    <span className="text-xs uppercase tracking-widest text-gray-400">Pusat Tahfiz</span>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm text-right max-w-[60%]">{tahfizCenter.name}</span>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Pusat Tahfiz</span>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 text-right max-w-[55%]">{tahfizCenter.name}</span>
                   </div>
                 )}
-                {request.preferreddate && (
-                  <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                    <span className="text-xs uppercase tracking-widest text-gray-400">Tarikh Pilihan</span>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm">{new Date(request.preferreddate).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                {request.createdat && (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Tarikh</span>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700">
+                      {new Date(request.createdat).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                  <span className="text-xs uppercase tracking-widest text-gray-400">Tarikh Mohon</span>
-                  <span className="font-medium text-gray-900 dark:text-white text-sm">{new Date(request.createdat).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                </div>
               </div>
 
-              {/* Deceased */}
               {request.deceasednames?.length > 0 && (
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">Nama Arwah</p>
-                  <div className="space-y-2">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">Nama Arwah</p>
+                  <div className="space-y-1.5">
                     {request.deceasednames.map((name, i) => (
-                      <div key={i} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                        <span className="text-xs font-bold text-gray-400 w-5 text-center">{i + 1}</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{name}</span>
+                      <div key={i} className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-bold text-emerald-600">{i + 1}</span>
+                        </div>
+                        <span className="text-sm font-medium text-slate-700">{name}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Services */}
               {request.selectedservices?.length > 0 && (
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">Perkhidmatan</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">Perkhidmatan</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {request.selectedservices.map((type, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-700">
                         {type}
                       </span>
                     ))}
@@ -245,22 +252,12 @@ export default function CheckTahlilStatus() {
                 </div>
               )}
 
-              {/* Notes */}
-              {request.notes && (
-                <div className="px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
-                  <p className="text-xs uppercase tracking-widest text-amber-500 mb-1.5">Catatan</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{request.notes}</p>
-                </div>
-              )}
-
               <Button
-                variant="outline"
-                onClick={() => { setIsDialogOpen(false); setSearchKey(null); }}
-                className="w-full rounded-xl h-11 text-sm font-medium"
+                onClick={handleClose}
+                className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-70 transition-opacity"
               >
                 Tutup
               </Button>
-
             </div>
           )}
         </DialogContent>

@@ -1,11 +1,9 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { MapPin, Star, Navigation, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { showEarthDistance } from '@/utils/helpers';
-import { translate } from '@/utils/translations';
 import BannerImageWithFallback from './BannerImageWithFallback';
 
 export default function HeritageCardList({ site, distance, index = 0, nextPageUrl }) {

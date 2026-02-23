@@ -7,8 +7,15 @@ import { In } from "typeorm";
 
 export const tahlilRequestRouter = router({
     getByReferenceNo: publicProcedure
-        .input(z.object({ referenceno: z.string() }))
+        .input(z.object({ 
+            referenceno: z.string().optional().nullable() 
+        }))
         .query(async ({ input }) => {
+
+            if (!input.referenceno) {
+                return null;
+            }
+
             const repo = AppDataSource.getRepository(TahlilRequest);
 
             return await repo.findOne({

@@ -2,6 +2,7 @@ import { trpc } from '@/utils/trpc';
 import { useAdminAccess } from '@/utils/auth';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
 import { coordinatesQueryOptions } from '@/utils/queryOptions';
+import { skipToken } from '@tanstack/react-query';
 
 type useGetTahfizPaginatedParams = {
   page?: number;
@@ -14,14 +15,10 @@ const TITLE_MESSAGE = 'Tahfiz Center';
 
 export function useGetTahfizById(tahfizId: number | null) {
   const query = trpc.tahfiz.getTahfizById.useQuery(
-    { id: tahfizId as number },
-    { enabled: !!tahfizId }
+    tahfizId ? { id: tahfizId } : skipToken
   );
 
-  return {
-    ...query,
-    data: tahfizId ? query.data : null,
-  };
+  return query;
 }
 
 export function useGetTahfizPaginated({
@@ -55,12 +52,14 @@ export function useGetTahfizCoordinates(
   coordinates?: { latitude: number; longitude: number } | null, 
   userState?: string,
   filterName?: string,
+  filterAddress?: string,
 ) {
   return trpc.tahfiz.getTahfizByCoordinates.useQuery(
     { 
       coordinates: coordinates ?? null,
       userState,
-      filterName
+      filterName,
+      filterAddress
     },
     {
       enabled: !!coordinates,

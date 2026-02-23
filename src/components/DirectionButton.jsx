@@ -5,11 +5,11 @@ import clsx from "clsx";
 import { translate } from "@/utils/translations";
 
 export default function DirectionButton({ 
-  latitude = null, 
-  longitude = null,
+  latitude = 0, 
+  longitude = 0,
   addClass = '',
 }) {
-  if (latitude == null || longitude == null) return null;
+  if (latitude == 0 || longitude == 0) return null;
 
   return (
     <Button

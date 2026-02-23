@@ -1,22 +1,32 @@
 import { useState, useEffect } from "react";
 
-export default function PaymentSuccessfulComponent() {
+export default function PaymentSuccessfulComponent({
+  shouldRedirect = true,
+  redirectUrl = "/",
+  actionButton = null,
+  extraContent = null, // ✅ new prop
+}) {
   const [count, setCount] = useState(5);
   const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setAnimateIn(true), 100);
+
+    if (!shouldRedirect) return;
+
     const interval = setInterval(() => {
       setCount((c) => {
         if (c <= 1) {
           clearInterval(interval);
+          window.location.href = redirectUrl;
           return 0;
         }
         return c - 1;
       });
     }, 1000);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [shouldRedirect, redirectUrl]);
 
   const circumference = 2 * Math.PI * 22;
   const progress = (count / 5) * circumference;
@@ -32,6 +42,7 @@ export default function PaymentSuccessfulComponent() {
       overflow: "hidden",
       position: "relative",
     }}>
+
       <div style={{
         position: "absolute",
         width: "600px",
@@ -54,6 +65,7 @@ export default function PaymentSuccessfulComponent() {
         width: "100%",
       }}>
 
+        {/* Success Icon */}
         <div style={{ position: "relative", display: "inline-block", marginBottom: "2rem" }}>
           <svg width="100" height="100" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="1.5" />
@@ -73,6 +85,7 @@ export default function PaymentSuccessfulComponent() {
           </svg>
         </div>
 
+        {/* Title Section */}
         <div style={{
           opacity: animateIn ? 1 : 0,
           transform: animateIn ? "translateY(0)" : "translateY(10px)",
@@ -84,8 +97,10 @@ export default function PaymentSuccessfulComponent() {
             letterSpacing: "0.25em",
             textTransform: "uppercase",
             margin: "0 0 0.75rem",
-            fontFamily: "'Georgia', serif",
-          }}>Transaction Complete</p>
+          }}>
+            Transaction Complete
+          </p>
+
           <h1 style={{
             color: "#111827",
             fontSize: "2rem",
@@ -93,18 +108,30 @@ export default function PaymentSuccessfulComponent() {
             margin: "0 0 1rem",
             letterSpacing: "-0.02em",
             lineHeight: 1.2,
-          }}>Payment Successful</h1>
+          }}>
+            Payment Successful
+          </h1>
+
           <p style={{
             color: "rgba(0,0,0,0.4)",
             fontSize: "0.875rem",
             lineHeight: 1.7,
-            margin: "0 0 2.5rem",
+            margin: "0 0 2rem",
             letterSpacing: "0.02em",
           }}>
-            Your transaction has been processed<br />and a receipt is on its way to you.
+            Your transaction has been processed<br />
+            and a receipt is on its way to you.
           </p>
+
+          {/* ✅ NEW EXTRA CONTENT SECTION */}
+          {extraContent && (
+            <div style={{ marginBottom: "2rem" }}>
+              {extraContent}
+            </div>
+          )}
         </div>
 
+        {/* Divider */}
         <div style={{
           height: "1px",
           background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)",
@@ -113,52 +140,67 @@ export default function PaymentSuccessfulComponent() {
           transition: "opacity 0.5s ease 0.7s",
         }} />
 
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "14px",
-          opacity: animateIn ? 1 : 0,
-          transition: "opacity 0.5s ease 0.9s",
-        }}>
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <svg width="36" height="36" viewBox="0 0 48 48" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="24" cy="24" r="22" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="2" />
-              <circle
-                cx="24" cy="24" r="22"
-                fill="none"
-                stroke="rgba(16,185,129,0.7)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={circumference - progress}
-                style={{ transition: "stroke-dashoffset 0.9s linear" }}
-              />
-            </svg>
-            <span style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              color: "#10b981",
-              fontSize: "0.75rem",
-              fontFamily: "monospace",
-              fontWeight: "600",
-            }}>{count}</span>
-          </div>
-
-          <p style={{
-            color: "rgba(0,0,0,0.35)",
-            fontSize: "0.8rem",
-            letterSpacing: "0.05em",
-            margin: 0,
+        {/* Countdown */}
+        {shouldRedirect && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "14px",
+            opacity: animateIn ? 1 : 0,
+            transition: "opacity 0.5s ease 0.9s",
           }}>
-            {count > 0
-              ? <>Redirecting in <span style={{ color: "rgba(0,0,0,0.6)" }}>{count} second{count !== 1 ? "s" : ""}</span>…</>
-              : <span style={{ color: "rgba(16,185,129,0.9)" }}>Redirecting now…</span>
-            }
-          </p>
-        </div>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <svg width="36" height="36" viewBox="0 0 48 48" style={{ transform: "rotate(-90deg)" }}>
+                <circle cx="24" cy="24" r="22" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="2" />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="22"
+                  fill="none"
+                  stroke="rgba(16,185,129,0.7)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={circumference - progress}
+                  style={{ transition: "stroke-dashoffset 0.9s linear" }}
+                />
+              </svg>
+
+              <span style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                color: "#10b981",
+                fontSize: "0.75rem",
+                fontFamily: "monospace",
+                fontWeight: "600",
+              }}>
+                {count}
+              </span>
+            </div>
+
+            <p style={{
+              color: "rgba(0,0,0,0.35)",
+              fontSize: "0.8rem",
+              letterSpacing: "0.05em",
+              margin: 0,
+            }}>
+              {count > 0
+                ? <>Redirecting in <span style={{ color: "rgba(0,0,0,0.6)" }}>{count} second{count !== 1 ? "s" : ""}</span>…</>
+                : <span style={{ color: "rgba(16,185,129,0.9)" }}>Redirecting now…</span>
+              }
+            </p>
+          </div>
+        )}
+
+        {/* Button */}
+        {actionButton && (
+          <div style={{ marginTop: "2rem" }}>
+            {actionButton}
+          </div>
+        )}
 
       </div>
     </div>

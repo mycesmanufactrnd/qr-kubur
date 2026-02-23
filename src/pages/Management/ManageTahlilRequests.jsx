@@ -3,6 +3,7 @@ import { BookOpen, CheckCircle, XCircle, Clock, Eye, Video } from 'lucide-react'
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
@@ -19,6 +20,7 @@ import NoDataTableComponent from '@/components/NoDataTableComponent';
 import JitsiController from '@/components/jitsi/JitsiController';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
+import { showError } from '@/components/ToastrNotification';
 
 export default function ManageTahlilRequests() {
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ export default function ManageTahlilRequests() {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [suggestedDate, setSuggestedDate] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isLiveDialogOpen, setIsLiveDialogOpen] = useState(false);
@@ -43,14 +46,32 @@ export default function ManageTahlilRequests() {
 
   const openDetailDialog = (request) => {
     setSelectedRequest(request);
+    setSuggestedDate(
+      request?.suggesteddate
+        ? new Date(request.suggesteddate).toISOString().slice(0, 10)
+        : ''
+    );
     setIsDialogOpen(true);
   };
 
   const handleStatusChange = async (newStatus) => {
     if (!selectedRequest) return;
-    await updateMutation.mutateAsync({ id: selectedRequest.id, data: { status: newStatus } });
+
+    const payload = { status: newStatus, suggesteddate: '' };
+
+    if (newStatus === TahlilStatus.ACCEPTED) {
+      if (!suggestedDate) {
+        showError('Suggested date is required when accepting request.');
+        return;
+      }
+
+      payload.suggesteddate = suggestedDate;
+    }
+
+    await updateMutation.mutateAsync({ id: selectedRequest.id, data: payload });
     setIsDialogOpen(false);
     setSelectedRequest(null);
+    setSuggestedDate('');
     refetch();
   };
 
@@ -79,15 +100,33 @@ export default function ManageTahlilRequests() {
   const getStatusBadge = (status) => {
     switch (status) {
       case TahlilStatus.PENDING:
-        return <Badge className="bg-yellow-100 text-yellow-700"><Clock className="w-3 h-3 mr-1" />{translate('pending')}</Badge>;
+        return (
+          <Badge variant="default" className="bg-yellow-100 text-yellow-700">
+            <Clock className="w-3 h-3 mr-1" />{translate('Pending')}
+          </Badge>
+        );
       case TahlilStatus.ACCEPTED:
-        return <Badge className="bg-blue-100 text-blue-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('accepted')}</Badge>;
+        return (
+          <Badge variant="default" className="bg-blue-100 text-blue-700">
+            <CheckCircle className="w-3 h-3 mr-1" />{translate('Accepted')}
+          </Badge>
+        );
       case TahlilStatus.COMPLETED:
-        return <Badge className="bg-green-100 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />{translate('completed')}</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-700">
+            <CheckCircle className="w-3 h-3 mr-1" />{translate('Completed')}
+          </Badge>
+        );
       case TahlilStatus.REJECTED:
-        return <Badge className="bg-red-100 text-red-700"><XCircle className="w-3 h-3 mr-1" />{translate('rejected')}</Badge>;
+        return (
+          <Badge variant="default" className="bg-red-100 text-red-700">
+            <XCircle className="w-3 h-3 mr-1" />{translate('Rejected')}
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return (
+          <Badge variant="secondary" className="">{status}</Badge>
+        );
     }
   };
 
@@ -106,8 +145,8 @@ export default function ManageTahlilRequests() {
   if (!canView) return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('adminDashboard'), page: 'AdminDashboard' },
-        { label: translate('manageTahlilTitle'), page: 'ManageTahlilRequests' }
+        { label: translate('Admin Dahsboard'), page: 'AdminDashboard' },
+        { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests' }
       ]} />
       <AccessDeniedComponent/>
     </div>
@@ -116,30 +155,17 @@ export default function ManageTahlilRequests() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('adminDashboard'), page: 'AdminDashboard' },
-        { label: translate('manageTahlilTitle'), page: 'ManageTahlilRequests' }
+        { label: translate('Admin Dahsboard'), page: 'AdminDashboard' },
+        { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests' }
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            {translate('manageTahlilTitle')}
+            {translate('Manage Tahlil Requests')}
           </h1>
         </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-4">
-        {['pending','accepted','completed','rejected'].map((status,i)=>(
-          <Card key={i} className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
-            <CardContent className="p-4 text-center">
-              <p className={`text-2xl font-bold text-${status==='pending'?'yellow':status==='accepted'?'blue':status==='completed'?'green':'red'}-600`}>
-                {tahlilRequestList.items.filter(r => r.status === status).length}
-              </p>
-              <p className="text-sm text-gray-500">{translate(status)}</p>
-            </CardContent>
-          </Card>
-        ))}
       </div>
 
       <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
@@ -170,7 +196,7 @@ export default function ManageTahlilRequests() {
                 <TableHead className="text-center">{translate('Deceased Name')}</TableHead>
                 <TableHead className="text-center">{translate('Service Type')}</TableHead>
                 <TableHead className="text-center">{translate('Tahfiz Center')}</TableHead>
-                <TableHead className="text-center">{translate('Reference ID')}</TableHead>
+                <TableHead className="text-center">{translate('Reference No.')}</TableHead>
                 <TableHead className="text-center">{translate('Status')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
@@ -230,92 +256,98 @@ export default function ManageTahlilRequests() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">{translate('details')}</DialogTitle>
+            <DialogTitle className="dark:text-white">{translate('Tahlil Details')}</DialogTitle>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">{translate('requesterName')}</p>
+                  <p className="text-sm text-gray-500">{translate('Requestor Name')}</p>
                   <p className="font-semibold">{selectedRequest.requestorname}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">{translate('phoneNumber')}</p>
+                  <p className="text-sm text-gray-500">{translate('Phone No.')}</p>
                   <p className="font-semibold">{selectedRequest.requestorphoneno}</p>
                 </div>
               </div>
               {selectedRequest.requestoremail && (
                 <div>
-                  <p className="text-sm text-gray-500">{translate('email')}</p>
+                  <p className="text-sm text-gray-500">{translate('Email')}</p>
                   <p>{selectedRequest.requestoremail}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">{translate('deceasedName')}</p>
+                <p className="text-sm text-gray-500">{translate('Deceased Name')}</p>
                 <p>{(selectedRequest.deceasednames || []).join(', ')}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">{translate('serviceType')}</p>
+                <p className="text-sm text-gray-500">{translate('Service Type')}</p>
                 <Badge variant="outline">{getServiceLabels(selectedRequest.selectedservices)}</Badge>
               </div>
               <div>
-                <p className="text-sm text-gray-500">{translate('tahfizCenter')}</p>
+                <p className="text-sm text-gray-500">{translate('Tahfiz Center')}</p>
                 <p>{selectedRequest.tahfizcenter?.name}</p>
               </div>
               {selectedRequest.referenceno && (
                 <div>
-                  <p className="text-sm text-gray-500">{translate('referenceId')}</p>
+                  <p className="text-sm text-gray-500">{translate('Reference No.')}</p>
                   <p className="font-mono font-semibold">{selectedRequest.referenceno}</p>
                 </div>
-              )}
-              {selectedRequest.preferreddate && (
+              )}                
+              {selectedRequest.customservice && (
                 <div>
-                  <p className="text-sm text-gray-500">{translate('preferredDate')}</p>
-                  <p>{new Date(selectedRequest.preferreddate).toLocaleDateString('ms-MY')}</p>
-                </div>
-              )}
-              {selectedRequest.notes && (
-                <div>
-                  <p className="text-sm text-gray-500">{translate('notes')}</p>
-                  <p>{selectedRequest.notes}</p>
+                  <p className="text-sm text-gray-500">{translate('Custom Service')}</p>
+                  <p>{selectedRequest.customservice}</p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-500">{translate('status')}</p>
+                <p className="text-sm text-gray-500">{translate('Status')}</p>
                 {getStatusBadge(selectedRequest.status)}
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{translate('Suggested Date')}</p>
+                <Input
+                  type="date"
+                  value={suggestedDate}
+                  onChange={(event) => setSuggestedDate(event.target.value)}
+                  disabled={selectedRequest?.status !== TahlilStatus.PENDING}
+                  className="mt-1"
+                />
               </div>
             </div>
           )}
           <DialogFooter className="flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{translate('close')}</Button>
-            {selectedRequest?.status === 'pending' && (
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              {translate('Close')}
+            </Button>
+            {selectedRequest?.status === TahlilStatus.PENDING && (
               <>
                 <Button 
                   variant="destructive" 
-                  onClick={() => handleStatusChange('rejected')}
+                  onClick={() => handleStatusChange(TahlilStatus.REJECTED)}
                   disabled={updateMutation.isPending}
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  {translate('reject')}
+                  {translate('Reject')}
                 </Button>
                 <Button 
-                  onClick={() => handleStatusChange('accepted')}
+                  onClick={() => handleStatusChange(TahlilStatus.ACCEPTED)}
                   disabled={updateMutation.isPending}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  {translate('approve')}
+                  {translate('Approve')}
                 </Button>
               </>
             )}
-            {selectedRequest?.status === 'accepted' && (
+            {selectedRequest?.status === TahlilStatus.ACCEPTED && (
               <Button 
-                onClick={() => handleStatusChange('completed')}
+                onClick={() => handleStatusChange(TahlilStatus.COMPLETED)}
                 disabled={updateMutation.isPending}
                 className="bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {translate('markCompleted')}
+                {translate('Mark Completed')}
               </Button>
             )}
           </DialogFooter>
@@ -323,48 +355,48 @@ export default function ManageTahlilRequests() {
       </Dialog>
 
       <Dialog open={isLiveDialogOpen} onOpenChange={setIsLiveDialogOpen}>
-  <DialogContent className="max-w-4xl">
-    <DialogHeader>
-      <DialogTitle className="text-xl">
-        Live Tahlil
-        <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
-          ({selectedIds.length} selected)
-        </span>
-      </DialogTitle>
-    </DialogHeader>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Live Tahlil
+              <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                ({selectedIds.length} selected)
+              </span>
+            </DialogTitle>
+          </DialogHeader>
 
-    <div className="grid grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2">
-      {tahlilRequestList.items
-        .filter(r => selectedIds.includes(r.id))
-        .map(request => (
-          <div 
-            key={request.id} 
-            className="px-4 py-3 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-          >
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Requestor: {request.requestorname}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Reference No.: {request.referenceno}
-            </p>
+          <div className="grid grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2">
+            {tahlilRequestList.items
+              .filter(r => selectedIds.includes(r.id))
+              .map(request => (
+                <div 
+                  key={request.id} 
+                  className="px-4 py-3 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Requestor: {request.requestorname}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    Reference No.: {request.referenceno}
+                  </p>
+                </div>
+              ))}
           </div>
-        ))}
-    </div>
 
-    <DialogFooter>
-      <JitsiController 
-        ids={selectedIds} 
-        onClose={() => setIsLiveDialogOpen(false)}
-      />
-      <Button
-        variant="outline"
-        onClick={() => setIsLiveDialogOpen(false)}
-      >
-        {translate('Close')}
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+          <DialogFooter>
+            <JitsiController 
+              ids={selectedIds} 
+              onClose={() => setIsLiveDialogOpen(false)}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setIsLiveDialogOpen(false)}
+            >
+              {translate('Close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

@@ -29,6 +29,16 @@ export const defaultTahlilRequestField = {
   paymentMethod: '',
 }
 
+export const defaultTahlilStatus = {
+  referenceno: "",
+  status: "",
+  liveurl: "",
+  requestorname: "",
+  createdat: "",
+  deceasednames: [],
+  selectedservices: [],
+}
+
 export const defaultSuggestionField = {
   name: '',
   phoneno: '',

@@ -6,12 +6,12 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function DonationButton({ 
-  recipientId = null,
+  recipientId = '',
   recipientType = '',
   state = 'nearby',
   addClass = '',
 }) {
-  if (recipientId == null || recipientType == null) return null;
+  if (recipientId == '' || recipientType == '') return null;
 
   return (
     <Link to={createPageUrl(`DonationPage?id=${recipientId}&type=${recipientType}&state=${state}`)} className="flex-1">

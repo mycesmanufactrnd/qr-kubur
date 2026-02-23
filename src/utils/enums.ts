@@ -108,7 +108,7 @@ export const ACTION_MAPS = {
   delete: 'Deleted Successfully',
   approve: 'Approved Successfully',
   deny: 'Denied Successfully',
-};
+} as const;
 
 export const ACTION_FAILURE_MAPS = {
   create: 'Creation Failed',
@@ -119,7 +119,7 @@ export const ACTION_FAILURE_MAPS = {
   delete: 'Deletion Failed',
   approve: 'Approval Failed',
   deny: 'Denial Failed',
-};
+} as const;
 
 export enum ActiveInactiveStatus {
   ACTIVE = "active",

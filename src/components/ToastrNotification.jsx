@@ -21,7 +21,7 @@ toastr.options = {
   hideMethod: 'fadeOut'
 };
 
-export const showSuccess = (message = '', successType = null) => {
+export const showSuccess = (message = '', successType) => {
   const title = translate('Success');
 
   let translatedMessage = translate(message);
@@ -33,7 +33,7 @@ export const showSuccess = (message = '', successType = null) => {
   toastr.success(translatedMessage, title);
 };
 
-export const showError = (message = '', errorType = null) => {
+export const showError = (message = '', errorType) => {
   const title = translate('Error');
 
   let translatedMessage = translate(message);

@@ -152,7 +152,6 @@ export async function handleToyyibPayCallback(data: any) {
   const originalAmount = Math.max(0, orderAmount - serviceFee - billChargeToCustomer);
 
   const onlineTransactionRepo = AppDataSource.getRepository(OnlineTransaction);
-  const onlineTransactionAccountRepo = AppDataSource.getRepository(OnlineTransactionAccount);
 
   const transaction = onlineTransactionRepo.create({
     referenceno: refno,
@@ -175,16 +174,54 @@ export async function handleToyyibPayCallback(data: any) {
     gatewayhash: hash,
   });
 
-  const savedTransaction = await onlineTransactionRepo.save(transaction);
-
-  const transactionAccount = onlineTransactionAccountRepo.create({
-    type: 'QR Kubur',
-    accountno: '123456789',
-    amount: Number(orderAmount.toFixed(2)),
-    transaction: savedTransaction, 
-  });
-
-  await onlineTransactionAccountRepo.save(transactionAccount);
+  await onlineTransactionRepo.save(transaction);
 
   return true
+}
+
+export async function upsertTransactionAccountByOrderNo({
+  orderNo,
+  accountNo,
+  bankName,
+  type = "QR Kubur",
+}: {
+  orderNo: string;
+  accountNo: string;
+  bankName: string;
+  type?: string;
+}) {
+  const onlineTransactionRepo = AppDataSource.getRepository(OnlineTransaction);
+  const onlineTransactionAccountRepo = AppDataSource.getRepository(OnlineTransactionAccount);
+
+  const transaction = await onlineTransactionRepo.findOne({
+    where: { orderno: orderNo },
+    order: { createdat: "DESC" },
+  });
+
+  if (!transaction) {
+    throw new Error("Online transaction not found for the provided order number.");
+  }
+
+  const existingAccount = await onlineTransactionAccountRepo.findOne({
+    where: { transaction: { id: transaction.id } },
+    order: { createdat: "DESC" },
+  });
+
+  if (existingAccount) {
+    existingAccount.bankname = bankName;
+    existingAccount.accountno = accountNo;
+    existingAccount.type = type;
+    existingAccount.amount = Number(transaction.orderamount || 0);
+    return await onlineTransactionAccountRepo.save(existingAccount);
+  }
+
+  const transactionAccount = onlineTransactionAccountRepo.create({
+    type,
+    bankname: bankName,
+    accountno: accountNo,
+    amount: Number(transaction.orderamount || 0),
+    transaction: { id: transaction.id },
+  });
+
+  return await onlineTransactionAccountRepo.save(transactionAccount);
 }
