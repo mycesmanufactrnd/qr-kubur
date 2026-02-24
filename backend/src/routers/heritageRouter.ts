@@ -73,7 +73,7 @@ export const heritageRouter = router({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
       }).optional().nullable(),
-      filters: z.record(z.string(), z.string()).optional()
+      filters: z.record(z.string(), z.any()).optional()
     }))
     .query(async ({ input }) => {
         const heritageSiteRepo = AppDataSource.getRepository(HeritageSite);

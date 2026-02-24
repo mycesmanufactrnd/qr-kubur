@@ -1,7 +1,7 @@
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { TahlilRequest } from "../db/entities.ts";
+import { GoogleUserRecord, TahlilRequest } from "../db/entities.ts";
 import { tahlilRequestApprovalSchema, tahlilRequestLiveURL, tahlilRequestSchema } from "../schemas/tahlilRequestSchema.ts";
 import { In } from "typeorm";
 
@@ -69,11 +69,28 @@ export const tahlilRequestRouter = router({
         }),
 
     create: publicProcedure
-        .input(tahlilRequestSchema)
+        .input(tahlilRequestSchema.extend({
+          googleuserId: z.number().optional().nullable(),
+        }))
         .mutation(async ({ input }) => {
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
             const tahlilRequest = tahlilRequestRepo.create(input);
-            return tahlilRequestRepo.save(tahlilRequest);
+            const savedTahlilRequest = await tahlilRequestRepo.save(tahlilRequest);
+    
+            if (input.googleuserId) {
+                const userRecordRepo = AppDataSource.getRepository(GoogleUserRecord);
+                const record = userRecordRepo.create({
+                    entityname: "tahlilrequest",
+                    entityid: savedTahlilRequest.id,
+                    referenceno: savedTahlilRequest.referenceno,
+                    status: savedTahlilRequest.status,
+                    googleuser: { id: input.googleuserId },
+                });
+        
+                await userRecordRepo.save(record);
+            }
+    
+            return savedTahlilRequest;
         }),
             
     update: protectedProcedure

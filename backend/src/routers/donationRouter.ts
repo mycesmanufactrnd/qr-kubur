@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { Donation } from "../db/entities.ts";
+import { Donation, GoogleUserRecord } from "../db/entities.ts";
 import { donationSchema, donationApprovalSchema } from "../schemas/donationSchema.ts";
 
 export const donationRouter = router({
@@ -64,11 +64,28 @@ export const donationRouter = router({
     }),
 
   create: protectedProcedure
-    .input(donationSchema)
+    .input(donationSchema.extend({
+      googleuserId: z.number().optional().nullable(),
+    }))
     .mutation(async ({ input }) => {
       const donationRepo = AppDataSource.getRepository(Donation);
       const donation = donationRepo.create(input);
-      return donationRepo.save(donation);
+      const savedDonation = await donationRepo.save(donation);
+
+      if (input.googleuserId) {
+        const userRecordRepo = AppDataSource.getRepository(GoogleUserRecord);
+        const record = userRecordRepo.create({
+          entityname: "donation",
+          entityid: savedDonation.id,
+          referenceno: savedDonation.referenceno,
+          status: savedDonation.status,
+          googleuser: { id: input.googleuserId },
+        });
+
+        await userRecordRepo.save(record);
+      }
+
+      return savedDonation;
     }),
 
   update: protectedProcedure

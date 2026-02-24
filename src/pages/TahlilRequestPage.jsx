@@ -23,6 +23,7 @@ import { useSearchParams } from 'react-router-dom';
 import TextInputForm from '@/components/forms/TextInputForm';
 import PaymentSuccessfulComponent from '@/components/PaymentSuccessfulComponent';
 import { skipToken } from '@tanstack/react-query';
+import { userGoogleAccess } from '@/utils/auth';
 
 const CUSTOM_SERVICE_KEY = 'custom';
 const CUSTOM_SERVICE_LABEL = 'Perkhidmatan Khas (Nota)';
@@ -48,6 +49,7 @@ function Section({ title, icon: Icon, children, accent = 'emerald' }) {
 }
 
 export default function TahlilRequestPage() {
+  const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
   const { userLocation, userState } = useLocationContext();
   const [loadingPayment, setLoadingPayment] = useState(false);
@@ -65,7 +67,7 @@ export default function TahlilRequestPage() {
     onSuccess: () => {
       setSubmitted(true);
       showSuccess('Terima kasih! Permohonan anda telah direkodkan.');
-      reset(defaultTahlilRequestField);
+      reset({ ...defaultTahlilRequestField, tahfizId: preSelectedTahfiz });
     },
   });
 
@@ -102,6 +104,13 @@ export default function TahlilRequestPage() {
   const amount = watch('amount');
   const customAmount = watch('customAmount');
   const paymentMethod = watch('paymentMethod');
+
+  useEffect(() => {
+    if (googleUser) {
+      setValue('requestorname', googleUser?.name ?? '');
+      setValue('requestoremail', googleUser?.email ?? '');
+    }
+  }, [googleUser]);
 
   const selectedTahfiz = useMemo(() =>
     tahfizCenters.find(c => c.id === Number(tahfizId)) || null,
@@ -156,12 +165,23 @@ export default function TahlilRequestPage() {
   useEffect(() => {
     const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
     if (!status_id) return;
+
     const pendingTahlil = sessionStorage.getItem("tahlilRequestPending");
     if (!pendingTahlil) return;
+
     const { formData, selectedAccount } = JSON.parse(pendingTahlil);
+
     if (statusText === "Success") {
       setSubmittedDeceasedNames(formData.deceasednames);
       showSuccess("Pembayaran berjaya!");
+
+      const storedUser = sessionStorage.getItem("googleAuth");
+      let googleRecordPayload = null;
+
+      if (storedUser) {
+        googleRecordPayload = JSON.parse(storedUser);
+      }
+
       createTahlilRequest.mutateAsync({
         ...formData,
         deceasednames: formData.deceasednames || [],
@@ -172,6 +192,7 @@ export default function TahlilRequestPage() {
         serviceamount: Number(formData.serviceamount) || 0,
         platformfeeamount: Number(formData.platformfeeamount) || 0,
         status: TahlilStatus.PENDING,
+        googleuserId: googleRecordPayload?.id ?? null,
       }).then(async (res) => {
         if (res) {
           const orderNo = String(order_id || '');
@@ -478,8 +499,8 @@ export default function TahlilRequestPage() {
           <Section title="Maklumat Pemohon" icon={Info} accent="blue">
             <div className="space-y-3">
               <TextInputForm name="requestorname" control={control} label="Nama Pemohon" required errors={errors} />
-              <TextInputForm name="requestorphoneno" control={control} label="No. Telefon" required errors={errors} />
               <TextInputForm name="requestoremail" control={control} label="Emel" required errors={errors} />
+              <TextInputForm name="requestorphoneno" control={control} label="No. Telefon" required errors={errors} />
               <div className="flex gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-600 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
                 <span>Resit pembayaran akan dihantar ke emel yang diberikan. Simpan nombor rujukan untuk menonton siaran langsung Tahlil.</span>

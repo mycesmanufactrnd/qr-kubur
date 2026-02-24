@@ -19,6 +19,10 @@ export default function SearchGrave() {
   const defaultFilter = location.state || {};
   const [displayedCount, setDisplayedCount] = useState(10);
   const [favoriteVersion, setFavoriteVersion] = useState(0);
+
+  const favoritedGraveIds = useMemo(() => {
+    return JSON.parse(localStorage.getItem('favoritedgrave') || '[]');
+  }, [favoriteVersion]);
   
   const {
     userLocation,
@@ -26,9 +30,11 @@ export default function SearchGrave() {
     userState
   } = useLocationContext();
 
-  const favoritedGraveIds = useMemo(() => {
-    return JSON.parse(localStorage.getItem('favoritedgrave') || '[]');
-  }, [favoriteVersion]);
+  useEffect(() => {
+    if (defaultFilter.isFavorited) {
+      setFilters({ ids: favoritedGraveIds });
+    }
+  }, [favoriteVersion, defaultFilter.isFavorited]);
 
   const [filters, setFilters] = useState(() => {
     if (defaultFilter.isFavorited && favoritedGraveIds.length > 0) {
@@ -43,13 +49,6 @@ export default function SearchGrave() {
     }
   }, [locationDenied]);
 
-  useEffect(() => {
-    if (defaultFilter.isFavorited) {
-      const updatedFavorites = JSON.parse(localStorage.getItem('favoritedgrave') || '[]');
-      setFilters({ ids: updatedFavorites });
-    }
-  }, [favoriteVersion, defaultFilter.isFavorited]);
-
   const { data: gravesList = [], isLoading } = useGetGravesCoordinates(
     userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
@@ -57,11 +56,13 @@ export default function SearchGrave() {
     filters
   );
 
+  console.log('filters', filters)
+
   if (defaultFilter.isFavorited && favoritedGraveIds.length === 0) {
     return (
       <div className="space-y-3 pb-6 px-1">
         <BackNavigation title={translate('Search Grave')} />
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-1">
+        <div className="flex items-center gap-2 rounded-xl">
           <AdvancedFilters
             parameter={[
               { label: translate("Name"), type: "text", searchColumn: "name" },
@@ -88,7 +89,7 @@ export default function SearchGrave() {
       <BackNavigation title={translate('Search Grave')} />
       {!defaultFilter.isFavorited && <ShowNearLocation />}
       
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-1">
+      <div className="flex items-center gap-2 rounded-xl">
         <AdvancedFilters
           parameter={[
             { label: translate("Name"), type: "text", searchColumn: "name" },

@@ -176,7 +176,7 @@ export default function ManageIslamicEvent() {
       {isLoading ? (
         <PageLoadingComponent/>
       ) : events.length === 0 ? (
-        <NoDataCardComponent/>
+        <NoDataCardComponent isPage/>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {events.map(event => (

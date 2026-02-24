@@ -14,7 +14,7 @@ if (!JWT_SECRET) throw new Error("JWT_SECRET not set in .env");
 
 export type TokenPayload = {
   id: string;
-  role: "superadmin" | "admin" | "employee" | "guest";
+  role: "superadmin" | "admin" | "employee" | "google";
 };
 
 export const signToken = (user: { id: string; role: TokenPayload["role"] }) =>

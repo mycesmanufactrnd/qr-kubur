@@ -110,7 +110,7 @@ export const waqfProjectRouter = router({
         .input(z.object({
             page: z.number(),
             pageSize: z.number(),
-            filters: z.record(z.string(), z.string()).optional()
+            filters: z.record(z.string(), z.any()).optional()
         }))
         .query(async ({ input }) => {
             const { page, pageSize, filters } = input;
@@ -121,8 +121,14 @@ export const waqfProjectRouter = router({
         
             if (filters) {
               for (const [key, value] of Object.entries(filters)) {
+                if (!value) continue;
+
                 if (value) {
-                  query.andWhere(`waqf.${key} ILIKE :${key}`, { [key]: `%${value}%` });
+                    if (key === "category") {
+                        query.andWhere(`waqf.${key}::text ILIKE :${key}`, { [key]: `%${value}%` });
+                    } else {
+                        query.andWhere(`waqf.${key} ILIKE :${key}`, { [key]: `%${value}%` });
+                    }
                 }
               }
             }

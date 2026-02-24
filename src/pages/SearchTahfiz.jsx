@@ -86,37 +86,37 @@ export default function SearchTahfiz() {
     <div className="space-y-3 pb-6 px-1">
       <BackNavigation title={translate('Search Tahfiz')} />
       <ShowNearLocation />
-      <AdvancedFilters
-        parameter={[
-          { label: translate("Name"), type: "text", searchColumn: "name" },
-          { label: translate("Address"), type: "text", searchColumn: "address" },
-          {
-            label: translate("State"),
-            type: "select",
-            searchColumn: "state",
-            options: STATES_MY.map((s) => ({ id: s, name: s })),
-          },
-        ]}
-        onApplyFilter={(newFilters) => {
-          const cleanedFilters = Object.fromEntries(
-            Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== null)
-          );
-          const mergedFilters = {
-            ...cleanedFilters,
-            ...(defaultFilter.isFavorited ? { ids: favoritedTahfizIds } : {})
-          };
+      <div className="flex items-center gap-2 rounded-xl">
+        <AdvancedFilters
+          parameter={[
+            { label: translate("Name"), type: "text", searchColumn: "name" },
+            { label: translate("Address"), type: "text", searchColumn: "address" },
+            {
+              label: translate("State"),
+              type: "select",
+              searchColumn: "state",
+              options: STATES_MY.map((s) => ({ id: s, name: s })),
+            },
+          ]}
+          onApplyFilter={(newFilters) => {
+            const cleanedFilters = Object.fromEntries(
+              Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== null)
+            );
+            const mergedFilters = {
+              ...cleanedFilters,
+              ...(defaultFilter.isFavorited ? { ids: favoritedTahfizIds } : {})
+            };
 
-          setFilters(Object.keys(mergedFilters).length === 0 ? null : mergedFilters);
-          setDisplayedCount(10);
-        }}
-      />
-
+            setFilters(Object.keys(mergedFilters).length === 0 ? null : mergedFilters);
+            setDisplayedCount(10);
+          }}
+        />
+      </div>
       <br/>
-      
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : !tahfizList || tahfizList.length === 0 ? (
-        <NoDataCardComponent/>
+        <NoDataCardComponent isPage/>
       ) : (
         <div className="space-y-4">
           {tahfizList.slice(0, displayedCount).map((tahfiz) => (

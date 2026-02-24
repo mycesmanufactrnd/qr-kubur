@@ -120,7 +120,7 @@ export const graveRouter = router({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
       }).optional().nullable(),
-      filters: z.record(z.string(), z.string()).optional()
+      filters: z.record(z.string(), z.any()).optional()
     }))
     .query(async ({ input }) => {
     const graveRepo = AppDataSource.getRepository(Grave);
@@ -134,8 +134,19 @@ export const graveRouter = router({
 
     if (input.filters) {
       for (const [key, value] of Object.entries(input.filters)) {
+        if (!value) continue;
+
         if (value) {
-          query.andWhere(`grave.${key} ILIKE :${key}`, { [key]: `%${value}%` });
+          if (key === 'name') {
+            query.andWhere("grave.name ILIKE :name", { name: `%${value}%` });
+          } else if (key === 'state' && value !== 'nearby') {
+            query.andWhere("grave.state = :state", { state: value });
+          } else if (key === 'ids' && Array.isArray(value) && value.length > 0) {
+            const ids = value.map((v: any) => v.id);
+            query.andWhere("grave.id IN (:...ids)", { ids });
+          }  else if (Object.keys(graveRepo.metadata.propertiesMap).includes(key)) {
+            query.andWhere(`grave.${key} = :${key}`, { [key]: value });
+          }
         }
       }
     }

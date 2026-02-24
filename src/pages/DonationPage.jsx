@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Heart, Building2, CreditCard, Search, MapPin, User, Info } from 'lucide-react';
+import { Heart, Building2, CreditCard, Search, MapPin, User, Info, XCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,9 +20,9 @@ import { useSearchParams } from 'react-router-dom';
 import { activityLogError, clearQueryParams } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 import PaymentSuccessfulComponent from '@/components/PaymentSuccessfulComponent';
+import { userGoogleAccess } from '@/utils/auth';
 
-// ── Reusable Section wrapper (same as TahlilRequestPage) ────────────────────
-function Section({ title, icon: Icon, accent = 'emerald', children }) {
+function Section({ title, icon: Icon, accent = 'emerald', headerAction, children }) {
   const colors = {
     emerald: 'text-emerald-600',
     violet: 'text-violet-600',
@@ -32,16 +32,18 @@ function Section({ title, icon: Icon, accent = 'emerald', children }) {
   };
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
-        {Icon && <Icon className={`w-4 h-4 ${colors[accent]}`} />}
-        <p className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}>{title}</p>
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className={`w-4 h-4 ${colors[accent]}`} />}
+          <p className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}>{title}</p>
+        </div>
+        {headerAction ? <div>{headerAction}</div> : null}
       </div>
       <div className="p-4">{children}</div>
     </div>
   );
 }
 
-// ── Recipient type toggle ────────────────────────────────────────────────────
 function TypeToggle({ value, onChange }) {
   const options = [
     { value: 'organisation', label: translate('Organisation'), icon: Building2 },
@@ -73,6 +75,7 @@ function TypeToggle({ value, onChange }) {
 }
 
 export default function DonationPage() {
+  const { googleUser } = userGoogleAccess();
   const hasAppliedUrlRecipient = useRef(false);
   const [searchParams] = useSearchParams();
   const urlParamId = searchParams.get('id') || null;
@@ -91,7 +94,7 @@ export default function DonationPage() {
   }, []);
 
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues: defaultDonationField });
+  const { watch, setValue, handleSubmit, reset } = useForm({ defaultValues:defaultDonationField });
   const { userLocation, userState, locationDenied } = useLocationContext();
 
   const recipientType = watch('recipientType');
@@ -103,6 +106,7 @@ export default function DonationPage() {
   const donorphoneno = watch('donorphoneno');
   const donoremail = watch('donoremail');
   const notes = watch('notes');
+  const hasDonorInfo = Boolean(donorname || donoremail || donorphoneno || notes);
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
   const saveTransactionAccountMutation = trpc.toyyibPay.saveTransactionAccount.useMutation();
@@ -116,6 +120,13 @@ export default function DonationPage() {
   });
 
   useEffect(() => {
+    if (googleUser) {
+      setValue('donorname', googleUser?.name ?? '');
+      setValue('donoremail', googleUser?.email ?? '');
+    }
+  }, [googleUser]);
+
+  useEffect(() => {
     if (locationDenied) showWarning('Lokasi tidak tersedia');
   }, [locationDenied]);
 
@@ -125,8 +136,10 @@ export default function DonationPage() {
   useEffect(() => {
     const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
     if (!status_id) return;
+
     const pendingDonation = sessionStorage.getItem("donationPending");
     if (!pendingDonation) return;
+    
     const { formData, baseAmount, payableAmount, selectedAccount } = JSON.parse(pendingDonation);
 
     const handleFinally = () => {
@@ -139,29 +152,55 @@ export default function DonationPage() {
     if (statusText === "Success") {
       setLoadingPayment(true);
       showSuccess("Pembayaran berjaya!");
+      
+      const storedUser = sessionStorage.getItem("googleAuth");
+      let googleRecordPayload = null;
+
+      if (storedUser) {
+        googleRecordPayload = JSON.parse(storedUser);
+      }
+
       createDonation.mutateAsync({
-        donorname: formData.donorname || null,
-        donorphoneno: formData.donorphoneno || null,
-        donoremail: formData.donoremail || null,
+        ...formData,
         amount: Number(baseAmount ?? payableAmount ?? 0) || null,
         tahfizcenter: formData.recipientType === 'tahfiz' && formData.selectedRecipient ? { id: Number(formData.selectedRecipient) } : null,
         organisation: formData.recipientType === 'organisation' && formData.selectedRecipient ? { id: Number(formData.selectedRecipient) } : null,
-        notes: formData.notes || null,
         status: VerificationStatus.PENDING,
         referenceno: order_id || null,
+        googleuserId: googleRecordPayload?.id ?? null,
       }).then(async (res) => {
         if (res) {
           const orderNo = String(order_id || '');
+
           if (orderNo && selectedAccount?.accountno && selectedAccount?.bankname) {
             try {
-              await saveTransactionAccountMutation.mutateAsync({ orderNo, accountNo: String(selectedAccount.accountno), bankName: String(selectedAccount.bankname), type: 'Donation' });
+              await saveTransactionAccountMutation.mutateAsync({ 
+                orderNo, 
+                accountNo: String(selectedAccount.accountno), 
+                bankName: String(selectedAccount.bankname), 
+                type: 'Donation' 
+              });
             } catch (accountError) {
-              await createLogMutation.mutateAsync({ activitytype: 'Save Transaction Account', functionname: 'saveTransactionAccountMutation.mutateAsync', useremail: '', level: 'error', summary: activityLogError(accountError), extramessage: JSON.stringify({ orderNo, selectedAccount }) });
+              await createLogMutation.mutateAsync({ 
+                activitytype: 'Save Transaction Account', 
+                functionname: 'saveTransactionAccountMutation.mutateAsync', 
+                useremail: '', 
+                level: 'error', 
+                summary: activityLogError(accountError), 
+                extramessage: JSON.stringify({ orderNo, selectedAccount }) 
+              });
             }
           }
         }
       }).catch((error) => {
-        createLogMutation.mutateAsync({ activitytype: 'Create Donation', functionname: 'createDonation.mutateAsync', useremail: '', level: 'error', summary: activityLogError(error), extramessage: pendingDonation });
+        createLogMutation.mutateAsync({ 
+          activitytype: 'Create Donation', 
+          functionname: 'createDonation.mutateAsync', 
+          useremail: '', 
+          level: 'error', 
+          summary: activityLogError(error), 
+          extramessage: pendingDonation 
+        });
       }).finally(handleFinally);
     } else if (statusText === "Pending") {
       showError("Pembayaran masih dalam proses.");
@@ -276,6 +315,13 @@ export default function DonationPage() {
   if (status_id) return <PaymentSuccessfulComponent />;
 
   const recipientList = recipientType === 'organisation' ? organisations : tahfizCenters;
+
+  const clearDonorInfo = () => {
+    setValue('donorname', '');
+    setValue('donoremail', '');
+    setValue('donorphoneno', '');
+    setValue('notes', '');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
@@ -462,7 +508,23 @@ export default function DonationPage() {
             </Section>
           )}
 
-          <Section title={translate('Donor Information (Optional)')} icon={User} accent="blue">
+          <Section
+            title={translate('Donor Information (Optional)')}
+            icon={User}
+            accent="blue"
+            headerAction={(
+              <button
+                type="button"
+                onClick={clearDonorInfo}
+                disabled={!hasDonorInfo}
+                title={translate('Clear')}
+                aria-label={translate('Clear donor information')}
+                className="inline-flex items-center justify-center text-slate-400 hover:text-red-500 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            )}
+          >
             <div className="space-y-3">
               <Input
                 placeholder={translate('Name')}

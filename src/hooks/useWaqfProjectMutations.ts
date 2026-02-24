@@ -74,7 +74,7 @@ export function useGetWaqfProjectById(id: number | null) {
 export function useGetWaqfProject(
   page: number,
   pageSize: number,
-  filters?: Record<string, string>
+  filters?: Record<string, any>
 ) {
   return trpc.waqfProject.getWaqfProject.useQuery(
     { 

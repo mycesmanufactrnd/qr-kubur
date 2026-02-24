@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGetMosqueCoordinates } from '@/hooks/useMosqueMutations';
 import { Button } from "@/components/ui/button";
 import { translate } from '@/utils/translations';
@@ -11,16 +11,25 @@ import MosqueCardList from '@/components/MosqueCardList';
 import AdvancedFilters from '@/components/mobile/AdvancedFilters';
 import FoundDataLength from '@/components/FoundDataLength';
 import { useLocation } from 'react-router-dom';
+import ShowNearLocation from '@/components/ShowNearLocation';
 
 export default function SearchMosque() {
   const location = useLocation();
   const defaultFilter = location.state || {};
+  const [displayedCount, setDisplayedCount] = useState(10);
   const { userLocation, userState, locationDenied } = useLocationContext();
 
   const [favoriteVersion, setFavoriteVersion] = useState(0);
 
-  const favoritedMosqueIds = JSON.parse(localStorage.getItem('favoritedmosque') || '[]'); 
-  
+  const favoritedMosqueIds = useMemo(() => {
+    return JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
+  }, [favoriteVersion]);
+
+  useEffect(() => {
+    if (defaultFilter.isFavorited) {
+      setFilters({ ids: favoritedMosqueIds });
+    }
+  }, [favoriteVersion, favoritedMosqueIds]);
   
   const [filters, setFilters] = useState(() => {
     if (defaultFilter.isFavorited && favoritedMosqueIds.length > 0) {
@@ -30,48 +39,40 @@ export default function SearchMosque() {
     return { state: userState };
   });
   
-  const [displayedCount, setDisplayedCount] = useState(10);
-  
   const { data: mosques = [], isLoading } = useGetMosqueCoordinates(
     userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
     filters
   );
 
-  useEffect(() => {
-    if (defaultFilter.isFavorited) {
-      const updatedFavorites = JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
-      setFilters({ ids: updatedFavorites });
-    }
-  }, [favoriteVersion]);
-
   if (defaultFilter.isFavorited && favoritedMosqueIds.length === 0) {
     return (
       <div className="space-y-3 pb-2">
         <BackNavigation title={translate('Search Mosque') || "Cari Masjid"} />
+        <ShowNearLocation />
         <div className="flex items-center gap-2 rounded-xl">
-        <AdvancedFilters
-          parameter={[
-            { label: "Name", type: "text", searchColumn: "name" },
-            {
-              label: "State",
-              type: "select",
-              searchColumn: "state",
-              options: STATES_MY.map((s) => ({ id: s, name: s })),
-            },
-            {
-              label: "Can Arrange Funeral",
-              type: "checkbox",
-              searchColumn: "canarrangefuneral",
-            },
-            {
-              label: "Has Death Charity",
-              type: "checkbox",
-              searchColumn: "hasdeathcharity",
-            },
-          ]}
-          onApplyFilter={setFilters}
-        />
-      </div>
+          <AdvancedFilters
+            parameter={[
+              { label: "Name", type: "text", searchColumn: "name" },
+              {
+                label: "State",
+                type: "select",
+                searchColumn: "state",
+                options: STATES_MY.map((s) => ({ id: s, name: s })),
+              },
+              {
+                label: "Can Arrange Funeral",
+                type: "checkbox",
+                searchColumn: "canarrangefuneral",
+              },
+              {
+                label: "Has Death Charity",
+                type: "checkbox",
+                searchColumn: "hasdeathcharity",
+              },
+            ]}
+            onApplyFilter={setFilters}
+          />
+        </div>
         <FoundDataLength dataList={[]} data="Mosque(s)" />
         <NoDataCardComponent isPage title={translate('No Favorited Mosques Found')} />
       </div>
@@ -81,6 +82,7 @@ export default function SearchMosque() {
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title={translate('Search Mosque') || "Cari Masjid"} />
+      <ShowNearLocation />
       <div className="flex items-center gap-2 rounded-xl">
         <AdvancedFilters
           parameter={[

@@ -11,6 +11,7 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
 import { useGetHeritageSitesCoordinates } from '@/hooks/useHeritageMutations';
 import { useLocationContext } from '@/providers/LocationProvider';
+import ShowNearLocation from '@/components/ShowNearLocation';
 
 export default function SearchGrave() {
   const [displayedCount, setDisplayedCount] = useState(10);
@@ -41,28 +42,27 @@ export default function SearchGrave() {
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title="Search Heritage Site" />
-
-      <Card className="border-0 shadow-sm dark:bg-gray-800">
-        <CardContent className="p-3 space-y-2">
-          <AdvancedFilters
-            parameter={[
-              { label: "Name", type: "text", searchColumn: "name" },
-              {
-                label: "State",
-                type: "select",
-                searchColumn: "state",
-                options: STATES_MY.map((s) => ({ id: s, name: s })),
-              },
-            ]}
-            onApplyFilter={setFilters}
-          />
-        </CardContent>
-      </Card>
+      <ShowNearLocation />
+      <div className="flex items-center gap-2 rounded-xl">
+        <AdvancedFilters
+          parameter={[
+            { label: "Name", type: "text", searchColumn: "name" },
+            { label: "Address", type: "text", searchColumn: "address" },
+            {
+              label: "State",
+              type: "select",
+              searchColumn: "state",
+              options: STATES_MY.map((s) => ({ id: s, name: s })),
+            },
+          ]}
+          onApplyFilter={setFilters}
+        />
+      </div>
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
       ) : heritageSiteList.length === 0 ? (
-        <NoDataCardComponent/>
+        <NoDataCardComponent isPage/>
       ) : (
         <div className="space-y-3">
           {heritageSiteList.map((heritage, index) => (

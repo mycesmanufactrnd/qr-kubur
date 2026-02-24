@@ -145,6 +145,37 @@ export function useAdminAccess() {
   };
 }
 
+export function userGoogleAccess() {
+  const [googleUser, setGoogleUser] = useState<any>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const storedUser = sessionStorage.getItem("googleAuth");
+        if (storedUser) {
+          setGoogleUser(JSON.parse(storedUser));
+        }
+      } catch (e) {
+        setGoogleUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  const gmail = googleUser?.email ?? null;
+
+  return {
+    role: googleUser ? "google" : "guest",
+    googleUser,
+    loadingUser,
+    gmail,
+  };
+}
+
 export function useLoginGoogle() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);

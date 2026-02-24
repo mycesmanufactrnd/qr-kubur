@@ -97,7 +97,7 @@ export const authRouter = router({
 
       const token = signToken({
         id: user.id.toString(),
-        role: "guest",
+        role: "google",
       });
 
       return {

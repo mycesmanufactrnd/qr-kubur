@@ -8,6 +8,8 @@ import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { useGetWaqfProject } from '@/hooks/useWaqfProjectMutations';
 import WaqfCard from '@/components/waqf/WaqfCard';
+import { WaqfCategory } from '@/utils/enums';
+import ShowNearLocation from '@/components/ShowNearLocation';
 
 export default function SearchWaqf() {
     const [page, setPage] = useState(1);
@@ -21,22 +23,31 @@ export default function SearchWaqf() {
     return (
         <div className="space-y-3 pb-2">
         <BackNavigation title="Search Waqf Project" />
+        <ShowNearLocation />
 
-        <Card className="border-0 shadow-sm dark:bg-gray-800">
-            <CardContent className="p-3 space-y-2">
-                <AdvancedFilters
-                    parameter={[
-                        { label: "Waqf Name", type: "text", searchColumn: "waqfname" },
-                    ]}
-                    onApplyFilter={setFilters}
-                />
-            </CardContent>
-        </Card>
+        <div className="flex items-center gap-2 rounded-xl">
+            <AdvancedFilters
+                parameter={[
+                    { label: "Waqf Name", type: "text", searchColumn: "waqfname" },
+                    { label: "Location", type: "text", searchColumn: "location" },
+                    {
+                        label: translate("Category"),
+                        type: "select",
+                        searchColumn: "category",
+                        options: Object.values(WaqfCategory).map((category) => ({
+                            id: category,
+                            name: category,
+                        }))
+                    },
+                ]}
+                onApplyFilter={setFilters}
+            />
+        </div>
 
         {isLoading ? (
             <ListCardSkeletonComponent/>
         ) : waqfList.length === 0 ? (
-            <NoDataCardComponent/>
+            <NoDataCardComponent isPage/>
         ) : (
             <div className="space-y-3">
             {waqfList.map((waqf, index) => (

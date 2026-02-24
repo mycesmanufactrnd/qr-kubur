@@ -226,7 +226,7 @@ export default function ManageUsers() {
         {appUsersLoading ? (
           <ListCardSkeletonComponent/>
         ) : appUsers.items.length === 0 ? (
-          <NoDataCardComponent/>
+          <NoDataCardComponent isPage/>
         ) : (
           appUsers.items.map(user => (
             <Card key={user.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
