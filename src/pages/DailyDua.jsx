@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Card } from "@/components/ui/card";
-import { Heart, Sun, Moon, Book, Sparkles, Clock } from 'lucide-react';
+import { Sun, Moon, Book } from 'lucide-react';
 import DuaCard from '@/components/DuaCard';
 import BackNavigation from '@/components/BackNavigation';
 import { translate } from '@/utils/translations';
 
 const CATEGORIES = [
-  { id: 'all', label: "All", color: 'emerald' },
-  { id: 'daily-dua', label: 'Daily', color: 'rose' },
-  { id: 'morning-dhikr', label: 'Morning', color: 'amber' },
-  { id: 'evening-dhikr', label: 'Evening', color: 'indigo' },
-  { id: 'dhikr-after-salah', label: 'After Salah', color: 'teal' },
-  { id: 'selected-dua', label: 'Selected', color: 'purple' },
+  { id: 'all',               label: 'All',         emoji: '✦' },
+  { id: 'daily-dua',         label: 'Daily',        emoji: '🤲' },
+  { id: 'morning-dhikr',     label: 'Morning',      emoji: '🌅' },
+  { id: 'evening-dhikr',     label: 'Evening',      emoji: '🌙' },
+  { id: 'dhikr-after-salah', label: 'After Salah',  emoji: '🕌' },
+  { id: 'selected-dua',      label: 'Selected',     emoji: '⭐' },
 ];
 
 export default function DailyDua() {
@@ -20,112 +19,91 @@ export default function DailyDua() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
-    const loadAllDoa = async () => {
-      try {
-        const files = [
-          '/dua-dhikr/daily-dua.json',
-          '/dua-dhikr/morning-dhikr.json',
-          '/dua-dhikr/evening-dhikr.json',
-          '/dua-dhikr/dhikr-after-salah.json',
-          '/dua-dhikr/selected-dua.json',
-        ];
+    const files = [
+      '/dua-dhikr/daily-dua.json',
+      '/dua-dhikr/morning-dhikr.json',
+      '/dua-dhikr/evening-dhikr.json',
+      '/dua-dhikr/dhikr-after-salah.json',
+      '/dua-dhikr/selected-dua.json',
+    ];
 
-        const responses = await Promise.all(
-          files.map(url => fetch(url).then(res => res.json()))
-        );
-
-        const merged = responses.flatMap((list, index) =>
+    Promise.all(files.map(url => fetch(url).then(r => r.json())))
+      .then(responses => {
+        setAllDoa(responses.flatMap((list, i) =>
           list.map(item => ({
             ...item,
-            group: files[index]
-              .replace('/dua-dhikr/', '')
-              .replace('.json', '')
+            group: files[i].replace('/dua-dhikr/', '').replace('.json', ''),
           }))
-        );
-
-        setAllDoa(merged);
-      } catch (e) {
-        console.error('Failed to load du\'a', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAllDoa();
+        ));
+      })
+      .catch(e => console.error("Failed to load du'a", e))
+      .finally(() => setLoading(false));
   }, []);
 
-  const filteredDoa = selectedCategory === 'all' 
-    ? allDoa 
-    : allDoa.filter(dua => dua.group === selectedCategory);
+  const filteredDoa = selectedCategory === 'all'
+    ? allDoa
+    : allDoa.filter(d => d.group === selectedCategory);
 
-  const getCategoryColor = (color) => ({
-    emerald: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-    rose: 'bg-rose-500 hover:bg-rose-600 text-white',
-    amber: 'bg-amber-500 hover:bg-amber-600 text-white',
-    indigo: 'bg-indigo-500 hover:bg-indigo-600 text-white',
-    teal: 'bg-teal-500 hover:bg-teal-600 text-white',
-    purple: 'bg-purple-500 hover:bg-purple-600 text-white',
-  }[color]);
+  const showMorning = selectedCategory === 'all' || selectedCategory === 'morning-dhikr';
+  const showEvening = selectedCategory === 'all' || selectedCategory === 'evening-dhikr';
+  const showVideos  = showMorning || showEvening;
 
-  const getCategoryOutline = (color) => ({
-    emerald: 'border-emerald-600 text-emerald-700 hover:bg-emerald-50',
-    rose: 'border-rose-500 text-rose-700 hover:bg-rose-50',
-    amber: 'border-amber-500 text-amber-700 hover:bg-amber-50',
-    indigo: 'border-indigo-500 text-indigo-700 hover:bg-indigo-50',
-    teal: 'border-teal-500 text-teal-700 hover:bg-teal-50',
-    purple: 'border-purple-500 text-purple-700 hover:bg-purple-50',
-  }[color]);
+  const activeCat = CATEGORIES.find(c => c.id === selectedCategory);
 
   return (
-    <div className="pb-12 min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen pb-12">
       <BackNavigation title={translate('Daily Dua & Dhikr')} />
 
-      <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 pb-8 pt-4 px-4 text-center text-white shadow-lg">
-        <h5 className="text-xl font-bold mb-2">Du'a & Dhikr Collection</h5>
-        <p className="text-sm text-white/90 max-w-md mx-auto">
-          A strong heart remembers Allah
+      <div className="flex flex-col items-center text-center gap-2 px-4 pb-6">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-200 mb-1">
+          <Book className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-base font-bold text-slate-800">Du'a & Dhikr</h2>
+        <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
+          Verily, in the remembrance of Allah do hearts find rest
         </p>
       </div>
-      <div className="max-w-5xl mx-auto space-y-6 -mt-2">
-        <Card className="p-4 shadow-lg border-0 bg-white rounded-b-lg rounded-t-none">
-          <div className="flex items-center gap-2 mb-3">
-            <Book className="w-4 h-4 text-emerald-600" />
-            <span className="text-sm font-semibold text-slate-700">Browse by Category</span>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-200
-                  ${
-                    selectedCategory === c.id
-                      ? `${getCategoryColor(c.color)} shadow-md`
-                      : `${getCategoryOutline(c.color)} bg-white`
+
+      <div className="relative mb-4 px-4">
+        <div className="bg-white rounded-2xl border border-slate-100 p-3 shadow-lg overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 w-max min-w-full">
+            {CATEGORIES.map(c => {
+              const isActive = selectedCategory === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCategory(c.id)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all active:scale-95 ${
+                    isActive
+                      ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                   }`}
-              >
-                {c.label}
-              </button>
-            ))}
+                >
+                  <span>{c.emoji}</span>
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
+        </div>
+      </div>
 
-        </Card>
+      <div className="max-w-2xl mx-auto px-4 space-y-4">
 
-        {(selectedCategory === 'all' || selectedCategory === 'morning-dhikr' || selectedCategory === 'evening-dhikr') && (
-          <div className="grid md:grid-cols-2 gap-4">
-            {(selectedCategory === 'all' || selectedCategory === 'morning-dhikr') && (
-              <Card className="p-4 space-y-3 border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-amber-100 rounded-lg">
-                    <Sun className="w-5 h-5 text-amber-600" />
+        {showVideos && (
+          <div className={`grid gap-3 ${showMorning && showEvening ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+            {showMorning && (
+              <div className="rounded-2xl overflow-hidden border border-amber-100 bg-white shadow-sm">
+                <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border-b border-amber-100">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <Sun className="w-4 h-4 text-amber-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-800">Morning Zikir</h3>
-                    <p className="text-xs text-slate-600">Start your day with dhikr</p>
+                    <p className="text-sm font-bold text-slate-800 leading-tight">Morning Zikir</p>
+                    <p className="text-[10px] text-slate-400">Start your day with dhikr</p>
                   </div>
                 </div>
-
-                <div className="relative w-full rounded-lg overflow-hidden shadow-md" style={{ paddingBottom: '56.25%' }}>
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <iframe
                     className="absolute inset-0 w-full h-full"
                     src="https://www.youtube.com/embed/rCXxm_yVmkM"
@@ -134,22 +112,21 @@ export default function DailyDua() {
                     allowFullScreen
                   />
                 </div>
-              </Card>
+              </div>
             )}
 
-            {(selectedCategory === 'all' || selectedCategory === 'evening-dhikr') && (
-              <Card className="p-4 space-y-3 border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-purple-50">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <Moon className="w-5 h-5 text-indigo-600" />
+            {showEvening && (
+              <div className="rounded-2xl overflow-hidden border border-indigo-100 bg-white shadow-sm">
+                <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                    <Moon className="w-4 h-4 text-indigo-500" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-800">Evening Zikir</h3>
-                    <p className="text-xs text-slate-600">End your day with remembrance</p>
+                    <p className="text-sm font-bold text-slate-800 leading-tight">Evening Zikir</p>
+                    <p className="text-[10px] text-slate-400">End your day with remembrance</p>
                   </div>
                 </div>
-
-                <div className="relative w-full rounded-lg overflow-hidden shadow-md" style={{ paddingBottom: '56.25%' }}>
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <iframe
                     className="absolute inset-0 w-full h-full"
                     src="https://www.youtube.com/embed/uawK9NL9EPA"
@@ -158,42 +135,42 @@ export default function DailyDua() {
                     allowFullScreen
                   />
                 </div>
-              </Card>
+              </div>
             )}
           </div>
         )}
 
-        <div className="space-y-4">
-          {!loading && filteredDoa.length > 0 && (
-            <div className="flex items-center justify-between px-2">
-              <h2 className="text-lg font-bold text-slate-800">
-                {selectedCategory === 'all' ? 'All Du\'a' : CATEGORIES.find(c => c.id === selectedCategory)?.label}
-              </h2>
-              <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                {filteredDoa.length} {filteredDoa.length === 1 ? 'du\'a' : 'du\'as'}
-              </span>
+        {!loading && filteredDoa.length > 0 && (
+          <div className="flex items-center justify-between px-1 pt-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{activeCat?.emoji}</span>
+              <p className="text-sm font-bold text-slate-700">
+                {selectedCategory === 'all' ? "All Du'a" : activeCat?.label}
+              </p>
             </div>
-          )}
+            <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
+              {filteredDoa.length} du'a{filteredDoa.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
 
-          {loading && (
-            <Card className="p-8 text-center border-0 shadow-sm">
-              <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3" />
-              <p className="text-sm text-slate-500">Loading du'a...</p>
-            </Card>
-          )}
+        {loading && (
+          <div className="bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center py-16 gap-4">
+            <div className="w-8 h-8 border-[3px] border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-slate-400">Loading du'a...</p>
+          </div>
+        )}
 
-          {!loading && filteredDoa.length === 0 && (
-            <Card className="p-8 text-center border-0 shadow-sm">
-              <Book className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-500">No du'a found in this category</p>
-            </Card>
-          )}
+        {!loading && filteredDoa.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center py-16 gap-3">
+            <Book className="w-10 h-10 text-slate-200" />
+            <p className="text-sm text-slate-400">No du'a found in this category</p>
+          </div>
+        )}
 
-          {!loading &&
-            filteredDoa.map((dua, index) => (
-              <DuaCard key={`${dua.group}-${index}`} dua={dua} />
-            ))}
-        </div>
+        {!loading && filteredDoa.map((dua, index) => (
+          <DuaCard key={`${dua.group}-${index}`} dua={dua} />
+        ))}
       </div>
     </div>
   );

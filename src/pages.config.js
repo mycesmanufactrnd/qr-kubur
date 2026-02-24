@@ -5,7 +5,6 @@ import DonationPage from '@/pages/DonationPage';
 import GraveDetails from '@/pages/GraveDetails';
 import ManageUsers from '@/pages/Management/ManageUsers';
 import NotificationPage from '@/pages/NotificationPage';
-import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import ScanQR from '@/pages/ScanQR';
 import SearchGrave from '@/pages/SearchGrave';
 import SearchWaqf from '@/pages/SearchWaqf';
@@ -18,14 +17,12 @@ import SettingsPage from '@/pages/SettingsPage';
 import SubmitSuggestion from '@/pages/SubmitSuggestion';
 import SurahPage from '@/pages/SurahPage';
 import TahlilRequestPage from '@/pages/TahlilRequestPage';
-import TermsAndConditions from '@/pages/TermsAndConditions';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
 import SearchMosque from '@/pages/SearchMosque.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
 import DailyDua from '@/pages/DailyDua.jsx';
 import JitsiRoom from '@/pages/JitsiRoom.jsx';
 import WaqfDetail from '@/pages/WaqfDetail.jsx';
-import Ollama from '@/pages/Ollama.jsx';
 import MosqueDetails from '@/pages/MosqueDetails.jsx';
 import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
 import AsmaulHusna from '@/pages/Asmaulhusna.jsx';
@@ -33,10 +30,13 @@ import Tasbih from '@/pages/Tasbih.jsx';
 import PrayerTimes from '@/pages/PrayerTimes.jsx';
 import RukunIslam from '@/pages/RukunIslam.jsx';
 import DeathCharityUserPayment from '@/pages/DeathCharityUserPayment.jsx';
-// Superadmin
+// Superadmin & Settings
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
-import IconLibrary from '@/pages/IconLibrary';
+import IconLibrary from '@/pages/Settings/IconLibrary';
+import Ollama from '@/pages/Settings/Ollama.jsx';
+import PrivacyPolicy from '@/pages/Settings/PrivacyPolicy';
+import TermsAndConditions from '@/pages/Settings/TermsAndConditions';
 // Management
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
 import ManageDonations from '@/pages/Management/ManageDonations';

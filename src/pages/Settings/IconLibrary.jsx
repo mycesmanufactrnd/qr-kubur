@@ -27,7 +27,7 @@ import {
   Terminal, GitBranch, Github, Gitlab, Coffee, Pizza, Beer, Utensils,
   QrCode, Scan, Cpu, HardDriveDownload, HardDriveUpload, Shield as ShieldIcon
 } from 'lucide-react';
-import Breadcrumb from '../components/Breadcrumb';
+import Breadcrumb from '@/components/Breadcrumb';
 import { showSuccess } from '@/components/ToastrNotification';
 
 // Icon collection with categories
