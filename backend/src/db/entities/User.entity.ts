@@ -43,12 +43,6 @@ export class User {
   })
   tahfizcenter?: TahfizCenter | null;
 
-  @ManyToOne(() => Mosque, (mosque) => mosque.users, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
-  mosque?: Mosque | null;
-
   @OneToMany(() => Permission, (permissions) => permissions.user)
   permissions!: Permission[];
 

@@ -25,6 +25,9 @@ export * from "./entities/Mosque.entity.ts";
 export * from "./entities/ActivityPosts.entity.ts";
 export * from "./entities/IslamicEvent.entity.ts";
 export * from "./entities/WaqfProject.entity.ts";
+// Guest Users
+export * from "./entities/GoogleUser/GoogleUser.entity.ts";
+export * from "./entities/GoogleUser/GoogleUserRecord.entity.ts";
 //Death Charity
 export * from "./entities/DeathCharity/DeathCharity.entity.ts";
 export * from "./entities/DeathCharity/DeathCharityClaim.entity.ts";

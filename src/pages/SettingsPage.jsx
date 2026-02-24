@@ -7,13 +7,61 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
+import { useLoginGoogle } from '@/utils/auth';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [fontSize, setFontSize] = useState('medium');
   const [language, setLanguage] = useState('ms');
   const [theme, setTheme] = useState('light');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => !!sessionStorage.getItem('appUserAuth'));
+
+  const { login, loading, error, setError } = useLoginGoogle();
+
+  const handleCredentialResponse = (response) => {
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    
+    const { email, name, picture } = payload || {};
+    
+    console.log("Encoded JWT ID token:", response.credential);
+    console.log("Email:", email);
+    console.log("Name:", name);
+    console.log("Picture:", picture);
+
+    login(response.credential);
+  };
+
+  useEffect(() => {
+    if (isAdmin) return;
+
+    const initializeGoogleSignIn = () => {
+      if (!window.google?.accounts?.id) return false;
+
+      window.google.accounts.id.initialize({
+        client_id: "52708588654-9680sm9l110i7qrag9g6uf3sbf0h6cb1.apps.googleusercontent.com",
+        callback: handleCredentialResponse,
+      });
+
+      window.google.accounts.id.renderButton(
+        document.getElementById("guest-google-signin"),
+        {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+        }
+      );
+
+      return true;
+    };
+
+    const interval = setInterval(() => {
+      if (initializeGoogleSignIn()) {
+        clearInterval(interval);
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [isAdmin]);
 
   useEffect(() => {
     const savedSize = localStorage.getItem('fontSize') || 'medium';
@@ -113,6 +161,16 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4 pb-2">
       <BackNavigation title={translate('Settings')} />
+      {!isAdmin && (
+        <Card className="border-0 shadow-sm dark:bg-gray-800">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+              {translate('Guest Google Sign-In')}
+            </p>
+            <div id="guest-google-signin" className="g-signin2" data-onsuccess="onSignIn"></div>
+          </CardContent>
+        </Card>
+      )}
       {settingsSections.map((section, idx) => (
         <Card key={idx} className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-0">

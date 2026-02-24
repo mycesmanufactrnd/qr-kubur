@@ -2,6 +2,7 @@ import { createPageUrl } from './index';
 import { useEffect, useState } from 'react';
 import { trpc, trpcClient } from './trpc';
 import { STATES_MY } from './enums';
+import { useNavigate } from 'react-router-dom';
 
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
@@ -142,4 +143,36 @@ export function useAdminAccess() {
     currentUserStates,
     userEmail
   };
+}
+
+export function useLoginGoogle() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loginGoogleMutation = trpc.auth.loginGoogle.useMutation({
+    onSuccess: (data) => {
+      setLoading(false);
+
+      sessionStorage.setItem("googleAuth", JSON.stringify(data.user));
+      sessionStorage.setItem("token", data.token);
+      
+      navigate(createPageUrl("UserDashboard"));
+    },
+    onError: (err) => {
+      setLoading(false);
+      setError(err.message);
+    },
+  });
+
+  const login = (credential) => {
+    setError("");
+    setLoading(true);
+
+    loginGoogleMutation.mutate({
+      credential,
+    });
+  };
+
+  return { login, loading, error, setError };
 }

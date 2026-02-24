@@ -5,7 +5,12 @@ import { User } from "../db/entities/User.entity.ts";
 import { signToken } from "../auth.ts";
 import { assertRole } from "../helpers/authHelper.ts";
 import { AppDataSource } from "../datasource.ts";
+import { OAuth2Client } from "google-auth-library";
+import { GoogleUser } from "../db/entities.ts";
 
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID
+);
 
 export const authRouter = router({
   getClientIp: publicProcedure
@@ -56,6 +61,48 @@ export const authRouter = router({
         organisation,
         tahfizcenter,
         ...userWithoutPassword,
+      };
+    }),
+
+  loginGoogle: publicProcedure
+    .input(
+      z.object({
+        credential: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const googleUserRepo = AppDataSource.getRepository(GoogleUser);
+
+      const ticket = await googleClient.verifyIdToken({
+        idToken: input.credential,
+        audience: process.env.GOOGLE_CLIENT_ID!,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload?.email) {
+        throw new Error("Invalid Google token");
+      }
+
+      const { email, name, picture } = payload;
+
+      let user = await googleUserRepo.findOne({
+        where: { email },
+      });
+
+      if (!user) {
+        user = googleUserRepo.create({ email, name, picture });
+        await googleUserRepo.save(user);
+      }
+
+      const token = signToken({
+        id: user.id.toString(),
+        role: "guest",
+      });
+
+      return {
+        token,
+        user
       };
     }),
 });
