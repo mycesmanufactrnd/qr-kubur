@@ -20,13 +20,13 @@ export const trpcClient = trpc.createClient({
         return op.context.skipBatch === true;
       },
       true: httpLink({
-        // url: 'http://localhost:8000/trpc',
-        url: 'https://ccfd-2001-e68-5419-3914-859-7ed0-f3be-8b53.ngrok-free.app/trpc',
+        url: 'http://localhost:8000/trpc',
+        // url: 'https://a891-2001-e68-58d7-4c00-c0fb-cfec-8967-642b.ngrok-free.app/trpc',
         headers: getHeaders,
       }),
       false: httpBatchLink({
-        // url: 'http://localhost:8000/trpc',
-        url: 'https://ccfd-2001-e68-5419-3914-859-7ed0-f3be-8b53.ngrok-free.app/trpc',
+        url: 'http://localhost:8000/trpc',
+        // url: 'https://a891-2001-e68-58d7-4c00-c0fb-cfec-8967-642b.ngrok-free.app/trpc',
         headers: getHeaders,
       }),
     }),
