@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { booleanPointInPolygon } from '@turf/turf';
 import { getMalaysiaGeo } from '@/utils/helpers';
 
@@ -10,57 +10,84 @@ export function LocationProvider({ children }) {
   const [locationDenied, setLocationDenied] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(true);
 
-  useEffect(() => {
-    const cached = sessionStorage.getItem('user_location');
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      setUserLocation(parsed.location);
-      setUserState(parsed.state);
-      setIsLocationLoading(false);
-      return;
+  const resolveUserLocation = useCallback(async ({ forceRefresh = false } = {}) => {
+    setIsLocationLoading(true);
+
+    if (!forceRefresh) {
+      const cached = sessionStorage.getItem('user_location');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setUserLocation(parsed.location ?? null);
+          setUserState(parsed.state ?? null);
+          setLocationDenied(false);
+          setIsLocationLoading(false);
+          return true;
+        } catch {
+          sessionStorage.removeItem('user_location');
+        }
+      }
     }
 
-    getMalaysiaGeo().then((malaysiaStates) => {
-      if (!navigator.geolocation) {
-        setLocationDenied(true);
-        setIsLocationLoading(false);
-        return;
+    if (!navigator.geolocation) {
+      setUserLocation(null);
+      setUserState(null);
+      setLocationDenied(true);
+      setIsLocationLoading(false);
+      return false;
+    }
+
+    try {
+      const malaysiaStates = await getMalaysiaGeo();
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          {
+            timeout: 8000,
+            enableHighAccuracy: true,
+            maximumAge: 0,
+          }
+        );
+      });
+
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      const point = [lng, lat];
+      let detectedState = null;
+
+      for (const feature of malaysiaStates.features) {
+        if (booleanPointInPolygon(point, feature)) {
+          detectedState = feature.properties.name;
+          break;
+        }
       }
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+      const payload = {
+        location: { lat, lng },
+        state: detectedState,
+      };
 
-          const point = [lng, lat];
-          let detectedState = null;
+      sessionStorage.setItem('user_location', JSON.stringify(payload));
 
-          for (const feature of malaysiaStates.features) {
-            if (booleanPointInPolygon(point, feature)) {
-              detectedState = feature.properties.name;
-              break;
-            }
-          }
-
-          const payload = {
-            location: { lat, lng },
-            state: detectedState
-          };
-
-          sessionStorage.setItem('user_location', JSON.stringify(payload));
-
-          setUserLocation(payload.location);
-          setUserState(payload.state);
-          setIsLocationLoading(false);
-        },
-        () => {
-          setLocationDenied(true);
-          setIsLocationLoading(false);
-        },
-        { timeout: 8000 }
-      );
-    });
+      setUserLocation(payload.location);
+      setUserState(payload.state);
+      setLocationDenied(false);
+      return true;
+    } catch {
+      setUserLocation(null);
+      setUserState(null);
+      setLocationDenied(true);
+      return false;
+    } finally {
+      setIsLocationLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    resolveUserLocation();
+  }, [resolveUserLocation]);
 
   return (
     <LocationContext.Provider
@@ -68,7 +95,8 @@ export function LocationProvider({ children }) {
         userLocation,
         userState,
         locationDenied,
-        isLocationLoading
+        isLocationLoading,
+        requestLocation: resolveUserLocation,
       }}
     >
       {children}

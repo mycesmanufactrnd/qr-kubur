@@ -40,7 +40,7 @@ export default function DeadPersonDetails() {
     return (
       <>
         <BackNavigation />
-        <NoDataCardComponent isPage={true}/>
+        <NoDataCardComponent isPage/>
       </>
     );
   }

@@ -115,7 +115,7 @@ export default function JenazahEmergency() {
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : mosques.length === 0 ? (
-        <NoDataCardComponent title={translate('noMosqueFound')} />
+        <NoDataCardComponent isPage title={translate('No Mosque Found')} />
       ) : (
         <div className="space-y-4 px-1">
           {mosques.slice(0, displayedCount).map(m => (
@@ -124,7 +124,7 @@ export default function JenazahEmergency() {
           {displayedCount < mosques.length && (
             <div className="text-center py-4">
               <Button variant="ghost" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                {translate('loadMore')}
+                {translate('Load More')}
               </Button>
             </div>
           )}

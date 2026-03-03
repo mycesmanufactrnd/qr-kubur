@@ -115,6 +115,12 @@ export default function SearchTahfiz() {
       <br/>
       {isLoading ? (
         <ListCardSkeletonComponent />
+      ) : locationDenied ? (
+        <NoDataCardComponent
+          isNoGPS
+          title={translate('No Tahfiz Found')}
+          description="Sila cuba carian lain atau ubah penapis."
+        />
       ) : !tahfizList || tahfizList.length === 0 ? (
         <NoDataCardComponent isPage/>
       ) : (

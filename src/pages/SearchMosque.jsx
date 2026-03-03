@@ -12,6 +12,7 @@ import AdvancedFilters from '@/components/mobile/AdvancedFilters';
 import FoundDataLength from '@/components/FoundDataLength';
 import { useLocation } from 'react-router-dom';
 import ShowNearLocation from '@/components/ShowNearLocation';
+import { showWarning } from '@/components/ToastrNotification';
 
 export default function SearchMosque() {
   const location = useLocation();
@@ -20,6 +21,12 @@ export default function SearchMosque() {
   const { userLocation, userState, locationDenied } = useLocationContext();
 
   const [favoriteVersion, setFavoriteVersion] = useState(0);
+  
+  useEffect(() => {
+    if (locationDenied) {
+      showWarning(translate('Location not available'));
+    }
+  }, [locationDenied]);
 
   const favoritedMosqueIds = useMemo(() => {
     return JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
@@ -117,8 +124,14 @@ export default function SearchMosque() {
 
       {isLoading ? (
         <ListCardSkeletonComponent />
+      ) : locationDenied ? (
+        <NoDataCardComponent
+          isNoGPS
+          title={translate('No Mosque Found')}
+          description="Sila cuba carian lain atau ubah penapis."
+        />
       ) : mosques.length === 0 ? (
-        <NoDataCardComponent title={translate('noMosqueFound')} />
+        <NoDataCardComponent title={translate('No Mosque Found')} />
       ) : (
         <div className="space-y-4 px-1">
           {mosques.slice(0, displayedCount).map(item => (

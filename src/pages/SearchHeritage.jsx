@@ -15,12 +15,7 @@ import ShowNearLocation from '@/components/ShowNearLocation';
 
 export default function SearchGrave() {
   const [displayedCount, setDisplayedCount] = useState(10);
-  const {
-    userLocation,
-    locationDenied,
-    userState
-  } = useLocationContext();
-  
+  const { userLocation, locationDenied, userState } = useLocationContext();
   const [filters, setFilters] = useState({ state: userState });
 
   useEffect(() => {
@@ -61,6 +56,12 @@ export default function SearchGrave() {
 
       {isLoading ? (
         <ListCardSkeletonComponent/>
+      ) : locationDenied ? (
+        <NoDataCardComponent
+          isNoGPS
+          title={translate('No Heritage Site Found')}
+          description="Sila cuba carian lain atau ubah penapis."
+        />
       ) : heritageSiteList.length === 0 ? (
         <NoDataCardComponent isPage/>
       ) : (
@@ -78,7 +79,7 @@ export default function SearchGrave() {
           {displayedCount < heritageSiteList.length && (
             <div className="text-center py-2">
               <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                {translate('Load more')}
+                {translate('Load More')}
               </Button>
             </div>
           )}

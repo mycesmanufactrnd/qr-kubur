@@ -40,7 +40,7 @@ export default function HeritageDetails() {
   if (isError || !site) {
     return (
       <NoDataCardComponent
-        isPage={true}
+        isPage
         description="Site Not Found"
       />
     );

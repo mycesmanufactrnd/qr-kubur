@@ -14,6 +14,7 @@ export default function JoinLiveButton({ room }) {
     if (!room) {
         return (
             <NoDataCardComponent
+                isPage
                 description="Tiada Sesi Live Dijumpai"
             />
         );

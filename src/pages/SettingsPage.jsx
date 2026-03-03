@@ -1,32 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette, ChevronRight, LogOut } from 'lucide-react';
+import { HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette, ChevronRight, LogOut, LocateFixed, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { handleLogout, useLoginGoogle } from '@/utils/auth';
 import { usePermissions } from '@/components/PermissionsContext';
+import { useLocationContext } from '@/providers/LocationProvider';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { clearPermissions } = usePermissions();
+  const { userLocation, userState, locationDenied, isLocationLoading, requestLocation } = useLocationContext();
   const [fontSize, setFontSize] = useState('medium');
   const [language, setLanguage] = useState('ms');
   const [theme, setTheme] = useState('light');
   const [googleUser, setGoogleUser] = useState(null);
+  const [gpsPermission, setGpsPermission] = useState('unknown');
+  const [requestingGps, setRequestingGps] = useState(false);
 
   const [authMode, setAuthMode] = useState(() => {
     if (sessionStorage.getItem('appUserAuth')) return 'admin';
-    if (sessionStorage.getItem('googleAuth') === 'true') return 'google';
+    if (sessionStorage.getItem('googleAuth')) return 'google';
     return 'guest';
   });
 
   const { login, loading, error } = useLoginGoogle();
 
   const handleCredentialResponse = (response) => {
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const { email, name, picture } = payload || {};
     login(response.credential);
   };
 
@@ -51,6 +53,31 @@ export default function SettingsPage() {
   }, [authMode]);
 
   useEffect(() => {
+    let permissionStatus;
+
+    const checkLocationPermission = async () => {
+      if (!navigator.permissions?.query) {
+        setGpsPermission('unknown');
+        return;
+      }
+
+      try {
+        permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        setGpsPermission(permissionStatus.state);
+        permissionStatus.onchange = () => setGpsPermission(permissionStatus.state);
+      } catch {
+        setGpsPermission('unknown');
+      }
+    };
+
+    checkLocationPermission();
+
+    return () => {
+      if (permissionStatus) permissionStatus.onchange = null;
+    };
+  }, []);
+
+  useEffect(() => {
     const savedSize = localStorage.getItem('fontSize') || 'medium';
     const savedLanguage = localStorage.getItem('language') || 'ms';
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -71,6 +98,30 @@ export default function SettingsPage() {
     }
     setAuthMode('guest');
   }, []);
+
+  const onRequestGpsClick = async () => {
+    if (!requestLocation) return;
+    setRequestingGps(true);
+    await requestLocation({ forceRefresh: true });
+    setRequestingGps(false);
+  };
+
+  const isGpsConnected = !!(userLocation?.lat && userLocation?.lng);
+  const showGpsLoading = isLocationLoading || requestingGps;
+
+  const gpsStatusText = showGpsLoading
+    ? translate('Checking GPS...')
+    : isGpsConnected
+      ? translate('GPS Connected')
+      : translate('GPS Not Connected');
+
+  const gpsPermissionText = gpsPermission === 'granted'
+    ? translate('Location permission granted')
+    : gpsPermission === 'denied'
+      ? translate('Location permission denied')
+      : gpsPermission === 'prompt'
+        ? translate('Location permission not decided')
+        : translate('Location permission unknown');
 
 
   const onLogoutClick = () => {
@@ -199,6 +250,51 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        <SectionCard title={translate('Location')}>
+          <div className="px-4 py-3 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                {showGpsLoading ? (
+                  <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                ) : isGpsConnected ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                ) : (
+                  <XCircle className="w-4 h-4 text-red-500" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-700">{gpsStatusText}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{gpsPermissionText}</p>
+                {isGpsConnected && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    {translate('State')}: {userState || translate('Unknown')} | {translate('GPS Latitude')}: {Number(userLocation.lat).toFixed(5)} | {translate('GPS Longitude')}: {Number(userLocation.lng).toFixed(5)}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onRequestGpsClick}
+              disabled={showGpsLoading}
+              className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 transition-all text-sm font-medium text-slate-700"
+            >
+              <LocateFixed className="w-4 h-4" />
+              {showGpsLoading
+                ? translate('Requesting GPS...')
+                : isGpsConnected
+                  ? translate('Refresh GPS')
+                  : translate('Enable GPS')}
+            </button>
+
+            {(locationDenied || gpsPermission === 'denied') && (
+              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl p-2.5">
+                {translate('If location is blocked, allow it in your browser site settings and tap Enable GPS again.')}
+              </p>
+            )}
+          </div>
+        </SectionCard>
 
         <SectionCard title={translate('Display')}>
           <SelectRow

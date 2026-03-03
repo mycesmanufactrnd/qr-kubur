@@ -423,5 +423,21 @@
   
   "ToyyibPay Configuration": "ToyyibPay Configuration",
   "Location not available": "Location not available",
-  "Islamic Calendar": "Islamic Calendar"
+  "Islamic Calendar": "Islamic Calendar",
+  "Location": "Location",
+  "Unknown": "Unknown",
+  "Checking GPS...": "Checking GPS...",
+  "GPS Connected": "GPS Connected",
+  "GPS Not Connected": "GPS Not Connected",
+  "Enable GPS": "Enable GPS",
+  "Refresh GPS": "Refresh GPS",
+  "Requesting GPS...": "Requesting GPS...",
+  "Location permission granted": "Location permission granted",
+  "Location permission denied": "Location permission denied",
+  "Location permission not decided": "Location permission not decided",
+  "Location permission unknown": "Location permission unknown",
+  "If location is blocked, allow it in your browser site settings and tap Enable GPS again.": "If location is blocked, allow it in your browser site settings and tap Enable GPS again.",
+  "Pull To Refresh": "Pull To Refresh",
+  "Release To Refresh": "Release To Refresh",
+  "Refreshing...": "Refreshing..."
 }

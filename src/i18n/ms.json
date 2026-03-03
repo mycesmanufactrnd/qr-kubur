@@ -425,5 +425,21 @@
   "ToyyibPay Configuration": "Konfigurasi ToyyibPay",
 
   "Location not available": "Lokasi tidak tersedia",
-  "Islamic Calendar": "Takwim Islam"
+  "Islamic Calendar": "Takwim Islam",
+  "Location": "Lokasi",
+  "Unknown": "Tidak diketahui",
+  "Checking GPS...": "Menyemak GPS...",
+  "GPS Connected": "GPS Bersambung",
+  "GPS Not Connected": "GPS Tidak Bersambung",
+  "Enable GPS": "Aktifkan GPS",
+  "Refresh GPS": "Muat Semula GPS",
+  "Requesting GPS...": "Meminta GPS...",
+  "Location permission granted": "Kebenaran lokasi dibenarkan",
+  "Location permission denied": "Kebenaran lokasi ditolak",
+  "Location permission not decided": "Kebenaran lokasi belum dipilih",
+  "Location permission unknown": "Status kebenaran lokasi tidak diketahui",
+  "If location is blocked, allow it in your browser site settings and tap Enable GPS again.": "Jika lokasi disekat, benarkan dalam tetapan laman pelayar anda dan tekan Aktifkan GPS semula.",
+  "Pull To Refresh": "Tarik Untuk Muat Semula",
+  "Release To Refresh": "Lepas Untuk Muat Semula",
+  "Refreshing...": "Menyegarkan..."
 }

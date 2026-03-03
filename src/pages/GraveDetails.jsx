@@ -59,7 +59,7 @@ export default function GraveDetails() {
   if (graveLoading) return <PageLoadingComponent />;
 
   if (!grave || isGraveDetailsError) {
-    return <NoDataCardComponent isPage={true} title={translate('noGravesFound')} description="Tiada Maklumat Dijumpai" />;
+    return <NoDataCardComponent isPage title={translate('noGravesFound')} description="Tiada Maklumat Dijumpai" />;
   }
 
   return (

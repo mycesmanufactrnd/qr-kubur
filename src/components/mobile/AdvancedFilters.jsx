@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { X, Filter, RotateCcw, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,9 @@ import { Button } from "../ui/button";
 export default function AdvancedFilters({ parameter, onApplyFilter }) {
   const { userState } = useLocationContext();
   const [open, setOpen] = useState(false);
+  const touchStartYRef = useRef(0);
+  const movedRef = useRef(false);
+  const blockClickUntilRef = useRef(0);
 
   const [filterValues, setFilterValues] = useState(
     () => parameter.reduce((acc, curr) => { acc[curr.searchColumn] = ""; return acc; }, {})
@@ -43,10 +46,37 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
     );
   };
 
+  const handleFilterTouchStart = (e) => {
+    touchStartYRef.current = e.touches[0].clientY;
+    movedRef.current = false;
+  };
+
+  const handleFilterTouchMove = (e) => {
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
+    if (deltaY > 6) {
+      movedRef.current = true;
+    }
+  };
+
+  const handleFilterTouchEnd = () => {
+    if (movedRef.current) {
+      blockClickUntilRef.current = Date.now() + 500;
+    }
+  };
+
+  const handleOpenFilter = () => {
+    if (Date.now() < blockClickUntilRef.current) return;
+    setOpen(true);
+  };
+
   return (
     <>
       <Button
-        onClick={() => setOpen(true)}
+        data-ptr-ignore="true"
+        onTouchStart={handleFilterTouchStart}
+        onTouchMove={handleFilterTouchMove}
+        onTouchEnd={handleFilterTouchEnd}
+        onClick={handleOpenFilter}
         className={`relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95 shadow-sm ${
           activeCount > 0
             ? 'bg-emerald-500 text-white shadow-emerald-200'
@@ -64,12 +94,14 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
 
       {open && (
         <div
+          data-ptr-ignore="true"
           className="fixed inset-0 bg-black/40 z-[98] backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
 
       <div
+        data-ptr-ignore="true"
         className={`fixed bottom-0 left-0 w-full z-[99] transform transition-transform duration-300 ease-out ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
