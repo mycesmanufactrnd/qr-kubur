@@ -2,6 +2,8 @@ import './App.css'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { LocationProvider } from './providers/LocationProvider';
+import VisualEditAgent from './lib/VisualEditAgent';
+import NavigationTracker from './lib/NavigationTracker';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -43,8 +45,10 @@ function App() {
   return (
     <LocationProvider>
       <Router>
+        <NavigationTracker />
         <AuthenticatedApp />
       </Router>
+      <VisualEditAgent />
     </LocationProvider>
   )
 }
