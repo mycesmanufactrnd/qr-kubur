@@ -37,6 +37,7 @@ import IconLibrary from '@/pages/Settings/IconLibrary';
 import Ollama from '@/pages/Settings/Ollama.jsx';
 import PrivacyPolicy from '@/pages/Settings/PrivacyPolicy';
 import TermsAndConditions from '@/pages/Settings/TermsAndConditions';
+import UserTransactionRecords from '@/pages/Settings/UserTransactionRecords';
 // Management
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
 import ManageDonations from '@/pages/Management/ManageDonations';
@@ -117,6 +118,7 @@ export const PAGES = {
     "SurahPage": SurahPage,
     "TahlilRequestPage": TahlilRequestPage,
     "TermsAndConditions": TermsAndConditions,
+    "UserTransactionRecords": UserTransactionRecords,
     "ViewLogs": ViewLogs,
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,

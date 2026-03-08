@@ -21,12 +21,12 @@ export const trpcClient = trpc.createClient({
       },
       true: httpLink({
         url: 'http://localhost:8000/trpc',
-        // url: 'https://a891-2001-e68-58d7-4c00-c0fb-cfec-8967-642b.ngrok-free.app/trpc',
+        // url: 'https://ca0e-1-9-108-185.ngrok-free.app/trpc',
         headers: getHeaders,
       }),
       false: httpBatchLink({
         url: 'http://localhost:8000/trpc',
-        // url: 'https://a891-2001-e68-58d7-4c00-c0fb-cfec-8967-642b.ngrok-free.app/trpc',
+        // url: 'https://ca0e-1-9-108-185.ngrok-free.app/trpc',
         headers: getHeaders,
       }),
     }),

@@ -234,6 +234,18 @@ export default function SettingsPage() {
                 {googleUser.email && <p className="text-xs text-slate-400 truncate">{googleUser.email}</p>}
               </div>
             </div>
+            <div className="px-4 pb-3">
+              <button
+                onClick={() => navigate(createPageUrl('UserTransactionRecords'))}
+                className="w-full h-10 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all px-3.5 text-sm font-medium text-slate-700"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-slate-400" />
+                  {translate('Transaction Record')}
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+            </div>
             <div className="px-4 pb-4">
               <button
                 onClick={onLogoutClick}

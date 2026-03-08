@@ -1,4 +1,4 @@
-import { runBucketSeeder } from "./seeder/bucketSeeder.ts";
+import { runBucketSeeder } from "./seeder/production/bucketSeeder.ts";
 import { runOrganisationTypeSeederProd } from "./seeder/production/organisationTypeSeeder.ts";
 import { runpaymentConfigSeederProd } from "./seeder/production/paymentConfigSeeder.ts";
 import { runUserSeederProd } from "./seeder/production/userSeeder.ts";
