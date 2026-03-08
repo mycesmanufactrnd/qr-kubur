@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
-import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, Book, UserCheck, BarChart3,List,Activity,  Sparkles, ArrowUpRight, Landmark, User2, Diamond, ListCheck } from 'lucide-react';
+import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, UserCheck, List, Activity, Sparkles, ArrowUpRight, Landmark, User2, Diamond, ListCheck, ShieldAlert, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -308,6 +308,8 @@ export default function AdminDashboard() {
                   { label: translate('Manage Graves'), page: 'ManageGraves', icon: MapPin, color: 'emerald' },
                   { label: translate('Manage Deceased'), page: 'ManageDeadPersons', icon: Users, color: 'blue' },
                   { label: translate('Manage Organisations'), page: 'ManageOrganisations', icon: Building2, color: 'violet' },
+                  { label: translate('Organisation Registrations'), page: 'ManageTempOrganisations', icon: ShieldAlert, color: 'rose' },
+                  { label: translate('My Payment Config'), page: 'MyPaymentConfig', icon: CreditCard, color: 'emerald' },
                   { label: translate('Manage Suggestions'), page: 'ManageSuggestions', icon: FileText, color: 'orange' },
                   { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'red' },
                   { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'indigo' },

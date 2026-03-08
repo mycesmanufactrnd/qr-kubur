@@ -27,6 +27,7 @@ export default function SuperadminDashboard() {
       items: [
         { name: translate('Organisation Type'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
         { name: translate('Manage Organisations'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
+        { name: translate('Organisation Registrations'), page: 'ManageTempOrganisations', icon: Users, color: 'blue' },
         { name: translate('Manage Private Organisations'), page: 'ManagePrivateOrganisations', icon: House, color: 'red' },
         { name: translate('Manage Volunteer & NGO'), page: 'ManageVolunteerNGO', icon: House, color: 'yellow' },
       ]

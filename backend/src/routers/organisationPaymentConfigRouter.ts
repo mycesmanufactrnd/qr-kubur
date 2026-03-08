@@ -1,19 +1,53 @@
-import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { OrganisationPaymentConfig } from '../db/entities.ts';
+import { TRPCError } from '@trpc/server';
+import { protectedProcedure, router } from '../trpc.ts';
+import { OrganisationPaymentConfig, User } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
+const ensureOrganisationConfigAccess = async ({
+  currentUserId,
+  currentUserRole,
+  targetOrganisationId,
+}: {
+  currentUserId: number;
+  currentUserRole?: string;
+  targetOrganisationId: number;
+}) => {
+  if (currentUserRole === 'superadmin') {
+    return;
+  }
+
+  const userRepo = AppDataSource.getRepository(User);
+  const currentUser = await userRepo.findOne({
+    where: { id: currentUserId },
+    relations: ['organisation'],
+  });
+
+  if (!currentUser?.organisation?.id || currentUser.organisation.id !== targetOrganisationId) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'You are not allowed to access this organisation payment config',
+    });
+  }
+};
+
 export const organisationPaymentConfigRouter = router({
-  getConfigByOrganisationId: publicProcedure
+  getConfigByOrganisationId: protectedProcedure
     .input(
       z.object({
         organisation: z.object({ id: z.number() }).nullable().optional(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       if (!input.organisation?.id) {
         return [];
       }
+
+      await ensureOrganisationConfigAccess({
+        currentUserId: Number(ctx.user.id),
+        currentUserRole: ctx.user.role,
+        targetOrganisationId: input.organisation.id,
+      });
 
       return await AppDataSource
         .getRepository(OrganisationPaymentConfig)
@@ -38,7 +72,13 @@ export const organisationPaymentConfigRouter = router({
         ),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await ensureOrganisationConfigAccess({
+        currentUserId: Number(ctx.user.id),
+        currentUserRole: ctx.user.role,
+        targetOrganisationId: input.organisationId,
+      });
+
       const repo = AppDataSource.getRepository(OrganisationPaymentConfig);
 
       const existingConfigs = await repo.find({

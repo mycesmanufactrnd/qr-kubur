@@ -34,11 +34,13 @@ import { deathCharityClaimRouter } from "./deathCharityClaimRouter.ts";
 import { deathCharityPaymentRouter } from "./deathCharityPaymentRouter.ts";
 import { quotationRouter } from "./quotationRouter.ts";
 import { googleRouter } from "./googleRouter.ts";
+import { tempOrganisationRouter } from "./tempOrganisationRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
   auth: authRouter,
   google: googleRouter,
+  tempOrganisation: tempOrganisationRouter,
   runningNo: runningNoRouter,
   toyyibPay: toyyibPayRouter,
   dashboard: dashboardRouter,

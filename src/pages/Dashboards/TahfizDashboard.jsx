@@ -9,12 +9,12 @@ import {
   CheckCircle2,
   Sparkles,
   List,
+  CreditCard,
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { translate } from '@/utils/translations';
-import JitsiController from '@/components/jitsi/JitsiController'
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
@@ -203,6 +203,7 @@ export default function TahfizDashboard() {
                 { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests', icon: Calendar, color: 'teal' },
                 { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'pink' },
                 { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'yellow' },
+                { label: translate('My Payment Config'), page: 'MyPaymentConfig', icon: CreditCard, color: 'purple' },
                 { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'blue' },
                 { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'green' },
               ].map((action, i) => (

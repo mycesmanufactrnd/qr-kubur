@@ -1,19 +1,53 @@
-import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { TahfizPaymentConfig } from '../db/entities.ts';
+import { TRPCError } from '@trpc/server';
+import { protectedProcedure, router } from '../trpc.ts';
+import { TahfizPaymentConfig, User } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
 
+const ensureTahfizConfigAccess = async ({
+  currentUserId,
+  currentUserRole,
+  targetTahfizId,
+}: {
+  currentUserId: number;
+  currentUserRole?: string;
+  targetTahfizId: number;
+}) => {
+  if (currentUserRole === 'superadmin') {
+    return;
+  }
+
+  const userRepo = AppDataSource.getRepository(User);
+  const currentUser = await userRepo.findOne({
+    where: { id: currentUserId },
+    relations: ['tahfizcenter'],
+  });
+
+  if (!currentUser?.tahfizcenter?.id || currentUser.tahfizcenter.id !== targetTahfizId) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'You are not allowed to access this tahfiz payment config',
+    });
+  }
+};
+
 export const tahfizPaymentConfigRouter = router({
-  getConfigByTahfizId: publicProcedure
+  getConfigByTahfizId: protectedProcedure
     .input(
       z.object({
         tahfiz: z.object({ id: z.number() }).nullable().optional(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       if (!input.tahfiz?.id) {
         return [];
       }
+
+      await ensureTahfizConfigAccess({
+        currentUserId: Number(ctx.user.id),
+        currentUserRole: ctx.user.role,
+        targetTahfizId: input.tahfiz.id,
+      });
 
       return await AppDataSource
         .getRepository(TahfizPaymentConfig)
@@ -38,7 +72,13 @@ export const tahfizPaymentConfigRouter = router({
         ),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await ensureTahfizConfigAccess({
+        currentUserId: Number(ctx.user.id),
+        currentUserRole: ctx.user.role,
+        targetTahfizId: input.tahfizId,
+      });
+
       const repo = AppDataSource.getRepository(TahfizPaymentConfig);
 
       const existingConfigs = await repo.find({

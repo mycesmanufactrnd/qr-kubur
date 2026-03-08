@@ -44,6 +44,7 @@ import ManageDonations from '@/pages/Management/ManageDonations';
 import ManageGraves from '@/pages/Management/ManageGraves';
 import ManageOrganisationTypes from '@/pages/Management/ManageOrganisationTypes';
 import ManageOrganisations from '@/pages/Management/ManageOrganisations.jsx';
+import ManageTempOrganisations from '@/pages/Management/ManageTempOrganisations.jsx';
 import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
 import ManagePaymentPlatforms from '@/pages/Management/ManagePaymentPlatforms';
 import ManagePermissions from '@/pages/Management/ManagePermissions.jsx';
@@ -68,6 +69,8 @@ import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
 import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
 import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
 import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
+import OrganisationQuickRegister from '@/pages/OrganisationQuickRegister.jsx';
+import MyPaymentConfig from '@/pages/MyPaymentConfig.jsx';
 
 
 export const PAGES = {
@@ -86,6 +89,7 @@ export const PAGES = {
     "ManageGraves": ManageGraves,
     "ManageOrganisationTypes": ManageOrganisationTypes,
     "ManageOrganisations": ManageOrganisations,
+    "ManageTempOrganisations": ManageTempOrganisations,
     "ManagePaymentFields": ManagePaymentFields,
     "ManagePaymentPlatforms": ManagePaymentPlatforms,
     "ManagePermissions": ManagePermissions,
@@ -114,6 +118,8 @@ export const PAGES = {
     "TahfizDetails": TahfizDetails,
     "OrganisationDetails": OrganisationDetails,
     "SettingsPage": SettingsPage,
+    "OrganisationQuickRegister": OrganisationQuickRegister,
+    "MyPaymentConfig": MyPaymentConfig,
     "SubmitSuggestion": SubmitSuggestion,
     "SurahPage": SurahPage,
     "TahlilRequestPage": TahlilRequestPage,

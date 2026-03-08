@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
-import { HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette, ChevronRight, LogOut, LocateFixed, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette, ChevronRight, LogOut, LocateFixed, Loader2, CheckCircle2, XCircle, Building2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
@@ -344,6 +344,7 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard title={translate('Information')}>
+          <NavRow icon={Building2} label={translate('Organisation Register')} page="OrganisationQuickRegister" />
           <NavRow icon={FileText} label={translate('Terms & Conditions')} page="TermsAndConditions" />
           <NavRow icon={Shield}   label={translate('Privacy Policy')}     page="PrivacyPolicy" />
           {authMode === 'admin' && (
