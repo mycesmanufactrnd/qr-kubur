@@ -17,24 +17,38 @@ export default function ConfirmDialog({
   title = "Pengesahan", 
   description, 
   onConfirm,
-  confirmText = "Ya",
+  confirmText,
   cancelText = translate('Cancel'),
-  variant = "default"
+  variant = "default",
+  isDelete = false,
+  itemToDelete = null,
 }) {
+
+  if (!isDelete && !description) {
+    throw new Error("ConfirmDialog: description is required when isDelete is false");
+  }
+
+  const finalDescription = description ?? (isDelete 
+    ? `${translate('Are you sure to delete')} ${itemToDelete}? ${translate('This action cannot be undone')}`
+    : ''
+  );
+
+  const finalConfirmText = isDelete ? translate('Delete') : (confirmText ?? translate('Yes'));
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogDescription>{finalDescription}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
-            className={variant === "destructive" ? "bg-red-600 hover:bg-red-700" : ""}
+            className={variant === "destructive" || isDelete ? "bg-red-600 hover:bg-red-700" : ""}
           >
-            {confirmText}
+            {finalConfirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

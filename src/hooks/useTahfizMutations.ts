@@ -28,7 +28,7 @@ export function useGetTahfizPaginated({
   filterState,
 }: useGetTahfizPaginatedParams) {
   const { currentUser, hasAdminAccess, isTahfizAdmin, isSuperAdmin } = useAdminAccess();
-  const currentUserTahfizCenterId = currentUser?.tahfizcenter ? Number(currentUser.tahfizcenter) : undefined;
+  const currentUserTahfizCenterId = currentUser?.tahfizcenter ? Number(currentUser.tahfizcenter.id) : undefined;
 
   const { data, isLoading, refetch, error } = trpc.tahfiz.getPaginated.useQuery(
     { 

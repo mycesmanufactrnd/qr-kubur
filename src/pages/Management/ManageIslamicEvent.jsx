@@ -145,7 +145,7 @@ export default function ManageIslamicEvent() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+          { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
           { label: translate('Manage Islamic Events'), page: 'ManageIslamicEvent' }
         ]} />
         <AccessDeniedComponent/>
@@ -156,7 +156,7 @@ export default function ManageIslamicEvent() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+        { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
         { label: translate('Manage Islamic Events'), page: 'ManageIslamicEvent' }
       ]} />
       

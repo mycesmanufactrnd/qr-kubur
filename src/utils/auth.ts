@@ -18,10 +18,6 @@ export function handleLoginTRPC() {
 
       sessionStorage.setItem("permissions", JSON.stringify(permissions));
 
-      if (data.tahfizcenter) {
-        window.location.href = createPageUrl("TahfizDashboard");
-      }
-
       if (data.role === "superadmin") {
         window.location.href = createPageUrl("SuperadminDashboard");
       } else if (data.tahfizcenter) {
@@ -86,25 +82,67 @@ export function impersonateUser(user: any) {
   location.href = createPageUrl("AdminDashboard");
 }
 
+async function refreshAppUserAuth(cachedUser: any) {
+  if (!cachedUser?.id) return null;
+
+  const token = sessionStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const refreshedUser = await trpcClient.users.getUserById.query({ id: Number(cachedUser.id) });
+
+    if (refreshedUser) {
+      sessionStorage.setItem("appUserAuth", JSON.stringify(refreshedUser));
+
+      const permissions = await trpcClient.permission.getByUser.query({ userId: Number(refreshedUser.id) });
+      sessionStorage.setItem("permissions", JSON.stringify(permissions));
+
+      return refreshedUser;
+    }
+  } catch (error) {
+    console.error("Failed to refresh app user auth:", error);
+  }
+
+  return null;
+}
+
 export function useAdminAccess() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadUser = async () => {
       try {
         const appUserAuth = sessionStorage.getItem("appUserAuth");
         if (appUserAuth) {
-          setCurrentUser(JSON.parse(appUserAuth));
+          const cachedUser = JSON.parse(appUserAuth);
+          if (isMounted) {
+            setCurrentUser(cachedUser);
+          }
+
+          const refreshedUser = await refreshAppUserAuth(cachedUser);
+          if (refreshedUser && isMounted) {
+            setCurrentUser(refreshedUser);
+          }
         }
       } catch (e) {
-        setCurrentUser(null);
+        if (isMounted) {
+          setCurrentUser(null);
+        }
       } finally {
-        setLoadingUser(false);
+        if (isMounted) {
+          setLoadingUser(false);
+        }
       }
     };
 
     loadUser();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const role = currentUser?.role;
@@ -113,6 +151,7 @@ export function useAdminAccess() {
   const isAdmin = currentUser?.role === "admin";
   const isEmployee = currentUser?.role === "employee";
   const isTahfizAdmin = isAdmin && !!currentUser?.tahfizcenter?.id;
+  const isOrganisationAdmin = isAdmin && !!currentUser?.organisation?.id;
 
   const hasAdminAccess = isSuperAdmin || isAdmin || isEmployee;
 
@@ -129,6 +168,7 @@ export function useAdminAccess() {
     admin: isAdmin,
     employee: isEmployee,
     tahfiz: isTahfizAdmin,
+    organisation: isOrganisationAdmin,
   }
 
   const userEmail = currentUser?.email ?? null;
@@ -138,7 +178,7 @@ export function useAdminAccess() {
     currentUser, 
     loadingUser, 
     hasAdminAccess, 
-    isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, 
+    isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin,  isOrganisationAdmin,
     checkRole, 
     currentUserStates,
     userEmail

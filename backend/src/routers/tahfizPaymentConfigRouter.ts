@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { TahfizPaymentConfig, User } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
@@ -32,28 +32,32 @@ const ensureTahfizConfigAccess = async ({
 };
 
 export const tahfizPaymentConfigRouter = router({
-  getConfigByTahfizId: protectedProcedure
+  getConfigByTahfizId: publicProcedure
     .input(
       z.object({
         tahfiz: z.object({ id: z.number() }).nullable().optional(),
       })
     )
     .query(async ({ input, ctx }) => {
-      if (!input.tahfiz?.id) {
+      if (!input.tahfiz) {
         return [];
       }
 
-      await ensureTahfizConfigAccess({
-        currentUserId: Number(ctx.user.id),
-        currentUserRole: ctx.user.role,
-        targetTahfizId: input.tahfiz.id,
-      });
+      const tahfizId = input.tahfiz.id; 
+
+      if (ctx.user?.id) {
+        await ensureTahfizConfigAccess({
+          currentUserId: Number(ctx.user.id),
+          currentUserRole: ctx.user.role,
+          targetTahfizId: tahfizId,
+        });
+      }
 
       return await AppDataSource
         .getRepository(TahfizPaymentConfig)
         .find({
           where: {
-            tahfizcenter: { id: input.tahfiz.id },
+            tahfizcenter: { id: tahfizId },
           },
           relations: ['paymentplatform', 'paymentfield']
         });

@@ -97,9 +97,30 @@ export const defaultOrganisationField = {
   latitude: '',
   longitude: '',
   canbedonated: false,
+  canmanagemosque: false,
   isgraveservices: false,
   status: ActiveInactiveStatus.ACTIVE,
 }
+
+export const defaultQuickRegisterForm = {
+  name: "",
+  organisationtypeid: "",
+  agreeServiceTerms: false,
+  states: "",
+  address: "",
+  phone: "",
+  email: "",
+  url: "",
+  photourl: "",
+  latitude: "",
+  longitude: "",
+  canbedonated: false,
+  canmanagemosque: false,
+  isgraveservices: false,
+  contactname: "",
+  contactemail: "",
+  contactphoneno: "",
+};
 
 export const defaultPaymentConfigField = {
   code: '',

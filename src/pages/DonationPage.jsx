@@ -234,8 +234,14 @@ export default function DonationPage() {
 
   useEffect(() => {
     if (hasAppliedUrlRecipient.current || !urlParamId || !urlParamType) return;
-    if (urlParamType === 'tahfiz' && tahfizCenters.length > 0) { setValue('selectedRecipient', String(urlParamId)); hasAppliedUrlRecipient.current = true; }
-    if (urlParamType === 'organisation' && organisations.length > 0) { setValue('selectedRecipient', String(urlParamId)); hasAppliedUrlRecipient.current = true; }
+
+    if (urlParamType === 'tahfiz' && tahfizCenters.length > 0) { 
+      setValue('selectedRecipient', String(urlParamId)); hasAppliedUrlRecipient.current = true; 
+    }
+
+    if (urlParamType === 'organisation' && organisations.length > 0) { 
+      setValue('selectedRecipient', String(urlParamId)); hasAppliedUrlRecipient.current = true; 
+    }
   }, [urlParamId, urlParamType, tahfizCenters.length, organisations.length, setValue]);
 
   const { data: paymentConfigs = [] } = useGetConfigByEntity({
@@ -246,10 +252,15 @@ export default function DonationPage() {
 
   useEffect(() => {
     if (!selectedRecipient) return;
+    
     const exists = recipientType === 'organisation'
       ? organisations.some(o => String(o.id) === String(selectedRecipient))
       : tahfizCenters.some(t => String(t.id) === String(selectedRecipient));
-    if (!exists) { setValue('selectedRecipient', ''); setValue('paymentMethod', ''); }
+
+    if (!exists) { 
+      setValue('selectedRecipient', ''); 
+      setValue('paymentMethod', ''); 
+    }
   }, [organisations, tahfizCenters, selectedRecipient, recipientType, setValue]);
 
   const paymentPlatforms = useMemo(() => {
@@ -405,7 +416,7 @@ export default function DonationPage() {
                   {recipientList.length > 0 ? (
                     recipientList.map(r => (
                       <SelectItem key={r.id} value={String(r.id)}>
-                        {r.name}{r.state ? ` — ${r.state}` : ''}
+                        {r.name}
                       </SelectItem>
                     ))
                   ) : (

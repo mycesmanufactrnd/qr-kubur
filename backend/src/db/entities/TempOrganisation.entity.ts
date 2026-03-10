@@ -50,6 +50,9 @@ export class TempOrganisation {
   canbedonated!: boolean;
 
   @Column({ type: "boolean", default: false })
+  canmanagemosque!: boolean;
+
+  @Column({ type: "boolean", default: false })
   isgraveservices!: boolean;
 
   @Column("text", { array: true, nullable: true })

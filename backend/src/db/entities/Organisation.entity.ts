@@ -67,6 +67,9 @@ export class Organisation {
   canbedonated!: boolean;
 
   @Column({ type: "boolean", default: false })
+  canmanagemosque!: boolean;
+
+  @Column({ type: "boolean", default: false })
   isgraveservices!: boolean;
 
   @Column({

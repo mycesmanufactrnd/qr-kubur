@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { trpcClient } from '@/utils/trpc';
 
 const PermissionsContext = createContext(null);
 
@@ -19,8 +20,19 @@ export function PermissionsProvider({ children }) {
         setUser(userData);
         
         if (userData.id) {
-          const userPermissions = JSON.parse(sessionStorage.getItem("permissions"));
-          setPermissions(userPermissions.map(p => p.slug));
+          const storedPermissions = sessionStorage.getItem("permissions");
+          if (storedPermissions) {
+            const parsedPermissions = JSON.parse(storedPermissions);
+            setPermissions(parsedPermissions.map(p => p.slug));
+          }
+
+          try {
+            const freshPermissions = await trpcClient.permission.getByUser.query({ userId: Number(userData.id) });
+            sessionStorage.setItem("permissions", JSON.stringify(freshPermissions));
+            setPermissions(freshPermissions.map(p => p.slug));
+          } catch (error) {
+            console.error('Failed to refresh permissions:', error);
+          }
         }
       }
     } catch (e) {

@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { showSuccess } from '@/components/ToastrNotification';
+import AccessDeniedComponent from '@/components/AccessDeniedComponent';
+import PageLoadingComponent from '@/components/PageLoadingComponent';
 
 // Icon collection with categories
 const ICON_CATEGORIES = {
@@ -169,34 +171,23 @@ export default function IconLibrary() {
 
   if (loadingUser) {
     return (
-      <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 text-center">
-          <p className="text-gray-600">Loading...</p>
-        </CardContent>
-      </Card>
+      <PageLoadingComponent/>
     );
   }
 
   if (!isSuperAdmin) {
     return (
-      <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 text-center">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Akses Ditolak</h2>
-          <p className="text-gray-600">Hanya superadmin boleh akses halaman ini</p>
-        </CardContent>
-      </Card>
+      <AccessDeniedComponent/>
     );
   }
 
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: 'Superadmin Dashboard', page: 'SuperadminDashboard' },
+        { label: 'Super Admin Dashboard', page: 'SuperadminDashboard' },
         { label: 'Icon Library', page: 'IconLibrary' }
       ]} />
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Palette className="w-6 h-6 text-purple-600" />

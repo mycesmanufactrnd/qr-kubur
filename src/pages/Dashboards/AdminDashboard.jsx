@@ -10,22 +10,29 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
+import { useGetMosquesByOrganisationId } from '@/hooks/useMosqueMutations';
 
 export default function AdminDashboard() {
-  const {
-    currentUser,
-    loadingUser,
-    hasAdminAccess,
-    isSuperAdmin,
-    isTahfizAdmin,
-  } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
+
+  let defaultStatsNeeded = [];
+  const isCanBeDonated = currentUser?.organisation?.canbedonated;
+  const isHasManageMosque = currentUser?.organisation?.canmanagemosque;
+
+  if (isCanBeDonated) {
+    defaultStatsNeeded.push("DDV");
+  }
+
+  if (isHasManageMosque) {
+    defaultStatsNeeded.push("CMC");
+  }
 
   const { OGDSStats, DDVStats, CMCStats, isOGDSLoading, isDDVLoading, isCMCLoading } =
-  useGetAdminDashboardStats({
-    currentUser,
-    isSuperAdmin,
-    statsNeeded: ["OGDS", "DDV", "CMC"],
-  });
+    useGetAdminDashboardStats({
+      currentUser,
+      isSuperAdmin,
+      statsNeeded: ["OGDS"],
+    });
 
   const organisationCount = OGDSStats?.organisationCount ?? 0;
   const graveCount = OGDSStats?.graveCount ?? 0;
@@ -118,7 +125,7 @@ export default function AdminDashboard() {
 
   const fullQuickStats = [
     ...quickStats,
-    ...deathCharity,
+    ...(isHasManageMosque ? deathCharity : []),
   ];
 
   const pendingItems = [
@@ -150,7 +157,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -266,28 +272,30 @@ export default function AdminDashboard() {
                 ))}
               </div>
 
-              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-green-700 mb-1">
-                        {translate("Verified Donation")}
-                      </p>
-                      <p className="text-3xl font-bold text-green-900">
-                        {isDDVLoading ? (
-                          <InlineLoadingComponent />
-                        ) : (
-                          `RM ${(donationVerified || 0).toLocaleString()}`
-                        )}
-                      </p>
+              { isCanBeDonated && (
+                <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-green-700 mb-1">
+                          {translate("Verified Donation")}
+                        </p>
+                        <p className="text-3xl font-bold text-green-900">
+                          {isDDVLoading ? (
+                            <InlineLoadingComponent />
+                          ) : (
+                            `RM ${(donationVerified || 0).toLocaleString()}`
+                          )}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="bg-white border-green-300 text-green-700">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        Live tracking
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="bg-white border-green-300 text-green-700">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      Live tracking
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ) }
             </CardContent>
           </Card>
         </div>
@@ -308,14 +316,19 @@ export default function AdminDashboard() {
                   { label: translate('Manage Graves'), page: 'ManageGraves', icon: MapPin, color: 'emerald' },
                   { label: translate('Manage Deceased'), page: 'ManageDeadPersons', icon: Users, color: 'blue' },
                   { label: translate('Manage Organisations'), page: 'ManageOrganisations', icon: Building2, color: 'violet' },
-                  { label: translate('Organisation Registrations'), page: 'ManageTempOrganisations', icon: ShieldAlert, color: 'rose' },
                   { label: translate('My Payment Config'), page: 'MyPaymentConfig', icon: CreditCard, color: 'emerald' },
-                  { label: translate('Manage Suggestions'), page: 'ManageSuggestions', icon: FileText, color: 'orange' },
-                  { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'red' },
-                  { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'indigo' },
-                  { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'purple' },
-                  { label: translate('Manage Mosque'), page: 'ManageMosques', icon: Landmark, color: 'stone' },
-                  { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'amber' },
+                  // { label: translate('Manage Suggestions'), page: 'ManageSuggestions', icon: FileText, color: 'orange' },
+                  ...(isCanBeDonated
+                    ? [{ label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'red' }]
+                    : []),
+                    { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'indigo' },
+                    { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'purple' },
+                    ...(isHasManageMosque
+                      ? [
+                        { label: translate('Manage Mosque'), page: 'ManageMosques', icon: Landmark, color: 'stone' },
+                        { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'amber' },
+                      ]
+                    : []),
 
                 ].map((action, i) => (
                   <Link key={i} to={createPageUrl(action.page)}>

@@ -255,7 +255,7 @@ export default function ManageGraves() {
               <Select value={tempState} onValueChange={setTempState}>
                 <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('All states')}</SelectItem>
+                  <SelectItem value="all">{translate('All States')}</SelectItem>
                   {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -263,7 +263,7 @@ export default function ManageGraves() {
             <Select value={tempStatus} onValueChange={setTempStatus}>
               <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('All status')}</SelectItem>
+                <SelectItem value="all">{translate('All Status')}</SelectItem>
                 <SelectItem value="active">{translate('Active')}</SelectItem>
                 <SelectItem value="full">{translate('Full')}</SelectItem>
                 <SelectItem value="maintenance">{translate('Maintenance')}</SelectItem>

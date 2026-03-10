@@ -7,72 +7,96 @@ import { ClaimStatus, TahlilStatus, VerificationStatus } from "../db/enums.ts";
 export const dashboardRouter = router({
     // OGDS: Organisations, Graves, DeadPerson, Suggestion
     getOGDSAdminStates: protectedProcedure
-        .input(
-          z.object({
-            currentUserOrganisation: z.number().optional().nullable(),
-            isSuperAdmin: z.boolean().optional().default(false)
-          })
-        )
-        .query(async ({ input }) => {
-          const { isSuperAdmin, currentUserOrganisation } = input;
-    
-          const organisationRepo = AppDataSource.getRepository(Organisation);
-          const graveRepo = AppDataSource.getRepository(Grave);
-          const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
-          const suggestionRepo = AppDataSource.getRepository(Suggestion);
-    
-          if (isSuperAdmin) {
-            return {
-              organisationCount: await organisationRepo.count(),
-              graveCount: await graveRepo.count(),
-              deadPersonCount: await deadPersonRepo.count(),
-              suggestionCount: await suggestionRepo.count(),
-            }
-          }
-    
-          if (!currentUserOrganisation) {
-            return { organisationCount: 0, graveCount: 0, deadPersonCount: 0, suggestionCount: 0 };
-          }
-              
-          const organisationsId = await organisationRepo
-            .createQueryBuilder('organisation')
-            .select('organisation.id', 'id')
-            .where('organisation.id = :id OR organisation.parentorganisation = :id', { id: currentUserOrganisation })
-            .getRawMany();
-    
-          const organisationsIdArr = organisationsId.map(organisation => organisation.id);
-    
-          const gravesIds = await graveRepo
-            .createQueryBuilder('graves')
-            .select('graves.id', 'id')
-            .where('graves.organisationId IN (:...ids)', { ids: organisationsIdArr })
-            .getRawMany();
-    
-          const gravesIdArr = gravesIds.map(grave => grave.id);
+      .input(
+        z.object({
+          currentUserOrganisation: z.number().optional().nullable(),
+          isSuperAdmin: z.boolean().optional().default(false),
+        })
+      )
+      .query(async ({ input }) => {
+        const { isSuperAdmin, currentUserOrganisation } = input;
 
-          const suggestionIds = await suggestionRepo
-            .createQueryBuilder('suggestion')
-            .select('suggestion.id', 'id')
-            .where('suggestion.graveId IN (:...ids)', { ids: gravesIdArr })
-            .getRawMany();
-    
-          const suggestionIdArr = suggestionIds.map(suggestion => suggestion.id);
-    
-          const deadPersonIds = await deadPersonRepo
-            .createQueryBuilder('deadperson')
-            .select('deadperson.id', 'id')
-            .where('deadperson.graveId IN (:...ids)', { ids: gravesIdArr })
-            .getRawMany();
-    
-          const deadPersonIdArr = deadPersonIds.map(deadperson => deadperson.id);
-    
+        const organisationRepo = AppDataSource.getRepository(Organisation);
+        const graveRepo = AppDataSource.getRepository(Grave);
+        const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
+        const suggestionRepo = AppDataSource.getRepository(Suggestion);
+
+        if (isSuperAdmin) {
           return {
-            organisationCount: organisationsIdArr.length ?? 0,
-            graveCount: gravesIdArr.length ?? 0,
-            deadPersonCount: deadPersonIdArr.length ?? 0,
-            suggestionCount: suggestionIdArr.length ?? 0,
+            organisationCount: await organisationRepo.count(),
+            graveCount: await graveRepo.count(),
+            deadPersonCount: await deadPersonRepo.count(),
+            suggestionCount: await suggestionRepo.count(),
           };
-        }),
+        }
+
+        if (!currentUserOrganisation) {
+          return {
+            organisationCount: 0,
+            graveCount: 0,
+            deadPersonCount: 0,
+            suggestionCount: 0,
+          };
+        }
+
+        const organisations = await organisationRepo
+          .createQueryBuilder("organisation")
+          .select("organisation.id", "id")
+          .where(
+            "organisation.id = :id OR organisation.parentorganisation = :id",
+            { id: currentUserOrganisation }
+          )
+          .getRawMany();
+
+        const organisationIds = organisations.map((o) => o.id);
+
+        if (!organisationIds.length) {
+          return {
+            organisationCount: 0,
+            graveCount: 0,
+            deadPersonCount: 0,
+            suggestionCount: 0,
+          };
+        }
+
+        const graves = await graveRepo
+          .createQueryBuilder("grave")
+          .select("grave.id", "id")
+          .where("grave.organisationId IN (:...ids)", { ids: organisationIds })
+          .getRawMany();
+
+        const graveIds = graves.map((g) => g.id);
+
+        if (!graveIds.length) {
+          return {
+            organisationCount: organisationIds.length,
+            graveCount: 0,
+            deadPersonCount: 0,
+            suggestionCount: 0,
+          };
+        }
+
+        const [deadPersons, suggestions] = await Promise.all([
+          deadPersonRepo
+            .createQueryBuilder("deadperson")
+            .select("deadperson.id", "id")
+            .where("deadperson.graveId IN (:...ids)", { ids: graveIds })
+            .getRawMany(),
+
+          suggestionRepo
+            .createQueryBuilder("suggestion")
+            .select("suggestion.id", "id")
+            .where("suggestion.graveId IN (:...ids)", { ids: graveIds })
+            .getRawMany(),
+        ]);
+
+        return {
+          organisationCount: organisationIds.length,
+          graveCount: graveIds.length,
+          deadPersonCount: deadPersons.length,
+          suggestionCount: suggestions.length,
+        };
+      }),
 
     // TTR: Tahfiz, Tahlil Request
     getTTRAdminStates: protectedProcedure

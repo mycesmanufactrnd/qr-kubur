@@ -313,7 +313,7 @@ export default function ManageOrganisations() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Search organisation name...')}
+                placeholder={translate('Search Organisation Name')}
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -329,7 +329,7 @@ export default function ManageOrganisations() {
             <Select value={String(tempType)} onValueChange={setTempType}>
               <SelectTrigger><SelectValue placeholder={translate('Organisation Type')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('All types')}</SelectItem>
+                <SelectItem value="all">{translate('All Types')}</SelectItem>
                 {organisationTypeList.items.map(type => (
                   <SelectItem key={type.id} value={String(type.id)}>{type.name}</SelectItem>
                 ))}
@@ -339,7 +339,7 @@ export default function ManageOrganisations() {
             <Select value={tempState} onValueChange={setTempState}>
               <SelectTrigger><SelectValue placeholder={translate('State')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('All states')}</SelectItem>
+                <SelectItem value="all">{translate('All States')}</SelectItem>
                 {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
@@ -470,7 +470,7 @@ export default function ManageOrganisations() {
                 name="parentorganisation"
                 control={control}
                 placeholder={translate("Select parent organisation")}
-                label={translate("Parent Organsiation")}
+                label={translate("Parent Organisation")}
                 options={Object.values(organisationsList.items).map((org) => ({
                   value: org.id,
                   label: org.name,
@@ -588,6 +588,11 @@ export default function ManageOrganisations() {
               <MapPin className="w-4 h-4 mr-2" /> 
               {translate('Get Current Location')}
             </Button>
+            <CheckboxForm
+              name="canmanagemosque"
+              control={control}
+              label={translate("Can Manage Mosque")}
+            />
             <CheckboxForm
               name="canbedonated"
               control={control}

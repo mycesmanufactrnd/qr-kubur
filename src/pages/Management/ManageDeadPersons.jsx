@@ -239,13 +239,13 @@ export default function ManageDeadPersons() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <Input placeholder={translate('IC Number')} value={tempIC} onChange={(e) => setTempIC(e.target.value)} />
+            <Input placeholder={translate('IC No')} value={tempIC} onChange={(e) => setTempIC(e.target.value)} />
             
             {isSuperAdmin && (
               <Select value={tempState} onValueChange={(v) => { setTempState(v); setTempGrave('all'); }}>
                 <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('All states')}</SelectItem>
+                  <SelectItem value="all">{translate('All States')}</SelectItem>
                   {STATES_MY.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>

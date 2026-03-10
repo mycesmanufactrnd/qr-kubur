@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { translate } from '@/utils/translations';
 import { MapPin, Plus, Edit, Trash2, Search, X, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,14 +19,16 @@ import { useAdminAccess } from '@/utils/auth';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useGetActivityPostsPaginated, useActivityPostMutations } from '@/hooks/useActivityPostMutations';
+import { useGetMosquesByOrganisationId } from '@/hooks/useMosqueMutations';
 import { defaultActivityPost } from '@/utils/defaultformfields';
 import TextInputForm from '@/components/forms/TextInputForm';
+import SelectForm from '@/components/forms/SelectForm';
 import CheckboxForm from '@/components/forms/CheckboxForm';
 import FileUploadForm from '@/components/forms/FileUploadForm';
 import RichTextEditorForm from '@/components/forms/RichTextEditorForm';
 
 export default function ManageActivityPosts() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isTahfizAdmin, isOrganisationAdmin } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get('page') || '1');
@@ -48,18 +50,19 @@ export default function ManageActivityPosts() {
     filterTitle: urlTitle, 
   });
 
+  const { data: organisationMosques = [], isLoading: isMosquesLoading } = useGetMosquesByOrganisationId(
+    isOrganisationAdmin ? (currentUser?.organisation?.id ?? null) : null
+  );
+
   const { createPost, updatePost, deletePost } = useActivityPostMutations();
 
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultActivityPost,
   });
 
   useEffect(() => {
     setTempTitle(urlTitle);
   }, [urlTitle]);
-
-  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
-  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
 
   const handleSearch = () => {
     const params = { page: '1', title: '' };
@@ -119,10 +122,25 @@ export default function ManageActivityPosts() {
   };
 
   const onSubmit = async (formData) => {
+    let tahfizCenterId = null;
+    let mosqueId = null;
+
+    if (isTahfizAdmin && currentUser?.tahfizcenter) {
+      tahfizCenterId = currentUser.tahfizcenter.id;
+    }
+
+    if (isOrganisationAdmin) {
+      mosqueId = formData?.mosque ? Number(formData.mosque) : null;
+    } else if (formData?.mosque) {
+      mosqueId = typeof formData.mosque === 'object'
+        ? Number(formData.mosque.id)
+        : Number(formData.mosque);
+    }
+
     const submitData = {
       ...formData,
-      tahfiz: formData?.tahfiz ? { id: Number(formData.tahfiz.id) } : null,
-      mosque: formData?.mosque ? { id: Number(formData.mosque.id) } : null,
+      tahfiz: tahfizCenterId ? { id: Number(tahfizCenterId) } : null,
+      mosque: mosqueId ? { id: mosqueId } : null,
     };
 
     try {
@@ -172,6 +190,9 @@ export default function ManageActivityPosts() {
       <AccessDeniedComponent/>
     );
   }
+
+  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
+  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
 
   if (!canView) {
     return (
@@ -307,6 +328,21 @@ export default function ManageActivityPosts() {
             <DialogTitle>{editingPost ? translate('Edit Activity Post') : translate('Add Activity Post')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {isOrganisationAdmin && (
+              <SelectForm
+                name="mosque"
+                control={control}
+                label={translate("Mosque")}
+                placeholder={translate("Select Mosque")}
+                options={organisationMosques.map(mosque => ({
+                  value: mosque.id,
+                  label: mosque.name,
+                }))}
+                required
+                errors={errors}
+                disabled={isMosquesLoading || organisationMosques.length === 0}
+              />
+            )}
             <TextInputForm
               name="title"
               control={control}

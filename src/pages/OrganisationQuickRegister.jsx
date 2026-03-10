@@ -14,25 +14,7 @@ import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
 import { STATES_MY } from "@/utils/enums";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-
-const defaultQuickRegisterForm = {
-  name: "",
-  organisationtypeid: "",
-  agreeServiceTerms: false,
-  states: "",
-  address: "",
-  phone: "",
-  email: "",
-  url: "",
-  photourl: "",
-  latitude: "",
-  longitude: "",
-  canbedonated: false,
-  isgraveservices: false,
-  contactname: "",
-  contactemail: "",
-  contactphoneno: "",
-};
+import { defaultQuickRegisterForm } from "@/utils/defaultformfields";
 
 export default function OrganisationQuickRegister() {
   const [serviceEntries, setServiceEntries] = useState([]);
@@ -156,6 +138,7 @@ export default function OrganisationQuickRegister() {
       latitude: formData.latitude ? Number(formData.latitude) : null,
       longitude: formData.longitude ? Number(formData.longitude) : null,
       canbedonated: !!formData.canbedonated,
+      canmanagemosque: !!formData.canmanagemosque,
       isgraveservices: !!formData.isgraveservices,
       serviceoffered: formData.isgraveservices ? serviceoffered : [],
       serviceprice: formData.isgraveservices ? serviceprice : {},
@@ -332,13 +315,7 @@ export default function OrganisationQuickRegister() {
               >
                 <MapPin className="w-4 h-4 mr-2" />
                 {translate("Get Current Location")}
-              </Button>
-
-              <CheckboxForm
-                name="canbedonated"
-                control={control}
-                label={translate("Can Be Donated")}
-              />
+              </Button>              
               <CheckboxForm
                 name="isgraveservices"
                 control={control}
@@ -349,15 +326,18 @@ export default function OrganisationQuickRegister() {
                 <div className="space-y-3">
                   <Label>{translate("Services")}</Label>
                   {serviceEntries.map((entry) => (
-                    <div key={entry.id} className="grid grid-cols-12 gap-2 items-center">
+                    <div
+                      key={entry.id}
+                      className="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-center"
+                    >
                       <Input
-                        className="col-span-7"
+                        className="w-full sm:col-span-7"
                         placeholder={translate("Service Name")}
                         value={entry.service}
                         onChange={(e) => updateServiceEntry(entry.id, "service", e.target.value)}
                       />
                       <Input
-                        className="col-span-4"
+                        className="w-full sm:col-span-4"
                         type="number"
                         step="0.01"
                         placeholder="RM 0.00"
@@ -367,7 +347,7 @@ export default function OrganisationQuickRegister() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="bg-red-600 hover:bg-red-700 text-white hover:text-white rounded-md"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white hover:text-white rounded-md sm:w-auto sm:col-span-1"
                         onClick={() => removeServiceEntry(entry.id)}
                       >
                         <X className="w-4 h-4" />
@@ -380,6 +360,17 @@ export default function OrganisationQuickRegister() {
                   </Button>
                 </div>
               )}
+
+              <CheckboxForm
+                name="canmanagemosque"
+                control={control}
+                label={translate("Can Manage Mosque")}
+              />
+              <CheckboxForm
+                name="canbedonated"
+                control={control}
+                label={translate("Can Be Donated")}
+              />
 
               <hr />
 

@@ -150,14 +150,14 @@
   "QR Code": "رمز QR",
   "Full": "ممتلئ",
   "Maintenance": "صيانة",
-  "All states": "جميع الولايات",
-  "All status": "جميع الحالات",
+  "All States": "جميع الولايات",
+  "All Status": "جميع الحالات",
   "Reset": "إعادة تعيين",
   "Active Filters": "نشط",
   "Search cemetery name, block, lot, state, or QR code...": "البحث عن اسم المقبرة أو القطعة أو الموقع أو الولاية أو رمز QR...",
 
   "Full Name": "الاسم الكامل",
-  "IC Number": "رقم الهوية",
+  "IC No": "رقم الهوية",
   "Date of Birth": "تاريخ الميلاد",
   "Date of Death": "تاريخ الوفاة",
   "Cause of Death": "سبب الوفاة",
@@ -166,12 +166,12 @@
   "Photo": "الصورة",
   "Upload": "تحميل",
   "Select Grave": "اختر القبر",
-  "Name or IC number...": "البحث عن الاسم أو رقم الهوية",
+  "Name or IC No": "البحث عن الاسم أو رقم الهوية",
 
   "Organisation Name": "اسم المنظمة",
   "Organisation Type": "نوع المنظمة",
   "Address": "العنوان",
-  "Phone No.": "رقم الهاتف",
+  "Phone No": "رقم الهاتف",
   "Email": "البريد الإلكتروني",
   "States Covered": "الولايات المشمولة",
   "Select organisation type": "اختر نوع المنظمة",
@@ -247,6 +247,7 @@
   "Select a user to manage access":"اختر المستخدم لإدارة الوصول",
 
   "Add New User":"إضافة مستخدم",
+  "Add User":"إضافة مستخدم",
   "Edit User":"تعديل المستخدم",
   "Password":"كلمة المرور",
   "Role":"الدور",
@@ -257,6 +258,7 @@
   "Employee":"موظف",
   "Organisation":"المنظمة",
   "Select organisation":"اختر المنظمة",
+  "Select Tahfiz Center":"اختر مركز التحفيظ",
   "Select Tahfiz center":"اختر مركز الت:حفيظ",
 
   "Find Donor / Recipient":"البحث عن المتبرع / المستفيد",
@@ -365,6 +367,7 @@
   "Submit Suggestion": "إرسال الاقتراح",
   "Enter name": "أدخل الاسم",
   "Enter phone. no": "أدخل رقم الهاتف",
+  "Enter Phone No": "أدخل رقم الهاتف",
   
   "May the matters of the deceased be eased and their deeds be accepted": "نسأل الله أن يسهّل أمور المتوفّى وأن يتقبّل أعماله.",
 
@@ -378,11 +381,14 @@
   "Message": "رسالة",
 
   "Enter full name": "أدخل الاسم الكامل",
+  "Enter Email": "أدخل البريد الإلكتروني",
+  "Enter Password": "أدخل كلمة المرور",
   "Enter email": "أدخل البريد الإلكتروني",
   "Enter password": "أدخل كلمة المرور",
 
   "Delete User": "حذف المستخدم",
   "Are you sure you want to delete this user": "هل أنت متأكد أنك تريد حذف هذا المستخدم" ,
+  "Are you sure to delete": "هل أنت متأكد من الحذف",
 
   "Funeral Guide & Management at Your Fingertips": "دليل وإدارة الجنازة في متناول يدك",
   "Every living being will surely die": "كُلُّ مَنْ عَلَيْهِ نَفْسٌ لَمْحَتَمٌ أَنْ يَمُوتَ.",

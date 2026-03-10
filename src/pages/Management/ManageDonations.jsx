@@ -18,7 +18,7 @@ import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 
 export default function ManageDonations() {
-  const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loadingUser, hasAdminAccess, isTahfizAdmin } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedDonation, setSelectedDonation] = useState(null);
@@ -26,7 +26,7 @@ export default function ManageDonations() {
   const {
     loading: permissionsLoading,
     canView, canVerify, canReject
-  } = useCrudPermissions('donationList');
+  } = useCrudPermissions('donations');
 
   const {
     donationList,
@@ -90,11 +90,14 @@ export default function ManageDonations() {
     );
   }
 
+  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
+  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
+
   if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+          { label: dashboardLabel, page: dashboardPage },
           { label: translate('Manage Donations'), page: 'ManageDonations' }
         ]} />
         <AccessDeniedComponent/>
@@ -105,7 +108,7 @@ export default function ManageDonations() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
+        { label: dashboardLabel, page: dashboardPage },
         { label: translate('Manage Donations'), page: 'ManageDonations' }
       ]} />
       

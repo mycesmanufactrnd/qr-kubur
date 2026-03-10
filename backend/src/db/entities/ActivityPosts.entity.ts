@@ -5,10 +5,10 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
 } from 'typeorm';
 import { TahfizCenter } from './TahfizCenter.entity.ts';
 import { Mosque } from './Mosque.entity.ts';
+import { User } from './User.entity.ts';
 
 @Entity('activitypost')
 export class ActivityPost {

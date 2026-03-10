@@ -204,7 +204,7 @@ export default function ManageDeathCharity() {
               <Select value={tempState} onValueChange={setTempState}>
                 <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('All states')}</SelectItem>
+                  <SelectItem value="all">{translate('All States')}</SelectItem>
                   {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
                 </SelectContent>
               </Select>

@@ -15,11 +15,11 @@ export function useGetOrganisationTypePaginated({
   pageSize, 
   filterName 
 } : useGetOrganisationTypePaginatedParams ) {
-  const { isSuperAdmin } = useAdminAccess();
+  const { isSuperAdmin, isOrganisationAdmin } = useAdminAccess();
 
   const { data, isLoading, refetch, error } = trpc.organisationType.getTypes.useQuery(
     { page, pageSize, filterName },
-    { enabled: isSuperAdmin }
+    { enabled: isSuperAdmin || isOrganisationAdmin }
   );
 
   const organisationTypeList = { items: data?.items ?? [], total: data?.total ?? 0 };

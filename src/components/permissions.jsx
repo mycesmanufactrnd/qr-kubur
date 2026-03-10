@@ -89,6 +89,12 @@ export const PERMISSIONS = {
 };
 
 export const PERMISSION_CATEGORIES = {
+  // isSuperAdminOnly, - Super Admin
+  // isAllAdmin, - Super Admin + Organisation Admin + Tahfiz Admin
+  // isTahfizAdminOnly, - Super Admin + Tahfiz Admin
+  // isOrganisationAdminOnly, - Super Admin + Organisation Admin
+
+  // Start Super Admin Only
   islamic_events: {
     label: 'Islamic Events',
     permissions: [
@@ -96,8 +102,10 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.ISLAMIC_EVENTS_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.ISLAMIC_EVENTS_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.ISLAMIC_EVENTS_DELETE, label: 'Padam' },
-    ]
+    ],
+    isSuperAdminOnly: true,
   },
+
   waqf: {
     label: 'Waqf Project',
     permissions: [
@@ -105,17 +113,10 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.WAQF_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.WAQF_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.WAQF_DELETE, label: 'Padam' },
-    ]
+    ],
+    isSuperAdminOnly: true,
   },
-  posts: {
-    label: 'Activity Post',
-    permissions: [
-      { slug: PERMISSIONS.POSTS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.POSTS_CREATE, label: 'Tambah' },
-      { slug: PERMISSIONS.POSTS_EDIT, label: 'Edit' },
-      { slug: PERMISSIONS.POSTS_DELETE, label: 'Padam' },
-    ]
-  },
+
   heritages: {
     label: 'Heritage Site',
     permissions: [
@@ -123,8 +124,66 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.HERITAGES_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.HERITAGES_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.HERITAGES_DELETE, label: 'Padam' },
-    ]
+    ],
+    isSuperAdminOnly: true,
   },
+  // End Super Admin Only
+
+  // Start All Admin Only
+  posts: {
+    label: 'Activity Post',
+    permissions: [
+      { slug: PERMISSIONS.POSTS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.POSTS_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.POSTS_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.POSTS_DELETE, label: 'Padam' },
+    ],
+    isAllAdmin: true,
+  },
+
+  // sementara ni belum lagi
+  // suggestions: {
+  //   label: 'Suggestion Records',
+  //   permissions: [
+  //     { slug: PERMISSIONS.SUGGESTIONS_VIEW, label: 'Lihat' },
+  //     { slug: PERMISSIONS.SUGGESTIONS_APPROVE, label: 'Luluskan' },
+  //     { slug: PERMISSIONS.SUGGESTIONS_REJECT, label: 'Tolak' },
+  //   ],
+  //   isAllAdmin: true,
+  // },
+
+  donations: {
+    label: 'Donation Records',
+    permissions: [
+      { slug: PERMISSIONS.DONATIONS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.DONATIONS_VERIFY, label: 'Sahkan' },
+      { slug: PERMISSIONS.DONATIONS_REJECT, label: 'Tolak' },
+    ],
+    isAllAdmin: true,
+  },
+
+  users: {
+    label: 'User Records',
+    permissions: [
+      { slug: PERMISSIONS.USERS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.USERS_CREATE, label: 'Tambah' },
+      { slug: PERMISSIONS.USERS_EDIT, label: 'Edit' },
+      { slug: PERMISSIONS.USERS_DELETE, label: 'Padam' },
+    ],
+    isAllAdmin: true,
+  },
+
+  permissions: {
+    label: 'Permissions',
+    permissions: [
+      { slug: PERMISSIONS.PERMISSIONS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.PERMISSIONS_EDIT, label: 'Edit' },
+    ],
+    isAllAdmin: true,
+  },
+  // End All Admin Only
+
+  // Start Organisation Admin Only
   mosques: {
     label: 'Mosques',
     permissions: [
@@ -132,8 +191,10 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.MOSQUES_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.MOSQUES_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.MOSQUES_DELETE, label: 'Padam' },
-    ]
+    ],
+    isOrganisationAdminOnly: true,
   },
+
   death_charity: {
     label: 'Death Charity',
     permissions: [
@@ -141,93 +202,89 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.DEATH_CHARITY_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: 'Padam' },
-    ]
+    ],
+    isOrganisationAdminOnly: true,
   },
+
   graves: {
-    label: 'Tanah Perkuburan',
+    label: 'Graves',
     permissions: [
       { slug: PERMISSIONS.GRAVES_VIEW, label: 'Lihat' },
       { slug: PERMISSIONS.GRAVES_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.GRAVES_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.GRAVES_DELETE, label: 'Padam' },
-    ]
+    ],
+    isOrganisationAdminOnly: true,
   },
+
   dead_persons: {
-    label: 'Rekod Si Mati',
+    label: 'Dead Person Records',
     permissions: [
       { slug: PERMISSIONS.DEAD_PERSONS_VIEW, label: 'Lihat' },
       { slug: PERMISSIONS.DEAD_PERSONS_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.DEAD_PERSONS_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.DEAD_PERSONS_DELETE, label: 'Padam' },
-    ]
+    ],
+    isOrganisationAdminOnly: true,
   },
+
   organisations: {
-    label: 'Organisasi',
+    label: 'Organisations',
     permissions: [
       { slug: PERMISSIONS.ORGANISATIONS_VIEW, label: 'Lihat' },
       { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.ORGANISATIONS_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.ORGANISATIONS_DELETE, label: 'Padam' },
-    ]
+    ],
+    isOrganisationAdminOnly: true,
   },
+  // End Organisation Admin Only
+
+  // Start Tahfiz Admin Only
   tahfiz: {
-    label: 'Pusat Tahfiz',
+    label: 'Tahfiz Center',
     permissions: [
       { slug: PERMISSIONS.TAHFIZ_VIEW, label: 'Lihat' },
       { slug: PERMISSIONS.TAHFIZ_CREATE, label: 'Tambah' },
       { slug: PERMISSIONS.TAHFIZ_EDIT, label: 'Edit' },
       { slug: PERMISSIONS.TAHFIZ_DELETE, label: 'Padam' },
-    ]
+    ],
+    isTahfizAdminOnly: true
   },
-  suggestions: {
-    label: 'Cadangan',
-    permissions: [
-      { slug: PERMISSIONS.SUGGESTIONS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.SUGGESTIONS_APPROVE, label: 'Luluskan' },
-      { slug: PERMISSIONS.SUGGESTIONS_REJECT, label: 'Tolak' },
-    ]
-  },
-  donations: {
-    label: 'Derma',
-    permissions: [
-      { slug: PERMISSIONS.DONATIONS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.DONATIONS_VERIFY, label: 'Sahkan' },
-      { slug: PERMISSIONS.DONATIONS_REJECT, label: 'Tolak' },
-    ]
-  },
+
   tahlil: {
-    label: 'Permohonan Tahlil',
+    label: 'Tahlil Requests',
     permissions: [
       { slug: PERMISSIONS.TAHLIL_VIEW, label: 'Lihat' },
       { slug: PERMISSIONS.TAHLIL_ACCEPT, label: 'Terima' },
       { slug: PERMISSIONS.TAHLIL_REJECT, label: 'Tolak' },
       { slug: PERMISSIONS.TAHLIL_COMPLETE, label: 'Selesai' },
-    ]
+    ],
+    isTahfizAdminOnly: true,
   },
-  users: {
-    label: 'Pengguna',
-    permissions: [
-      { slug: PERMISSIONS.USERS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.USERS_CREATE, label: 'Tambah' },
-      { slug: PERMISSIONS.USERS_EDIT, label: 'Edit' },
-      { slug: PERMISSIONS.USERS_DELETE, label: 'Padam' },
-    ]
-  },
-  permissions: {
-    label: 'Permissions',
-    permissions: [
-      { slug: PERMISSIONS.PERMISSIONS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.PERMISSIONS_EDIT, label: 'Edit' },
-    ]
-  },
+  // End Tahfiz Admin Only
 };
 
 // Helper to check if user has permission
 // Note: This is a fallback. Use usePermissions() hook for better performance
 export const hasPermission = (user, permissionSlug) => {
   if (!user) return false;
+
+  // If user is superadmin, allow everything
   if (user.role === 'superadmin') return true;
+
+  // Admin can only access permissions that are NOT superadmin-only
+  const category = Object.values(PERMISSION_CATEGORIES).find(cat =>
+    cat.permissions.some(p => p.slug === permissionSlug)
+  );
+
+  if (category?.isSuperAdminOnly) {
+    return false; // admin cannot access superadmin-only
+  }
+
+  // All other permissions are allowed for admin
   if (user.role === 'admin') return true;
+
   return false;
 };
 

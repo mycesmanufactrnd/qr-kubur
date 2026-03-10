@@ -19,15 +19,12 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 
 export default function ManagePermissions() {
-  const { 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-  } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isAdmin, isSuperAdmin, isTahfizAdmin, isOrganisationAdmin } = useAdminAccess();
+  const canManageMosque = !!currentUser?.organisation?.canmanagemosque;
 
   const {
     loading: permissionsLoading,
-    canView, canCreate, canEdit, canDelete
+    canView, canEdit
   } = useCrudPermissions('permissions');
 
   const [page, setPage] = useState(1);
@@ -46,15 +43,20 @@ export default function ManagePermissions() {
   const { data: permissions = [], isLoading: loadingPermissions } = useGetPermission(selectedUser?.id, canView);
   
   useEffect(() => {
-    if (permissions.length > 0) {
-      const permMap = {};
-      permissions.forEach(p => {
-        permMap[p.slug] = p.enabled;
-      });
-      setUserPermissions(permMap);
-    } else if (selectedUser) {
-      setUserPermissions({});
-    }
+    if (!selectedUser) return;
+
+    const permMap = {};
+    permissions.forEach(p => {
+      permMap[p.slug] = p.enabled;
+    });
+
+    setUserPermissions(prev => {
+      const prevStr = JSON.stringify(prev);
+      const newStr = JSON.stringify(permMap);
+
+      if (prevStr === newStr) return prev;
+      return permMap;
+    });
   }, [permissions, selectedUser]);
 
   const saveAllPermissions = async () => {
@@ -73,8 +75,7 @@ export default function ManagePermissions() {
     }));
   };
 
-  
-  if (loadingUser || permissionsLoading) {
+  if (loadingUser || loadingUsers|| permissionsLoading || loadingPermissions) {
     return (
       <PageLoadingComponent/>
     );
@@ -86,11 +87,14 @@ export default function ManagePermissions() {
     );
   }
 
+  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
+  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
+
   if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+          { label: dashboardLabel, page: dashboardPage },
           { label: translate('Manage Permissions'), page: 'ManagePermissions' }
         ]} />
         <AccessDeniedComponent/>
@@ -101,7 +105,7 @@ export default function ManagePermissions() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: isSuperAdmin ? translate('Super Admin Dashboard') : translate('adminDashboard'), page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
+        { label: dashboardLabel, page: dashboardPage },
         { label: translate('Manage Permissions'), page: 'ManagePermissions' }
       ]} />
 
@@ -118,7 +122,7 @@ export default function ManagePermissions() {
               <div className="relative mt-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder={translate('Name or IC number...')}
+                  placeholder={translate('Name')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 border-gray-300 dark:border-white dark:text-white"
@@ -176,7 +180,24 @@ export default function ManagePermissions() {
                 </div>
 
                 <div className="space-y-6 max-h-[600px] overflow-y-auto">
-                  {Object.entries(PERMISSION_CATEGORIES).map(([key, category]) => (
+                  {Object.entries(PERMISSION_CATEGORIES)
+                    .filter(([key, category]) => {
+                      if (key === 'mosques' && !canManageMosque && !isSuperAdmin) return false;
+
+                      if (category.isSuperAdminOnly) return isSuperAdmin;
+
+                      if (category.isTahfizAdminOnly)
+                        return isSuperAdmin || isTahfizAdmin;
+
+                      if (category.isOrganisationAdminOnly)
+                        return isSuperAdmin || isOrganisationAdmin;
+
+                      if (category.isAllAdmin)
+                        return isSuperAdmin || isAdmin;
+
+                      return true;
+                    })
+                    .map(([key, category]) => (
                     <div key={key} className="space-y-3">
                       <h4 className="font-semibold text-gray-900 dark:text-white">{category.label}</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -188,11 +209,13 @@ export default function ManagePermissions() {
                             <Label className="text-sm cursor-pointer flex-1" htmlFor={perm.slug}>
                               {perm.label}
                             </Label>
-                            <Switch
-                              id={perm.slug}
-                              checked={!!userPermissions[perm.slug]}
-                              onCheckedChange={() => togglePermission(perm.slug)}
-                            />
+                            { canEdit && (
+                              <Switch
+                                id={perm.slug}
+                                checked={!!userPermissions[perm.slug]}
+                                onCheckedChange={() => togglePermission(perm.slug)}
+                              />
+                            )}
                           </div>
                         ))}
                       </div>

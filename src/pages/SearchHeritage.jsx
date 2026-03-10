@@ -57,11 +57,7 @@ export default function SearchGrave() {
       {isLoading ? (
         <ListCardSkeletonComponent/>
       ) : locationDenied ? (
-        <NoDataCardComponent
-          isNoGPS
-          title={translate('No Heritage Site Found')}
-          description="Sila cuba carian lain atau ubah penapis."
-        />
+        <NoDataCardComponent isNoGPS />
       ) : heritageSiteList.length === 0 ? (
         <NoDataCardComponent isPage/>
       ) : (

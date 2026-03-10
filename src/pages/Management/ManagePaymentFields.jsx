@@ -138,7 +138,7 @@ export default function ManagePaymentFields() {
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder={translate('Search for Label or Key...')} value={tempLabelKey} onChange={(e) => setTempLabelKey(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="pl-10" />
+              <Input placeholder={translate('Search for Field Key or Label')} value={tempLabelKey} onChange={(e) => setTempLabelKey(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="pl-10" />
             </div>
             <Button onClick={handleSearch} className="bg-purple-600 px-6">{translate('Search')}</Button>
           </div>

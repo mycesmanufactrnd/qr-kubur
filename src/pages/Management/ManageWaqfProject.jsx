@@ -125,7 +125,7 @@ export default function ManageWaqfProject() {
         return (
             <div className="space-y-6">
                 <Breadcrumb items={[
-                    { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+                    { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
                     { label: translate('Manage Waqf Project'), page: 'ManageWaqfProject' }
                 ]} />
                 <AccessDeniedComponent/>
@@ -136,7 +136,7 @@ export default function ManageWaqfProject() {
     return (
         <div className="space-y-6">
             <Breadcrumb items={[
-                { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+                { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
                 { label: translate('Manage Waqf Project'), page: 'ManageWaqfProject' }
             ]} />
             <div className="bg-gradient-to-b from-slate-50 to-white">

@@ -10,11 +10,13 @@ export function useGetConfigByEntity({
   entityType?: string;
   enabled?: boolean;
 }) {
+  const isDisabled = entityId === 0 || !enabled;
+
   const organisationQuery =
     trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
       { organisation: entityId ? { id: entityId } : undefined },
       {
-        enabled: enabled && entityType === 'organisation' && !!entityId,
+        enabled: !isDisabled && entityType === 'organisation' && !!entityId,
         retry: false,
         trpc: { context: { skipBatch: true } },
       }
@@ -24,7 +26,7 @@ export function useGetConfigByEntity({
     trpc.tahfizPaymentConfig.getConfigByTahfizId.useQuery(
       { tahfiz: entityId ? { id: entityId } : undefined },
       {
-        enabled: enabled && entityType === 'tahfiz' && !!entityId,
+        enabled: !isDisabled && entityType === 'tahfiz' && !!entityId,
         retry: false,
         trpc: { context: { skipBatch: true } },
       }

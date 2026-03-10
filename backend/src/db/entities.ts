@@ -15,9 +15,7 @@ export * from "./entities/Donation.entity.ts";
 export * from "./entities/TahlilRequest.entity.ts";
 export * from "./entities/Quotation.entity.ts";
 export * from "./entities/ActivityLog.entity.ts";
-export * from "./entities/VisitLog.entity.ts";
 export * from "./entities/OrganisationPaymentConfig.entity.ts";
-export * from "./entities/TahfizPaymentConfig.entity.ts";
 export * from "./entities/AdminNotification.entity.ts";
 export * from "./entities/OnlineTransaction.entity.ts";
 export * from "./entities/OnlineTransactionAccount.entity.ts";
@@ -25,10 +23,13 @@ export * from "./entities/Mosque.entity.ts";
 export * from "./entities/ActivityPosts.entity.ts";
 export * from "./entities/IslamicEvent.entity.ts";
 export * from "./entities/WaqfProject.entity.ts";
+// Tahfiz
+export * from "./entities/TahfizPaymentConfig.entity.ts";
 // Guest Users
 export * from "./entities/GoogleUser/GoogleUser.entity.ts";
 export * from "./entities/GoogleUser/GoogleUserRecord.entity.ts";
 export * from "./entities/TempOrganisation.entity.ts";
+export * from "./entities/VisitLog.entity.ts";
 //Death Charity
 export * from "./entities/DeathCharity/DeathCharity.entity.ts";
 export * from "./entities/DeathCharity/DeathCharityClaim.entity.ts";

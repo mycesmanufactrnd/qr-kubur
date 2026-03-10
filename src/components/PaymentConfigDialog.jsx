@@ -276,7 +276,6 @@ export default function PaymentConfigDialog({
           <div>
             <Label htmlFor={fieldId}>{field.label || field.key} {field.required && <span className="text-red-500">*</span>}</Label>
             <Input
-              id={fieldId}
               type={field.fieldtype === 'password' ? 'password' : 'text'}
               value={value}
               onChange={(e) => setConfigValues({ ...configValues, [fieldId]: e.target.value })}
@@ -296,13 +295,13 @@ export default function PaymentConfigDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
-            {translate('paymentConfig')}
+            {translate('Payment Config')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <div>
-            <Label className="text-base font-semibold mb-3 block">{translate('selectPaymentPlatforms')}</Label>
+            <Label className="text-base font-semibold mb-3 block">{translate('Select Payment Platforms')}</Label>
             <div className="grid gap-3">
               {platforms.filter(p => p?.code).map(platform => (
                 <Label 
@@ -349,13 +348,11 @@ export default function PaymentConfigDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {translate('cancel')}
+            {translate('Cancel')}
           </Button>
           <Button onClick={handleSave} >
             <Save className="w-4 h-4 mr-2" />
-            { (upsertMutation.orgMutation.isPending || upsertMutation.tahfizMutation.isPending) 
-              ? translate('saving...') : translate('savingConfig')
-            }
+            { translate('Save') }
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -167,7 +167,7 @@ export default function ManageHeritageSites() {
     return (
       <div className="space-y-6">
         <Breadcrumb items={[
-          { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+          { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
           { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
         ]} />
         <AccessDeniedComponent/>
@@ -179,7 +179,7 @@ export default function ManageHeritageSites() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Superadmin Dashboard'), page: 'SuperadminDashboard' },
+        { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
         { label: translate('Manage Heritage Sites'), page: 'ManageHeritageSites' }
       ]} />
 
@@ -221,7 +221,7 @@ export default function ManageHeritageSites() {
               <Select value={tempState} onValueChange={setTempState}>
                 <SelectTrigger><SelectValue placeholder="Negeri" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate('All states')}</SelectItem>
+                  <SelectItem value="all">{translate('All States')}</SelectItem>
                   {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
                 </SelectContent>
               </Select>

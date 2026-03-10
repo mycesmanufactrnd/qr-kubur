@@ -409,7 +409,7 @@ export default function ManageDeathCharityMember() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Full Name')}</TableHead>
-                <TableHead className="text-center">{translate('IC Number')}</TableHead>
+                <TableHead className="text-center">{translate('IC No')}</TableHead>
                 <TableHead className="text-center">{translate('Phone No.')}</TableHead>
                 <TableHead className="text-center">{translate('Active')}</TableHead>
                 <TableHead className="text-center">{translate('Death Charity')}</TableHead>
@@ -619,7 +619,7 @@ export default function ManageDeathCharityMember() {
                     }
                   />
                   <Input
-                    placeholder={translate('IC Number')}
+                    placeholder={translate('IC No')}
                     value={spouseForm.icnumber}
                     onChange={(e) =>
                       setSpouseForm({ ...spouseForm, icnumber: e.target.value })
@@ -642,7 +642,7 @@ export default function ManageDeathCharityMember() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{translate('Full Name')}</TableHead>
-                        <TableHead>{translate('IC Number')}</TableHead>
+                        <TableHead>{translate('IC No')}</TableHead>
                         <TableHead className="text-center">{translate('Action')}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -698,7 +698,7 @@ export default function ManageDeathCharityMember() {
                     }
                   />
                   <Input
-                    placeholder={translate('IC Number')}
+                    placeholder={translate('IC No')}
                     value={childForm.icnumber}
                     onChange={(e) =>
                       setChildForm({ ...childForm, icnumber: e.target.value })
@@ -716,7 +716,7 @@ export default function ManageDeathCharityMember() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{translate('Full Name')}</TableHead>
-                        <TableHead>{translate('IC Number')}</TableHead>
+                        <TableHead>{translate('IC No')}</TableHead>
                         <TableHead className="text-center">{translate('Action')}</TableHead>
                       </TableRow>
                     </TableHeader>

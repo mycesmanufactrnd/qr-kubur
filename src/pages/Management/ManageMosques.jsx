@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { translate } from '@/utils/translations';
-import { Landmark, Plus, Edit, Trash2, Search, X, Save, ImageIcon } from 'lucide-react';
+import { Landmark, Plus, Edit, Trash2, Search, X, Save, ImageIcon, MapPin } from 'lucide-react';
 
 import Breadcrumb from '@/components/Breadcrumb';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
@@ -219,7 +219,7 @@ export default function ManageMosques() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Mosque name')}
+                placeholder={translate('Name')}
                 value={setName}
                 onChange={(e) => setTempName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -232,7 +232,7 @@ export default function ManageMosques() {
             <Select value={tempState} onValueChange={setTempState}>
               <SelectTrigger><SelectValue placeholder={translate("State")} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('All states')}</SelectItem>
+                <SelectItem value="all">{translate('All States')}</SelectItem>
                 {STATES_MY.map(state => <SelectItem key={state} value={state}>{state}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -249,6 +249,7 @@ export default function ManageMosques() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Mosque name')}</TableHead>
+                <TableHead className="text-center">{translate('PIC Name')}</TableHead>
                 <TableHead className="text-center">{translate('State')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
               </TableRow>
@@ -262,6 +263,7 @@ export default function ManageMosques() {
                 mosquesList.items.map(mosque => (
                   <TableRow key={mosque.id}>
                     <TableCell className="font-medium">{mosque.name}</TableCell>
+                    <TableCell className="text-center">{mosque.picname}</TableCell>
                     <TableCell className="text-center">{mosque.state}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -317,6 +319,20 @@ export default function ManageMosques() {
               <TextInputForm name="latitude" control={control} label={translate('Latitude')} isNumber />
               <TextInputForm name="longitude" control={control} label={translate('Longitude')} isNumber />
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() =>
+                navigator.geolocation.getCurrentPosition((pos) => {
+                  setValue('latitude', pos.coords.latitude.toFixed(16));
+                  setValue('longitude', pos.coords.longitude.toFixed(16));
+                })
+              }
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              {translate('Get Current Location')}
+            </Button>
 
             <SelectForm
               name="organisation"

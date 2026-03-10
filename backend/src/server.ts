@@ -26,7 +26,7 @@ const app = Fastify({
 
 await app.register(rateLimit, {
   global: true,
-  max: 15, // max request
+  max: 60, // max request
   timeWindow: "1 minute", //Each IP is allowed max X requests per 1 minute sliding window
   allowList: [
     "127.0.0.1",

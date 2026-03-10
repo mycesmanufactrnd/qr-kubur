@@ -3,6 +3,7 @@ import { AlertCircle, ArrowLeft, Home, RefreshCw, MapPin, WifiOff } from "lucide
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { translate } from "@/utils/translations";
 
 function GPSPulse() {
   return (
@@ -32,8 +33,8 @@ function NoDataIllustration() {
 }
 
 export default function NoDataCardComponent({
-  title = "Tiada rekod ditemui",
-  description = "Tiada data yang sepadan dengan carian anda.",
+  title = translate('No Records Found'),
+  description = translate("No results match your search"),
   isPage = false,
   isNoGPS = false,
 }) {
@@ -45,19 +46,15 @@ export default function NoDataCardComponent({
     return () => clearTimeout(t);
   }, []);
 
-  const gpsTitle = "Lokasi Tidak Dapat Dikesan";
-  const gpsDescription =
-    "GPS anda tidak aktif atau isyarat terlalu lemah. Sila hidupkan perkhidmatan lokasi dan cuba semula.";
+  const gpsTitle = translate("No Data Found");
+  const gpsDescription = translate("Location unavailable. Enable GPS and try again");
+    
 
   const displayTitle = isNoGPS ? gpsTitle : title;
   const displayDesc = isNoGPS ? gpsDescription : description;
 
-  const containerClasses = isPage
-    ? "flex flex-col items-center justify-center min-h-[60vh] p-4"
-    : "";
-
   return (
-    <div className={containerClasses}>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
       <Card
         className={`
           w-full max-w-sm mx-auto overflow-hidden border-0 shadow-xl
@@ -74,13 +71,13 @@ export default function NoDataCardComponent({
         }}
       >
         {/* Top accent stripe */}
-        <div
+        {/* <div
           className={`h-1 w-full ${
             isNoGPS
               ? "bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400"
               : "bg-gradient-to-r from-slate-300 via-slate-400 to-slate-300"
           }`}
-        />
+        /> */}
 
         <CardContent className="px-7 pt-8 pb-7 text-center">
           {/* Illustration */}

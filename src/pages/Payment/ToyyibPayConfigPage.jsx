@@ -2,8 +2,15 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus } from "@/utils/enums";
+import { useAdminAccess } from "@/utils/auth";
+import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import Breadcrumb from "@/components/Breadcrumb";
+import { translate } from "@/utils/translations";
+import { Plus, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function ToyyibPayStatusPage() {
+  const { loadingUser, isSuperAdmin } = useAdminAccess();
   const [searchParams] = useSearchParams();
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -57,34 +64,36 @@ export default function ToyyibPayStatusPage() {
       ? "bg-yellow-100 text-yellow-800"
       : "bg-red-100 text-red-800";
 
-  return (
-    <div className="p-6 max-w-lg mx-auto space-y-6">
-      <h1 className="text-2xl font-extrabold text-gray-800 text-center">
-        ToyyibPay Payment Details
-      </h1>
+  if (!isSuperAdmin) {
+    return (
+      <AccessDeniedComponent/>
+    )
+  };
 
+  return (
+    <div className="space-y-6">
+      <Breadcrumb items={[
+        { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' }, 
+        { label: translate('ToyyibPay Config'), page: 'ToyyibPayConfigPage' }
+      ]} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Settings className="w-6 h-6 text-purple-600" />{translate('ToyyibPay Payment Details')}</h1>
+        <Button onClick={handleTest} className="bg-blue-600" disabled={loading}>
+          <Plus className="w-4 h-4 mr-2" />{loading ? "Processing..." : "Create / Test ToyyibPay Bill"}
+        </Button>
+
+      </div>
       <div className="flex justify-center">
         <span className={`px-4 py-2 rounded-full font-semibold ${statusColor}`}>
           {paymentInfo.statusText}
         </span>
       </div>
-
       <div className="bg-white rounded-lg shadow-md p-4 space-y-2">
         {paymentInfo.billcode && <p><span className="font-medium">Bill Code:</span> {paymentInfo.billcode}</p>}
         {paymentInfo.order_id && <p><span className="font-medium">Order ID:</span> {paymentInfo.order_id}</p>}
         {paymentInfo.msg && <p><span className="font-medium">Message:</span> {paymentInfo.msg}</p>}
         {paymentInfo.transaction_id && <p><span className="font-medium">Transaction ID:</span> {paymentInfo.transaction_id}</p>}
         {paymentInfo.status_id && <p><span className="font-medium">Status ID:</span> {paymentInfo.status_id}</p>}
-      </div>
-
-      <div className="text-center">
-        <button
-          onClick={handleTest}
-          disabled={loading}
-          className="px-6 py-3 bg-emerald-500 text-white font-semibold rounded-lg shadow hover:bg-emerald-600 disabled:opacity-50 transition-colors"
-        >
-          {loading ? "Processing..." : "Create / Test ToyyibPay Bill"}
-        </button>
       </div>
 
       {paymentInfo.paymentUrl && (

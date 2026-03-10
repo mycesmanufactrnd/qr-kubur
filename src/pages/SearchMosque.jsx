@@ -125,11 +125,7 @@ export default function SearchMosque() {
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : locationDenied ? (
-        <NoDataCardComponent
-          isNoGPS
-          title={translate('No Mosque Found')}
-          description="Sila cuba carian lain atau ubah penapis."
-        />
+        <NoDataCardComponent isNoGPS/>
       ) : mosques.length === 0 ? (
         <NoDataCardComponent title={translate('No Mosque Found')} />
       ) : (

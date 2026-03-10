@@ -277,7 +277,11 @@ export default function ManageTahfizCenters() {
   if (!canView) return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dashboard'), page: 'AdminDashboard' }, 
+        { label: isSuperAdmin 
+          ? translate('Super Admin Dashboard') 
+          : translate('Tahfiz Dashboard'), 
+          page: isSuperAdmin ? 'SuperadminDashboard' : 'TahfizDashboard' 
+        },
         { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters' }
       ]} />
       <AccessDeniedComponent />
@@ -287,7 +291,11 @@ export default function ManageTahfizCenters() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dashboard'), page: 'AdminDashboard' }, 
+        { label: isSuperAdmin 
+          ? translate('Super Admin Dashboard') 
+          : translate('Tahfiz Dashboard'), 
+          page: isSuperAdmin ? 'SuperadminDashboard' : 'TahfizDashboard' 
+        },
         { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters' }
       ]} />
       
@@ -347,6 +355,7 @@ export default function ManageTahfizCenters() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate('Name')}</TableHead>
+                <TableHead className="text-center">{translate('Phone No')}</TableHead>
                 <TableHead className="text-center">{translate('State')}</TableHead>
                 <TableHead className="text-center">{translate('Services')}</TableHead>
                 <TableHead className="text-center">{translate('Actions')}</TableHead>
@@ -361,6 +370,7 @@ export default function ManageTahfizCenters() {
                 tahfizCenterList.items.map(center => (
                   <TableRow key={center.id}>
                     <TableCell className="font-medium">{center.name}</TableCell>
+                    <TableCell className="text-center">{center.phone}</TableCell>
                     <TableCell className="text-center">{center.state}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-wrap justify-center items-center gap-1">
@@ -443,6 +453,12 @@ export default function ManageTahfizCenters() {
               required
               errors={errors}
             />
+            <TextInputForm 
+              name="description" 
+              control={control} 
+              label={translate("About")}
+              isTextArea 
+            />
             <div>
               <Label>{translate('Services')}</Label>
               <div className="space-y-3 mt-2">
@@ -477,7 +493,7 @@ export default function ManageTahfizCenters() {
                   {translate('Add Service')}
                 </Button>
               </div>
-            </div>
+            </div>            
             <TextInputForm 
               name="address" 
               control={control} 
@@ -496,8 +512,6 @@ export default function ManageTahfizCenters() {
                 name="email"
                 control={control}
                 label={translate("Email")}
-                required
-                errors={errors}
               /> 
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -532,8 +546,6 @@ export default function ManageTahfizCenters() {
               name="photourl"
               control={control}
               label={translate("Photo")}
-              required
-              errors={errors}
               bucketName="tahfiz-center"
               uploading={uploading}
               handleFileUpload={handleFileUpload}
@@ -543,25 +555,25 @@ export default function ManageTahfizCenters() {
               <Button 
                 type="button" variant="outline" 
                 onClick={() => setIsDialogOpen(false)}>
-                {translate('cancel')}
+                {translate('Cancel')}
               </Button>
               <Button 
                 type="submit" className="bg-amber-600 hover:bg-amber-700" 
                 disabled={createTahfiz.isPending || updateTahfiz.isPending || isSubmitting || uploading}>
-                <Save className="w-4 h-4 mr-2" /> {translate('save')}
+                <Save className="w-4 h-4 mr-2" /> {translate('Save')}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog 
-        open={deleteDialogOpen} 
-        onOpenChange={setDeleteDialogOpen} 
-        onConfirm={confirmDelete} 
-        title={translate('delete')} 
-        description={translate('confirmDelete')} 
-        variant="destructive" 
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={translate('Delete Tahfiz Center')}
+        isDelete={true}
+        itemToDelete={centerToDelete?.name}
+        onConfirm={confirmDelete}
       />
       <PaymentConfigDialog 
         open={paymentConfigOpen} 

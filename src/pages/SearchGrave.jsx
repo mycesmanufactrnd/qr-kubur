@@ -123,11 +123,7 @@ export default function SearchGrave() {
         {isLoading ? (
           <ListCardSkeletonComponent />
         ) : locationDenied ? (
-          <NoDataCardComponent
-            isNoGPS
-            title={translate('No Graves Found')}
-            description="Sila cuba carian lain atau ubah penapis."
-          />
+          <NoDataCardComponent isNoGPS/>
         ) : gravesList.length === 0 ? (
           <NoDataCardComponent
             isPage

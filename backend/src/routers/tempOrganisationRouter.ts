@@ -102,6 +102,7 @@ export const tempOrganisationRouter = router({
         latitude: input.latitude ?? undefined,
         longitude: input.longitude ?? undefined,
         canbedonated: !!input.canbedonated,
+        canmanagemosque: !!input.canmanagemosque,
         isgraveservices: !!input.isgraveservices,
         serviceoffered: input.isgraveservices
           ? normalizedServices.serviceoffered
@@ -232,6 +233,7 @@ export const tempOrganisationRouter = router({
           latitude: tempOrganisation.latitude ?? undefined,
           longitude: tempOrganisation.longitude ?? undefined,
           canbedonated: !!tempOrganisation.canbedonated,
+          canmanagemosque: !!tempOrganisation.canmanagemosque,
           isgraveservices: !!tempOrganisation.isgraveservices,
           status: tempOrganisation.status ?? ActiveInactiveStatus.ACTIVE,
         });

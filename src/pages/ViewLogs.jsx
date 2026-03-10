@@ -72,7 +72,7 @@ export default function ViewLogs() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Super Admin'), page: 'SuperadminDashboard' },
+        { label: translate('Super Admin Dashboard'), page: 'SuperadminDashboard' },
         { label: translate('Activity Logs'), page: 'ViewLogs' }
       ]} />
 
@@ -89,7 +89,7 @@ export default function ViewLogs() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Search by User, Activity, or Summary...')}
+                placeholder={translate('Search by User, Activity, or Summary')}
                 value={tempSearch}
                 onChange={(e) => setTempSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

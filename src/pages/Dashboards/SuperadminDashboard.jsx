@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX, Moon, Sun, Globe, Calendar, Gift, Zap, House } from 'lucide-react';
+import { Shield, Users, Database, Terminal, Sparkles, List, CreditCard, Settings, UserCheck, UserX, Moon, Sun, Globe, Calendar, Gift, Zap, House, BookOpen } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,8 +28,9 @@ export default function SuperadminDashboard() {
         { name: translate('Organisation Type'), page: 'ManageOrganisationTypes', icon: List, color: 'purple' },
         { name: translate('Manage Organisations'), page: 'ManageOrganisations', icon: Database, color: 'emerald' },
         { name: translate('Organisation Registrations'), page: 'ManageTempOrganisations', icon: Users, color: 'blue' },
-        { name: translate('Manage Private Organisations'), page: 'ManagePrivateOrganisations', icon: House, color: 'red' },
-        { name: translate('Manage Volunteer & NGO'), page: 'ManageVolunteerNGO', icon: House, color: 'yellow' },
+        { name: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters', icon: BookOpen, color: 'amber' },
+        // { name: translate('Manage Private Organisations'), page: 'ManagePrivateOrganisations', icon: House, color: 'red' },
+        // { name: translate('Manage Volunteer & NGO'), page: 'ManageVolunteerNGO', icon: House, color: 'yellow' },
       ]
     },
     {

@@ -145,7 +145,11 @@ export default function ManageTahlilRequests() {
   if (!canView) return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dahsboard'), page: 'AdminDashboard' },
+        { label: isSuperAdmin 
+          ? translate('Super Admin Dashboard') 
+          : translate('Tahfiz Dashboard'), 
+          page: isSuperAdmin ? 'SuperadminDashboard' : 'TahfizDashboard' 
+        },
         { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests' }
       ]} />
       <AccessDeniedComponent/>
@@ -155,7 +159,11 @@ export default function ManageTahlilRequests() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={[
-        { label: translate('Admin Dahsboard'), page: 'AdminDashboard' },
+        { label: isSuperAdmin 
+          ? translate('Super Admin Dashboard') 
+          : translate('Tahfiz Dashboard'), 
+          page: isSuperAdmin ? 'SuperadminDashboard' : 'TahfizDashboard' 
+        },
         { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests' }
       ]} />
       

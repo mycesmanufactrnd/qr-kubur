@@ -291,11 +291,8 @@ export default function OrganisationDetails() {
           </div>
         </div>
       </div>
-
-      {/* Body */}
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-12">
 
-        {/* Action Buttons */}
         <div className="flex flex-wrap gap-2 mb-4">
           <DirectionButton latitude={organisation.latitude} longitude={organisation.longitude} />
           {organisation.canbedonated && (
@@ -308,11 +305,7 @@ export default function OrganisationDetails() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4">
-
-          {/* Main column */}
           <div className="lg:col-span-2 space-y-4">
-
-            {/* Services */}
             {organisation.serviceoffered?.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
@@ -374,7 +367,6 @@ export default function OrganisationDetails() {
               </div>
             )}
 
-            {/* Map */}
             {organisation.latitude != null && organisation.longitude != null && (
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
@@ -392,9 +384,7 @@ export default function OrganisationDetails() {
             )}
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-4">
-            {/* Contact */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
                 <Building2 className="w-4 h-4 text-violet-600" />

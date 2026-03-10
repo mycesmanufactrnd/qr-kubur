@@ -8,6 +8,8 @@ import PaymentConfigDialog from "@/components/PaymentConfigDialog";
 import { useAdminAccess } from "@/utils/auth";
 import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
 import { translate } from "@/utils/translations";
+import NoDataCardComponent from "@/components/NoDataCardComponent";
+import Breadcrumb from "@/components/Breadcrumb";
 
 const maskValue = (value = "") => {
   if (!value) return "-";
@@ -16,7 +18,7 @@ const maskValue = (value = "") => {
 };
 
 export default function MyPaymentConfig() {
-  const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
+  const { loadingUser, hasAdminAccess, currentUser, isTahfizAdmin } = useAdminAccess();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const entity = useMemo(() => {
@@ -71,18 +73,20 @@ export default function MyPaymentConfig() {
 
   if (!entity.entityId || !entity.entityType) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card className="border-0 shadow-md">
-          <CardContent className="p-6 text-sm text-slate-600">
-            {translate("No organisation or tahfiz account found for payment configuration.")}
-          </CardContent>
-        </Card>
-      </div>
+      <NoDataCardComponent isPage/>
     );
   }
 
+  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
+  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
+    <div className="space-y-6">
+      <Breadcrumb items={[
+        { label: dashboardLabel, page: dashboardPage },
+        { label: translate('Payment Config'), page: 'MyPaymentConfig' }
+      ]} />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
@@ -104,13 +108,9 @@ export default function MyPaymentConfig() {
       </div>
 
       {groupedConfigs.length === 0 ? (
-        <Card className="border-0 shadow-md">
-          <CardContent className="p-6 text-sm text-slate-600">
-            {translate("No payment configuration saved yet. Click Update Config to set up your payment details.")}
-          </CardContent>
-        </Card>
+        <NoDataCardComponent isPage/>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
           {groupedConfigs.map(([platformName, configs]) => (
             <Card key={platformName} className="border-0 shadow-md">
               <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-slate-100">

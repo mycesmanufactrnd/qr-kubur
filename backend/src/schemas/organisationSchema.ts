@@ -33,6 +33,7 @@ export const organisationSchema = z.object({
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   canbedonated: z.boolean().default(false),
+  canmanagemosque: z.boolean().default(false),
   isgraveservices: z.boolean().default(false),
   status: z.enum(ActiveInactiveStatus).optional(),
 });

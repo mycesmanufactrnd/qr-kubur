@@ -28,6 +28,7 @@ import { paymentToyyibStatus, MAINTENANCE_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
 import { activityLogError, clearQueryParams } from "@/utils/helpers";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
+import { translate } from "@/utils/translations";
 
 const PAYMENT_PLAN = {
   REGISTER_ONLY: "register_only",
@@ -454,7 +455,7 @@ export default function DeathCharityUserPayment() {
     if (!selectedMember) {
       const isValidRegistration = validateFields(registrationForm, [
         { field: "fullname", label: "Full Name", type: "text" },
-        { field: "icnumber", label: "IC Number", type: "text" },
+        { field: "icnumber", label: "IC No.", type: "text" },
         { field: "phone", label: "Phone Number", type: "phone", required: false },
         { field: "email", label: "Email", type: "email", required: false },
       ]);
@@ -625,7 +626,7 @@ export default function DeathCharityUserPayment() {
               />
             </div>
             <div className="space-y-2">
-              <Label>IC Number</Label>
+              <Label>{ translate('IC No') }</Label>
               <Input
                 value={registrationForm.icnumber}
                 onChange={(event) =>
