@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AppDataSource } from "../datasource.ts";
 import { Permission, User } from "../db/entities.ts";
 import { updateUserSchema, userSchema } from "../schemas/userSchema.ts";
+import { buildDefaultPermissions } from "../helpers/authHelper.ts";
 
 export const usersRouter = router({
   getUserById: protectedProcedure
@@ -163,75 +164,14 @@ export const usersRouter = router({
 
       if (savedUser) {
         const { role, tahfizcenter, organisation } = userWithoutPassword;
-
-        let defaultPermission = [
-          { slug: 'permissions_edit', enabled: true, user: savedUser },
-          { slug: 'permissions_view', enabled: true, user: savedUser },
-        ];
-
-        if (role === 'admin') {
-          defaultPermission.push(
-            { slug: 'users_view', enabled: true, user: savedUser },
-            { slug: 'users_create', enabled: true, user: savedUser },
-            { slug: 'users_edit', enabled: true, user: savedUser },
-            { slug: 'users_delete', enabled: true, user: savedUser }
-          );
-
-          defaultPermission.push(
-            { slug: 'posts_view', enabled: true, user: savedUser },
-            { slug: 'posts_create', enabled: true, user: savedUser },
-            { slug: 'posts_edit', enabled: true, user: savedUser },
-            { slug: 'posts_delete', enabled: true, user: savedUser }
-          );
-
-          if (tahfizcenter?.id) {
-            defaultPermission.push(
-              { slug: 'donations_view', enabled: true, user: savedUser },
-              { slug: 'donations_verify', enabled: true, user: savedUser },
-              { slug: 'donations_reject', enabled: true, user: savedUser },
-            );
-
-            defaultPermission.push(
-              { slug: 'tahfiz_view', enabled: true, user: savedUser },
-              { slug: 'tahfiz_create', enabled: true, user: savedUser },
-              { slug: 'tahfiz_edit', enabled: true, user: savedUser },
-              { slug: 'tahfiz_delete', enabled: true, user: savedUser }
-            );
-
-            defaultPermission.push(
-              { slug: 'tahlil_view', enabled: true, user: savedUser },
-              { slug: 'tahlil_accept', enabled: true, user: savedUser },
-              { slug: 'tahlil_reject', enabled: true, user: savedUser },
-              { slug: 'tahlil_complete', enabled: true, user: savedUser }
-            );
-          } else if (organisation?.id) {
-            defaultPermission.push(
-              { slug: 'organisations_view', enabled: true, user: savedUser },
-              { slug: 'organisations_create', enabled: true, user: savedUser },
-              { slug: 'organisations_edit', enabled: true, user: savedUser },
-              { slug: 'organisations_delete', enabled: true, user: savedUser }
-            );
-
-            if (organisation.canbedonated) {
-              defaultPermission.push(
-                { slug: 'donations_view', enabled: true, user: savedUser },
-                { slug: 'donations_verify', enabled: true, user: savedUser },
-                { slug: 'donations_reject', enabled: true, user: savedUser },
-              );
-            }
-
-            if (organisation.canmanagemosque) {
-              defaultPermission.push(
-                { slug: 'mosques_view', enabled: true, user: savedUser },
-                { slug: 'mosques_create', enabled: true, user: savedUser },
-                { slug: 'mosques_edit', enabled: true, user: savedUser },
-                { slug: 'mosques_delete', enabled: true, user: savedUser },
-              );
-            }
-          }
-        }
-
-        const permissions = permissionRepo.create(defaultPermission);
+        const permissions = permissionRepo.create(
+          buildDefaultPermissions({
+            user: savedUser,
+            role,
+            tahfizcenter,
+            organisation,
+          })
+        );
         await permissionRepo.save(permissions);
       }
 

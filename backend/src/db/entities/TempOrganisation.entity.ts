@@ -37,9 +37,6 @@ export class TempOrganisation {
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
-  photourl?: string;
-
   @Column("double precision", { nullable: true })
   latitude?: number;
 
@@ -60,6 +57,9 @@ export class TempOrganisation {
 
   @Column("jsonb", { nullable: true })
   serviceprice?: Record<string, number>;
+
+  @Column("jsonb", { nullable: true })
+  paymentconfigdraft?: { paymentPlatformId: number; paymentFieldId: number; value: string }[];
 
   @Column("varchar", { length: 255 })
   contactname!: string;

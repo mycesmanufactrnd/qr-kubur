@@ -1,7 +1,7 @@
 import z from "zod";
 import { AppDataSource } from "../datasource.ts";
 import { PaymentPlatform } from "../db/entities/PaymentPlatform.entity.ts";
-import { protectedProcedure, router, superAdminProcedure } from "../trpc.ts";
+import { protectedProcedure, publicProcedure, router, superAdminProcedure } from "../trpc.ts";
 import { paymentPlatformSchema } from "../schemas/paymentPlatformSchema.ts";
 import { ActiveInactiveStatus } from "../db/enums.ts";
 
@@ -34,7 +34,7 @@ export const paymentPlatformRouter = router({
       return { items, total };
     }),
 
-  getActivePlatform: protectedProcedure
+  getActivePlatform: publicProcedure
     .query(() => {
       return AppDataSource.getRepository(PaymentPlatform).find({
         where: { status: ActiveInactiveStatus.ACTIVE },

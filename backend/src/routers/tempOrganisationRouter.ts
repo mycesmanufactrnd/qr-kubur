@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { In } from "typeorm";
 import { adminProcedure, publicProcedure, router } from "../trpc.ts";
@@ -6,11 +7,13 @@ import { AppDataSource } from "../datasource.ts";
 import {
   Organisation,
   OrganisationType,
+  OrganisationPaymentConfig,
   Permission,
   ServiceOffered,
   TempOrganisation,
   User,
 } from "../db/entities.ts";
+import { buildDefaultPermissions } from "../helpers/authHelper.ts";
 import { ApprovalStatus, ActiveInactiveStatus } from "../db/enums.ts";
 import {
   allowedTempOrganisationTypeNames,
@@ -98,7 +101,6 @@ export const tempOrganisationRouter = router({
         phone: input.phone ?? undefined,
         email: input.email?.trim() || undefined,
         url: input.url?.trim() || undefined,
-        photourl: input.photourl ?? undefined,
         latitude: input.latitude ?? undefined,
         longitude: input.longitude ?? undefined,
         canbedonated: !!input.canbedonated,
@@ -110,6 +112,7 @@ export const tempOrganisationRouter = router({
         serviceprice: input.isgraveservices
           ? normalizedServices.serviceprice
           : {},
+        paymentconfigdraft: input.paymentconfigdraft ?? undefined,
         contactname: input.contactname.trim(),
         contactemail: input.contactemail.trim().toLowerCase(),
         contactphoneno: input.contactphoneno?.trim() || undefined,
@@ -167,6 +170,7 @@ export const tempOrganisationRouter = router({
         const userRepo = manager.getRepository(User);
         const permissionRepo = manager.getRepository(Permission);
         const serviceRepo = manager.getRepository(ServiceOffered);
+        const paymentConfigRepo = manager.getRepository(OrganisationPaymentConfig);
 
         const tempOrganisation = await tempOrganisationRepo.findOne({
           where: { id: input.id },
@@ -229,7 +233,6 @@ export const tempOrganisationRouter = router({
           phone: tempOrganisation.phone ?? undefined,
           email: tempOrganisation.email ?? adminEmail,
           url: tempOrganisation.url ?? undefined,
-          photourl: tempOrganisation.photourl ?? undefined,
           latitude: tempOrganisation.latitude ?? undefined,
           longitude: tempOrganisation.longitude ?? undefined,
           canbedonated: !!tempOrganisation.canbedonated,
@@ -253,6 +256,22 @@ export const tempOrganisationRouter = router({
           await serviceRepo.save(serviceEntities);
         }
 
+        const paymentConfigDraft = (tempOrganisation.paymentconfigdraft ?? []).filter(
+          (config) => config?.paymentPlatformId && config?.paymentFieldId && config?.value
+        );
+
+        if (paymentConfigDraft.length > 0) {
+          const configEntities = paymentConfigDraft.map((config) =>
+            paymentConfigRepo.create({
+              organisation: { id: savedOrganisation.id },
+              paymentplatform: { id: config.paymentPlatformId },
+              paymentfield: { id: config.paymentFieldId },
+              value: config.value,
+            })
+          );
+          await paymentConfigRepo.save(configEntities);
+        }
+
         const defaultPassword = "password";
         const temporaryAdminUser = userRepo.create({
           fullname: tempOrganisation.contactname || `${tempOrganisation.name} Admin`,
@@ -266,18 +285,13 @@ export const tempOrganisationRouter = router({
 
         const savedTemporaryAdmin = await userRepo.save(temporaryAdminUser);
 
-        const defaultPermissions = permissionRepo.create([
-          {
-            slug: "permissions_edit",
-            enabled: true,
+        const defaultPermissions = permissionRepo.create(
+          buildDefaultPermissions({
             user: savedTemporaryAdmin,
-          },
-          {
-            slug: "permissions_view",
-            enabled: true,
-            user: savedTemporaryAdmin,
-          },
-        ]);
+            role: savedTemporaryAdmin.role,
+            organisation: savedOrganisation,
+          })
+        );
         await permissionRepo.save(defaultPermissions);
 
         tempOrganisation.approvalstatus = ApprovalStatus.APPROVED;
@@ -296,5 +310,21 @@ export const tempOrganisationRouter = router({
           },
         };
       });
+    }),
+
+  delete: adminProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(TempOrganisation);
+      const result = await repo.delete(input.id);
+
+      if (!result.affected) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Temporary organisation not found",
+        });
+      }
+
+      return { success: true };
     }),
 });

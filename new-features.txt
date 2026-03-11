@@ -19,7 +19,5 @@
 6. Calculation Zakat (by negeri)
 7. Sirah
 8. Musafir
-
-######################################
 ~ buat bayar untuk bersihkan kubur, service bersihkan (done)
-~ bayaran user luar khairat kematian
+~ bayaran user luar khairat kematian (done)

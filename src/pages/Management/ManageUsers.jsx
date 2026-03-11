@@ -74,7 +74,6 @@ export default function ManageUsers() {
 
     setEditUser({
       ...user,
-      phoneno: user.phoneno || '',
       password: '',
       organisation: user.organisation?.id ?? null,
       tahfizcenter: user.tahfizcenter?.id ?? null,
@@ -311,7 +310,7 @@ export default function ManageUsers() {
                 <Input
                   value={editUser.fullname}
                   onChange={(e) => setEditUser({...editUser, fullname: e.target.value})}
-                placeholder={translate('Enter Name')}
+                  placeholder={translate('Enter Name')}
                 />
               </div>
 

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
@@ -21,6 +23,7 @@ import PaymentConfigDialog from '@/components/PaymentConfigDialog';
 import { getLabelFromId } from '@/utils/helpers';
 import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
+import { trpc } from '@/utils/trpc';
 import { useGetOrganisationTypePaginated } from '@/hooks/useOrganisationTypeMutations';
 import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
 import { defaultOrganisationField } from '@/utils/defaultformfields';
@@ -31,9 +34,11 @@ import SelectForm from '@/components/forms/SelectForm';
 import CheckboxForm from '@/components/forms/CheckboxForm';
 import FileUploadForm from '@/components/forms/FileUploadForm';
 import { showError, showSuccess } from '@/components/ToastrNotification';
+import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 
 export default function ManageOrganisations() {
   const { 
+    currentUser,
     loadingUser, 
     hasAdminAccess, 
     isSuperAdmin, 
@@ -65,6 +70,10 @@ export default function ManageOrganisations() {
   const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
   const [serviceEntries, setServiceEntries] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedPaymentPlatforms, setSelectedPaymentPlatforms] = useState([]);
+  const [paymentConfigValues, setPaymentConfigValues] = useState({});
+  const [paymentUploadingFiles, setPaymentUploadingFiles] = useState({});
+  const [paymentPreviewUrls, setPaymentPreviewUrls] = useState({});
 
   const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting} } = useForm({
     defaultValues: defaultOrganisationField
@@ -76,6 +85,7 @@ export default function ManageOrganisations() {
   } = useCrudPermissions('organisations');
 
   const isGraveServicesChecked = watch("isgraveservices");
+  const isPaymentUploading = Object.values(paymentUploadingFiles).some(Boolean);
 
   const tableColSpan = (canEdit || canDelete) ? 5 : 4;
 
@@ -125,6 +135,156 @@ export default function ManageOrganisations() {
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
   };
+
+  const togglePaymentPlatform = (platformCode) => {
+    setSelectedPaymentPlatforms((prev) => {
+      if (prev.includes(platformCode)) {
+        return prev.filter((p) => p !== platformCode);
+      }
+      return [...prev, platformCode];
+    });
+  };
+
+  const handlePaymentFileUpload = async (platformCode, fieldKey, fieldType, file) => {
+    const uploadKey = `${platformCode}_${fieldKey}`;
+    setPaymentUploadingFiles((prev) => ({ ...prev, [uploadKey]: true }));
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload/bucket-organisation-config', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || 'Failed to upload photo');
+        return;
+      }
+
+      const data = await res.json();
+
+      setPaymentConfigValues((prev) => ({ ...prev, [uploadKey]: data.file_url }));
+      setPaymentPreviewUrls((prev) => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
+      showSuccess('Photo uploaded');
+    } catch (err) {
+      console.error("Fetch error:", err);
+      showError('Failed To Upload File');
+    } finally {
+      setPaymentUploadingFiles((prev) => ({ ...prev, [uploadKey]: false }));
+    }
+  };
+
+  const validatePaymentConfig = () => {
+    for (const platformCode of selectedPaymentPlatforms) {
+      const fields = paymentFields.filter(
+        (field) => field.platformCode === platformCode && field.required
+      );
+      for (const field of fields) {
+        const value = paymentConfigValues[`${platformCode}_${field.key}`];
+        if (!value || value.trim() === '') {
+          const platformName =
+            paymentPlatforms.find((p) => p?.code === platformCode)?.name || 'platform';
+          showError(`${field.label || field.key} is required for ${platformName}`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const buildPaymentConfigPayload = (organisationId) => {
+    const configs = selectedPaymentPlatforms.flatMap((platformCode) => {
+      const fields = paymentFields.filter((field) => field.platformCode === platformCode);
+      return fields
+        .map((field) => {
+          const value = paymentConfigValues[`${platformCode}_${field.key}`];
+          if (value) {
+            return {
+              paymentPlatformId: field.platformId,
+              paymentFieldId: field.id,
+              value,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+    });
+    return { organisationId, configs };
+  };
+
+  const renderPaymentField = (platform, field) => {
+    const fieldId = `${platform.code}_${field.key}`;
+    const value = paymentConfigValues[fieldId] || '';
+    const isUploading = paymentUploadingFiles[fieldId];
+
+    switch (field.fieldtype) {
+      case 'image': {
+        const previewSrc = paymentPreviewUrls[fieldId] || value;
+        return (
+          <div>
+            <Label>
+              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  handlePaymentFileUpload(platform.code, field.key, field.fieldtype, file);
+                }}
+                disabled={isUploading}
+              />
+              {isUploading && <span className="text-sm text-gray-500">{translate('Uploading...')}</span>}
+            </div>
+            {previewSrc && (
+              <img src={previewSrc} alt="Preview" className="mt-2 h-20 rounded border" />
+            )}
+          </div>
+        );
+      }
+      case 'textarea':
+        return (
+          <div>
+            <Label htmlFor={fieldId}>
+              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+            </Label>
+            <Textarea
+              id={fieldId}
+              value={value}
+              onChange={(e) =>
+                setPaymentConfigValues((prev) => ({ ...prev, [fieldId]: e.target.value }))
+              }
+              placeholder={field.placeholder}
+            />
+          </div>
+        );
+      case 'url':
+      case 'text':
+      case 'password':
+      default:
+        return (
+          <div>
+            <Label htmlFor={fieldId}>
+              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+            </Label>
+            <Input
+              id={fieldId}
+              type={field.fieldtype === 'password' ? 'password' : 'text'}
+              value={value}
+              onChange={(e) =>
+                setPaymentConfigValues((prev) => ({ ...prev, [fieldId]: e.target.value }))
+              }
+              placeholder={field.placeholder}
+            />
+          </div>
+        );
+    }
+  };
   
   const {
     organisationsList,
@@ -140,6 +300,123 @@ export default function ManageOrganisations() {
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
   const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
+  const paymentConfigMutation = useUpsertConfigByEntity();
+
+  const restrictedOrgTypeNames = new Set([
+    'Syarikat Swasta',
+    'Persatuan Sukarelawan',
+    'Pertubuhan Kebajikan (NGO)',
+  ]);
+
+  const currentOrgType = currentUser?.organisation?.organisationtype ?? null;
+  const isRestrictedOrgType = !!currentOrgType?.name && restrictedOrgTypeNames.has(currentOrgType.name);
+
+  const baseOrganisationTypeOptions = organisationTypeList.items.length > 0
+    ? organisationTypeList.items.map((type) => ({
+        value: type.id,
+        label: type.name,
+      }))
+    : currentOrgType?.id
+      ? [{ value: currentOrgType.id, label: currentOrgType.name || String(currentOrgType.id) }]
+      : [];
+
+  const organisationTypeOptions = isSuperAdmin
+    ? organisationTypeList.items.map((type) => ({
+        value: type.id,
+        label: type.name,
+      }))
+    : isRestrictedOrgType
+      ? baseOrganisationTypeOptions.filter((opt) => opt.value === currentOrgType?.id)
+      : baseOrganisationTypeOptions;
+
+  const { data: paymentPlatforms = [] } = trpc.paymentPlatform.getActivePlatform.useQuery(
+    undefined,
+    { enabled: hasAdminAccess && isDialogOpen }
+  );
+
+  const paymentFields = paymentPlatforms.flatMap((platform) =>
+    (platform.paymentfields ?? []).map((field) => ({
+      ...field,
+      platformCode: platform.code,
+      platformName: platform.name,
+      platformId: platform.id,
+    }))
+  );
+
+  const { data: existingPaymentConfigs = [] } = useGetConfigByEntity({
+    entityId: editingOrg?.id ?? 0,
+    entityType: 'organisation',
+    enabled: !!editingOrg?.id && isDialogOpen,
+  });
+
+  const resetPaymentConfig = () => {
+    Object.values(paymentPreviewUrls).forEach((url) => URL.revokeObjectURL(url));
+    setSelectedPaymentPlatforms([]);
+    setPaymentConfigValues({});
+    setPaymentUploadingFiles({});
+    setPaymentPreviewUrls({});
+  };
+
+  useEffect(() => {
+    if (!isDialogOpen) {
+      resetPaymentConfig();
+      return;
+    }
+
+    if (!editingOrg?.id) {
+      resetPaymentConfig();
+      return;
+    }
+
+    if (!existingPaymentConfigs.length) {
+      setSelectedPaymentPlatforms([]);
+      setPaymentConfigValues({});
+      return;
+    }
+
+    const loadConfigs = async () => {
+      const values = {};
+      const previews = {};
+      const platformSet = new Set();
+
+      for (const config of existingPaymentConfigs) {
+        const platformCode = config.paymentplatform?.code;
+        const fieldKey = config.paymentfield?.key;
+        const fieldType = config.paymentfield?.fieldtype;
+        const configValue = config.value;
+
+        if (platformCode && fieldKey && configValue) {
+          platformSet.add(platformCode);
+          values[`${platformCode}_${fieldKey}`] = configValue;
+
+          if (fieldType === "image") {
+            try {
+              const res = await fetch(`/api/file/bucket-organisation-config/${encodeURIComponent(configValue)}`);
+              if (!res.ok) {
+                continue;
+              }
+              const blob = await res.blob();
+              previews[`${platformCode}_${fieldKey}`] = URL.createObjectURL(blob);
+            } catch (error) {
+              console.error('Error fetching file preview:', error);
+            }
+          }
+        }
+      }
+
+      setSelectedPaymentPlatforms(Array.from(platformSet));
+      setPaymentConfigValues(values);
+      setPaymentPreviewUrls(previews);
+    };
+
+    loadConfigs();
+  }, [isDialogOpen, editingOrg?.id, existingPaymentConfigs]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(paymentPreviewUrls).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [paymentPreviewUrls]);
 
   const handleSearch = () => {
     const params = { page: '1', search: '', type: '', state: '' };
@@ -186,13 +463,18 @@ export default function ManageOrganisations() {
   const openAddDialog = () => {
     setEditingOrg(null);
     const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    reset({...defaultOrganisationField, states: defaultState});
+    const defaultOrgType = !isSuperAdmin && isRestrictedOrgType && currentOrgType?.id
+      ? currentOrgType.id.toString()
+      : '';
+    reset({...defaultOrganisationField, states: defaultState, organisationtype: defaultOrgType});
     setServiceEntries([]);
+    resetPaymentConfig();
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (org) => {
     setEditingOrg(org);
+    resetPaymentConfig();
 
     const relationalServices = Array.isArray(org.services) ? org.services : [];
     const serviceoffered = relationalServices.length > 0
@@ -227,7 +509,9 @@ export default function ManageOrganisations() {
     setIsDialogOpen(true);
   };
 
-  const onSubmit = (formData) => {
+  const onSubmit = async (formData) => {
+    if (!validatePaymentConfig()) return;
+
     const normalizedServices = [];
     const seen = new Set();
 
@@ -262,16 +546,30 @@ export default function ManageOrganisations() {
       })),
     };
 
-    const mutation = editingOrg
-      ? updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
-      : createOrganisation.mutateAsync(submitData);
+    try {
+      const res = editingOrg
+        ? await updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
+        : await createOrganisation.mutateAsync(submitData);
 
-    mutation.then((res) => {
-      if (res) {
+      const organisationId = editingOrg?.id ?? res?.id;
+      const shouldUpsertPaymentConfig =
+        organisationId &&
+        (isSuperAdmin || currentUser?.organisation?.id === organisationId) &&
+        (selectedPaymentPlatforms.length > 0 || existingPaymentConfigs.length > 0);
+
+      if (shouldUpsertPaymentConfig) {
+        const payload = buildPaymentConfigPayload(Number(organisationId));
+        await paymentConfigMutation.mutateAsync(payload);
+      }
+
+      if (res || editingOrg) {
         setIsDialogOpen(false);
         reset(defaultOrganisationField);
+        resetPaymentConfig();
       }
-    });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const confirmDelete = () => {
@@ -445,7 +743,10 @@ export default function ManageOrganisations() {
               {editingOrg ? translate('Edit') : translate('Add New')}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">            
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"> 
+            <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+              {translate('Organsiation Details')}
+            </h3>           
             <TextInputForm
               name="name"
               control={control}
@@ -459,10 +760,8 @@ export default function ManageOrganisations() {
                 control={control}
                 placeholder={translate("Select organisation type")}
                 label={translate("Organisation Type")}
-                options={Object.values(organisationTypeList.items).map((type) => ({
-                  value: type.id,
-                  label: type.name,
-                }))}
+                options={organisationTypeOptions}
+                disabled={!isSuperAdmin && isRestrictedOrgType}
                 required
                 errors={errors}
               />
@@ -598,6 +897,57 @@ export default function ManageOrganisations() {
               control={control}
               label={translate("Can Be Donated")}
             />
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                {translate('Payment Config')}
+              </h3>
+              <div>
+                <Label className="text-base font-semibold mb-3 block">
+                  {translate('Select Payment Platforms')}
+                </Label>
+                <div className="grid gap-3">
+                  {paymentPlatforms.filter(p => p?.code).map(platform => (
+                    <Label
+                      key={platform.code}
+                      className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
+                    >
+                      <Checkbox
+                        checked={selectedPaymentPlatforms.includes(platform.code)}
+                        onCheckedChange={() => togglePaymentPlatform(platform.code)}
+                      />
+                      <div>
+                        <span className="font-medium">{platform.name}</span>
+                        <Badge variant="secondary" className="ml-2 capitalize text-xs">
+                          {platform.category}
+                        </Badge>
+                      </div>
+                    </Label>
+                  ))}
+                </div>
+              </div>
+
+              {selectedPaymentPlatforms.map(platformCode => {
+                const platform = paymentPlatforms.find(p => p?.code === platformCode);
+                const fields = paymentFields.filter(f => f?.platformCode === platformCode);
+
+                if (!platform || fields.length === 0) return null;
+
+                return (
+                  <div key={platformCode} className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2">
+                      {platform.name} {translate('config')}
+                    </h3>
+                    <div className="space-y-4">
+                      {fields.map(field => (
+                        <div key={field.id}>
+                          {renderPaymentField(platform, field)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
             <hr />
             <DialogFooter>
               <Button 
@@ -607,7 +957,14 @@ export default function ManageOrganisations() {
               </Button>
               <Button 
                 type="submit" className="bg-violet-600" 
-                disabled={createOrganisation.isPending || updateOrganisation.isPending || isSubmitting || uploading}
+                disabled={
+                  createOrganisation.isPending ||
+                  updateOrganisation.isPending ||
+                  isSubmitting ||
+                  uploading ||
+                  isPaymentUploading ||
+                  paymentConfigMutation.orgMutation.isPending
+                }
               >
                 <Save className="w-4 h-4 mr-2" /> {translate('Save')}
               </Button>
