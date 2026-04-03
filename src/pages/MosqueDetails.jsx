@@ -11,7 +11,7 @@ import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
 import DonationButton from '@/components/DonationButton';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 
 export default function MosqueDetailsPage() {
@@ -32,7 +32,7 @@ export default function MosqueDetailsPage() {
       <div className="relative h-64 md:h-80 overflow-hidden">
         {mosque.photourl ? (
           <img
-            src={`/api/file/bucket-mosque/${encodeURIComponent(mosque.photourl)}`}
+            src={resolveFileUrl(mosque.photourl, 'bucket-mosque')}
             alt={mosque.name}
             className="w-full h-full object-cover"
           />

@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Building2 } from 'lucide-react';
 import moment from 'moment';
+import { resolveFileUrl } from '@/utils';
 
 export default function ActivityPostsCard({ post, poster, showPoster = false }) {
   return (
@@ -9,7 +10,7 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
       {post.photourl && (
         <div className="overflow-hidden">
           <img
-            src={`/api/file/activity-post/${encodeURIComponent(post.photourl)}`}
+            src={resolveFileUrl(post.photourl, 'activity-post')}
             alt={post.title}
             className="w-full h-40 object-cover hover:scale-105 transition-transform duration-500"
           />

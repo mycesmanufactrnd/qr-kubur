@@ -27,6 +27,7 @@ import { useAdminAccess } from '@/utils/auth';
 import { useCrudPermissions } from '@/components/PermissionsContext';
 import { STATES_MY } from '@/utils/enums';
 import { validateFields } from '@/utils/validations';
+import { resolveFileUrl } from '@/utils';
 
 import { useGetMosquePaginated, useMosqueMutations } from '@/hooks/useMosqueMutations';
 
@@ -379,7 +380,7 @@ export default function ManageMosques() {
               {photourl && (
                 <div className="mt-3 relative w-40 h-40 group">
                   <img 
-                    src={`/api/file/bucket-mosque/${encodeURIComponent(photourl)}`} 
+                    src={resolveFileUrl(photourl, 'bucket-mosque')} 
                     alt="Mosque preview"
                     className="w-full h-full object-cover rounded-lg border-2 border-stone-100 shadow-sm"
                   />

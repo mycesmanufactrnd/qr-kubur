@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Users, ArrowRight, Edit } from 'lucide-react';
 import { format } from 'date-fns';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import ProgressBar from '@/components/ProgressBar';
 import BannerImageWithFallback from '../BannerImageWithFallback';
 
@@ -36,7 +36,7 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
       
       <div className="-mt-2 relative h-48 bg-gradient-to-br from-yellow-500 via-orange-500 to-gold-600 overflow-hidden">
         <BannerImageWithFallback
-          src={project.photourl ? `/api/file/waqf-project/${encodeURIComponent(project.photourl)}` : undefined}
+          src={resolveFileUrl(project.photourl, 'waqf-project')}
           alt={project.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

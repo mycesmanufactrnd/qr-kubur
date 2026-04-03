@@ -127,7 +127,7 @@ export default function SearchMosque() {
       ) : locationDenied ? (
         <NoDataCardComponent isNoGPS/>
       ) : mosques.length === 0 ? (
-        <NoDataCardComponent title={translate('No Mosque Found')} />
+        <NoDataCardComponent isPage title={translate('No Mosque Found')} />
       ) : (
         <div className="space-y-4 px-1">
           {mosques.slice(0, displayedCount).map(item => (

@@ -24,6 +24,7 @@ import { getLabelFromId } from '@/utils/helpers';
 import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
 import { useAdminAccess } from '@/utils/auth';
 import { trpc } from '@/utils/trpc';
+import { resolveFileUrl } from '@/utils';
 import { useGetOrganisationTypePaginated } from '@/hooks/useOrganisationTypeMutations';
 import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
 import { defaultOrganisationField } from '@/utils/defaultformfields';
@@ -391,7 +392,15 @@ export default function ManageOrganisations() {
 
           if (fieldType === "image") {
             try {
-              const res = await fetch(`/api/file/bucket-organisation-config/${encodeURIComponent(configValue)}`);
+              const fileUrl = resolveFileUrl(configValue, 'bucket-organisation-config');
+              if (!fileUrl) continue;
+
+              if (/^https?:\/\//i.test(fileUrl)) {
+                previews[`${platformCode}_${fieldKey}`] = fileUrl;
+                continue;
+              }
+
+              const res = await fetch(fileUrl);
               if (!res.ok) {
                 continue;
               }

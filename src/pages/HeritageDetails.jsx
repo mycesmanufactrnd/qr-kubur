@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
 import { useGetHeritageById, useHeritageMutations } from '@/hooks/useHeritageMutations';
 import { openDirections, shareLink } from '@/utils/helpers';
+import { resolveFileUrl } from '@/utils';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 
@@ -51,7 +52,7 @@ export default function HeritageDetails() {
       <div className="relative h-72 md:h-96">
         {site.photourl ? (
           <img
-            src={`/api/file/heritage-site/${encodeURIComponent(site.photourl)}`} 
+            src={resolveFileUrl(site.photourl, 'heritage-site')} 
             alt={site.name}
             className="w-full h-full object-cover"
           />

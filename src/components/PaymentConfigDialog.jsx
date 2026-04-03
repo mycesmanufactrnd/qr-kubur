@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
 import { translate } from '@/utils/translations';
+import { resolveFileUrl } from '@/utils';
 import { trpc } from '@/utils/trpc';
 import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 
@@ -90,9 +91,20 @@ export default function PaymentConfigDialog({
 
             if (fieldType == "image") {
               const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
-  
+
               try {
-                const res = await fetch(`/api/file/${bucketType}/${encodeURIComponent(configValue)}`);
+                const fileUrl = resolveFileUrl(configValue, bucketType);
+                if (!fileUrl) {
+                  values[`${platformCode}_${fieldKey}`] = '';
+                  continue;
+                }
+
+                if (/^https?:\/\//i.test(fileUrl)) {
+                  values[`${platformCode}_${fieldKey}`] = fileUrl;
+                  continue;
+                }
+
+                const res = await fetch(fileUrl);
                 if (!res.ok) {
                   console.warn(`Failed to fetch file: ${configValue}`);
                   values[`${platformCode}_${fieldKey}`] = '';

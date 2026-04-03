@@ -9,6 +9,7 @@ import TextInputForm from '../forms/TextInputForm';
 import SelectForm from '../forms/SelectForm';
 import { ProjectStatus, WaqfCategory, WaqfType } from '@/utils/enums';
 import { defaultWaqfProjectField } from '@/utils/defaultformfields';
+import { resolveFileUrl } from '@/utils';
 
 export default function WaqfForm({ project, onSubmit, onCancel, }) {
     const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
@@ -257,7 +258,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           />
           {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
         </div>
-        {photourl && <img src={`/api/file/waqf-project/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
+        {photourl && <img src={resolveFileUrl(photourl, 'waqf-project')} alt={translate('Preview')} />}
       </div>
       <div className="space-y-2">
         <TextInputForm

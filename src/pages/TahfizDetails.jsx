@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Mail, Globe, ArrowLeft, Clock, Users, FileText, ExternalLink, Share2, ChevronRight } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
 import { useGetTahfizById } from '@/hooks/useTahfizMutations';
@@ -59,7 +59,7 @@ export default function TahfizDetails() {
       <div className="relative h-64 md:h-80 overflow-hidden">
         {tahfizDetails.photourl ? (
           <img 
-            src={`/api/file/tahfiz-center/${encodeURIComponent(tahfizDetails.photourl)}`} 
+            src={resolveFileUrl(tahfizDetails.photourl, 'tahfiz-center')} 
             alt={tahfizDetails.name}
             className="w-full h-full object-cover"
           />

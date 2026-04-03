@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Navigation, ExternalLink, Phone, Heart } from 'lucide-react';
 import BannerImageWithFallback from "@/components/BannerImageWithFallback";
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 import { useState, useEffect } from 'react';
@@ -37,7 +37,7 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="relative h-36 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
-          src={tahfiz.photourl ? `/api/file/tahfiz-center/${encodeURIComponent(tahfiz.photourl)}` : undefined}
+          src={resolveFileUrl(tahfiz.photourl, 'tahfiz-center')}
           alt={tahfiz.name}
           className="w-full h-full object-cover"
         />

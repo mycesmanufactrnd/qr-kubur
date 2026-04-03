@@ -1,6 +1,7 @@
 import { Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveFileUrl } from '@/utils';
 
 export default function FileUploadForm({
   name,
@@ -58,7 +59,7 @@ export default function FileUploadForm({
             {field.value && (
               <div className="mt-2 relative inline-block">
                 <img
-                  src={`/api/file/${bucketName}/${encodeURIComponent(field.value)}`}
+                  src={resolveFileUrl(field.value, bucketName)}
                   alt={translate("Preview")}
                   className="max-h-40 rounded border shadow-sm"
                 />

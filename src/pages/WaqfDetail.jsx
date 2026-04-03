@@ -10,6 +10,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
+import { resolveFileUrl } from '@/utils';
 
 const CATEGORY_COLORS = {
   Education:         'bg-blue-100    text-blue-700    border-blue-200',
@@ -99,7 +100,7 @@ export default function WaqfDetail() {
       <div className="relative h-64 md:h-96 overflow-hidden">
         {project.photourl ? (
           <img
-            src={`/api/file/waqf-project/${encodeURIComponent(project.photourl)}`}
+            src={resolveFileUrl(project.photourl, 'waqf-project')}
             alt={project.waqfname}
             className="w-full h-full object-cover"
           />

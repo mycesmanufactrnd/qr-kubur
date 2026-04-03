@@ -26,6 +26,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { defaultHeritageField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
+import { resolveFileUrl } from '@/utils';
 import TextInputForm from '@/components/forms/TextInputForm';
 import SelectForm from '@/components/forms/SelectForm';
 import CheckboxForm from '@/components/forms/CheckboxForm';
@@ -402,7 +403,7 @@ export default function ManageHeritageSites() {
                 />
                 {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
               </div>
-              {photourl && <img src={`/api/file/heritage-site/${encodeURIComponent(photourl)}`} alt={translate('Preview')} />}
+              {photourl && <img src={resolveFileUrl(photourl, 'heritage-site')} alt={translate('Preview')} />}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>

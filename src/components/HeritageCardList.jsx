@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import { MapPin, Star, Navigation, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -17,7 +17,7 @@ export default function HeritageCardList({ site, distance, index = 0, nextPageUr
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 hover:shadow-lg transition-all duration-300 group">
           <div className="relative h-48 bg-gradient-to-br from-green-500 via-blue-500 to-emerald-600 overflow-hidden">
             <BannerImageWithFallback
-              src={site.photourl ? `/api/file/heritage-site/${encodeURIComponent(site.photourl)}` : undefined}
+              src={resolveFileUrl(site.photourl, 'heritage-site')}
               alt={site.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />

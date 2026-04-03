@@ -22,6 +22,7 @@ import { validateFields } from '@/utils/validations';
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import TextInputForm from '@/components/forms/TextInputForm';
 import { userGoogleAccess } from '@/utils/auth';
+import { resolveFileUrl } from '@/utils';
 
 export default function OrganisationDetails() {
   const { googleUser } = userGoogleAccess();
@@ -235,9 +236,7 @@ export default function OrganisationDetails() {
   if (status_id) return <PaymentSuccessfulComponent />;
   if (isError || !organisation) return <NoDataCardComponent isPage={true} description="Organisation Not Found" />;
 
-  const imageSrc = organisation.photourl
-    ? `/api/file/bucket-organisation/${encodeURIComponent(organisation.photourl)}`
-    : undefined;
+  const imageSrc = resolveFileUrl(organisation.photourl, 'bucket-organisation');
 
   return (
     <div className="min-h-screen bg-slate-50">

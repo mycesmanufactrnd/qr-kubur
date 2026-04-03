@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { createPageUrl } from '../utils/index';
+import { createPageUrl, resolveFileUrl } from '../utils/index';
 import { MapPin, Search, Calendar, Phone, Share2, ArrowLeft, Users, Info, ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,7 @@ export default function GraveDetails() {
       <div className="relative h-72 md:h-80 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
         {grave.photourl ? (
           <img 
-            src={`/api/file/bucket-grave/${encodeURIComponent(grave.photourl)}`} 
+            src={resolveFileUrl(grave.photourl, 'bucket-grave')} 
             alt={grave.name} 
             className="w-full h-full object-cover"
           />
@@ -254,9 +254,7 @@ export default function GraveDetails() {
                           <div className="w-16 sm:w-20 shrink-0 bg-slate-100 overflow-hidden flex items-center justify-center">
                             <InitialAvatarImage
                               src={
-                                person.photourl
-                                  ? `/api/file/dead-person/${encodeURIComponent(person.photourl)}`
-                                  : undefined
+                                resolveFileUrl(person.photourl, 'dead-person')
                               }
                               name={person.name}
                               className="w-10 h-10"

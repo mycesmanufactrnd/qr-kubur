@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Navigation, ExternalLink, Hammer, ImageIcon, Heart } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 import { useState, useEffect } from 'react';
@@ -72,7 +72,7 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="relative h-36 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
-          src={grave.photourl ? `/api/file/bucket-grave/${encodeURIComponent(grave.photourl)}` : undefined}
+          src={resolveFileUrl(grave.photourl, 'bucket-grave')}
           alt={grave.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

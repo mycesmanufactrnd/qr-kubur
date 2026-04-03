@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Navigation, ExternalLink, Landmark, Heart, MapPinHouse } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import { openDirections, showEarthDistance } from '@/utils/helpers';
 import { translate } from '@/utils/translations';
 import { useState } from 'react';
@@ -49,7 +49,7 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
     <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
       <div className="relative h-40 bg-gradient-to-br from-pink-500 via-red-500 to-orange-600 overflow-hidden">
         <BannerImageWithFallback
-          src={mosque.photourl ? `/api/file/bucket-mosque/${encodeURIComponent(mosque.photourl)}` : undefined}
+          src={resolveFileUrl(mosque.photourl, 'bucket-mosque')}
           alt={mosque.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

@@ -10,7 +10,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import ShareButton from '@/components/ShareButton';
 import DirectionButton from '@/components/DirectionButton';
 import { translate } from '@/utils/translations';
-import { createPageUrl } from '@/utils';
+import { createPageUrl, resolveFileUrl } from '@/utils';
 import InitialAvatarImage from '@/components/InitialAvatarImage';
 
 export default function DeadPersonDetails() {
@@ -55,11 +55,7 @@ export default function DeadPersonDetails() {
         <CardContent className="p-4 space-y-4">
           <div className="flex justify-center">
             <InitialAvatarImage
-              src={
-                deadPersonDetails.photourl
-                  ? `/api/file/dead-person/${encodeURIComponent(deadPersonDetails.photourl)}`
-                  : undefined
-              }
+              src={resolveFileUrl(deadPersonDetails.photourl, 'dead-person')}
               name={deadPersonDetails.name}
               className="w-32 h-32"
             />
@@ -184,7 +180,7 @@ export default function DeadPersonDetails() {
                           <div className="w-10 h-10 rounded-lg overflow-hidden bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0">
                             {organisation.photourl ? (
                               <img
-                                src={`/api/file/bucket-organisation/${encodeURIComponent(organisation.photourl)}`}
+                                src={resolveFileUrl(organisation.photourl, 'bucket-organisation')}
                                 alt={organisation.name}
                                 className="w-full h-full object-cover"
                               />
