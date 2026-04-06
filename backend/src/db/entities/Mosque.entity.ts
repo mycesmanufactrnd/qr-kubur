@@ -1,11 +1,11 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  ManyToOne, 
-  JoinColumn, 
-  OneToMany 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
 } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
 import { User } from "./User.entity.ts";
@@ -24,10 +24,10 @@ export class Mosque {
 
   @Column("text", { nullable: true })
   address?: string;
-  
+
   @Column("varchar", { length: 255, nullable: true })
   email?: string;
-  
+
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
 
@@ -55,12 +55,19 @@ export class Mosque {
   @Column("boolean", { default: false })
   hasdeathcharity!: boolean;
 
-  @OneToMany(() => ActivityPost, (activitypost) => activitypost.mosque) 
+  @OneToMany(() => ActivityPost, (activitypost) => activitypost.mosque)
   activityposts?: ActivityPost[] | [];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 
   @Column("varchar", { length: 255, nullable: true })
-  photourl?: string; 
-} 
+  photourl?: string;
+
+  @Column("integer", { nullable: true })
+  createdbyId?: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "createdbyId" })
+  createdby?: User | null;
+}

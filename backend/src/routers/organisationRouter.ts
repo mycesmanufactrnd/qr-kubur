@@ -125,7 +125,11 @@ export const organisationRouter = router({
 
   create: protectedProcedure
     .input(organisationSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
       const { services = [], ...organisationInput } = input;
 
       return await AppDataSource.transaction(async (manager) => {
@@ -135,6 +139,8 @@ export const organisationRouter = router({
         const cleanedOrganisationInput = Object.fromEntries(
           Object.entries(organisationInput).filter(([, value]) => value !== undefined)
         ) as Partial<Organisation>;
+        
+        cleanedOrganisationInput.createdbyId = Number(ctx.user.id);
 
         const organisation = organisationRepo.create(cleanedOrganisationInput);
         const savedOrganisation = await organisationRepo.save(organisation);

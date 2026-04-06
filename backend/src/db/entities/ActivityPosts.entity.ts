@@ -5,12 +5,13 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { TahfizCenter } from './TahfizCenter.entity.ts';
-import { Mosque } from './Mosque.entity.ts';
-import { User } from './User.entity.ts';
+  JoinColumn,
+} from "typeorm";
+import { TahfizCenter } from "./TahfizCenter.entity.ts";
+import { Mosque } from "./Mosque.entity.ts";
+import { User } from "./User.entity.ts";
 
-@Entity('activitypost')
+@Entity("activitypost")
 export class ActivityPost {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -18,13 +19,13 @@ export class ActivityPost {
   @Column("varchar", { length: 255 })
   title!: string;
 
-  @Column('text')
+  @Column("text")
   content!: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: "varchar", nullable: true })
   photourl?: string | null;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: "boolean", default: true })
   ispublished!: boolean;
 
   @ManyToOne(() => Mosque, (mosque) => mosque.activityposts, {
@@ -44,4 +45,11 @@ export class ActivityPost {
 
   @UpdateDateColumn({ name: "updatedat" })
   updatedat!: Date;
+
+  @Column("integer", { nullable: true })
+  createdbyId?: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "createdbyId" })
+  createdby?: User | null;
 }

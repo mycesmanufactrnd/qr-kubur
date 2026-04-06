@@ -105,6 +105,8 @@ export default function ManageMosques() {
   const [mosqueToDelete, setMosqueToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [photoUrlInput, setPhotoUrlInput] = useState("");
+  const [photoFileKey, setPhotoFileKey] = useState(0);
 
   const {
     control,
@@ -116,6 +118,21 @@ export default function ManageMosques() {
   } = useForm({ defaultValues: defaultMosqueField });
 
   const photourl = watch("photourl") || "";
+
+  useEffect(() => {
+    if (!photourl) {
+      setPhotoUrlInput("");
+      return;
+    }
+
+    if (/^https?:\/\//i.test(photourl)) {
+      setPhotoUrlInput(photourl);
+      return;
+    }
+    if (photoUrlInput && photourl !== photoUrlInput) {
+      setPhotoUrlInput("");
+    }
+  }, [photourl, photoUrlInput]);
 
   const { mosquesList, totalPages, isLoading } = useGetMosquePaginated({
     page: urlPage,
@@ -186,6 +203,7 @@ export default function ManageMosques() {
 
       const data = await res.json();
       setValue("photourl", data.file_url);
+      setPhotoUrlInput("");
       showSuccess(translate("Photo uploaded"));
     } catch (err) {
       console.error(err);
@@ -585,6 +603,7 @@ export default function ManageMosques() {
               <Label>{translate("Photo")}</Label>
               <div className="flex items-center gap-3">
                 <Input
+                  key={photoFileKey}
                   type="file"
                   accept="image/*"
                   onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
@@ -597,11 +616,33 @@ export default function ManageMosques() {
                   </div>
                 )}
               </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-stone-500">
+                  {translate("Or paste image URL")}
+                </Label>
+                <Input
+                  type="url"
+                  placeholder="https://"
+                  value={photoUrlInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPhotoUrlInput(value);
+                    setValue("photourl", value);
+                    if (value) {
+                      setPhotoFileKey((prev) => prev + 1);
+                    }
+                  }}
+                />
+              </div>
 
               {photourl && (
                 <div className="mt-3 relative w-40 h-40 group">
                   <img
-                    src={resolveFileUrl(photourl, "bucket-mosque")}
+                    src={
+                      photoUrlInput
+                        ? photoUrlInput
+                        : resolveFileUrl(photourl, "bucket-mosque")
+                    }
                     alt="Mosque preview"
                     className="w-full h-full object-cover rounded-lg border-2 border-stone-100 shadow-sm"
                   />

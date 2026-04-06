@@ -5,6 +5,8 @@ import {
   ManyToOne,
   CreateDateColumn,
   OneToMany,
+  DeleteDateColumn,
+  JoinColumn,
 } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
 import { TahfizCenter } from "./TahfizCenter.entity.ts";
@@ -51,4 +53,14 @@ export class User {
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
+
+  @DeleteDateColumn({ name: "deletedat" })
+  deletedat?: Date | null;
+
+  @Column("integer", { nullable: true })
+  createdbyId?: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "createdbyId" })
+  createdby?: User | null;
 }

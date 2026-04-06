@@ -126,9 +126,16 @@ export const mosqueRouter = router({
 
   create: protectedProcedure
     .input(mosqueSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
       const repo = AppDataSource.getRepository(Mosque);
-      const mosque = repo.create(input);
+      const mosque = repo.create({
+        ...input,
+        createdbyId: Number(ctx.user.id),
+      });
       return await repo.save(mosque);
     }),
 

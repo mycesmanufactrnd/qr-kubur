@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { User } from "./User.entity.ts";
 import { OrganisationType } from "./OrganisationType.entity.ts";
 import { ActiveInactiveStatus } from "../enums.js";
@@ -15,16 +23,24 @@ export class Organisation {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => OrganisationType, (organisationtype) => organisationtype.organisations, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
+  @ManyToOne(
+    () => OrganisationType,
+    (organisationtype) => organisationtype.organisations,
+    {
+      nullable: true,
+      onDelete: "SET NULL",
+    },
+  )
   organisationtype?: OrganisationType | null;
 
-  @ManyToOne(() => Organisation, (parentorganisation) => parentorganisation.children, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
+  @ManyToOne(
+    () => Organisation,
+    (parentorganisation) => parentorganisation.children,
+    {
+      nullable: true,
+      onDelete: "SET NULL",
+    },
+  )
   parentorganisation?: Organisation | null;
 
   @OneToMany(() => Organisation, (child) => child.parentorganisation)
@@ -38,7 +54,7 @@ export class Organisation {
 
   @Column("varchar", { length: 255 })
   name!: string;
-  
+
   @Column("text", { array: true, nullable: true })
   states?: string[];
 
@@ -85,7 +101,10 @@ export class Organisation {
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
   donations!: Donation[];
 
-  @OneToMany(() => OrganisationPaymentConfig, (organisationpaymentconfigs) => organisationpaymentconfigs.organisation)
+  @OneToMany(
+    () => OrganisationPaymentConfig,
+    (organisationpaymentconfigs) => organisationpaymentconfigs.organisation,
+  )
   organisationpaymentconfigs!: OrganisationPaymentConfig[];
 
   @OneToMany(() => ServiceOffered, (services) => services.organisation)
@@ -99,5 +118,11 @@ export class Organisation {
 
   @OneToMany(() => Grave, (grave) => grave.organisation)
   graves?: Grave[];
-}
 
+  @Column("integer", { nullable: true })
+  createdbyId?: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "createdbyId" })
+  createdby?: User | null;
+}

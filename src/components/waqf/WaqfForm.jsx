@@ -33,6 +33,23 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
     const photourl = watch('photourl');
 
     const [uploading, setUploading] = useState(false);
+    const [photoUrlInput, setPhotoUrlInput] = useState('');
+    const [photoFileKey, setPhotoFileKey] = useState(0);
+
+    useEffect(() => {
+      if (!photourl) {
+        setPhotoUrlInput('');
+        return;
+      }
+
+      if (/^https?:\/\//i.test(photourl)) {
+        setPhotoUrlInput(photourl);
+        return;
+      }
+      if (photoUrlInput && photourl !== photoUrlInput) {
+        setPhotoUrlInput('');
+      }
+    }, [photourl, photoUrlInput]);
 
     const handleFileUpload = async (file) => {
         setUploading(true);
@@ -48,6 +65,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
             }
             const data = await res.json();
             setValue('photourl', data.file_url);
+            setPhotoUrlInput('');
             showSuccess('Photo uploaded');
         } catch (err) {
             console.error(err);
@@ -243,10 +261,11 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           />
         </div>
       </div>
-       <div className="space-y-2">
+      <div className="space-y-2">
         <Label>{translate('Photo')}</Label>
         <div className="flex items-center gap-3">
           <Input
+            key={photoFileKey}
             type="file"
             accept="image/*"
             onChange={(e) => {
@@ -256,9 +275,40 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
             }}
             disabled={uploading}
           />
-          {uploading && <span className="text-sm text-gray-500">{translate('uploading...')}</span>}
+          {uploading && (
+            <span className="text-sm text-gray-500">
+              {translate('uploading...')}
+            </span>
+          )}
         </div>
-        {photourl && <img src={resolveFileUrl(photourl, 'waqf-project')} alt={translate('Preview')} />}
+        <div className="space-y-2">
+          <Label className="text-xs text-gray-500">
+            {translate('Or paste image URL')}
+          </Label>
+          <Input
+            type="url"
+            placeholder="https://"
+            value={photoUrlInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              setPhotoUrlInput(value);
+              setValue('photourl', value);
+              if (value) {
+                setPhotoFileKey((prev) => prev + 1);
+              }
+            }}
+          />
+        </div>
+        {photourl && (
+          <img
+            src={
+              photoUrlInput
+                ? photoUrlInput
+                : resolveFileUrl(photourl, 'waqf-project')
+            }
+            alt={translate('Preview')}
+          />
+        )}
       </div>
       <div className="space-y-2">
         <TextInputForm

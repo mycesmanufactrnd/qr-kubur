@@ -174,7 +174,11 @@ export const tahfizRouter = router({
 
   create: protectedProcedure
     .input(tahfizSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+      
       const { services = [], ...tahfizInput } = input;
 
       return await AppDataSource.transaction(async (manager) => {
@@ -184,6 +188,7 @@ export const tahfizRouter = router({
         const cleanedTahfizInput = Object.fromEntries(
           Object.entries(tahfizInput).filter(([, value]) => value !== undefined && value !== null)
         ) as Partial<TahfizCenter>;
+        cleanedTahfizInput.createdbyId = Number(ctx.user.id);
 
         const tahfiz = tahfizRepo.create(cleanedTahfizInput);
         const savedTahfiz = await tahfizRepo.save(tahfiz);
@@ -244,5 +249,4 @@ export const tahfizRouter = router({
       return repo.delete(input);
     }),
 });
-
 

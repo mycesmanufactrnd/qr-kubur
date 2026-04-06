@@ -1,8 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne, OneToMany, CreateDateColumn } from "typeorm"; 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
+  OneToMany,
+  CreateDateColumn,
+} from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
 import { GraveStatus } from "../enums.ts";
 import { DeadPerson } from "./DeadPerson.entity.ts";
 import { Suggestion } from "./Suggestion.entity.ts";
+import { User } from "./User.entity.ts";
 @Entity("grave")
 export class Grave {
   @PrimaryGeneratedColumn()
@@ -38,7 +48,7 @@ export class Grave {
   @Column("varchar", { nullable: true })
   picphoneno?: string;
 
-  @Column("int", { nullable: true }) 
+  @Column("int", { nullable: true })
   totalgraves?: number;
 
   @Column({
@@ -47,7 +57,7 @@ export class Grave {
     default: GraveStatus.ACTIVE,
   })
   status!: GraveStatus;
-  
+
   @OneToMany(() => DeadPerson, (deadPerson) => deadPerson.grave)
   deadPersons?: DeadPerson[] | [];
 
@@ -60,6 +70,13 @@ export class Grave {
   @OneToMany(() => Suggestion, (suggestions) => suggestions.grave)
   suggestions?: Suggestion[] | [];
 
-  @CreateDateColumn ({ name: "createdat" })
+  @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
+
+  @Column("integer", { nullable: true })
+  createdbyId?: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "createdbyId" })
+  createdby?: User | null;
 }

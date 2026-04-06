@@ -59,10 +59,17 @@ export const graveRouter = router({
 
   create: protectedProcedure
     .input(graveSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
       const graveRepo = AppDataSource.getRepository(Grave);
 
-      const grave = graveRepo.create(input);
+      const grave = graveRepo.create({
+        ...input,
+        createdbyId: Number(ctx.user.id),
+      });
       
       return await graveRepo.save(grave);
     }),
@@ -91,9 +98,18 @@ export const graveRouter = router({
 
   bulkCreate: protectedProcedure
     .input(z.array(graveSchema))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
       const graveRepo = AppDataSource.getRepository(Grave);
-      const results = await graveRepo.save(input);
+      const payload = input.map((item) => ({
+        ...item,
+        createdbyId: Number(ctx.user.id),
+      }));
+      
+      const results = await graveRepo.save(payload);
       return { count: results.length };
     }),
 

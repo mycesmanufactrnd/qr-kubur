@@ -1,4 +1,12 @@
-﻿import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+﻿import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { User } from "./User.entity.ts";
 import { Donation } from "./Donation.entity.ts";
 import { TahlilRequest } from "./TahlilRequest.entity.js";
@@ -14,7 +22,7 @@ export class TahfizCenter {
   @Column("varchar", { length: 255 })
   name!: string;
 
-  @Column("varchar", { length: 255, nullable: true})
+  @Column("varchar", { length: 255, nullable: true })
   description?: string;
 
   @Column("varchar", { length: 255 })
@@ -22,13 +30,13 @@ export class TahfizCenter {
 
   @Column("varchar", { length: 255, nullable: true })
   address?: string;
-  
+
   @Column("varchar", { length: 255, nullable: true })
   phone?: string;
-  
+
   @Column("varchar", { length: 255, nullable: true })
   email?: string;
-  
+
   @Column("varchar", { length: 255, nullable: true })
   url?: string;
 
@@ -53,12 +61,25 @@ export class TahfizCenter {
   @OneToMany(() => Donation, (donations) => donations.tahfizcenter)
   donations!: Donation[];
 
-  @OneToMany(() => TahlilRequest, (tahlilrequests) => tahlilrequests.tahfizcenter)
+  @OneToMany(
+    () => TahlilRequest,
+    (tahlilrequests) => tahlilrequests.tahfizcenter,
+  )
   tahlilrequests!: TahlilRequest[];
 
-  @OneToMany(() => TahfizPaymentConfig, (tahfizpaymentconfigs) => tahfizpaymentconfigs.tahfizcenter)
+  @OneToMany(
+    () => TahfizPaymentConfig,
+    (tahfizpaymentconfigs) => tahfizpaymentconfigs.tahfizcenter,
+  )
   tahfizpaymentconfigs!: TahfizPaymentConfig[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
+
+  @Column("integer", { nullable: true })
+  createdbyId?: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "createdbyId" })
+  createdby?: User | null;
 }

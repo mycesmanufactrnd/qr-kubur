@@ -41,7 +41,7 @@ export const organisationPaymentConfigRouter = router({
         organisation: z.object({ id: z.number() }).optional(),
       }),
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       if (!input.organisation || !input.organisation.id) {
         return [];
       }

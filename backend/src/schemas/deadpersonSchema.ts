@@ -3,13 +3,13 @@ import { z } from 'zod';
 
 export const deadPersonSchema = z.object({
   name: z.string().min(1, "Nama penuh diperlukan"),
-  icnumber: z.string().optional().nullable(),
-  dateofbirth: z.string().or(z.date()).optional().nullable(),
-  dateofdeath: z.string().or(z.date()).optional().nullable(),
-  causeofdeath: z.string().optional().nullable(),
-  biography: z.string().optional().nullable(),
-  photourl: z.string().optional().nullable(),
-  latitude: z.number().optional().nullable(),
-  longitude: z.number().optional().nullable(),
+  icnumber: z.string().nullable(),
+  dateofbirth: z.string().or(z.date()),
+  dateofdeath: z.string().or(z.date()),
+  causeofdeath: z.string().nullable(),
+  biography: z.string().nullable(),
+  photourl: z.string().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
   graveId: z.number().min(1, "Tanah perkuburan diperlukan"),
 });

@@ -71,7 +71,8 @@ export const tempOrganisationRouter = router({
     .input(tempOrganisationRegisterSchema)
     .mutation(async ({ input }) => {
       const orgTypeRepo = AppDataSource.getRepository(OrganisationType);
-      const tempOrganisationRepo = AppDataSource.getRepository(TempOrganisation);
+      const tempOrganisationRepo =
+        AppDataSource.getRepository(TempOrganisation);
 
       const organisationtype = await orgTypeRepo.findOne({
         where: {
@@ -96,7 +97,9 @@ export const tempOrganisationRouter = router({
       const tempOrganisationData: Partial<TempOrganisation> = {
         name: input.name.trim(),
         organisationtype: { id: organisationtype.id },
-        states: (input.states ?? []).map((state) => state.trim()).filter(Boolean),
+        states: (input.states ?? [])
+          .map((state) => state.trim())
+          .filter(Boolean),
         address: input.address ?? undefined,
         phone: input.phone ?? undefined,
         email: input.email?.trim() || undefined,
@@ -120,7 +123,8 @@ export const tempOrganisationRouter = router({
         approvalstatus: ApprovalStatus.PENDING,
       };
 
-      const tempOrganisation = tempOrganisationRepo.create(tempOrganisationData);
+      const tempOrganisation =
+        tempOrganisationRepo.create(tempOrganisationData);
       return tempOrganisationRepo.save(tempOrganisation);
     }),
 
@@ -130,7 +134,10 @@ export const tempOrganisationRouter = router({
       const repo = AppDataSource.getRepository(TempOrganisation);
       const query = repo
         .createQueryBuilder("temporganisation")
-        .leftJoinAndSelect("temporganisation.organisationtype", "organisationtype");
+        .leftJoinAndSelect(
+          "temporganisation.organisationtype",
+          "organisationtype",
+        );
 
       if (input.filterName?.trim()) {
         query.andWhere("temporganisation.name ILIKE :name", {
@@ -156,6 +163,10 @@ export const tempOrganisationRouter = router({
   review: adminProcedure
     .input(tempOrganisationReviewSchema)
     .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
       const reviewerId = Number(ctx.user?.id);
       if (!reviewerId) {
         throw new TRPCError({
@@ -170,7 +181,9 @@ export const tempOrganisationRouter = router({
         const userRepo = manager.getRepository(User);
         const permissionRepo = manager.getRepository(Permission);
         const serviceRepo = manager.getRepository(ServiceOffered);
-        const paymentConfigRepo = manager.getRepository(OrganisationPaymentConfig);
+        const paymentConfigRepo = manager.getRepository(
+          OrganisationPaymentConfig,
+        );
 
         const tempOrganisation = await tempOrganisationRepo.findOne({
           where: { id: input.id },
@@ -207,7 +220,9 @@ export const tempOrganisationRouter = router({
           });
         }
 
-        const adminEmail = (tempOrganisation.contactemail ?? "").trim().toLowerCase();
+        const adminEmail = (tempOrganisation.contactemail ?? "")
+          .trim()
+          .toLowerCase();
         if (!adminEmail) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -243,21 +258,34 @@ export const tempOrganisationRouter = router({
 
         const savedOrganisation = await organisationRepo.save(newOrganisation);
 
-        if (tempOrganisation.isgraveservices && (tempOrganisation.serviceoffered?.length ?? 0) > 0) {
-          const serviceEntities = (tempOrganisation.serviceoffered ?? []).map((service) =>
-            serviceRepo.create({
-              service,
-              price: Number(Number(tempOrganisation.serviceprice?.[service] ?? 0).toFixed(2)),
-              organisation: { id: savedOrganisation.id },
-              tahfizcenter: null,
-            }),
+        if (
+          tempOrganisation.isgraveservices &&
+          (tempOrganisation.serviceoffered?.length ?? 0) > 0
+        ) {
+          const serviceEntities = (tempOrganisation.serviceoffered ?? []).map(
+            (service) =>
+              serviceRepo.create({
+                service,
+                price: Number(
+                  Number(tempOrganisation.serviceprice?.[service] ?? 0).toFixed(
+                    2,
+                  ),
+                ),
+                organisation: { id: savedOrganisation.id },
+                tahfizcenter: null,
+              }),
           );
 
           await serviceRepo.save(serviceEntities);
         }
 
-        const paymentConfigDraft = (tempOrganisation.paymentconfigdraft ?? []).filter(
-          (config) => config?.paymentPlatformId && config?.paymentFieldId && config?.value
+        const paymentConfigDraft = (
+          tempOrganisation.paymentconfigdraft ?? []
+        ).filter(
+          (config) =>
+            config?.paymentPlatformId &&
+            config?.paymentFieldId &&
+            config?.value,
         );
 
         if (paymentConfigDraft.length > 0) {
@@ -267,14 +295,15 @@ export const tempOrganisationRouter = router({
               paymentplatform: { id: config.paymentPlatformId },
               paymentfield: { id: config.paymentFieldId },
               value: config.value,
-            })
+            }),
           );
           await paymentConfigRepo.save(configEntities);
         }
 
         const defaultPassword = "password";
         const temporaryAdminUser = userRepo.create({
-          fullname: tempOrganisation.contactname || `${tempOrganisation.name} Admin`,
+          fullname:
+            tempOrganisation.contactname || `${tempOrganisation.name} Admin`,
           email: adminEmail,
           phoneno: tempOrganisation.contactphoneno?.trim() || undefined,
           password: hashPassword(defaultPassword),
@@ -290,7 +319,7 @@ export const tempOrganisationRouter = router({
             user: savedTemporaryAdmin,
             role: savedTemporaryAdmin.role,
             organisation: savedOrganisation,
-          })
+          }),
         );
         await permissionRepo.save(defaultPermissions);
 

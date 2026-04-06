@@ -1,46 +1,52 @@
-import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { AppDataSource } from '../datasource.ts';
-import { z } from 'zod';
-import { ActivityPost } from '../db/entities.ts';
-import { activityPostSchema } from '../schemas/activityPostSchema.ts';
-import type { DeepPartial } from 'typeorm';
+import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
+import { AppDataSource } from "../datasource.ts";
+import { z } from "zod";
+import { ActivityPost } from "../db/entities.ts";
+import { activityPostSchema } from "../schemas/activityPostSchema.ts";
+import type { DeepPartial } from "typeorm";
 
 export const activityPostRouter = router({
-  getPaginated: publicProcedure 
-    .input(z.object({
-      page: z.number().min(1).default(1),
-      pageSize: z.number().min(1).default(10),
-      filterTitle: z.string().optional(),
-      mosqueId: z.number().optional().nullable(),
-      tahfizId: z.number().optional().nullable(),
-      isSuperAdmin: z.boolean().default(false),
-    }))
+  getPaginated: publicProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).default(10),
+        filterTitle: z.string().optional(),
+        mosqueId: z.number().optional().nullable(),
+        tahfizId: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().default(false),
+      }),
+    )
     .query(async ({ input }) => {
-      const { page, pageSize, filterTitle, mosqueId, tahfizId, isSuperAdmin } = input;
+      const { page, pageSize, filterTitle, mosqueId, tahfizId, isSuperAdmin } =
+        input;
 
       const activityPostRepo = AppDataSource.getRepository(ActivityPost);
-      const query = activityPostRepo.createQueryBuilder('posts')
-        .leftJoinAndSelect('posts.mosque', 'mosque')
-        .leftJoinAndSelect('posts.tahfiz', 'tahfiz');
+      const query = activityPostRepo
+        .createQueryBuilder("posts")
+        .leftJoinAndSelect("posts.mosque", "mosque")
+        .leftJoinAndSelect("posts.tahfiz", "tahfiz");
 
       if (!isSuperAdmin) {
         if (mosqueId) {
-          query.andWhere('posts.mosqueId = :mId', { mId: mosqueId });
+          query.andWhere("posts.mosqueId = :mId", { mId: mosqueId });
         } else if (tahfizId) {
-          query.andWhere('posts.tahfizId = :tId', { tId: tahfizId });
+          query.andWhere("posts.tahfizId = :tId", { tId: tahfizId });
         }
       }
 
       if (filterTitle) {
-        query.andWhere('posts.title ILIKE :title', { title: `%${filterTitle}%` });
+        query.andWhere("posts.title ILIKE :title", {
+          title: `%${filterTitle}%`,
+        });
       }
 
       if (page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize)
+        query.skip((page - 1) * pageSize).take(pageSize);
       }
 
       const [items, total] = await query
-        .orderBy('posts.id', 'DESC')
+        .orderBy("posts.id", "DESC")
         .getManyAndCount();
 
       return { items, total };
@@ -48,33 +54,39 @@ export const activityPostRouter = router({
 
   create: protectedProcedure
     .input(activityPostSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
       const activityPostRepo = AppDataSource.getRepository(ActivityPost);
 
-      const cleanedInput: DeepPartial<ActivityPost> = {
+      const activityPost = activityPostRepo.create({
         ...input,
         photourl: input.photourl ?? null,
         mosque: input.mosque ?? null,
         tahfiz: input.tahfiz ?? null,
-      };
-
-      const activityPost = activityPostRepo.create(cleanedInput);
+        createdbyId: Number(ctx.user.id),
+      });
+      
       return await activityPostRepo.save(activityPost);
     }),
 
   update: protectedProcedure
     .input(
-      z.object({ 
+      z.object({
         id: z.number(),
-        data: activityPostSchema 
-      })
+        data: activityPostSchema,
+      }),
     )
     .mutation(async ({ input }) => {
       const activityPostRepo = AppDataSource.getRepository(ActivityPost);
-      const activityPost = await activityPostRepo.findOneByOrFail({ id: input.id });
+      const activityPost = await activityPostRepo.findOneByOrFail({
+        id: input.id,
+      });
 
       const cleanedInput = Object.fromEntries(
-        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+        Object.entries(input.data).filter(([_, v]) => v !== undefined),
       );
 
       activityPostRepo.merge(activityPost, cleanedInput);
@@ -82,10 +94,8 @@ export const activityPostRouter = router({
       return await activityPostRepo.save(activityPost);
     }),
 
-  delete: protectedProcedure
-    .input(z.number())
-    .mutation(async ({ input }) => {
-      const activityPostRepo = AppDataSource.getRepository(ActivityPost);
-      return await activityPostRepo.delete(input);
-    }),
+  delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+    const activityPostRepo = AppDataSource.getRepository(ActivityPost);
+    return await activityPostRepo.delete(input);
+  }),
 });

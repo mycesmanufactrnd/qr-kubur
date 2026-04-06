@@ -146,7 +146,11 @@ export default function ManageGraves() {
 
   const openAddDialog = () => {
     setEditingGrave(null);
-    reset(defaultGraveField);
+    const defaultOrgId = currentUser?.organisation?.id;
+    reset({
+      ...defaultGraveField,
+      organisation: defaultOrgId ? String(defaultOrgId) : "",
+    });
     setIsDialogOpen(true);
   };
 
