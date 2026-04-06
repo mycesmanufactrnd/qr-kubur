@@ -68,8 +68,6 @@ function NavCard({ item }) {
   );
 }
 
-// ─── Section block ─────────────────────────────────────────────────────────
-
 function Section({ title, items }) {
   return (
     <div className="space-y-2">
@@ -84,8 +82,6 @@ function Section({ title, items }) {
     </div>
   );
 }
-
-// ─── Main ──────────────────────────────────────────────────────────────────
 
 export default function SuperadminDashboard() {
   const { loadingUser, isSuperAdmin } = useAdminAccess();
@@ -152,6 +148,12 @@ export default function SuperadminDashboard() {
               color: "amber",
             },
             {
+              name: translate("Manage Mosques"),
+              page: "ManageMosques",
+              icon: Home,
+              color: "teal",
+            },
+            {
               name: translate("Manage Private Organisations"),
               page: "ManagePrivateOrganisations",
               icon: Home,
@@ -170,72 +172,92 @@ export default function SuperadminDashboard() {
     {
       value: "payment",
       title: translate("Payment"),
-      items: [
+      sections: [
         {
-          name: translate("Payment Platforms"),
-          page: "ManagePaymentPlatforms",
-          icon: CreditCard,
-          color: "green",
+          title: "Payment Config",
+          items: [
+            {
+              name: translate("Payment Platforms"),
+              page: "ManagePaymentPlatforms",
+              icon: CreditCard,
+              color: "green",
+            },
+            {
+              name: translate("Payment Fields"),
+              page: "ManagePaymentFields",
+              icon: Settings,
+              color: "indigo",
+            },
+          ],
         },
         {
-          name: translate("Payment Fields"),
-          page: "ManagePaymentFields",
-          icon: Settings,
-          color: "indigo",
-        },
-        {
-          name: translate("ToyyibPay Config"),
-          page: "ToyyibPayConfigPage",
-          icon: Sun,
-          color: "yellow",
-        },
-        {
-          name: translate("Billplz Config"),
-          page: "BillplzConfigPage",
-          icon: Moon,
-          color: "pink",
+          title: "3rd Party Config",
+          items: [
+            {
+              name: translate("ToyyibPay Config"),
+              page: "ToyyibPayConfigPage",
+              icon: Sun,
+              color: "yellow",
+            },
+            {
+              name: translate("Billplz Config"),
+              page: "BillplzConfigPage",
+              icon: Moon,
+              color: "pink",
+            },
+          ],
         },
       ],
     },
     {
       value: "system",
       title: translate("System"),
-      items: [
+      sections: [
         {
-          name: translate("Activity Logs"),
-          page: "ViewLogs",
-          icon: Terminal,
-          color: "pink",
+          title: "Admin Library",
+          items: [
+            {
+              name: translate("Activity Logs"),
+              page: "ViewLogs",
+              icon: Terminal,
+              color: "pink",
+            },
+            {
+              name: translate("Icons Library"),
+              page: "IconLibrary",
+              icon: Sparkles,
+              color: "purple",
+            },
+            {
+              name: translate("Ollama"),
+              page: "Ollama",
+              icon: Zap,
+              color: "indigo",
+            },
+          ],
         },
         {
-          name: translate("Icons Library"),
-          page: "IconLibrary",
-          icon: Sparkles,
-          color: "purple",
-        },
-        {
-          name: translate("Manage Heritage"),
-          page: "ManageHeritageSites",
-          icon: Globe,
-          color: "red",
-        },
-        {
-          name: translate("Manage Islamic Events"),
-          page: "ManageIslamicEvent",
-          icon: Calendar,
-          color: "emerald",
-        },
-        {
-          name: translate("Manage Waqf Project"),
-          page: "ManageWaqfProject",
-          icon: Gift,
-          color: "yellow",
-        },
-        {
-          name: translate("Ollama"),
-          page: "Ollama",
-          icon: Zap,
-          color: "indigo",
+          title: "Extra Features Management",
+          items: [
+            {
+              name: translate("Manage Heritage"),
+              page: "ManageHeritageSites",
+              icon: Globe,
+              color: "red",
+            },
+            {
+              name: translate("Manage Islamic Events"),
+              page: "ManageIslamicEvent",
+              icon: Calendar,
+              color: "emerald",
+            },
+            {
+              name: translate("Manage Waqf Project"),
+              page: "ManageWaqfProject",
+              icon: Gift,
+              color: "yellow",
+            },
+          ],
         },
       ],
     },

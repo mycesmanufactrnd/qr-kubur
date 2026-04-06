@@ -87,7 +87,7 @@ export default function ManagePermissions() {
           enabled,
         })),
       });
-  
+
       const refreshedUser = await refreshUser?.();
       if (refreshedUser) {
         window.location.reload();
@@ -120,7 +120,12 @@ export default function ManagePermissions() {
       <div className="space-y-6">
         <Breadcrumb
           items={[
-            { label: dashboardLabel, page: dashboardPage },
+            {
+              label: isSuperAdmin
+                ? translate("Super Admin Dashboard")
+                : dashboardLabel,
+              page: isSuperAdmin ? "SuperadminDashboard" : dashboardPage,
+            },
             {
               label: translate("Manage Permissions"),
               page: "ManagePermissions",
@@ -136,8 +141,16 @@ export default function ManagePermissions() {
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: dashboardLabel, page: dashboardPage },
-          { label: translate("Manage Permissions"), page: "ManagePermissions" },
+          {
+            label: isSuperAdmin
+              ? translate("Super Admin Dashboard")
+              : dashboardLabel,
+            page: isSuperAdmin ? "SuperadminDashboard" : dashboardPage,
+          },
+          {
+            label: translate("Manage Permissions"),
+            page: "ManagePermissions",
+          },
         ]}
       />
 
