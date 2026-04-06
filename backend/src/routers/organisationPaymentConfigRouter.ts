@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { protectedProcedure, router } from '../trpc.ts';
+import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
 import { OrganisationPaymentConfig, User } from '../db/entities.ts';
 import { AppDataSource } from '../datasource.ts';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ const ensureOrganisationConfigAccess = async ({
 };
 
 export const organisationPaymentConfigRouter = router({
-  getConfigByOrganisationId: protectedProcedure
+  getConfigByOrganisationId: publicProcedure
     .input(
       z.object({
         organisation: z.object({ id: z.number() }).nullable().optional(),

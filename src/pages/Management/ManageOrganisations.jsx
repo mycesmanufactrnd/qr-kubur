@@ -1,56 +1,95 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { translate } from '@/utils/translations';
-import { Building2, Plus, Edit, Trash2, Search, X, Save, CreditCard, MapPin } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { translate } from "@/utils/translations";
+import {
+  Building2,
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  X,
+  Save,
+  CreditCard,
+  MapPin,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useForm } from "react-hook-form";
-import PageLoadingComponent from '@/components/PageLoadingComponent';
-import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import Breadcrumb from '@/components/Breadcrumb';
-import { useCrudPermissions } from '@/components/PermissionsContext';
-import ConfirmDialog from '@/components/ConfirmDialog';
-import Pagination from '@/components/Pagination';
-import PaymentConfigDialog from '@/components/PaymentConfigDialog';
-import { getLabelFromId } from '@/utils/helpers';
-import { ActiveInactiveStatus, STATES_MY } from '@/utils/enums';
-import { useAdminAccess } from '@/utils/auth';
-import { trpc } from '@/utils/trpc';
-import { resolveFileUrl } from '@/utils';
-import { useGetOrganisationTypePaginated } from '@/hooks/useOrganisationTypeMutations';
-import { useGetOrganisationPaginated, useOrganisationMutations } from '@/hooks/useOrganisationMutations';
-import { defaultOrganisationField } from '@/utils/defaultformfields';
-import InlineLoadingComponent from '@/components/InlineLoadingComponent';
-import NoDataTableComponent from '@/components/NoDataTableComponent';
-import TextInputForm from '@/components/forms/TextInputForm';
-import SelectForm from '@/components/forms/SelectForm';
-import CheckboxForm from '@/components/forms/CheckboxForm';
-import FileUploadForm from '@/components/forms/FileUploadForm';
-import { showError, showSuccess } from '@/components/ToastrNotification';
-import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/hooks/usePaymentConfigMutations';
+import PageLoadingComponent from "@/components/PageLoadingComponent";
+import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import Breadcrumb from "@/components/Breadcrumb";
+import { useCrudPermissions } from "@/components/PermissionsContext";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Pagination from "@/components/Pagination";
+import PaymentConfigDialog from "@/components/PaymentConfigDialog";
+import { getLabelFromId, hashPassword } from "@/utils/helpers";
+import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
+import { useAdminAccess } from "@/utils/auth";
+import { trpc } from "@/utils/trpc";
+import { resolveFileUrl } from "@/utils";
+import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
+import {
+  useGetOrganisationPaginated,
+  useOrganisationMutations,
+} from "@/hooks/useOrganisationMutations";
+import { useUserMutations } from "@/hooks/useUserMutations";
+import { defaultOrganisationField } from "@/utils/defaultformfields";
+import InlineLoadingComponent from "@/components/InlineLoadingComponent";
+import NoDataTableComponent from "@/components/NoDataTableComponent";
+import TextInputForm from "@/components/forms/TextInputForm";
+import SelectForm from "@/components/forms/SelectForm";
+import CheckboxForm from "@/components/forms/CheckboxForm";
+import FileUploadForm from "@/components/forms/FileUploadForm";
+import { showError, showSuccess } from "@/components/ToastrNotification";
+import {
+  useGetConfigByEntity,
+  useUpsertConfigByEntity,
+} from "@/hooks/usePaymentConfigMutations";
+
+const DEFAULT_USER_PASSWORD = "password";
 
 export default function ManageOrganisations() {
-  const { 
+  const {
     currentUser,
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
-    currentUserStates 
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
+    isAdmin,
+    currentUserStates,
   } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlPage = parseInt(searchParams.get('page') || '1');
-  const urlName = searchParams.get('search') || '';
-  const urlType = searchParams.get('type') || 'all';
-  const urlState = searchParams.get('state') || 'all';
+  const urlPage = parseInt(searchParams.get("page") || "1");
+  const urlName = searchParams.get("search") || "";
+  const urlType = searchParams.get("type") || "all";
+  const urlState = searchParams.get("state") || "all";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempType, setTempType] = useState(urlType);
@@ -75,27 +114,41 @@ export default function ManageOrganisations() {
   const [paymentConfigValues, setPaymentConfigValues] = useState({});
   const [paymentUploadingFiles, setPaymentUploadingFiles] = useState({});
   const [paymentPreviewUrls, setPaymentPreviewUrls] = useState({});
+  const [userEntries, setUserEntries] = useState([]);
+  const [editingUserIndex, setEditingUserIndex] = useState(null);
 
-  const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting} } = useForm({
-    defaultValues: defaultOrganisationField
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: defaultOrganisationField,
   });
 
   const {
     loading: permissionsLoading,
-    canView, canCreate, canEdit, canDelete
-  } = useCrudPermissions('organisations');
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("organisations");
 
   const isGraveServicesChecked = watch("isgraveservices");
   const isPaymentUploading = Object.values(paymentUploadingFiles).some(Boolean);
 
-  const tableColSpan = (canEdit || canDelete) ? 5 : 4;
+  const tableColSpan = canEdit || canDelete ? 5 : 4;
+  const canAddOrgUsers = isSuperAdmin || isAdmin;
 
   const syncServiceDraftToForm = (entries) => {
     const normalized = [];
     const seen = new Set();
 
     for (const entry of entries) {
-      const service = (entry.service || '').trim();
+      const service = (entry.service || "").trim();
       if (!service) continue;
 
       const serviceKey = service.toLowerCase();
@@ -104,28 +157,32 @@ export default function ManageOrganisations() {
 
       normalized.push({
         service,
-        price: entry.price === '' ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
       });
     }
 
     const serviceoffered = normalized.map((item) => item.service);
     const serviceprice = Object.fromEntries(
-      normalized.map((item) => [item.service, Number(item.price) || 0])
+      normalized.map((item) => [item.service, Number(item.price) || 0]),
     );
 
-    setValue('serviceoffered', serviceoffered);
-    setValue('serviceprice', serviceprice);
+    setValue("serviceoffered", serviceoffered);
+    setValue("serviceprice", serviceprice);
   };
 
   const addServiceEntry = () => {
-    const nextEntries = [...serviceEntries, { id: `${Date.now()}-${Math.random()}`, service: '', price: '' }];
+    const nextEntries = [
+      ...serviceEntries,
+      { id: `${Date.now()}-${Math.random()}`, service: "", price: "" },
+    ];
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
   };
 
   const updateServiceEntry = (entryId, field, fieldValue) => {
     const nextEntries = serviceEntries.map((entry) =>
-      entry.id === entryId ? { ...entry, [field]: fieldValue } : entry
+      entry.id === entryId ? { ...entry, [field]: fieldValue } : entry,
     );
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
@@ -146,33 +203,44 @@ export default function ManageOrganisations() {
     });
   };
 
-  const handlePaymentFileUpload = async (platformCode, fieldKey, fieldType, file) => {
+  const handlePaymentFileUpload = async (
+    platformCode,
+    fieldKey,
+    fieldType,
+    file,
+  ) => {
     const uploadKey = `${platformCode}_${fieldKey}`;
     setPaymentUploadingFiles((prev) => ({ ...prev, [uploadKey]: true }));
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const res = await fetch('/api/upload/bucket-organisation-config', {
-        method: 'POST',
+      const res = await fetch("/api/upload/bucket-organisation-config", {
+        method: "POST",
         body: formData,
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        showError(errorData.error || 'Failed to upload photo');
+        showError(errorData.error || "Failed to upload photo");
         return;
       }
 
       const data = await res.json();
 
-      setPaymentConfigValues((prev) => ({ ...prev, [uploadKey]: data.file_url }));
-      setPaymentPreviewUrls((prev) => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
-      showSuccess('Photo uploaded');
+      setPaymentConfigValues((prev) => ({
+        ...prev,
+        [uploadKey]: data.file_url,
+      }));
+      setPaymentPreviewUrls((prev) => ({
+        ...prev,
+        [uploadKey]: URL.createObjectURL(file),
+      }));
+      showSuccess("Photo uploaded");
     } catch (err) {
       console.error("Fetch error:", err);
-      showError('Failed To Upload File');
+      showError("Failed To Upload File");
     } finally {
       setPaymentUploadingFiles((prev) => ({ ...prev, [uploadKey]: false }));
     }
@@ -181,14 +249,17 @@ export default function ManageOrganisations() {
   const validatePaymentConfig = () => {
     for (const platformCode of selectedPaymentPlatforms) {
       const fields = paymentFields.filter(
-        (field) => field.platformCode === platformCode && field.required
+        (field) => field.platformCode === platformCode && field.required,
       );
       for (const field of fields) {
         const value = paymentConfigValues[`${platformCode}_${field.key}`];
-        if (!value || value.trim() === '') {
+        if (!value || value.trim() === "") {
           const platformName =
-            paymentPlatforms.find((p) => p?.code === platformCode)?.name || 'platform';
-          showError(`${field.label || field.key} is required for ${platformName}`);
+            paymentPlatforms.find((p) => p?.code === platformCode)?.name ||
+            "platform";
+          showError(
+            `${field.label || field.key} is required for ${platformName}`,
+          );
           return false;
         }
       }
@@ -198,7 +269,9 @@ export default function ManageOrganisations() {
 
   const buildPaymentConfigPayload = (organisationId) => {
     const configs = selectedPaymentPlatforms.flatMap((platformCode) => {
-      const fields = paymentFields.filter((field) => field.platformCode === platformCode);
+      const fields = paymentFields.filter(
+        (field) => field.platformCode === platformCode,
+      );
       return fields
         .map((field) => {
           const value = paymentConfigValues[`${platformCode}_${field.key}`];
@@ -218,16 +291,17 @@ export default function ManageOrganisations() {
 
   const renderPaymentField = (platform, field) => {
     const fieldId = `${platform.code}_${field.key}`;
-    const value = paymentConfigValues[fieldId] || '';
+    const value = paymentConfigValues[fieldId] || "";
     const isUploading = paymentUploadingFiles[fieldId];
 
     switch (field.fieldtype) {
-      case 'image': {
+      case "image": {
         const previewSrc = paymentPreviewUrls[fieldId] || value;
         return (
           <div>
             <Label>
-              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+              {field.label || field.key}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </Label>
             <div className="flex items-center gap-2">
               <Input
@@ -236,49 +310,70 @@ export default function ManageOrganisations() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  handlePaymentFileUpload(platform.code, field.key, field.fieldtype, file);
+                  handlePaymentFileUpload(
+                    platform.code,
+                    field.key,
+                    field.fieldtype,
+                    file,
+                  );
                 }}
                 disabled={isUploading}
               />
-              {isUploading && <span className="text-sm text-gray-500">{translate('Uploading...')}</span>}
+              {isUploading && (
+                <span className="text-sm text-gray-500">
+                  {translate("Uploading...")}
+                </span>
+              )}
             </div>
             {previewSrc && (
-              <img src={previewSrc} alt="Preview" className="mt-2 h-20 rounded border" />
+              <img
+                src={previewSrc}
+                alt="Preview"
+                className="mt-2 h-20 rounded border"
+              />
             )}
           </div>
         );
       }
-      case 'textarea':
+      case "textarea":
         return (
           <div>
             <Label htmlFor={fieldId}>
-              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+              {field.label || field.key}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </Label>
             <Textarea
               id={fieldId}
               value={value}
               onChange={(e) =>
-                setPaymentConfigValues((prev) => ({ ...prev, [fieldId]: e.target.value }))
+                setPaymentConfigValues((prev) => ({
+                  ...prev,
+                  [fieldId]: e.target.value,
+                }))
               }
               placeholder={field.placeholder}
             />
           </div>
         );
-      case 'url':
-      case 'text':
-      case 'password':
+      case "url":
+      case "text":
+      case "password":
       default:
         return (
           <div>
             <Label htmlFor={fieldId}>
-              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+              {field.label || field.key}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </Label>
             <Input
               id={fieldId}
-              type={field.fieldtype === 'password' ? 'password' : 'text'}
+              type={field.fieldtype === "password" ? "password" : "text"}
               value={value}
               onChange={(e) =>
-                setPaymentConfigValues((prev) => ({ ...prev, [fieldId]: e.target.value }))
+                setPaymentConfigValues((prev) => ({
+                  ...prev,
+                  [fieldId]: e.target.value,
+                }))
               }
               placeholder={field.placeholder}
             />
@@ -286,40 +381,158 @@ export default function ManageOrganisations() {
         );
     }
   };
-  
-  const {
-    organisationsList,
-    totalPages,
-    isLoading,
-  } = useGetOrganisationPaginated({
-    page: urlPage,
-    pageSize: itemsPerPage,
-    filterName: urlName,
-    filterType: urlType === 'all' ? undefined : Number(urlType),
-    filterState: urlState === 'all' ? undefined : urlState
+
+  const resetUserFields = () => {
+    setValue("user_fullname", "");
+    setValue("user_username", "");
+    setValue("user_phoneno", "");
+    setValue("user_role", "admin");
+    setEditingUserIndex(null);
+  };
+
+  const getUserFormValues = () => ({
+    fullname: (getValues("user_fullname") || "").trim(),
+    username: (getValues("user_username") || "").trim(),
+    phoneno: (getValues("user_phoneno") || "").trim(),
+    role: getValues("user_role") || "admin",
   });
 
+  const handleAddOrUpdateUser = () => {
+    const { fullname, username, phoneno, role } = getUserFormValues();
+    const hasInput = fullname || username || phoneno;
+
+    if (!hasInput) {
+      showError("Please fill in user details before adding.");
+      return;
+    }
+
+    if (!fullname || !username) {
+      showError("Full Name and Username are required to add a user.");
+      return;
+    }
+
+    if (editingUserIndex !== null) {
+      const nextEntries = userEntries.map((entry, index) =>
+        index === editingUserIndex
+          ? { ...entry, fullname, username, phoneno, role }
+          : entry,
+      );
+      setUserEntries(nextEntries);
+      resetUserFields();
+      return;
+    }
+
+    const nextEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      fullname,
+      username,
+      phoneno,
+      role,
+    };
+
+    setUserEntries((prev) => [...prev, nextEntry]);
+    resetUserFields();
+  };
+
+  const handleEditUserEntry = (index) => {
+    const entry = userEntries[index];
+    if (!entry) return;
+    setValue("user_fullname", entry.fullname || "");
+    setValue("user_username", entry.username || "");
+    setValue("user_phoneno", entry.phoneno || "");
+    setValue("user_role", entry.role || "admin");
+    setEditingUserIndex(index);
+  };
+
+  const handleRemoveUserEntry = (index) => {
+    setUserEntries((prev) => prev.filter((_, idx) => idx !== index));
+    if (editingUserIndex === index) {
+      resetUserFields();
+    } else if (editingUserIndex !== null && index < editingUserIndex) {
+      setEditingUserIndex((prev) => (prev === null ? null : prev - 1));
+    }
+  };
+
+  const buildUserPayload = async ({
+    fullname,
+    username,
+    phoneno,
+    role,
+    states,
+    organisationId,
+  }) => {
+    const trimmedFullname = (fullname || "").trim();
+    const trimmedUsername = (username || "").trim();
+    const trimmedPhone = (phoneno || "").trim();
+    const hasUserInput = trimmedFullname || trimmedUsername || trimmedPhone;
+
+    if (!hasUserInput) return null;
+
+    if (!trimmedFullname || !trimmedUsername) {
+      showError("Full Name and Username are required to add a user.");
+      return null;
+    }
+
+    if (!organisationId) {
+      showError("Organisation is required to add a user.");
+      return null;
+    }
+
+    const resolvedStates = (Array.isArray(states) ? states : [states]).filter(
+      Boolean,
+    );
+
+    return {
+      fullname: trimmedFullname,
+      email: trimmedUsername,
+      phoneno: trimmedPhone,
+      role: role || "admin",
+      organisation: { id: Number(organisationId) },
+      tahfizcenter: null,
+      states: resolvedStates,
+      password: await hashPassword(DEFAULT_USER_PASSWORD),
+    };
+  };
+
+  const { organisationsList, totalPages, isLoading } =
+    useGetOrganisationPaginated({
+      page: urlPage,
+      pageSize: itemsPerPage,
+      filterName: urlName,
+      filterType: urlType === "all" ? undefined : Number(urlType),
+      filterState: urlState === "all" ? undefined : urlState,
+    });
+
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
-  const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
+  const { createOrganisation, updateOrganisation, deleteOrganisation } =
+    useOrganisationMutations();
+  const { createUser } = useUserMutations();
   const paymentConfigMutation = useUpsertConfigByEntity();
 
   const restrictedOrgTypeNames = new Set([
-    'Syarikat Swasta',
-    'Persatuan Sukarelawan',
-    'Pertubuhan Kebajikan (NGO)',
+    "Syarikat Swasta",
+    "Persatuan Sukarelawan",
+    "Pertubuhan Kebajikan (NGO)",
   ]);
 
   const currentOrgType = currentUser?.organisation?.organisationtype ?? null;
-  const isRestrictedOrgType = !!currentOrgType?.name && restrictedOrgTypeNames.has(currentOrgType.name);
+  const isRestrictedOrgType =
+    !!currentOrgType?.name && restrictedOrgTypeNames.has(currentOrgType.name);
 
-  const baseOrganisationTypeOptions = organisationTypeList.items.length > 0
-    ? organisationTypeList.items.map((type) => ({
-        value: type.id,
-        label: type.name,
-      }))
-    : currentOrgType?.id
-      ? [{ value: currentOrgType.id, label: currentOrgType.name || String(currentOrgType.id) }]
-      : [];
+  const baseOrganisationTypeOptions =
+    organisationTypeList.items.length > 0
+      ? organisationTypeList.items.map((type) => ({
+          value: type.id,
+          label: type.name,
+        }))
+      : currentOrgType?.id
+        ? [
+            {
+              value: currentOrgType.id,
+              label: currentOrgType.name || String(currentOrgType.id),
+            },
+          ]
+        : [];
 
   const organisationTypeOptions = isSuperAdmin
     ? organisationTypeList.items.map((type) => ({
@@ -327,13 +540,20 @@ export default function ManageOrganisations() {
         label: type.name,
       }))
     : isRestrictedOrgType
-      ? baseOrganisationTypeOptions.filter((opt) => opt.value === currentOrgType?.id)
+      ? baseOrganisationTypeOptions.filter(
+          (opt) => opt.value === currentOrgType?.id,
+        )
       : baseOrganisationTypeOptions;
 
-  const { data: paymentPlatforms = [] } = trpc.paymentPlatform.getActivePlatform.useQuery(
-    undefined,
-    { enabled: hasAdminAccess && isDialogOpen }
-  );
+  const userRoleOptions = [
+    { value: "admin", label: translate("Admin") },
+    { value: "employee", label: translate("Employee") },
+  ];
+
+  const { data: paymentPlatforms = [] } =
+    trpc.paymentPlatform.getActivePlatform.useQuery(undefined, {
+      enabled: hasAdminAccess && isDialogOpen,
+    });
 
   const paymentFields = paymentPlatforms.flatMap((platform) =>
     (platform.paymentfields ?? []).map((field) => ({
@@ -341,17 +561,19 @@ export default function ManageOrganisations() {
       platformCode: platform.code,
       platformName: platform.name,
       platformId: platform.id,
-    }))
+    })),
   );
 
   const { data: existingPaymentConfigs = [] } = useGetConfigByEntity({
     entityId: editingOrg?.id ?? 0,
-    entityType: 'organisation',
+    entityType: "organisation",
     enabled: !!editingOrg?.id && isDialogOpen,
   });
 
   const resetPaymentConfig = () => {
-    Object.values(paymentPreviewUrls).forEach((url) => URL.revokeObjectURL(url));
+    Object.values(paymentPreviewUrls).forEach((url) =>
+      URL.revokeObjectURL(url),
+    );
     setSelectedPaymentPlatforms([]);
     setPaymentConfigValues({});
     setPaymentUploadingFiles({});
@@ -392,7 +614,10 @@ export default function ManageOrganisations() {
 
           if (fieldType === "image") {
             try {
-              const fileUrl = resolveFileUrl(configValue, 'bucket-organisation-config');
+              const fileUrl = resolveFileUrl(
+                configValue,
+                "bucket-organisation-config",
+              );
               if (!fileUrl) continue;
 
               if (/^https?:\/\//i.test(fileUrl)) {
@@ -405,9 +630,10 @@ export default function ManageOrganisations() {
                 continue;
               }
               const blob = await res.blob();
-              previews[`${platformCode}_${fieldKey}`] = URL.createObjectURL(blob);
+              previews[`${platformCode}_${fieldKey}`] =
+                URL.createObjectURL(blob);
             } catch (error) {
-              console.error('Error fetching file preview:', error);
+              console.error("Error fetching file preview:", error);
             }
           }
         }
@@ -423,15 +649,17 @@ export default function ManageOrganisations() {
 
   useEffect(() => {
     return () => {
-      Object.values(paymentPreviewUrls).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(paymentPreviewUrls).forEach((url) =>
+        URL.revokeObjectURL(url),
+      );
     };
   }, [paymentPreviewUrls]);
 
   const handleSearch = () => {
-    const params = { page: '1', search: '', type: '', state: '' };
+    const params = { page: "1", search: "", type: "", state: "" };
     if (tempName) params.search = tempName;
-    if (tempType !== 'all') params.type = tempType;
-    if (tempState !== 'all') params.state = tempState;
+    if (tempType !== "all") params.type = tempType;
+    if (tempState !== "all") params.state = tempState;
     setSearchParams(params);
   };
 
@@ -471,12 +699,19 @@ export default function ManageOrganisations() {
 
   const openAddDialog = () => {
     setEditingOrg(null);
-    const defaultState = isSuperAdmin ? '' : (currentUserStates[0] || '');
-    const defaultOrgType = !isSuperAdmin && isRestrictedOrgType && currentOrgType?.id
-      ? currentOrgType.id.toString()
-      : '';
-    reset({...defaultOrganisationField, states: defaultState, organisationtype: defaultOrgType});
+    const defaultState = isSuperAdmin ? "" : currentUserStates[0] || "";
+    const defaultOrgType =
+      !isSuperAdmin && isRestrictedOrgType && currentOrgType?.id
+        ? currentOrgType.id.toString()
+        : "";
+    reset({
+      ...defaultOrganisationField,
+      states: defaultState,
+      organisationtype: defaultOrgType,
+    });
     setServiceEntries([]);
+    setUserEntries([]);
+    resetUserFields();
     resetPaymentConfig();
     setIsDialogOpen(true);
   };
@@ -486,26 +721,32 @@ export default function ManageOrganisations() {
     resetPaymentConfig();
 
     const relationalServices = Array.isArray(org.services) ? org.services : [];
-    const serviceoffered = relationalServices.length > 0
-      ? relationalServices.map(service => service.service)
-      : (org.serviceoffered || []);
-    const serviceprice = relationalServices.length > 0
-      ? Object.fromEntries(
-          relationalServices.map(service => [
-            service.service,
-            service.price ? parseFloat(Number(service.price).toFixed(2)) : 0
-          ])
-        )
-      : (org.serviceprice || {});
+    const serviceoffered =
+      relationalServices.length > 0
+        ? relationalServices.map((service) => service.service)
+        : org.serviceoffered || [];
+    const serviceprice =
+      relationalServices.length > 0
+        ? Object.fromEntries(
+            relationalServices.map((service) => [
+              service.service,
+              service.price ? parseFloat(Number(service.price).toFixed(2)) : 0,
+            ]),
+          )
+        : org.serviceprice || {};
 
     reset({
       ...org,
-      parentorganisation: org.parentorganisation?.id.toString() || '',
-      organisationtype: org.organisationtype?.id.toString() || '',
+      parentorganisation: org.parentorganisation?.id.toString() || "",
+      organisationtype: org.organisationtype?.id.toString() || "",
       serviceoffered,
       serviceprice,
-      states: Array.isArray(org.states) ? org.states[0] : org.states || '',
-      status: org.status || ActiveInactiveStatus.ACTIVE
+      states: Array.isArray(org.states) ? org.states[0] : org.states || "",
+      status: org.status || ActiveInactiveStatus.ACTIVE,
+      user_fullname: "",
+      user_username: "",
+      user_phoneno: "",
+      user_role: "admin",
     });
 
     const nextEntries = serviceoffered.map((service, index) => ({
@@ -515,6 +756,8 @@ export default function ManageOrganisations() {
     }));
 
     setServiceEntries(nextEntries);
+    setUserEntries([]);
+    resetUserFields();
     setIsDialogOpen(true);
   };
 
@@ -525,7 +768,7 @@ export default function ManageOrganisations() {
     const seen = new Set();
 
     for (const entry of serviceEntries) {
-      const service = (entry.service || '').trim();
+      const service = (entry.service || "").trim();
       if (!service) continue;
 
       const serviceKey = service.toLowerCase();
@@ -534,17 +777,37 @@ export default function ManageOrganisations() {
 
       normalizedServices.push({
         service,
-        price: entry.price === '' ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
       });
     }
 
-    const { serviceoffered: _serviceoffered, serviceprice: _serviceprice, ...restFormData } = formData;
+    const {
+      serviceoffered: _serviceoffered,
+      serviceprice: _serviceprice,
+      user_fullname,
+      user_username,
+      user_phoneno,
+      user_role,
+      ...restFormData
+    } = formData;
+
+    if (canAddOrgUsers && editingUserIndex !== null) {
+      showError("Please finish editing the user entry before saving.");
+      return;
+    }
 
     const submitData = {
       ...restFormData,
-      parentorganisation: formData.parentorganisation ? { id: Number(formData.parentorganisation) } : null,
-      organisationtype: formData.organisationtype ? { id: Number(formData.organisationtype) } : null,
-      states: Array.isArray(formData.states) ? formData.states : [formData.states],
+      parentorganisation: formData.parentorganisation
+        ? { id: Number(formData.parentorganisation) }
+        : null,
+      organisationtype: formData.organisationtype
+        ? { id: Number(formData.organisationtype) }
+        : null,
+      states: Array.isArray(formData.states)
+        ? formData.states
+        : [formData.states],
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       services: normalizedServices.map((serviceItem) => ({
@@ -557,23 +820,70 @@ export default function ManageOrganisations() {
 
     try {
       const res = editingOrg
-        ? await updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
+        ? await updateOrganisation.mutateAsync({
+            id: editingOrg.id,
+            data: submitData,
+          })
         : await createOrganisation.mutateAsync(submitData);
 
       const organisationId = editingOrg?.id ?? res?.id;
       const shouldUpsertPaymentConfig =
         organisationId &&
         (isSuperAdmin || currentUser?.organisation?.id === organisationId) &&
-        (selectedPaymentPlatforms.length > 0 || existingPaymentConfigs.length > 0);
+        (selectedPaymentPlatforms.length > 0 ||
+          existingPaymentConfigs.length > 0);
 
       if (shouldUpsertPaymentConfig) {
         const payload = buildPaymentConfigPayload(Number(organisationId));
         await paymentConfigMutation.mutateAsync(payload);
       }
 
+      if (canAddOrgUsers && organisationId) {
+        const pendingEntry = {
+          fullname: (user_fullname || "").trim(),
+          username: (user_username || "").trim(),
+          phoneno: (user_phoneno || "").trim(),
+          role: user_role || "admin",
+        };
+        const hasPendingInput =
+          pendingEntry.fullname ||
+          pendingEntry.username ||
+          pendingEntry.phoneno;
+
+        if (
+          hasPendingInput &&
+          (!pendingEntry.fullname || !pendingEntry.username)
+        ) {
+          showError("Full Name and Username are required to add a user.");
+          return;
+        }
+
+        const entriesToCreate = [
+          ...userEntries,
+          ...(hasPendingInput ? [pendingEntry] : []),
+        ];
+
+        for (const entry of entriesToCreate) {
+          const userPayload = await buildUserPayload({
+            fullname: entry.fullname,
+            username: entry.username,
+            phoneno: entry.phoneno,
+            role: entry.role,
+            states: formData.states,
+            organisationId,
+          });
+
+          if (userPayload) {
+            await createUser.mutateAsync(userPayload);
+          }
+        }
+      }
+
       if (res || editingOrg) {
         setIsDialogOpen(false);
         reset(defaultOrganisationField);
+        setUserEntries([]);
+        resetUserFields();
         resetPaymentConfig();
       }
     } catch (error) {
@@ -588,28 +898,38 @@ export default function ManageOrganisations() {
     setOrgToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent/>;
-  if (!hasAdminAccess || !canView) return <AccessDeniedComponent/>;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: isSuperAdmin 
-            ? translate('Super Admin Dashboard') 
-            : translate('Admin Dashboard'), 
-          page: isSuperAdmin ? 'SuperadminDashboard' : 'AdminDashboard' },
-        { label: translate('Manage Organisations'), page: 'ManageOrganisations' }
-      ]} />
+      <Breadcrumb
+        items={[
+          {
+            label: isSuperAdmin
+              ? translate("Super Admin Dashboard")
+              : translate("Admin Dashboard"),
+            page: isSuperAdmin ? "SuperadminDashboard" : "AdminDashboard",
+          },
+          {
+            label: translate("Manage Organisations"),
+            page: "ManageOrganisations",
+          },
+        ]}
+      />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <Building2 className="w-6 h-6 text-violet-600" />
-          {translate('Manage Organisations')}
+          {translate("Manage Organisations")}
         </h1>
-        { canCreate && (
-          <Button onClick={openAddDialog} className="bg-violet-600 hover:bg-violet-700">
+        {canCreate && (
+          <Button
+            onClick={openAddDialog}
+            className="bg-violet-600 hover:bg-violet-700"
+          >
             <Plus className="w-4 h-4 mr-2" />
-            {translate('Add New')}
+            {translate("Add New")}
           </Button>
         )}
       </div>
@@ -620,41 +940,55 @@ export default function ManageOrganisations() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder={translate('Search Organisation Name')}
+                placeholder={translate("Search Organisation Name")}
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pl-10"
               />
             </div>
-            <Button onClick={handleSearch} className="bg-violet-600 hover:bg-violet-700 px-6">
-              {translate('Search')}
+            <Button
+              onClick={handleSearch}
+              className="bg-violet-600 hover:bg-violet-700 px-6"
+            >
+              {translate("Search")}
             </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Select value={String(tempType)} onValueChange={setTempType}>
-              <SelectTrigger><SelectValue placeholder={translate('Organisation Type')} /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder={translate("Organisation Type")} />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('All Types')}</SelectItem>
-                {organisationTypeList.items.map(type => (
-                  <SelectItem key={type.id} value={String(type.id)}>{type.name}</SelectItem>
+                <SelectItem value="all">{translate("All Types")}</SelectItem>
+                {organisationTypeList.items.map((type) => (
+                  <SelectItem key={type.id} value={String(type.id)}>
+                    {type.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={tempState} onValueChange={setTempState}>
-              <SelectTrigger><SelectValue placeholder={translate('State')} /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder={translate("State")} />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate('All States')}</SelectItem>
-                {(isSuperAdmin ? STATES_MY : STATES_MY.filter(s => currentUserStates.includes(s))).map(state => (
-                  <SelectItem key={state} value={state}>{state}</SelectItem>
+                <SelectItem value="all">{translate("All States")}</SelectItem>
+                {(isSuperAdmin
+                  ? STATES_MY
+                  : STATES_MY.filter((s) => currentUserStates.includes(s))
+                ).map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Button variant="outline" onClick={handleReset} className="w-full">
-              <X className="w-4 h-4 mr-2" /> {translate('Reset')}
+              <X className="w-4 h-4 mr-2" /> {translate("Reset")}
             </Button>
           </div>
         </CardContent>
@@ -665,34 +999,53 @@ export default function ManageOrganisations() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate('Name')}</TableHead>
-                <TableHead className="text-center">{translate('Organisation Type')}</TableHead>
-                <TableHead className="text-center">{translate('State')}</TableHead>
-                <TableHead className="text-center">{translate('Services')}</TableHead>
-                {(canEdit || canDelete) && <TableHead className="text-center">{translate('Actions')}</TableHead>}
+                <TableHead>{translate("Name")}</TableHead>
+                <TableHead className="text-center">
+                  {translate("Organisation Type")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("State")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Services")}
+                </TableHead>
+                {(canEdit || canDelete) && (
+                  <TableHead className="text-center">
+                    {translate("Actions")}
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={tableColSpan}/>
+                <InlineLoadingComponent isTable={true} colSpan={tableColSpan} />
               ) : organisationsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={tableColSpan}/>
+                <NoDataTableComponent colSpan={tableColSpan} />
               ) : (
-                organisationsList.items.map(org => (
+                organisationsList.items.map((org) => (
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant="secondary">
-                        {getLabelFromId(organisationTypeList.items, org.organisationtype?.id)}
+                        {getLabelFromId(
+                          organisationTypeList.items,
+                          org.organisationtype?.id,
+                        )}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {Array.isArray(org.states) ? org.states.join(', ') : org.states}
+                      {Array.isArray(org.states)
+                        ? org.states.join(", ")
+                        : org.states}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex flex-wrap justify-center items-center gap-1">
-                        {org.serviceoffered?.slice(0, 2).map(service => (
-                          <Badge key={service} variant="secondary" className="text-xs">
+                        {org.serviceoffered?.slice(0, 2).map((service) => (
+                          <Badge
+                            key={service}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {service}
                           </Badge>
                         ))}
@@ -700,31 +1053,39 @@ export default function ManageOrganisations() {
                     </TableCell>
                     {(canEdit || canDelete) && (
                       <TableCell className="text-center">
-                        { canEdit && (
+                        {canEdit && (
                           <>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => openEditDialog(org)}>
+                              onClick={() => openEditDialog(org)}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
-                              variant="ghost" size="sm"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => {
                                 setSelectedOrgForPayment(org);
                                 setPaymentConfigOpen(true);
-                              }}>
+                              }}
+                            >
                               <CreditCard className="w-4 h-4 text-green-600" />
                             </Button>
                           </>
                         )}
-                        { canDelete && (
-                          <Button variant="ghost" size="sm"
-                            onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setOrgToDelete(org);
+                              setDeleteDialogOpen(true);
+                            }}
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>
-                        ) }
+                        )}
                       </TableCell>
                     )}
                   </TableRow>
@@ -737,235 +1098,433 @@ export default function ManageOrganisations() {
           <Pagination
             currentPage={urlPage}
             totalPages={totalPages}
-            onPageChange={(p) => setSearchParams({...Object.fromEntries(searchParams), page: p.toString()})}
+            onPageChange={(p) =>
+              setSearchParams({
+                ...Object.fromEntries(searchParams),
+                page: p.toString(),
+              })
+            }
             itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(v) => { setItemsPerPage(v); setSearchParams({...Object.fromEntries(searchParams), page: '1'}); }}
+            onItemsPerPageChange={(v) => {
+              setItemsPerPage(v);
+              setSearchParams({
+                ...Object.fromEntries(searchParams),
+                page: "1",
+              });
+            }}
             totalItems={organisationsList.total}
           />
         )}
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[90vw] max-h-[95vh] min-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingOrg ? translate('Edit') : translate('Add New')}
+              {editingOrg ? translate("Edit") : translate("Add New")}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"> 
-            <h3 className="text-sm font-medium text-gray-700 border-b py-2">
-              {translate('Organsiation Details')}
-            </h3>           
-            <TextInputForm
-              name="name"
-              control={control}
-              label={translate("Name")}
-              required
-              errors={errors}
-            />   
-            <div className="grid grid-cols-2 gap-4">
-              <SelectForm
-                name="organisationtype"
-                control={control}
-                placeholder={translate("Select organisation type")}
-                label={translate("Organisation Type")}
-                options={organisationTypeOptions}
-                disabled={!isSuperAdmin && isRestrictedOrgType}
-                required
-                errors={errors}
-              />
-              <SelectForm
-                name="parentorganisation"
-                control={control}
-                placeholder={translate("Select parent organisation")}
-                label={translate("Parent Organisation")}
-                options={Object.values(organisationsList.items).map((org) => ({
-                  value: org.id,
-                  label: org.name,
-                }))}
-              />
-            </div>
-            <SelectForm
-              name="states"
-              control={control}
-              label={translate("State")}
-              placeholder={translate("Select states")}
-              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-              required
-              errors={errors}
-            />
-            <CheckboxForm
-              name="isgraveservices"
-              control={control}
-              label={translate("Grave Services")}
-              disabled={serviceEntries.length > 0}
-            />
-            {isGraveServicesChecked && (
-              <div>
-                <Label>{translate('Services')}</Label>
-                <div className="space-y-3 mt-2">
-                  {serviceEntries.map((entry) => (
-                    <div key={entry.id} className="grid grid-cols-12 gap-2 items-center">
-                      <Input
-                        className="col-span-7"
-                        placeholder={translate('Service Name')}
-                        value={entry.service}
-                        onChange={(e) => updateServiceEntry(entry.id, 'service', e.target.value)}
-                      />
-                      <Input
-                        className="col-span-4"
-                        type="number"
-                        step="0.01"
-                        placeholder="RM 0.00"
-                        value={entry.price}
-                        onChange={(e) => updateServiceEntry(entry.id, 'price', e.target.value)}
-                      />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div
+              className={
+                canAddOrgUsers
+                  ? "grid grid-cols-1 xl:grid-cols-3 gap-6"
+                  : "grid grid-cols-1 lg:grid-cols-2 gap-6"
+              }
+            >
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                  {translate("Organsiation Details")}
+                </h3>
+                <TextInputForm
+                  name="name"
+                  control={control}
+                  label={translate("Name")}
+                  required
+                  errors={errors}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <SelectForm
+                    name="organisationtype"
+                    control={control}
+                    placeholder={translate("Select organisation type")}
+                    label={translate("Organisation Type")}
+                    options={organisationTypeOptions}
+                    disabled={!isSuperAdmin && isRestrictedOrgType}
+                    required
+                    errors={errors}
+                  />
+                  <SelectForm
+                    name="parentorganisation"
+                    control={control}
+                    placeholder={translate("Select parent organisation")}
+                    label={translate("Parent Organisation")}
+                    options={Object.values(organisationsList.items).map(
+                      (org) => ({
+                        value: org.id,
+                        label: org.name,
+                      }),
+                    )}
+                  />
+                </div>
+                <SelectForm
+                  name="states"
+                  control={control}
+                  label={translate("State")}
+                  placeholder={translate("Select states")}
+                  options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+                  required
+                  errors={errors}
+                />
+                <TextInputForm
+                  name="address"
+                  control={control}
+                  label={translate("Address")}
+                  isTextArea
+                />
+                <FileUploadForm
+                  name="photourl"
+                  control={control}
+                  label={translate("Photo")}
+                  bucketName="bucket-organisation"
+                  uploading={uploading}
+                  handleFileUpload={handleFileUpload}
+                  translate={translate}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="phone"
+                    control={control}
+                    label={translate("Phone No.")}
+                    isPhone
+                  />
+                  <TextInputForm
+                    name="email"
+                    control={control}
+                    label={translate("Email")}
+                    isEmail
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="latitude"
+                    control={control}
+                    label={translate("Latitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="longitude"
+                    control={control}
+                    label={translate("Longitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                      setValue("latitude", pos.coords.latitude.toFixed(16));
+                      setValue("longitude", pos.coords.longitude.toFixed(16));
+                    });
+                  }}
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {translate("Get Current Location")}
+                </Button>
+                <CheckboxForm
+                  name="canmanagemosque"
+                  control={control}
+                  label={translate("Can Manage Mosque")}
+                />
+                <CheckboxForm
+                  name="canbedonated"
+                  control={control}
+                  label={translate("Can Be Donated")}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                  {translate("Payment Config")}
+                </h3>
+                <div>
+                  <Label className="text-base font-semibold mb-3 block">
+                    {translate("Select Payment Platforms")}
+                  </Label>
+                  <div className="grid gap-3">
+                    {paymentPlatforms
+                      .filter((p) => p?.code)
+                      .map((platform) => (
+                        <Label
+                          key={platform.code}
+                          className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
+                        >
+                          <Checkbox
+                            checked={selectedPaymentPlatforms.includes(
+                              platform.code,
+                            )}
+                            onCheckedChange={() =>
+                              togglePaymentPlatform(platform.code)
+                            }
+                          />
+                          <div>
+                            <span className="font-medium">{platform.name}</span>
+                            <Badge
+                              variant="secondary"
+                              className="ml-2 capitalize text-xs"
+                            >
+                              {platform.category}
+                            </Badge>
+                          </div>
+                        </Label>
+                      ))}
+                  </div>
+                </div>
+
+                {selectedPaymentPlatforms.map((platformCode) => {
+                  const platform = paymentPlatforms.find(
+                    (p) => p?.code === platformCode,
+                  );
+                  const fields = paymentFields.filter(
+                    (f) => f?.platformCode === platformCode,
+                  );
+
+                  if (!platform || fields.length === 0) return null;
+
+                  return (
+                    <div
+                      key={platformCode}
+                      className="border rounded-lg p-4 bg-gray-50"
+                    >
+                      <h3 className="font-semibold mb-4 flex items-center gap-2">
+                        {platform.name} {translate("config")}
+                      </h3>
+                      <div className="space-y-4">
+                        {fields.map((field) => (
+                          <div key={field.id}>
+                            {renderPaymentField(platform, field)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                  {translate("Grave Service")}
+                </h3>
+                <CheckboxForm
+                  name="isgraveservices"
+                  control={control}
+                  label={translate("Grave Services")}
+                  disabled={serviceEntries.length > 0}
+                />
+                {isGraveServicesChecked && (
+                  <div>
+                    <Label>{translate("Services")}</Label>
+                    <div className="space-y-3 mt-2">
+                      {serviceEntries.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className="grid grid-cols-12 gap-2 items-center"
+                        >
+                          <Input
+                            className="col-span-7"
+                            placeholder={translate("Service Name")}
+                            value={entry.service}
+                            onChange={(e) =>
+                              updateServiceEntry(
+                                entry.id,
+                                "service",
+                                e.target.value,
+                              )
+                            }
+                          />
+                          <Input
+                            className="col-span-4"
+                            type="number"
+                            step="0.01"
+                            placeholder="RM 0.00"
+                            value={entry.price}
+                            onChange={(e) =>
+                              updateServiceEntry(
+                                entry.id,
+                                "price",
+                                e.target.value,
+                              )
+                            }
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="bg-red-600 hover:bg-red-700 text-white hover:text-white flex items-center justify-center rounded-md"
+                            onClick={() => removeServiceEntry(entry.id)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
                       <Button
                         type="button"
                         variant="outline"
-                        className="bg-red-600 hover:bg-red-700 text-white hover:text-white flex items-center justify-center rounded-md"
-                        onClick={() => removeServiceEntry(entry.id)}
+                        onClick={addServiceEntry}
                       >
-                        <X className="w-4 h-4" />
+                        <Plus className="w-4 h-4 mr-2" />
+                        {translate("Add Service")}
                       </Button>
                     </div>
-                  ))}
-                  <Button type="button" variant="outline" onClick={addServiceEntry}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    {translate('Add Service')}
-                  </Button>
-                </div>
-              </div>
-            )}
-            <TextInputForm
-              name="address"
-              control={control}
-              label={translate("Address")}
-              isTextArea
-            />   
-            <FileUploadForm
-              name="photourl"
-              control={control}
-              label={translate("Photo")}
-              bucketName="bucket-organisation"
-              uploading={uploading}
-              handleFileUpload={handleFileUpload}
-              translate={translate}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="phone"
-                control={control}
-                label={translate("Phone No.")}
-                isPhone
-              />   
-              <TextInputForm
-                name="email"
-                control={control}
-                label={translate("Email")}
-                isEmail
-              />   
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />   
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />   
-            </div>            
-            <Button 
-              type="button" variant="outline" className="w-full" 
-              onClick={() => {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                  setValue('latitude', pos.coords.latitude.toFixed(16));
-                  setValue('longitude', pos.coords.longitude.toFixed(16));
-                });
-              }}
-            >
-              <MapPin className="w-4 h-4 mr-2" /> 
-              {translate('Get Current Location')}
-            </Button>
-            <CheckboxForm
-              name="canmanagemosque"
-              control={control}
-              label={translate("Can Manage Mosque")}
-            />
-            <CheckboxForm
-              name="canbedonated"
-              control={control}
-              label={translate("Can Be Donated")}
-            />
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b py-2">
-                {translate('Payment Config')}
-              </h3>
-              <div>
-                <Label className="text-base font-semibold mb-3 block">
-                  {translate('Select Payment Platforms')}
-                </Label>
-                <div className="grid gap-3">
-                  {paymentPlatforms.filter(p => p?.code).map(platform => (
-                    <Label
-                      key={platform.code}
-                      className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
-                    >
-                      <Checkbox
-                        checked={selectedPaymentPlatforms.includes(platform.code)}
-                        onCheckedChange={() => togglePaymentPlatform(platform.code)}
-                      />
-                      <div>
-                        <span className="font-medium">{platform.name}</span>
-                        <Badge variant="secondary" className="ml-2 capitalize text-xs">
-                          {platform.category}
-                        </Badge>
-                      </div>
-                    </Label>
-                  ))}
-                </div>
-              </div>
-
-              {selectedPaymentPlatforms.map(platformCode => {
-                const platform = paymentPlatforms.find(p => p?.code === platformCode);
-                const fields = paymentFields.filter(f => f?.platformCode === platformCode);
-
-                if (!platform || fields.length === 0) return null;
-
-                return (
-                  <div key={platformCode} className="border rounded-lg p-4 bg-gray-50">
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      {platform.name} {translate('config')}
-                    </h3>
-                    <div className="space-y-4">
-                      {fields.map(field => (
-                        <div key={field.id}>
-                          {renderPaymentField(platform, field)}
-                        </div>
-                      ))}
-                    </div>
                   </div>
-                );
-              })}
+                )}
+                {!isGraveServicesChecked && (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                    {translate("No grave service")}
+                  </div>
+                )}
+              </div>
+
+              {canAddOrgUsers && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                    {translate("Add User")}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <TextInputForm
+                      name="user_fullname"
+                      control={control}
+                      label={translate("Full Name")}
+                    />
+                    <TextInputForm
+                      name="user_username"
+                      control={control}
+                      label={translate("Username")}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <TextInputForm
+                      name="user_phoneno"
+                      control={control}
+                      label={translate("Phone No.")}
+                      isPhone
+                    />
+                    <SelectForm
+                      name="user_role"
+                      control={control}
+                      label={translate("Role")}
+                      options={userRoleOptions}
+                      placeholder="Select role"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={handleAddOrUpdateUser}
+                      className="bg-violet-600 hover:bg-violet-700"
+                    >
+                      {editingUserIndex !== null ? "Update User" : "Add User"}
+                    </Button>
+                    {editingUserIndex !== null && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={resetUserFields}
+                      >
+                        Cancel Edit
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Full Name</TableHead>
+                          <TableHead>Username</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userEntries.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={5}
+                              className="text-center text-xs text-gray-500"
+                            >
+                              No users added yet.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          userEntries.map((entry, index) => (
+                            <TableRow
+                              key={entry.id}
+                              className={
+                                editingUserIndex === index ? "bg-violet-50" : ""
+                              }
+                            >
+                              <TableCell className="font-medium">
+                                {entry.fullname}
+                              </TableCell>
+                              <TableCell>{entry.username}</TableCell>
+                              <TableCell>{entry.phoneno || "-"}</TableCell>
+                              <TableCell className="capitalize">
+                                {entry.role}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditUserEntry(index)}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleRemoveUserEntry(index)}
+                                    className="text-red-500 hover:text-red-600"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500">
+                      Default password: {DEFAULT_USER_PASSWORD}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    State follows organisation.
+                  </span>
+                </div>
+              )}
             </div>
             <hr />
             <DialogFooter>
-              <Button 
-                type="button" variant="outline" 
-                onClick={() => setIsDialogOpen(false)}>
-                {translate('Cancel')}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                {translate("Cancel")}
               </Button>
-              <Button 
-                type="submit" className="bg-violet-600" 
+              <Button
+                type="submit"
+                className="bg-violet-600"
                 disabled={
                   createOrganisation.isPending ||
                   updateOrganisation.isPending ||
@@ -975,27 +1534,27 @@ export default function ManageOrganisations() {
                   paymentConfigMutation.orgMutation.isPending
                 }
               >
-                <Save className="w-4 h-4 mr-2" /> {translate('Save')}
+                <Save className="w-4 h-4 mr-2" /> {translate("Save")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog 
-        open={deleteDialogOpen} 
-        onOpenChange={setDeleteDialogOpen} 
-        onConfirm={confirmDelete} 
-        title={translate('Delete')} 
-        description={translate('Confirm delete')} 
-        variant="destructive" 
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title={translate("Delete")}
+        description={translate("Confirm delete")}
+        variant="destructive"
       />
-      <PaymentConfigDialog 
-        open={paymentConfigOpen} 
-        hasAdminAccess={hasAdminAccess} 
-        onOpenChange={setPaymentConfigOpen} 
-        entityId={selectedOrgForPayment?.id} 
-        entityType="organisation" 
+      <PaymentConfigDialog
+        open={paymentConfigOpen}
+        hasAdminAccess={hasAdminAccess}
+        onOpenChange={setPaymentConfigOpen}
+        entityId={selectedOrgForPayment?.id}
+        entityType="organisation"
       />
     </div>
   );

@@ -61,6 +61,10 @@ export const defaultTahfizField = {
   latitude: '', 
   longitude: '',
   photourl: '',
+  user_fullname: '',
+  user_username: '',
+  user_phoneno: '',
+  user_role: 'admin',
 }
 
 export const defaultDonationField = {
@@ -100,6 +104,10 @@ export const defaultOrganisationField = {
   canmanagemosque: false,
   isgraveservices: false,
   status: ActiveInactiveStatus.ACTIVE,
+  user_fullname: '',
+  user_username: '',
+  user_phoneno: '',
+  user_role: 'admin',
 }
 
 export const defaultQuickRegisterForm = {

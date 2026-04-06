@@ -25,7 +25,8 @@ export function handleLoginTRPC() {
       } else if (data.organisation) {
         window.location.href = createPageUrl("AdminDashboard");
       } else {
-        window.location.href = createPageUrl("AdminDashboard");
+        sessionStorage.clear();
+        window.location.href = createPageUrl("AppUserLogin");
       }
     },
     onError: (err) => {
