@@ -1,5 +1,5 @@
 import { createPageUrl } from './index';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { trpc, trpcClient } from './trpc';
 import { STATES_MY } from './enums';
 import { useNavigate } from 'react-router-dom';
@@ -110,23 +110,22 @@ async function refreshAppUserAuth(cachedUser: any) {
 export function useAdminAccess() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     let isMounted = true;
+    isMountedRef.current = true;
 
     const loadUser = async () => {
       try {
         const appUserAuth = sessionStorage.getItem("appUserAuth");
+
         if (appUserAuth) {
           const cachedUser = JSON.parse(appUserAuth);
           if (isMounted) {
             setCurrentUser(cachedUser);
           }
 
-          const refreshedUser = await refreshAppUserAuth(cachedUser);
-          if (refreshedUser && isMounted) {
-            setCurrentUser(refreshedUser);
-          }
         }
       } catch (e) {
         if (isMounted) {
@@ -143,8 +142,31 @@ export function useAdminAccess() {
 
     return () => {
       isMounted = false;
+      isMountedRef.current = false;
     };
   }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const cached =
+        currentUser ??
+        (() => {
+          const appUserAuth = sessionStorage.getItem("appUserAuth");
+          return appUserAuth ? JSON.parse(appUserAuth) : null;
+        })();
+
+      if (!cached?.id) return null;
+
+      const refreshedUser = await refreshAppUserAuth(cached);
+      if (refreshedUser && isMountedRef.current) {
+        setCurrentUser(refreshedUser);
+      }
+      return refreshedUser;
+    } catch (error) {
+      console.error("Failed to refresh app user auth:", error);
+      return null;
+    }
+  }, [currentUser]);
 
   const role = currentUser?.role;
 
@@ -182,7 +204,8 @@ export function useAdminAccess() {
     isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin,  isOrganisationAdmin,
     checkRole, 
     currentUserStates,
-    userEmail
+    userEmail,
+    refreshUser,
   };
 }
 

@@ -47,6 +47,7 @@ export default function ManageHeritageSites() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [heritageToDelete, setHeritageToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('heritages');
   const { heritageSiteList, totalPages, isLoading } = useGetHeritageSitesPaginated({
@@ -371,22 +372,29 @@ export default function ManageHeritageSites() {
               type="button"
               variant="outline"
               onClick={() => {
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                      setValue('latitude', pos.coords.latitude.toFixed(16));
-                      setValue('longitude', pos.coords.longitude.toFixed(16));
-                      showSuccess('Lokasi berjaya diperolehi');
-                    },
-                    () => showError('Tidak dapat mendapatkan lokasi.'),
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                  );
-                }
+                if (!navigator.geolocation) return;
+                setIsLocating(true);
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    setValue('latitude', pos.coords.latitude.toFixed(16));
+                    setValue('longitude', pos.coords.longitude.toFixed(16));
+                    showSuccess('Lokasi berjaya diperolehi');
+                    setIsLocating(false);
+                  },
+                  () => {
+                    showError('Tidak dapat mendapatkan lokasi.');
+                    setIsLocating(false);
+                  },
+                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
               }}
               className="w-full"
+              disabled={isLocating}
             >
               <MapPin className="w-4 h-4 mr-2" />
-              {translate('Get Current Location')}
+              {isLocating
+                ? translate('Getting location...')
+                : translate('Get Current Location')}
             </Button>
             <div className="space-y-2">
               <Label>{translate('Photo')}</Label>

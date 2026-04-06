@@ -61,6 +61,7 @@ export default function ManageGraves() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   
   const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
     defaultValues: defaultGraveField
@@ -418,12 +419,26 @@ export default function ManageGraves() {
             <Button 
               type="button" variant="outline" 
               className="w-full" 
-              onClick={() => navigator.geolocation.getCurrentPosition((pos) => { 
-                setValue('latitude', pos.coords.latitude.toFixed(16)); 
-                setValue('longitude', pos.coords.longitude.toFixed(16)); 
-              })}>
+              onClick={() => {
+                if (!navigator.geolocation) return;
+                setIsLocating(true);
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => { 
+                    setValue('latitude', pos.coords.latitude.toFixed(16)); 
+                    setValue('longitude', pos.coords.longitude.toFixed(16)); 
+                    setIsLocating(false);
+                  },
+                  () => {
+                    setIsLocating(false);
+                  },
+                );
+              }}
+              disabled={isLocating}
+            >
               <MapPin className="w-4 h-4 mr-2" /> 
-              {translate('Get Current Location')}
+              {isLocating
+                ? translate('Getting location...')
+                : translate('Get Current Location')}
             </Button>
             <SelectForm
               name="organisation"
@@ -463,7 +478,7 @@ export default function ManageGraves() {
                 placeholder={translate("Select Status")}
                 options={Object.values(GraveStatus).map(status => ({
                   value: status,
-                  label: status
+                  label: translate(status.charAt(0).toUpperCase() + status.slice(1)),
                 }))}
                 required
                 errors={errors}

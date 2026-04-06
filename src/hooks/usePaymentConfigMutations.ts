@@ -11,7 +11,7 @@ export function useGetConfigByEntity({
   enabled?: boolean;
 }) {
   const isDisabled = entityId === 0 || !enabled;
-
+  
   const organisationQuery =
     trpc.organisationPaymentConfig.getConfigByOrganisationId.useQuery(
       { organisation: entityId ? { id: entityId } : undefined },

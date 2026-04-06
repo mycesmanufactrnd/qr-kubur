@@ -40,8 +40,9 @@ export default function SelectForm({
           <Select
             value={field.value ?? ""}
             onValueChange={field.onChange}
+            disabled={disabled}
           >
-            <SelectTrigger>
+            <SelectTrigger disabled={disabled}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
 

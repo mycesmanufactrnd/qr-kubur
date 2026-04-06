@@ -42,6 +42,17 @@ export const paymentPlatformRouter = router({
       });
     }),
 
+  getFieldByPlatformId: publicProcedure
+    .input(z.object({
+      paymentPlatformId: z.number(),
+    }))
+    .query(async ({ input }) => {
+      return AppDataSource.getRepository(PaymentPlatform).find({
+        where: { id: input.paymentPlatformId },
+        relations: ['paymentfields']
+      });
+    }),
+
   create: superAdminProcedure
     .input(paymentPlatformSchema)
     .mutation(async ({ input }) => {

@@ -110,6 +110,7 @@ export default function ManageOrganisations() {
   const [selectedOrgForPayment, setSelectedOrgForPayment] = useState(null);
   const [serviceEntries, setServiceEntries] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [selectedPaymentPlatforms, setSelectedPaymentPlatforms] = useState([]);
   const [paymentConfigValues, setPaymentConfigValues] = useState({});
   const [paymentUploadingFiles, setPaymentUploadingFiles] = useState({});
@@ -539,10 +540,13 @@ export default function ManageOrganisations() {
         value: type.id,
         label: type.name,
       }))
-    : isRestrictedOrgType
-      ? baseOrganisationTypeOptions.filter(
-          (opt) => opt.value === currentOrgType?.id,
-        )
+    : currentOrgType?.id
+      ? [
+          {
+            value: currentOrgType.id,
+            label: currentOrgType.name || String(currentOrgType.id),
+          },
+        ]
       : baseOrganisationTypeOptions;
 
   const userRoleOptions = [
@@ -898,8 +902,35 @@ export default function ManageOrganisations() {
     setOrgToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
+  if (loadingUser || permissionsLoading) {
+    return <PageLoadingComponent />;
+  }
+
+  if (!hasAdminAccess) {
+    return <AccessDeniedComponent />
+  };
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb
+          items={[
+            {
+              label: isSuperAdmin
+                ? translate("Super Admin Dashboard")
+                : translate("Admin Dashboard"),
+              page: isSuperAdmin ? "SuperadminDashboard" : "AdminDashboard",
+            },
+            {
+              label: translate("Manage Organisations"),
+              page: "ManageOrganisations",
+            },
+          ]}
+        />
+        <AccessDeniedComponent />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -1150,7 +1181,7 @@ export default function ManageOrganisations() {
                     placeholder={translate("Select organisation type")}
                     label={translate("Organisation Type")}
                     options={organisationTypeOptions}
-                    disabled={!isSuperAdmin && isRestrictedOrgType}
+                    // disabled={!isSuperAdmin}
                     required
                     errors={errors}
                   />
@@ -1228,14 +1259,25 @@ export default function ManageOrganisations() {
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                      setValue("latitude", pos.coords.latitude.toFixed(16));
-                      setValue("longitude", pos.coords.longitude.toFixed(16));
-                    });
+                    if (!navigator.geolocation) return;
+                    setIsLocating(true);
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        setValue("latitude", pos.coords.latitude.toFixed(16));
+                        setValue("longitude", pos.coords.longitude.toFixed(16));
+                        setIsLocating(false);
+                      },
+                      () => {
+                        setIsLocating(false);
+                      },
+                    );
                   }}
+                  disabled={isLocating}
                 >
                   <MapPin className="w-4 h-4 mr-2" />
-                  {translate("Get Current Location")}
+                  {isLocating
+                    ? translate("Getting location...")
+                    : translate("Get Current Location")}
                 </Button>
                 <CheckboxForm
                   name="canmanagemosque"

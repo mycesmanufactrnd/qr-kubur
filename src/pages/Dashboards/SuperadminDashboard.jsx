@@ -17,8 +17,9 @@ import {
   Gift,
   Zap,
   BookOpen,
+  Home,
+  ChevronRight,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { translate } from "@/utils/translations";
@@ -26,13 +27,73 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { createPageUrl } from "@/utils";
+import { cn } from "@/lib/utils";
+
+// ─── Nav card ──────────────────────────────────────────────────────────────
+
+const colorMap = {
+  red: { bg: "bg-red-50", icon: "text-red-700" },
+  amber: { bg: "bg-amber-50", icon: "text-amber-700" },
+  indigo: { bg: "bg-indigo-50", icon: "text-indigo-700" },
+  purple: { bg: "bg-violet-50", icon: "text-violet-700" },
+  emerald: { bg: "bg-emerald-50", icon: "text-emerald-700" },
+  blue: { bg: "bg-blue-50", icon: "text-blue-700" },
+  green: { bg: "bg-green-50", icon: "text-green-700" },
+  pink: { bg: "bg-pink-50", icon: "text-pink-700" },
+  yellow: { bg: "bg-yellow-50", icon: "text-yellow-700" },
+  teal: { bg: "bg-teal-50", icon: "text-teal-700" },
+};
+
+function NavCard({ item }) {
+  const colors = colorMap[item.color] ?? colorMap.indigo;
+  return (
+    <Link to={createPageUrl(item.page)}>
+      <div className="group flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3.5 hover:border-gray-200 hover:bg-gray-50/60 transition-all duration-150 cursor-pointer">
+        <div
+          className={cn(
+            "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+            colors.bg,
+          )}
+        >
+          <item.icon className={cn("w-4 h-4", colors.icon)} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-800 truncate">
+            {item.name}
+          </p>
+        </div>
+        <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 shrink-0 transition-colors" />
+      </div>
+    </Link>
+  );
+}
+
+// ─── Section block ─────────────────────────────────────────────────────────
+
+function Section({ title, items }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider px-1">
+        {translate(title)}
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {items.map((item) => (
+          <NavCard key={item.page} item={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main ──────────────────────────────────────────────────────────────────
 
 export default function SuperadminDashboard() {
   const { loadingUser, isSuperAdmin } = useAdminAccess();
+
   const superadminConfig = [
     {
       value: "users",
-      title: translate("User Management"),
+      title: translate("Users"),
       items: [
         {
           name: translate("Impersonate User"),
@@ -56,7 +117,7 @@ export default function SuperadminDashboard() {
     },
     {
       value: "organisation",
-      title: translate("Organisation Management"),
+      title: translate("Organisation"),
       sections: [
         {
           title: "Organisation",
@@ -90,15 +151,25 @@ export default function SuperadminDashboard() {
               icon: BookOpen,
               color: "amber",
             },
-            // { name: translate('Manage Private Organisations'), page: 'ManagePrivateOrganisations', icon: House, color: 'red' },
-            // { name: translate('Manage Volunteer & NGO'), page: 'ManageVolunteerNGO', icon: House, color: 'yellow' },
+            {
+              name: translate("Manage Private Organisations"),
+              page: "ManagePrivateOrganisations",
+              icon: Home,
+              color: "red",
+            },
+            {
+              name: translate("Manage Volunteer & NGO"),
+              page: "ManageVolunteerNGO",
+              icon: Users,
+              color: "yellow",
+            },
           ],
         },
       ],
     },
     {
       value: "payment",
-      title: translate("Payment Management"),
+      title: translate("Payment"),
       items: [
         {
           name: translate("Payment Platforms"),
@@ -119,7 +190,7 @@ export default function SuperadminDashboard() {
           color: "yellow",
         },
         {
-          name: translate("Billpiz Config"),
+          name: translate("Billplz Config"),
           page: "BillplzConfigPage",
           icon: Moon,
           color: "pink",
@@ -128,7 +199,7 @@ export default function SuperadminDashboard() {
     },
     {
       value: "system",
-      title: translate("System Management"),
+      title: translate("System"),
       items: [
         {
           name: translate("Activity Logs"),
@@ -170,92 +241,72 @@ export default function SuperadminDashboard() {
     },
   ];
 
-  if (loadingUser) {
-    return <PageLoadingComponent />;
-  }
-
-  if (!isSuperAdmin) {
-    return <AccessDeniedComponent />;
-  }
+  if (loadingUser) return <PageLoadingComponent />;
+  if (!isSuperAdmin) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            {translate("Super Admin Dashboard")}
-          </h1>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center">
+            <Shield className="w-[18px] h-[18px] text-violet-600" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+              {translate("Super Admin Dashboard")}
+            </h1>
+            <p className="text-xs text-gray-400">
+              {translate("System management console")}
+            </p>
+          </div>
         </div>
         <Link to={createPageUrl("AdminDashboard")}>
-          <Badge className="w-fit bg-purple-100 text-purple-700 border-purple-200">
+          <Badge className="flex items-center gap-1.5 w-fit bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors cursor-pointer px-3 py-1.5">
+            <Home className="w-3 h-3" />
             {translate("To Admin Dashboard")}
           </Badge>
         </Link>
       </div>
 
-      <Tabs defaultValue={superadminConfig[0].value} className="space-y-6">
-  <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-    {superadminConfig.map((tab) => (
-      <TabsTrigger key={tab.value} value={tab.value}>
-        {tab.title}
-      </TabsTrigger>
-    ))}
-  </TabsList>
-
-  {superadminConfig.map((tab) => (
-    <TabsContent key={tab.value} value={tab.value} className="space-y-6">
-      {tab.sections ? (
-        // Organisation tab with sections
-        tab.sections.map((section) => (
-          <div key={section.title}>
-            <h2 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">
-              {translate(section.title)}
-            </h2>
-            <div className="grid md:grid-cols-3 gap-3">
-              {section.items.map((item) => (
-                <Link key={item.page} to={createPageUrl(item.page)}>
-                  <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-lg bg-${item.color}-100 flex items-center justify-center`}
-                        >
-                          <item.icon className={`w-5 h-5 text-${item.color}-600`} />
-                        </div>
-                        <h3 className="font-semibold text-sm">{item.name}</h3>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        // Other tabs without sections
-        <div className="grid md:grid-cols-3 gap-3">
-          {tab.items?.map((item) => (
-            <Link key={item.page} to={createPageUrl(item.page)}>
-              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg bg-${item.color}-100 flex items-center justify-center`}
-                    >
-                      <item.icon className={`w-5 h-5 text-${item.color}-600`} />
-                    </div>
-                    <h3 className="font-semibold text-sm">{item.name}</h3>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+      {/* Tabs */}
+      <Tabs defaultValue={superadminConfig[0].value}>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 bg-gray-100/80 rounded-xl">
+          {superadminConfig.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="rounded-lg text-xs font-medium py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500"
+            >
+              {tab.title}
+            </TabsTrigger>
           ))}
-        </div>
-      )}
-    </TabsContent>
-  ))}
-</Tabs>
+        </TabsList>
+
+        {superadminConfig.map((tab) => (
+          <TabsContent
+            key={tab.value}
+            value={tab.value}
+            className="mt-4 space-y-5"
+          >
+            {tab.sections ? (
+              tab.sections.map((section) => (
+                <Section
+                  key={section.title}
+                  title={section.title}
+                  items={section.items}
+                />
+              ))
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {tab.items?.map((item) => (
+                  <NavCard key={item.page} item={item} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }

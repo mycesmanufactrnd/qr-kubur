@@ -100,6 +100,7 @@ export default function ManageTahfizCenters() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [centerToDelete, setCenterToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [serviceEntries, setServiceEntries] = useState([]);
   const [userEntries, setUserEntries] = useState([]);
   const [editingUserIndex, setEditingUserIndex] = useState(null);
@@ -1165,15 +1166,26 @@ export default function ManageTahfizCenters() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() =>
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                      setValue("latitude", pos.coords.latitude.toFixed(16));
-                      setValue("longitude", pos.coords.longitude.toFixed(16));
-                    })
-                  }
+                  onClick={() => {
+                    if (!navigator.geolocation) return;
+                    setIsLocating(true);
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        setValue("latitude", pos.coords.latitude.toFixed(16));
+                        setValue("longitude", pos.coords.longitude.toFixed(16));
+                        setIsLocating(false);
+                      },
+                      () => {
+                        setIsLocating(false);
+                      },
+                    );
+                  }}
+                  disabled={isLocating}
                 >
                   <MapPin className="w-4 h-4 mr-2" />
-                  {translate("Get Current Location")}
+                  {isLocating
+                    ? translate("Getting location...")
+                    : translate("Get Current Location")}
                 </Button>
                 <FileUploadForm
                   name="photourl"

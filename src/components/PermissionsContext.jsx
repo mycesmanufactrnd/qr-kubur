@@ -23,13 +23,17 @@ export function PermissionsProvider({ children }) {
           const storedPermissions = sessionStorage.getItem("permissions");
           if (storedPermissions) {
             const parsedPermissions = JSON.parse(storedPermissions);
-            setPermissions(parsedPermissions.map(p => p.slug));
+            setPermissions(
+              parsedPermissions
+                .filter((p) => p?.enabled)
+                .map((p) => p.slug)
+            );
           }
 
           try {
             const freshPermissions = await trpcClient.permission.getByUser.query({ userId: Number(userData.id) });
             sessionStorage.setItem("permissions", JSON.stringify(freshPermissions));
-            setPermissions(freshPermissions.map(p => p.slug));
+            setPermissions(freshPermissions.filter((p) => p?.enabled).map(p => p.slug));
           } catch (error) {
             console.error('Failed to refresh permissions:', error);
           }

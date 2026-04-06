@@ -28,6 +28,7 @@ export default function OrganisationQuickRegister() {
   const [paymentPreviewUrls, setPaymentPreviewUrls] = useState({});
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   const {
     control,
@@ -450,20 +451,31 @@ export default function OrganisationQuickRegister() {
                 </div>
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  navigator.geolocation.getCurrentPosition((pos) => {
-                    setValue("latitude", pos.coords.latitude.toFixed(16));
-                    setValue("longitude", pos.coords.longitude.toFixed(16));
-                  });
-                }}
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                {translate("Get Current Location")}
-              </Button>   
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    if (!navigator.geolocation) return;
+                    setIsLocating(true);
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        setValue("latitude", pos.coords.latitude.toFixed(16));
+                        setValue("longitude", pos.coords.longitude.toFixed(16));
+                        setIsLocating(false);
+                      },
+                      () => {
+                        setIsLocating(false);
+                      },
+                    );
+                  }}
+                  disabled={isLocating}
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {isLocating
+                    ? translate("Getting location...")
+                    : translate("Get Current Location")}
+                </Button>
               
               <CheckboxForm
                 name="canmanagemosque"

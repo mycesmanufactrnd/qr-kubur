@@ -1,8 +1,8 @@
-import { TRPCError } from '@trpc/server';
-import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { OrganisationPaymentConfig, User } from '../db/entities.ts';
-import { AppDataSource } from '../datasource.ts';
-import { z } from 'zod';
+import { TRPCError } from "@trpc/server";
+import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
+import { OrganisationPaymentConfig, User } from "../db/entities.ts";
+import { AppDataSource } from "../datasource.ts";
+import { z } from "zod";
 
 const ensureOrganisationConfigAccess = async ({
   currentUserId,
@@ -13,20 +13,23 @@ const ensureOrganisationConfigAccess = async ({
   currentUserRole?: string;
   targetOrganisationId: number;
 }) => {
-  if (currentUserRole === 'superadmin') {
+  if (currentUserRole === "superadmin") {
     return;
   }
 
   const userRepo = AppDataSource.getRepository(User);
   const currentUser = await userRepo.findOne({
     where: { id: currentUserId },
-    relations: ['organisation'],
+    relations: ["organisation"],
   });
 
-  if (!currentUser?.organisation?.id || currentUser.organisation.id !== targetOrganisationId) {
+  if (
+    !currentUser?.organisation?.id ||
+    currentUser.organisation.id !== targetOrganisationId
+  ) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You are not allowed to access this organisation payment config',
+      code: "FORBIDDEN",
+      message: "You are not allowed to access this organisation payment config",
     });
   }
 };
@@ -35,28 +38,20 @@ export const organisationPaymentConfigRouter = router({
   getConfigByOrganisationId: publicProcedure
     .input(
       z.object({
-        organisation: z.object({ id: z.number() }).nullable().optional(),
-      })
+        organisation: z.object({ id: z.number() }).optional(),
+      }),
     )
     .query(async ({ input, ctx }) => {
-      if (!input.organisation?.id) {
+      if (!input.organisation || !input.organisation.id) {
         return [];
       }
 
-      await ensureOrganisationConfigAccess({
-        currentUserId: Number(ctx.user.id),
-        currentUserRole: ctx.user.role,
-        targetOrganisationId: input.organisation.id,
+      return await AppDataSource.getRepository(OrganisationPaymentConfig).find({
+        where: {
+          organisation: { id: input.organisation.id },
+        },
+        relations: ["paymentplatform", "paymentfield"],
       });
-
-      return await AppDataSource
-        .getRepository(OrganisationPaymentConfig)
-        .find({
-          where: {
-            organisation: { id: input.organisation.id },
-          },
-          relations: ['paymentplatform', 'paymentfield']
-        });
     }),
 
   upsert: protectedProcedure
@@ -68,9 +63,9 @@ export const organisationPaymentConfigRouter = router({
             paymentPlatformId: z.number(),
             paymentFieldId: z.number(),
             value: z.string().min(1),
-          })
+          }),
         ),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       await ensureOrganisationConfigAccess({
@@ -83,11 +78,13 @@ export const organisationPaymentConfigRouter = router({
 
       const existingConfigs = await repo.find({
         where: { organisation: { id: input.organisationId } },
-        relations: ['organisation', 'paymentplatform', 'paymentfield'],
+        relations: ["organisation", "paymentplatform", "paymentfield"],
       });
 
       const upsertKeys = new Set(
-        input.configs.map(config => `${config.paymentPlatformId}_${config.paymentFieldId}`)
+        input.configs.map(
+          (config) => `${config.paymentPlatformId}_${config.paymentFieldId}`,
+        ),
       );
 
       for (const config of existingConfigs) {
@@ -99,8 +96,9 @@ export const organisationPaymentConfigRouter = router({
 
       for (const config of input.configs) {
         const existing = existingConfigs.find(
-          e => e.paymentplatform?.id === config.paymentPlatformId &&
-              e.paymentfield?.id === config.paymentFieldId
+          (e) =>
+            e.paymentplatform?.id === config.paymentPlatformId &&
+            e.paymentfield?.id === config.paymentFieldId,
         );
 
         if (existing) {
@@ -113,7 +111,7 @@ export const organisationPaymentConfigRouter = router({
               paymentplatform: { id: config.paymentPlatformId },
               paymentfield: { id: config.paymentFieldId },
               value: config.value,
-            })
+            }),
           );
         }
       }
