@@ -907,8 +907,8 @@ export default function ManageOrganisations() {
   }
 
   if (!hasAdminAccess) {
-    return <AccessDeniedComponent />
-  };
+    return <AccessDeniedComponent />;
+  }
 
   if (!canView) {
     return (
@@ -1040,6 +1040,9 @@ export default function ManageOrganisations() {
                 <TableHead className="text-center">
                   {translate("Services")}
                 </TableHead>
+                <TableHead className="text-center">
+                  {translate("Image")}
+                </TableHead>
                 {(canEdit || canDelete) && (
                   <TableHead className="text-center">
                     {translate("Actions")}
@@ -1081,6 +1084,16 @@ export default function ManageOrganisations() {
                           </Badge>
                         ))}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <img
+                        src={resolveFileUrl(
+                          org.photourl,
+                          "bucket-organisation",
+                        )}
+                        alt="photo"
+                        className="w-12 h-10 object-cover rounded mx-auto"
+                      />
                     </TableCell>
                     {(canEdit || canDelete) && (
                       <TableCell className="text-center">

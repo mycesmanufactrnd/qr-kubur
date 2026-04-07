@@ -8,7 +8,7 @@ export const mosqueSchema = z.object({
   url: z.string().optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
-  organisation: z.object({ id: z.number() }).nullable().optional(),
+  organisation: z.object({ id: z.number() }),
   photourl: z.string().optional().nullable(),
   picname: z.string().optional().nullable(),
   picphoneno: z.string().optional().nullable(),

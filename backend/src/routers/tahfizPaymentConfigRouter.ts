@@ -45,14 +45,6 @@ export const tahfizPaymentConfigRouter = router({
 
       const tahfizId = input.tahfiz.id; 
 
-      if (ctx.user?.id) {
-        await ensureTahfizConfigAccess({
-          currentUserId: Number(ctx.user.id),
-          currentUserRole: ctx.user.role,
-          targetTahfizId: tahfizId,
-        });
-      }
-
       return await AppDataSource
         .getRepository(TahfizPaymentConfig)
         .find({

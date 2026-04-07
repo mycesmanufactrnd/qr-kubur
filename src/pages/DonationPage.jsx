@@ -248,8 +248,8 @@ export default function DonationPage() {
               try {
                 await saveTransactionAccountMutation.mutateAsync({
                   orderNo,
-                  accountNo: String(selectedAccount.accountno),
-                  bankName: String(selectedAccount.bankname),
+                  accountNo: selectedAccount?.accountno ?? "",
+                  bankName: selectedAccount?.bankname ?? "",
                   type: "Donation",
                 });
               } catch (accountError) {
@@ -556,7 +556,7 @@ export default function DonationPage() {
                     placeholder={
                       recipientType === "organisation"
                         ? translate("Select organisation")
-                        : translate("Select Tahfiz center")
+                        : translate("Select Tahfiz Center")
                     }
                   />
                 </SelectTrigger>
@@ -570,8 +570,8 @@ export default function DonationPage() {
                   ) : (
                     <SelectItem value="__empty__" disabled>
                       {recipientType === "organisation"
-                        ? "Tiada organisasi dijumpai"
-                        : "Tiada pusat tahfiz dijumpai"}
+                        ? translate("No organisation found")
+                        : translate("No tahfiz center found")}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -610,7 +610,7 @@ export default function DonationPage() {
 
               <Input
                 type="number"
-                placeholder={`${translate("Other amount")} (RM)`}
+                placeholder={`${translate("Other Amount")} (RM)`}
                 value={customAmount}
                 onChange={(e) => {
                   setValue("customAmount", e.target.value);

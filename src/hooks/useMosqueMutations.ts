@@ -37,6 +37,8 @@ export function useMosqueMutations() {
 
   const invalidateAll = () => {
     trpcUtils.mosque.getPaginated.invalidate();
+    trpcUtils.mosque.getMosquesByOrganisationId.invalidate();
+    trpcUtils.mosque.getMosqueById.invalidate();
   };
 
   const createMosque = trpc.mosque.create.useMutation({

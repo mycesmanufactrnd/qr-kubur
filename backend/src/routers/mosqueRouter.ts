@@ -26,6 +26,7 @@ export const mosqueRouter = router({
             id: input.organisationId
           } 
         },
+        relations: ["organisation"],
       });
     }),
 

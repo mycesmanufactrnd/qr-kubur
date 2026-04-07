@@ -1,5 +1,4 @@
-// schemas/deadPersonSchema.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const deadPersonSchema = z.object({
   name: z.string().min(1, "Nama penuh diperlukan"),
@@ -11,5 +10,5 @@ export const deadPersonSchema = z.object({
   photourl: z.string().nullable(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
-  graveId: z.number().min(1, "Tanah perkuburan diperlukan"),
+  grave: z.object({ id: z.number() }),
 });

@@ -3,7 +3,6 @@ import { DeadPerson } from "../db/entities.ts";
 import { AppDataSource } from "../datasource.ts";
 import { z } from "zod";
 import { deadPersonSchema } from "../schemas/deadpersonSchema.ts";
-import type { DeepPartial } from "@trpc/server";
 
 export const deadPersonRouter = router({
   getPaginated: protectedProcedure

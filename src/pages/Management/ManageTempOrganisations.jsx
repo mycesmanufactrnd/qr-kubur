@@ -185,7 +185,6 @@ export default function ManageTempOrganisations() {
   };
 
   const openDetails = (item) => {
-    console.log("itemitemitem", item);
     setSelectedItem(item);
     setDetailsOpen(true);
   };

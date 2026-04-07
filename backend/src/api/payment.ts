@@ -3,12 +3,26 @@ import { handleToyyibPayCallback } from "../services/toyyibpay.service.ts";
 
 export const registerPaymentRoutes = (app: FastifyInstance) => {
   app.post("/api/payment/callback", async (req, reply) => {
-    const parts = req.parts();
+
     const data: Record<string, string> = {};
 
-    for await (const part of parts) {
-      if (part.type === "field") {
-        data[part.fieldname] = String(part.value);
+    if (req.isMultipart && req.isMultipart()) {
+      const parts = req.parts();
+      for await (const part of parts) {
+        if (part.type === "field") {
+          data[part.fieldname] = String(part.value);
+        }
+      }
+    } else if (req.body && typeof req.body === "object") {
+      for (const [key, value] of Object.entries(
+        req.body as Record<string, any>,
+      )) {
+        data[key] = String(value);
+      }
+    } else if (typeof req.body === "string") {
+      const params = new URLSearchParams(req.body);
+      for (const [key, value] of params.entries()) {
+        data[key] = value;
       }
     }
 

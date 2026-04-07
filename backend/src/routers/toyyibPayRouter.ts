@@ -44,7 +44,7 @@ export const toyyibPayRouter = router({
         orderNo: z.string().trim().min(1),
         accountNo: z.string().trim().min(1),
         bankName: z.string().trim().min(1),
-        type: z.string().trim().optional().default("QR Kubur"),
+        type: z.string().trim().min(1),
       })
     )
     .mutation(async ({ input }) => {

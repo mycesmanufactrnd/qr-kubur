@@ -7,11 +7,10 @@ import BackNavigation from "@/components/BackNavigation";
 
 const TABS = [
   { value: "tahlil", label: "Tahlil" },
+  { value: "doa", label: "Doa Tahlil" },
   { value: "surah", label: "Surah" },
-  { value: "doa", label: "Doa" },
 ];
 
-// ── Reusable Section wrapper ─────────────────────────────────────────────────
 function Section({ title, accent = "emerald", children }) {
   const colors = {
     emerald: "text-emerald-600",
@@ -34,7 +33,7 @@ export default function SurahPage() {
   const TahlilPdf = "/Tahlil.pdf";
   const DoaTahlilPdf = "/DoaTahlil.pdf";
 
-  const [activeTab, setActiveTab] = useState("surah");
+  const [activeTab, setActiveTab] = useState("tahlil");
   const [surahId, setSurahId] = useState(36);
   const [reciterId, setReciterId] = useState(1);
 

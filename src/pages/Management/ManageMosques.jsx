@@ -230,7 +230,7 @@ export default function ManageMosques() {
     setEditingMosque(mosque);
     reset({
       ...mosque,
-      organisation: mosque.organisation?.id?.toString() ?? "",
+      organisation: mosque.organisation?.id?.toString() ?? null,
       latitude: mosque.latitude?.toString() || "",
       longitude: mosque.longitude?.toString() || "",
     });
@@ -249,12 +249,6 @@ export default function ManageMosques() {
   };
 
   const onSubmit = async (formData) => {
-    const isValid = validateFields(formData, [
-      { field: "name", label: "Mosque", type: "text" },
-      { field: "state", label: "State", type: "select" },
-    ]);
-
-    if (!isValid) return;
 
     const payload = {
       ...formData,
@@ -401,15 +395,18 @@ export default function ManageMosques() {
                   {translate("State")}
                 </TableHead>
                 <TableHead className="text-center">
+                  {translate("Image")}
+                </TableHead>
+                <TableHead className="text-center">
                   {translate("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {tableLoading ? (
-                <InlineLoadingComponent isTable colSpan={3} />
+                <InlineLoadingComponent isTable colSpan={5} />
               ) : tableItems.length === 0 ? (
-                <NoDataTableComponent colSpan={3} />
+                <NoDataTableComponent colSpan={5} />
               ) : (
                 tableItems.map((mosque) => (
                   <TableRow key={mosque.id}>
@@ -419,6 +416,13 @@ export default function ManageMosques() {
                     </TableCell>
                     <TableCell className="text-center">
                       {mosque.state}
+                    </TableCell>
+                    <TableCell>
+                      <img
+                        src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
+                        alt="photo"
+                        className="w-12 h-10 object-cover rounded mx-auto"
+                      />
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -525,12 +529,16 @@ export default function ManageMosques() {
                 control={control}
                 label={translate("Latitude")}
                 isNumber
+                required
+                errors={errors}
               />
               <TextInputForm
                 name="longitude"
                 control={control}
                 label={translate("Longitude")}
                 isNumber
+                required
+                errors={errors}
               />
             </div>
             <Button

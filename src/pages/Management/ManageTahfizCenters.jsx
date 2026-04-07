@@ -943,6 +943,9 @@ export default function ManageTahfizCenters() {
                   {translate("Services")}
                 </TableHead>
                 <TableHead className="text-center">
+                  {translate("Image")}
+                </TableHead>
+                <TableHead className="text-center">
                   {translate("Actions")}
                 </TableHead>
               </TableRow>
@@ -974,6 +977,13 @@ export default function ManageTahfizCenters() {
                           </Badge>
                         ))}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <img
+                        src={resolveFileUrl(center.photourl, "tahfiz-center")}
+                        alt="photo"
+                        className="w-12 h-10 object-cover rounded mx-auto"
+                      />
                     </TableCell>
                     <TableCell className="text-center">
                       {canEdit && (

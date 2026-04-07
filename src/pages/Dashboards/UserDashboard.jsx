@@ -1,10 +1,25 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
-  Search, QrCode, BookOpen, Heart, FileText, MapPin,
-  MoonStar, Globe, Calendar, Video, MessageCircle,
-  Newspaper, BookMarked, NotebookTabs, Clock, BookHeart,
-  ChevronRight, Sparkles, AlertCircle
+  Search,
+  QrCode,
+  BookOpen,
+  Heart,
+  FileText,
+  MapPin,
+  MoonStar,
+  Globe,
+  Calendar,
+  Video,
+  MessageCircle,
+  Newspaper,
+  BookMarked,
+  NotebookTabs,
+  Clock,
+  BookHeart,
+  ChevronRight,
+  Sparkles,
+  AlertCircle,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -415,17 +430,17 @@ const css = `
 `;
 
 const G = {
-  forest:  "linear-gradient(140deg, #0d6b50 0%, #14a07a 100%)",
-  ocean:   "linear-gradient(140deg, #1a5fb4 0%, #3584e4 100%)",
-  violet:  "linear-gradient(140deg, #5e2ced 0%, #9141ac 100%)",
-  sunset:  "linear-gradient(140deg, #e01b24 0%, #f57800 100%)",
-  teal:    "linear-gradient(140deg, #00827a 0%, #26c2bc 100%)",
-  amber:   "linear-gradient(140deg, #c97000 0%, #f5a623 100%)",
-  rose:    "linear-gradient(140deg, #c01c28 0%, #e66100 100%)",
-  indigo:  "linear-gradient(140deg, #1c71d8 0%, #613583 100%)",
-  pine:    "linear-gradient(140deg, #1b5e3b 0%, #26a269 100%)",
+  forest: "linear-gradient(140deg, #0d6b50 0%, #14a07a 100%)",
+  ocean: "linear-gradient(140deg, #1a5fb4 0%, #3584e4 100%)",
+  violet: "linear-gradient(140deg, #5e2ced 0%, #9141ac 100%)",
+  sunset: "linear-gradient(140deg, #e01b24 0%, #f57800 100%)",
+  teal: "linear-gradient(140deg, #00827a 0%, #26c2bc 100%)",
+  amber: "linear-gradient(140deg, #c97000 0%, #f5a623 100%)",
+  rose: "linear-gradient(140deg, #c01c28 0%, #e66100 100%)",
+  indigo: "linear-gradient(140deg, #1c71d8 0%, #613583 100%)",
+  pine: "linear-gradient(140deg, #1b5e3b 0%, #26a269 100%)",
   crimson: "linear-gradient(140deg, #a51d2d 0%, #c061cb 100%)",
-  sapphire:"linear-gradient(140deg, #1565c0 0%, #0097a7 100%)",
+  sapphire: "linear-gradient(140deg, #1565c0 0%, #0097a7 100%)",
 };
 
 export default function UserDashboard2() {
@@ -451,22 +466,58 @@ export default function UserDashboard2() {
 
         <div className="db-ayah-banner">
           <div className="db-arabic">كُلُّ نَفْسٍ ذَائِقَةُ ٱلْمَوْتِ</div>
-          <div className="db-trans">{translate("Every living being will surely taste death")}</div>
+          <div className="db-trans">
+            {translate("Every living being will surely taste death")}
+          </div>
           <span className="db-ref">Ali 'Imran : 185</span>
         </div>
       </div>
 
       <div className="db-quick-wrap">
-        <div className="db-quick-title">Akses Pantas</div>
+        <div className="db-quick-title">{translate("Quick Actions")}</div>
         <div className="db-quick-grid">
           {[
-            { icon: Search,  label: "Cari Kubur",   page: "SearchGrave",  g: G.ocean,  shadow: "rgba(26,95,180,0.35)" },
-            { icon: QrCode,  label: "Imbas QR",     page: "ScanQR",       g: G.forest, shadow: "rgba(13,107,80,0.35)"  },
-            { icon: MapPin,  label: "Cari Tahfiz",  page: "SearchTahfiz", g: G.violet, shadow: "rgba(94,44,237,0.35)"  },
-            { icon: Heart,   label: "Infaq",        page: "DonationPage", g: G.sunset, shadow: "rgba(224,27,36,0.35)"  },
+            {
+              icon: Search,
+              label: translate("Search Grave"),
+              page: "SearchGrave",
+              g: G.ocean,
+              shadow: "rgba(26,95,180,0.35)",
+            },
+            {
+              icon: QrCode,
+              label: translate("Scan QR"),
+              page: "ScanQR",
+              g: G.forest,
+              shadow: "rgba(13,107,80,0.35)",
+            },
+            {
+              icon: MapPin,
+              label: translate("Search Tahfiz"),
+              page: "SearchTahfiz",
+              g: G.violet,
+              shadow: "rgba(94,44,237,0.35)",
+            },
+            {
+              icon: Heart,
+              label: translate("Donation"),
+              page: "DonationPage",
+              g: G.sunset,
+              shadow: "rgba(224,27,36,0.35)",
+            },
+            {
+              icon: FileText,
+              label: translate("Tahlil Status"),
+              page: "CheckTahlilStatus",
+              g: G.ocean,
+              shadow: "rgba(224, 27, 188, 0.35)",
+            },
           ].map(({ icon: Icon, label, page, g, shadow }) => (
             <Link key={page} to={createPageUrl(page)} className="db-qbtn">
-              <div className="db-qicon" style={{ background: g, boxShadow: `0 6px 18px ${shadow}` }}>
+              <div
+                className="db-qicon"
+                style={{ background: g, boxShadow: `0 6px 18px ${shadow}` }}
+              >
                 <Icon style={{ width: 22, height: 22, color: "#fff" }} />
               </div>
               <div className="db-qlabel">{label}</div>
@@ -476,22 +527,24 @@ export default function UserDashboard2() {
       </div>
 
       <div className="db-body">
-
-        {/* ── Bacaan & Doa ── */}
         <div className="db-sec">
           <div className="db-sec-head">
             <div className="db-sec-left">
               <div className="db-sec-bar" style={{ background: G.forest }} />
-              <div className="db-sec-name">Bacaan & Doa</div>
+              <div className="db-sec-name">{translate("Supplication & Doa")}</div>
             </div>
           </div>
 
-          <Link to={createPageUrl("SurahPage")} className="db-hero-card" style={{ background: G.forest }}>
+          <Link
+            to={createPageUrl("SurahPage")}
+            className="db-hero-card"
+            style={{ background: G.forest }}
+          >
             <div className="db-hero-card-shine" />
             <div className="db-hero-card-shine2" />
             <div className="db-hc-badge db-shimmer-badge">
               <BookOpen style={{ width: 11, height: 11 }} />
-              Koleksi Lengkap
+              {translate("Complete Collection")}
             </div>
             <div className="db-hc-title">Surah, Doa &amp; Tahlil</div>
             <div className="db-hc-sub">Bacaan harian, tahlil & panduan doa</div>
@@ -500,9 +553,13 @@ export default function UserDashboard2() {
             </div>
           </Link>
 
-          <div className="db-grid2">
-            <MedCard icon={FileText}  title="Status Tahlil"    page="CheckTahlilStatus" g={G.ocean}  />
-            <MedCard icon={BookHeart} title="Rukun Islam"      page="RukunIslam"        g={G.crimson}/>
+          <div className="db-grid2">            
+            <MedCard
+              icon={BookHeart}
+              title="Rukun Islam"
+              page="RukunIslam"
+              g={G.crimson}
+            />
           </div>
         </div>
 
@@ -516,7 +573,10 @@ export default function UserDashboard2() {
           </div>
 
           {/* Emergency Solat Jenazah — always visible, no scrolling needed */}
-          <Link to={createPageUrl("SolatJenazah")} className="db-emergency-card">
+          <Link
+            to={createPageUrl("SolatJenazah")}
+            className="db-emergency-card"
+          >
             <div className="db-emergency-card-shine" />
             <div className="db-emergency-card-orb" />
             <div className="db-emergency-icon-wrap">
@@ -539,13 +599,48 @@ export default function UserDashboard2() {
           <div className="db-hscroll-wrap">
             <div className="db-hscroll-inner">
               {[
-                { icon: BookMarked,   title: "Asmaul Husna",    page: "AsmaulHusna",     g: G.amber,   n: "01" },
-                { icon: NotebookTabs, title: "Tasbih",          page: "Tasbih",          g: G.teal,    n: "02" },
-                { icon: Clock,        title: "Prayer Times",    page: "PrayerTimes",     g: G.indigo,  n: "03" },
-                { icon: Calendar,     title: "Islamic Events",  page: "IslamicCalendar", g: G.pine,    n: "04" },
-                { icon: Video,        title: "Daily Dua",       page: "DailyDua",        g: G.violet,  n: "05" },
+                {
+                  icon: BookMarked,
+                  title: "Asmaul Husna",
+                  page: "AsmaulHusna",
+                  g: G.amber,
+                  n: "01",
+                },
+                {
+                  icon: NotebookTabs,
+                  title: "Tasbih",
+                  page: "Tasbih",
+                  g: G.teal,
+                  n: "02",
+                },
+                {
+                  icon: Clock,
+                  title: "Prayer Times",
+                  page: "PrayerTimes",
+                  g: G.indigo,
+                  n: "03",
+                },
+                {
+                  icon: Calendar,
+                  title: "Islamic Events",
+                  page: "IslamicCalendar",
+                  g: G.pine,
+                  n: "04",
+                },
+                {
+                  icon: Video,
+                  title: "Daily Dua",
+                  page: "DailyDua",
+                  g: G.violet,
+                  n: "05",
+                },
               ].map(({ icon: Icon, title, page, g, n }) => (
-                <Link key={page} to={createPageUrl(page)} className="db-tall-card" style={{ background: g }}>
+                <Link
+                  key={page}
+                  to={createPageUrl(page)}
+                  className="db-tall-card"
+                  style={{ background: g }}
+                >
                   <div className="db-tall-icon">
                     <Icon style={{ width: 20, height: 20, color: "#fff" }} />
                   </div>
@@ -568,9 +663,33 @@ export default function UserDashboard2() {
 
           <div className="db-loc-strip">
             {[
-              { icon: MapPin,         name: "Cari Masjid",      desc: "Masjid & surau berdekatan",   page: "SearchMosque",   g: G.teal,    accent: "#14a07a", bg: "#e8faf5" },
-              { icon: Globe,          name: "Heritage Site",    desc: "Tapak warisan & sejarah Islam",page: "SearchHeritage", g: G.amber,   accent: "#c97000", bg: "#fef7e6" },
-              { icon: MessageCircle,  name: "Cari Waqf",        desc: "Tanah & harta wakaf",          page: "SearchWaqf",     g: G.crimson, accent: "#a51d2d", bg: "#fdeaec" },
+              {
+                icon: MapPin,
+                name: "Cari Masjid",
+                desc: "Masjid & surau berdekatan",
+                page: "SearchMosque",
+                g: G.teal,
+                accent: "#14a07a",
+                bg: "#e8faf5",
+              },
+              {
+                icon: Globe,
+                name: "Heritage Site",
+                desc: "Tapak warisan & sejarah Islam",
+                page: "SearchHeritage",
+                g: G.amber,
+                accent: "#c97000",
+                bg: "#fef7e6",
+              },
+              {
+                icon: MessageCircle,
+                name: "Cari Waqf",
+                desc: "Tanah & harta wakaf",
+                page: "SearchWaqf",
+                g: G.crimson,
+                accent: "#a51d2d",
+                bg: "#fdeaec",
+              },
             ].map(({ icon: Icon, name, desc, page, g, accent, bg }) => (
               <Link key={page} to={createPageUrl(page)} className="db-loc-card">
                 <div className="db-loc-accent" style={{ background: accent }} />
@@ -581,12 +700,14 @@ export default function UserDashboard2() {
                   <div className="db-loc-name">{name}</div>
                   <div className="db-loc-desc">{desc}</div>
                 </div>
-                <ChevronRight className="db-loc-chevron" style={{ width: 16, height: 16 }} />
+                <ChevronRight
+                  className="db-loc-chevron"
+                  style={{ width: 16, height: 16 }}
+                />
               </Link>
             ))}
           </div>
         </div>
-
       </div>
 
       <DraggableFloatingButton />
@@ -596,7 +717,11 @@ export default function UserDashboard2() {
 
 function MedCard({ icon: Icon, title, page, g }) {
   return (
-    <Link to={createPageUrl(page)} className="db-med-card" style={{ background: g }}>
+    <Link
+      to={createPageUrl(page)}
+      className="db-med-card"
+      style={{ background: g }}
+    >
       <div className="db-med-glow" />
       <div className="db-med-icon-wrap">
         <Icon style={{ width: 19, height: 19, color: "#fff" }} />
@@ -604,7 +729,13 @@ function MedCard({ icon: Icon, title, page, g }) {
       <div className="db-med-title">{title}</div>
       <div className="db-med-arrow">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M2 5h6M5 2l3 3-3 3" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          <path
+            d="M2 5h6M5 2l3 3-3 3"
+            stroke="#fff"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </div>
     </Link>

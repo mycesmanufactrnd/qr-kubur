@@ -80,7 +80,6 @@ export default function ManagePaymentPlatforms() {
   };
 
   const onSubmit = async (formData) => {
-    console.log('formData', formData)
     try {
       if (editingPlatform) {
         await updatePaymentPlatform.mutateAsync({ 

@@ -60,6 +60,7 @@ import TextInputForm from "@/components/forms/TextInputForm";
 import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
+import { resolveFileUrl } from "@/utils";
 
 export default function ManageDeadPersons() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
@@ -201,7 +202,9 @@ export default function ManageDeadPersons() {
       ...formData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-      graveId: Number(formData.grave),
+      grave: formData.grave
+        ? { id: Number(formData.grave) }
+        : null,
     };
 
     try {
@@ -292,7 +295,7 @@ export default function ManageDeadPersons() {
           <Users className="w-6 h-6 text-blue-600" />
           {translate("Manage Deceased")}
         </h1>
-        
+
         {canCreate && (
           <Button
             onClick={openAddDialog}
@@ -406,6 +409,9 @@ export default function ManageDeadPersons() {
                   {translate("Cemetery Name")}
                 </TableHead>
                 <TableHead className="text-center">
+                  {translate("Image")}
+                </TableHead>
+                <TableHead className="text-center">
                   {translate("Actions")}
                 </TableHead>
               </TableRow>
@@ -431,6 +437,13 @@ export default function ManageDeadPersons() {
                     </TableCell>
                     <TableCell className="text-center">
                       {person.grave?.name || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <img
+                        src={resolveFileUrl(person.photourl, "dead-person")}
+                        alt="photo"
+                        className="w-12 h-10 object-cover rounded mx-auto"
+                      />
                     </TableCell>
                     <TableCell className="text-center">
                       {canEdit && (
@@ -522,20 +535,22 @@ export default function ManageDeadPersons() {
                 control={control}
                 label={translate("Date of Birth")}
                 isDate
+                required
+                errors={errors}
               />
               <TextInputForm
                 name="dateofdeath"
                 control={control}
-                label={translate("Date of Birth")}
+                label={translate("Date of Death")}
                 isDate
+                required
+                errors={errors}
               />
             </div>
             <TextInputForm
               name="causeofdeath"
               control={control}
               label={translate("Cause of Death")}
-              required
-              errors={errors}
             />
             <SelectForm
               name="grave"
@@ -596,8 +611,6 @@ export default function ManageDeadPersons() {
               name="biography"
               control={control}
               label={translate("Biography")}
-              required
-              errors={errors}
             />
             <FileUploadForm
               name="photourl"

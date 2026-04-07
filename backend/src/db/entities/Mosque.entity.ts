@@ -37,7 +37,7 @@ export class Mosque {
   @Column("double precision", { nullable: true })
   longitude?: number;
 
-  @ManyToOne(() => Organisation, (organisation) => organisation.graves, {
+  @ManyToOne(() => Organisation, (organisation) => organisation.mosques, {
     nullable: true,
     onDelete: "SET NULL",
   })
