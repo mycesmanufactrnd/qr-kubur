@@ -13,11 +13,13 @@ export const tahlilRequestSchema = z.object({
   serviceamount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").nullable(),
   platformfeeamount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").nullable(),
   status: z.enum(TahlilStatus).optional().default(TahlilStatus.PENDING),
+  photourls: z.array(z.string()).optional().nullable(),
 });
 
 export const tahlilRequestApprovalSchema = z.object({
   status: z.enum(TahlilStatus),
   suggesteddate: z.coerce.date().optional().nullable(),
+  photourls: z.array(z.string()).optional().nullable(),
 });
 
 export const tahlilRequestLiveURL = z.object({

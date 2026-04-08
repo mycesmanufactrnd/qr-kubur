@@ -29,6 +29,10 @@ export const tahlilRequestRouter = router({
             z.object({
                 page: z.number().min(1).optional(),
                 pageSize: z.number().min(1).optional(),
+                filterStatus: z.string().optional().nullable(),
+                filterReference: z.string().optional().nullable(),
+                filterService: z.string().optional().nullable(),
+                filterTahfizId: z.number().optional().nullable(),
                 currentUser: z.object({
                     id: z.number(),
                     tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
@@ -38,7 +42,7 @@ export const tahlilRequestRouter = router({
             })
         )
         .query(async ({ input }) => {
-            const { page, pageSize , currentUser, isTahfizAdmin, isSuperAdmin  } = input;
+            const { page, pageSize, currentUser, isTahfizAdmin, isSuperAdmin, filterStatus, filterReference, filterService, filterTahfizId } = input;
 
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
 
@@ -55,6 +59,28 @@ export const tahlilRequestRouter = router({
             }
             else {
                 return { items: [], total: 0 };
+            }
+
+            if (isSuperAdmin && filterTahfizId) {
+                query.andWhere("tahlilrequest.tahfizcenterId = :tahfizId", {
+                    tahfizId: filterTahfizId,
+                });
+            }
+
+            if (filterStatus && filterStatus !== "all") {
+                query.andWhere("tahlilrequest.status = :status", { status: filterStatus });
+            }
+
+            if (filterReference && filterReference.trim()) {
+                query.andWhere("tahlilrequest.referenceno ILIKE :ref", {
+                    ref: `%${filterReference.trim()}%`,
+                });
+            }
+
+            if (filterService && filterService !== "all") {
+                query.andWhere(":service = ANY(tahlilrequest.selectedservices)", {
+                    service: filterService,
+                });
             }
 
             if (page && pageSize) {

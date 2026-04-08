@@ -38,6 +38,7 @@ import Ollama from '@/pages/Settings/Ollama.jsx';
 import PrivacyPolicy from '@/pages/Settings/PrivacyPolicy';
 import TermsAndConditions from '@/pages/Settings/TermsAndConditions';
 import UserTransactionRecords from '@/pages/Settings/UserTransactionRecords';
+import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 // Management
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
 import ManageDonations from '@/pages/Management/ManageDonations';
@@ -91,6 +92,7 @@ export const PAGES = {
     "ManageOrganisations": ManageOrganisations,
     "ManageTempOrganisations": ManageTempOrganisations,
     "ManagePaymentFields": ManagePaymentFields,
+    "ManagePaymentDistribution": ManagePaymentDistribution,
     "ManagePaymentPlatforms": ManagePaymentPlatforms,
     "ManagePermissions": ManagePermissions,
     "ManageSuggestions": ManageSuggestions,

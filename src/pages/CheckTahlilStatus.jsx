@@ -11,6 +11,7 @@ import { defaultTahlilStatus } from '@/utils/defaultformfields';
 import { skipToken } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { resolveFileUrl } from '@/utils';
 
 const STATUS_CONFIG = {
   [TahlilStatus.PENDING]: {
@@ -92,6 +93,7 @@ export default function CheckTahlilStatus() {
         createdat: tahlilRequest.createdat ?? '',
         deceasednames: tahlilRequest.deceasednames ?? [],
         selectedservices: tahlilRequest.selectedservices ?? [],
+        photourls: tahlilRequest.photourls ?? [],
       });
       if (tahlilRequest.tahfizcenter) setTahfizCenter(tahlilRequest.tahfizcenter);
       setIsDialogOpen(true);
@@ -247,6 +249,24 @@ export default function CheckTahlilStatus() {
                       <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-700">
                         {type}
                       </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {request.photourls?.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
+                    Gambar Tahlil
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {request.photourls.map((url, idx) => (
+                      <img
+                        key={`${url}-${idx}`}
+                        src={resolveFileUrl(url, 'bucket-tahfiz-tahlil')}
+                        alt={`Tahlil ${idx + 1}`}
+                        className="h-24 w-full rounded-lg object-cover border border-slate-100"
+                      />
                     ))}
                   </div>
                 </div>

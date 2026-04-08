@@ -6,6 +6,7 @@ import {
   ManyToOne,
 } from "typeorm";
 import { OnlineTransaction } from "./OnlineTransaction.entity.ts";
+import { OnlineTransactionStatus } from "../enums.ts";
 
 @Entity("onlinetransactionaccount")
 export class OnlineTransactionAccount {
@@ -31,6 +32,13 @@ export class OnlineTransactionAccount {
   amount!: number;
   // App: Amount for the transaction (split)
   // ToyyibPay: amount
+
+  @Column({
+    type: "enum",
+    enum: OnlineTransactionStatus,
+    default: OnlineTransactionStatus.PENDING,
+  })
+  status!: OnlineTransactionStatus;
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

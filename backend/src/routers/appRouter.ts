@@ -35,6 +35,7 @@ import { deathCharityPaymentRouter } from "./deathCharityPaymentRouter.ts";
 import { quotationRouter } from "./quotationRouter.ts";
 import { googleRouter } from "./googleRouter.ts";
 import { tempOrganisationRouter } from "./tempOrganisationRouter.ts";
+import { paymentDistributionRouter } from "./paymentDistributionRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -46,6 +47,7 @@ export const appRouter = trpcRouter({
   dashboard: dashboardRouter,
   users: usersRouter,
   permission: permissionRouter,
+  paymentDistribution: paymentDistributionRouter, 
   paymentPlatform: paymentPlatformRouter, 
   paymentField: paymentFieldRouter, 
   surah: surahRouter,

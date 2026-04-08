@@ -5,6 +5,10 @@ import { showSuccess, showApiError } from '@/components/ToastrNotification';
 type UseGetTahlilReqPaginatedParams = {
   page?: number;
   pageSize?: number;
+  filterStatus?: string;
+  filterReference?: string;
+  filterService?: string;
+  filterTahfizId?: number;
 };
 
 const titleMessage = 'Tahlil Request';
@@ -12,6 +16,10 @@ const titleMessage = 'Tahlil Request';
 export function useGetTahlilRequestPaginated({
   page,
   pageSize,
+  filterStatus,
+  filterReference,
+  filterService,
+  filterTahfizId,
 }: UseGetTahlilReqPaginatedParams) {
   const { isTahfizAdmin, isSuperAdmin, currentUser } = useAdminAccess();
 
@@ -19,6 +27,10 @@ export function useGetTahlilRequestPaginated({
     {
       page: page ?? 1,
       pageSize: pageSize ?? 10,
+      filterStatus: filterStatus ?? undefined,
+      filterReference: filterReference ?? undefined,
+      filterService: filterService ?? undefined,
+      filterTahfizId: filterTahfizId ?? undefined,
       currentUser: currentUser
         ? {
             id: currentUser.id,

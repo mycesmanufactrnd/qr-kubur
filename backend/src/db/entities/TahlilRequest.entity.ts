@@ -53,6 +53,9 @@ export class TahlilRequest {
     @Column({ type: "date", nullable: true })
     suggesteddate?: Date;
 
+    @Column("text", { array: true, nullable: true })
+    photourls?: string[];
+
     @CreateDateColumn({ name: "createdat" })
     createdat!: Date;
 }

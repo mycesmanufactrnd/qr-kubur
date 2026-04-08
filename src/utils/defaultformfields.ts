@@ -37,6 +37,7 @@ export const defaultTahlilStatus = {
   createdat: "",
   deceasednames: [],
   selectedservices: [],
+  photourls: [],
 }
 
 export const defaultSuggestionField = {

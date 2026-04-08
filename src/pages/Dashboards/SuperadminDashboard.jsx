@@ -19,6 +19,7 @@ import {
   BookOpen,
   Home,
   ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -176,6 +177,12 @@ export default function SuperadminDashboard() {
         {
           title: "Payment Config",
           items: [
+            {
+              name: translate("Payment Distribution"),
+              page: "ManagePaymentDistribution",
+              icon: DollarSign,
+              color: "blue",
+            },
             {
               name: translate("Payment Platforms"),
               page: "ManagePaymentPlatforms",

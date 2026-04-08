@@ -69,3 +69,13 @@ export enum ClaimStatus {
   APPROVED = 'Approved',
   PAID = 'Paid',
 }
+
+export enum OnlineTransactionStatus {
+  PENDING = "Pending",              // User initiated payment, waiting confirmation
+  PAID = "Paid",                    // Payment successful, money received by platform
+  HELD = "Held",                    // Funds held in middleman account (escrow)
+  TRANSFER_PENDING = "Transfer Pending", // Scheduled for payout
+  TRANSFERRED = "Transferred",      // Successfully paid to recipient
+  FAILED = "Failed",                // Payment failed
+  REFUNDED = "Refunded",            // Refunded to payer
+}
