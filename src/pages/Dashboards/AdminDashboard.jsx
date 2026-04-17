@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
-import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, UserCheck, List, Activity, Sparkles, ArrowUpRight, Landmark, User2, Diamond, ListCheck, ShieldAlert, CreditCard } from 'lucide-react';
+import { MapPin, Users, Building2, Heart, FileText, TrendingUp, BookOpen, Clock, UserCheck, List, Activity, Sparkles, ArrowUpRight, Landmark, User2, Diamond, ListCheck, ShieldAlert, CreditCard, ClipboardList } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
+import { formatRM } from '@/utils/helpers';
 
 export default function AdminDashboard() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
@@ -263,7 +264,7 @@ export default function AdminDashboard() {
                       {stat.loading
                         ? '—'
                         : stat.key === 'money'
-                          ? `RM ${stat.value.toLocaleString()}`
+                          ? `${formatRM(stat.value)}`
                           : stat.value.toLocaleString()}
                     </p>
 
@@ -332,7 +333,7 @@ export default function AdminDashboard() {
                           {isDDVLoading ? (
                             <InlineLoadingComponent />
                           ) : (
-                            `RM ${(donationVerified || 0).toLocaleString()}`
+                            `${formatRM(donationVerified)}`
                           )}
                         </p>
                       </div>
@@ -376,6 +377,9 @@ export default function AdminDashboard() {
                         { label: translate('Manage Mosque'), page: 'ManageMosques', icon: Landmark, color: 'stone' },
                         { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'amber' },
                       ]
+                    : []),
+                    ...(isGraveServices
+                      ? [{ label: translate('Manage Quotations'), page: 'ManageQuotations', icon: ClipboardList, color: 'sky' }]
                     : []),
 
                 ].map((action, i) => (

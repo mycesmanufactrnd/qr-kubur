@@ -61,6 +61,7 @@ import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
 import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
+import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
@@ -107,6 +108,7 @@ export const PAGES = {
     "ManageDeathCharityMember": ManageDeathCharityMember,
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
+    "ManageQuotations": ManageQuotations,
     "ImpersonateUser": ImpersonateUser,
     "ManageUsers": ManageUsers,
     "NotificationPage": NotificationPage,

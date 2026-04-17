@@ -161,9 +161,11 @@ export const paymentToyyibStatus = {
 };
 
 export const SST_PERCENTAGE = 0.06;
-export const MAINTENANCE_FEE_PERCENTAGE = 0.05;
 export const MAINTENANCE_FEE = 2;
 export const SERVICE_FEE = 3;
+
+export const ORG_SERVICE_FEE = 0.05;
+export const ORG_SHARE = 0.95;
 
 export enum WaqfCategory {
   EDUCATION = 'Education',
@@ -191,4 +193,10 @@ export enum ClaimStatus {
   PENDING = 'Pending',
   APPROVED = 'Approved',
   PAID = 'Paid',
+}
+
+export enum QuotationStatus {
+  PENDING = "pending",
+  COMPLETED = "completed",
+  REJECTED = "rejected",
 }

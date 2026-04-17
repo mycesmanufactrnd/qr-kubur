@@ -1,4 +1,4 @@
-let cachedGeo = null;
+let cachedGeo: any = null;
 
 export function getLabelFromId(arrayList = [], typeId, key = 'name') {
   if (!arrayList || arrayList.length === 0 || !typeId) return '-';
@@ -136,4 +136,12 @@ export function showEarthDistance(distanceMeters?: number | null): string {
   }
 }
 
+export function formatRM(value: number | string | null | undefined) {
+  const num = Number(value ?? 0);
+
+  return `RM ${num.toLocaleString("ms-MY", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 

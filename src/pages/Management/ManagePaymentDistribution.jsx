@@ -37,6 +37,8 @@ import {
   useGetPaymentDistributionPaginated,
   usePaymentDistributionMutation,
 } from "@/hooks/usePaymentDistributionMutation";
+import { formatRM } from "@/utils/helpers";
+import { ORG_SERVICE_FEE, ORG_SHARE } from "@/utils/enums";
 
 const statusOptions = [
   { label: "Pending", value: "Pending" },
@@ -58,14 +60,6 @@ const statusStyles = {
   Refunded: { className: "bg-slate-100 text-slate-700", Icon: XCircle },
 };
 
-const formatAmount = (value) => {
-  const amount = Number(value || 0);
-  return amount.toLocaleString("ms-MY", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
-
 const formatDate = (value) => {
   if (!value) return "-";
   return new Date(value).toLocaleDateString("ms-MY");
@@ -79,14 +73,11 @@ export default function ManagePaymentDistribution() {
   const [statusValue, setStatusValue] = useState("Pending");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const {
-    paymentDistributionList,
-    totalPages,
-    isLoading,
-  } = useGetPaymentDistributionPaginated({
-    page,
-    pageSize: itemsPerPage,
-  });
+  const { paymentDistributionList, totalPages, isLoading } =
+    useGetPaymentDistributionPaginated({
+      page,
+      pageSize: itemsPerPage,
+    });
 
   const updateMutation = usePaymentDistributionMutation();
 
@@ -132,15 +123,37 @@ export default function ManagePaymentDistribution() {
   }
 
   if (!isSuperAdmin) {
-    return <AccessDeniedComponent />;
+    return (
+      <div className="space-y-6">
+        <Breadcrumb
+          items={[
+            {
+              label: translate("Super Admin Dashboard"),
+              page: "SuperadminDashboard",
+            },
+            {
+              label: translate("Payment Distribution"),
+              page: "ManagePaymentDistribution",
+            },
+          ]}
+        />
+        <AccessDeniedComponent />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: translate("Super Admin Dashboard"), page: "SuperadminDashboard" },
-          { label: translate("Payment Distribution"), page: "ManagePaymentDistribution" },
+          {
+            label: translate("Super Admin Dashboard"),
+            page: "SuperadminDashboard",
+          },
+          {
+            label: translate("Payment Distribution"),
+            page: "ManagePaymentDistribution",
+          },
         ]}
       />
 
@@ -157,14 +170,30 @@ export default function ManagePaymentDistribution() {
             <TableHeader>
               <TableRow>
                 <TableHead>{translate("Reference No.")}</TableHead>
-                <TableHead className="text-center">{translate("Order No.")}</TableHead>
-                <TableHead className="text-center">{translate("Original Amount")}</TableHead>
-                <TableHead className="text-center">{translate("Maintenance Fee")}</TableHead>
-                <TableHead className="text-center">{translate("Bank Name")}</TableHead>
-                <TableHead className="text-center">{translate("Account No.")}</TableHead>
-                <TableHead className="text-center">{translate("Status")}</TableHead>
-                <TableHead className="text-center">{translate("Date")}</TableHead>
-                <TableHead className="text-center">{translate("Actions")}</TableHead>
+                <TableHead className="text-center">
+                  {translate("Order No.")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Original Amount")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Maintenance Fee")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Bank Name")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Account No.")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Status")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Date")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -182,10 +211,10 @@ export default function ManagePaymentDistribution() {
                       {account.transaction?.orderno || "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      RM {formatAmount(account.transaction?.originalamount)}
+                      {formatRM(account.transaction?.originalamount)}
                     </TableCell>
                     <TableCell className="text-center">
-                      RM {formatAmount(account.transaction?.maintenancefee)}
+                      {formatRM(account.transaction?.maintenancefee)}
                     </TableCell>
                     <TableCell className="text-center">
                       {account.bankname || "-"}
@@ -197,7 +226,9 @@ export default function ManagePaymentDistribution() {
                       {getStatusBadge(account.status)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {formatDate(account.transaction?.createdat || account.createdat)}
+                      {formatDate(
+                        account.transaction?.createdat || account.createdat,
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
@@ -259,24 +290,74 @@ export default function ManagePaymentDistribution() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {translate("Original Amount")}
-                  </p>
-                  <p className="font-semibold text-emerald-600">
-                    RM {formatAmount(selectedAccount.transaction?.originalamount)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {translate("Maintenance Fee")}
-                  </p>
-                  <p className="font-semibold text-amber-600">
-                    RM {formatAmount(selectedAccount.transaction?.maintenancefee)}
-                  </p>
-                </div>
-              </div>
+              {(() => {
+                const type = selectedAccount?.type?.toLowerCase();
+                const orderNo = selectedAccount?.transaction?.orderno;
+
+                const isQuotationOrg =
+                  type?.includes("organisation") &&
+                  typeof orderNo === "string" &&
+                  orderNo.startsWith("QUO");
+
+                if (isQuotationOrg) {
+                  const svc = Number(
+                    selectedAccount.transaction?.originalamount || 0,
+                  );
+
+                  const fee = svc * ORG_SERVICE_FEE;
+                  const org = svc * ORG_SHARE;
+                  
+                  return (
+                    <div className="space-y-2 border rounded-lg p-3 bg-gray-50 dark:bg-gray-700">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {translate("Original Amount")}
+                        </span>
+                        <span className="font-semibold dark:text-white">
+                          {formatRM(svc)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {translate("Platform Fee")} (5%)
+                        </span>
+                        <span className="font-semibold text-red-500">
+                          {formatRM(fee)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm font-bold border-t pt-2">
+                        <span className="dark:text-white">
+                          {translate("Organisation Amount")} (95%)
+                        </span>
+                        <span className="text-emerald-600">
+                          {formatRM(org)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {translate("Original Amount")}
+                      </p>
+                      <p className="font-semibold text-emerald-600">
+                        {formatRM(selectedAccount.transaction?.originalamount)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {translate("Maintenance Fee")}
+                      </p>
+                      <p className="font-semibold text-amber-600">
+                        {formatRM(selectedAccount.transaction?.maintenancefee)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">

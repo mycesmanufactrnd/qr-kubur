@@ -1,3 +1,4 @@
+import { formatRM } from "../../utils/helpers";
 import NoDataTableComponent from "../NoDataTableComponent";
 
 export default function PaymentCellDetails({ payments = [], year }) {
@@ -73,10 +74,7 @@ export default function PaymentCellDetails({ payments = [], year }) {
                                         {p.coverstoyear || p.coversfromyear}
                                     </td>
                                     <td className="px-4 py-3 text-sm text-slate-900 font-semibold text-right">
-                                        RM {Number(p.amount).toLocaleString('en-MY', { 
-                                            minimumFractionDigits: 2, 
-                                            maximumFractionDigits: 2 
-                                        })}
+                                        {formatRM(p.amount)}
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getPaymentTypeBadge(p.paymenttype)}`}>

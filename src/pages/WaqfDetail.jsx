@@ -9,7 +9,7 @@ import { useGetWaqfProjectById } from '@/hooks/useWaqfProjectMutations';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { translate } from '@/utils/translations';
-import { shareLink } from '@/utils/helpers';
+import { formatRM, shareLink } from '@/utils/helpers';
 import { resolveFileUrl } from '@/utils';
 
 const CATEGORY_COLORS = {
@@ -167,15 +167,15 @@ export default function WaqfDetail() {
                 <div className="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
                   <div className="flex items-center justify-between px-4 py-3 bg-emerald-50">
                     <span className="text-xs font-medium text-emerald-600">Total Required</span>
-                    <span className="text-sm font-bold text-emerald-700">RM {(project.totalrequired || 0).toLocaleString()}</span>
+                    <span className="text-sm font-bold text-emerald-700">{formatRM(project.totalrequired)}</span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 bg-blue-50">
                     <span className="text-xs font-medium text-blue-600">Collected</span>
-                    <span className="text-sm font-bold text-blue-700">RM {(project.amountcollected || 0).toLocaleString()}</span>
+                    <span className="text-sm font-bold text-blue-700">{formatRM(project.amountcollected)}</span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 bg-slate-50">
                     <span className="text-xs font-medium text-slate-500">Remaining</span>
-                    <span className="text-sm font-bold text-slate-700">RM {remainingAmount.toLocaleString()}</span>
+                    <span className="text-sm font-bold text-slate-700">{formatRM(remainingAmount)}</span>
                   </div>
                 </div>
 

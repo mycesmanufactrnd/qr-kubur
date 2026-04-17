@@ -1,42 +1,50 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Users, ArrowRight, Edit } from 'lucide-react';
-import { format } from 'date-fns';
-import { createPageUrl, resolveFileUrl } from '@/utils';
-import ProgressBar from '@/components/ProgressBar';
-import BannerImageWithFallback from '../BannerImageWithFallback';
+import { MapPin, Calendar, Users, ArrowRight, Edit } from "lucide-react";
+import { format } from "date-fns";
+import { createPageUrl, resolveFileUrl } from "@/utils";
+import ProgressBar from "@/components/ProgressBar";
+import BannerImageWithFallback from "../BannerImageWithFallback";
+import { formatRM } from "@/utils/helpers";
 
 const CATEGORY_COLORS = {
-  Education: 'bg-blue-100 text-blue-700 border-blue-200',
-  Mosque: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  Healthcare: 'bg-red-100 text-red-700 border-red-200',
-  Orphans: 'bg-purple-100 text-purple-700 border-purple-200',
-  Water: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-  'General Charity': 'bg-amber-100 text-amber-700 border-amber-200'
+  Education: "bg-blue-100 text-blue-700 border-blue-200",
+  Mosque: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  Healthcare: "bg-red-100 text-red-700 border-red-200",
+  Orphans: "bg-purple-100 text-purple-700 border-purple-200",
+  Water: "bg-cyan-100 text-cyan-700 border-cyan-200",
+  "General Charity": "bg-amber-100 text-amber-700 border-amber-200",
 };
 
 const STATUS_COLORS = {
-  Planned: 'bg-slate-100 text-slate-700',
-  Ongoing: 'bg-blue-100 text-blue-700',
-  Completed: 'bg-green-100 text-green-700',
-  'On Hold': 'bg-orange-100 text-orange-700'
+  Planned: "bg-slate-100 text-slate-700",
+  Ongoing: "bg-blue-100 text-blue-700",
+  Completed: "bg-green-100 text-green-700",
+  "On Hold": "bg-orange-100 text-orange-700",
 };
 
 export default function WaqfCard({ project, onEditProject, isView = false }) {
-  const remainingAmount = (project.totalrequired || 0) - (project.amountcollected || 0);
+  const remainingAmount =
+    (project.totalrequired || 0) - (project.amountcollected || 0);
 
   return (
     <Card className="border-0 shadow-md hover:shadow-xl transition-all overflow-hidden group">
-      <div className={cn("h-1.5", 
-        project.status === 'Completed' ? 'bg-green-500' : 
-        project.status === 'Ongoing' ? 'bg-blue-500' : 'bg-slate-300'
-      )} />
-      
+      <div
+        className={cn(
+          "h-1.5",
+          project.status === "Completed"
+            ? "bg-green-500"
+            : project.status === "Ongoing"
+              ? "bg-blue-500"
+              : "bg-slate-300",
+        )}
+      />
+
       <div className="-mt-2 relative h-48 bg-gradient-to-br from-yellow-500 via-orange-500 to-gold-600 overflow-hidden">
         <BannerImageWithFallback
-          src={resolveFileUrl(project.photourl, 'waqf-project')}
+          src={resolveFileUrl(project.photourl, "waqf-project")}
           alt={project.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -54,7 +62,9 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-lg line-clamp-1">{project.waqfname}</CardTitle>
+          <CardTitle className="text-lg line-clamp-1">
+            {project.waqfname}
+          </CardTitle>
           {!project.photourl && (
             <div className="flex gap-1.5 flex-wrap">
               <Badge className={CATEGORY_COLORS[project.category]}>
@@ -67,7 +77,9 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
           )}
         </div>
         {project.description && (
-          <p className="text-sm text-slate-600 line-clamp-2 mt-2">{project.description}</p>
+          <p className="text-sm text-slate-600 line-clamp-2 mt-2">
+            {project.description}
+          </p>
         )}
       </CardHeader>
 
@@ -77,13 +89,13 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
           <div>
             <p className="text-xs text-slate-500">Collected</p>
             <p className="text-sm font-bold text-emerald-600">
-              RM {(project.amountcollected || 0).toLocaleString()}
+              {formatRM(project.amountcollected)}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-500">Remaining</p>
             <p className="text-sm font-bold text-slate-700">
-              RM {remainingAmount.toLocaleString()}
+              {formatRM(remainingAmount)}
             </p>
           </div>
         </div>
@@ -103,21 +115,24 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
           {project.end_date && (
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-slate-400" />
-              <span>Target: {format(new Date(project.enddate), 'MMM d, yyyy')}</span>
+              <span>
+                Target: {format(new Date(project.enddate), "MMM d, yyyy")}
+              </span>
             </div>
           )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link to={`${createPageUrl('WaqfDetail')}?id=${project.id}`} className="flex-1">
-            <Button
-              className="w-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2 transition-all duration-200 shadow-md"
-            >
+          <Link
+            to={`${createPageUrl("WaqfDetail")}?id=${project.id}`}
+            className="flex-1"
+          >
+            <Button className="w-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2 transition-all duration-200 shadow-md">
               <span>View Details</span>
               <ArrowRight className="w-4 h-4 transform transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
-          { !isView && (
+          {!isView && (
             <Button
               onClick={() => onEditProject(project)}
               className="w-full bg-emerald-500 text-white hover:bg-emerald-600 flex items-center justify-center gap-2 transition-all duration-200 shadow-md"
@@ -125,14 +140,13 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
               <span>Edit Project</span>
               <Edit className="w-4 h-4 transform transition-transform group-hover:translate-x-1" />
             </Button>
-          ) } 
+          )}
         </div>
-
       </CardContent>
     </Card>
   );
 }
 
 function cn(...classes) {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }

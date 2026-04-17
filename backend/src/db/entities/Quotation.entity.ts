@@ -51,6 +51,9 @@ export class Quotation {
   })
   status!: QuotationStatus;
 
+  @Column("varchar", { length: 255, nullable: true })
+  photourl?: string;
+
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 }

@@ -32,7 +32,9 @@ export default function ManagePermissions() {
     isOrganisationAdmin,
     refreshUser,
   } = useAdminAccess();
+  
   const canManageMosque = !!currentUser?.organisation?.canmanagemosque;
+  const canManageQuotations = !!currentUser?.organisation?.isgraveservices;
 
   const {
     loading: permissionsLoading,
@@ -244,9 +246,18 @@ export default function ManagePermissions() {
                 <div className="space-y-6 max-h-[600px] overflow-y-auto">
                   {Object.entries(PERMISSION_CATEGORIES)
                     .filter(([key, category]) => {
+                      // Hide mosques section IF: user is NOT super admin AND user does NOT have canManageQuotations
                       if (
                         key === "mosques" &&
                         !canManageMosque &&
+                        !isSuperAdmin
+                      )
+                        return false;
+
+                      // Hide “quotations” section IF: user is NOT super admin AND user does NOT have canManageQuotations
+                      if (
+                        key === "quotations" &&
+                        !canManageQuotations &&
                         !isSuperAdmin
                       )
                         return false;

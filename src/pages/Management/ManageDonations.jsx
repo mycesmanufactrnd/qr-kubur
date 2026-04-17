@@ -34,6 +34,7 @@ import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { formatRM } from "@/utils/helpers";
 
 export default function ManageDonations() {
   const { loadingUser, hasAdminAccess, isTahfizAdmin } = useAdminAccess();
@@ -263,7 +264,7 @@ export default function ManageDonations() {
               {translate("Total Verified")}
             </p>
             <p className="text-2xl font-bold">
-              RM {totalVerified.toLocaleString()}
+              {formatRM(totalVerified)}
             </p>
           </CardContent>
         </Card>

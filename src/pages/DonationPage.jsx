@@ -118,24 +118,22 @@ export default function DonationPage() {
   const { googleUser } = userGoogleAccess();
   const hasAppliedUrlRecipient = useRef(false);
   const [searchParams] = useSearchParams();
-  const urlParamId = searchParams.get("id") || null;
-  const urlParamType = searchParams.get("type");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterName, setFilterName] = useState("");
-  const [selectedState, setSelectedState] = useState("nearby");
-
+  const [selectedState, setSelectedState] = useState(() => {
+    const rawState = searchParams.get("state");
+    if (!rawState || rawState === "nearby") return "nearby";
+    const matched = STATES_MY.find(
+      (s) => normalizeState(s) === normalizeState(rawState),
+    );
+    return matched || "nearby";
+  });
+  
+  const urlParamId = searchParams.get("id") || null;
+  const urlParamType = searchParams.get("type");
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
 
-  useEffect(() => {
-    const rawState = searchParams.get("state");
-    const matchedState = STATES_MY.find(
-      (s) => normalizeState(s) === normalizeState(rawState),
-    );
-    setSelectedState(
-      rawState === "nearby" ? "nearby" : matchedState || "nearby",
-    );
-  }, []);
 
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({
@@ -285,12 +283,16 @@ export default function DonationPage() {
     }
   }, [searchParams]);
 
+  const hasSpecificState = selectedState !== "nearby" && !!selectedState;
+
   const shouldFetchOrganisation =
-    !!userLocation && recipientType === "organisation";
-  const shouldFetchTahfiz = !!userLocation && recipientType === "tahfiz";
+    recipientType === "organisation" && (!!userLocation || hasSpecificState);
+    
+  const shouldFetchTahfiz =
+    recipientType === "tahfiz" && (!!userLocation || hasSpecificState);
 
   const { organisations = [] } = useGetOrganisationCoordinates(
-    shouldFetchOrganisation
+    shouldFetchOrganisation && userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
     selectedState === "nearby" ? userState : selectedState,
@@ -299,7 +301,7 @@ export default function DonationPage() {
   );
 
   const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
-    shouldFetchTahfiz
+    shouldFetchTahfiz && userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
     selectedState === "nearby" ? userState : selectedState,

@@ -26,7 +26,7 @@ import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus, MAINTENANCE_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
-import { activityLogError, clearQueryParams } from "@/utils/helpers";
+import { activityLogError, clearQueryParams, formatRM } from "@/utils/helpers";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { translate } from "@/utils/translations";
 
@@ -35,13 +35,6 @@ const PAYMENT_PLAN = {
   REGISTER_AND_YEARLY: "register_and_yearly",
   YEARLY_ONLY: "yearly_only",
 };
-
-function formatMoney(amount) {
-  return `RM ${Number(amount || 0).toLocaleString("en-MY", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
 
 function formatCoverage(payment) {
   const fromYear = Number(payment.coversfromyear || 0);
@@ -535,7 +528,7 @@ export default function DeathCharityUserPayment() {
           <div className="rounded-lg bg-orange-50 p-3">
             <p className="text-sm font-semibold text-orange-800">{deathCharity.name}</p>
             <p className="text-xs text-orange-700">
-              Registration: {formatMoney(registrationFee)} | Yearly: {formatMoney(yearlyFee)}
+              Registration: {formatRM(registrationFee)} | Yearly: {formatRM(yearlyFee)}
             </p>
           </div>
 
@@ -698,7 +691,7 @@ export default function DeathCharityUserPayment() {
                     <div className="rounded-lg bg-blue-50 p-3">
                       <p className="text-xs text-blue-700">Total Paid</p>
                       <p className="text-lg font-bold text-blue-800">
-                        {formatMoney(payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0))}
+                        {formatRM(payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0))}
                       </p>
                       </div>
 
@@ -718,7 +711,7 @@ export default function DeathCharityUserPayment() {
                                   Paid: {payment.paidat ? new Date(payment.paidat).toLocaleDateString("en-GB") : "-"}
                                 </p>
                               </div>
-                              <Badge variant="secondary">{formatMoney(payment.amount)}</Badge>
+                              <Badge variant="secondary">{formatRM(payment.amount)}</Badge>
                             </div>
                           </div>
                         ))}
@@ -844,15 +837,15 @@ export default function DeathCharityUserPayment() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-600">Subtotal</p>
-                    <p className="text-sm font-medium text-slate-800">{formatMoney(subtotalAmount)}</p>
+                    <p className="text-sm font-medium text-slate-800">{formatRM(subtotalAmount)}</p>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-600">Maintenance Fee</p>
-                    <p className="text-sm font-medium text-slate-800">{formatMoney(MAINTENANCE_FEE)}</p>
+                    <p className="text-sm font-medium text-slate-800">{formatRM(MAINTENANCE_FEE)}</p>
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-sm font-semibold text-slate-700">Total Payment</p>
-                    <p className="text-xl font-bold text-slate-900">{formatMoney(totalAmount)}</p>
+                    <p className="text-xl font-bold text-slate-900">{formatRM(totalAmount)}</p>
                   </div>
                 </div>
                 {createYearlyPayment && (

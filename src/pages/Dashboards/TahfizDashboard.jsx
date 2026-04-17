@@ -19,6 +19,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
+import { formatRM } from '@/utils/helpers';
 
 export default function TahfizDashboard() {
   const {
@@ -135,7 +136,7 @@ export default function TahfizDashboard() {
               {translate('Verified Donations')}
             </p>
             <p className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-              {isDDVLoading ? '—' : `RM ${donationVerified.toLocaleString()}`}
+              {isDDVLoading ? '—' : `${formatRM(donationVerified)}`}
             </p>
           </CardContent>
         </Card>
@@ -180,7 +181,7 @@ export default function TahfizDashboard() {
               <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100">
                 <span className="text-emerald-700 font-medium">{translate('Verified Donations')}</span>
                 <span className="font-bold text-lg bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                  RM {donationVerified.toLocaleString()}
+                  {formatRM(donationVerified)}
                 </span>
               </div>
             </CardContent>

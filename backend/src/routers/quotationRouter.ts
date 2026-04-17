@@ -1,8 +1,9 @@
 import z from "zod";
-import { publicProcedure, router } from "../trpc.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { GoogleUserRecord, Quotation } from "../db/entities.ts";
 import { quotationSchema } from "../schemas/quotationSchema.ts";
+import { QuotationStatus } from "../db/enums.ts";
 
 export const quotationRouter = router({
   create: publicProcedure
@@ -38,5 +39,52 @@ export const quotationRouter = router({
         where: { referenceno: input.referenceno },
         relations: ["organisation", "deadperson"],
       });
+    }),
+
+  getPaginated: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).optional().default(1),
+        pageSize: z.number().min(1).optional().default(10),
+        currentUserOrganisation: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().optional().default(false),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { page = 1, pageSize = 10, currentUserOrganisation, isSuperAdmin } = input;
+      const quotationRepo = AppDataSource.getRepository(Quotation);
+
+      const qb = quotationRepo
+        .createQueryBuilder("quotation")
+        .leftJoinAndSelect("quotation.organisation", "organisation")
+        .leftJoinAndSelect("quotation.deadperson", "deadperson")
+        .orderBy("quotation.createdat", "DESC")
+        .skip((page - 1) * pageSize)
+        .take(pageSize);
+
+      if (!isSuperAdmin) {
+        if (!currentUserOrganisation) return { items: [], total: 0 };
+        qb.where("quotation.organisationId = :orgId", { orgId: currentUserOrganisation });
+      }
+
+      const [items, total] = await qb.getManyAndCount();
+      return { items, total };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        data: z.object({
+          status: z.nativeEnum(QuotationStatus).optional(),
+          photourl: z.string().optional().nullable(),
+        }),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const quotationRepo = AppDataSource.getRepository(Quotation);
+      const quotation = await quotationRepo.findOneByOrFail({ id: input.id });
+      quotationRepo.merge(quotation, input.data);
+      return quotationRepo.save(quotation);
     }),
 });
