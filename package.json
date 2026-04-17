@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@base44/sdk": "^0.8.26",
-    "@base44/vite-plugin": "^1.0.7",
+    "@base44/vite-plugin": "^1.0.10",
     "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",
     "@hello-pangea/dnd": "^17.0.0",
