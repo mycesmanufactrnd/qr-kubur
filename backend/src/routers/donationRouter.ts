@@ -1,8 +1,11 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { Donation, GoogleUserRecord } from "../db/entities.ts";
-import { donationSchema, donationApprovalSchema } from "../schemas/donationSchema.ts";
+import { Donation, GoogleUserRecord, OnlineTransaction } from "../db/entities.ts";
+import {
+  donationSchema,
+  donationApprovalSchema,
+} from "../schemas/donationSchema.ts";
 
 export const donationRouter = router({
   getPaginated: protectedProcedure
@@ -23,13 +26,13 @@ export const donationRouter = router({
             tahfiz: z.boolean(),
           })
           .optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { page = 1, pageSize = 10, currentUser, checkRole } = input;
 
       const donationRepo = AppDataSource.getRepository(Donation);
-      const query = donationRepo.createQueryBuilder("donation")
+      const query = donationRepo.createQueryBuilder("donation");
 
       if (checkRole?.superadmin) {
         query
@@ -53,7 +56,7 @@ export const donationRouter = router({
       }
 
       if (page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize)
+        query.skip((page - 1) * pageSize).take(pageSize);
       }
 
       const [items, total] = await query
@@ -64,9 +67,11 @@ export const donationRouter = router({
     }),
 
   create: protectedProcedure
-    .input(donationSchema.extend({
-      googleuserId: z.number().optional().nullable(),
-    }))
+    .input(
+      donationSchema.extend({
+        googleuserId: z.number().optional().nullable(),
+      }),
+    )
     .mutation(async ({ input }) => {
       const donationRepo = AppDataSource.getRepository(Donation);
       const donation = donationRepo.create(input);
@@ -95,7 +100,7 @@ export const donationRouter = router({
       const donation = await donationRepo.findOneByOrFail({ id: input.id });
 
       const cleanedInput = Object.fromEntries(
-        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+        Object.entries(input.data).filter(([_, v]) => v !== undefined),
       );
 
       donationRepo.merge(donation, cleanedInput);

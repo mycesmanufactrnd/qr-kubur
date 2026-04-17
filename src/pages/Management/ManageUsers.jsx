@@ -50,6 +50,7 @@ export default function ManageUsers() {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [search, setSearch] = useState("");
+  const [filterOrganisationId, setFilterOrganisationId] = useState("all");
   const [editUser, setEditUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -72,8 +73,15 @@ export default function ManageUsers() {
     page,
     pageSize: itemsPerPage,
     search: search,
+    organisationId:
+      isSuperAdmin && filterOrganisationId !== "all"
+        ? Number(filterOrganisationId)
+        : null,
   });
-  const { organisationsList: organisations } = useGetOrganisationPaginated({});
+  const { organisationsList: organisations } = useGetOrganisationPaginated({
+    page: 1,
+    pageSize: isSuperAdmin ? 1000 : 10,
+  });
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
   const { createUser, updateUser, deleteUser } = useUserMutations();
@@ -274,6 +282,31 @@ export default function ManageUsers() {
                 className="pl-10 h-10"
               />
             </div>
+            {isSuperAdmin && (
+              <div className="min-w-[220px]">
+                <Select
+                  value={filterOrganisationId}
+                  onValueChange={(value) => {
+                    setFilterOrganisationId(value);
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder={translate("Organisation")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      {translate("All Organisations")}
+                    </SelectItem>
+                    {organisations.items.map((org) => (
+                      <SelectItem key={org.id} value={String(org.id)}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -39,6 +39,15 @@ export class OnlineTransactionAccount {
     default: OnlineTransactionStatus.PENDING,
   })
   status!: OnlineTransactionStatus;
+  // App: Status of online transaction from QR Kubur to recepient
+
+  @Column("varchar", { nullable: true })
+  referencetransferno!: string;
+  // App: Reference No for transaction from QR Kubur to recepient
+
+  @Column("varchar", { nullable: true })
+  photourl?: string;
+  // App: Reference Image (Receipt) for transaction from QR Kubur to recepient
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

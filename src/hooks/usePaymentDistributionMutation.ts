@@ -7,6 +7,11 @@ type useGetPaymentDistributionPaginatedParams = {
   pageSize?: number;
 };
 
+type useGetOnlineTransactionParams = {
+  referenceno?: string | null;
+  enabled?: boolean;
+};
+
 const titleMessage = "Payment Distribution";
 
 export function useGetPaymentDistributionPaginated({
@@ -48,4 +53,23 @@ export function usePaymentDistributionMutation() {
       showApiError(err);
     },
   });
+}
+
+export function useGetOnlineTransaction({
+  referenceno,
+  enabled = true,
+}: useGetOnlineTransactionParams) {
+  const { currentUser, hasAdminAccess } = useAdminAccess();
+
+  const shouldFetch = !!referenceno && !!currentUser && hasAdminAccess && enabled;
+
+  const { data, isLoading, refetch, error } =
+    trpc.paymentDistribution.getOnlineTransaction.useQuery(
+      {
+        referenceno: referenceno ?? "",
+      },
+      { enabled: shouldFetch },
+    );
+
+  return { onlineTransaction: data ?? null, isLoading, refetch, error };
 }

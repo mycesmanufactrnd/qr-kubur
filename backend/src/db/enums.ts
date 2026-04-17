@@ -8,7 +8,7 @@ export enum ActiveInactiveStatus {
 export enum GraveStatus {
   ACTIVE = "active",
   FULL = "full",
-  MAINTENANCE = "maintenance"
+  MAINTENANCE = "maintenance",
 }
 
 export enum ApprovalStatus {
@@ -43,39 +43,39 @@ export enum NotificationType {
 }
 
 export enum WaqfCategory {
-  EDUCATION = 'Education',
-  MOSQUE = 'Mosque',
-  HEALTHCARE = 'Healthcare',
-  ORPHANS = 'Orphans',
-  WATER = 'Water',
-  GENERALCHARITY = 'General Charity',
+  EDUCATION = "Education",
+  MOSQUE = "Mosque",
+  HEALTHCARE = "Healthcare",
+  ORPHANS = "Orphans",
+  WATER = "Water",
+  GENERALCHARITY = "General Charity",
 }
 
 export enum ProjectStatus {
-  PLANNED = 'Planned',
-  ONGOING = 'Ongoing',
-  COMPLETED = 'Completed',
-  ONHOLD = 'On Hold',
+  PLANNED = "Planned",
+  ONGOING = "Ongoing",
+  COMPLETED = "Completed",
+  ONHOLD = "On Hold",
 }
 
 export enum WaqfType {
-  CASH = 'Cash Waqf',
-  PROPERTY = 'Property Waqf',
-  ASSET = 'Asset Waqf',
+  CASH = "Cash Waqf",
+  PROPERTY = "Property Waqf",
+  ASSET = "Asset Waqf",
 }
 
 export enum ClaimStatus {
-  PENDING = 'Pending',
-  APPROVED = 'Approved',
-  PAID = 'Paid',
+  PENDING = "Pending",
+  APPROVED = "Approved",
+  PAID = "Paid",
 }
 
 export enum OnlineTransactionStatus {
-  PENDING = "Pending",              // User initiated payment, waiting confirmation
-  PAID = "Paid",                    // Payment successful, money received by platform
-  HELD = "Held",                    // Funds held in middleman account (escrow)
+  PENDING = "Pending", // User initiated payment, waiting confirmation
+  PAID = "Paid", // Payment successful, money received by platform
+  HELD = "Held", // Funds held in middleman account (escrow)
   TRANSFER_PENDING = "Transfer Pending", // Scheduled for payout
-  TRANSFERRED = "Transferred",      // Successfully paid to recipient
-  FAILED = "Failed",                // Payment failed
-  REFUNDED = "Refunded",            // Refunded to payer
+  TRANSFERRED = "Transferred", // Successfully paid to recipient
+  FAILED = "Failed", // Payment failed
+  REFUNDED = "Refunded", // Refunded to payer
 }

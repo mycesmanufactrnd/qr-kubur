@@ -9,18 +9,22 @@ type useGetDonationPaginatedParams = {
 
 const titleMessage = "Donation";
 
-export function useGetDonationPaginated({ page, pageSize }: useGetDonationPaginatedParams) {
+export function useGetDonationPaginated({
+  page,
+  pageSize,
+}: useGetDonationPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
 
-  const { data, isLoading, refetch, error } = trpc.donation.getPaginated.useQuery(
-    {
-      page,
-      pageSize,
-      currentUser,
-      checkRole,
-    },
-    { enabled: hasAdminAccess && !!currentUser }
-  );
+  const { data, isLoading, refetch, error } =
+    trpc.donation.getPaginated.useQuery(
+      {
+        page,
+        pageSize,
+        currentUser,
+        checkRole,
+      },
+      { enabled: hasAdminAccess && !!currentUser },
+    );
 
   const donationList = {
     items: data?.items ?? [],

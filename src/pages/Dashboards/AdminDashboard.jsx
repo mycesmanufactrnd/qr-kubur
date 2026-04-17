@@ -10,12 +10,12 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
 import { useAdminAccess } from '@/utils/auth';
 import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
-import { useGetMosquesByOrganisationId } from '@/hooks/useMosqueMutations';
 
 export default function AdminDashboard() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isTahfizAdmin } = useAdminAccess();
 
-  let defaultStatsNeeded = [];
+  let defaultStatsNeeded = ["OGDS"];
+  const isGraveServices = currentUser?.organisation?.isgraveservices;
   const isCanBeDonated = currentUser?.organisation?.canbedonated;
   const isHasManageMosque = currentUser?.organisation?.canmanagemosque;
 
@@ -27,11 +27,15 @@ export default function AdminDashboard() {
     defaultStatsNeeded.push("CMC");
   }
 
-  const { OGDSStats, DDVStats, CMCStats, isOGDSLoading, isDDVLoading, isCMCLoading } =
+  if (isGraveServices) {
+    defaultStatsNeeded.push("QUO");
+  }
+
+  const { OGDSStats, DDVStats, CMCStats, QUOStats, isOGDSLoading, isDDVLoading, isCMCLoading, isQUOLoading } =
     useGetAdminDashboardStats({
       currentUser,
       isSuperAdmin,
-      statsNeeded: ["OGDS"],
+      statsNeeded: defaultStatsNeeded,
     });
 
   const organisationCount = OGDSStats?.organisationCount ?? 0;
@@ -43,6 +47,9 @@ export default function AdminDashboard() {
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
   const deathCharityTotalPayout = CMCStats?.deathCharityTotalPayout ?? 0;
+  const totalPendingQuo = QUOStats?.totalPendingQuo ?? 0;
+  const totalCompleteQuo = QUOStats?.totalCompleteQuo ?? 0;
+  const totalPayoutQuo = QUOStats?.totalPayoutQuo ?? 0;
 
   const quickStats = [
     {
@@ -123,9 +130,50 @@ export default function AdminDashboard() {
     },
   ];
 
+  const quotations = [
+    {
+      label: translate('Total Pending Quotations'),
+      value: totalPendingQuo || 0,
+      icon: FileText,
+      page: 'ManageQuotations',
+      loading: isQUOLoading,
+
+      cardGradient: 'from-sky-50 to-blue-50',
+      iconGradient: 'from-sky-500 to-blue-500',
+      textGradient: 'from-sky-600 to-blue-600',
+      textColor: 'text-sky-700',
+    },
+    {
+      label: translate('Total Completed Quotations'),
+      value: totalCompleteQuo || 0,
+      icon: ListCheck,
+      page: 'ManageQuotations',
+      loading: isQUOLoading,
+
+      cardGradient: 'from-teal-50 to-green-50',
+      iconGradient: 'from-teal-500 to-green-500',
+      textGradient: 'from-teal-600 to-green-600',
+      textColor: 'text-teal-700',
+    },
+    {
+      label: translate('Total Quotation Payout'),
+      value: totalPayoutQuo || 0,
+      icon: Diamond,
+      page: 'ManageQuotations',
+      loading: isQUOLoading,
+      key: 'money',
+
+      cardGradient: 'from-indigo-50 to-violet-50',
+      iconGradient: 'from-indigo-500 to-violet-500',
+      textGradient: 'from-indigo-600 to-violet-600',
+      textColor: 'text-indigo-700',
+    },
+  ];
+
   const fullQuickStats = [
     ...quickStats,
     ...(isHasManageMosque ? deathCharity : []),
+    ...(isGraveServices ? quotations : []),
   ];
 
   const pendingItems = [

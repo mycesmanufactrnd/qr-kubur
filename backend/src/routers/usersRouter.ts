@@ -95,6 +95,7 @@ export const usersRouter = router({
         page: z.number().min(1).optional(),
         pageSize: z.number().min(1).optional(),
         search: z.string().optional(),
+        organisationId: z.number().optional().nullable(),
         currentUser: z.object({
           id: z.number(),
           organisation: z.object({ id: z.number() }).nullable(),
@@ -111,7 +112,8 @@ export const usersRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, search, currentUser, checkRole } = input;
+      const { page, pageSize, search, organisationId, currentUser, checkRole } =
+        input;
 
       const userRepo = AppDataSource.getRepository(User);
 
@@ -149,6 +151,12 @@ export const usersRouter = router({
       if (search) {
         query.andWhere("user.fullname ILIKE :search", {
           search: `%${search}%`,
+        });
+      }
+
+      if (organisationId) {
+        query.andWhere("user.organisationId = :orgId", {
+          orgId: organisationId,
         });
       }
 

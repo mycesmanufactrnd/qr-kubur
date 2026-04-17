@@ -71,6 +71,10 @@ export const runBucketSeeder = async () => {
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true)
 
+    ('online-transaction', 'Online Transaction Proof', 'qr-kubur', 'local',
+    '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
+    107374182400, true)
+
     ON CONFLICT (id) DO NOTHING;
   `;
 

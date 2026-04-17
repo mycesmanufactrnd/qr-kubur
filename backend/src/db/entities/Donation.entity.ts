@@ -1,7 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Organisation } from "./Organisation.entity.ts";
 import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { PaymentPlatform } from "./PaymentPlatform.entity.ts";
 import { VerificationStatus } from "../enums.ts";
 
 @Entity("donation")

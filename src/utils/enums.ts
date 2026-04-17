@@ -163,6 +163,7 @@ export const paymentToyyibStatus = {
 export const SST_PERCENTAGE = 0.06;
 export const MAINTENANCE_FEE_PERCENTAGE = 0.05;
 export const MAINTENANCE_FEE = 2;
+export const SERVICE_FEE = 3;
 
 export enum WaqfCategory {
   EDUCATION = 'Education',
