@@ -8,7 +8,7 @@ import { AppDataSource } from "./datasource.ts";
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
-import { createContext, router } from "./trpc.ts";
+import { createContext } from "./trpc.ts";
 import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
 import multipart from '@fastify/multipart';

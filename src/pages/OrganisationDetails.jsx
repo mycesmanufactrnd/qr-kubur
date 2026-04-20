@@ -148,7 +148,7 @@ export default function OrganisationDetails() {
     if (statusText === "Success") {
       setLoadingPayment(true);
       showSuccess("Pembayaran berjaya!");
-      const storedUser = sessionStorage.getItem("googleAuth");
+      const storedUser = localStorage.getItem("googleAuth") || sessionStorage.getItem("googleAuth");
       const googleRecordPayload = storedUser ? JSON.parse(storedUser) : null;
       createOrganisationQuotation.mutateAsync({
         ...formData,

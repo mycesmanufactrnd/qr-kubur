@@ -175,7 +175,7 @@ export default function TahlilRequestPage() {
       setSubmittedDeceasedNames(formData.deceasednames);
       showSuccess("Pembayaran berjaya!");
 
-      const storedUser = sessionStorage.getItem("googleAuth");
+      const storedUser = localStorage.getItem("googleAuth") || sessionStorage.getItem("googleAuth");
       let googleRecordPayload = null;
 
       if (storedUser) {

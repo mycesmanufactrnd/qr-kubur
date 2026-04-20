@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
+import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { Donation, GoogleUserRecord, OnlineTransaction } from "../db/entities.ts";
 import {
@@ -8,6 +8,16 @@ import {
 } from "../schemas/donationSchema.ts";
 
 export const donationRouter = router({
+  getByReferenceNo: publicProcedure
+    .input(z.object({ referenceno: z.string() }))
+    .query(async ({ input }) => {
+      const repo = AppDataSource.getRepository(Donation);
+      return repo.findOne({
+        where: { referenceno: input.referenceno },
+        relations: ["organisation", "tahfizcenter"],
+      });
+    }),
+
   getPaginated: protectedProcedure
     .input(
       z.object({

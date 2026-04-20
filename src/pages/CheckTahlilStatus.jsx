@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Search, BookOpen, Clock, CheckCircle, XCircle, MapPin, User, Calendar } from 'lucide-react';
+import { formatRM } from '@/utils/helpers';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { showError } from '@/components/ToastrNotification';
 import { TahlilStatus } from '@/utils/enums';
@@ -94,6 +95,8 @@ export default function CheckTahlilStatus() {
         deceasednames: tahlilRequest.deceasednames ?? [],
         selectedservices: tahlilRequest.selectedservices ?? [],
         photourls: tahlilRequest.photourls ?? [],
+        serviceamount: tahlilRequest.serviceamount ?? null,
+        platformfeeamount: tahlilRequest.platformfeeamount ?? null,
       });
       if (tahlilRequest.tahfizcenter) setTahfizCenter(tahlilRequest.tahfizcenter);
       setIsDialogOpen(true);
@@ -251,6 +254,22 @@ export default function CheckTahlilStatus() {
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {request.serviceamount != null && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">Jumlah</p>
+                  <div className="flex items-center justify-between px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                    <span className="text-sm text-slate-500">Jumlah Perkhidmatan</span>
+                    <span className="text-sm font-semibold text-slate-900">{formatRM(request.serviceamount)}</span>
+                  </div>
+                  {request.platformfeeamount != null && (
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-50 border border-emerald-100 rounded-xl">
+                      <span className="text-sm font-semibold text-emerald-700">Jumlah Dibayar</span>
+                      <span className="text-sm font-bold text-emerald-700">{formatRM(Number(request.serviceamount) + Number(request.platformfeeamount))}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

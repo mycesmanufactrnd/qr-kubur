@@ -624,19 +624,20 @@ export default function UserDashboard2() {
                   n: "03",
                 },
                 {
-                  icon: Calendar,
-                  title: "Islamic Events",
-                  page: "IslamicCalendar",
-                  g: G.pine,
-                  n: "04",
-                },
-                {
                   icon: Video,
                   title: "Daily Dua",
                   page: "DailyDua",
                   g: G.violet,
-                  n: "05",
+                  n: "04",
                 },
+                // future features
+                // {
+                //   icon: Calendar,
+                //   title: "Islamic Events",
+                //   page: "IslamicCalendar",
+                //   g: G.pine,
+                //   n: "05",
+                // },
               ].map(({ icon: Icon, title, page, g, n }) => (
                 <Link
                   key={page}
@@ -655,7 +656,6 @@ export default function UserDashboard2() {
           </div>
         </div>
 
-        {/* ── Lokasi & Tempat ── */}
         <div className="db-sec">
           <div className="db-sec-head">
             <div className="db-sec-left">
@@ -684,15 +684,17 @@ export default function UserDashboard2() {
                 accent: "#c97000",
                 bg: "#fef7e6",
               },
-              {
-                icon: MessageCircle,
-                name: "Cari Waqf",
-                desc: "Tanah & harta wakaf",
-                page: "SearchWaqf",
-                g: G.crimson,
-                accent: "#a51d2d",
-                bg: "#fdeaec",
-              },
+
+              // future features
+              // {
+              //   icon: MessageCircle,
+              //   name: "Cari Waqf",
+              //   desc: "Tanah & harta wakaf",
+              //   page: "SearchWaqf",
+              //   g: G.crimson,
+              //   accent: "#a51d2d",
+              //   bg: "#fdeaec",
+              // },
             ].map(({ icon: Icon, name, desc, page, g, accent, bg }) => (
               <Link key={page} to={createPageUrl(page)} className="db-loc-card">
                 <div className="db-loc-accent" style={{ background: accent }} />

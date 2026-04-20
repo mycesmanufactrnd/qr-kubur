@@ -5,6 +5,16 @@ import { DeathCharityPayment, GoogleUserRecord } from "../db/entities.ts";
 import { deathCharityPaymentSchema } from "../schemas/deathCharityPaymentSchema.ts";
 
 export const deathCharityPaymentRouter = router({
+  getByReferenceNo: publicProcedure
+    .input(z.object({ referenceno: z.string() }))
+    .query(async ({ input }) => {
+      const repo = AppDataSource.getRepository(DeathCharityPayment);
+      return repo.findOne({
+        where: { referenceno: input.referenceno },
+        relations: ["member", "member.deathcharity", "member.deathcharity.organisation"],
+      });
+    }),
+
   getPaymentByMemberId: publicProcedure
     .input(
       z.object({

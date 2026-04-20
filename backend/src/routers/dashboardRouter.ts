@@ -16,6 +16,7 @@ import {
 } from "../db/entities.ts";
 import {
   ClaimStatus,
+  ORG_SHARE,
   QuotationStatus,
   TahlilStatus,
   VerificationStatus,
@@ -327,7 +328,7 @@ export const dashboardRouter = router({
         .select([
           `COUNT(*) FILTER (WHERE quotation.status = :pending) as "pendingCount"`,
           `COUNT(*) FILTER (WHERE quotation.status = :completed) as "completedCount"`,
-          `COALESCE(SUM(quotation.serviceamount) FILTER (WHERE quotation.status = :completed), 0) as "totalServiceAmount"`,
+          `COALESCE(SUM(quotation.serviceamount * ${ORG_SHARE}) FILTER (WHERE quotation.status = :completed), 0) as "totalServiceAmount"`,
         ])
         .setParameters({
           pending: QuotationStatus.PENDING,

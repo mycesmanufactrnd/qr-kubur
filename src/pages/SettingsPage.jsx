@@ -5,7 +5,7 @@ import { HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette, ChevronRight
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
-import { handleLogout, useLoginGoogle } from '@/utils/auth';
+import { clearStoredGoogleAuth, getStoredGoogleUser, handleLogout, isGoogleSignedOut, useLoginGoogle } from '@/utils/auth';
 import { usePermissions } from '@/components/PermissionsContext';
 import { useLocationContext } from '@/providers/LocationProvider';
 
@@ -22,7 +22,7 @@ export default function SettingsPage() {
 
   const [authMode, setAuthMode] = useState(() => {
     if (sessionStorage.getItem('appUserAuth')) return 'admin';
-    if (sessionStorage.getItem('googleAuth')) return 'google';
+    if (getStoredGoogleUser()) return 'google';
     return 'guest';
   });
 
@@ -36,14 +36,22 @@ export default function SettingsPage() {
     if (authMode !== 'guest') return;
     const initializeGoogleSignIn = () => {
       if (!window.google?.accounts?.id) return false;
+      const signedOut = isGoogleSignedOut();
       window.google.accounts.id.initialize({
         client_id: "52708588654-9680sm9l110i7qrag9g6uf3sbf0h6cb1.apps.googleusercontent.com",
         callback: handleCredentialResponse,
+        auto_select: !signedOut,
       });
+
       window.google.accounts.id.renderButton(
         document.getElementById("guest-google-signin"),
         { theme: "outline", size: "large", width: "100%" }
       );
+
+      // Try One Tap / auto-select sign-in when user didn't explicitly sign out.
+      if (!signedOut && window.google?.accounts?.id?.prompt) {
+        window.google.accounts.id.prompt();
+      }
       return true;
     };
     const interval = setInterval(() => {
@@ -88,12 +96,12 @@ export default function SettingsPage() {
     applyTheme(savedTheme);
 
     const appUserAuth = sessionStorage.getItem('appUserAuth') || null;
-    const googleAuth = sessionStorage.getItem('googleAuth') || null;
+    const storedGoogleUser = getStoredGoogleUser();
 
     if (appUserAuth) { setAuthMode('admin'); return; }
-    if (googleAuth) {
+    if (storedGoogleUser) {
       setAuthMode('google');
-      setGoogleUser(JSON.parse(googleAuth));
+      setGoogleUser(storedGoogleUser);
       return;
     }
     setAuthMode('guest');
@@ -129,9 +137,11 @@ export default function SettingsPage() {
       // Sign out via Google Identity Services too
       if (window.google?.accounts?.id) {
         window.google.accounts.id.disableAutoSelect();
+        if (googleUser?.email && window.google.accounts.id.revoke) {
+          window.google.accounts.id.revoke(googleUser.email, () => {});
+        }
       }
-      sessionStorage.removeItem("googleAuth");
-      sessionStorage.removeItem("token");
+      clearStoredGoogleAuth();
       window.location.href = createPageUrl('UserDashboard');
     } else {
       handleLogout(clearPermissions);
@@ -338,7 +348,7 @@ export default function SettingsPage() {
         </SectionCard>
 
         <SectionCard title={translate('Support')}>
-          <NavRow icon={HelpCircle} label={translate('FAQ')} action={() => alert('FAQ coming soon')} />
+          <NavRow icon={HelpCircle} label={translate('FAQ')} action={() => navigate(createPageUrl('FAQ'))} />
           <NavRow icon={FileText}   label={translate('Contact / Feedback')} action={() => window.location.href = 'mailto:support@qrkubur.com?subject=Maklum Balas QR Kubur'} />
           <NavRow icon={Shield}     label={translate('Report Bug')}          action={() => window.location.href = 'mailto:support@qrkubur.com?subject=Laporan Pepijat'} />
         </SectionCard>

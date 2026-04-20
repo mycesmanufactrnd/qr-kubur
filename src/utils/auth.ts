@@ -4,6 +4,43 @@ import { trpc, trpcClient } from './trpc';
 import { STATES_MY } from './enums';
 import { useNavigate } from 'react-router-dom';
 
+const GOOGLE_AUTH_KEY = "googleAuth";
+const GOOGLE_SIGNED_OUT_KEY = "googleSignedOut";
+const TOKEN_KEY = "token";
+
+export function getStoredGoogleUser(): any | null {
+  try {
+    const raw = localStorage.getItem(GOOGLE_AUTH_KEY) ?? sessionStorage.getItem(GOOGLE_AUTH_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredGoogleAuth(user: any, token?: string | null) {
+  localStorage.setItem(GOOGLE_AUTH_KEY, JSON.stringify(user));
+  sessionStorage.setItem(GOOGLE_AUTH_KEY, JSON.stringify(user));
+  localStorage.removeItem(GOOGLE_SIGNED_OUT_KEY);
+
+  if (token) {
+    // Keep token in both for backward compatibility; TRPC headers prefer sessionStorage first.
+    sessionStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+}
+
+export function clearStoredGoogleAuth() {
+  localStorage.removeItem(GOOGLE_AUTH_KEY);
+  sessionStorage.removeItem(GOOGLE_AUTH_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.setItem(GOOGLE_SIGNED_OUT_KEY, "1");
+}
+
+export function isGoogleSignedOut() {
+  return localStorage.getItem(GOOGLE_SIGNED_OUT_KEY) === "1";
+}
+
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,6 +89,7 @@ export function handleLogout(clearPermissions?: () => void) {
     sessionStorage.removeItem('superAdminAuth');
     sessionStorage.removeItem('isImpersonating');
     sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
     sessionStorage.removeItem('permissions'); 
     window.location.href = createPageUrl('AppUserLogin');
 }
@@ -216,10 +254,7 @@ export function userGoogleAccess() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const storedUser = sessionStorage.getItem("googleAuth");
-        if (storedUser) {
-          setGoogleUser(JSON.parse(storedUser));
-        }
+        setGoogleUser(getStoredGoogleUser());
       } catch (e) {
         setGoogleUser(null);
       } finally {
@@ -248,9 +283,7 @@ export function useLoginGoogle() {
   const loginGoogleMutation = trpc.auth.loginGoogle.useMutation({
     onSuccess: (data) => {
       setLoading(false);
-
-      sessionStorage.setItem("googleAuth", JSON.stringify(data.user));
-      sessionStorage.setItem("token", data.token);
+      setStoredGoogleAuth(data.user, data.token);
       
       navigate(createPageUrl("UserDashboard"));
     },

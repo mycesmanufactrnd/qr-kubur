@@ -388,7 +388,9 @@ export default function ManageQuotations() {
                       {(q.selectedservices || []).length}
                     </TableCell>
                     <TableCell className="text-center font-semibold">
-                      {formatRM(q.totalamount)}
+                      {q.serviceamount != null
+                        ? formatRM(Number(q.serviceamount) * ORG_SHARE)
+                        : formatRM(q.totalamount)}
                     </TableCell>
                     <TableCell className="text-center">
                       {getStatusBadge(q.status)}

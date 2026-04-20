@@ -1,63 +1,53 @@
 import { useEffect, useState } from "react";
 import {
   Search,
-  BookOpen,
+  Briefcase,
   Clock,
   CheckCircle,
   XCircle,
-  MapPin,
+  Building2,
   User,
   Calendar,
+  Phone,
+  Mail,
+  Heart,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { showError } from "@/components/ToastrNotification";
-import { TahlilStatus } from "@/utils/enums";
+import { QuotationStatus } from "@/utils/enums";
 import BackNavigation from "@/components/BackNavigation";
-import JoinLiveButton from "@/components/jitsi/JoinLiveButton";
 import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
-import { defaultTahlilStatus } from "@/utils/defaultformfields";
 import { skipToken } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { resolveFileUrl } from "@/utils";
+import { formatRM } from "@/utils/helpers";
 
 const STATUS_CONFIG = {
-  [TahlilStatus.PENDING]: {
+  [QuotationStatus.PENDING]: {
     label: "Menunggu",
     icon: Clock,
     bg: "bg-amber-50",
     border: "border-amber-200",
     text: "text-amber-700",
     iconColor: "text-amber-500",
-    dot: "bg-amber-400",
   },
-  [TahlilStatus.ACCEPTED]: {
-    label: "Diterima",
-    icon: CheckCircle,
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-700",
-    iconColor: "text-blue-500",
-    dot: "bg-blue-400",
-  },
-  [TahlilStatus.COMPLETED]: {
+  [QuotationStatus.COMPLETED]: {
     label: "Selesai",
     icon: CheckCircle,
     bg: "bg-emerald-50",
     border: "border-emerald-200",
     text: "text-emerald-700",
     iconColor: "text-emerald-500",
-    dot: "bg-emerald-400",
   },
-  [TahlilStatus.REJECTED]: {
+  [QuotationStatus.REJECTED]: {
     label: "Ditolak",
     icon: XCircle,
     bg: "bg-red-50",
     border: "border-red-200",
     text: "text-red-700",
     iconColor: "text-red-500",
-    dot: "bg-red-400",
   },
 };
 
@@ -80,16 +70,14 @@ function StatusBadge({ status }) {
   );
 }
 
-export default function CheckTahlilStatus() {
+export default function CheckServiceStatus() {
   const [referenceId, setReferenceId] = useState("");
   const [searchKey, setSearchKey] = useState("");
   const [searching, setSearching] = useState(false);
-  const [request, setRequest] = useState(defaultTahlilStatus);
-  const [tahfizCenter, setTahfizCenter] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: tahlilRequest, isLoading } =
-    trpc.tahlilRequest.getByReferenceNo.useQuery(
+  const { data: quotation, isLoading } =
+    trpc.quotation.getByReferenceNo.useQuery(
       searchKey ? { referenceno: searchKey } : skipToken,
       { enabled: !!searchKey },
     );
@@ -98,29 +86,17 @@ export default function CheckTahlilStatus() {
     if (!searchKey) return;
     if (!isLoading) {
       setSearching(false);
-      if (!tahlilRequest) {
+      if (!quotation) {
         showError("Permohonan Tidak Dijumpa");
         return;
       }
-      setRequest({
-        referenceno: tahlilRequest.referenceno ?? "",
-        status: String(tahlilRequest.status ?? ""),
-        liveurl: tahlilRequest.liveurl ?? "",
-        requestorname: tahlilRequest.requestorname ?? "",
-        createdat: tahlilRequest.createdat ?? "",
-        deceasednames: tahlilRequest.deceasednames ?? [],
-        selectedservices: tahlilRequest.selectedservices ?? [],
-        photourls: tahlilRequest.photourls ?? [],
-      });
-      if (tahlilRequest.tahfizcenter)
-        setTahfizCenter(tahlilRequest.tahfizcenter);
       setIsDialogOpen(true);
     }
-  }, [tahlilRequest, isLoading, searchKey]);
+  }, [quotation, isLoading, searchKey]);
 
   const handleSearch = () => {
     if (!referenceId.trim()) {
-      showError("Sila Masukkan ID Rujukan");
+      showError("Sila Masukkan No. Rujukan");
       return;
     }
     setSearching(true);
@@ -130,31 +106,29 @@ export default function CheckTahlilStatus() {
   const handleClose = () => {
     setIsDialogOpen(false);
     setSearchKey("");
-    setRequest(defaultTahlilStatus);
-    setTahfizCenter(null);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-      <BackNavigation title="Tahlil Status" />
+      <BackNavigation title="Service Status" />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-4">
         <div className="flex flex-col items-center text-center gap-2 pb-2">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-200 mb-1">
-            <BookOpen className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-200 mb-1">
+            <Briefcase className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-base font-bold text-slate-800">
-            {translate("Check Tahlil Application Status")}
+            {translate("Check Service Status")}
           </h2>
           <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed">
-            Masukkan No. rujukan untuk menyemak status permohonan anda
+            Masukkan No. rujukan untuk menyemak status perkhidmatan anda
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
           <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-              Carian Permohonan
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-sky-600">
+              Carian Perkhidmatan
             </p>
           </div>
 
@@ -163,18 +137,18 @@ export default function CheckTahlilStatus() {
               No. Rujukan Transaksi
             </label>
             <Input
-              placeholder="Contoh: THL-2024-0001"
+              placeholder="Contoh: QUO-2024-0001"
               value={referenceId}
               onChange={(e) => setReferenceId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 transition"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition"
             />
           </div>
 
           <Button
             onClick={handleSearch}
             disabled={searching}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 active:opacity-80 transition-all disabled:opacity-50"
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-sky-200 active:opacity-80 transition-all disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
             {searching ? "Mencari..." : "Cari Status"}
@@ -199,63 +173,94 @@ export default function CheckTahlilStatus() {
         <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
           <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
-              Status Permohonan
+              Status Perkhidmatan
             </DialogTitle>
-            {request && (
+            {quotation && (
               <div className="flex flex-col items-center gap-2.5">
                 <span className="text-lg font-bold tracking-widest font-mono text-slate-800">
-                  {request.referenceno}
+                  {quotation.referenceno}
                 </span>
-                <StatusBadge status={request.status} />
+                <StatusBadge status={quotation.status} />
               </div>
             )}
           </div>
 
-          {request && (
+          {quotation && (
             <div className="px-5 py-4 space-y-5">
-              {request.liveurl && (
-                <div className="flex justify-center">
-                  <JoinLiveButton room={request.liveurl} />
-                </div>
-              )}
-
               <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
-                {request.requestorname && (
+                {quotation.payername && (
                   <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <User className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         Pemohon
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">
-                      {request.requestorname}
+                      {quotation.payername}
                     </span>
                   </div>
                 )}
-                {tahfizCenter && (
+                {quotation.payeremail && (
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2 shrink-0">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Pusat Tahfiz
+                        Emel
+                      </span>
+                    </div>
+                    <span className="text-sm text-slate-700 text-right max-w-[55%] break-all">
+                      {quotation.payeremail}
+                    </span>
+                  </div>
+                )}
+                {quotation.payerphone && (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        Telefon
+                      </span>
+                    </div>
+                    <span className="text-sm text-slate-700">{quotation.payerphone}</span>
+                  </div>
+                )}
+                {quotation.organisation && (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        Organisasi
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700 text-right max-w-[55%]">
-                      {tahfizCenter.name}
+                      {quotation.organisation.name}
                     </span>
                   </div>
                 )}
-                {request.createdat && (
+                {quotation.deadperson && (
                   <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Heart className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        Si Mati
+                      </span>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 text-right max-w-[55%]">
+                      {quotation.deadperson.name}
+                    </span>
+                  </div>
+                )}
+                {quotation.createdat && (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         Tarikh
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">
-                      {new Date(request.createdat).toLocaleDateString("ms-MY", {
+                      {new Date(quotation.createdat).toLocaleDateString("ms-MY", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -265,64 +270,41 @@ export default function CheckTahlilStatus() {
                 )}
               </div>
 
-              {request.deceasednames?.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                    Nama Arwah
-                  </p>
-                  <div className="space-y-1.5">
-                    {request.deceasednames.map((name, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                          <span className="text-[10px] font-bold text-emerald-600">
-                            {i + 1}
-                          </span>
-                        </div>
-                        <span className="text-sm font-medium text-slate-700">
-                          {name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {request.selectedservices?.length > 0 && (
+              {quotation.selectedservices?.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
                     Perkhidmatan
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {request.selectedservices.map((type, i) => (
-                      <span
+                  <div className="space-y-1.5">
+                    {quotation.selectedservices.map((s, i) => (
+                      <div
                         key={i}
-                        className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-700"
+                        className="flex items-center justify-between px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl"
                       >
-                        {type}
-                      </span>
+                        <span className="text-sm font-medium text-slate-700">{s.service}</span>
+                        <span className="text-sm font-semibold text-slate-900">{formatRM(s.price)}</span>
+                      </div>
                     ))}
                   </div>
+                  {quotation.totalamount != null && (
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl">
+                      <span className="text-sm font-semibold text-sky-700">Jumlah</span>
+                      <span className="text-sm font-bold text-sky-700">{formatRM(quotation.totalamount)}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {request.photourls?.length > 0 && (
+              {quotation.photourl && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                    Gambar Tahlil
+                    Gambar Perkhidmatan
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {request.photourls.map((url, idx) => (
-                      <img
-                        key={`${url}-${idx}`}
-                        src={resolveFileUrl(url, "bucket-tahfiz-tahlil")}
-                        alt={`Tahlil ${idx + 1}`}
-                        className="h-24 w-full rounded-lg object-cover border border-slate-100"
-                      />
-                    ))}
-                  </div>
+                  <img
+                    src={resolveFileUrl(quotation.photourl, "organisation-services")}
+                    alt="Service completion"
+                    className="h-48 w-full rounded-xl object-cover border border-slate-100"
+                  />
                 </div>
               )}
 

@@ -39,6 +39,7 @@ import Ollama from '@/pages/Settings/Ollama.jsx';
 import PrivacyPolicy from '@/pages/Settings/PrivacyPolicy';
 import TermsAndConditions from '@/pages/Settings/TermsAndConditions';
 import UserTransactionRecords from '@/pages/Settings/UserTransactionRecords';
+import FAQ from '@/pages/Settings/FAQ';
 import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 // Management
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
@@ -131,6 +132,7 @@ export const PAGES = {
     "TahlilRequestPage": TahlilRequestPage,
     "TermsAndConditions": TermsAndConditions,
     "UserTransactionRecords": UserTransactionRecords,
+    "FAQ": FAQ,
     "ViewLogs": ViewLogs,
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
