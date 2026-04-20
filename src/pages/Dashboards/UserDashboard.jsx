@@ -20,6 +20,8 @@ import {
   ChevronRight,
   Sparkles,
   AlertCircle,
+  HelpCircle,
+  Server,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -482,41 +484,42 @@ export default function UserDashboard2() {
               label: translate("Search Grave"),
               page: "SearchGrave",
               g: G.ocean,
-              shadow: "rgba(26,95,180,0.35)",
             },
             {
               icon: QrCode,
               label: translate("Scan QR"),
               page: "ScanQR",
               g: G.forest,
-              shadow: "rgba(13,107,80,0.35)",
             },
             {
               icon: MapPin,
               label: translate("Search Tahfiz"),
               page: "SearchTahfiz",
               g: G.violet,
-              shadow: "rgba(94,44,237,0.35)",
             },
             {
               icon: Heart,
               label: translate("Donation"),
               page: "DonationPage",
               g: G.sunset,
-              shadow: "rgba(224,27,36,0.35)",
             },
             {
               icon: FileText,
               label: translate("Tahlil Status"),
               page: "CheckTahlilStatus",
-              g: G.ocean,
-              shadow: "rgba(224, 27, 188, 0.35)",
+              g: G.crimson,
             },
-          ].map(({ icon: Icon, label, page, g, shadow }) => (
+            {
+              icon: HelpCircle,
+              label: translate("Service Status"),
+              page: "CheckServiceStatus",
+              g: G.teal,
+            },
+          ].map(({ icon: Icon, label, page, g }) => (
             <Link key={page} to={createPageUrl(page)} className="db-qbtn">
               <div
                 className="db-qicon"
-                style={{ background: g, boxShadow: `0 6px 18px ${shadow}` }}
+                style={{ background: g }}
               >
                 <Icon style={{ width: 22, height: 22, color: "#fff" }} />
               </div>

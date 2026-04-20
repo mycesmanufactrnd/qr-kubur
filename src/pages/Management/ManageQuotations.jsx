@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { FileText, CheckCircle, XCircle, Clock } from "lucide-react";
+import { FileText, CheckCircle, XCircle, Clock, Upload, Image } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { formatRM } from "@/utils/helpers";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { showError } from "@/components/ToastrNotification";
 
 export default function ManageQuotations() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
@@ -43,6 +45,13 @@ export default function ManageQuotations() {
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [transactionAccount, setTransactionAccount] = useState(null);
+
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadDialogQuotation, setUploadDialogQuotation] = useState(null);
+  const [uploadDialogFile, setUploadDialogFile] = useState(null);
+  const [uploadDialogPreview, setUploadDialogPreview] = useState("");
+  const [uploadDialogFileKey, setUploadDialogFileKey] = useState(0);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const {
     loading: permissionsLoading,
@@ -72,7 +81,9 @@ export default function ManageQuotations() {
 
     if (!selectedQuotation?.referenceno) {
       setTransactionAccount(null);
-      return () => { isActive = false; };
+      return () => {
+        isActive = false;
+      };
     }
 
     refetchOnlineTransaction().then((res) => {
@@ -91,7 +102,9 @@ export default function ManageQuotations() {
       setTransactionAccount(accounts[0] ?? null);
     });
 
-    return () => { isActive = false; };
+    return () => {
+      isActive = false;
+    };
   }, [selectedQuotation, refetchOnlineTransaction, onlineTransaction]);
 
   const openDialog = (quotation) => {
@@ -104,6 +117,55 @@ export default function ManageQuotations() {
     setSelectedQuotation(null);
     setTransactionAccount(null);
     setIsDialogOpen(false);
+  };
+
+  const openUploadDialog = (quotation) => {
+    setUploadDialogQuotation(quotation);
+    setUploadDialogFile(null);
+    setUploadDialogPreview("");
+    setUploadDialogFileKey((k) => k + 1);
+    setUploadDialogOpen(true);
+  };
+
+  const closeUploadDialog = () => {
+    setUploadDialogOpen(false);
+    setUploadDialogQuotation(null);
+    setUploadDialogFile(null);
+    setUploadDialogPreview("");
+  };
+
+  const handleUploadFileChange = (file) => {
+    if (!file) return;
+    setUploadDialogFile(file);
+    setUploadDialogPreview(URL.createObjectURL(file));
+  };
+
+  const handleUploadSubmit = async () => {
+    if (!uploadDialogQuotation || !uploadDialogFile) return;
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadDialogFile);
+      const res = await fetch(`/api/upload/organisation-services`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showError(err.error || translate("Failed to upload photo"));
+        return;
+      }
+      const data = await res.json();
+      await updateMutation.mutateAsync({
+        id: uploadDialogQuotation.id,
+        data: { photourl: data.file_url },
+      });
+      closeUploadDialog();
+    } catch {
+      showError(translate("Failed to upload photo"));
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleComplete = () => {
@@ -342,6 +404,13 @@ export default function ManageQuotations() {
                       >
                         <CheckCircle className="w-4 h-4" />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openUploadDialog(q)}
+                      >
+                        <Upload className="w-4 h-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -377,11 +446,12 @@ export default function ManageQuotations() {
 
           {selectedQuotation && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left: Quotation info */}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">{translate("Payer")}</p>
+                    <p className="text-sm text-gray-500">
+                      {translate("Payer")}
+                    </p>
                     <p className="font-semibold">
                       {selectedQuotation.payername || "-"}
                     </p>
@@ -448,32 +518,39 @@ export default function ManageQuotations() {
                 </div>
 
                 <div className="border-t pt-3 space-y-1.5">
-                  {selectedQuotation.serviceamount != null && (() => {
-                    const svc = Number(selectedQuotation.serviceamount);
-                    const fee = svc * ORG_SERVICE_FEE;
-                    const org = svc * ORG_SHARE;
-                    
-                    return (
-                      <>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">
-                            {translate("Service Amount")}
-                          </span>
-                          <span>{formatRM(svc)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">
-                            {translate("Platform Fee")} (5%)
-                          </span>
-                          <span className="text-red-500">{formatRM(fee)}</span>
-                        </div>
-                        <div className="flex justify-between font-bold">
-                          <span>{translate("Organisation Amount")} (95%)</span>
-                          <span className="text-emerald-700">{formatRM(org)}</span>
-                        </div>
-                      </>
-                    );
-                  })()}
+                  {selectedQuotation.serviceamount != null &&
+                    (() => {
+                      const svc = Number(selectedQuotation.serviceamount);
+                      const fee = svc * ORG_SERVICE_FEE;
+                      const org = svc * ORG_SHARE;
+
+                      return (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">
+                              {translate("Service Amount")}
+                            </span>
+                            <span>{formatRM(svc)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500">
+                              {translate("Platform Fee")} (5%)
+                            </span>
+                            <span className="text-red-500">
+                              {formatRM(fee)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between font-bold">
+                            <span>
+                              {translate("Organisation Amount")} (95%)
+                            </span>
+                            <span className="text-emerald-700">
+                              {formatRM(org)}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   {selectedQuotation.serviceamount == null && (
                     <div className="flex justify-between font-bold">
                       <span>{translate("Total Amount")}</span>
@@ -492,7 +569,6 @@ export default function ManageQuotations() {
                 </div>
               </div>
 
-              {/* Right: Platform Transfer Status */}
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-semibold text-gray-700">
@@ -600,6 +676,68 @@ export default function ManageQuotations() {
                 )}
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={uploadDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) closeUploadDialog();
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{translate("Upload Completion Photo")}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {uploadDialogQuotation?.photourl && (
+              <div className="space-y-1">
+                <p className="text-sm text-gray-500">{translate("Current Photo")}</p>
+                <img
+                  src={resolveFileUrl(uploadDialogQuotation.photourl, "organisation-services")}
+                  alt={translate("Current photo")}
+                  className="h-40 w-full rounded object-cover border"
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">{translate("Select New Photo")}</p>
+              <Input
+                key={uploadDialogFileKey}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                onChange={(e) => handleUploadFileChange(e.target.files?.[0])}
+                disabled={uploadingPhoto}
+              />
+              {uploadDialogPreview ? (
+                <img
+                  src={uploadDialogPreview}
+                  alt={translate("Preview")}
+                  className="h-40 w-full rounded object-cover border"
+                />
+              ) : !uploadDialogQuotation?.photourl && (
+                <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300">
+                  <Image className="w-10 h-10" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closeUploadDialog}>
+              {translate("Close")}
+            </Button>
+            <Button
+              onClick={handleUploadSubmit}
+              disabled={uploadingPhoto || !uploadDialogFile}
+              className="bg-sky-600 hover:bg-sky-700"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {uploadingPhoto ? translate("Uploading...") : translate("Upload")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

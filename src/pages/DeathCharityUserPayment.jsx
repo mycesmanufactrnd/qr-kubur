@@ -1,12 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, CreditCard, Search, UserRound, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CreditCard,
+  Search,
+  UserRound,
+  Wallet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
@@ -53,8 +66,10 @@ function formatCoverage(payment) {
 
 export default function DeathCharityUserPayment() {
   const [searchParams] = useSearchParams();
-  const mosqueId = searchParams.get("mosque") ? Number(searchParams.get("mosque")) : null;
-  
+  const mosqueId = searchParams.get("mosque")
+    ? Number(searchParams.get("mosque"))
+    : null;
+
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
 
@@ -73,7 +88,9 @@ export default function DeathCharityUserPayment() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [startYear, setStartYear] = useState(currentYear);
   const [yearsToPay, setYearsToPay] = useState(1);
-  const [paymentPlan, setPaymentPlan] = useState(PAYMENT_PLAN.REGISTER_AND_YEARLY);
+  const [paymentPlan, setPaymentPlan] = useState(
+    PAYMENT_PLAN.REGISTER_AND_YEARLY,
+  );
   const [submitError, setSubmitError] = useState("");
 
   const [registrationForm, setRegistrationForm] = useState({
@@ -85,27 +102,29 @@ export default function DeathCharityUserPayment() {
   });
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
-  const saveTransactionAccountMutation = trpc.toyyibPay.saveTransactionAccount.useMutation();
+  const saveTransactionAccountMutation =
+    trpc.toyyibPay.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
-  const createDeathCharityRunningNoMutation = trpc.runningNo.createDeathCharityRunningNo.useMutation();
+  const createDeathCharityRunningNoMutation =
+    trpc.runningNo.createDeathCharityRunningNo.useMutation();
 
-  const { data: deathCharity, isLoading: loadingDeathCharity } = useGetDeathCharityByMosque(mosqueId);
+  const { data: deathCharity, isLoading: loadingDeathCharity } =
+    useGetDeathCharityByMosque(mosqueId);
   const { data: mosque } = useGetMosqueById(mosqueId);
-  const { data: memberResults = [], isFetching: searchingMembers } = useSearchMemberByDeathCharity(
-    deathCharity?.id ?? null,
-    searchKeyword,
-    12,
-  );
+  const { data: memberResults = [], isFetching: searchingMembers } =
+    useSearchMemberByDeathCharity(deathCharity?.id ?? null, searchKeyword, 12);
 
   const { createPublicDeathCharityMember } = useDeathCharityMemberMutations();
   const { createDeathCharityPayment } = useDeathCharityPaymentMutations();
 
-  const { data: payments = [], isLoading: loadingPayments } = useGetPaymentByMemberId(selectedMember?.id ?? null);
+  const { data: payments = [], isLoading: loadingPayments } =
+    useGetPaymentByMemberId(selectedMember?.id ?? null);
 
   const registrationFee = Number(deathCharity?.registrationfee || 0);
   const yearlyFee = Number(deathCharity?.yearlyfee || 0);
 
-  const organisationId = deathCharity?.organisation?.id ?? mosque?.organisation?.id ?? null;
+  const organisationId =
+    deathCharity?.organisation?.id ?? mosque?.organisation?.id ?? null;
   const { data: paymentConfigs = [] } = useGetConfigByEntity({
     entityId: organisationId ?? undefined,
     entityType: "organisation",
@@ -141,17 +160,21 @@ export default function DeathCharityUserPayment() {
     return Object.values(map);
   }, [paymentConfigs]);
 
-  const selectedPlatform = paymentPlatforms.find((platform) => platform.code === paymentMethod);
+  const selectedPlatform = paymentPlatforms.find(
+    (platform) => platform.code === paymentMethod,
+  );
   const selectedAccount = useMemo(() => {
     if (!selectedPlatform?.fields?.length) {
-      return { bankname: '', accountno: '' };
+      return { bankname: "", accountno: "" };
     }
 
     const fields = selectedPlatform.fields;
 
-    const bankname = fields.find(f => f.key === 'bank_name')?.value?.trim() || '';
+    const bankname =
+      fields.find((f) => f.key === "bank_name")?.value?.trim() || "";
 
-    const accountno = fields.find(f => f.key === 'account_no')?.value?.trim() || '';
+    const accountno =
+      fields.find((f) => f.key === "account_no")?.value?.trim() || "";
 
     return { bankname, accountno };
   }, [selectedPlatform]);
@@ -162,7 +185,9 @@ export default function DeathCharityUserPayment() {
       return;
     }
 
-    const exists = paymentPlatforms.some((platform) => platform.code === paymentMethod);
+    const exists = paymentPlatforms.some(
+      (platform) => platform.code === paymentMethod,
+    );
 
     if (!exists) {
       setPaymentMethod(paymentPlatforms[0].code);
@@ -176,7 +201,9 @@ export default function DeathCharityUserPayment() {
       if (yearA !== yearB) {
         return yearB - yearA;
       }
-      return new Date(b.paidat || 0).getTime() - new Date(a.paidat || 0).getTime();
+      return (
+        new Date(b.paidat || 0).getTime() - new Date(a.paidat || 0).getTime()
+      );
     });
   }, [payments]);
 
@@ -213,19 +240,31 @@ export default function DeathCharityUserPayment() {
   }, [subtotalAmount]);
 
   const showRegistrationPrompt =
-    hasSearched && searchKeyword.length > 1 && !searchingMembers && memberResults.length === 0 && !selectedMember;
-  const showRegistrationForm = showRegistrationPrompt && Boolean(deathCharity?.isselfregister);
-  const showNoSelfRegisterMessage = showRegistrationPrompt && !deathCharity?.isselfregister;
+    hasSearched &&
+    searchKeyword.length > 1 &&
+    !searchingMembers &&
+    memberResults.length === 0 &&
+    !selectedMember;
+  const showRegistrationForm =
+    showRegistrationPrompt && Boolean(deathCharity?.isselfregister);
+  const showNoSelfRegisterMessage =
+    showRegistrationPrompt && !deathCharity?.isselfregister;
 
   const yearOptions = useMemo(() => {
     return Array.from({ length: 12 }, (_, idx) => currentYear - 1 + idx);
   }, [currentYear]);
 
-  const createRegistrationPayment = paymentPlan === PAYMENT_PLAN.REGISTER_ONLY || paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
-  const createYearlyPayment = paymentPlan === PAYMENT_PLAN.YEARLY_ONLY || paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
+  const createRegistrationPayment =
+    paymentPlan === PAYMENT_PLAN.REGISTER_ONLY ||
+    paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
+  const createYearlyPayment =
+    paymentPlan === PAYMENT_PLAN.YEARLY_ONLY ||
+    paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
 
   useEffect(() => {
-    const statusText = status_id ? paymentToyyibStatus[status_id] || "Unknown" : "Unknown";
+    const statusText = status_id
+      ? paymentToyyibStatus[status_id] || "Unknown"
+      : "Unknown";
 
     if (!status_id) return;
 
@@ -235,7 +274,7 @@ export default function DeathCharityUserPayment() {
     const pendingPayment = JSON.parse(pendingPaymentRaw);
 
     const handleFinally = () => {
-      const cleanUrl = clearQueryParams(); 
+      const cleanUrl = clearQueryParams();
 
       if (!cleanUrl) return;
 
@@ -255,8 +294,17 @@ export default function DeathCharityUserPayment() {
       setLoadingPayment(true);
       showSuccess("Pembayaran berjaya!");
 
+      const storedUser = sessionStorage.getItem("googleAuth");
+      let googleRecordPayload = null;
+
+      if (storedUser) {
+        googleRecordPayload = JSON.parse(storedUser);
+      }
+
       const processSuccessPayment = async () => {
-        let memberId = pendingPayment?.member?.id ? Number(pendingPayment.member.id) : null;
+        let memberId = pendingPayment?.member?.id
+          ? Number(pendingPayment.member.id)
+          : null;
 
         if (!memberId && pendingPayment?.registrationForm) {
           const member = await createPublicDeathCharityMember.mutateAsync({
@@ -290,6 +338,7 @@ export default function DeathCharityUserPayment() {
             referenceno: referenceNo,
             coversfromyear: Number(pendingPayment.coversfromyear),
             coverstoyear: Number(pendingPayment.coversfromyear),
+            googleuserId: googleRecordPayload?.id ?? null,
           });
         }
 
@@ -302,26 +351,34 @@ export default function DeathCharityUserPayment() {
             referenceno: referenceNo,
             coversfromyear: Number(pendingPayment.coversfromyear),
             coverstoyear: Number(pendingPayment.coverstoyear),
+            googleuserId: googleRecordPayload?.id ?? null,
           });
         }
 
-        const orderNo = String(order_id || '');
-        if (orderNo && pendingPayment?.selectedAccount?.accountno && pendingPayment?.selectedAccount?.bankname) {
+        const orderNo = String(order_id || "");
+        if (
+          orderNo &&
+          pendingPayment?.selectedAccount?.accountno &&
+          pendingPayment?.selectedAccount?.bankname
+        ) {
           try {
             await saveTransactionAccountMutation.mutateAsync({
               orderNo,
               accountNo: String(pendingPayment.selectedAccount.accountno),
               bankName: String(pendingPayment.selectedAccount.bankname),
-              type: 'Death Charity',
+              type: "Death Charity",
             });
           } catch (accountError) {
             await createLogMutation.mutateAsync({
-              activitytype: 'Save Transaction Account',
-              functionname: 'saveTransactionAccountMutation.mutateAsync',
-              useremail: '',
-              level: 'error',
+              activitytype: "Save Transaction Account",
+              functionname: "saveTransactionAccountMutation.mutateAsync",
+              useremail: "",
+              level: "error",
               summary: activityLogError(accountError),
-              extramessage: JSON.stringify({ orderNo, selectedAccount: pendingPayment?.selectedAccount }),
+              extramessage: JSON.stringify({
+                orderNo,
+                selectedAccount: pendingPayment?.selectedAccount,
+              }),
             });
           }
         }
@@ -374,7 +431,8 @@ export default function DeathCharityUserPayment() {
 
     setLoadingPayment(true);
 
-    const nextRunningNo = await createDeathCharityRunningNoMutation.mutateAsync();
+    const nextRunningNo =
+      await createDeathCharityRunningNoMutation.mutateAsync();
     const year = new Date().getFullYear();
     const runningNo = `DCP-${year}-${String(nextRunningNo).padStart(4, "0")}`;
 
@@ -384,43 +442,43 @@ export default function DeathCharityUserPayment() {
       selectedAccount,
     };
 
-    sessionStorage.setItem("charityPaymentPending", JSON.stringify(payloadWithReferenceNo));
+    sessionStorage.setItem(
+      "charityPaymentPending",
+      JSON.stringify(payloadWithReferenceNo),
+    );
 
-  try {
-    const bill = await createBillMutation.mutateAsync({
-      amount: Number(paymentData.totalamount || 0),
-      referenceNo: runningNo,
-      name: paymentData.payername || "ANONYMOUS",
-      email: paymentData.payeremail || "noreply@gmail.com",
-      phone: paymentData.payerphone || "0123456789",
-      returnTo: "deathcharity",
-    });
+    try {
+      const bill = await createBillMutation.mutateAsync({
+        amount: Number(paymentData.totalamount || 0),
+        referenceNo: runningNo,
+        name: paymentData.payername || "ANONYMOUS",
+        email: paymentData.payeremail || "noreply@gmail.com",
+        phone: paymentData.payerphone || "0123456789",
+        returnTo: "deathcharity",
+      });
 
-    if (bill?.paymentUrl) {
-      window.location.href = bill.paymentUrl;
-      return true;
+      if (bill?.paymentUrl) {
+        window.location.href = bill.paymentUrl;
+        return true;
+      }
+
+      const errorMessage = bill?.message || "No payment URL returned.";
+
+      setLoadingPayment(false);
+      setSubmitError(errorMessage);
+      showError(errorMessage);
+
+      return false;
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message || error?.message || "Unknown error";
+
+      setLoadingPayment(false);
+      setSubmitError(errorMessage);
+      showError(errorMessage);
+
+      return false;
     }
-
-    const errorMessage = bill?.message || "No payment URL returned.";
-
-    setLoadingPayment(false);
-    setSubmitError(errorMessage);
-    showError(errorMessage);
-
-    return false;
-
-  } catch (error) {
-    const errorMessage =
-      error?.response?.data?.message ||
-      error?.message || 
-      "Unknown error";
-
-    setLoadingPayment(false);
-    setSubmitError(errorMessage);
-    showError(errorMessage);
-
-    return false;
-  }
   };
 
   const handleSubmitPayment = async () => {
@@ -435,13 +493,18 @@ export default function DeathCharityUserPayment() {
       return;
     }
 
-    if (!paymentMethod || !paymentPlatforms.some((platform) => platform.code === paymentMethod)) {
+    if (
+      !paymentMethod ||
+      !paymentPlatforms.some((platform) => platform.code === paymentMethod)
+    ) {
       setSubmitError("Please select a valid payment method.");
       return;
     }
 
     if (!selectedMember && !deathCharity?.isselfregister) {
-      setSubmitError("Self registration is not allowed. Please contact mosque admin to register at the mosque.");
+      setSubmitError(
+        "Self registration is not allowed. Please contact mosque admin to register at the mosque.",
+      );
       return;
     }
 
@@ -449,7 +512,12 @@ export default function DeathCharityUserPayment() {
       const isValidRegistration = validateFields(registrationForm, [
         { field: "fullname", label: "Full Name", type: "text" },
         { field: "icnumber", label: "IC No.", type: "text" },
-        { field: "phone", label: "Phone Number", type: "phone", required: false },
+        {
+          field: "phone",
+          label: "Phone Number",
+          type: "phone",
+          required: false,
+        },
         { field: "email", label: "Email", type: "email", required: false },
       ]);
 
@@ -481,11 +549,18 @@ export default function DeathCharityUserPayment() {
       createRegistrationPayment,
       createYearlyPayment,
       registrationamount: Number(registrationFee || 0),
-      yearlyamount: Number((yearlyFee * cleanYearsToPay) || 0),
+      yearlyamount: Number(yearlyFee * cleanYearsToPay || 0),
       totalamount: Number(totalAmount || 0),
-      payername: selectedMember?.fullname || registrationForm.fullname.trim() || "ANONYMOUS",
-      payeremail: selectedMember?.email || registrationForm.email.trim() || "noreply@gmail.com",
-      payerphone: selectedMember?.phone || registrationForm.phone.trim() || "0123456789",
+      payername:
+        selectedMember?.fullname ||
+        registrationForm.fullname.trim() ||
+        "ANONYMOUS",
+      payeremail:
+        selectedMember?.email ||
+        registrationForm.email.trim() ||
+        "noreply@gmail.com",
+      payerphone:
+        selectedMember?.phone || registrationForm.phone.trim() || "0123456789",
     };
 
     const resPayment = await handlePaymentConfig(paymentData);
@@ -504,11 +579,18 @@ export default function DeathCharityUserPayment() {
   }
 
   if (!mosqueId) {
-    return <NoDataCardComponent isPage description="Missing mosque ID in URL." />;
+    return (
+      <NoDataCardComponent isPage description="Missing mosque ID in URL." />
+    );
   }
 
   if (!deathCharity) {
-    return <NoDataCardComponent isPage description="Death charity is not available for this mosque." />;
+    return (
+      <NoDataCardComponent
+        isPage
+        description="Death charity is not available for this mosque."
+      />
+    );
   }
 
   return (
@@ -522,13 +604,18 @@ export default function DeathCharityUserPayment() {
 
       <Card className="border-0 shadow-md">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Death Charity Registration & Payment</CardTitle>
+          <CardTitle className="text-lg">
+            Death Charity Registration & Payment
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="rounded-lg bg-orange-50 p-3">
-            <p className="text-sm font-semibold text-orange-800">{deathCharity.name}</p>
+            <p className="text-sm font-semibold text-orange-800">
+              {deathCharity.name}
+            </p>
             <p className="text-xs text-orange-700">
-              Registration: {formatRM(registrationFee)} | Yearly: {formatRM(yearlyFee)}
+              Registration: {formatRM(registrationFee)} | Yearly:{" "}
+              {formatRM(yearlyFee)}
             </p>
           </div>
 
@@ -552,7 +639,9 @@ export default function DeathCharityUserPayment() {
               </Button>
             </div>
             {hasSearched && searchText.trim().length < 2 && (
-              <p className="text-xs text-red-600">Please enter at least 2 characters to search.</p>
+              <p className="text-xs text-red-600">
+                Please enter at least 2 characters to search.
+              </p>
             )}
           </div>
         </CardContent>
@@ -560,7 +649,9 @@ export default function DeathCharityUserPayment() {
 
       {hasSearched && searchingMembers && (
         <Card className="border-0 shadow-md">
-          <CardContent className="py-8 text-center text-sm text-slate-600">Searching member...</CardContent>
+          <CardContent className="py-8 text-center text-sm text-slate-600">
+            Searching member...
+          </CardContent>
         </Card>
       )}
 
@@ -574,10 +665,22 @@ export default function DeathCharityUserPayment() {
               <div key={member.id} className="rounded-lg border p-3">
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-slate-800">{member.fullname}</p>
-                    <p className="text-xs text-slate-500">IC: {member.icnumber}</p>
-                    {member.phone && <p className="text-xs text-slate-500">Phone: {member.phone}</p>}
-                    {member.email && <p className="text-xs text-slate-500">Email: {member.email}</p>}
+                    <p className="font-semibold text-slate-800">
+                      {member.fullname}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      IC: {member.icnumber}
+                    </p>
+                    {member.phone && (
+                      <p className="text-xs text-slate-500">
+                        Phone: {member.phone}
+                      </p>
+                    )}
+                    {member.email && (
+                      <p className="text-xs text-slate-500">
+                        Email: {member.email}
+                      </p>
+                    )}
                   </div>
                   <Button size="sm" onClick={() => setSelectedMember(member)}>
                     Select
@@ -596,7 +699,8 @@ export default function DeathCharityUserPayment() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-red-600">
-              Self registration is disabled. Please contact mosque admin and register at the mosque.
+              Self registration is disabled. Please contact mosque admin and
+              register at the mosque.
             </p>
           </CardContent>
         </Card>
@@ -605,7 +709,9 @@ export default function DeathCharityUserPayment() {
       {showRegistrationForm && (
         <Card className="border-0 shadow-md">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Member Not Found, Register Here</CardTitle>
+            <CardTitle className="text-base">
+              Member Not Found, Register Here
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
@@ -613,17 +719,23 @@ export default function DeathCharityUserPayment() {
               <Input
                 value={registrationForm.fullname}
                 onChange={(event) =>
-                  setRegistrationForm((prev) => ({ ...prev, fullname: event.target.value }))
+                  setRegistrationForm((prev) => ({
+                    ...prev,
+                    fullname: event.target.value,
+                  }))
                 }
                 placeholder="Enter full name"
               />
             </div>
             <div className="space-y-2">
-              <Label>{ translate('IC No') }</Label>
+              <Label>{translate("IC No")}</Label>
               <Input
                 value={registrationForm.icnumber}
                 onChange={(event) =>
-                  setRegistrationForm((prev) => ({ ...prev, icnumber: event.target.value }))
+                  setRegistrationForm((prev) => ({
+                    ...prev,
+                    icnumber: event.target.value,
+                  }))
                 }
                 placeholder="Enter IC number"
               />
@@ -633,7 +745,10 @@ export default function DeathCharityUserPayment() {
               <Input
                 value={registrationForm.phone}
                 onChange={(event) =>
-                  setRegistrationForm((prev) => ({ ...prev, phone: event.target.value }))
+                  setRegistrationForm((prev) => ({
+                    ...prev,
+                    phone: event.target.value,
+                  }))
                 }
                 placeholder="Optional"
               />
@@ -643,7 +758,10 @@ export default function DeathCharityUserPayment() {
               <Input
                 value={registrationForm.email}
                 onChange={(event) =>
-                  setRegistrationForm((prev) => ({ ...prev, email: event.target.value }))
+                  setRegistrationForm((prev) => ({
+                    ...prev,
+                    email: event.target.value,
+                  }))
                 }
                 placeholder="Optional"
               />
@@ -653,7 +771,10 @@ export default function DeathCharityUserPayment() {
               <Input
                 value={registrationForm.address}
                 onChange={(event) =>
-                  setRegistrationForm((prev) => ({ ...prev, address: event.target.value }))
+                  setRegistrationForm((prev) => ({
+                    ...prev,
+                    address: event.target.value,
+                  }))
                 }
                 placeholder="Optional"
               />
@@ -673,45 +794,71 @@ export default function DeathCharityUserPayment() {
                 <div className="rounded-lg bg-emerald-50 p-3">
                   <div className="flex items-center gap-2">
                     <UserRound className="h-4 w-4 text-emerald-700" />
-                    <p className="font-semibold text-emerald-800">{selectedMember.fullname}</p>
+                    <p className="font-semibold text-emerald-800">
+                      {selectedMember.fullname}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-emerald-700">IC: {selectedMember.icnumber}</p>
+                  <p className="mt-1 text-xs text-emerald-700">
+                    IC: {selectedMember.icnumber}
+                  </p>
                   {selectedMember.phone && (
-                    <p className="mt-1 text-xs text-emerald-700">Phone: {selectedMember.phone}</p>
+                    <p className="mt-1 text-xs text-emerald-700">
+                      Phone: {selectedMember.phone}
+                    </p>
                   )}
                   {selectedMember.email && (
-                    <p className="mt-1 text-xs text-emerald-700">Email: {selectedMember.email}</p>
+                    <p className="mt-1 text-xs text-emerald-700">
+                      Email: {selectedMember.email}
+                    </p>
                   )}
                 </div>
 
                 {loadingPayments ? (
-                  <p className="text-sm text-slate-600">Loading payment history...</p>
+                  <p className="text-sm text-slate-600">
+                    Loading payment history...
+                  </p>
                 ) : (
                   <>
                     <div className="rounded-lg bg-blue-50 p-3">
                       <p className="text-xs text-blue-700">Total Paid</p>
                       <p className="text-lg font-bold text-blue-800">
-                        {formatRM(payments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0))}
+                        {formatRM(
+                          payments.reduce(
+                            (sum, item) => sum + (Number(item.amount) || 0),
+                            0,
+                          ),
+                        )}
                       </p>
-                      </div>
+                    </div>
 
                     {sortedPayments.length > 0 && (
                       <div className="space-y-2">
                         {sortedPayments.map((payment) => (
-                          <div key={payment.id} className="rounded-lg border p-3">
+                          <div
+                            key={payment.id}
+                            className="rounded-lg border p-3"
+                          >
                             <div className="flex items-start justify-between gap-2">
                               <div>
                                 <p className="text-sm font-semibold capitalize text-slate-800">
                                   {payment.paymenttype}
                                 </p>
                                 <p className="text-xs text-slate-600">
-                                  Coverage: {formatCoverage(payment)} | Method: {payment.paymentmethod}
+                                  Coverage: {formatCoverage(payment)} | Method:{" "}
+                                  {payment.paymentmethod}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  Paid: {payment.paidat ? new Date(payment.paidat).toLocaleDateString("en-GB") : "-"}
+                                  Paid:{" "}
+                                  {payment.paidat
+                                    ? new Date(
+                                        payment.paidat,
+                                      ).toLocaleDateString("en-GB")
+                                    : "-"}
                                 </p>
                               </div>
-                              <Badge variant="secondary">{formatRM(payment.amount)}</Badge>
+                              <Badge variant="secondary">
+                                {formatRM(payment.amount)}
+                              </Badge>
                             </div>
                           </div>
                         ))}
@@ -759,7 +906,10 @@ export default function DeathCharityUserPayment() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Starting Year</Label>
-                  <Select value={String(startYear)} onValueChange={(value) => setStartYear(Number(value))}>
+                  <Select
+                    value={String(startYear)}
+                    onValueChange={(value) => setStartYear(Number(value))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -780,7 +930,15 @@ export default function DeathCharityUserPayment() {
                       type="number"
                       min={1}
                       value={yearsToPay}
-                      onChange={(event) => setYearsToPay(Math.max(1, Number(event.target.value) || 1))}
+                      onChange={(event) => {
+                        const value = event.target.value;
+
+                        if (value === "") {
+                          setYearsToPay("");
+                        } else {
+                          setYearsToPay(Math.max(1, Number(value)));
+                        }
+                      }}
                     />
                   </div>
                 )}
@@ -790,7 +948,10 @@ export default function DeathCharityUserPayment() {
                 <div className="space-y-2 pt-1">
                   <Label>Payment Method</Label>
                   <div className="rounded-lg border p-3">
-                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={setPaymentMethod}
+                    >
                       <div className="space-y-2">
                         {paymentPlatforms.map((platform) => (
                           <Label
@@ -837,25 +998,36 @@ export default function DeathCharityUserPayment() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-600">Subtotal</p>
-                    <p className="text-sm font-medium text-slate-800">{formatRM(subtotalAmount)}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {formatRM(subtotalAmount)}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-600">Maintenance Fee</p>
-                    <p className="text-sm font-medium text-slate-800">{formatRM(MAINTENANCE_FEE)}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {formatRM(MAINTENANCE_FEE)}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between pt-1">
-                    <p className="text-sm font-semibold text-slate-700">Total Payment</p>
-                    <p className="text-xl font-bold text-slate-900">{formatRM(totalAmount)}</p>
+                    <p className="text-sm font-semibold text-slate-700">
+                      Total Payment
+                    </p>
+                    <p className="text-xl font-bold text-slate-900">
+                      {formatRM(totalAmount)}
+                    </p>
                   </div>
                 </div>
                 {createYearlyPayment && (
                   <p className="mt-1 text-xs text-slate-600">
-                    Coverage year: {startYear} - {startYear + Math.max(1, Number(yearsToPay) || 1) - 1}
+                    Coverage year: {startYear} -{" "}
+                    {startYear + Math.max(1, Number(yearsToPay) || 1) - 1}
                   </p>
                 )}
               </div>
 
-              {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+              {submitError && (
+                <p className="text-sm text-red-600">{submitError}</p>
+              )}
 
               <Button
                 className="w-full"

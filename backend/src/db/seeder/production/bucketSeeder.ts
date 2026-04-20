@@ -51,7 +51,7 @@ export const runBucketSeeder = async () => {
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true),
 
-    ('bucket-tahfiz-tahlil', 'Tahfiz Tahlil Request Config', 'qr-kubur', 'local',
+    ('bucket-tahfiz-tahlil', 'Tahfiz Tahlil Request', 'qr-kubur', 'local',
     '{"image/png","image/jpeg","image/jpg","image/gif","image/webp"}',
     107374182400, true),
 

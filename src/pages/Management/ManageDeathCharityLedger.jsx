@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, User, BookOpen } from 'lucide-react';
 import PaymentForm from '@/components/deathcharity/PaymentForm';
-import { useGetDeathCharityMemberPaginated, useGetMemberByDeathCharity } from '@/hooks/useDeathCharityMemberMutations';
+import { useGetMemberByDeathCharity } from '@/hooks/useDeathCharityMemberMutations';
 import { useDeathCharityPaymentMutations, useGetPaymentByMemberId } from '@/hooks/useDeathCharityPaymentMutations';
 import { useSearchParams } from 'react-router-dom';
 import { useGetDeathCharityByOrganisation } from '@/hooks/useDeathCharityMutations';

@@ -913,7 +913,7 @@ export default function ManageTahlilRequests() {
           setIsDialogOpen(open);
         }}
       >
-        <DialogContent className="max-w-[60vw] max-h-[85vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="max-w-[65vw] max-h-[85vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
               {translate("Tahlil Details")}
@@ -933,21 +933,31 @@ export default function ManageTahlilRequests() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">
+                      {translate("Reference No.")}
+                    </p>
+                    <p className="font-mono text-sm break-all bg-gray-50 p-1.5 rounded">
+                      {selectedRequest.referenceno || "-"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">
                       {translate("Phone No.")}
                     </p>
                     <p className="font-semibold">
                       {selectedRequest.requestorphoneno}
                     </p>
                   </div>
+                  {selectedRequest.requestoremail && (
+                    <div>
+                      <p className="text-sm text-gray-500">
+                        {translate("Email")}
+                      </p>
+                      <p>{selectedRequest.requestoremail}</p>
+                    </div>
+                  )}
                 </div>
-                {selectedRequest.requestoremail && (
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      {translate("Email")}
-                    </p>
-                    <p>{selectedRequest.requestoremail}</p>
-                  </div>
-                )}
                 <div>
                   <p className="text-sm text-gray-500">
                     {translate("Deceased Name")}
@@ -968,16 +978,6 @@ export default function ManageTahlilRequests() {
                   </p>
                   <p>{selectedRequest.tahfizcenter?.name}</p>
                 </div>
-                {selectedRequest.referenceno && (
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      {translate("Reference No.")}
-                    </p>
-                    <p className="font-mono font-semibold">
-                      {selectedRequest.referenceno}
-                    </p>
-                  </div>
-                )}
                 {selectedRequest.customservice && (
                   <div>
                     <p className="text-sm text-gray-500">
