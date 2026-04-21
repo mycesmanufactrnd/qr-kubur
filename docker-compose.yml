@@ -349,21 +349,6 @@ services:
       - storage
       - realtime
 
-  # --- LOG TERMINAL ---
-  logserver:
-    image: docker:27-cli  # has docker + docker-compose
-    container_name: docker_log_terminal
-    working_dir: /app
-    volumes:
-      - ./log-server:/app
-      - ./docker-compose.yml:/app/docker-compose.yml:ro
-      - ./.env:/app/.env:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "5138:5138"
-    command: sh -c "apk add nodejs npm && npm install && node server.js"
-    restart: unless-stopped
-
   # --- FRONTEND ---
   frontend:
     build:
