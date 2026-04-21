@@ -72,6 +72,14 @@ app.addHook("onRequest", (req, reply, done) => {
 
 const toyyibpayConfig = getToyyibpayConfig();
 
+console.log('📦 ToyyibPay Configs:');
+console.table(
+  Object.entries(toyyibpayConfig).map(([key, value]) => ({
+    key,
+    value: value || '❌ MISSING'
+  }))
+);
+
 const missingToyyibPayKeys = Object.entries(toyyibpayConfig)
   .filter(([_, value]) => !value)
   .map(([key]) => key);

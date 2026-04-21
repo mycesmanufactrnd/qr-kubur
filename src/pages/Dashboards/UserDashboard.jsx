@@ -457,9 +457,9 @@ export default function UserDashboard2() {
 
         <div className="db-toprow">
           <div>
-            <div className="db-greeting">Assalamualaikum</div>
+            <div className="db-greeting">{translate("Assalamualaikum")}</div>
             <div className="db-appname">QR Kubur</div>
-            <div className="db-tagline">Funeral Guide & Management</div>
+            <div className="db-tagline">{translate("Funeral Guide & Management")}</div>
           </div>
           <div className="db-moonbtn">
             <MoonStar style={{ width: 22, height: 22, color: "#fff" }} />
@@ -549,17 +549,17 @@ export default function UserDashboard2() {
               <BookOpen style={{ width: 11, height: 11 }} />
               {translate("Complete Collection")}
             </div>
-            <div className="db-hc-title">Surah, Doa &amp; Tahlil</div>
-            <div className="db-hc-sub">Bacaan harian, tahlil & panduan doa</div>
+            <div className="db-hc-title">{translate("Surah, Doa & Tahlil")}</div>
+            <div className="db-hc-sub">{translate("Daily recitations, tahlil & prayer guide")}</div>
             <div className="db-hc-btn">
-              Buka sekarang <ChevronRight style={{ width: 13, height: 13 }} />
+              {translate("Open now")} <ChevronRight style={{ width: 13, height: 13 }} />
             </div>
           </Link>
 
           <div className="db-grid2">            
             <MedCard
               icon={BookHeart}
-              title="Rukun Islam"
+              title={translate("Rukun Islam")}
               page="RukunIslam"
               g={G.crimson}
             />
@@ -571,7 +571,7 @@ export default function UserDashboard2() {
           <div className="db-sec-head">
             <div className="db-sec-left">
               <div className="db-sec-bar" style={{ background: G.violet }} />
-              <div className="db-sec-name">Zikir & Amalan</div>
+              <div className="db-sec-name">{translate("Zikir & Practices")}</div>
             </div>
           </div>
 
@@ -588,10 +588,10 @@ export default function UserDashboard2() {
             <div className="db-emergency-text">
               <div className="db-emergency-badge">
                 <AlertCircle style={{ width: 8, height: 8 }} />
-                Panduan Segera
+                {translate("Immediate Guide")}
               </div>
-              <div className="db-emergency-title">Solat Jenazah</div>
-              <div className="db-emergency-sub">Tatacara & panduan lengkap</div>
+              <div className="db-emergency-title">{translate("Solat Jenazah")}</div>
+              <div className="db-emergency-sub">{translate("Procedure & complete guide")}</div>
             </div>
             <div className="db-emergency-arrow">
               <ChevronRight style={{ width: 16, height: 16, color: "#fff" }} />
@@ -604,28 +604,28 @@ export default function UserDashboard2() {
               {[
                 {
                   icon: BookMarked,
-                  title: "Asmaul Husna",
+                  title: translate("Asmaul Husna"),
                   page: "AsmaulHusna",
                   g: G.amber,
                   n: "01",
                 },
                 {
                   icon: NotebookTabs,
-                  title: "Tasbih",
+                  title: translate("Tasbih"),
                   page: "Tasbih",
                   g: G.teal,
                   n: "02",
                 },
                 {
                   icon: Clock,
-                  title: "Prayer Times",
+                  title: translate("Prayer Times"),
                   page: "PrayerTimes",
                   g: G.indigo,
                   n: "03",
                 },
                 {
                   icon: Video,
-                  title: "Daily Dua",
+                  title: translate("Daily Dua"),
                   page: "DailyDua",
                   g: G.violet,
                   n: "04",
@@ -660,7 +660,7 @@ export default function UserDashboard2() {
           <div className="db-sec-head">
             <div className="db-sec-left">
               <div className="db-sec-bar" style={{ background: G.amber }} />
-              <div className="db-sec-name">Lokasi & Tempat</div>
+              <div className="db-sec-name">{translate("Location & Places")}</div>
             </div>
           </div>
 
@@ -668,8 +668,8 @@ export default function UserDashboard2() {
             {[
               {
                 icon: MapPin,
-                name: "Cari Masjid",
-                desc: "Masjid & surau berdekatan",
+                name: translate("Search Mosque"),
+                desc: translate("Nearby mosque & surau"),
                 page: "SearchMosque",
                 g: G.teal,
                 accent: "#14a07a",
@@ -677,8 +677,8 @@ export default function UserDashboard2() {
               },
               {
                 icon: Globe,
-                name: "Heritage Site",
-                desc: "Tapak warisan & sejarah Islam",
+                name: translate("Heritage Site"),
+                desc: translate("Islamic heritage & history sites"),
                 page: "SearchHeritage",
                 g: G.amber,
                 accent: "#c97000",

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { createPageUrl } from '../utils/index';
-import { Camera, X, AlertCircle, CheckCircle, ScanLine, RefreshCw, MapPin } from 'lucide-react';
+import {
+  Camera, X, AlertCircle, CheckCircle, ScanLine,
+  RefreshCw, MapPin, Hash, ChevronRight, Keyboard,
+} from 'lucide-react';
 import QrScanner from 'react-qr-scanner';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
@@ -9,6 +12,36 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import { showSuccess } from '@/components/ToastrNotification';
 import { ipAddressQueryOptions } from '@/utils/queryOptions';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+const css = `
+  @keyframes scanMove {
+    0%   { top: 15%; opacity: 1; }
+    48%  { top: 78%; opacity: 1; }
+    50%  { top: 78%; opacity: 0; }
+    51%  { top: 15%; opacity: 0; }
+    53%  { top: 15%; opacity: 1; }
+    100% { top: 15%; opacity: 1; }
+  }
+  .qr-scan-line {
+    position: absolute;
+    left: 12px; right: 12px; height: 2px;
+    background: linear-gradient(90deg, transparent, #34d399, #10b981, #34d399, transparent);
+    border-radius: 9999px;
+    box-shadow: 0 0 8px 2px rgba(52,211,153,0.6);
+    animation: scanMove 2.4s ease-in-out infinite;
+  }
+  @keyframes cornerPulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+  }
+  .qr-corner { animation: cornerPulse 2.4s ease-in-out infinite; }
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-6px); }
+  }
+  .float-icon { animation: floatIcon 3s ease-in-out infinite; }
+`;
 
 export default function ScanQR() {
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
@@ -16,19 +49,21 @@ export default function ScanQR() {
   });
 
   const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState("");
+  const [manualMode, setManualMode] = useState(false);
+  const [manualCode, setManualCode] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [scannedGraveId, setScannedGraveId] = useState(null);
   const [scannedDeadPersonId, setScannedDeadPersonId] = useState(null);
 
   const { data: selectedGrave, isLoading: graveLoading } = trpc.grave.getGraveById.useQuery(
     { id: scannedGraveId },
-    { enabled: typeof scannedGraveId === 'number' }
+    { enabled: typeof scannedGraveId === 'number' },
   );
 
   const { data: selectedDeadPerson, isLoading: personLoading } = trpc.deadperson.getDeadPersonById.useQuery(
     { id: scannedDeadPersonId },
-    { enabled: typeof scannedDeadPersonId === 'number' }
+    { enabled: typeof scannedDeadPersonId === 'number' },
   );
 
   const result =
@@ -39,8 +74,8 @@ export default function ScanQR() {
       : null;
 
   useEffect(() => {
-    if (selectedGrave) showSuccess(`Found grave: ${selectedGrave.name}`);
-    if (selectedDeadPerson) showSuccess(`Found Dead Person: ${selectedDeadPerson.name}`);
+    if (selectedGrave) showSuccess(`${translate('Record Found')}: ${selectedGrave.name}`);
+    if (selectedDeadPerson) showSuccess(`${translate('Record Found')}: ${selectedDeadPerson.name}`);
   }, [selectedGrave, selectedDeadPerson]);
 
   const createMutation = trpc.visitLogs.create.useMutation();
@@ -61,15 +96,16 @@ export default function ScanQR() {
   const handleScan = async (data) => {
     if (data && !loading) {
       setLoading(true);
-      setError("");
+      setError('');
       setScanning(false);
+      setManualMode(false);
       const qrCode = data.text || data;
       try {
         const parsed = JSON.parse(qrCode);
         const { type, id } = parsed;
         const numericId = Number(id);
         if (isNaN(numericId) || !type || !id) {
-          setError('Kod QR tidak sah.');
+          setError(translate('Invalid QR code'));
           setLoading(false);
           return;
         }
@@ -80,19 +116,23 @@ export default function ScanQR() {
           setScannedDeadPersonId(numericId);
           await createVisitLog(type, numericId);
         } else {
-          setError('Kod QR tidak dijumpai dalam sistem.');
+          setError(translate('QR code not found in system.'));
         }
-      } catch (err) {
-        console.error('Error processing QR:', err);
-        setError('Kod QR tidak sah.');
+      } catch {
+        setError(translate('Invalid QR code'));
       } finally {
         setLoading(false);
       }
     }
   };
 
-  const handleError = (err) => {
-    setError(translate('Camera Error'));
+  const handleManualSubmit = () => {
+    if (!manualCode.trim()) return;
+    handleScan({ text: manualCode.trim() });
+  };
+
+  const handleError = () => {
+    setError(translate('Camera error. Please check camera permissions.'));
   };
 
   const navigateToResult = () => {
@@ -104,7 +144,9 @@ export default function ScanQR() {
   };
 
   const handleReset = () => {
-    setError("");
+    setError('');
+    setManualCode('');
+    setManualMode(false);
     setScannedGraveId(null);
     setScannedDeadPersonId(null);
   };
@@ -120,14 +162,18 @@ export default function ScanQR() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-      <BackNavigation title={translate('Scan QR')} />
+      <style>{css}</style>
+      <BackNavigation title={translate('Scan QR Code')} />
 
       <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
 
+        {/* ── Hero scan card ── */}
         {!result && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="rounded-3xl overflow-hidden shadow-lg">
+
             {scanning ? (
-              <div className="relative aspect-square w-full">
+              /* ── Active camera ── */
+              <div className="relative aspect-square w-full bg-black">
                 <QrScanner
                   delay={300}
                   onError={handleError}
@@ -136,81 +182,156 @@ export default function ScanQR() {
                   constraints={{ video: { facingMode: 'environment' } }}
                 />
 
+                {/* overlay frame */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="relative w-56 h-56">
-                    <span className="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-emerald-400 rounded-tl-lg" />
-                    <span className="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-emerald-400 rounded-tr-lg" />
-                    <span className="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-emerald-400 rounded-bl-lg" />
-                    <span className="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-emerald-400 rounded-br-lg" />
-                    <div className="absolute left-2 right-2 top-1/2 h-0.5 bg-emerald-400/70 rounded-full animate-pulse" />
+                  <div className="relative w-60 h-60">
+                    {/* darkened surround */}
+                    <div className="absolute -inset-[9999px] bg-black/50" />
+                    {/* bright cutout */}
+                    <div className="absolute inset-0 border border-white/10 rounded-2xl" />
+                    {/* corners */}
+                    <span className="qr-corner absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] border-emerald-400 rounded-tl-xl" />
+                    <span className="qr-corner absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] border-emerald-400 rounded-tr-xl" />
+                    <span className="qr-corner absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] border-emerald-400 rounded-bl-xl" />
+                    <span className="qr-corner absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] border-emerald-400 rounded-br-xl" />
+                    {/* animated scan line */}
+                    <div className="qr-scan-line" />
                   </div>
                 </div>
 
+                {/* hint label */}
                 <div className="absolute bottom-5 left-0 right-0 flex justify-center">
-                  <div className="px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
-                    <p className="text-white text-xs font-medium">Arahkan kamera ke kod QR</p>
+                  <div className="px-5 py-2 bg-black/50 backdrop-blur-md rounded-full border border-white/20">
+                    <p className="text-white text-xs font-medium tracking-wide">
+                      {translate('Point camera to QR code')}
+                    </p>
                   </div>
                 </div>
 
-                <Button
+                {/* close button */}
+                <button
                   onClick={() => setScanning(false)}
-                  className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/20 rounded-full text-white active:opacity-70 transition-opacity"
+                  className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-black/50 backdrop-blur-md border border-white/20 rounded-full text-white active:opacity-70"
                 >
                   <X className="w-4 h-4" />
-                </Button>
+                </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="relative mb-5">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-200">
-                    <ScanLine className="w-9 h-9 text-white" />
+              /* ── Idle hero ── */
+              <div
+                style={{
+                  background: 'linear-gradient(160deg, #063d2e 0%, #0a5c42 40%, #0d7a58 70%, #10956a 100%)',
+                }}
+                className="px-6 pt-10 pb-8 flex flex-col items-center text-center relative overflow-hidden"
+              >
+                {/* background geometry */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-40"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E")`,
+                  }}
+                />
+
+                {/* QR frame illustration */}
+                <div className="relative w-44 h-44 mb-6 float-icon">
+                  {/* outer glow */}
+                  <div className="absolute inset-0 rounded-2xl bg-emerald-400/10 scale-110" />
+                  {/* corners */}
+                  <span className="qr-corner absolute top-0 left-0 w-12 h-12 border-t-[4px] border-l-[4px] border-white/80 rounded-tl-2xl" />
+                  <span className="qr-corner absolute top-0 right-0 w-12 h-12 border-t-[4px] border-r-[4px] border-white/80 rounded-tr-2xl" />
+                  <span className="qr-corner absolute bottom-0 left-0 w-12 h-12 border-b-[4px] border-l-[4px] border-white/80 rounded-bl-2xl" />
+                  <span className="qr-corner absolute bottom-0 right-0 w-12 h-12 border-b-[4px] border-r-[4px] border-white/80 rounded-br-2xl" />
+                  {/* center icon */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center border border-white/20">
+                      <ScanLine className="w-8 h-8 text-white" />
+                    </div>
                   </div>
-                  <span className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-emerald-400 rounded-tl" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-emerald-400 rounded-tr" />
-                  <span className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl" />
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-emerald-400 rounded-br" />
+                  {/* animated scan line */}
+                  <div className="qr-scan-line" />
                 </div>
 
-                <h3 className="text-base font-bold text-slate-800 mb-1">{translate('Scan with Camera')}</h3>
-                <p className="text-xs text-slate-400 mb-6 max-w-[220px]">
-                  Imbas kod QR pada batu nisan atau rekod untuk melihat maklumat.
+                <h2 className="text-xl font-bold text-white mb-1 tracking-tight">
+                  {translate('Scan QR Code')}
+                </h2>
+                <p className="text-sm text-white/60 mb-8 max-w-[240px] leading-relaxed">
+                  {translate('Scan QR code on tombstone or record to view information.')}
                 </p>
 
-                <Button
-                  onClick={() => setScanning(true)}
+                {/* primary action */}
+                <button
+                  onClick={() => { setScanning(true); setManualMode(false); }}
                   disabled={loading}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-200 active:opacity-80 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-white text-emerald-700 text-sm font-bold shadow-lg shadow-black/20 active:opacity-80 transition-all disabled:opacity-50 mb-4"
                 >
                   <Camera className="w-4 h-4" />
                   {translate('Open Camera')}
-                </Button>
+                </button>
+
+                {/* secondary: type code */}
+                <button
+                  onClick={() => setManualMode((v) => !v)}
+                  className="flex items-center gap-1.5 text-white/60 text-xs font-medium hover:text-white/90 transition-colors"
+                >
+                  <Keyboard className="w-3.5 h-3.5" />
+                  {translate('Type Code')}
+                </button>
+              </div>
+            )}
+
+            {/* ── Manual entry panel ── */}
+            {!scanning && manualMode && (
+              <div className="bg-white px-4 py-4 border-t border-slate-100">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                  {translate('Enter QR code')}
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleManualSubmit()}
+                    placeholder={translate('Enter QR code')}
+                    className="flex-1 h-11 rounded-xl border-slate-200 text-sm"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleManualSubmit}
+                    disabled={!manualCode.trim() || loading}
+                    className="px-4 h-11 rounded-xl bg-emerald-500 text-white text-sm font-semibold disabled:opacity-40 active:opacity-70 transition-all flex items-center gap-1.5 shrink-0"
+                  >
+                    {translate('Search')}
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {error && error !== "" && (
+        {/* ── Error banner ── */}
+        {error && (
           <div className="flex items-center gap-3 px-4 py-3.5 bg-red-50 border border-red-100 rounded-2xl">
             <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
               <AlertCircle className="w-4 h-4 text-red-500" />
             </div>
             <p className="text-sm font-medium text-red-600 flex-1">{error}</p>
-            <Button
-              onClick={() => { setError(null); setScanning(true); }}
-              className="text-xs text-red-400 font-semibold underline underline-offset-2 shrink-0"
+            <button
+              onClick={() => { setError(''); setScanning(true); setManualMode(false); }}
+              className="text-xs text-red-400 font-semibold underline underline-offset-2 shrink-0 active:opacity-70"
             >
-              Cuba lagi
-            </Button>
+              {translate('Try again')}
+            </button>
           </div>
         )}
 
-        {/* Result Card */}
+        {/* ── Result Card ── */}
         {result && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            {/* Green header strip */}
             <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-white" />
-              <p className="text-xs font-semibold text-white uppercase tracking-widest">{translate('Record Found')}</p>
+              <p className="text-xs font-semibold text-white uppercase tracking-widest">
+                {translate('Record Found')}
+              </p>
             </div>
 
             <div className="p-4 space-y-3">
@@ -225,7 +346,7 @@ export default function ScanQR() {
                 )}
                 {result.type === 'grave' && result.data.block && (
                   <p className="text-sm text-slate-400 mt-0.5">
-                    {translate('Blok')} {result.data.block}, {translate('Lot')} {result.data.lot}
+                    {translate('Block')} {result.data.block}, {translate('Lot')} {result.data.lot}
                   </p>
                 )}
                 {result.type === 'deadperson' && result.data.dateofdeath && (
@@ -253,6 +374,48 @@ export default function ScanQR() {
             </div>
           </div>
         )}
+
+        {/* ── How it works ── */}
+        {!result && !scanning && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                {translate('How to use')}
+              </p>
+            </div>
+            <div className="divide-y divide-slate-50">
+              {[
+                {
+                  step: '01',
+                  icon: Camera,
+                  color: 'bg-emerald-50 text-emerald-600',
+                  text: translate('Open camera or type the QR code manually'),
+                },
+                {
+                  step: '02',
+                  icon: ScanLine,
+                  color: 'bg-blue-50 text-blue-500',
+                  text: translate('Aim at the QR code on the grave marker'),
+                },
+                {
+                  step: '03',
+                  icon: CheckCircle,
+                  color: 'bg-violet-50 text-violet-500',
+                  text: translate('Grave details will appear automatically'),
+                },
+              ].map(({ step, icon: Icon, color, text }) => (
+                <div key={step} className="flex items-center gap-3 px-4 py-3.5">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <p className="text-sm text-slate-600 leading-snug flex-1">{text}</p>
+                  <span className="text-xs font-bold text-slate-200">{step}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

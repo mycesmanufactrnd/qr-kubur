@@ -144,8 +144,6 @@ export default function TahfizDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* -------- Left (2/3) -------- */}
         <div className="lg:col-span-2">
           <Card className="h-full border-0 shadow-xl bg-white/80 backdrop-blur">
             <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-purple-50">

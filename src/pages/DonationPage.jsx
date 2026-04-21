@@ -162,7 +162,7 @@ export default function DonationPage() {
     trpc.runningNo.createDonationRunningNo.useMutation();
   const createDonation = trpc.donation.create.useMutation({
     onSuccess: () => {
-      showSuccess("Terima kasih! Derma anda telah direkodkan.");
+      showSuccess(translate("Thank you! Your donation has been recorded."));
       reset(defaultDonationField);
     },
   });
@@ -175,7 +175,7 @@ export default function DonationPage() {
   }, [googleUser]);
 
   useEffect(() => {
-    if (locationDenied) showWarning("Lokasi tidak tersedia");
+    if (locationDenied) showWarning(translate("Location not available"));
   }, [locationDenied]);
 
   const baseAmount = useMemo(
@@ -208,7 +208,7 @@ export default function DonationPage() {
 
     if (statusText === "Success") {
       setLoadingPayment(true);
-      showSuccess("Pembayaran berjaya!");
+      showSuccess(translate("Payment successful!"));
 
       const storedUser = localStorage.getItem("googleAuth") || sessionStorage.getItem("googleAuth");
       let googleRecordPayload = null;
@@ -275,10 +275,10 @@ export default function DonationPage() {
         })
         .finally(handleFinally);
     } else if (statusText === "Pending") {
-      showError("Pembayaran masih dalam proses.");
+      showError(translate("Payment is still being processed."));
       setLoadingPayment(false);
     } else {
-      showError("Pembayaran gagal.");
+      showError(translate("Payment failed."));
       setLoadingPayment(false);
     }
   }, [searchParams]);
@@ -440,7 +440,7 @@ export default function DonationPage() {
     ]);
     if (!isValid) return;
     if (!baseAmount) {
-      showError("Sila lengkapkan maklumat derma");
+      showError(translate("Please complete donation information"));
       return;
     }
     const resPayment = await handlePaymentConfig(formData);
@@ -526,7 +526,7 @@ export default function DonationPage() {
                   }}
                 >
                   <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm flex-1">
-                    <SelectValue placeholder={translate("state")} />
+                    <SelectValue placeholder={translate("State")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="nearby">
@@ -573,7 +573,7 @@ export default function DonationPage() {
                     <SelectItem value="__empty__" disabled>
                       {recipientType === "organisation"
                         ? translate("No organisation found")
-                        : translate("No tahfiz center found")}
+                        : translate("No tahfiz centers found")}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -612,7 +612,7 @@ export default function DonationPage() {
 
               <Input
                 type="number"
-                placeholder={`${translate("Other Amount")} (RM)`}
+                placeholder={`${translate("Other amount")} (RM)`}
                 value={customAmount}
                 onChange={(e) => {
                   setValue("customAmount", e.target.value);
@@ -624,20 +624,20 @@ export default function DonationPage() {
               {baseAmount > 0 && (
                 <div className="rounded-xl overflow-hidden border border-slate-100">
                   <div className="flex justify-between items-center px-3 py-2 bg-slate-50 text-sm">
-                    <span className="text-slate-500">Jumlah Derma</span>
+                    <span className="text-slate-500">{translate("Donation Amount")}</span>
                     <span className="font-semibold text-slate-700">
                       RM {baseAmount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center px-3 py-2 border-t border-slate-100 text-sm">
-                    <span className="text-slate-500">Yuran Platform</span>
+                    <span className="text-slate-500">{translate("Platform Fee")}</span>
                     <span className="font-semibold text-slate-700">
                       RM {Number(MAINTENANCE_FEE).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center px-3 py-2.5 bg-emerald-50 border-t border-slate-100">
                     <span className="text-sm font-bold text-emerald-800">
-                      Jumlah Keseluruhan
+                      {translate("Total Amount")}
                     </span>
                     <span className="text-base font-bold text-emerald-700">
                       RM {payableAmount.toFixed(2)}
@@ -651,7 +651,7 @@ export default function DonationPage() {
           {/* Payment Method */}
           {paymentPlatforms.length > 0 && (
             <Section
-              title="Kaedah Pembayaran"
+              title={translate("Payment Method")}
               icon={CreditCard}
               accent="emerald"
             >
@@ -759,10 +759,7 @@ export default function DonationPage() {
               />
               <div className="flex gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-600 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
-                <span>
-                  Resit pembayaran akan dihantar ke emel yang diberikan jika
-                  ada.
-                </span>
+                <span>{translate("Payment receipt will be sent to the provided email if available.")}</span>
               </div>
             </div>
           </Section>
@@ -780,7 +777,7 @@ export default function DonationPage() {
           `}
           >
             {createDonation.isPending
-              ? "Menghantar..."
+              ? translate("Submitting...")
               : translate("Submit Donation")}
           </button>
         </form>

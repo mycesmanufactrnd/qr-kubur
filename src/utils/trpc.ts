@@ -13,7 +13,7 @@ const getHeaders = () => {
   };
 };
 
-const ngrokLink = "https://08a9-2001-e68-58d7-4c00-d049-7863-f940-9a12.ngrok-free.app/trpc";
+const ngrokLink = " https://5e8b-2001-e68-58d7-4c00-89b1-93d8-a51d-ef53.ngrok-free.app/trpc";
 
 export const trpcClient = trpc.createClient({
   links: [

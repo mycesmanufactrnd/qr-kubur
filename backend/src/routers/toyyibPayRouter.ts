@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc.ts";
 import { createBill, upsertTransactionAccountByOrderNo } from "../services/toyyibpay.service.ts";
+import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
 
 export const toyyibPayRouter = router({
   createBill: publicProcedure
@@ -32,9 +33,12 @@ export const toyyibPayRouter = router({
         };
       }
 
+      const toyyibpayConfig = getToyyibpayConfig();
+      let baseUrl = toyyibpayConfig.baseUrl;
+
       return {
         billCode: bill.data.BillCode,
-        paymentUrl: `https://dev.toyyibpay.com/${bill.data.BillCode}`,
+        paymentUrl: `${baseUrl}/${bill.data.BillCode}`,
       };
     }),
 

@@ -16,7 +16,7 @@ import { resolveFileUrl } from '@/utils';
 
 const STATUS_CONFIG = {
   [TahlilStatus.PENDING]: {
-    label: 'Menunggu',
+    label: translate('Pending'),
     icon: Clock,
     bg: 'bg-amber-50',
     border: 'border-amber-200',
@@ -25,7 +25,7 @@ const STATUS_CONFIG = {
     dot: 'bg-amber-400',
   },
   [TahlilStatus.ACCEPTED]: {
-    label: 'Diterima',
+    label: translate('Accepted'),
     icon: CheckCircle,
     bg: 'bg-blue-50',
     border: 'border-blue-200',
@@ -34,7 +34,7 @@ const STATUS_CONFIG = {
     dot: 'bg-blue-400',
   },
   [TahlilStatus.COMPLETED]: {
-    label: 'Selesai',
+    label: translate('Completed'),
     icon: CheckCircle,
     bg: 'bg-emerald-50',
     border: 'border-emerald-200',
@@ -43,7 +43,7 @@ const STATUS_CONFIG = {
     dot: 'bg-emerald-400',
   },
   [TahlilStatus.REJECTED]: {
-    label: 'Ditolak',
+    label: translate('Rejected'),
     icon: XCircle,
     bg: 'bg-red-50',
     border: 'border-red-200',
@@ -83,7 +83,7 @@ export default function CheckTahlilStatus() {
     if (!isLoading) {
       setSearching(false);
       if (!tahlilRequest) {
-        showError('Permohonan Tidak Dijumpa');
+        showError(translate('Request not found'));
         return;
       }
       setRequest({
@@ -104,7 +104,7 @@ export default function CheckTahlilStatus() {
   }, [tahlilRequest, isLoading, searchKey]);
 
   const handleSearch = () => {
-    if (!referenceId.trim()) { showError('Sila Masukkan ID Rujukan'); return; }
+    if (!referenceId.trim()) { showError(translate('Please enter Reference ID')); return; }
     setSearching(true);
     setSearchKey(referenceId.trim());
   };
@@ -118,7 +118,7 @@ export default function CheckTahlilStatus() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-      <BackNavigation title="Tahlil Status" />
+      <BackNavigation title={translate('Tahlil Status')} />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-4">
 
@@ -130,21 +130,21 @@ export default function CheckTahlilStatus() {
             {translate('Check Tahlil Application Status')}
           </h2>
           <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed">
-            Masukkan No. rujukan untuk menyemak status permohonan anda
+            {translate('Enter reference number to check your application status.')}
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
           <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">Carian Permohonan</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">{translate('Application Search')}</p>
           </div>
 
           <div className="space-y-1.5 pt-1">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              No. Rujukan Transaksi
+              {translate('Transaction Reference No.')}
             </label>
             <Input
-              placeholder="Contoh: THL-2024-0001"
+              placeholder={`${translate('Example')}: THL-2024-0001`}
               value={referenceId}
               onChange={e => setReferenceId(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -158,14 +158,14 @@ export default function CheckTahlilStatus() {
             className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 active:opacity-80 transition-all disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
-            {searching ? 'Mencari...' : 'Cari Status'}
+            {searching ? translate('Searching...') : translate('Search Status')}
           </Button>
         </div>
 
         <div className="flex gap-2.5 items-start px-4 py-3.5 bg-blue-50 border border-blue-100 rounded-2xl">
           <span className="text-base mt-0.5">💡</span>
           <p className="text-xs text-blue-600 leading-relaxed">
-            <span className="font-bold">Tip:</span> No. rujukan boleh didapati daripada resit pembayaran yang dihantar ke emel anda.
+            <span className="font-bold">{translate('Tip')}:</span> {translate('Your reference number can be found in the payment receipt sent to your email.')}
           </p>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function CheckTahlilStatus() {
 
           <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
-              Status Permohonan
+              {translate('Application Status')}
             </DialogTitle>
             {request && (
               <div className="flex flex-col items-center gap-2.5">
@@ -201,7 +201,7 @@ export default function CheckTahlilStatus() {
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2">
                       <User className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Pemohon</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{translate('Requester')}</span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">{request.requestorname}</span>
                   </div>
@@ -210,7 +210,7 @@ export default function CheckTahlilStatus() {
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2 shrink-0">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Pusat Tahfiz</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{translate('Tahfiz Center')}</span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700 text-right max-w-[55%]">{tahfizCenter.name}</span>
                   </div>
@@ -219,7 +219,7 @@ export default function CheckTahlilStatus() {
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Tarikh</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{translate('Date')}</span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">
                       {new Date(request.createdat).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -230,7 +230,7 @@ export default function CheckTahlilStatus() {
 
               {request.deceasednames?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">Nama Arwah</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">{translate('Deceased Name')}</p>
                   <div className="space-y-1.5">
                     {request.deceasednames.map((name, i) => (
                       <div key={i} className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
@@ -246,7 +246,7 @@ export default function CheckTahlilStatus() {
 
               {request.selectedservices?.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">Perkhidmatan</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">{translate('Services')}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {request.selectedservices.map((type, i) => (
                       <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-700">
@@ -259,14 +259,14 @@ export default function CheckTahlilStatus() {
 
               {request.serviceamount != null && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">Jumlah</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">{translate('Amount')}</p>
                   <div className="flex items-center justify-between px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
-                    <span className="text-sm text-slate-500">Jumlah Perkhidmatan</span>
+                    <span className="text-sm text-slate-500">{translate('Service Amount')}</span>
                     <span className="text-sm font-semibold text-slate-900">{formatRM(request.serviceamount)}</span>
                   </div>
                   {request.platformfeeamount != null && (
                     <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-50 border border-emerald-100 rounded-xl">
-                      <span className="text-sm font-semibold text-emerald-700">Jumlah Dibayar</span>
+                      <span className="text-sm font-semibold text-emerald-700">{translate('Total Paid')}</span>
                       <span className="text-sm font-bold text-emerald-700">{formatRM(Number(request.serviceamount) + Number(request.platformfeeamount))}</span>
                     </div>
                   )}
@@ -276,7 +276,7 @@ export default function CheckTahlilStatus() {
               {request.photourls?.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                    Gambar Tahlil
+                    {translate('Tahlil Photos')}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {request.photourls.map((url, idx) => (
@@ -295,7 +295,7 @@ export default function CheckTahlilStatus() {
                 onClick={handleClose}
                 className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-70 transition-opacity"
               >
-                Tutup
+                {translate('Close')}
               </Button>
             </div>
           )}

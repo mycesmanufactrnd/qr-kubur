@@ -26,7 +26,7 @@ import { formatRM } from "@/utils/helpers";
 
 const STATUS_CONFIG = {
   [QuotationStatus.PENDING]: {
-    label: "Menunggu",
+    label: translate("Pending"),
     icon: Clock,
     bg: "bg-amber-50",
     border: "border-amber-200",
@@ -34,7 +34,7 @@ const STATUS_CONFIG = {
     iconColor: "text-amber-500",
   },
   [QuotationStatus.COMPLETED]: {
-    label: "Selesai",
+    label: translate("Completed"),
     icon: CheckCircle,
     bg: "bg-emerald-50",
     border: "border-emerald-200",
@@ -42,7 +42,7 @@ const STATUS_CONFIG = {
     iconColor: "text-emerald-500",
   },
   [QuotationStatus.REJECTED]: {
-    label: "Ditolak",
+    label: translate("Rejected"),
     icon: XCircle,
     bg: "bg-red-50",
     border: "border-red-200",
@@ -87,7 +87,7 @@ export default function CheckServiceStatus() {
     if (!isLoading) {
       setSearching(false);
       if (!quotation) {
-        showError("Permohonan Tidak Dijumpa");
+        showError(translate("Service not found"));
         return;
       }
       setIsDialogOpen(true);
@@ -96,7 +96,7 @@ export default function CheckServiceStatus() {
 
   const handleSearch = () => {
     if (!referenceId.trim()) {
-      showError("Sila Masukkan No. Rujukan");
+      showError(translate("Please enter Reference No."));
       return;
     }
     setSearching(true);
@@ -110,7 +110,7 @@ export default function CheckServiceStatus() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-      <BackNavigation title="Service Status" />
+      <BackNavigation title={translate("Service Status")} />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-4">
         <div className="flex flex-col items-center text-center gap-2 pb-2">
@@ -121,23 +121,23 @@ export default function CheckServiceStatus() {
             {translate("Check Service Status")}
           </h2>
           <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed">
-            Masukkan No. rujukan untuk menyemak status perkhidmatan anda
+            {translate("Enter reference number to check your service status.")}
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
           <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-sky-600">
-              Carian Perkhidmatan
+              {translate("Service Search")}
             </p>
           </div>
 
           <div className="space-y-1.5 pt-1">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              No. Rujukan Transaksi
+              {translate("Transaction Reference No.")}
             </label>
             <Input
-              placeholder="Contoh: QUO-2024-0001"
+              placeholder={`${translate("Example")}: QUO-2024-0001`}
               value={referenceId}
               onChange={(e) => setReferenceId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -151,15 +151,14 @@ export default function CheckServiceStatus() {
             className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-sky-200 active:opacity-80 transition-all disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
-            {searching ? "Mencari..." : "Cari Status"}
+            {searching ? translate("Searching...") : translate("Search Status")}
           </Button>
         </div>
 
         <div className="flex gap-2.5 items-start px-4 py-3.5 bg-blue-50 border border-blue-100 rounded-2xl">
           <span className="text-base mt-0.5">💡</span>
           <p className="text-xs text-blue-600 leading-relaxed">
-            <span className="font-bold">Tip:</span> No. rujukan boleh didapati
-            daripada resit pembayaran yang dihantar ke emel anda.
+            <span className="font-bold">{translate("Tip")}:</span> {translate("Your reference number can be found in the payment receipt sent to your email.")}
           </p>
         </div>
       </div>
@@ -173,7 +172,7 @@ export default function CheckServiceStatus() {
         <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
           <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
-              Status Perkhidmatan
+              {translate("Service Application Status")}
             </DialogTitle>
             {quotation && (
               <div className="flex flex-col items-center gap-2.5">
@@ -193,7 +192,7 @@ export default function CheckServiceStatus() {
                     <div className="flex items-center gap-2 shrink-0">
                       <User className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Pemohon
+                        {translate("Requester")}
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">
@@ -206,7 +205,7 @@ export default function CheckServiceStatus() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Emel
+                        {translate("Email")}
                       </span>
                     </div>
                     <span className="text-sm text-slate-700 text-right max-w-[55%] break-all">
@@ -219,7 +218,7 @@ export default function CheckServiceStatus() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Telefon
+                        {translate("Phone No")}
                       </span>
                     </div>
                     <span className="text-sm text-slate-700">{quotation.payerphone}</span>
@@ -230,7 +229,7 @@ export default function CheckServiceStatus() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Building2 className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Organisasi
+                        {translate("Organisation")}
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700 text-right max-w-[55%]">
@@ -243,7 +242,7 @@ export default function CheckServiceStatus() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Heart className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Si Mati
+                        {translate("Deceased")}
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700 text-right max-w-[55%]">
@@ -256,7 +255,7 @@ export default function CheckServiceStatus() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        Tarikh
+                        {translate("Date")}
                       </span>
                     </div>
                     <span className="text-sm font-semibold text-slate-700">
@@ -273,7 +272,7 @@ export default function CheckServiceStatus() {
               {quotation.selectedservices?.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                    Perkhidmatan
+                    {translate("Services")}
                   </p>
                   <div className="space-y-1.5">
                     {quotation.selectedservices.map((s, i) => (
@@ -288,7 +287,7 @@ export default function CheckServiceStatus() {
                   </div>
                   {quotation.totalamount != null && (
                     <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl">
-                      <span className="text-sm font-semibold text-sky-700">Jumlah</span>
+                      <span className="text-sm font-semibold text-sky-700">{translate("Total Amount")}</span>
                       <span className="text-sm font-bold text-sky-700">{formatRM(quotation.totalamount)}</span>
                     </div>
                   )}
@@ -298,7 +297,7 @@ export default function CheckServiceStatus() {
               {quotation.photourl && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                    Gambar Perkhidmatan
+                    {translate("Service Photos")}
                   </p>
                   <img
                     src={resolveFileUrl(quotation.photourl, "organisation-services")}
@@ -312,7 +311,7 @@ export default function CheckServiceStatus() {
                 onClick={handleClose}
                 className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-70 transition-opacity"
               >
-                Tutup
+                {translate("Close")}
               </Button>
             </div>
           )}
