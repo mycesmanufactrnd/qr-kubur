@@ -1,24 +1,45 @@
-~ Cari Masjid berdekatan (done)
-~ Heritage Site macam maqam (done)
-~ Islamic Events in Calendar (done)
-~ Make tahlil to google, so user can check again (done)
-~ Kumpulan doa2 harian, bacaan zikir pagi dan petang (dari utube) (done)
-~ if ongoing can do live tahlil check at tahlil status (done)
-~ add to favorite masjid apa2 (done), untuk sedekah (done)
-~ khairat kematian (done)
-~ PIC jenazah (done)
-~ Digital tasbih (done)
-~ Asma ulhusna ( with video ) (done)
-~ Prayer time (done)
-~ Rukun2 (done)
-~ buat bayar untuk bersihkan kubur, service bersihkan (done)
-~ bayaran user luar khairat kematian (done)
-~ after tahlil or ongoing tahlil (done)
+Done Features
+├── Cari Masjid berdekatan
+├── Heritage Site (maqam)
+├── Islamic Events in Calendar
+├── Tahlil Google Search feature
+├── Doa Harian & Zikir (pagi/petang from YouTube)
+├── Live Tahlil Status (ongoing tracking)
+├── Favorite Masjid + Sedekah support
+├── Khairat Kematian
+├── PIC Jenazah
+├── Digital Tasbih
+├── Asma ul Husna (with video)
+├── Prayer Time
+├── Rukun-rukun Islam
+├── Kubur Cleaning Service Payment
+├── External User Khairat Payment
+└── After / Ongoing Tahlil System
+
+Upcoming Features
+ ├── Report Financial Record (all transaction reports)
+ ├── Volunteering Page (NGO)
+ ├── Qibla
+ ├── Masjid Online Classes (Zoom / Kuliah Maghrib)
+ ├── Zakat Calculation (by negeri)
+ ├── Sirah
+ ├── Musafir
+ ├── Marketplace
+ ├── Waqf Projects (with progress tracking)
+ ├── Sentry Integration (error tracking)
+ ├── Gantt chart
+ └── FAQ + User Guide (initial onboarding)
+
+Transaction Proof (Done)
+ ├── Donation
+ ├── Tahfiz Payment
+ ├── Organisation Payment
+ └── Death Charity (Khairat)
 
 ===== SECURITY & AUTH IMPROVEMENTS (2026-04-22) =====
 REFRESH TOKEN SYSTEM IMPLEMENTED:
 - Implemented separate access and refresh tokens for enhanced security
-- Access tokens: 15-minute expiration (short-lived for security)
+- Access tokens: 30-minute expiration (short-lived for security)
 - Refresh tokens: 7-day expiration (long-lived for user experience)
 - Token rotation: New refresh token issued with each refresh (old one invalidated)
 - Automatic token refresh mechanism added to frontend
@@ -42,10 +63,10 @@ FILES MODIFIED:
    - Prevents refresh tokens from being used as access tokens
 
 3. backend/src/routers/authRouter.ts
-   - login: Now returns both accessToken + refreshToken
+   - login: Admin-only, returns both accessToken + refreshToken
    - NEW: refresh endpoint for token rotation
    - NEW: logout endpoint to clear cookies
-   - loginGoogle: Updated to use new token system
+   - loginGoogle: UPDATED - Returns user info ONLY, NO TOKENS (public access)
    - Helper function setCookies() sets secure httpOnly cookies
 
 4. backend/src/server.ts
@@ -60,6 +81,7 @@ FILES MODIFIED:
    - handleLoginTRPC: Stores tokens as fallback only
    - NEW: refreshAccessToken() for token refresh with rotation
    - handleLogout: Calls backend logout to clear cookies
+   - useLoginGoogle: UPDATED - Handles Google login without tokens (public)
    - Helper functions for token fallback management
 
 7. src/utils/trpc.ts (Frontend)
@@ -73,34 +95,10 @@ NEXT STEPS FOR PRODUCTION:
 3. Implement token refresh interceptor for automatic refresh before expiry
 4. Consider rate limiting on /auth/refresh endpoint
 5. Add analytics for tracking token refresh rates
-6. Add to capcaitor
 
------ not yet ----------
-~ report fincancial record (ongoing)
-~ Volunteering page (NGO) [new features]
-~ Qibla [new features]
-~ Masjid2 boleh buat online class, zoom link... kuliah maghrib and so on [new features]
-~ Calculation Zakat (by negeri) [new features]
-~ Sirah [new features]
-~ Musafir [new features]
-~ jual beli brg [new features]
-~ Waqf Projects with progress (done) [new features]
-
--------------- transaction proof ----------------------------
-- donation (done)
-- tahfiz (done)
-- organisation (done)
-- deathcharity (done)
-
------------- for meeting --------------------------------------
-Promo QR Kubur
-1. Untuk corporate
-2. untuk masjid/surau/tahfiz/kubur
-
-Minggu depan Khamis pagi nak tgk system ************
-1. buat role based flow (full architecture)
-2. buat by features (payment)
-3. sediakan FAQ, and user guide
-6. sediakan beberapa option untuk payment gateway
-5. buat gantt chart
-4. satu link untuk semua report kluar masuk (report by duit masuk), tahfiz, khairat and semua
+AUTH ARCHITECTURE (2026-04-22 Update):
+- ADMIN LOGIN: /auth/login (email/password) → Returns access + refresh tokens + cookies
+- PUBLIC GOOGLE: /auth/loginGoogle (credential) → Returns user info ONLY, no tokens
+- Token refresh: /auth/refresh (refreshToken) → Token rotation for security
+- Logout: /auth/logout → Clears cookies
+- Strategy: Admin users get protected endpoints via tokens, public users get read-only access

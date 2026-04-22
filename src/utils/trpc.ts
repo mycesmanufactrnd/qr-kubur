@@ -5,10 +5,17 @@ import type { AppRouter } from '../../backend/src/routers/appRouter';
 export const trpc = createTRPCReact<AppRouter>();
 
 const getHeaders = () => {
-  const accessToken = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
+  const accessToken =
+    sessionStorage.getItem('accessToken') ||
+    localStorage.getItem('accessToken');
+
+  const cleanedAccessToken =
+    accessToken && accessToken !== "undefined" && accessToken !== "null"
+      ? accessToken
+      : null;
 
   return {
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(cleanedAccessToken ? { Authorization: `Bearer ${cleanedAccessToken}` } : {}),
     'ngrok-skip-browser-warning': 'true',
   };
 };
@@ -37,7 +44,7 @@ export const trpcClient = trpc.createClient({
         // url: 'http://localhost:8000/trpc',
         url: ngrokLink,
         headers: getHeaders,
-         fetch(url, options) {
+        fetch(url, options) {
           return fetch(url, {
             ...options,
             credentials: 'include',

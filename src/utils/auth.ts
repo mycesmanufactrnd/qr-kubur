@@ -3,10 +3,36 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { trpc, trpcClient } from './trpc';
 import { STATES_MY } from './enums';
 import { useNavigate } from 'react-router-dom';
+import { captureError } from './helpers';
 
 const GOOGLE_AUTH_KEY = "googleAuth";
 const GOOGLE_SIGNED_OUT_KEY = "googleSignedOut";
-const TOKEN_KEY = "token";
+// Updated token storage strategy - tokens now in httpOnly cookies by default
+// These keys kept for backward compatibility and fallback
+const ACCESS_TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
+
+/**
+ * Primary auth is via httpOnly cookies (automatic)
+ * This is backup for scenarios where cookies aren't available
+ */
+const storeTokensFallback = (accessToken: string, refreshToken: string) => {
+  // Only store in sessionStorage as fallback, never expose in localStorage
+  sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+};
+
+const clearTokensFallback = () => {
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+const getStoredTokensFallback = () => {
+  return {
+    accessToken: sessionStorage.getItem(ACCESS_TOKEN_KEY),
+    refreshToken: sessionStorage.getItem(REFRESH_TOKEN_KEY),
+  };
+};
 
 export function getStoredGoogleUser(): any | null {
   try {
@@ -24,16 +50,18 @@ export function setStoredGoogleAuth(user: any, token?: string | null) {
 
   if (token) {
     // Keep token in both for backward compatibility; TRPC headers prefer sessionStorage first.
-    sessionStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
   }
 }
 
 export function clearStoredGoogleAuth() {
   localStorage.removeItem(GOOGLE_AUTH_KEY);
   sessionStorage.removeItem(GOOGLE_AUTH_KEY);
-  sessionStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(TOKEN_KEY);
+  // Ensure Google sign-out is a complete app sign-out even when we fall back to Bearer tokens.
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  clearTokensFallback();
   localStorage.setItem(GOOGLE_SIGNED_OUT_KEY, "1");
 }
 
@@ -47,33 +75,61 @@ export function handleLoginTRPC() {
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
-      sessionStorage.setItem("token", data.token);
-      sessionStorage.setItem("clientIP", data.clientIp);
-      sessionStorage.setItem("appUserAuth", JSON.stringify(data));
+      try {
+        /**
+         * Store tokens as fallback in sessionStorage
+         * Primary authentication is via httpOnly cookies set by server
+         * These are backup in case cookies aren't available
+         */
+        storeTokensFallback(data.accessToken, data.refreshToken);
 
-      const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
+        sessionStorage.setItem("clientIP", data.clientIp);
+        sessionStorage.setItem("appUserAuth", JSON.stringify(data));
 
-      sessionStorage.setItem("permissions", JSON.stringify(permissions));
+        const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
+        sessionStorage.setItem("permissions", JSON.stringify(permissions));
 
-      if (data.role === "superadmin") {
-        window.location.href = createPageUrl("SuperadminDashboard");
-      } else if (data.tahfizcenter) {
-        window.location.href = createPageUrl("TahfizDashboard");
-      } else if (data.organisation) {
-        window.location.href = createPageUrl("AdminDashboard");
-      } else {
-        sessionStorage.clear();
-        window.location.href = createPageUrl("AppUserLogin");
+        if (data.role === "superadmin") {
+          window.location.href = createPageUrl("SuperadminDashboard");
+          return;
+        }
+
+        // Tahfiz admins go to Tahfiz dashboard; employee/admin roles go to Admin dashboard even without org linkage.
+        if (data.tahfizcenter) {
+          window.location.href = createPageUrl("TahfizDashboard");
+          return;
+        }
+
+        if (data.role === "admin" || data.role === "employee" || data.organisation) {
+          window.location.href = createPageUrl("AdminDashboard");
+          return;
+        }
+
+        // Login succeeded but user isn't configured for admin access.
+        sessionStorage.removeItem("appUserAuth");
+        sessionStorage.removeItem("permissions");
+        clearTokensFallback();
+        setError("Your account is not set up for admin access.");
+      } catch (e: any) {
+        captureError("Login failed", { action: "login" }, { message: e?.message });
+        console.error(e);
+        sessionStorage.removeItem("appUserAuth");
+        sessionStorage.removeItem("permissions");
+        clearTokensFallback();
+        setError(e?.message || "Login failed");
+      } finally {
+        setLoading(false);
       }
     },
     onError: (err) => {
+      captureError("Login failed", { action: "login" }, { message: err.message });
       console.error(err);
       setError(err.message || "Login failed");
       setLoading(false);
     },
   });
 
-  const login = (email, password) => {
+  const login = (email: string, password: string) => {
     setError("");
     setLoading(true);
     loginMutation.mutate({ email, password });
@@ -82,14 +138,49 @@ export function handleLoginTRPC() {
   return { login, loading, error, setError };
 }
 
-export function handleLogout(clearPermissions?: () => void) {
+/**
+ * Token rotation ensures old refresh tokens can't be reused
+ * Should be called automatically when access token expires
+ */
+export async function refreshAccessToken() {
+  try {
+    const { refreshToken } = getStoredTokensFallback();
+    
+    if (!refreshToken) {
+      console.warn("No refresh token available");
+      return null;
+    }
+
+    const response = await trpcClient.auth.refresh.mutate({ 
+      refreshToken 
+    });
+
+    if (response) {
+      // Update stored tokens with rotated tokens
+      storeTokensFallback(response.accessToken, response.refreshToken);
+      return response.accessToken;
+    }
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    handleLogout();
+    return null;
+  }
+}
+
+export async function handleLogout(clearPermissions?: () => void) {
     clearPermissions?.();
+    
+    try {
+      await trpcClient.auth.logout.mutate();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
     
     sessionStorage.removeItem('appUserAuth');
     sessionStorage.removeItem('superAdminAuth');
     sessionStorage.removeItem('isImpersonating');
-    sessionStorage.removeItem('token');
-    localStorage.removeItem('token');
+    clearTokensFallback();
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
     sessionStorage.removeItem('permissions'); 
     window.location.href = createPageUrl('AppUserLogin');
 }
@@ -123,9 +214,6 @@ export function impersonateUser(user: any) {
 
 async function refreshAppUserAuth(cachedUser: any) {
   if (!cachedUser?.id) return null;
-
-  const token = sessionStorage.getItem("token");
-  if (!token) return null;
 
   try {
     const refreshedUser = await trpcClient.users.getUserById.query({ id: Number(cachedUser.id) });
@@ -283,7 +371,8 @@ export function useLoginGoogle() {
   const loginGoogleMutation = trpc.auth.loginGoogle.useMutation({
     onSuccess: (data) => {
       setLoading(false);
-      setStoredGoogleAuth(data.user, data.token);
+      // Store user info only, no tokens (public access)
+      setStoredGoogleAuth(data.user);
       
       navigate(createPageUrl("UserDashboard"));
     },
@@ -293,7 +382,7 @@ export function useLoginGoogle() {
     },
   });
 
-  const login = (credential) => {
+  const login = (credential: any) => {
     setError("");
     setLoading(true);
 

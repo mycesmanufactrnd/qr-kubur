@@ -49,7 +49,7 @@ await app.register(import('@fastify/cors'), {
   credentials: true, //Enable credentials for httpOnly cookies to work
 });
 
-// CHANGE: Register cookie plugin to support secure httpOnly cookies
+// Register cookie plugin to support secure httpOnly cookies
 await app.register(cookie);
 
 await app.register(multipart);
