@@ -5,10 +5,10 @@ import type { AppRouter } from '../../backend/src/routers/appRouter';
 export const trpc = createTRPCReact<AppRouter>();
 
 const getHeaders = () => {
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const accessToken = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
 
   return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     'ngrok-skip-browser-warning': 'true',
   };
 };
@@ -25,11 +25,24 @@ export const trpcClient = trpc.createClient({
         // url: 'http://localhost:8000/trpc',
         url: ngrokLink,
         headers: getHeaders,
+        fetch(url, options) {
+          return fetch(url, {
+            ...options,
+            // Enable credentials for httpOnly cookies
+            credentials: 'include',
+          });
+        },
       }),
       false: httpBatchLink({
         // url: 'http://localhost:8000/trpc',
         url: ngrokLink,
         headers: getHeaders,
+         fetch(url, options) {
+          return fetch(url, {
+            ...options,
+            credentials: 'include',
+          });
+        },
       }),
     }),
   ],
