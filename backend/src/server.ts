@@ -4,6 +4,10 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
+const ngrokUrl = process.env.NGROK_URL;
+console.log("\n🌍 NGROK URL:");
+console.log(process.env.NGROK_URL || "❌ Not set");
+
 import { AppDataSource } from "./datasource.ts";
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
@@ -13,6 +17,7 @@ import { appRouter } from "./routers/appRouter.ts";
 import { supabaseClient } from "./supabase.ts";
 import multipart from '@fastify/multipart';
 import formbody from "@fastify/formbody";
+import cookie from '@fastify/cookie'; //cookie support for secure httpOnly cookies
 import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
 import { registerAPIRoutes } from "./api/api.ts";
 import { getBucketConfig } from "./config/bucket.config.ts";
@@ -33,10 +38,19 @@ await app.register(rateLimit, {
   ]
 });
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  ...(ngrokUrl ? [ngrokUrl] : []),
+];
+
 await app.register(import('@fastify/cors'), {
-  origin: "*",
-  // origin: "http://localhost:5173",
+  origin: allowedOrigins,
+  credentials: true, //Enable credentials for httpOnly cookies to work
 });
+
+// CHANGE: Register cookie plugin to support secure httpOnly cookies
+await app.register(cookie);
 
 await app.register(multipart);
 await app.register(formbody);
@@ -58,7 +72,12 @@ app.get("/", async () => {
 });
 
 app.addHook("onRequest", (req, reply, done) => {
-  const token = req.headers.authorization?.replace("Bearer ", "");
+  // Try both Bearer token and cookies for token extraction
+  let token = req.headers.authorization?.replace("Bearer ", "");
+  if (!token && req.cookies?.accessToken) {
+    token = req.cookies.accessToken;
+  }
+  
   const user = token ? verifyToken(token) : null;
 
   asyncLocalStorage.run(
