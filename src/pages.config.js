@@ -32,6 +32,7 @@ import PrayerTimes from '@/pages/PrayerTimes.jsx';
 import RukunIslam from '@/pages/RukunIslam.jsx';
 import DeathCharityUserPayment from '@/pages/DeathCharityUserPayment.jsx';
 // Superadmin & Settings
+import GanttChartScheduling from '@/pages/GanttChartScheduling';
 import ViewLogs from '@/pages/ViewLogs';
 import ImpersonateUser from '@/pages/ImpersonateUser';
 import IconLibrary from '@/pages/Settings/IconLibrary';
@@ -67,6 +68,7 @@ import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
 // Payment
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
+import PaymentComparison from '@/pages/Payment/PaymentComparison.jsx';
 // Dashboard
 import __Layout from '@/Layout.jsx';
 import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
@@ -136,6 +138,7 @@ export const PAGES = {
     "ViewLogs": ViewLogs,
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
+    "PaymentComparison": PaymentComparison,
     "SolatJenazah": SolatJenazah,
     "SearchMosque": SearchMosque,
     "WaqfDetail": WaqfDetail,
@@ -146,7 +149,8 @@ export const PAGES = {
     "PrayerTimes": PrayerTimes,
     "RukunIslam": RukunIslam,
     "DeathCharityUserPayment": DeathCharityUserPayment,
-    
+    "GanttChartScheduling": GanttChartScheduling,
+
     // Dashboard
     "AdminDashboard": AdminDashboard,
     "TahfizDashboard": TahfizDashboard,

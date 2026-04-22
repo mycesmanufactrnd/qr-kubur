@@ -20,15 +20,15 @@ export type TokenPayload = {
 };
 
 /**
- * Implemented separate access and refresh token signing
- * - Access token: 15 minutes (short-lived for security)
- * - Refresh token: 7 days (long-lived for user experience)
+ * Access token: 1 day (matches cookie maxAge)
+ * Refresh token: 7 days (long-lived for user experience)
  */
 export const signAccessToken = (user: { id: string; role: TokenPayload["role"] }) =>
   jwt.sign(
     { id: user.id, role: user.role, type: "access" },
     JWT_SECRET,
-    { expiresIn: "15m" } // Short-lived access token
+    { expiresIn: "1d" }
+    // { expiresIn: "1m" }
   );
 
 export const signRefreshToken = (user: { id: string; role: TokenPayload["role"] }) =>

@@ -14,6 +14,7 @@ Done Features
 ├── Rukun-rukun Islam
 ├── Kubur Cleaning Service Payment
 ├── External User Khairat Payment
+├── Gantt chart
 └── After / Ongoing Tahlil System
 
 Upcoming Features
@@ -27,7 +28,6 @@ Upcoming Features
  ├── Marketplace
  ├── Waqf Projects (with progress tracking)
  ├── Sentry Integration (error tracking)
- ├── Gantt chart
  └── FAQ + User Guide (initial onboarding)
 
 Transaction Proof (Done)
@@ -39,7 +39,7 @@ Transaction Proof (Done)
 ===== SECURITY & AUTH IMPROVEMENTS (2026-04-22) =====
 REFRESH TOKEN SYSTEM IMPLEMENTED:
 - Implemented separate access and refresh tokens for enhanced security
-- Access tokens: 30-minute expiration (short-lived for security)
+- Access tokens: 1-day expiration (short-lived for security)
 - Refresh tokens: 7-day expiration (long-lived for user experience)
 - Token rotation: New refresh token issued with each refresh (old one invalidated)
 - Automatic token refresh mechanism added to frontend

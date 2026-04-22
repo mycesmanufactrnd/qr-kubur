@@ -20,7 +20,7 @@ const getHeaders = () => {
   };
 };
 
-const ngrokLink = "https://ec2d-2001-e68-58d7-4c00-89b1-93d8-a51d-ef53.ngrok-free.app/trpc";
+const ngrokLink = "https://3e05-2001-e68-58d7-4c00-bd60-aec8-4030-4acb.ngrok-free.app/trpc";
 
 export const trpcClient = trpc.createClient({
   links: [

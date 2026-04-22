@@ -36,6 +36,8 @@ import { quotationRouter } from "./quotationRouter.ts";
 import { googleRouter } from "./googleRouter.ts";
 import { tempOrganisationRouter } from "./tempOrganisationRouter.ts";
 import { paymentDistributionRouter } from "./paymentDistributionRouter.ts";
+import { ganttchartRouter } from "./ganttchartRouter.ts";
+import { paymentComparisonRouter } from "./paymentComparisonRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -75,6 +77,8 @@ export const appRouter = trpcRouter({
   deathCharityClaim: deathCharityClaimRouter,
   deathCharityPayment: deathCharityPaymentRouter,
   quotation: quotationRouter,
+  ganttchart: ganttchartRouter,
+  paymentComparison: paymentComparisonRouter,
 });
 
 export type AppRouter = typeof appRouter;

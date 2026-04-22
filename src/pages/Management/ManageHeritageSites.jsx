@@ -55,7 +55,6 @@ import CheckboxForm from "@/components/forms/CheckboxForm";
 
 export default function ManageHeritageSites() {
   const {
-    currentUser,
     loadingUser,
     hasAdminAccess,
     isSuperAdmin,

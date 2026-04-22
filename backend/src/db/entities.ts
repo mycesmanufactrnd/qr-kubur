@@ -23,6 +23,8 @@ export * from "./entities/Mosque.entity.ts";
 export * from "./entities/ActivityPosts.entity.ts";
 export * from "./entities/IslamicEvent.entity.ts";
 export * from "./entities/WaqfProject.entity.ts";
+export * from "./entities/GanttChart.entity.ts";
+export * from "./entities/PaymentComparison.entity.ts";
 // Tahfiz
 export * from "./entities/TahfizPaymentConfig.entity.ts";
 // Guest Users

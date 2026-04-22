@@ -17,7 +17,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /**
  * Helper function to set secure httpOnly cookies
- * - accessToken: Short-lived (30min), sent in every request
+ * - accessToken: Short-lived (1d), sent in every request
  * - refreshToken: Long-lived (7d), only used to get new access token
  */
 const setCookies = (reply: any, accessToken: string, refreshToken: string) => {
@@ -27,7 +27,8 @@ const setCookies = (reply: any, accessToken: string, refreshToken: string) => {
     httpOnly: true,
     secure: isProd, // HTTPS only in production
     sameSite: isProd ? "none" : "lax",
-    maxAge: 30 * 60, // 30 minutes
+    maxAge: 24 * 60 * 60, // 1 day
+    // maxAge: 1 * 60, // 1 minute
   });
 
   reply.setCookie("refreshToken", refreshToken, {

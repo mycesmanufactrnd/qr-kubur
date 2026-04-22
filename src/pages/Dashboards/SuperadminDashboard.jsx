@@ -11,6 +11,7 @@ import {
   UserCheck,
   UserX,
   Moon,
+  Underline,
   Sun,
   Globe,
   Calendar,
@@ -29,8 +30,6 @@ import { useAdminAccess } from "@/utils/auth";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { createPageUrl } from "@/utils";
 import { cn } from "@/lib/utils";
-
-// ─── Nav card ──────────────────────────────────────────────────────────────
 
 const colorMap = {
   red: { bg: "bg-red-50", icon: "text-red-700" },
@@ -212,6 +211,12 @@ export default function SuperadminDashboard() {
               icon: Moon,
               color: "pink",
             },
+            {
+              name: translate("Payment Comparison"),
+              page: "PaymentComparison",
+              icon: Underline,
+              color: "amber",
+            },
           ],
         },
       ],
@@ -240,6 +245,12 @@ export default function SuperadminDashboard() {
               page: "Ollama",
               icon: Zap,
               color: "indigo",
+            },
+            {
+              name: translate("Gantt Chart"),
+              page: "GanttChartScheduling",
+              icon: Calendar,
+              color: "teal",
             },
           ],
         },
