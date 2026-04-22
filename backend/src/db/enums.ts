@@ -1,4 +1,4 @@
-export const SERVICE_FEE = 2;
+export const PLATFORM_FEE = 2;
 
 export const ORG_SERVICE_FEE = 0.05;
 export const ORG_SHARE = 0.95;

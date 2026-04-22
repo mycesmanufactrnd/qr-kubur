@@ -13,7 +13,7 @@ import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from '@/providers/LocationProvider';
 import { useGetTahfizById, useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
-import { DONATION_AMOUNTS, paymentToyyibStatus, MAINTENANCE_FEE, TahlilStatus } from '@/utils/enums';
+import { DONATION_AMOUNTS, paymentToyyibStatus, PLATFORM_FEE, TahlilStatus } from '@/utils/enums';
 import { defaultTahlilRequestField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
 import { activityLogError, clearQueryParams, trimEmptyArray } from '@/utils/helpers';
@@ -156,7 +156,7 @@ export default function TahlilRequestPage() {
 
   const platformFee = useMemo(() => {
     if (!hasDonation && !hasService) return 0;
-    return MAINTENANCE_FEE;
+    return PLATFORM_FEE;
   }, [hasDonation, hasService]);
 
   const finalAmountWithoutFee = donationAmount + serviceAmount;

@@ -40,7 +40,7 @@ export class OnlineTransaction {
   @Column("decimal", { precision: 18, scale: 2, default: 0 })
   maintenancefee!: number;
   // ToyyibPay: null
-  // App: From app MAINTENANCE_FEE (platform fee)
+  // App: From app PLATFORM_FEE (platform fee)
 
   @Column("varchar", { length: 10, nullable: true })
   orderstatus?: string;

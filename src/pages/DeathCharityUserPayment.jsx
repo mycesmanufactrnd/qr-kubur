@@ -37,7 +37,7 @@ import {
 } from "@/hooks/useDeathCharityPaymentMutations";
 import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
-import { paymentToyyibStatus, MAINTENANCE_FEE } from "@/utils/enums";
+import { paymentToyyibStatus, PLATFORM_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
 import { activityLogError, clearQueryParams, formatRM } from "@/utils/helpers";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
@@ -236,7 +236,7 @@ export default function DeathCharityUserPayment() {
   }, [paymentPlan, registrationFee, yearlyAmount]);
 
   const totalAmount = useMemo(() => {
-    return Number(subtotalAmount || 0) + Number(MAINTENANCE_FEE || 0);
+    return Number(subtotalAmount || 0) + Number(PLATFORM_FEE || 0);
   }, [subtotalAmount]);
 
   const showRegistrationPrompt =
@@ -1005,7 +1005,7 @@ export default function DeathCharityUserPayment() {
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-600">Maintenance Fee</p>
                     <p className="text-sm font-medium text-slate-800">
-                      {formatRM(MAINTENANCE_FEE)}
+                      {formatRM(PLATFORM_FEE)}
                     </p>
                   </div>
                   <div className="flex items-center justify-between pt-1">

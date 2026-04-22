@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { handleLoginTRPC } from '@/utils/auth';
 import { translate } from '@/utils/translations';
+import * as Sentry from '@sentry/react';
 
 export default function AppUserLogin() {
   const [email, setEmail] = useState('');
@@ -15,7 +16,14 @@ export default function AppUserLogin() {
 
   const onSubmit = (e) => {
     e.preventDefault();
-
+    Sentry.captureException(new Error("Login test error"), {
+      tags: {
+        action: "test_error_button_click",
+      },
+      extra: {
+        email: email,
+      },
+    });
     login(email, password);
   };
 

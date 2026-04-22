@@ -5,6 +5,20 @@ import '@/index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { trpc, trpcClient } from '@/utils/trpc';
 
+// ✅ Add Sentry
+import * as Sentry from "@sentry/react";
+
+// ✅ Initialize Sentry BEFORE rendering
+Sentry.init({
+  dsn: "https://5a7c34e38f15887e618432aa8004637d@o4511261315039232.ingest.de.sentry.io/4511261317922896",
+  sendDefaultPii: true,
+  enableLogs: true,
+  integrations: [
+    Sentry.browserTracingIntegration(),
+  ],
+  tracesSampleRate: 1.0, // adjust in production (e.g. 0.1)
+});
+
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById('root')).render(

@@ -1,23 +1,46 @@
 ~ Cari Masjid berdekatan (done)
 ~ Heritage Site macam maqam (done)
 ~ Islamic Events in Calendar (done)
-~ Volunteering page (NGO)
-~ Waqf Projects with progress (done)
-~ Make tahlil to localstorage, so user can check again
+~ Make tahlil to google, so user can check again (done)
 ~ Kumpulan doa2 harian, bacaan zikir pagi dan petang (dari utube) (done)
-~ Masjid2 boleh buat online class, zoom link... kuliah maghrib and so on
-~ after tahlil or ongoing tahlil (add picture)
 ~ if ongoing can do live tahlil check at tahlil status (done)
 ~ add to favorite masjid apa2 (done), untuk sedekah (done)
 ~ khairat kematian (done)
 ~ PIC jenazah (done)
-1. Digital tasbih (done)
-2. Qibla
-3. Asma ulhusna ( with video ) (done)
-4. Prayer time (done)
-5. Rukun2 (done)
-6. Calculation Zakat (by negeri)
-7. Sirah
-8. Musafir
+~ Digital tasbih (done)
+~ Asma ulhusna ( with video ) (done)
+~ Prayer time (done)
+~ Rukun2 (done)
 ~ buat bayar untuk bersihkan kubur, service bersihkan (done)
 ~ bayaran user luar khairat kematian (done)
+~ after tahlil or ongoing tahlil (done)
+
+----- not yet ----------
+~ report fincancial record (ongoing)
+~ Volunteering page (NGO) [new features]
+~ Qibla [new features]
+~ Masjid2 boleh buat online class, zoom link... kuliah maghrib and so on [new features]
+~ Calculation Zakat (by negeri) [new features]
+~ Sirah [new features]
+~ Musafir [new features]
+~ jual beli brg [new features]
+~ Waqf Projects with progress (done) [new features]
+
+-------------- transaction proof ----------------------------
+- donation (done)
+- tahfiz (done)
+- organisation (done)
+- deathcharity (done)
+
+------------ for meeting --------------------------------------
+Promo QR Kubur
+1. Untuk corporate
+2. untuk masjid/surau/tahfiz/kubur
+
+Minggu depan Khamis pagi nak tgk system ************
+1. buat role based flow (full architecture)
+2. buat by features (payment)
+3. sediakan FAQ, and user guide
+6. sediakan beberapa option untuk payment gateway
+5. buat gantt chart
+4. satu link untuk semua report kluar masuk (report by duit masuk), tahfiz, khairat and semua

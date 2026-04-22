@@ -15,7 +15,7 @@ import PageLoadingComponent from '@/components/PageLoadingComponent';
 import PaymentSuccessfulComponent from '@/components/PaymentSuccessfulComponent';
 import { useLocationContext } from '@/providers/LocationProvider';
 import { useGetConfigByEntity } from '@/hooks/usePaymentConfigMutations';
-import { MAINTENANCE_FEE, paymentToyyibStatus } from '@/utils/enums';
+import { PLATFORM_FEE, paymentToyyibStatus } from '@/utils/enums';
 import { activityLogError, shareLink } from '@/utils/helpers';
 import { trpc } from '@/utils/trpc';
 import { validateFields } from '@/utils/validations';
@@ -116,7 +116,7 @@ export default function OrganisationDetails() {
     selectedServiceItems.reduce((sum, item) => sum + Number(item.price || 0), 0),
     [selectedServiceItems]);
 
-  const quotationTotal = quotationSubtotal + MAINTENANCE_FEE;
+  const quotationTotal = quotationSubtotal + PLATFORM_FEE;
 
   const toggleSelectedService = (name) => {
     setSelectedServices((prev) =>
@@ -201,7 +201,7 @@ export default function OrganisationDetails() {
       deadperson: { id: Number(deadpersonId) },
       selectedservices: selectedServiceItems.map((item) => ({ service: item.name, price: Number(item.price || 0) })),
       serviceamount: Number(quotationSubtotal.toFixed(2)),
-      maintenancefeeamount: Number(MAINTENANCE_FEE.toFixed(2)),
+      maintenancefeeamount: Number(PLATFORM_FEE.toFixed(2)),
       totalamount: Number(quotationTotal.toFixed(2)),
       payername, payeremail, payerphone,
     };
@@ -481,7 +481,7 @@ export default function OrganisationDetails() {
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 bg-white">
                     <span className="text-xs text-slate-400">Maintenance Fee</span>
-                    <span className="text-sm font-semibold text-slate-600">RM {MAINTENANCE_FEE.toFixed(2)}</span>
+                    <span className="text-sm font-semibold text-slate-600">RM {PLATFORM_FEE.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 bg-violet-50">
                     <span className="text-sm font-bold text-violet-700">Total</span>

@@ -29,7 +29,7 @@ import {
   DONATION_AMOUNTS,
   normalizeState,
   paymentToyyibStatus,
-  MAINTENANCE_FEE,
+  PLATFORM_FEE,
   STATES_MY,
   VerificationStatus,
 } from "@/utils/enums";
@@ -183,7 +183,7 @@ export default function DonationPage() {
     [amount, customAmount],
   );
   const payableAmount = useMemo(
-    () => (baseAmount > 0 ? baseAmount + Number(MAINTENANCE_FEE || 0) : 0),
+    () => (baseAmount > 0 ? baseAmount + Number(PLATFORM_FEE || 0) : 0),
     [baseAmount],
   );
 
@@ -632,7 +632,7 @@ export default function DonationPage() {
                   <div className="flex justify-between items-center px-3 py-2 border-t border-slate-100 text-sm">
                     <span className="text-slate-500">{translate("Platform Fee")}</span>
                     <span className="font-semibold text-slate-700">
-                      RM {Number(MAINTENANCE_FEE).toFixed(2)}
+                      RM {Number(PLATFORM_FEE).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center px-3 py-2.5 bg-emerald-50 border-t border-slate-100">

@@ -72,7 +72,7 @@ app.addHook("onRequest", (req, reply, done) => {
 
 const toyyibpayConfig = getToyyibpayConfig();
 
-console.log('📦 ToyyibPay Configs:');
+console.log('\n📦 ToyyibPay Configs:');
 console.table(
   Object.entries(toyyibpayConfig).map(([key, value]) => ({
     key,
@@ -97,7 +97,7 @@ const missingBucketsKeys = Object.entries(bucketConfig)
   .map(([key]) => key);
 
 if (missingBucketsKeys.length === 0) {
-  console.log('✅ All bucket configs loaded');
+  console.log('\n✅ All bucket configs loaded');
 } else {
   console.log(`❌ Missing bucket configs: ${missingBucketsKeys.join(', ')}`);
 }
@@ -143,8 +143,7 @@ const missingBillplzKeys = Object.entries(billplzConfig)
 if (missingBillplzKeys.length === 0) {
   console.log('✅ All Billplz configs loaded');
 } else {
-  // This will catch your 'undefined' callback URL immediately
-  console.log(`❌ Missing Billplz configs: ${missingBillplzKeys.join(', ')}`);
+  console.log(`\n❌ Missing Billplz configs: ${missingBillplzKeys.join(', ')}`);
 }
 
 bootstrap();
