@@ -15,6 +15,66 @@
 ~ bayaran user luar khairat kematian (done)
 ~ after tahlil or ongoing tahlil (done)
 
+===== SECURITY & AUTH IMPROVEMENTS (2026-04-22) =====
+REFRESH TOKEN SYSTEM IMPLEMENTED:
+- Implemented separate access and refresh tokens for enhanced security
+- Access tokens: 15-minute expiration (short-lived for security)
+- Refresh tokens: 7-day expiration (long-lived for user experience)
+- Token rotation: New refresh token issued with each refresh (old one invalidated)
+- Automatic token refresh mechanism added to frontend
+
+HTTPONLY COOKIES MIGRATION:
+- Tokens now stored in secure httpOnly cookies (immune to XSS attacks)
+- Cookies set with: httpOnly=true, sameSite=strict, secure (in production)
+- Fallback: sessionStorage as backup for scenarios where cookies unavailable
+- Credentials enabled: 'include' in tRPC links for automatic cookie handling
+- CORS updated: credentials=true (remember to use specific origins in production, not "*")
+
+FILES MODIFIED:
+1. backend/src/auth.ts
+   - Old: Single 7-day token via signToken()
+   - New: signAccessToken() + signRefreshToken() + rotateTokens()
+   - Type field added to TokenPayload for token validation
+
+2. backend/src/trpc.ts
+   - Updated createContext to support both Bearer header and httpOnly cookies
+   - Added token type validation in protectedProcedure
+   - Prevents refresh tokens from being used as access tokens
+
+3. backend/src/routers/authRouter.ts
+   - login: Now returns both accessToken + refreshToken
+   - NEW: refresh endpoint for token rotation
+   - NEW: logout endpoint to clear cookies
+   - loginGoogle: Updated to use new token system
+   - Helper function setCookies() sets secure httpOnly cookies
+
+4. backend/src/server.ts
+   - Added @fastify/cookie import and registration
+   - Updated CORS with credentials: true
+   - Updated onRequest hook to check cookies + Bearer header
+
+5. backend/package.json
+   - Added @fastify/cookie ^10.0.0 dependency
+
+6. src/utils/auth.ts (Frontend)
+   - handleLoginTRPC: Stores tokens as fallback only
+   - NEW: refreshAccessToken() for token refresh with rotation
+   - handleLogout: Calls backend logout to clear cookies
+   - Helper functions for token fallback management
+
+7. src/utils/trpc.ts (Frontend)
+   - Enabled credentials: 'include' in both httpLink and httpBatchLink
+   - Updated getHeaders to use fallback tokens only
+   - Cookies sent automatically by browser
+
+NEXT STEPS FOR PRODUCTION:
+1. Update CORS origin from "*" to specific allowed origins
+2. Enable secure: true in cookies (requires HTTPS)
+3. Implement token refresh interceptor for automatic refresh before expiry
+4. Consider rate limiting on /auth/refresh endpoint
+5. Add analytics for tracking token refresh rates
+6. Add to capcaitor
+
 ----- not yet ----------
 ~ report fincancial record (ongoing)
 ~ Volunteering page (NGO) [new features]

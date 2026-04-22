@@ -1,4 +1,10 @@
+import * as Sentry from '@sentry/react';
+
 let cachedGeo: any = null;
+
+export function captureError(message: string, tags?: Record<string, string>, extra?: Record<string, any>) {
+  Sentry.captureException(new Error(message), { tags, extra });
+}
 
 export function getLabelFromId(arrayList = [], typeId, key = 'name') {
   if (!arrayList || arrayList.length === 0 || !typeId) return '-';
