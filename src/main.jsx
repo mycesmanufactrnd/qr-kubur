@@ -11,8 +11,12 @@ import {
 } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/utils/trpc";
 
+
+const prodDSN = "https://5a7c34e38f15887e618432aa8004637d@o4511261315039232.ingest.de.sentry.io/4511261317922896";
+const devDSN = "";
+
 Sentry.init({
-  dsn: "https://5a7c34e38f15887e618432aa8004637d@o4511261315039232.ingest.de.sentry.io/4511261317922896",
+  dsn: prodDSN,
   sendDefaultPii: true,
   enableLogs: true,
   integrations: [Sentry.browserTracingIntegration()],

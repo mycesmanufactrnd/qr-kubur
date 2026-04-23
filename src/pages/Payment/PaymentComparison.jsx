@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, Check, X } from "lucide-react";
+import { Plus, Trash2, Check, X, GripVertical } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import BackNavigation from "@/components/BackNavigation";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { showApiError, showApiSuccess } from "@/components/ToastrNotification";
 import { translate } from "@/utils/translations";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function PaymentComparison() {
   const { data: items = [], refetch } = trpc.paymentComparison.getAll.useQuery();
@@ -13,8 +14,10 @@ export default function PaymentComparison() {
   const updateMutation = trpc.paymentComparison.updateItem.useMutation();
   const deleteItemMutation = trpc.paymentComparison.deleteItem.useMutation();
   const deleteGatewayMutation = trpc.paymentComparison.deleteGateway.useMutation();
+  const reorderMutation = trpc.paymentComparison.reorderItems.useMutation();
 
   const [localEdits, setLocalEdits] = useState({});
+  const [pendingItems, setPendingItems] = useState([]); // [{ tempId, gateway, content }]
   const [newGateway, setNewGateway] = useState("");
   const [addingGateway, setAddingGateway] = useState(false);
 
@@ -61,15 +64,7 @@ export default function PaymentComparison() {
     if (!name) return;
 
     try {
-      const created = await addMutation.mutateAsync({
-        gateway: name,
-        content: "",
-      });
-
-      if (created?.id != null) {
-        setLocalEdits((edits) => ({ ...edits, [created.id]: "" }));
-      }
-
+      await addMutation.mutateAsync({ gateway: name, content: "" });
       setNewGateway("");
       setAddingGateway(false);
       await refetch();
@@ -79,16 +74,47 @@ export default function PaymentComparison() {
     }
   };
 
-  const handleAddItem = async (gateway) => {
+  const handleAddItem = (gateway) => {
+    setPendingItems((prev) => [...prev, { tempId: Date.now(), gateway, content: "" }]);
+  };
+
+  const handlePendingChange = (tempId, value) => {
+    setPendingItems((prev) => prev.map((p) => p.tempId === tempId ? { ...p, content: value } : p));
+  };
+
+  const handleSavePending = async (tempId) => {
+    const pending = pendingItems.find((p) => p.tempId === tempId);
+    if (!pending) return;
+
     try {
-      const created = await addMutation.mutateAsync({ gateway, content: "" });
-
-      if (created?.id != null) {
-        setLocalEdits((edits) => ({ ...edits, [created.id]: "" }));
-      }
-
+      await addMutation.mutateAsync({ gateway: pending.gateway, content: pending.content });
+      setPendingItems((prev) => prev.filter((p) => p.tempId !== tempId));
       await refetch();
       showApiSuccess("create");
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+
+  const handleCancelPending = (tempId) => {
+    setPendingItems((prev) => prev.filter((p) => p.tempId !== tempId));
+  };
+
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.droppableId !== destination.droppableId) return;
+    if (source.index === destination.index) return;
+
+    const gateway = source.droppableId;
+    const gatewayItems = [...columns[gateway]];
+    const [moved] = gatewayItems.splice(source.index, 1);
+    gatewayItems.splice(destination.index, 0, moved);
+
+    const updates = gatewayItems.map((item, idx) => ({ id: item.id, sortorder: idx }));
+    try {
+      await reorderMutation.mutateAsync(updates);
+      await refetch();
     } catch (error) {
       showApiError(error);
     }
@@ -151,7 +177,7 @@ export default function PaymentComparison() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto space-y-4">
+      <div className="max-w-7xl mx-auto space-y-4">
         <BackNavigation title="Payment Gateway Comparison" />
 
         <div className="flex items-end justify-between flex-wrap gap-3">
@@ -206,73 +232,140 @@ export default function PaymentComparison() {
             </p>
           </div>
         ) : (
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${Math.min(gateways.length, 3)}, 1fr)`,
-            }}
-          >
-            {gateways.map((gateway) => (
-              <div
-                key={gateway}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="font-bold text-slate-800">{gateway}</h2>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div
+              className="grid gap-4"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(gateways.length, 3)}, 1fr)`,
+              }}
+            >
+              {gateways.map((gateway) => (
+                <div
+                  key={gateway}
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-bold text-slate-800">{gateway}</h2>
+                    <button
+                      onClick={() => requestDeleteGateway(gateway)}
+                      className="p-1 rounded hover:bg-red-50 text-slate-300 hover:text-red-400"
+                      title="Delete gateway"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <Droppable droppableId={gateway}>
+                    {(provided) => (
+                      <ul
+                        className="space-y-2"
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        {columns[gateway]
+                          .filter((i) => i.content !== "" || localEdits[i.id] !== undefined)
+                          .map((item, index) => (
+                            <Draggable key={item.id} draggableId={String(item.id)} index={index}>
+                              {(provided, snapshot) => (
+                                <li
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={`flex items-start gap-2 rounded ${snapshot.isDragging ? "bg-slate-50 shadow-sm" : ""}`}
+                                >
+                                  <span
+                                    {...provided.dragHandleProps}
+                                    className="mt-2 text-slate-300 hover:text-slate-500 flex-shrink-0 cursor-grab active:cursor-grabbing"
+                                  >
+                                    <GripVertical className="w-3.5 h-3.5" />
+                                  </span>
+                                  <textarea
+                                    className="flex-1 text-sm text-slate-700 border-b border-transparent hover:border-slate-200 focus:border-slate-400 outline-none py-1 bg-transparent resize-none overflow-hidden leading-snug"
+                                    value={localEdits[item.id] ?? item.content}
+                                    placeholder="Add info..."
+                                    rows={1}
+                                    onChange={(e) => {
+                                      e.target.style.height = "auto";
+                                      e.target.style.height = e.target.scrollHeight + "px";
+                                      handleChange(item.id, e.target.value);
+                                    }}
+                                    onFocus={(e) => {
+                                      e.target.style.height = "auto";
+                                      e.target.style.height = e.target.scrollHeight + "px";
+                                    }}
+                                  />
+                                  {localEdits[item.id] !== undefined && (
+                                    <button
+                                      onClick={() => handleSave(item.id)}
+                                      className="mt-1.5 p-0.5 text-emerald-500 hover:text-emerald-700 flex-shrink-0"
+                                      title="Save"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => requestDeleteItem(item)}
+                                    className="mt-1.5 p-0.5 text-slate-300 hover:text-red-400 flex-shrink-0"
+                                    title="Delete item"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </li>
+                              )}
+                            </Draggable>
+                          ))}
+                        {provided.placeholder}
+                      </ul>
+                    )}
+                  </Droppable>
+
+                  {pendingItems
+                    .filter((p) => p.gateway === gateway)
+                    .map((pending) => (
+                      <div key={pending.tempId} className="flex items-start gap-2">
+                        <span className="mt-2 w-3.5 h-3.5 flex-shrink-0" />
+                        <textarea
+                          autoFocus
+                          className="flex-1 text-sm text-slate-700 border-b border-slate-300 focus:border-emerald-400 outline-none py-1 bg-transparent resize-none overflow-hidden leading-snug"
+                          placeholder="Add info..."
+                          rows={1}
+                          value={pending.content}
+                          onChange={(e) => {
+                            e.target.style.height = "auto";
+                            e.target.style.height = e.target.scrollHeight + "px";
+                            handlePendingChange(pending.tempId, e.target.value);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSavePending(pending.tempId); }
+                            if (e.key === "Escape") handleCancelPending(pending.tempId);
+                          }}
+                        />
+                        <button
+                          onClick={() => handleSavePending(pending.tempId)}
+                          className="mt-1.5 p-0.5 text-emerald-500 hover:text-emerald-700 flex-shrink-0"
+                          title="Save"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleCancelPending(pending.tempId)}
+                          className="mt-1.5 p-0.5 text-slate-300 hover:text-red-400 flex-shrink-0"
+                          title="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+
                   <button
-                    onClick={() => requestDeleteGateway(gateway)}
-                    className="p-1 rounded hover:bg-red-50 text-slate-300 hover:text-red-400"
-                    title="Delete gateway"
+                    onClick={() => handleAddItem(gateway)}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-600 transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Plus className="w-3.5 h-3.5" /> Add item
                   </button>
                 </div>
-
-                <ul className="space-y-2">
-                  {columns[gateway]
-                    .filter(
-                      (i) => i.content !== "" || localEdits[i.id] !== undefined,
-                    )
-                    .map((item) => (
-                      <li key={item.id} className="flex items-start gap-2">
-                        <span className="mt-2.5 w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0" />
-                        <input
-                          className="flex-1 text-sm text-slate-700 border-b border-transparent hover:border-slate-200 focus:border-slate-400 outline-none py-1 bg-transparent"
-                          value={localEdits[item.id] ?? item.content}
-                          placeholder="Add info..."
-                          onChange={(e) =>
-                            handleChange(item.id, e.target.value)
-                          }
-                        />
-                        {localEdits[item.id] !== undefined && (
-                          <button
-                            onClick={() => handleSave(item.id)}
-                            className="mt-1.5 p-0.5 text-emerald-500 hover:text-emerald-700 flex-shrink-0"
-                            title="Save"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => requestDeleteItem(item)}
-                          className="mt-1.5 p-0.5 text-slate-300 hover:text-red-400 flex-shrink-0"
-                          title="Delete item"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </li>
-                    ))}
-                </ul>
-
-                <button
-                  onClick={() => handleAddItem(gateway)}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-600 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add item
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </DragDropContext>
         )}
 
         <ConfirmDialog

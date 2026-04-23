@@ -55,7 +55,8 @@ const STATUS_CONFIG = {
 };
 
 const ROW_H = 44;
-const SIDEBAR_W = 240;
+const SIDEBAR_MIN = 140;
+const SIDEBAR_MAX = 520;
 
 function getColor(colorId) {
   return PROJECT_COLORS.find((c) => c.id === colorId) ?? PROJECT_COLORS[0];
@@ -291,7 +292,11 @@ function TaskDialog({ open, onClose, onSave, initial }) {
 export default function GanttChartScheduling() {
   const { isSuperAdmin } = useAdminAccess();
 
-  const { data: projects = [], refetch } = trpc.ganttchart.getAll.useQuery();
+  const { data: rawProjects = [], refetch } = trpc.ganttchart.getAll.useQuery();
+  const projects = useMemo(
+    () => [...rawProjects].sort((a, b) => a.startDate.localeCompare(b.startDate)),
+    [rawProjects],
+  );
   const createMutation = trpc.ganttchart.create.useMutation({ onSuccess: () => refetch() });
   const updateMutation = trpc.ganttchart.update.useMutation({ onSuccess: () => refetch() });
   const deleteMutation = trpc.ganttchart.delete.useMutation({ onSuccess: () => refetch() });
@@ -311,8 +316,28 @@ export default function GanttChartScheduling() {
     initial: null,
   });
 
+  const [sidebarW, setSidebarW] = useState(240);
+  const resizingRef = useRef(false);
   const chartRef = useRef(null);
   const ganttRef = useRef(null);
+
+  const startResize = (e) => {
+    e.preventDefault();
+    resizingRef.current = true;
+    const startX = e.clientX;
+    const startW = sidebarW;
+    const onMove = (ev) => {
+      if (!resizingRef.current) return;
+      setSidebarW(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, startW + ev.clientX - startX)));
+    };
+    const onUp = () => {
+      resizingRef.current = false;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
 
   const cellWidth = granularity === "week" ? 80 : 28;
   const viewStart = useMemo(() => parseISO(viewStartStr), [viewStartStr]);
@@ -581,13 +606,21 @@ export default function GanttChartScheduling() {
           >
             <div className="flex">
               <div
-                className="flex-shrink-0 border-r border-slate-100 z-10"
-                style={{ width: SIDEBAR_W }}
+                className="flex-shrink-0 z-10 relative"
+                style={{ width: sidebarW }}
               >
-                <div className="h-10 bg-slate-50 border-b border-slate-100 flex items-center px-3">
+                <div className="h-10 bg-slate-50 border-b border-r border-slate-100 flex items-center px-3">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Project / Task
                   </span>
+                </div>
+                {/* resize handle */}
+                <div
+                  onMouseDown={startResize}
+                  className="absolute top-0 right-0 bottom-0 w-1.5 cursor-col-resize z-20 group"
+                  title="Drag to resize"
+                >
+                  <div className="absolute inset-y-0 right-0 w-px bg-slate-200 group-hover:bg-emerald-400 group-hover:w-0.5 transition-all" />
                 </div>
 
                 {projects.map((project) => {

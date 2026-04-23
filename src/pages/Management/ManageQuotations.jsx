@@ -500,6 +500,19 @@ export default function ManageQuotations() {
                   </div>
                 )}
 
+                {selectedQuotation.photourl && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">
+                      {translate("Completion Photo")}
+                    </p>
+                    <img
+                      src={resolveFileUrl(selectedQuotation.photourl, "organisation-services")}
+                      alt={translate("Completion photo")}
+                      className="h-40 w-full rounded object-cover border"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <p className="text-sm font-semibold text-gray-700 mb-2">
                     {translate("Selected Services")}

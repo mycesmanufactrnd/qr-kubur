@@ -13,7 +13,12 @@ export const paymentComparisonRouter = router({
     .input(z.object({ gateway: z.string().min(1), content: z.string() }))
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(PaymentComparison);
-      return repo.save(repo.create({ gateway: input.gateway, content: input.content }));
+      const last = await repo.findOne({
+        where: { gateway: input.gateway },
+        order: { sortorder: "DESC" },
+      });
+      const sortorder = last ? last.sortorder + 1 : 0;
+      return repo.save(repo.create({ gateway: input.gateway, content: input.content, sortorder }));
     }),
 
   updateItem: protectedProcedure
@@ -37,5 +42,13 @@ export const paymentComparisonRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(PaymentComparison);
       return repo.delete({ gateway: input });
+    }),
+
+  reorderItems: protectedProcedure
+    .input(z.array(z.object({ id: z.number(), sortorder: z.number() })))
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(PaymentComparison);
+      await Promise.all(input.map(({ id, sortorder }) => repo.update(id, { sortorder })));
+      return { success: true };
     }),
 });
