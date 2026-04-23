@@ -23,23 +23,25 @@ export type TokenPayload = {
  * Access token: 1 day (matches cookie maxAge)
  * Refresh token: 7 days (long-lived for user experience)
  */
+const accessExp = Number(process.env.ACCESS_TOKEN_EXPIRY);
+const refreshExp = Number(process.env.REFRESH_TOKEN_EXPIRY);
+
 export const signAccessToken = (user: { id: string; role: TokenPayload["role"] }) =>
   jwt.sign(
     { id: user.id, role: user.role, type: "access" },
     JWT_SECRET,
-    { expiresIn: "1d" }
-    // { expiresIn: "1m" }
+    { expiresIn: accessExp || 24 * 60 * 60 }
+    // { expiresIn: 1 * 60 }
   );
 
 export const signRefreshToken = (user: { id: string; role: TokenPayload["role"] }) =>
   jwt.sign(
     { id: user.id, role: user.role, type: "refresh" },
     JWT_SECRET,
-    { expiresIn: "7d" } // Long-lived refresh token
+    { expiresIn: refreshExp || 7 * 24 * 60 * 60 }
   );
 
 /**
- * New function for token rotation on refresh
  * Returns both new access token and rotated refresh token
  */
 export const rotateTokens = (user: { id: string; role: TokenPayload["role"] }) => {
@@ -50,7 +52,6 @@ export const rotateTokens = (user: { id: string; role: TokenPayload["role"] }) =
 };
 
 /**
- * Updated to handle both old and new token formats
  * Validates token and returns payload with type information
  */
 export const verifyToken = (token: string): TokenPayload | null => {

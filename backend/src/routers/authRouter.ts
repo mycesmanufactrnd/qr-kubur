@@ -22,12 +22,14 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
  */
 const setCookies = (reply: any, accessToken: string, refreshToken: string) => {
   const isProd = process.env.NODE_ENV === "production";
+  const accessExp = Number(process.env.ACCESS_TOKEN_EXPIRY);
+  const refreshExp = Number(process.env.REFRESH_TOKEN_EXPIRY);
   
   reply.setCookie("accessToken", accessToken, {
     httpOnly: true,
     secure: isProd, // HTTPS only in production
     sameSite: isProd ? "none" : "lax",
-    maxAge: 24 * 60 * 60, // 1 day
+    maxAge: accessExp || 24 * 60 * 60, // 1 day
     // maxAge: 1 * 60, // 1 minute
   });
 
@@ -35,7 +37,7 @@ const setCookies = (reply: any, accessToken: string, refreshToken: string) => {
     httpOnly: true,
     secure: isProd, // HTTPS only in production
     sameSite: isProd ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: refreshExp || 7 * 24 * 60 * 60, // 7 days
   });
 };
 
@@ -81,11 +83,6 @@ export const authRouter = router({
       const role = user.role;
       assertRole(role);
 
-      /**
-       * Generate both access and refresh tokens for token rotation
-       * Access token is short-lived (15m) for security
-       * Refresh token is long-lived (7d) to refresh access without re-login
-       */
       const accessToken = signAccessToken({
         id: user.id.toString(),
         role,
@@ -102,7 +99,6 @@ export const authRouter = router({
         user;
 
       return {
-        // Return both tokens for backward compatibility + security
         // Clients can use either method: cookies or Bearer header
         accessToken,
         refreshToken,
