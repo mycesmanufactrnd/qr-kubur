@@ -175,7 +175,7 @@ export default function ManageOrganisations() {
   const addServiceEntry = () => {
     const nextEntries = [
       ...serviceEntries,
-      { id: `${Date.now()}-${Math.random()}`, service: "", price: "" },
+      { id: `${Date.now()}-${Math.random()}`, service: "", price: "", isactive: true },
     ];
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
@@ -753,11 +753,19 @@ export default function ManageOrganisations() {
       user_role: "admin",
     });
 
-    const nextEntries = serviceoffered.map((service, index) => ({
-      id: `${Date.now()}-${index}`,
-      service,
-      price: (serviceprice[service] ?? 0).toString(),
-    }));
+    const nextEntries = relationalServices.length > 0
+      ? relationalServices.map((service, index) => ({
+          id: `${Date.now()}-${index}`,
+          service: service.service,
+          price: (service.price ? parseFloat(Number(service.price).toFixed(2)) : 0).toString(),
+          isactive: service.isactive !== false,
+        }))
+      : serviceoffered.map((service, index) => ({
+          id: `${Date.now()}-${index}`,
+          service,
+          price: (serviceprice[service] ?? 0).toString(),
+          isactive: true,
+        }));
 
     setServiceEntries(nextEntries);
     setUserEntries([]);
@@ -783,6 +791,7 @@ export default function ManageOrganisations() {
         service,
         price:
           entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        isactive: entry.isactive !== false,
       });
     }
 
@@ -817,6 +826,7 @@ export default function ManageOrganisations() {
       services: normalizedServices.map((serviceItem) => ({
         service: serviceItem.service,
         price: Number(serviceItem.price) || 0,
+        isactive: serviceItem.isactive !== false,
         organisation: editingOrg ? { id: Number(editingOrg.id) } : null,
         tahfizcenter: null,
       })),
@@ -1389,7 +1399,7 @@ export default function ManageOrganisations() {
                           className="grid grid-cols-12 gap-2 items-center"
                         >
                           <Input
-                            className="col-span-7"
+                            className="col-span-5"
                             placeholder={translate("Service Name")}
                             value={entry.service}
                             onChange={(e) =>
@@ -1401,7 +1411,7 @@ export default function ManageOrganisations() {
                             }
                           />
                           <Input
-                            className="col-span-4"
+                            className="col-span-3"
                             type="number"
                             step="0.01"
                             placeholder="RM 0.00"
@@ -1414,10 +1424,23 @@ export default function ManageOrganisations() {
                               )
                             }
                           />
+                          <button
+                            type="button"
+                            className={`col-span-2 text-xs font-medium px-2 py-1 rounded border transition-colors ${
+                              entry.isactive !== false
+                                ? "bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
+                                : "bg-gray-100 text-gray-500 border-gray-300 hover:bg-gray-200"
+                            }`}
+                            onClick={() =>
+                              updateServiceEntry(entry.id, "isactive", entry.isactive === false)
+                            }
+                          >
+                            {entry.isactive !== false ? translate("Active") : translate("Inactive")}
+                          </button>
                           <Button
                             type="button"
                             variant="outline"
-                            className="bg-red-600 hover:bg-red-700 text-white hover:text-white flex items-center justify-center rounded-md"
+                            className="col-span-2 bg-red-600 hover:bg-red-700 text-white hover:text-white flex items-center justify-center rounded-md"
                             onClick={() => removeServiceEntry(entry.id)}
                           >
                             <X className="w-4 h-4" />

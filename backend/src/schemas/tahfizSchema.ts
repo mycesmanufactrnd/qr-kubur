@@ -5,6 +5,7 @@ export const tahfizServiceOfferedSchema = z.object({
   id: z.number().optional(),
   service: z.string().min(1),
   price: z.number().min(0),
+  isactive: z.boolean().optional().default(true),
   tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
 });
 

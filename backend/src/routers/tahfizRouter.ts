@@ -9,16 +9,17 @@ type TahfizServicePayload = NonNullable<z.infer<typeof tahfizSchema>["services"]
 
 const toRoundedPrice = (value: number) => Number(Number(value ?? 0).toFixed(2));
 
-const serializeTahfizWithServices = (tahfiz: TahfizCenter, services: ServiceOffered[] = []) => {
-  const serviceoffered = services.map((service) => service.service);
-  const serviceprice = services.reduce<Record<string, number>>((acc, service) => {
+const serializeTahfizWithServices = (tahfiz: TahfizCenter, services: ServiceOffered[] = [], isActiveOnly = false) => {
+  const visible = isActiveOnly ? services.filter((s) => s.isactive) : services;
+  const serviceoffered = visible.map((service) => service.service);
+  const serviceprice = visible.reduce<Record<string, number>>((acc, service) => {
     acc[service.service] = Number(service.price);
     return acc;
   }, {});
 
   return {
     ...tahfiz,
-    services,
+    services: visible,
     serviceoffered,
     serviceprice,
   };
@@ -33,6 +34,7 @@ const buildServiceEntities = (
     serviceRepo.create({
       service: serviceInput.service,
       price: toRoundedPrice(serviceInput.price),
+      isactive: serviceInput.isactive !== false,
       tahfizcenter: { id: tahfizId } as TahfizCenter,
     }),
   );
@@ -120,7 +122,7 @@ export const tahfizRouter = router({
       if (!tahfiz) return null;
 
       const serviceMap = await loadServicesMap([tahfiz.id]);
-      return serializeTahfizWithServices(tahfiz, serviceMap.get(tahfiz.id) ?? []);
+      return serializeTahfizWithServices(tahfiz, serviceMap.get(tahfiz.id) ?? [], true);
     }),
 
 
@@ -167,7 +169,7 @@ export const tahfizRouter = router({
       const serviceMap = await loadServicesMap(entities.map((entity) => entity.id));
 
       return entities.map((entity, index) => ({
-        ...serializeTahfizWithServices(entity, serviceMap.get(entity.id) ?? []),
+        ...serializeTahfizWithServices(entity, serviceMap.get(entity.id) ?? [], true),
         distance: Number(raw[index].distance),
       }));
     }),

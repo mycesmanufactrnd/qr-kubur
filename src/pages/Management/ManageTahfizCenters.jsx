@@ -568,10 +568,12 @@ export default function ManageTahfizCenters() {
     setValue("serviceprice", serviceprice);
   };
 
+  const DEFAULT_TAHLIL_ENTRY = { id: "default-tahlil", service: "Tahlil Arwah", price: "0", isactive: true, isDefault: true };
+
   const addServiceEntry = () => {
     const nextEntries = [
       ...serviceEntries,
-      { id: `${Date.now()}-${Math.random()}`, service: "", price: "" },
+      { id: `${Date.now()}-${Math.random()}`, service: "", price: "", isactive: true, isDefault: false },
     ];
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
@@ -605,7 +607,7 @@ export default function ManageTahfizCenters() {
   const openAddDialog = () => {
     setEditingCenter(null);
     reset(defaultTahfizField);
-    setServiceEntries([]);
+    setServiceEntries([{ ...DEFAULT_TAHLIL_ENTRY }]);
     setUserEntries([]);
     resetUserFields();
     resetPaymentConfig();
@@ -641,11 +643,19 @@ export default function ManageTahfizCenters() {
       longitude: center.longitude?.toString() || "",
     });
 
-    const nextEntries = serviceoffered.map((service, index) => ({
-      id: `${Date.now()}-${index}`,
-      service,
-      price: (serviceprice[service] ?? 0).toString(),
-    }));
+    const nextEntries = serviceoffered.map((service, index) => {
+      const existing = relationalServices.find((s) => s.service === service);
+      return {
+        id: `${Date.now()}-${index}`,
+        service,
+        price: (serviceprice[service] ?? 0).toString(),
+        isactive: existing?.isactive !== false,
+        isDefault: service.toLowerCase() === "tahlil arwah",
+      };
+    });
+
+    const hasTahlil = nextEntries.some((e) => e.service.toLowerCase() === "tahlil arwah");
+    if (!hasTahlil) nextEntries.unshift({ ...DEFAULT_TAHLIL_ENTRY });
 
     setServiceEntries(nextEntries);
     setUserEntries([]);
@@ -669,8 +679,8 @@ export default function ManageTahfizCenters() {
 
       normalizedServices.push({
         service,
-        price:
-          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price: entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        isactive: entry.isactive !== false,
       });
     }
 
@@ -696,6 +706,7 @@ export default function ManageTahfizCenters() {
       services: normalizedServices.map((serviceItem) => ({
         service: serviceItem.service,
         price: Number(serviceItem.price) || 0,
+        isactive: serviceItem.isactive !== false,
         tahfizcenter: editingCenter ? { id: Number(editingCenter.id) } : null,
       })),
     };
@@ -1083,47 +1094,60 @@ export default function ManageTahfizCenters() {
                 <div>
                   <Label>{translate("Services")}</Label>
                   <div className="space-y-3 mt-2">
-                    {serviceEntries.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="grid grid-cols-12 gap-2 items-center"
-                      >
-                        <Input
-                          className="col-span-7"
-                          placeholder={translate("Service Name")}
-                          value={entry.service}
-                          onChange={(e) =>
-                            updateServiceEntry(
-                              entry.id,
-                              "service",
-                              e.target.value,
-                            )
-                          }
-                        />
-                        <Input
-                          className="col-span-4"
-                          type="number"
-                          step="0.01"
-                          placeholder="RM 0.00"
-                          value={entry.price}
-                          onChange={(e) =>
-                            updateServiceEntry(
-                              entry.id,
-                              "price",
-                              e.target.value,
-                            )
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="col-span-1"
-                          onClick={() => removeServiceEntry(entry.id)}
+                    {serviceEntries.map((entry) => {
+                      const isLocked = entry.isDefault && !isSuperAdmin;
+                      return (
+                        <div
+                          key={entry.id}
+                          className="grid grid-cols-12 gap-2 items-center"
                         >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
+                          <Input
+                            className="col-span-5"
+                            placeholder={translate("Service Name")}
+                            value={entry.service}
+                            disabled={isLocked}
+                            onChange={(e) =>
+                              updateServiceEntry(entry.id, "service", e.target.value)
+                            }
+                          />
+                          <Input
+                            className="col-span-3"
+                            type="number"
+                            step="0.01"
+                            placeholder="RM 0.00"
+                            value={entry.price}
+                            onChange={(e) =>
+                              updateServiceEntry(entry.id, "price", e.target.value)
+                            }
+                          />
+                          <button
+                            type="button"
+                            className={`col-span-2 text-[10px] font-semibold py-1.5 rounded-md border transition-colors ${
+                              entry.isactive !== false
+                                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200"
+                            }`}
+                            onClick={() =>
+                              updateServiceEntry(entry.id, "isactive", entry.isactive === false)
+                            }
+                          >
+                            {entry.isactive !== false ? "Active" : "Inactive"}
+                          </button>
+                          {!isLocked ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="col-span-2"
+                              onClick={() => removeServiceEntry(entry.id)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <div className="col-span-2" />
+                          )}
+                        </div>
+                      );
+                    })}
                     <Button
                       type="button"
                       variant="outline"

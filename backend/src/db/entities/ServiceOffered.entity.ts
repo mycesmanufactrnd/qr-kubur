@@ -38,6 +38,9 @@ export class ServiceOffered {
   })
   organisation?: Organisation | null;
 
+  @Column({ type: "boolean", default: true })
+  isactive!: boolean;
+
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 }

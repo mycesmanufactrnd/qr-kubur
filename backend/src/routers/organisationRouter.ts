@@ -10,16 +10,17 @@ type OrganisationServicePayload = NonNullable<z.infer<typeof organisationSchema>
 
 const toRoundedPrice = (value: number) => Number(Number(value ?? 0).toFixed(2));
 
-const serializeOrganisationWithServices = (organisation: Organisation, services: ServiceOffered[] = []) => {
-  const serviceoffered = services.map((service) => service.service);
-  const serviceprice = services.reduce<Record<string, number>>((acc, service) => {
+const serializeOrganisationWithServices = (organisation: Organisation, services: ServiceOffered[] = [], isActiveOnly = false) => {
+  const visible = isActiveOnly ? services.filter((s) => s.isactive) : services;
+  const serviceoffered = visible.map((service) => service.service);
+  const serviceprice = visible.reduce<Record<string, number>>((acc, service) => {
     acc[service.service] = Number(service.price);
     return acc;
   }, {});
 
   return {
     ...organisation,
-    services,
+    services: visible,
     serviceoffered,
     serviceprice,
   };
@@ -34,6 +35,7 @@ const buildOrganisationServiceEntities = (
     serviceRepo.create({
       service: serviceInput.service,
       price: toRoundedPrice(serviceInput.price),
+      isactive: serviceInput.isactive !== false,
       organisation: { id: organisationId } as Organisation,
       tahfizcenter: null,
     }),
@@ -227,7 +229,7 @@ export const organisationRouter = router({
       if (!organisation) return null;
 
       const serviceMap = await loadOrganisationServicesMap([organisation.id]);
-      return serializeOrganisationWithServices(organisation, serviceMap.get(organisation.id) ?? []);
+      return serializeOrganisationWithServices(organisation, serviceMap.get(organisation.id) ?? [], true);
     }),
 
   getGraveServiceByState: publicProcedure
@@ -250,7 +252,7 @@ export const organisationRouter = router({
 
       const serviceMap = await loadOrganisationServicesMap(organisations.map((org) => org.id));
       return organisations
-        .map((org) => serializeOrganisationWithServices(org, serviceMap.get(org.id) ?? []))
+        .map((org) => serializeOrganisationWithServices(org, serviceMap.get(org.id) ?? [], true))
         .filter((org) => Array.isArray(org.serviceoffered) && org.serviceoffered.length > 0);
     }),
 
@@ -290,7 +292,7 @@ export const organisationRouter = router({
       const organisations = await query.getMany();
       const serviceMap = await loadOrganisationServicesMap(organisations.map((org) => org.id));
 
-      return organisations.map((org) => serializeOrganisationWithServices(org, serviceMap.get(org.id) ?? []));
+      return organisations.map((org) => serializeOrganisationWithServices(org, serviceMap.get(org.id) ?? [], true));
     }),
 
   getParentAndChildOrgs: protectedProcedure
