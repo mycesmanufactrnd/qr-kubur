@@ -439,7 +439,7 @@ export default function TahlilRequestPage() {
                             ? isSelected ? 'bg-violet-200 text-violet-700' : 'bg-slate-200 text-slate-600'
                             : 'bg-emerald-100 text-emerald-600'
                         }`}>
-                          {price > 0 ? `RM ${price}` : 'Free'}
+                          {price > 0 ? `RM ${price}` : ''}
                         </span>
                       )}
                     </label>
