@@ -128,12 +128,11 @@ export default function DonationPage() {
     );
     return matched || "nearby";
   });
-  
+
   const urlParamId = searchParams.get("id") || null;
   const urlParamType = searchParams.get("type");
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
-
 
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({
@@ -210,7 +209,9 @@ export default function DonationPage() {
       setLoadingPayment(true);
       showSuccess(translate("Payment successful!"));
 
-      const storedUser = localStorage.getItem("googleAuth") || sessionStorage.getItem("googleAuth");
+      const storedUser =
+        localStorage.getItem("googleAuth") ||
+        sessionStorage.getItem("googleAuth");
       let googleRecordPayload = null;
 
       if (storedUser) {
@@ -287,7 +288,7 @@ export default function DonationPage() {
 
   const shouldFetchOrganisation =
     recipientType === "organisation" && (!!userLocation || hasSpecificState);
-    
+
   const shouldFetchTahfiz =
     recipientType === "tahfiz" && (!!userLocation || hasSpecificState);
 
@@ -300,13 +301,15 @@ export default function DonationPage() {
     true,
   );
 
-  const { data: tahfizCenters = [] } = useGetTahfizCoordinates(
-    shouldFetchTahfiz && userLocation
-      ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : null,
-    selectedState === "nearby" ? userState : selectedState,
+  const { data: tahfizCenters = [] } = useGetTahfizCoordinates({
+    coordinates:
+      shouldFetchTahfiz && userLocation
+        ? { latitude: userLocation.lat, longitude: userLocation.lng }
+        : null,
+    filterState: selectedState === "nearby" ? userState : selectedState,
+    isTahlilServiceOnly: false,
     filterName,
-  );
+  });
 
   useEffect(() => {
     if (!urlParamType || !["tahfiz", "organisation"].includes(urlParamType))
@@ -624,13 +627,17 @@ export default function DonationPage() {
               {baseAmount > 0 && (
                 <div className="rounded-xl overflow-hidden border border-slate-100">
                   <div className="flex justify-between items-center px-3 py-2 bg-slate-50 text-sm">
-                    <span className="text-slate-500">{translate("Donation Amount")}</span>
+                    <span className="text-slate-500">
+                      {translate("Donation Amount")}
+                    </span>
                     <span className="font-semibold text-slate-700">
                       RM {baseAmount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center px-3 py-2 border-t border-slate-100 text-sm">
-                    <span className="text-slate-500">{translate("Platform Fee")}</span>
+                    <span className="text-slate-500">
+                      {translate("Platform Fee")}
+                    </span>
                     <span className="font-semibold text-slate-700">
                       RM {Number(PLATFORM_FEE).toFixed(2)}
                     </span>
@@ -759,7 +766,11 @@ export default function DonationPage() {
               />
               <div className="flex gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-600 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
-                <span>{translate("Payment receipt will be sent to the provided email if available.")}</span>
+                <span>
+                  {translate(
+                    "Payment receipt will be sent to the provided email if available.",
+                  )}
+                </span>
               </div>
             </div>
           </Section>

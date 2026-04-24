@@ -29,8 +29,8 @@ export const trpcClient = trpc.createClient({
         return op.context.skipBatch === true;
       },
       true: httpLink({
-        // url: 'http://localhost:8000/trpc',
-        url: ngrokLink,
+        url: 'http://localhost:8000/trpc',
+        // url: ngrokLink,
         headers: getHeaders,
         fetch(url, options) {
           return fetch(url, {
@@ -41,8 +41,8 @@ export const trpcClient = trpc.createClient({
         },
       }),
       false: httpBatchLink({
-        // url: 'http://localhost:8000/trpc',
-        url: ngrokLink,
+        url: 'http://localhost:8000/trpc',
+        // url: ngrokLink,
         headers: getHeaders,
         fetch(url, options) {
           return fetch(url, {

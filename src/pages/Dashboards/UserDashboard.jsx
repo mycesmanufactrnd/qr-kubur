@@ -486,6 +486,12 @@ export default function UserDashboard2() {
               g: G.ocean,
             },
             {
+              icon: BookOpen,
+              label: translate("Tahlil"),
+              page: "SearchTahlil",
+              g: G.indigo,
+            },
+            {
               icon: QrCode,
               label: translate("Scan QR"),
               page: "ScanQR",
@@ -566,7 +572,6 @@ export default function UserDashboard2() {
           </div>
         </div>
 
-        {/* ── Zikir & Amalan ── */}
         <div className="db-sec">
           <div className="db-sec-head">
             <div className="db-sec-left">
@@ -575,7 +580,6 @@ export default function UserDashboard2() {
             </div>
           </div>
 
-          {/* Emergency Solat Jenazah — always visible, no scrolling needed */}
           <Link
             to={createPageUrl("SolatJenazah")}
             className="db-emergency-card"

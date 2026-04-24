@@ -1,4 +1,5 @@
 import AppUserLogin from '@/pages/AppUserLogin';
+import SearchTahlil from '@/pages/SearchTahlil';
 import CheckTahlilStatus from '@/pages/CheckTahlilStatus';
 import CheckServiceStatus from '@/pages/CheckServiceStatus';
 import DeadPersonDetails from '@/pages/DeadPersonDetails';
@@ -83,6 +84,7 @@ export const PAGES = {
     "Ollama": Ollama,
     "JitsiRoom": JitsiRoom,
     "AppUserLogin": AppUserLogin,
+    "SearchTahlil": SearchTahlil,
     "CheckTahlilStatus": CheckTahlilStatus,
     "CheckServiceStatus": CheckServiceStatus,
     "DeadPersonDetails": DeadPersonDetails,

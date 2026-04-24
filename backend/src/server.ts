@@ -4,9 +4,12 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const ngrokUrl = process.env.NGROK_URL;
-console.log("\n🌍 NGROK URL:");
-console.log(process.env.NGROK_URL || "❌ Not set");
+const frontendNgrokUrl = process.env.FRONTEND_NGROK_URL;
+const backendNgrokUrl = process.env.BACKEND_NGROK_URL;
+console.log("\n🌍 BACKEND NGROK URL:");
+console.log(process.env.BACKEND_NGROK_URL || "❌ Not set");
+console.log("🌍 FRONTEND NGROK URL:");
+console.log(process.env.FRONTEND_NGROK_URL || "❌ Not set");
 
 import { AppDataSource } from "./datasource.ts";
 import Fastify from "fastify";
@@ -41,12 +44,27 @@ await app.register(rateLimit, {
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  ...(ngrokUrl ? [ngrokUrl] : []),
-];
+  frontendNgrokUrl,
+  backendNgrokUrl,
+].filter(Boolean);
+
+// await app.register(import('@fastify/cors'), {
+//   origin: allowedOrigins,
+//   credentials: true, //Enable credentials for httpOnly cookies to work
+// });
 
 await app.register(import('@fastify/cors'), {
-  origin: allowedOrigins,
-  credentials: true, //Enable credentials for httpOnly cookies to work
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow mobile apps, Postman, curl
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"), false);
+    }
+  },
+  credentials: true,
 });
 
 // Register cookie plugin to support secure httpOnly cookies

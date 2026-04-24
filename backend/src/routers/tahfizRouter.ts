@@ -3,19 +3,28 @@ import { In, Repository } from "typeorm";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import { TahfizCenter, ServiceOffered } from "../db/entities.ts";
-import { tahfizSchema } from '../schemas/tahfizSchema.ts';
+import { tahfizSchema } from "../schemas/tahfizSchema.ts";
 
-type TahfizServicePayload = NonNullable<z.infer<typeof tahfizSchema>["services"]>[number];
+type TahfizServicePayload = NonNullable<
+  z.infer<typeof tahfizSchema>["services"]
+>[number];
 
 const toRoundedPrice = (value: number) => Number(Number(value ?? 0).toFixed(2));
 
-const serializeTahfizWithServices = (tahfiz: TahfizCenter, services: ServiceOffered[] = [], isActiveOnly = false) => {
+const serializeTahfizWithServices = (
+  tahfiz: TahfizCenter,
+  services: ServiceOffered[] = [],
+  isActiveOnly = false,
+) => {
   const visible = isActiveOnly ? services.filter((s) => s.isactive) : services;
   const serviceoffered = visible.map((service) => service.service);
-  const serviceprice = visible.reduce<Record<string, number>>((acc, service) => {
-    acc[service.service] = Number(service.price);
-    return acc;
-  }, {});
+  const serviceprice = visible.reduce<Record<string, number>>(
+    (acc, service) => {
+      acc[service.service] = Number(service.price);
+      return acc;
+    },
+    {},
+  );
 
   return {
     ...tahfiz,
@@ -64,16 +73,25 @@ const loadServicesMap = async (tahfizIds: number[]) => {
 
 export const tahfizRouter = router({
   getPaginated: protectedProcedure
-    .input(z.object({
-      page: z.number().min(1).default(1),
-      pageSize: z.number().min(1).default(10),
-      filterName: z.string().optional(),
-      filterState: z.string().optional(),
-      currentUserTahfizCenterId: z.number().optional(),
-      isSuperAdmin: z.boolean().default(false), 
-    }))
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).default(10),
+        filterName: z.string().optional(),
+        filterState: z.string().optional(),
+        currentUserTahfizCenterId: z.number().optional(),
+        isSuperAdmin: z.boolean().default(false),
+      }),
+    )
     .query(async ({ input }) => {
-      const { page, pageSize, filterName, filterState, currentUserTahfizCenterId, isSuperAdmin } = input;
+      const {
+        page,
+        pageSize,
+        filterName,
+        filterState,
+        currentUserTahfizCenterId,
+        isSuperAdmin,
+      } = input;
 
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
       const query = tahfizRepo.createQueryBuilder("tahfiz");
@@ -89,15 +107,17 @@ export const tahfizRouter = router({
       }
 
       if (filterName?.trim()) {
-        query.andWhere("tahfiz.name ILIKE :name", { name: `%${filterName.trim()}%` });
+        query.andWhere("tahfiz.name ILIKE :name", {
+          name: `%${filterName.trim()}%`,
+        });
       }
 
-      if (filterState && filterState !== 'all') {
+      if (filterState && filterState !== "all") {
         query.andWhere("tahfiz.state = :state", { state: filterState });
       }
 
       if (page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize)
+        query.skip((page - 1) * pageSize).take(pageSize);
       }
 
       const [items, total] = await query
@@ -105,7 +125,9 @@ export const tahfizRouter = router({
         .getManyAndCount();
 
       const serviceMap = await loadServicesMap(items.map((item) => item.id));
-      const mappedItems = items.map((item) => serializeTahfizWithServices(item, serviceMap.get(item.id) ?? []));
+      const mappedItems = items.map((item) =>
+        serializeTahfizWithServices(item, serviceMap.get(item.id) ?? []),
+      );
 
       return { items: mappedItems, total };
     }),
@@ -122,54 +144,86 @@ export const tahfizRouter = router({
       if (!tahfiz) return null;
 
       const serviceMap = await loadServicesMap([tahfiz.id]);
-      return serializeTahfizWithServices(tahfiz, serviceMap.get(tahfiz.id) ?? [], true);
+      return serializeTahfizWithServices(
+        tahfiz,
+        serviceMap.get(tahfiz.id) ?? [],
+        true,
+      );
     }),
 
-
   getTahfizByCoordinates: publicProcedure
-    .input(z.object({
-      coordinates: z.object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-      }).optional().nullable(),
-      userState: z.string().optional().nullable(),
-      filterName: z.string().optional().nullable(),
-      filterAddress: z.string().optional().nullable()
-    }))
+    .input(
+      z.object({
+        coordinates: z
+          .object({
+            latitude: z.number().min(-90).max(90),
+            longitude: z.number().min(-180).max(180),
+          })
+          .optional()
+          .nullable(),
+        isTahlilServiceOnly: z.boolean().default(false),
+        filterState: z.string().optional().nullable(),
+        filterName: z.string().optional().nullable(),
+        filterAddress: z.string().optional().nullable(),
+      }),
+    )
     .query(async ({ input }) => {
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
       if (!input.coordinates) return [];
 
       const { latitude, longitude } = input.coordinates;
-      const query = tahfizRepo.createQueryBuilder("tahfiz")
+      const query = tahfizRepo
+        .createQueryBuilder("tahfiz")
         .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL");
 
-      if (input.userState) {
-        query.andWhere("tahfiz.state = :state", { state: input.userState });
+      if (input.filterState) {
+        query.andWhere("tahfiz.state = :state", { state: input.filterState });
+      }
+
+      if (input.isTahlilServiceOnly) {
+        query
+          .innerJoin("tahfiz.services", "services")
+          .andWhere("LOWER(services.service) LIKE :tahlil", {
+            tahlil: "%tahlil%",
+          });
       }
 
       if (input.filterName) {
-        query.andWhere("tahfiz.name ILIKE :name", { name: `%${input.filterName}%` });
+        query.andWhere("tahfiz.name ILIKE :name", {
+          name: `%${input.filterName}%`,
+        });
       }
 
       if (input.filterAddress) {
-        query.andWhere("tahfiz.address ILIKE :address", { address: `%${input.filterAddress}%` });
+        query.andWhere("tahfiz.address ILIKE :address", {
+          address: `%${input.filterAddress}%`,
+        });
       }
 
-      query.addSelect(`
+      query
+        .addSelect(
+          `
           earth_distance(
             ll_to_earth(tahfiz.latitude, tahfiz.longitude),
             ll_to_earth(:lat, :lng)
-          )`, 'distance')
-        .orderBy("distance", 'ASC')
+          )`,
+          "distance",
+        )
+        .orderBy("distance", "ASC")
         .setParameters({ lat: latitude, lng: longitude });
 
       const { entities, raw } = await query.getRawAndEntities();
 
-      const serviceMap = await loadServicesMap(entities.map((entity) => entity.id));
+      const serviceMap = await loadServicesMap(
+        entities.map((entity) => entity.id),
+      );
 
       return entities.map((entity, index) => ({
-        ...serializeTahfizWithServices(entity, serviceMap.get(entity.id) ?? [], true),
+        ...serializeTahfizWithServices(
+          entity,
+          serviceMap.get(entity.id) ?? [],
+          true,
+        ),
         distance: Number(raw[index].distance),
       }));
     }),
@@ -180,7 +234,7 @@ export const tahfizRouter = router({
       if (!ctx.user?.id) {
         throw new Error("Unauthorized");
       }
-      
+
       const { services = [], ...tahfizInput } = input;
 
       return await AppDataSource.transaction(async (manager) => {
@@ -188,7 +242,9 @@ export const tahfizRouter = router({
         const serviceRepo = manager.getRepository(ServiceOffered);
 
         const cleanedTahfizInput = Object.fromEntries(
-          Object.entries(tahfizInput).filter(([, value]) => value !== undefined && value !== null)
+          Object.entries(tahfizInput).filter(
+            ([, value]) => value !== undefined && value !== null,
+          ),
         ) as Partial<TahfizCenter>;
         cleanedTahfizInput.createdbyId = Number(ctx.user.id);
 
@@ -196,7 +252,11 @@ export const tahfizRouter = router({
         const savedTahfiz = await tahfizRepo.save(tahfiz);
 
         if (services.length > 0) {
-          const serviceEntities = buildServiceEntities(serviceRepo, savedTahfiz.id, services);
+          const serviceEntities = buildServiceEntities(
+            serviceRepo,
+            savedTahfiz.id,
+            services,
+          );
           await serviceRepo.save(serviceEntities);
         }
 
@@ -220,7 +280,9 @@ export const tahfizRouter = router({
         const { services, ...partialTahfizInput } = input.data;
 
         const cleanedInput = Object.fromEntries(
-          Object.entries(partialTahfizInput).filter(([, value]) => value !== undefined)
+          Object.entries(partialTahfizInput).filter(
+            ([, value]) => value !== undefined,
+          ),
         ) as Partial<TahfizCenter>;
 
         tahfizRepo.merge(tahfiz, cleanedInput);
@@ -230,7 +292,11 @@ export const tahfizRouter = router({
           await serviceRepo.delete({ tahfizcenter: { id: savedTahfiz.id } });
 
           if (services.length > 0) {
-            const serviceEntities = buildServiceEntities(serviceRepo, savedTahfiz.id, services);
+            const serviceEntities = buildServiceEntities(
+              serviceRepo,
+              savedTahfiz.id,
+              services,
+            );
             await serviceRepo.save(serviceEntities);
           }
         }
@@ -244,11 +310,8 @@ export const tahfizRouter = router({
       });
     }),
 
-  delete: protectedProcedure
-    .input(z.number())
-    .mutation(async ({ input }) => {
-      const repo = AppDataSource.getRepository(TahfizCenter);
-      return repo.delete(input);
-    }),
+  delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+    const repo = AppDataSource.getRepository(TahfizCenter);
+    return repo.delete(input);
+  }),
 });
-

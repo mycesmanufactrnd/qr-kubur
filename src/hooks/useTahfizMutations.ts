@@ -11,6 +11,14 @@ type useGetTahfizPaginatedParams = {
   filterState?: string;
 };
 
+type UseGetTahfizCoordinatesParams = {
+  coordinates?: { latitude: number; longitude: number } | null;
+  isTahlilServiceOnly?: boolean;
+  filterState?: string;
+  filterName?: string;
+  filterAddress?: string;
+};
+
 const TITLE_MESSAGE = 'Tahfiz Center';
 
 export function useGetTahfizById(tahfizId: number | null) {
@@ -48,18 +56,20 @@ export function useGetTahfizPaginated({
   return { tahfizCenterList, totalPages, isLoading, refetch, error };
 }
 
-export function useGetTahfizCoordinates(
-  coordinates?: { latitude: number; longitude: number } | null, 
-  userState?: string,
-  filterName?: string,
-  filterAddress?: string,
-) {
+export function useGetTahfizCoordinates({
+  coordinates,
+  isTahlilServiceOnly,
+  filterState,
+  filterName,
+  filterAddress,
+}: UseGetTahfizCoordinatesParams) {
   return trpc.tahfiz.getTahfizByCoordinates.useQuery(
-    { 
+    {
       coordinates: coordinates ?? null,
-      userState,
+      isTahlilServiceOnly,
+      filterState,
       filterName,
-      filterAddress
+      filterAddress,
     },
     {
       enabled: !!coordinates,
