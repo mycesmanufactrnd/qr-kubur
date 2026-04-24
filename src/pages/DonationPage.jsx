@@ -487,8 +487,13 @@ export default function DonationPage() {
   if (loadingPayment) return <PageLoadingComponent />;
   if (status_id) return <PaymentSuccessfulComponent />;
 
+  const isPreselected = !!urlParamId && !!urlParamType;
   const recipientList =
     recipientType === "organisation" ? organisations : tahfizCenters;
+
+  const selectedRecipientObj = recipientList.find(
+    (r) => String(r.id) === String(selectedRecipient),
+  );
 
   const clearDonorInfo = () => {
     setValue("donorname", "");
@@ -508,111 +513,133 @@ export default function DonationPage() {
             icon={Heart}
             accent="rose"
           >
-            <div className="space-y-3">
-              <TypeToggle
-                value={recipientType}
-                onChange={(v) => {
-                  setValue("recipientType", v);
-                  setValue("selectedRecipient", "");
-                  setValue("paymentMethod", "");
-                  setSearchQuery("");
-                  setFilterName("");
-                }}
-              />
-
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                  <Input
-                    placeholder={translate("Name")}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      if (recipientType === "tahfiz") {
-                        setValue("selectedRecipient", "");
-                        setValue("paymentMethod", "");
-                      }
-                    }}
-                    className="pl-8 h-10 rounded-xl border-slate-200 text-sm"
-                  />
+            {isPreselected ? (
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-rose-100 bg-rose-50">
+                <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                  {urlParamType === "organisation" ? (
+                    <Building2 className="w-4 h-4 text-rose-500" />
+                  ) : (
+                    <Building2 className="w-4 h-4 text-rose-500" />
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterName(searchQuery);
-                    setValue("selectedRecipient", "");
-                    setValue("paymentMethod", "");
-                  }}
-                  className="px-4 h-10 rounded-xl bg-emerald-500 text-white text-sm font-semibold active:opacity-80 transition-opacity shrink-0"
-                >
-                  {translate("Search")}
-                </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-400 leading-none mb-0.5">
+                    {urlParamType === "organisation"
+                      ? translate("Organisation")
+                      : translate("Tahfiz Center")}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-800 truncate">
+                    {selectedRecipientObj?.name ?? translate("Loading...")}
+                  </p>
+                </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <Select
-                  value={selectedState}
-                  onValueChange={(v) => {
-                    setSelectedState(v);
+            ) : (
+              <div className="space-y-3">
+                <TypeToggle
+                  value={recipientType}
+                  onChange={(v) => {
+                    setValue("recipientType", v);
                     setValue("selectedRecipient", "");
                     setValue("paymentMethod", "");
+                    setSearchQuery("");
+                    setFilterName("");
+                  }}
+                />
+
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <Input
+                      placeholder={translate("Name")}
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        if (recipientType === "tahfiz") {
+                          setValue("selectedRecipient", "");
+                          setValue("paymentMethod", "");
+                        }
+                      }}
+                      className="pl-8 h-10 rounded-xl border-slate-200 text-sm"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFilterName(searchQuery);
+                      setValue("selectedRecipient", "");
+                      setValue("paymentMethod", "");
+                    }}
+                    className="px-4 h-10 rounded-xl bg-emerald-500 text-white text-sm font-semibold active:opacity-80 transition-opacity shrink-0"
+                  >
+                    {translate("Search")}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <Select
+                    value={selectedState}
+                    onValueChange={(v) => {
+                      setSelectedState(v);
+                      setValue("selectedRecipient", "");
+                      setValue("paymentMethod", "");
+                    }}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm flex-1">
+                      <SelectValue placeholder={translate("State")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="nearby">
+                        {translate("Nearby")}
+                      </SelectItem>
+                      {STATES_MY.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Select
+                  value={selectedRecipient ? String(selectedRecipient) : ""}
+                  onValueChange={(v) => {
+                    if (
+                      recipientType === "organisation" &&
+                      organisations.length > 0
+                    )
+                      setValue("selectedRecipient", v);
+                    if (recipientType === "tahfiz" && tahfizCenters.length > 0)
+                      setValue("selectedRecipient", v);
                   }}
                 >
-                  <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm flex-1">
-                    <SelectValue placeholder={translate("State")} />
+                  <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm">
+                    <SelectValue
+                      placeholder={
+                        recipientType === "organisation"
+                          ? translate("Select organisation")
+                          : translate("Select Tahfiz Center")
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nearby">
-                      {translate("Nearby")}
-                    </SelectItem>
-                    {STATES_MY.map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state}
+                    {recipientList.length > 0 ? (
+                      recipientList.map((r) => (
+                        <SelectItem key={r.id} value={String(r.id)}>
+                          {r.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="__empty__" disabled>
+                        {recipientType === "organisation"
+                          ? translate("No organisation found")
+                          : translate("No tahfiz centers found")}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-
-              <Select
-                value={selectedRecipient ? String(selectedRecipient) : ""}
-                onValueChange={(v) => {
-                  if (
-                    recipientType === "organisation" &&
-                    organisations.length > 0
-                  )
-                    setValue("selectedRecipient", v);
-                  if (recipientType === "tahfiz" && tahfizCenters.length > 0)
-                    setValue("selectedRecipient", v);
-                }}
-              >
-                <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm">
-                  <SelectValue
-                    placeholder={
-                      recipientType === "organisation"
-                        ? translate("Select organisation")
-                        : translate("Select Tahfiz Center")
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {recipientList.length > 0 ? (
-                    recipientList.map((r) => (
-                      <SelectItem key={r.id} value={String(r.id)}>
-                        {r.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="__empty__" disabled>
-                      {recipientType === "organisation"
-                        ? translate("No organisation found")
-                        : translate("No tahfiz centers found")}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            )}
           </Section>
 
           <Section title={translate("Total Donations")} accent="amber">

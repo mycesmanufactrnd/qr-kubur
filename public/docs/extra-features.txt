@@ -5,7 +5,7 @@
 4. khairat kematian (kalau xde)
 5. report bulanan (duit keluar)
 ✅ 6. quotation details, letak gambar kubur, lot apa semua (more details)
-7. grave service (ni masjid nye saja, siapa yg jaga)
+✅ 7. grave service (ni masjid nye saja, siapa yg jaga)
 ✅ 8. donation amek la 0.50 (donation report)
 9. notification tahlil start - and suggested date
 10. centralize suma of parent organisation
@@ -18,7 +18,7 @@
 ✅ 17. ubah ayat2 alquran daily
 ✅ 18. bayaran khairat kematian transaction history untuk user
 19. mydigital Id, or tangkap gamabr IC and get number 
-20. donation untuk jaga kubur (letak di kubur (derma)), hide filter kalua ada pre select, just info
+✅ 20. donation untuk jaga kubur (letak di kubur (derma)), hide filter kalua ada pre select, just info
 21. search bar refine --- 
 ✅ 22. derma default nama (hamba allah)
 23. live tahlil ---- setup di server

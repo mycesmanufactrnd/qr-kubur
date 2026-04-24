@@ -95,6 +95,7 @@ export default function ManageTahlilRequests() {
   const [uploadDialogFileKey, setUploadDialogFileKey] = useState(0);
   const [imgLoading, setImgLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
+  const [suggestedDateError, setSuggestedDateError] = useState("");
 
   const { loading: permissionsLoading, canView } = useCrudPermissions("tahlil");
 
@@ -221,6 +222,7 @@ export default function ManageTahlilRequests() {
     setPendingPhotoFile(null);
     setPendingPhotoPreview("");
     setDialogFileKey((prev) => prev + 1);
+    setSuggestedDateError("");
     setIsDialogOpen(true);
   };
 
@@ -359,10 +361,10 @@ export default function ManageTahlilRequests() {
 
     if (newStatus === TahlilStatus.ACCEPTED) {
       if (!suggestedDate) {
-        showError("Suggested date is required when accepting request.");
+        setSuggestedDateError(translate("Suggested date is required when accepting request."));
         return;
       }
-
+      setSuggestedDateError("");
       payload.suggesteddate = suggestedDate;
     }
 
@@ -907,6 +909,7 @@ export default function ManageTahlilRequests() {
           if (!open) {
             setSelectedRequest(null);
             setSuggestedDate("");
+            setSuggestedDateError("");
             setTahlilPhotoUrls([]);
             setTransactionAccount(null);
           }
@@ -997,10 +1000,16 @@ export default function ManageTahlilRequests() {
                   <Input
                     type="date"
                     value={suggestedDate}
-                    onChange={(event) => setSuggestedDate(event.target.value)}
+                    onChange={(event) => {
+                      setSuggestedDate(event.target.value);
+                      if (event.target.value) setSuggestedDateError("");
+                    }}
                     disabled={selectedRequest?.status !== TahlilStatus.PENDING}
-                    className="mt-1"
+                    className={`mt-1 ${suggestedDateError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                   />
+                  {suggestedDateError && (
+                    <p className="text-sm text-red-500 mt-1">{suggestedDateError}</p>
+                  )}
                 </div>
                 {(selectedRequest?.status === TahlilStatus.ACCEPTED ||
                   selectedRequest?.status === TahlilStatus.COMPLETED) && (
@@ -1169,7 +1178,7 @@ export default function ManageTahlilRequests() {
             </div>
           )}
           <DialogFooter className="flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => { setIsDialogOpen(false); setSuggestedDateError(""); }}>
               {translate("Close")}
             </Button>
             {selectedRequest?.status === TahlilStatus.PENDING && (

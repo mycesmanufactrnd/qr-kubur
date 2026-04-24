@@ -17,6 +17,7 @@ import TahfizDetails from '@/pages/TahfizDetails';
 import OrganisationDetails from '@/pages/OrganisationDetails.jsx';
 import SettingsPage from '@/pages/SettingsPage';
 import SubmitSuggestion from '@/pages/SubmitSuggestion';
+// import GraveService from '@/pages/GraveService';
 import SurahPage from '@/pages/SurahPage';
 import TahlilRequestPage from '@/pages/TahlilRequestPage';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
@@ -133,6 +134,7 @@ export const PAGES = {
     "MyPaymentConfig": MyPaymentConfig,
     "SubmitSuggestion": SubmitSuggestion,
     "SurahPage": SurahPage,
+    // "GraveService": GraveService,
     "TahlilRequestPage": TahlilRequestPage,
     "TermsAndConditions": TermsAndConditions,
     "UserTransactionRecords": UserTransactionRecords,

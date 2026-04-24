@@ -18,7 +18,10 @@ export const tahlilRequestSchema = z.object({
 
 export const tahlilRequestApprovalSchema = z.object({
   status: z.enum(TahlilStatus),
-  suggesteddate: z.coerce.date().optional().nullable(),
+  suggesteddate: z.preprocess(
+    (v) => (v === '' || v == null ? null : v),
+    z.coerce.date().nullable().optional(),
+  ),
   photourls: z.array(z.string()).optional().nullable(),
 });
 

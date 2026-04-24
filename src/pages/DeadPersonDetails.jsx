@@ -28,7 +28,10 @@ export default function DeadPersonDetails() {
 
   const { data: graveServiceOrganisations = [], isLoading: isGraveServiceOrganisationsLoading } = 
     trpc.organisation.getGraveServiceByState.useQuery(
-    { state: graveState },
+    { 
+      state: graveState,
+      graveOrganisationId: graveDetails?.organisation?.id ?? null,  
+    },
     { enabled: !!graveState }
   );
 

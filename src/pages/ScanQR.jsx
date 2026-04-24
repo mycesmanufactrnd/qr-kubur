@@ -161,18 +161,16 @@ export default function ScanQR() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen bg-slate-50">
       <style>{css}</style>
       <BackNavigation title={translate('Scan QR Code')} />
 
       <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
 
-        {/* ── Hero scan card ── */}
         {!result && (
           <div className="rounded-3xl overflow-hidden shadow-lg">
 
             {scanning ? (
-              /* ── Active camera ── */
               <div className="relative aspect-square w-full bg-black">
                 <QrScanner
                   delay={300}

@@ -72,6 +72,7 @@ import {
   useGetConfigByEntity,
   useUpsertConfigByEntity,
 } from "@/hooks/usePaymentConfigMutations";
+import AgreeServiceTerms from "@/components/AgreeServiceTerms";
 
 const DEFAULT_USER_PASSWORD = "password";
 
@@ -117,6 +118,7 @@ export default function ManageOrganisations() {
   const [paymentPreviewUrls, setPaymentPreviewUrls] = useState({});
   const [userEntries, setUserEntries] = useState([]);
   const [editingUserIndex, setEditingUserIndex] = useState(null);
+  const [termsDialogOpen, setTermsDialogOpen] = useState(false);
 
   const {
     control,
@@ -175,7 +177,12 @@ export default function ManageOrganisations() {
   const addServiceEntry = () => {
     const nextEntries = [
       ...serviceEntries,
-      { id: `${Date.now()}-${Math.random()}`, service: "", price: "", isactive: true },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        service: "",
+        price: "",
+        isactive: true,
+      },
     ];
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
@@ -753,19 +760,23 @@ export default function ManageOrganisations() {
       user_role: "admin",
     });
 
-    const nextEntries = relationalServices.length > 0
-      ? relationalServices.map((service, index) => ({
-          id: `${Date.now()}-${index}`,
-          service: service.service,
-          price: (service.price ? parseFloat(Number(service.price).toFixed(2)) : 0).toString(),
-          isactive: service.isactive !== false,
-        }))
-      : serviceoffered.map((service, index) => ({
-          id: `${Date.now()}-${index}`,
-          service,
-          price: (serviceprice[service] ?? 0).toString(),
-          isactive: true,
-        }));
+    const nextEntries =
+      relationalServices.length > 0
+        ? relationalServices.map((service, index) => ({
+            id: `${Date.now()}-${index}`,
+            service: service.service,
+            price: (service.price
+              ? parseFloat(Number(service.price).toFixed(2))
+              : 0
+            ).toString(),
+            isactive: service.isactive !== false,
+          }))
+        : serviceoffered.map((service, index) => ({
+            id: `${Date.now()}-${index}`,
+            service,
+            price: (serviceprice[service] ?? 0).toString(),
+            isactive: true,
+          }));
 
     setServiceEntries(nextEntries);
     setUserEntries([]);
@@ -1380,9 +1391,18 @@ export default function ManageOrganisations() {
                     </div>
                   );
                 })}
-                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
-                  {translate("Grave Service")}
-                </h3>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 border-b py-2 flex items-center justify-between">
+                    {translate("Grave Service")}
+                    <button
+                      type="button"
+                      onClick={() => setTermsDialogOpen(true)}
+                      className="text-xs font-medium text-violet-600 hover:text-violet-800 hover:underline"
+                    >
+                      T&amp;C
+                    </button>
+                  </h3>
+                </div>
                 <CheckboxForm
                   name="isgraveservices"
                   control={control}
@@ -1426,25 +1446,30 @@ export default function ManageOrganisations() {
                           />
                           <button
                             type="button"
-                            className={`col-span-2 text-xs font-medium px-2 py-1 rounded border transition-colors ${
+                            className={`col-span-2 font-medium px-2 py-1 rounded border transition-colors ${
                               entry.isactive !== false
                                 ? "bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
                                 : "bg-gray-100 text-gray-500 border-gray-300 hover:bg-gray-200"
                             }`}
                             onClick={() =>
-                              updateServiceEntry(entry.id, "isactive", entry.isactive === false)
+                              updateServiceEntry(
+                                entry.id,
+                                "isactive",
+                                entry.isactive === false,
+                              )
                             }
                           >
-                            {entry.isactive !== false ? translate("Active") : translate("Inactive")}
+                            {entry.isactive !== false
+                              ? translate("Active")
+                              : translate("Inactive")}
                           </button>
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
-                            className="col-span-2 bg-red-600 hover:bg-red-700 text-white hover:text-white flex items-center justify-center rounded-md"
                             onClick={() => removeServiceEntry(entry.id)}
+                            className="col-span-2 flex items-center justify-center rounded-md text-red-500 hover:text-red-700 active:scale-95 transition"
                           >
-                            <X className="w-4 h-4" />
-                          </Button>
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       ))}
                       <Button
@@ -1634,6 +1659,17 @@ export default function ManageOrganisations() {
         entityId={selectedOrgForPayment?.id}
         entityType="organisation"
       />
+
+      <Dialog open={termsDialogOpen} onOpenChange={setTermsDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {translate("Grave Service Terms & Conditions")}
+            </DialogTitle>
+          </DialogHeader>
+          <AgreeServiceTerms />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

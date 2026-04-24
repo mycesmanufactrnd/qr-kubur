@@ -1,0 +1,1 @@
+// in here show all list of deadperson, and have pocture if nothing
