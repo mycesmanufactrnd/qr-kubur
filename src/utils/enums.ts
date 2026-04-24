@@ -162,6 +162,7 @@ export const paymentToyyibStatus = {
 
 export const SST_PERCENTAGE = 0.06;
 export const PLATFORM_FEE = 2;
+export const PLATFORM_DONATION_FEE = 1.50;
 export const SERVICE_FEE = 3;
 
 export const ORG_SERVICE_FEE = 0.05;

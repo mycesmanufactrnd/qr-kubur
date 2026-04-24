@@ -29,7 +29,7 @@ import {
   DONATION_AMOUNTS,
   normalizeState,
   paymentToyyibStatus,
-  PLATFORM_FEE,
+  PLATFORM_DONATION_FEE,
   STATES_MY,
   VerificationStatus,
 } from "@/utils/enums";
@@ -136,7 +136,10 @@ export default function DonationPage() {
 
   const [loadingPayment, setLoadingPayment] = useState(false);
   const { watch, setValue, handleSubmit, reset } = useForm({
-    defaultValues: defaultDonationField,
+    defaultValues: {
+      ...defaultDonationField,
+      donorname: "HAMBA ALLAH",
+    },
   });
   const { userLocation, userState, locationDenied } = useLocationContext();
 
@@ -182,7 +185,8 @@ export default function DonationPage() {
     [amount, customAmount],
   );
   const payableAmount = useMemo(
-    () => (baseAmount > 0 ? baseAmount + Number(PLATFORM_FEE || 0) : 0),
+    () =>
+      baseAmount > 0 ? baseAmount + Number(PLATFORM_DONATION_FEE || 0) : 0,
     [baseAmount],
   );
 
@@ -639,7 +643,7 @@ export default function DonationPage() {
                       {translate("Platform Fee")}
                     </span>
                     <span className="font-semibold text-slate-700">
-                      RM {Number(PLATFORM_FEE).toFixed(2)}
+                      RM {Number(PLATFORM_DONATION_FEE).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center px-3 py-2.5 bg-emerald-50 border-t border-slate-100">
@@ -655,7 +659,6 @@ export default function DonationPage() {
             </div>
           </Section>
 
-          {/* Payment Method */}
           {paymentPlatforms.length > 0 && (
             <Section
               title={translate("Payment Method")}
@@ -775,7 +778,6 @@ export default function DonationPage() {
             </div>
           </Section>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={paymentPlatforms.length === 0 || createDonation.isPending}

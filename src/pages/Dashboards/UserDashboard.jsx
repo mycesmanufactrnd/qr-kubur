@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
 import {
   Search,
   QrCode,
@@ -9,19 +8,11 @@ import {
   MapPin,
   MoonStar,
   Globe,
-  Calendar,
-  Video,
-  MessageCircle,
-  Newspaper,
-  BookMarked,
-  NotebookTabs,
-  Clock,
-  BookHeart,
   ChevronRight,
   Sparkles,
   AlertCircle,
   HelpCircle,
-  Server,
+  Newspaper,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -40,9 +31,6 @@ const css = `
     overflow-x: hidden;
   }
 
-  /* ════════════════════════════════
-     HERO HEADER — lush green with Islamic geometry
-  ════════════════════════════════ */
   .db-hero {
     position: relative;
     background: linear-gradient(160deg, #063d2e 0%, #0a5c42 35%, #0d7a58 65%, #10956a 100%);
@@ -112,9 +100,6 @@ const css = `
   .db-trans { font-size: 11px; color: rgba(255,255,255,0.6); font-style: italic; margin-top: 6px; }
   .db-ref { display: inline-block; font-size: 9px; color: rgba(255,255,255,0.35); margin-top: 4px; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
 
-  /* ════════════════════════════════
-     LIFTED QUICK ACTION PANEL
-  ════════════════════════════════ */
   .db-quick-wrap {
     position: relative; z-index: 10;
     margin: -54px 16px 0;
@@ -149,250 +134,85 @@ const css = `
   }
   .db-qlabel { font-size: 10px; font-weight: 600; color: #4b5563; text-align: center; line-height: 1.3; }
 
-  /* ════════════════════════════════
-     CONTENT BODY
-  ════════════════════════════════ */
   .db-body { padding: 22px 16px 0; }
 
   .db-sec { margin-bottom: 28px; }
-  .db-sec-head {
-    display: flex; align-items: center; justify-content: space-between;
+
+  /* ── Section header ── */
+  .db-ns-head {
+    display: flex; align-items: center; gap: 8px;
     margin-bottom: 14px;
   }
-  .db-sec-left { display: flex; align-items: center; gap: 10px; }
-  .db-sec-bar { width: 4px; height: 20px; border-radius: 4px; }
-  .db-sec-name { font-size: 15px; font-weight: 700; color: #1a2332; letter-spacing: -0.3px; }
-  .db-sec-all { font-size: 11px; font-weight: 600; color: #10956a; }
+  .db-ns-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .db-ns-label { font-size: 14px; font-weight: 700; color: #111827; letter-spacing: -0.2px; }
 
-  /* ════════════════════════════════
-     FEATURED LARGE CARD
-  ════════════════════════════════ */
-  .db-hero-card {
-    border-radius: 24px; padding: 24px 20px;
-    display: flex; flex-direction: column; gap: 12px;
-    text-decoration: none; position: relative; overflow: hidden;
-    min-height: 140px; margin-bottom: 10px;
-    transition: transform 0.2s; -webkit-tap-highlight-color: transparent;
+  /* ── Feature card (full-width gradient) ── */
+  .db-feat-card {
+    border-radius: 22px;
+    padding: 22px 20px 18px;
+    min-height: 132px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    text-decoration: none; overflow: hidden; position: relative;
+    margin-bottom: 10px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.18s;
   }
-  .db-hero-card:active { transform: scale(0.98); }
-  .db-hero-card-shine {
-    position: absolute; top: -30px; right: -30px; width: 160px; height: 160px;
-    border-radius: 50%; background: rgba(255,255,255,0.1);
-    pointer-events: none;
+  .db-feat-card:active { transform: scale(0.97); }
+  .db-feat-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    color: rgba(255,255,255,0.6); margin-bottom: 4px;
   }
-  .db-hero-card-shine2 {
-    position: absolute; bottom: -50px; left: 20px; width: 120px; height: 120px;
-    border-radius: 50%; background: rgba(255,255,255,0.06);
-    pointer-events: none;
-  }
-  .db-hc-badge {
+  .db-feat-title { font-size: 21px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1.2; }
+  .db-feat-sub { font-size: 11.5px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+  .db-feat-cta {
+    margin-top: 14px;
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 20px; padding: 4px 12px; width: fit-content;
-    font-size: 10px; font-weight: 600; color: #fff; letter-spacing: 0.3px;
+    border-radius: 14px; padding: 6px 14px;
+    font-size: 11px; font-weight: 600; color: #fff; width: fit-content;
   }
-  .db-hc-title { font-size: 22px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: -0.5px; }
-  .db-hc-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
-  .db-hc-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 20px; padding: 7px 14px; width: fit-content;
-    font-size: 11px; font-weight: 600; color: #fff;
-    margin-top: 4px;
+  .db-feat-bg-icon {
+    position: absolute; right: -8px; bottom: -8px;
+    opacity: 0.07; pointer-events: none; user-select: none;
   }
-
-  /* ════════════════════════════════
-     2-COL MEDIUM CARDS
-  ════════════════════════════════ */
-  .db-grid2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
-
-  .db-med-card {
-    border-radius: 20px; padding: 18px 16px 16px;
-    display: flex; flex-direction: column; gap: 8px;
-    text-decoration: none; position: relative; overflow: hidden;
-    min-height: 116px;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .db-med-card:active { transform: scale(0.95); }
-
-  .db-med-icon-wrap {
-    width: 42px; height: 42px; border-radius: 14px;
-    background: rgba(255,255,255,0.2);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-  .db-med-icon-wrap::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg,rgba(255,255,255,0.3) 0%,transparent 70%);
-    border-radius: inherit;
-  }
-  .db-med-title { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
-
-  .db-med-arrow {
-    position: absolute; bottom: 14px; right: 14px;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: rgba(255,255,255,0.18);
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid rgba(255,255,255,0.25);
+  .db-feat-shine {
+    position: absolute; top: -30px; right: -30px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); pointer-events: none;
   }
 
-  .db-med-glow {
-    position: absolute; top: -20px; right: -20px;
-    width: 100px; height: 100px; border-radius: 50%;
-    background: rgba(255,255,255,0.08); pointer-events: none;
-  }
-
-  /* ════════════════════════════════
-     EMERGENCY SOLAT JENAZAH CARD
-  ════════════════════════════════ */
-  .db-emergency-card {
-    border-radius: 22px;
-    padding: 18px 18px;
-    display: flex; align-items: center; gap: 14px;
-    text-decoration: none; position: relative; overflow: hidden;
-    background: linear-gradient(135deg, #7b1d1d 0%, #c0392b 50%, #e74c3c 100%);
-    box-shadow: 0 8px 32px rgba(192,57,43,0.4), 0 2px 8px rgba(192,57,43,0.2);
-    border: 1px solid rgba(255,255,255,0.15);
-    margin-bottom: 10px;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-    -webkit-tap-highlight-color: transparent;
-  }
-  .db-emergency-card:active { transform: scale(0.97); }
-
-  /* Animated pulse ring for emergency feel */
-  .db-emergency-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    border-radius: 22px;
-    border: 2px solid rgba(255,255,255,0.1);
-    animation: emergencyPulse 2s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .db-emergency-card-shine {
-    position: absolute; top: -40px; right: -40px;
-    width: 160px; height: 160px; border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    pointer-events: none;
-  }
-  .db-emergency-card-orb {
-    position: absolute; bottom: -30px; left: -20px;
-    width: 100px; height: 100px; border-radius: 50%;
-    background: rgba(0,0,0,0.15);
-    pointer-events: none;
-  }
-
-  .db-emergency-icon-wrap {
-    width: 54px; height: 54px; border-radius: 18px; flex-shrink: 0;
-    background: rgba(255,255,255,0.15);
-    border: 1.5px solid rgba(255,255,255,0.25);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-
-  .db-emergency-icon-wrap::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg,rgba(255,255,255,0.25) 0%,transparent 60%);
-    border-radius: inherit;
-  }
-
-  .db-emergency-text { flex: 1; z-index: 1; }
-  .db-emergency-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 10px; padding: 2px 8px; margin-bottom: 4px;
-    font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.9); letter-spacing: 0.8px;
-    text-transform: uppercase;
-  }
-  .db-emergency-title { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.4px; line-height: 1.2; }
-  .db-emergency-sub { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; }
-
-  .db-emergency-arrow {
-    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-    background: rgba(255,255,255,0.15);
-    border: 1.5px solid rgba(255,255,255,0.25);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1;
-  }
-
-  /* ════════════════════════════════
-     HORIZONTAL SCROLL
-     FIX: use padding-left on wrapper instead of inner div
-     so the first card gets the same 16px margin as the body
-  ════════════════════════════════ */
-  .db-hscroll-wrap {
-    overflow-x: auto;
-    margin: 0 -16px;
-    padding: 0 0 6px;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    scroll-padding-left: 16px;
-  }
-  .db-hscroll-wrap::-webkit-scrollbar { display: none; }
-  .db-hscroll-inner {
-    display: flex;
-    gap: 10px;
-    width: max-content;
-    padding: 0 16px; /* left+right padding on the flex container itself */
-  }
-
-  .db-tall-card {
-    width: 136px; border-radius: 22px; padding: 18px 14px;
-    display: flex; flex-direction: column; justify-content: space-between;
-    text-decoration: none; position: relative; overflow: hidden;
-    min-height: 160px; scroll-snap-align: start;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-    -webkit-tap-highlight-color: transparent;
-    flex-shrink: 0;
-  }
-  .db-tall-card:active { transform: scale(0.95); }
-
-  .db-tall-label-wrap { margin-top: auto; }
-  .db-tall-num {
-    font-size: 36px; font-weight: 800; color: rgba(255,255,255,0.12);
-    position: absolute; bottom: 8px; right: 12px; line-height: 1;
-    font-variant-numeric: tabular-nums; letter-spacing: -2px;
-    pointer-events: none; user-select: none;
-  }
-  .db-tall-icon { width: 44px; height: 44px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
-  .db-tall-title { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; margin-top: 14px; }
-
-  /* ════════════════════════════════
-     LOCATION STRIP
-  ════════════════════════════════ */
-  .db-loc-strip { display: flex; flex-direction: column; gap: 10px; }
-
-  .db-loc-card {
+  /* ── Row card (white, icon + text + chevron) ── */
+  .db-row-card {
     background: #fff;
     border-radius: 18px;
     padding: 14px 16px;
     display: flex; align-items: center; gap: 14px;
-    text-decoration: none;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    text-decoration: none; overflow: hidden; position: relative;
     border: 1.5px solid #f0ede8;
-    transition: transform 0.18s, box-shadow 0.18s;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+    transition: transform 0.18s;
     -webkit-tap-highlight-color: transparent;
-    overflow: hidden;
-    position: relative;
+    margin-bottom: 8px;
   }
-  .db-loc-card:active { transform: scale(0.97); box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .db-row-card:active { transform: scale(0.97); }
+  .db-row-card:last-child { margin-bottom: 0; }
 
-  .db-loc-left {
-    width: 48px; height: 48px; border-radius: 15px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+  .db-row-icon {
+    width: 46px; height: 46px; border-radius: 15px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .db-loc-text { flex: 1; }
-  .db-loc-name { font-size: 14px; font-weight: 700; color: #1a2332; }
-  .db-loc-desc { font-size: 11px; color: #9ca3af; margin-top: 1px; }
-  .db-loc-chevron { color: #d1d5db; flex-shrink: 0; }
+  .db-row-info { flex: 1; }
+  .db-row-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 8px; margin-bottom: 3px;
+  }
+  .db-row-title { font-size: 14px; font-weight: 700; color: #111827; line-height: 1.3; }
+  .db-row-sub { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+  .db-row-arrow { color: #d1d5db; flex-shrink: 0; }
 
-  .db-loc-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 18px 0 0 18px; }
+  .db-row-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 18px 0 0 18px; }
 
-  /* ════════════════════════════════
-     ANIMATIONS
-  ════════════════════════════════ */
+  /* ── Animations ── */
   @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -405,22 +225,12 @@ const css = `
     0%   { background-position: -200% center; }
     100% { background-position: 200% center; }
   }
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(16,149,106,0.3); }
-    50%       { box-shadow: 0 0 0 8px rgba(16,149,106,0); }
-  }
-  @keyframes emergencyPulse {
-    0%, 100% { opacity: 0; transform: scale(1); }
-    50%       { opacity: 1; transform: scale(1.005); }
-  }
 
   .db-hero  { animation: fadeSlideUp 0.5s ease both; }
   .db-quick-wrap { animation: fadeSlideUp 0.5s 0.1s ease both; }
-
   .db-sec:nth-child(1) { animation: fadeSlideUp 0.5s 0.15s ease both; }
   .db-sec:nth-child(2) { animation: fadeSlideUp 0.5s 0.22s ease both; }
   .db-sec:nth-child(3) { animation: fadeSlideUp 0.5s 0.29s ease both; }
-  .db-sec:nth-child(4) { animation: fadeSlideUp 0.5s 0.36s ease both; }
 
   .db-moonbtn svg { animation: floatMoon 3s ease-in-out infinite; }
 
@@ -445,7 +255,7 @@ const G = {
   sapphire: "linear-gradient(140deg, #1565c0 0%, #0097a7 100%)",
 };
 
-export default function UserDashboard2() {
+export default function UserDashboard() {
   return (
     <div className="db">
       <style>{css}</style>
@@ -479,54 +289,16 @@ export default function UserDashboard2() {
         <div className="db-quick-title">{translate("Quick Actions")}</div>
         <div className="db-quick-grid">
           {[
-            {
-              icon: Search,
-              label: translate("Search Grave"),
-              page: "SearchGrave",
-              g: G.ocean,
-            },
-            {
-              icon: BookOpen,
-              label: translate("Tahlil"),
-              page: "SearchTahlil",
-              g: G.indigo,
-            },
-            {
-              icon: QrCode,
-              label: translate("Scan QR"),
-              page: "ScanQR",
-              g: G.forest,
-            },
-            {
-              icon: MapPin,
-              label: translate("Search Tahfiz"),
-              page: "SearchTahfiz",
-              g: G.violet,
-            },
-            {
-              icon: Heart,
-              label: translate("Donation"),
-              page: "DonationPage",
-              g: G.sunset,
-            },
-            {
-              icon: FileText,
-              label: translate("Tahlil Status"),
-              page: "CheckTahlilStatus",
-              g: G.crimson,
-            },
-            {
-              icon: HelpCircle,
-              label: translate("Service Status"),
-              page: "CheckServiceStatus",
-              g: G.teal,
-            },
+            { icon: Search,     label: translate("Search Grave"),  page: "SearchGrave",      g: G.ocean   },
+            { icon: BookOpen,   label: translate("Tahlil"),        page: "SearchTahlil",     g: G.indigo  },
+            { icon: QrCode,     label: translate("Scan QR"),       page: "ScanQR",           g: G.forest  },
+            { icon: MapPin,     label: translate("Search Tahfiz"), page: "SearchTahfiz",     g: G.violet  },
+            { icon: Heart,      label: translate("Donation"),      page: "DonationPage",     g: G.sunset  },
+            { icon: FileText,   label: translate("Tahlil Status"), page: "CheckTahlilStatus",g: G.crimson },
+            { icon: HelpCircle, label: translate("Service Status"),page: "CheckServiceStatus",g: G.teal   },
           ].map(({ icon: Icon, label, page, g }) => (
             <Link key={page} to={createPageUrl(page)} className="db-qbtn">
-              <div
-                className="db-qicon"
-                style={{ background: g }}
-              >
+              <div className="db-qicon" style={{ background: g }}>
                 <Icon style={{ width: 22, height: 22, color: "#fff" }} />
               </div>
               <div className="db-qlabel">{label}</div>
@@ -536,217 +308,87 @@ export default function UserDashboard2() {
       </div>
 
       <div className="db-body">
+
         <div className="db-sec">
-          <div className="db-sec-head">
-            <div className="db-sec-left">
-              <div className="db-sec-bar" style={{ background: G.forest }} />
-              <div className="db-sec-name">{translate("Supplication & Doa")}</div>
-            </div>
+          <div className="db-ns-head">
+            <div className="db-ns-dot" style={{ background: "#14a07a" }} />
+            <div className="db-ns-label">{translate("Guidance")}</div>
           </div>
 
-          <Link
-            to={createPageUrl("SurahPage")}
-            className="db-hero-card"
-            style={{ background: G.forest }}
-          >
-            <div className="db-hero-card-shine" />
-            <div className="db-hero-card-shine2" />
-            <div className="db-hc-badge db-shimmer-badge">
-              <BookOpen style={{ width: 11, height: 11 }} />
-              {translate("Complete Collection")}
+          <Link to={createPageUrl("SurahPage")} className="db-feat-card" style={{ background: G.forest }}>
+            <div className="db-feat-shine" />
+            <BookOpen className="db-feat-bg-icon" style={{ width: 110, height: 110 }} />
+            <div>
+              <div className="db-feat-eyebrow db-shimmer-badge" style={{ display: "inline-block", padding: "2px 10px", borderRadius: 10, marginBottom: 6 }}>
+                {translate("Complete Collection")}
+              </div>
+              <div className="db-feat-title">{translate("Surah, Doa & Tahlil")}</div>
+              <div className="db-feat-sub">{translate("Daily recitations, tahlil & prayer guide")}</div>
             </div>
-            <div className="db-hc-title">{translate("Surah, Doa & Tahlil")}</div>
-            <div className="db-hc-sub">{translate("Daily recitations, tahlil & prayer guide")}</div>
-            <div className="db-hc-btn">
-              {translate("Open now")} <ChevronRight style={{ width: 13, height: 13 }} />
+            <div className="db-feat-cta">
+              {translate("Open now")} <ChevronRight style={{ width: 12, height: 12 }} />
             </div>
           </Link>
 
-          <div className="db-grid2">            
-            <MedCard
-              icon={BookHeart}
-              title={translate("Rukun Islam")}
-              page="RukunIslam"
-              g={G.crimson}
-            />
-          </div>
-        </div>
-
-        <div className="db-sec">
-          <div className="db-sec-head">
-            <div className="db-sec-left">
-              <div className="db-sec-bar" style={{ background: G.violet }} />
-              <div className="db-sec-name">{translate("Zikir & Practices")}</div>
+          <Link to={createPageUrl("SolatJenazah")} className="db-row-card">
+            <div className="db-row-accent" style={{ background: "#e74c3c" }} />
+            <div className="db-row-icon" style={{ background: "#fff0f0" }}>
+              <Newspaper style={{ width: 20, height: 20, color: "#c0392b" }} />
             </div>
-          </div>
-
-          <Link
-            to={createPageUrl("SolatJenazah")}
-            className="db-emergency-card"
-          >
-            <div className="db-emergency-card-shine" />
-            <div className="db-emergency-card-orb" />
-            <div className="db-emergency-icon-wrap">
-              <Newspaper style={{ width: 24, height: 24, color: "#fff" }} />
-            </div>
-            <div className="db-emergency-text">
-              <div className="db-emergency-badge">
-                <AlertCircle style={{ width: 8, height: 8 }} />
+            <div className="db-row-info">
+              <div className="db-row-badge" style={{ background: "#fee2e2", color: "#c0392b" }}>
                 {translate("Immediate Guide")}
               </div>
-              <div className="db-emergency-title">{translate("Solat Jenazah")}</div>
-              <div className="db-emergency-sub">{translate("Procedure & complete guide")}</div>
+              <div className="db-row-title">{translate("Solat Jenazah")}</div>
+              <div className="db-row-sub">{translate("Procedure & complete guide")}</div>
             </div>
-            <div className="db-emergency-arrow">
-              <ChevronRight style={{ width: 16, height: 16, color: "#fff" }} />
-            </div>
+            <ChevronRight className="db-row-arrow" style={{ width: 16, height: 16 }} />
           </Link>
-
-          {/* Scrollable cards — Solat Jenazah removed */}
-          <div className="db-hscroll-wrap">
-            <div className="db-hscroll-inner">
-              {[
-                {
-                  icon: BookMarked,
-                  title: translate("Asmaul Husna"),
-                  page: "AsmaulHusna",
-                  g: G.amber,
-                  n: "01",
-                },
-                {
-                  icon: NotebookTabs,
-                  title: translate("Tasbih"),
-                  page: "Tasbih",
-                  g: G.teal,
-                  n: "02",
-                },
-                {
-                  icon: Clock,
-                  title: translate("Prayer Times"),
-                  page: "PrayerTimes",
-                  g: G.indigo,
-                  n: "03",
-                },
-                {
-                  icon: Video,
-                  title: translate("Daily Dua"),
-                  page: "DailyDua",
-                  g: G.violet,
-                  n: "04",
-                },
-                // future features
-                // {
-                //   icon: Calendar,
-                //   title: "Islamic Events",
-                //   page: "IslamicCalendar",
-                //   g: G.pine,
-                //   n: "05",
-                // },
-              ].map(({ icon: Icon, title, page, g, n }) => (
-                <Link
-                  key={page}
-                  to={createPageUrl(page)}
-                  className="db-tall-card"
-                  style={{ background: g }}
-                >
-                  <div className="db-tall-icon">
-                    <Icon style={{ width: 20, height: 20, color: "#fff" }} />
-                  </div>
-                  <div className="db-tall-title">{title}</div>
-                  <div className="db-tall-num">{n}</div>
-                </Link>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="db-sec">
-          <div className="db-sec-head">
-            <div className="db-sec-left">
-              <div className="db-sec-bar" style={{ background: G.amber }} />
-              <div className="db-sec-name">{translate("Location & Places")}</div>
-            </div>
+          <div className="db-ns-head">
+            <div className="db-ns-dot" style={{ background: "#c97000" }} />
+            <div className="db-ns-label">{translate("Location & Places")}</div>
           </div>
 
-          <div className="db-loc-strip">
-            {[
-              {
-                icon: MapPin,
-                name: translate("Search Mosque"),
-                desc: translate("Nearby mosque & surau"),
-                page: "SearchMosque",
-                g: G.teal,
-                accent: "#14a07a",
-                bg: "#e8faf5",
-              },
-              {
-                icon: Globe,
-                name: translate("Heritage Site"),
-                desc: translate("Islamic heritage & history sites"),
-                page: "SearchHeritage",
-                g: G.amber,
-                accent: "#c97000",
-                bg: "#fef7e6",
-              },
-
-              // future features
-              // {
-              //   icon: MessageCircle,
-              //   name: "Cari Waqf",
-              //   desc: "Tanah & harta wakaf",
-              //   page: "SearchWaqf",
-              //   g: G.crimson,
-              //   accent: "#a51d2d",
-              //   bg: "#fdeaec",
-              // },
-            ].map(({ icon: Icon, name, desc, page, g, accent, bg }) => (
-              <Link key={page} to={createPageUrl(page)} className="db-loc-card">
-                <div className="db-loc-accent" style={{ background: accent }} />
-                <div className="db-loc-left" style={{ background: bg }}>
-                  <Icon style={{ width: 22, height: 22, color: accent }} />
-                </div>
-                <div className="db-loc-text">
-                  <div className="db-loc-name">{name}</div>
-                  <div className="db-loc-desc">{desc}</div>
-                </div>
-                <ChevronRight
-                  className="db-loc-chevron"
-                  style={{ width: 16, height: 16 }}
-                />
-              </Link>
-            ))}
-          </div>
+          {[
+            {
+              icon: MapPin,
+              name: translate("Search Mosque"),
+              desc: translate("Nearby mosque & surau"),
+              page: "SearchMosque",
+              iconColor: "#14a07a",
+              iconBg: "#e8faf5",
+              accent: "#14a07a",
+            },
+            {
+              icon: Globe,
+              name: translate("Heritage Site"),
+              desc: translate("Islamic heritage & history sites"),
+              page: "SearchHeritage",
+              iconColor: "#c97000",
+              iconBg: "#fef7e6",
+              accent: "#c97000",
+            },
+          ].map(({ icon: Icon, name, desc, page, iconColor, iconBg, accent }) => (
+            <Link key={page} to={createPageUrl(page)} className="db-row-card">
+              <div className="db-row-accent" style={{ background: accent }} />
+              <div className="db-row-icon" style={{ background: iconBg }}>
+                <Icon style={{ width: 20, height: 20, color: iconColor }} />
+              </div>
+              <div className="db-row-info">
+                <div className="db-row-title">{name}</div>
+                <div className="db-row-sub">{desc}</div>
+              </div>
+              <ChevronRight className="db-row-arrow" style={{ width: 16, height: 16 }} />
+            </Link>
+          ))}
         </div>
+
       </div>
 
       <DraggableFloatingButton />
     </div>
-  );
-}
-
-function MedCard({ icon: Icon, title, page, g }) {
-  return (
-    <Link
-      to={createPageUrl(page)}
-      className="db-med-card"
-      style={{ background: g }}
-    >
-      <div className="db-med-glow" />
-      <div className="db-med-icon-wrap">
-        <Icon style={{ width: 19, height: 19, color: "#fff" }} />
-      </div>
-      <div className="db-med-title">{title}</div>
-      <div className="db-med-arrow">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path
-            d="M2 5h6M5 2l3 3-3 3"
-            stroke="#fff"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-    </Link>
   );
 }

@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
-import { PLATFORM_FEE } from "../db/enums.ts";
+import { DONATION_PLATFORM_FEE, PLATFORM_FEE } from "../db/enums.ts";
 
 export async function createBill({
   amount,
@@ -121,7 +121,9 @@ export async function createBill({
       billChargeToCustomer: 1, //Set 0 to charge FPX to customer.
       // for split payment
       billSplitPayment: 1,
-      billSplitPaymentArgs: JSON.stringify([ { id: "nazzy007", amount: String(Math.round(totalAmount * 100)) } ]),
+      billSplitPaymentArgs: JSON.stringify([
+        { id: "nazzy007", amount: String(Math.round(totalAmount * 100)) },
+      ]),
     };
 
     const res = await axios.post(
@@ -188,8 +190,10 @@ export async function handleToyyibPayCallback(data: any) {
     "03": "unsuccessful",
   };
 
+  const isDonation = typeof order_id === "string" && order_id.includes("DON-");
+  const platformFee = Number(isDonation ? DONATION_PLATFORM_FEE : PLATFORM_FEE) || 0;
+
   const billChargeToCustomer = 0;
-  const platformFee = Number(PLATFORM_FEE || 0);
   const gatewayStatus = paymentToyyibStatus[String(status)] || status;
   const orderAmount = Number(amount || 0);
   const originalAmount = Math.max(

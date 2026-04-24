@@ -8,6 +8,7 @@ import BackNavigation from "@/components/BackNavigation";
 const TABS = [
   { value: "tahlil", label: "Tahlil" },
   { value: "doa", label: "Doa Tahlil" },
+  { value: "talqin", label: "Talqin" },
   { value: "surah", label: "Surah" },
 ];
 
@@ -17,6 +18,7 @@ function Section({ title, accent = "emerald", children }) {
     violet: "text-violet-600",
     amber: "text-amber-500",
   };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
       {title && (
@@ -31,6 +33,7 @@ function Section({ title, accent = "emerald", children }) {
 
 export default function SurahPage() {
   const TahlilPdf = "/Tahlil.pdf";
+  const TalqinPdf = "/Talqin.pdf";
   const DoaTahlilPdf = "/DoaTahlil.pdf";
 
   const [activeTab, setActiveTab] = useState("tahlil");
@@ -49,7 +52,7 @@ export default function SurahPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-      <BackNavigation title={translate("Surah & Prayer")} />
+      <BackNavigation title={translate("Surah, Doa & Tahlil")} />
 
       <div className="max-w-3xl mx-auto px-4 space-y-4">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-1.5 flex gap-1">
@@ -172,6 +175,19 @@ export default function SurahPage() {
             </div>
             <iframe
               src={`${TahlilPdf}#toolbar=0&navpanes=0`}
+              className="w-full h-[78vh]"
+              title="Tahlil PDF"
+            />
+          </div>
+        )}
+        
+        {activeTab === "talqin" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">{translate("Talqin")}</p>
+            </div>
+            <iframe
+              src={`${TalqinPdf}#toolbar=0&navpanes=0`}
               className="w-full h-[78vh]"
               title="Tahlil PDF"
             />

@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { FileText, CheckCircle, XCircle, Clock, Upload, Image } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Upload,
+  Image,
+  MapPin,
+} from "lucide-react";
+import DirectionButton from "@/components/DirectionButton";
+import ShareButton from "@/components/ShareButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -441,13 +451,13 @@ export default function ManageQuotations() {
           if (!open) closeDialog();
         }}
       >
-        <DialogContent className="max-w-[65vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-[80vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{translate("Quotation Details")}</DialogTitle>
           </DialogHeader>
 
           {selectedQuotation && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -491,25 +501,58 @@ export default function ManageQuotations() {
                   <p>{selectedQuotation.organisation?.name || "-"}</p>
                 </div>
 
-                {selectedQuotation.deadperson && (
+                {(selectedQuotation.organisation?.latitude || selectedQuotation.organisation?.longitude) && (
                   <div>
-                    <p className="text-sm text-gray-500">
-                      {translate("Deceased")}
+                    <p className="text-sm text-gray-500 mb-1.5">
+                      {translate("Location")}
                     </p>
-                    <p>{selectedQuotation.deadperson?.name || "-"}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                      <MapPin className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        {Number(selectedQuotation.organisation.latitude).toFixed(6)},&nbsp;
+                        {Number(selectedQuotation.organisation.longitude).toFixed(6)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DirectionButton
+                        latitude={selectedQuotation.organisation.latitude}
+                        longitude={selectedQuotation.organisation.longitude}
+                      />
+                      <ShareButton
+                        title={selectedQuotation.organisation?.name || ""}
+                        textMessage={`${selectedQuotation.organisation?.name || ""} — Ref: ${selectedQuotation.referenceno || ""}`}
+                        url={window.location.href}
+                      />
+                    </div>
                   </div>
                 )}
 
-                {selectedQuotation.photourl && (
+                {selectedQuotation.deadperson && (
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">
-                      {translate("Completion Photo")}
-                    </p>
-                    <img
-                      src={resolveFileUrl(selectedQuotation.photourl, "organisation-services")}
-                      alt={translate("Completion photo")}
-                      className="h-40 w-full rounded object-cover border"
-                    />
+                    <>
+                      <p className="text-sm text-gray-500">
+                        {translate("Deceased")}
+                      </p>
+                      <p>{selectedQuotation.deadperson?.name || "-"}</p>
+                    </>
+                  </div>
+                )}
+
+                {selectedQuotation.deadperson && (
+                  <div>
+                    <>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {translate("Grave Photo")}
+                      </p>
+                      <img
+                        src={resolveFileUrl(
+                          selectedQuotation.deadperson?.photourl,
+                          "organisation-services",
+                        )}
+                        alt={translate("Grave photo")}
+                        className="h-40 w-full rounded object-cover border"
+                      />
+                    </>
                   </div>
                 )}
 
@@ -709,9 +752,14 @@ export default function ManageQuotations() {
           <div className="space-y-4">
             {uploadDialogQuotation?.photourl && (
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">{translate("Current Photo")}</p>
+                <p className="text-sm text-gray-500">
+                  {translate("Current Photo")}
+                </p>
                 <img
-                  src={resolveFileUrl(uploadDialogQuotation.photourl, "organisation-services")}
+                  src={resolveFileUrl(
+                    uploadDialogQuotation.photourl,
+                    "organisation-services",
+                  )}
                   alt={translate("Current photo")}
                   className="h-40 w-full rounded object-cover border"
                 />
@@ -719,7 +767,9 @@ export default function ManageQuotations() {
             )}
 
             <div className="space-y-2">
-              <p className="text-sm text-gray-500">{translate("Select New Photo")}</p>
+              <p className="text-sm text-gray-500">
+                {translate("Select New Photo")}
+              </p>
               <Input
                 key={uploadDialogFileKey}
                 type="file"
@@ -733,10 +783,12 @@ export default function ManageQuotations() {
                   alt={translate("Preview")}
                   className="h-40 w-full rounded object-cover border"
                 />
-              ) : !uploadDialogQuotation?.photourl && (
-                <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300">
-                  <Image className="w-10 h-10" />
-                </div>
+              ) : (
+                !uploadDialogQuotation?.photourl && (
+                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300">
+                    <Image className="w-10 h-10" />
+                  </div>
+                )
               )}
             </div>
           </div>
