@@ -1,5 +1,4 @@
 ✅ 1. quick action - user tekan tahlil icon and senarai semua tahfiz center yg ada service tahlil
-1.1 - quick action grave service - dia pilih kubur -> dia pilih org mati
 1.2 - grave service -> request _> amek gmbr and bayar
 2. check time limit (kene check upload evidence/bagi warning kt kita ngn dia) - firebase
 3. template untuk jenazah dgn kubur
@@ -15,9 +14,9 @@
 13. scan -> utk service kubur -> then list deceased
 ✅ 14. asmaulhusna, x perlu.. rukun islam iman x perlu, calendar islam ok, prayer time x perlu, herotage site ok
 ✅ 15. panduan talkin
-16. nombor fon save -> 
-17. ubah ayat2 alquran daily
-18. bayaran khairat kematian transaction history untuk user
+✅ 16. nombor fon save -> at semua yg createBillMutation
+✅ 17. ubah ayat2 alquran daily
+✅ 18. bayaran khairat kematian transaction history untuk user
 19. mydigital Id, or tangkap gamabr IC and get number 
 20. donation untuk jaga kubur (letak di kubur (derma)), hide filter kalua ada pre select, just info
 21. search bar refine --- 

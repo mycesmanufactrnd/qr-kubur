@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectTrigger,
@@ -48,13 +47,13 @@ import { trpc } from "@/utils/trpc";
 import { useSearchParams } from "react-router-dom";
 import TextInputForm from "@/components/forms/TextInputForm";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
-import { skipToken } from "@tanstack/react-query";
 import { userGoogleAccess } from "@/utils/auth";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const CUSTOM_SERVICE_KEY = "custom";
 const CUSTOM_SERVICE_LABEL = "Perkhidmatan Khas (Nota)";
+const SAVED_PHONE_KEY = "userphoneno";
 
-// ── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, icon: Icon, children, accent = "emerald" }) {
   const colors = {
     emerald: "text-emerald-600",
@@ -85,6 +84,9 @@ export default function TahlilRequestPage() {
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedDeceasedNames, setSubmittedDeceasedNames] = useState([]);
+  const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
+  const [pendingPhone, setPendingPhone] = useState("");
 
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
@@ -157,6 +159,13 @@ export default function TahlilRequestPage() {
     }
   }, [googleUser]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    if (saved && !watch("requestorphoneno")) {
+      setValue("requestorphoneno", saved);
+    }
+  }, []);
+
   const selectedTahfiz = useMemo(
     () => tahfizCenters.find((c) => c.id === Number(tahfizId)) || null,
     [tahfizCenters, tahfizId],
@@ -219,12 +228,15 @@ export default function TahlilRequestPage() {
 
   const hasDonation = donationAmount > 0;
 
-  const platformFee = useMemo(() => {
-    if (!hasDonation && !hasService) return 0;
-    return PLATFORM_FEE;
-  }, [hasDonation, hasService]);
+  const finalAmountWithoutFee = useMemo(
+    () => donationAmount + serviceAmount,
+    [donationAmount, serviceAmount],
+  );
 
-  const finalAmountWithoutFee = donationAmount + serviceAmount;
+  const hasAnyServiceSelected = (selectedservices || []).length > 0;
+
+  const platformFee = hasAnyServiceSelected || hasDonation ? PLATFORM_FEE : 0;
+
   const finalAmountWithFee = finalAmountWithoutFee + platformFee;
 
   useEffect(() => {
@@ -454,7 +466,22 @@ export default function TahlilRequestPage() {
       platformfeeamount: platformFee,
       serviceamount: finalAmountWithoutFee,
     };
-    const resPayment = await handlePaymentConfig(tahlilRequest);
+
+    const phone = formData.requestorphoneno?.trim();
+    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+
+    if (phone && phone !== savedPhone) {
+      setPendingPayload(tahlilRequest);
+      setPendingPhone(phone);
+      setShowSavePhoneDialog(true);
+      return;
+    }
+
+    await proceedToPayment(tahlilRequest);
+  };
+
+  const proceedToPayment = async (payload) => {
+    const resPayment = await handlePaymentConfig(payload);
     if (!resPayment) {
       showError("Payment Failed");
       setLoadingPayment(false);
@@ -828,6 +855,27 @@ export default function TahlilRequestPage() {
           </Button>
         </form>
       </div>
+
+      <ConfirmDialog
+        isMobile
+        open={showSavePhoneDialog}
+        onOpenChange={(open) => {
+          setShowSavePhoneDialog(open);
+          if (!open && pendingPayload) {
+            const payload = pendingPayload;
+            setPendingPayload(null);
+            setPendingPhone("");
+            proceedToPayment(payload);
+          }
+        }}
+        title="Simpan No. Telefon"
+        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
+        confirmText="Simpan"
+        cancelText="Tidak"
+        onConfirm={() => {
+          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+        }}
+      />
     </div>
   );
 }

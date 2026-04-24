@@ -23,6 +23,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { createPageUrl } from "@/utils";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useGetDeathCharityByMosque } from "@/hooks/useDeathCharityMutations";
@@ -48,6 +49,8 @@ const PAYMENT_PLAN = {
   REGISTER_AND_YEARLY: "register_and_yearly",
   YEARLY_ONLY: "yearly_only",
 };
+
+const SAVED_PHONE_KEY = "userphoneno";
 
 function formatCoverage(payment) {
   const fromYear = Number(payment.coversfromyear || 0);
@@ -92,6 +95,9 @@ export default function DeathCharityUserPayment() {
     PAYMENT_PLAN.REGISTER_AND_YEARLY,
   );
   const [submitError, setSubmitError] = useState("");
+  const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
+  const [pendingPhone, setPendingPhone] = useState("");
 
   const [registrationForm, setRegistrationForm] = useState({
     fullname: "",
@@ -100,6 +106,13 @@ export default function DeathCharityUserPayment() {
     email: "",
     address: "",
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    if (saved) {
+      setRegistrationForm((prev) => ({ ...prev, phone: prev.phone || saved }));
+    }
+  }, []);
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
   const saveTransactionAccountMutation =
@@ -294,7 +307,9 @@ export default function DeathCharityUserPayment() {
       setLoadingPayment(true);
       showSuccess("Pembayaran berjaya!");
 
-      const storedUser = localStorage.getItem("googleAuth") || sessionStorage.getItem("googleAuth");
+      const storedUser =
+        localStorage.getItem("googleAuth") ||
+        sessionStorage.getItem("googleAuth");
       let googleRecordPayload = null;
 
       if (storedUser) {
@@ -563,7 +578,21 @@ export default function DeathCharityUserPayment() {
         selectedMember?.phone || registrationForm.phone.trim() || "0123456789",
     };
 
-    const resPayment = await handlePaymentConfig(paymentData);
+    const phone = (selectedMember?.phone || registrationForm.phone)?.trim();
+    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+
+    if (phone && phone !== savedPhone) {
+      setPendingPayload(paymentData);
+      setPendingPhone(phone);
+      setShowSavePhoneDialog(true);
+      return;
+    }
+
+    await proceedToPayment(paymentData);
+  };
+
+  const proceedToPayment = async (payload) => {
+    const resPayment = await handlePaymentConfig(payload);
     if (!resPayment) {
       showError("Payment Failed");
       setLoadingPayment(false);
@@ -832,33 +861,40 @@ export default function DeathCharityUserPayment() {
                     </div>
 
                     {sortedPayments.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="divide-y divide-slate-100">
                         {sortedPayments.map((payment) => (
                           <div
                             key={payment.id}
-                            className="rounded-lg border p-3"
+                            className="flex items-start justify-between gap-4 py-3"
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="text-sm font-semibold capitalize text-slate-800">
-                                  {payment.paymenttype}
-                                </p>
-                                <p className="text-xs text-slate-600">
-                                  Coverage: {formatCoverage(payment)} | Method:{" "}
+                            {/* Left content */}
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium capitalize text-slate-800">
+                                {payment.paymenttype}
+                              </p>
+
+                              <p className="text-xs text-slate-500">
+                                Coverage: {formatCoverage(payment)} · Method:{" "}
+                                <span className="capitalize">
                                   {payment.paymentmethod}
-                                </p>
-                                <p className="text-xs text-slate-500">
-                                  Paid:{" "}
-                                  {payment.paidat
-                                    ? new Date(
-                                        payment.paidat,
-                                      ).toLocaleDateString("en-GB")
-                                    : "-"}
-                                </p>
-                              </div>
-                              <Badge variant="secondary">
+                                </span>
+                              </p>
+
+                              <p className="text-xs text-slate-400">
+                                Paid:{" "}
+                                {payment.paidat
+                                  ? new Date(payment.paidat).toLocaleDateString(
+                                      "en-GB",
+                                    )
+                                  : "-"}
+                              </p>
+                            </div>
+
+                            {/* Right amount */}
+                            <div className="shrink-0 text-right">
+                              <p className="text-sm font-semibold text-slate-800">
                                 {formatRM(payment.amount)}
-                              </Badge>
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -1062,6 +1098,27 @@ export default function DeathCharityUserPayment() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isMobile
+        open={showSavePhoneDialog}
+        onOpenChange={(open) => {
+          setShowSavePhoneDialog(open);
+          if (!open && pendingPayload) {
+            const payload = pendingPayload;
+            setPendingPayload(null);
+            setPendingPhone("");
+            proceedToPayment(payload);
+          }
+        }}
+        title="Simpan No. Telefon"
+        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
+        confirmText="Simpan"
+        cancelText="Tidak"
+        onConfirm={() => {
+          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+        }}
+      />
     </div>
   );
 }

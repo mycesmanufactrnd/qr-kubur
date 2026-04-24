@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils/index';
 import { HelpCircle, FileText, LogIn, Shield, Type, Globe, Palette, ChevronRight, LogOut, LocateFixed, Loader2, CheckCircle2, XCircle, Building2 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import { clearStoredGoogleAuth, getStoredGoogleUser, handleLogout, isGoogleSignedOut, useLoginGoogle } from '@/utils/auth';
 import { usePermissions } from '@/components/PermissionsContext';
 import { useLocationContext } from '@/providers/LocationProvider';
+
+const SAVED_PHONE_KEY = "userphoneno";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -19,6 +22,7 @@ export default function SettingsPage() {
   const [googleUser, setGoogleUser] = useState(null);
   const [gpsPermission, setGpsPermission] = useState('unknown');
   const [requestingGps, setRequestingGps] = useState(false);
+  const [savedPhone, setSavedPhone] = useState(() => localStorage.getItem(SAVED_PHONE_KEY) || "");
 
   const [authMode, setAuthMode] = useState(() => {
     if (sessionStorage.getItem('appUserAuth')) return 'admin';
@@ -315,6 +319,37 @@ export default function SettingsPage() {
                 {translate('If location is blocked, allow it in your browser site settings and tap Enable GPS again.')}
               </p>
             )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title={translate('Phone Number')}>
+          <div className="px-4 py-3 space-y-2">
+            <p className="text-xs text-slate-400">
+              {translate('Saved phone number used to pre-fill payment forms.')}
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="tel"
+                placeholder="0123456789"
+                value={savedPhone}
+                onChange={(e) => setSavedPhone(e.target.value)}
+                className="h-9 rounded-xl border-slate-200 text-sm flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const trimmed = savedPhone.trim();
+                  if (trimmed) {
+                    localStorage.setItem(SAVED_PHONE_KEY, trimmed);
+                  } else {
+                    localStorage.removeItem(SAVED_PHONE_KEY);
+                  }
+                }}
+                className="px-4 h-9 rounded-xl bg-emerald-500 text-white text-xs font-semibold active:opacity-80 transition-opacity shrink-0"
+              >
+                {translate('Save')}
+              </button>
+            </div>
           </div>
         </SectionCard>
 

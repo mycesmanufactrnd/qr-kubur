@@ -17,6 +17,10 @@ import {
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton";
+import doaBanners from "./DailyDoaBanner";
+
+const todayDoa =
+  doaBanners[Math.floor(Date.now() / 86400000) % doaBanners.length];
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap');
@@ -90,14 +94,8 @@ const css = `
     backdrop-filter: blur(6px);
     overflow: hidden;
   }
-  .db-ayah-banner::before {
-    content: '٣:١٨٥';
-    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-    font-family: 'Amiri', serif; font-size: 36px; color: rgba(255,255,255,0.06);
-    pointer-events: none; user-select: none;
-  }
   .db-arabic { font-family: 'Amiri', serif; font-size: 20px; color: rgba(255,255,255,0.92); direction: rtl; text-align: right; line-height: 1.6; }
-  .db-trans { font-size: 11px; color: rgba(255,255,255,0.6); font-style: italic; margin-top: 6px; }
+  .db-trans { font-size: 11px; color: rgba(255,255,255,0.55); font-style: italic; margin-top: 6px; line-height: 1.5; }
   .db-ref { display: inline-block; font-size: 9px; color: rgba(255,255,255,0.35); margin-top: 4px; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
 
   .db-quick-wrap {
@@ -269,7 +267,9 @@ export default function UserDashboard() {
           <div>
             <div className="db-greeting">{translate("Assalamualaikum")}</div>
             <div className="db-appname">QR Kubur</div>
-            <div className="db-tagline">{translate("Funeral Guide & Management")}</div>
+            <div className="db-tagline">
+              {translate("Funeral Guide & Management")}
+            </div>
           </div>
           <div className="db-moonbtn">
             <MoonStar style={{ width: 22, height: 22, color: "#fff" }} />
@@ -277,11 +277,9 @@ export default function UserDashboard() {
         </div>
 
         <div className="db-ayah-banner">
-          <div className="db-arabic">كُلُّ نَفْسٍ ذَائِقَةُ ٱلْمَوْتِ</div>
-          <div className="db-trans">
-            {translate("Every living being will surely taste death")}
-          </div>
-          <span className="db-ref">Ali 'Imran : 185</span>
+          <div className="db-arabic">{todayDoa.doa}</div>
+          {todayDoa.trans && <div className="db-trans">{todayDoa.trans}</div>}
+          <span className="db-ref">{todayDoa.source}</span>
         </div>
       </div>
 
@@ -289,13 +287,48 @@ export default function UserDashboard() {
         <div className="db-quick-title">{translate("Quick Actions")}</div>
         <div className="db-quick-grid">
           {[
-            { icon: Search,     label: translate("Search Grave"),  page: "SearchGrave",      g: G.ocean   },
-            { icon: BookOpen,   label: translate("Tahlil"),        page: "SearchTahlil",     g: G.indigo  },
-            { icon: QrCode,     label: translate("Scan QR"),       page: "ScanQR",           g: G.forest  },
-            { icon: MapPin,     label: translate("Search Tahfiz"), page: "SearchTahfiz",     g: G.violet  },
-            { icon: Heart,      label: translate("Donation"),      page: "DonationPage",     g: G.sunset  },
-            { icon: FileText,   label: translate("Tahlil Status"), page: "CheckTahlilStatus",g: G.crimson },
-            { icon: HelpCircle, label: translate("Service Status"),page: "CheckServiceStatus",g: G.teal   },
+            {
+              icon: Search,
+              label: translate("Search Grave"),
+              page: "SearchGrave",
+              g: G.ocean,
+            },
+            {
+              icon: BookOpen,
+              label: translate("Tahlil"),
+              page: "SearchTahlil",
+              g: G.indigo,
+            },
+            {
+              icon: QrCode,
+              label: translate("Scan QR"),
+              page: "ScanQR",
+              g: G.forest,
+            },
+            {
+              icon: MapPin,
+              label: translate("Search Tahfiz"),
+              page: "SearchTahfiz",
+              g: G.violet,
+            },
+            {
+              icon: Heart,
+              label: translate("Donation"),
+              page: "DonationPage",
+              g: G.sunset,
+            },
+            {
+              icon: FileText,
+              label: translate("Tahlil Status"),
+              page: "CheckTahlilStatus",
+              g: G.crimson,
+            },
+            {
+              icon: HelpCircle,
+              label: translate("Service Status"),
+              page: "CheckServiceStatus",
+              g: G.teal,
+            },
           ].map(({ icon: Icon, label, page, g }) => (
             <Link key={page} to={createPageUrl(page)} className="db-qbtn">
               <div className="db-qicon" style={{ background: g }}>
@@ -308,25 +341,44 @@ export default function UserDashboard() {
       </div>
 
       <div className="db-body">
-
         <div className="db-sec">
           <div className="db-ns-head">
             <div className="db-ns-dot" style={{ background: "#14a07a" }} />
             <div className="db-ns-label">{translate("Guidance")}</div>
           </div>
 
-          <Link to={createPageUrl("SurahPage")} className="db-feat-card" style={{ background: G.forest }}>
+          <Link
+            to={createPageUrl("SurahPage")}
+            className="db-feat-card"
+            style={{ background: G.forest }}
+          >
             <div className="db-feat-shine" />
-            <BookOpen className="db-feat-bg-icon" style={{ width: 110, height: 110 }} />
+            <BookOpen
+              className="db-feat-bg-icon"
+              style={{ width: 110, height: 110 }}
+            />
             <div>
-              <div className="db-feat-eyebrow db-shimmer-badge" style={{ display: "inline-block", padding: "2px 10px", borderRadius: 10, marginBottom: 6 }}>
+              <div
+                className="db-feat-eyebrow db-shimmer-badge"
+                style={{
+                  display: "inline-block",
+                  padding: "2px 10px",
+                  borderRadius: 10,
+                  marginBottom: 6,
+                }}
+              >
                 {translate("Complete Collection")}
               </div>
-              <div className="db-feat-title">{translate("Surah, Doa & Tahlil")}</div>
-              <div className="db-feat-sub">{translate("Daily recitations, tahlil & prayer guide")}</div>
+              <div className="db-feat-title">
+                {translate("Surah, Doa & Tahlil")}
+              </div>
+              <div className="db-feat-sub">
+                {translate("Daily recitations, tahlil & prayer guide")}
+              </div>
             </div>
             <div className="db-feat-cta">
-              {translate("Open now")} <ChevronRight style={{ width: 12, height: 12 }} />
+              {translate("Open now")}{" "}
+              <ChevronRight style={{ width: 12, height: 12 }} />
             </div>
           </Link>
 
@@ -336,13 +388,21 @@ export default function UserDashboard() {
               <Newspaper style={{ width: 20, height: 20, color: "#c0392b" }} />
             </div>
             <div className="db-row-info">
-              <div className="db-row-badge" style={{ background: "#fee2e2", color: "#c0392b" }}>
+              <div
+                className="db-row-badge"
+                style={{ background: "#fee2e2", color: "#c0392b" }}
+              >
                 {translate("Immediate Guide")}
               </div>
               <div className="db-row-title">{translate("Solat Jenazah")}</div>
-              <div className="db-row-sub">{translate("Procedure & complete guide")}</div>
+              <div className="db-row-sub">
+                {translate("Procedure & complete guide")}
+              </div>
             </div>
-            <ChevronRight className="db-row-arrow" style={{ width: 16, height: 16 }} />
+            <ChevronRight
+              className="db-row-arrow"
+              style={{ width: 16, height: 16 }}
+            />
           </Link>
         </div>
 
@@ -371,21 +431,25 @@ export default function UserDashboard() {
               iconBg: "#fef7e6",
               accent: "#c97000",
             },
-          ].map(({ icon: Icon, name, desc, page, iconColor, iconBg, accent }) => (
-            <Link key={page} to={createPageUrl(page)} className="db-row-card">
-              <div className="db-row-accent" style={{ background: accent }} />
-              <div className="db-row-icon" style={{ background: iconBg }}>
-                <Icon style={{ width: 20, height: 20, color: iconColor }} />
-              </div>
-              <div className="db-row-info">
-                <div className="db-row-title">{name}</div>
-                <div className="db-row-sub">{desc}</div>
-              </div>
-              <ChevronRight className="db-row-arrow" style={{ width: 16, height: 16 }} />
-            </Link>
-          ))}
+          ].map(
+            ({ icon: Icon, name, desc, page, iconColor, iconBg, accent }) => (
+              <Link key={page} to={createPageUrl(page)} className="db-row-card">
+                <div className="db-row-accent" style={{ background: accent }} />
+                <div className="db-row-icon" style={{ background: iconBg }}>
+                  <Icon style={{ width: 20, height: 20, color: iconColor }} />
+                </div>
+                <div className="db-row-info">
+                  <div className="db-row-title">{name}</div>
+                  <div className="db-row-sub">{desc}</div>
+                </div>
+                <ChevronRight
+                  className="db-row-arrow"
+                  style={{ width: 16, height: 16 }}
+                />
+              </Link>
+            ),
+          )}
         </div>
-
       </div>
 
       <DraggableFloatingButton />

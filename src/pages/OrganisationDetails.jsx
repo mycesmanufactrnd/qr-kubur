@@ -23,6 +23,9 @@ import { showError, showSuccess } from '@/components/ToastrNotification';
 import TextInputForm from '@/components/forms/TextInputForm';
 import { userGoogleAccess } from '@/utils/auth';
 import { resolveFileUrl } from '@/utils';
+import ConfirmDialog from '@/components/ConfirmDialog';
+
+const SAVED_PHONE_KEY = "userphoneno";
 
 export default function OrganisationDetails() {
   const { googleUser } = userGoogleAccess();
@@ -34,6 +37,9 @@ export default function OrganisationDetails() {
   const deadpersonId = searchParams.get('deadpersonId') ? Number(searchParams.get('deadpersonId')) : null;
   const [selectedServices, setSelectedServices] = useState([]);
   const [isQuotationDialogOpen, setIsQuotationDialogOpen] = useState(false);
+  const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
+  const [pendingPhone, setPendingPhone] = useState("");
 
   const { control, watch, setValue, handleSubmit, formState: { errors } } = useForm({
     defaultValues: { payername: '', payeremail: '', payerphone: '', paymentMethod: '' },
@@ -56,6 +62,13 @@ export default function OrganisationDetails() {
       setValue('payeremail', googleUser?.email ?? '');
     }
   }, [googleUser]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    if (saved && !watch('payerphone')) {
+      setValue('payerphone', saved);
+    }
+  }, []);
 
   const { data: organisation, isLoading, isError } = trpc.organisation.getById.useQuery(
     { id: organisationId ?? 0 },
@@ -205,7 +218,21 @@ export default function OrganisationDetails() {
       totalamount: Number(quotationTotal.toFixed(2)),
       payername, payeremail, payerphone,
     };
-    const resPayment = await handlePaymentConfig(quotationDetails);
+    const phone = (formData.payerphone || '').trim();
+    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+
+    if (phone && phone !== savedPhone) {
+      setPendingPayload(quotationDetails);
+      setPendingPhone(phone);
+      setShowSavePhoneDialog(true);
+      return;
+    }
+
+    await proceedToPayment(quotationDetails);
+  };
+
+  const proceedToPayment = async (payload) => {
+    const resPayment = await handlePaymentConfig(payload);
     if (!resPayment) { showError('Payment Failed'); setLoadingPayment(false); }
   };
 
@@ -546,6 +573,27 @@ export default function OrganisationDetails() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        isMobile
+        open={showSavePhoneDialog}
+        onOpenChange={(open) => {
+          setShowSavePhoneDialog(open);
+          if (!open && pendingPayload) {
+            const payload = pendingPayload;
+            setPendingPayload(null);
+            setPendingPhone("");
+            proceedToPayment(payload);
+          }
+        }}
+        title="Simpan No. Telefon"
+        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
+        confirmText="Simpan"
+        cancelText="Tidak"
+        onConfirm={() => {
+          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+        }}
+      />
     </div>
   );
 }

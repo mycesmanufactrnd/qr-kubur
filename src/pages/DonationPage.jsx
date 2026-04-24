@@ -42,6 +42,7 @@ import { validateFields } from "@/utils/validations";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultDonationField } from "@/utils/defaultformfields";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { useSearchParams } from "react-router-dom";
 import { activityLogError, clearQueryParams } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
@@ -114,6 +115,8 @@ function TypeToggle({ value, onChange }) {
   );
 }
 
+const SAVED_PHONE_KEY = "userphoneno";
+
 export default function DonationPage() {
   const { googleUser } = userGoogleAccess();
   const hasAppliedUrlRecipient = useRef(false);
@@ -135,6 +138,9 @@ export default function DonationPage() {
   const order_id = searchParams.get("order_id");
 
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
+  const [pendingPhone, setPendingPhone] = useState("");
   const { watch, setValue, handleSubmit, reset } = useForm({
     defaultValues: {
       ...defaultDonationField,
@@ -175,6 +181,13 @@ export default function DonationPage() {
       setValue("donoremail", googleUser?.email ?? "");
     }
   }, [googleUser]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    if (saved && !watch("donorphoneno")) {
+      setValue("donorphoneno", saved);
+    }
+  }, []);
 
   useEffect(() => {
     if (locationDenied) showWarning(translate("Location not available"));
@@ -450,7 +463,21 @@ export default function DonationPage() {
       showError(translate("Please complete donation information"));
       return;
     }
-    const resPayment = await handlePaymentConfig(formData);
+    const phone = (formData.donorphoneno || "").trim();
+    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+
+    if (phone && phone !== savedPhone) {
+      setPendingPayload(formData);
+      setPendingPhone(phone);
+      setShowSavePhoneDialog(true);
+      return;
+    }
+
+    await proceedToPayment(formData);
+  };
+
+  const proceedToPayment = async (payload) => {
+    const resPayment = await handlePaymentConfig(payload);
     if (!resPayment) {
       showError("Payment Failed");
       setLoadingPayment(false);
@@ -795,6 +822,27 @@ export default function DonationPage() {
           </button>
         </form>
       </div>
+
+      <ConfirmDialog
+        isMobile
+        open={showSavePhoneDialog}
+        onOpenChange={(open) => {
+          setShowSavePhoneDialog(open);
+          if (!open && pendingPayload) {
+            const payload = pendingPayload;
+            setPendingPayload(null);
+            setPendingPhone("");
+            proceedToPayment(payload);
+          }
+        }}
+        title="Simpan No. Telefon"
+        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
+        confirmText="Simpan"
+        cancelText="Tidak"
+        onConfirm={() => {
+          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+        }}
+      />
     </div>
   );
 }
