@@ -17,7 +17,7 @@
 ✅ 16. nombor fon save -> at semua yg createBillMutation
 ✅ 17. ubah ayat2 alquran daily
 ✅ 18. bayaran khairat kematian transaction history untuk user
-19. mydigital Id, or tangkap gamabr IC and get number 
+✅ 19. mydigital Id, or tangkap gamabr IC and get number 
 ✅ 20. donation untuk jaga kubur (letak di kubur (derma)), hide filter kalua ada pre select, just info
 21. search bar refine --- 
 ✅ 22. derma default nama (hamba allah)

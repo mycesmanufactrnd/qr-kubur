@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { createWorker } from "tesseract.js";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
+  Camera,
   CreditCard,
   Search,
   UserRound,
@@ -98,6 +100,20 @@ export default function DeathCharityUserPayment() {
   const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
+
+  // showCameraMode : camera UI is visible
+  // capturedImage  : base64 data-URL of the frozen frame shown as still preview after capture
+  // isProcessing   : true while Tesseract is reading the captured frame
+  // detectedIC     : the 12-digit IC string found by OCR — shown prominently before search fires
+  // ocrError       : human-readable error when OCR finds nothing or fails
+  const [showCameraMode, setShowCameraMode] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [detectedIC, setDetectedIC] = useState("");
+  const [ocrError, setOcrError] = useState("");
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const [registrationForm, setRegistrationForm] = useState({
     fullname: "",
@@ -426,6 +442,155 @@ export default function DeathCharityUserPayment() {
     }
   }, [searchParams]);
 
+  // ── IC PHOTO SCAN FUNCTIONS ───────────────────────────────────────────────
+
+  // Malaysian IC number patterns:
+  //  formatted : 900101-01-1234  (YYMMDD-SS-NNNN)
+  //  raw       : 900101011234    (12 consecutive digits)
+  //
+  // OCR often adds spaces or garbles dashes so:
+  //   1. Try formatted pattern allowing optional separators (no \b — word boundaries fail on OCR noise)
+  //   2. Strip ALL non-digits and look for any 12-digit run as a fallback
+  const extractICNumber = (text) => {
+    const formatted = text.match(/\d{6}[\s\-_|.]*\d{2}[\s\-_|.]*\d{4}/);
+    if (formatted) {
+      const digits = formatted[0].replace(/\D/g, "");
+      if (digits.length === 12) return digits;
+    }
+    const digitsOnly = text.replace(/\D/g, "");
+    const raw = digitsOnly.match(/\d{12}/);
+    if (raw) return raw[0];
+    return null;
+  };
+
+  // Opens the rear camera stream into the <video> element.
+  // getUserMedia keeps the browser tab alive — no iOS page-reload issue.
+  const startCamera = async () => {
+    setOcrError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      setOcrError("Cannot access camera: " + err.message);
+    }
+  };
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+  };
+
+  // Freezes the current video frame, stops the live feed, then runs OCR on the still image.
+  // Grayscale + contrast preprocessing before Tesseract significantly improves digit accuracy.
+  const capturePhoto = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const dW = video.clientWidth; // pixels actually displayed on screen
+    const dH = video.clientHeight;
+    const vW = video.videoWidth; // native camera resolution
+    const vH = video.videoHeight;
+
+    // Replicate objectFit:cover — scale so the smaller dimension fills the display,
+    // then centre-crop the larger dimension.
+    const scale = Math.max(dW / vW, dH / vH);
+    const srcW = dW / scale;
+    const srcH = dH / scale;
+    const srcX = (vW - srcW) / 2;
+    const srcY = (vH - srcH) / 2;
+
+    // Canvas size matches the crop region (same pixels the user saw on screen).
+    canvas.width = Math.round(srcW);
+    canvas.height = Math.round(srcH);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(
+      video,
+      srcX,
+      srcY,
+      srcW,
+      srcH,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+
+    // Show the frozen frame as a still preview and stop live stream
+    setCapturedImage(canvas.toDataURL("image/jpeg", 0.92));
+    stopCamera();
+
+    setIsProcessing(true);
+    setDetectedIC("");
+    setOcrError("");
+
+    // Grayscale + contrast stretch so Tesseract reads dark digits on coloured backgrounds
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const px = imgData.data;
+    for (let i = 0; i < px.length; i += 4) {
+      const gray = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+      const enhanced = Math.min(255, Math.max(0, (gray - 128) * 1.8 + 128));
+      px[i] = px[i + 1] = px[i + 2] = enhanced;
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    try {
+      const worker = await createWorker("eng");
+      await worker.setParameters({
+        tessedit_char_whitelist: "0123456789-",
+        tessedit_pageseg_mode: "11", // sparse text — finds digits anywhere on the image
+      });
+      const { data } = await worker.recognize(canvas);
+      await worker.terminate();
+
+      const icNumber = extractICNumber(data.text);
+      if (icNumber) {
+        setDetectedIC(icNumber);
+        setSearchText(icNumber);
+        setSearchKeyword(icNumber);
+        setHasSearched(true);
+      } else {
+        setOcrError("No IC number found. Try retaking with better lighting.");
+      }
+    } catch {
+      setOcrError("Failed to read the photo. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const retakePhoto = () => {
+    setCapturedImage(null);
+    setDetectedIC("");
+    setOcrError("");
+    setIsProcessing(false);
+    startCamera();
+  };
+
+  const closeCamera = () => {
+    stopCamera();
+    setCapturedImage(null);
+    setDetectedIC("");
+    setOcrError("");
+    setIsProcessing(false);
+    setShowCameraMode(false);
+  };
+
+  // Release camera when user navigates away.
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
+
   const handleSearchMember = () => {
     const keyword = searchText.trim();
 
@@ -648,7 +813,8 @@ export default function DeathCharityUserPayment() {
             </p>
           </div>
 
-          <div className="space-y-2">
+          {/* Manual Scan */}
+          {/* <div className="space-y-2">
             <Label>Search your name or IC number</Label>
             <div className="flex gap-2">
               <Input
@@ -671,6 +837,108 @@ export default function DeathCharityUserPayment() {
               <p className="text-xs text-red-600">
                 Please enter at least 2 characters to search.
               </p>
+            )}
+          </div> */}
+
+          <div className="space-y-2">
+            <Label>Scan your MyKad IC</Label>
+
+            {!showCameraMode && (
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  setShowCameraMode(true);
+                  startCamera();
+                }}
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                Open Camera
+              </Button>
+            )}
+
+            {showCameraMode && (
+              <div className="space-y-3 rounded-lg border p-3">
+                <div className="overflow-hidden rounded-md bg-black">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full"
+                    style={{
+                      maxHeight: "220px",
+                      objectFit: "cover",
+                      display: capturedImage ? "none" : "block",
+                    }}
+                  />
+                  {capturedImage && (
+                    <img
+                      src={capturedImage}
+                      alt="Captured frame"
+                      className="w-full object-contain"
+                      style={{ maxHeight: "220px" }}
+                    />
+                  )}
+                </div>
+
+                <canvas ref={canvasRef} className="hidden" />
+
+                {detectedIC && (
+                  <div className="rounded-lg bg-emerald-50 p-3">
+                    <p className="text-xs font-medium text-emerald-600">
+                      IC Number Detected
+                    </p>
+                    <p className="mt-0.5 font-mono text-xl font-bold tracking-widest text-emerald-800">
+                      {detectedIC}
+                    </p>
+                  </div>
+                )}
+
+                {isProcessing && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+                    Reading IC number…
+                  </div>
+                )}
+
+                {ocrError && <p className="text-xs text-red-600">{ocrError}</p>}
+
+                <div className="flex gap-2">
+                  {!capturedImage && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="flex-1"
+                      onClick={capturePhoto}
+                    >
+                      <Camera className="mr-2 h-3.5 w-3.5" />
+                      Capture
+                    </Button>
+                  )}
+                  {capturedImage && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="flex-1"
+                      disabled={isProcessing}
+                      onClick={retakePhoto}
+                    >
+                      Retake
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isProcessing}
+                    onClick={closeCamera}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         </CardContent>
@@ -867,7 +1135,6 @@ export default function DeathCharityUserPayment() {
                             key={payment.id}
                             className="flex items-start justify-between gap-4 py-3"
                           >
-                            {/* Left content */}
                             <div className="min-w-0">
                               <p className="text-sm font-medium capitalize text-slate-800">
                                 {payment.paymenttype}
