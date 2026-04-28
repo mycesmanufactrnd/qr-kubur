@@ -38,8 +38,6 @@ const STATUS_CONFIG = {
 export default function GraveCardList({ grave, onFavoriteChange }) {
   if (!grave) return null;
 
-  console.log('grva', grave)
-
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {

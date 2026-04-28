@@ -1363,7 +1363,7 @@ export default function ManageTahfizCenters() {
                         {userEntries.length === 0 ? (
                           <TableRow>
                             <TableCell
-                              colSpan={5}
+                              colSpan={6}
                               className="text-center text-xs text-gray-500"
                             >
                               No users added yet.

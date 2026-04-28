@@ -80,7 +80,7 @@ export function useBulkCreateGraves() {
 
   return trpc.grave.bulkCreate.useMutation({
     onSuccess: (data) => {
-      showSuccess(titleMessage, `Successfully imported ${data.count} records`);
+      showSuccess(titleMessage, `import`);
       trpcUtils.grave.getPaginated.invalidate();
     },
     onError: showApiError,

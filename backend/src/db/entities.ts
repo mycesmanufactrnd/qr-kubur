@@ -30,6 +30,7 @@ export * from "./entities/TahfizPaymentConfig.entity.ts";
 // Guest Users
 export * from "./entities/GoogleUser/GoogleUser.entity.ts";
 export * from "./entities/GoogleUser/GoogleUserRecord.entity.ts";
+export * from "./entities/GoogleUser/GoogleUserDevice.entity.ts";
 export * from "./entities/TempOrganisation.entity.ts";
 export * from "./entities/VisitLog.entity.ts";
 //Death Charity

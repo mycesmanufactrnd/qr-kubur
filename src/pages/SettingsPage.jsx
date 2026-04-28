@@ -36,6 +36,7 @@ import {
 } from "@/utils/auth";
 import { usePermissions } from "@/components/PermissionsContext";
 import { useLocationContext } from "@/providers/LocationProvider";
+import { showSuccess } from "@/components/ToastrNotification";
 
 const SAVED_PHONE_KEY = "userphoneno";
 
@@ -461,6 +462,8 @@ export default function SettingsPage() {
                     localStorage.removeItem(SAVED_PHONE_KEY);
                     setSavedPhone("");
                   }
+
+                  showSuccess("Phone No.", "update");
                 }}
                 className="px-4 h-9 rounded-xl bg-emerald-500 text-white text-xs font-semibold active:opacity-80 transition-opacity shrink-0"
               >

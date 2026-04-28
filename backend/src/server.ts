@@ -41,28 +41,29 @@ await app.register(rateLimit, {
   ]
 });
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  frontendNgrokUrl,
-  backendNgrokUrl,
-].filter(Boolean);
-
-// await app.register(import('@fastify/cors'), {
-//   origin: allowedOrigins,
-//   credentials: true, //Enable credentials for httpOnly cookies to work
-// });
-
 await app.register(import('@fastify/cors'), {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow mobile apps, Postman, curl
+    // allow mobile apps, curl, postman
+    if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("❌ Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"), false);
+    const allowed = [
+      'localhost:5173',
+      'localhost:3000',
+      frontendNgrokUrl,
+      backendNgrokUrl,
+      'pinggy-free.link',
+      'ngrok',
+    ].filter(Boolean);
+
+    const isAllowed = allowed.some((a) => origin.includes(a));
+
+    if (isAllowed) {
+      return callback(null, true);
     }
+
+    console.log("❌ Blocked CORS:", origin);
+
+    return callback(null, true);
   },
   credentials: true,
 });

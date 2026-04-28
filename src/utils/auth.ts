@@ -371,9 +371,13 @@ export function useLoginGoogle() {
   const loginGoogleMutation = trpc.auth.loginGoogle.useMutation({
     onSuccess: (data) => {
       setLoading(false);
-      // Store user info only, no tokens (public access)
       setStoredGoogleAuth(data.user);
-      
+
+      const storedFcmToken = localStorage.getItem("fcmToken");
+      if (storedFcmToken && data.user?.id) {
+        trpcClient.google.saveDeviceToken.mutate({ googleUserId: data.user.id, fcmToken: storedFcmToken }).catch(() => {});
+      }
+
       navigate(createPageUrl("UserDashboard"));
     },
     onError: (err) => {

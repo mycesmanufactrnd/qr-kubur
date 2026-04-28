@@ -1,9 +1,11 @@
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { GoogleUserRecord, TahlilRequest } from "../db/entities.ts";
+import { GoogleUserDevice, GoogleUserRecord, TahlilRequest } from "../db/entities.ts";
 import { tahlilRequestApprovalSchema, tahlilRequestLiveURL, tahlilRequestSchema } from "../schemas/tahlilRequestSchema.ts";
 import { In } from "typeorm";
+import { TahlilStatus } from "../db/enums.ts";
+import { sendPushNotifications } from "../services/firebase.service.ts";
 
 export const tahlilRequestRouter = router({
     getByReferenceNo: publicProcedure
@@ -124,11 +126,45 @@ export const tahlilRequestRouter = router({
         .mutation(async ({ input }) => {
             const tahlilRequestRepo = AppDataSource.getRepository(TahlilRequest);
             const tahlilRequests = await tahlilRequestRepo.findOneByOrFail({ id: input.id });
-    
+
             tahlilRequestRepo.merge(tahlilRequests, input.data);
-    
+
             const savedTahlilRequests = await tahlilRequestRepo.save(tahlilRequests);
-    
+
+            if (input.data.status === TahlilStatus.ACCEPTED) {
+                try {
+                    const recordRepo = AppDataSource.getRepository(GoogleUserRecord);
+                    const deviceRepo = AppDataSource.getRepository(GoogleUserDevice);
+
+                    const record = await recordRepo.findOne({
+                        where: { entityname: "tahlilrequest", entityid: input.id },
+                        relations: ["googleuser"],
+                    });
+
+                    if (record?.googleuser?.id) {
+                        const devices = await deviceRepo.findBy({ googleuser: { id: record.googleuser.id } });
+                        const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+
+                        if (tokens.length > 0) {
+                            const dateStr = input.data.suggesteddate
+                                ? new Date(input.data.suggesteddate).toLocaleDateString("ms-MY")
+                                : "-";
+
+                            await sendPushNotifications(
+                                tokens,
+                                {
+                                    title: "Permintaan Tahlil Diterima",
+                                    body: `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`,
+                                },
+                                { requestId: String(input.id) },
+                            );
+                        }
+                    }
+                } catch (e) {
+                    console.error("[FCM] Failed to notify tahlil requestor:", e);
+                }
+            }
+
             return savedTahlilRequests;
         }),
 
