@@ -327,7 +327,7 @@ export function useAdminAccess() {
     currentUser, 
     loadingUser, 
     hasAdminAccess, 
-    isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin,  isOrganisationAdmin,
+    isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, isOrganisationAdmin,
     checkRole, 
     currentUserStates,
     userEmail,

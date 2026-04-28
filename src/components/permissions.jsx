@@ -91,6 +91,9 @@ export const PERMISSIONS = {
   // Permission
   PERMISSIONS_VIEW: "permissions_view",
   PERMISSIONS_EDIT: "permissions_edit",
+ 
+  // Financial Reports
+  FINANCIAL_REPORTS_VIEW: "financial_reports_view",
 };
 
 export const PERMISSION_CATEGORIES = {
@@ -183,6 +186,14 @@ export const PERMISSION_CATEGORIES = {
     permissions: [
       { slug: PERMISSIONS.PERMISSIONS_VIEW, label: "Lihat" },
       { slug: PERMISSIONS.PERMISSIONS_EDIT, label: "Edit" },
+    ],
+    isAllAdmin: true,
+  },
+
+  financial_reports: {
+    label: "Financial Reports",
+    permissions: [
+      { slug: PERMISSIONS.FINANCIAL_REPORTS_VIEW, label: "Lihat" },
     ],
     isAllAdmin: true,
   },

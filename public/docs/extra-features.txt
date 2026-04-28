@@ -4,7 +4,7 @@
 2.5 kalau masuk service buat FCM untuk organisation yg terlibat
 3. template untuk jenazah dgn kubur
 ✅ 4. khairat kematian (kalau xde)
-5. report bulanan (duit keluar)
+✅ 5. report bulanan (duit keluar)
 ✅ 6. quotation details, letak gambar kubur, lot apa semua (more details)
 ✅ 7. grave service (ni masjid nye saja, siapa yg jaga)
 ✅ 8. donation amek la 0.50 (donation report)

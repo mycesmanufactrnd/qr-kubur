@@ -202,9 +202,7 @@ export default function ManageDeadPersons() {
       ...formData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-      grave: formData.grave
-        ? { id: Number(formData.grave) }
-        : null,
+      grave: formData.grave ? { id: Number(formData.grave) } : null,
     };
 
     try {
@@ -297,13 +295,22 @@ export default function ManageDeadPersons() {
         </h1>
 
         {canCreate && (
-          <Button
-            onClick={openAddDialog}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {translate("Add New")}
-          </Button>
+          <div>
+            <Button
+              onClick={openAddDialog}
+              className="bg-amber-600 hover:bg-amber-700 mr-2"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {translate("Upload New")}
+            </Button>
+            <Button
+              onClick={openAddDialog}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {translate("Add New")}
+            </Button>
+          </div>
         )}
       </div>
 

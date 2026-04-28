@@ -1,44 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { translate } from "@/utils/translations";
-import {
-  Landmark,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  X,
-  Save,
-  ImageIcon,
-  MapPin,
-} from "lucide-react";
+import { Landmark, TrendingUp, Download, ChevronDown } from "lucide-react";
 
 import Breadcrumb from "@/components/Breadcrumb";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
-import ConfirmDialog from "@/components/ConfirmDialog";
-import Pagination from "@/components/Pagination";
-import { showError, showSuccess } from "@/components/ToastrNotification";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -47,260 +18,175 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
-
-import TextInputForm from "@/components/forms/TextInputForm";
-import SelectForm from "@/components/forms/SelectForm";
-
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { STATES_MY } from "@/utils/enums";
-import { validateFields } from "@/utils/validations";
-import { resolveFileUrl } from "@/utils";
+import { trpc } from "@/utils/trpc";
 
-import {
-  useGetMosquePaginated,
-  useMosqueMutations,
-  useGetMosquesByOrganisationId,
-} from "@/hooks/useMosqueMutations";
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
 
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { defaultMosqueField } from "@/utils/defaultformfields";
-import { useForm } from "react-hook-form";
-import CheckboxForm from "@/components/forms/CheckboxForm";
+const ALL_TABS = [
+  { key: "donations", label: "Donations" },
+  { key: "tahlils", label: "Tahlil", adminHidden: true },
+  { key: "deathCharityPayments", label: "Death Charity", tahfizHidden: true },
+  { key: "quotations", label: "Quotations", tahfizHidden: true },
+];
 
-export default function ManageMosques() {
-  const {
-    currentUser,
-    loadingUser,
-    hasAdminAccess,
-    isSuperAdmin,
-    currentUserStates,
-  } = useAdminAccess();
-  const {
-    loading: permissionsLoading,
-    canView,
-    canCreate,
-    canEdit,
-    canDelete,
-  } = useCrudPermissions("mosques");
+const fmt = (n) => `RM ${Number(n || 0).toFixed(2)}`;
+const fmtDate = (d) => (d ? new Date(d).toLocaleDateString("en-GB") : "-");
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const urlPage = parseInt(searchParams.get("page") || "1");
-  const urlName = searchParams.get("name") || "";
-  const urlState = searchParams.get("state") || "all";
+const TAB_META = {
+  donations: { color: "#059669", bg: "rgba(5,150,105,0.08)", accent: "#d1fae5" },
+  tahlils: { color: "#2563eb", bg: "rgba(37,99,235,0.08)", accent: "#dbeafe" },
+  deathCharityPayments: { color: "#d97706", bg: "rgba(217,119,6,0.08)", accent: "#fef3c7" },
+  quotations: { color: "#7c3aed", bg: "rgba(124,58,237,0.08)", accent: "#ede9fe" },
+};
 
-  const [setName, setTempName] = useState(urlName);
-  const [tempState, setTempState] = useState(urlState);
+function exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quotations, month, year }) {
+  const monthName = MONTHS[month - 1];
+  let headers = [];
+  let rows = [];
+  let title = "";
 
-  useEffect(() => {
-    setTempName(urlName);
-    setTempState(urlState);
-  }, [urlName, urlState]);
+  if (activeTab === "donations") {
+    title = `Donations Report — ${monthName} ${year}`;
+    headers = ["Reference No", "Amount (RM)", "Status", "Date"];
+    rows = donations.map((r) => [
+      r.referenceno || "-",
+      Number(r.amount || 0).toFixed(2),
+      r.status || "-",
+      fmtDate(r.createdat),
+    ]);
+  } else if (activeTab === "tahlils") {
+    title = `Tahlil Report — ${monthName} ${year}`;
+    headers = ["Reference No", "Service Amount (RM)", "Platform Fee (RM)", "Total (RM)", "Status", "Date"];
+    rows = tahlils.map((r) => [
+      r.referenceno || "-",
+      Number(r.serviceamount || 0).toFixed(2),
+      Number(r.platformfeeamount || 0).toFixed(2),
+      (Number(r.serviceamount || 0) + Number(r.platformfeeamount || 0)).toFixed(2),
+      r.status || "-",
+      fmtDate(r.createdat),
+    ]);
+  } else if (activeTab === "deathCharityPayments") {
+    title = `Death Charity Payments Report — ${monthName} ${year}`;
+    headers = ["Reference No", "Amount (RM)", "Payment Type", "Payment Method", "Date Paid"];
+    rows = deathCharityPayments.map((r) => [
+      r.referenceno || "-",
+      Number(r.amount || 0).toFixed(2),
+      r.paymenttype || "-",
+      r.paymentmethod || "-",
+      fmtDate(r.paidat),
+    ]);
+  } else if (activeTab === "quotations") {
+    title = `Quotations Report — ${monthName} ${year}`;
+    headers = ["Reference No", "Payer Name", "Total Amount (RM)", "Status", "Date"];
+    rows = quotations.map((r) => [
+      r.referenceno || "-",
+      r.payername || "-",
+      Number(r.totalamount || 0).toFixed(2),
+      r.status || "-",
+      fmtDate(r.createdat),
+    ]);
+  }
 
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingMosque, setEditingMosque] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [mosqueToDelete, setMosqueToDelete] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
-  const [photoUrlInput, setPhotoUrlInput] = useState("");
-  const [photoFileKey, setPhotoFileKey] = useState(0);
+  const escapeCSV = (val) => {
+    const str = String(val);
+    return str.includes(",") || str.includes('"') || str.includes("\n")
+      ? `"${str.replace(/"/g, '""')}"`
+      : str;
+  };
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: defaultMosqueField });
+  const csvLines = [
+    escapeCSV(title),
+    `Generated on,${new Date().toLocaleDateString("en-GB")}`,
+    `Period,${monthName} ${year}`,
+    `Total Records,${rows.length}`,
+    "",
+    headers.map(escapeCSV).join(","),
+    ...rows.map((r) => r.map(escapeCSV).join(",")),
+  ];
 
-  const photourl = watch("photourl") || "";
+  const blob = new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${activeTab}_${monthName}_${year}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
-  useEffect(() => {
-    if (!photourl) {
-      setPhotoUrlInput("");
-      return;
-    }
+export default function FinancialReports() {
+  const { loadingUser, hasAdminAccess, isTahfizAdmin, isAdmin, currentUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("financial_reports");
+  const [, setSearchParams] = useSearchParams();
 
-    if (/^https?:\/\//i.test(photourl)) {
-      setPhotoUrlInput(photourl);
-      return;
-    }
-    if (photoUrlInput && photourl !== photoUrlInput) {
-      setPhotoUrlInput("");
-    }
-  }, [photourl, photoUrlInput]);
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [activeTab, setActiveTab] = useState("donations");
 
-  const { mosquesList, totalPages, isLoading } = useGetMosquePaginated({
-    page: urlPage,
-    pageSize: itemsPerPage,
-    filterName: urlName,
-    filterState: urlState === "all" ? undefined : urlState,
+  const enabled = !!currentUser?.id && !loadingUser;
+  // Pure tahfiz admin (no org role): donations + tahlils only
+  // Pure org admin (no tahfiz role): donations + deathCharity + quotations only
+  // Both roles (e.g. superadmin): all tabs
+  const TABS = ALL_TABS.filter((t) => {
+    if (t.tahfizHidden && isTahfizAdmin && !isAdmin) return false;
+    if (t.adminHidden && isAdmin && !isTahfizAdmin) return false;
+    return true;
   });
 
-  const currentOrganisationId = currentUser?.organisation?.id ?? null;
-  const isOrgScoped = !isSuperAdmin && !!currentOrganisationId;
-
-  const { data: mosquesByOrganisation = [], isLoading: loadingOrgMosques } =
-    useGetMosquesByOrganisationId(isOrgScoped ? currentOrganisationId : null);
-
-  const { organisationsList, isLoading: orgLoading } =
-    useGetOrganisationPaginated({
-      page: 1,
-      pageSize: 100,
-    });
-
-  const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
-
-  const normalizedSearch = (urlName || "").trim().toLowerCase();
-  const filteredOrgMosques = isOrgScoped
-    ? (mosquesByOrganisation || []).filter((mosque) => {
-        const matchesName = normalizedSearch
-          ? (mosque?.name || "").toLowerCase().includes(normalizedSearch)
-          : true;
-        const matchesState =
-          urlState === "all" ? true : mosque?.state === urlState;
-        return matchesName && matchesState;
-      })
-    : [];
-
-  const effectiveTotal = isOrgScoped
-    ? filteredOrgMosques.length
-    : mosquesList.total;
-  const effectiveTotalPages = Math.ceil(effectiveTotal / itemsPerPage);
-
-  const pagedOrgMosques = isOrgScoped
-    ? filteredOrgMosques.slice(
-        (urlPage - 1) * itemsPerPage,
-        urlPage * itemsPerPage,
-      )
-    : [];
-
-  const tableItems = isOrgScoped ? pagedOrgMosques : mosquesList.items;
-  const tableLoading = isOrgScoped ? loadingOrgMosques : isLoading;
-
-  const handlePhotoUpload = async (file) => {
-    if (!file) return;
-    setUploading(true);
-
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
-
-      const res = await fetch("/api/upload/bucket-mosque", {
-        method: "POST",
-        body: formDataUpload,
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        showError(errorData.error || "Failed to upload photo");
-        return;
-      }
-
-      const data = await res.json();
-      setValue("photourl", data.file_url);
-      setPhotoUrlInput("");
-      showSuccess(translate("Photo uploaded"));
-    } catch (err) {
-      console.error(err);
-      showError("Failed to upload photo");
-    } finally {
-      setUploading(false);
+  useEffect(() => {
+    if (TABS.length > 0 && !TABS.find((t) => t.key === activeTab)) {
+      setActiveTab(TABS[0].key);
     }
-  };
+  }, [isTahfizAdmin, isAdmin]);
 
-  const handleSearch = () => {
-    const params = { page: "1" };
-    if (setName) params.search = setName;
-    if (tempState !== "all") params.state = tempState;
-    setSearchParams(params);
-  };
+  const { data, isLoading } = trpc.financialReport.getByReferenceNo.useQuery(
+    {
+      year,
+      month,
+      checkRole: { admin: !!isAdmin, tahfiz: !!isTahfizAdmin },
+      currentUser: {
+        id: currentUser?.id ?? 0,
+        organisation: currentUser?.organisation?.id ? { id: currentUser.organisation.id } : null,
+        tahfizcenter: currentUser?.tahfizcenter?.id ? { id: currentUser.tahfizcenter.id } : null,
+      },
+    },
+    { enabled },
+  );
 
-  const handleReset = () => {
-    setTempName("");
-    setTempState("all");
-    setSearchParams({ page: "1" });
-  };
+  const donations = data?.donations ?? [];
+  const tahlils = data?.tahlils ?? [];
+  const deathCharityPayments = data?.deathCharityPayments ?? [];
+  const quotations = data?.quotations ?? [];
 
-  const openEditDialog = (mosque) => {
-    setEditingMosque(mosque);
-    reset({
-      ...mosque,
-      organisation: mosque.organisation?.id?.toString() ?? null,
-      latitude: mosque.latitude?.toString() || "",
-      longitude: mosque.longitude?.toString() || "",
-    });
-    setIsDialogOpen(true);
-  };
+  const totalDonations = donations.reduce((s, d) => s + Number(d.amount || 0), 0);
+  const totalTahlil = tahlils.reduce((s, t) => s + Number(t.serviceamount || 0) + Number(t.platformfeeamount || 0), 0);
+  const totalDeathCharity = deathCharityPayments.reduce((s, p) => s + Number(p.amount || 0), 0);
+  const totalQuotations = quotations.reduce((s, q) => s + Number(q.totalamount || 0), 0);
+  const grandTotal =
+    isTahfizAdmin && !isAdmin
+      ? totalDonations + totalTahlil
+      : isAdmin && !isTahfizAdmin
+        ? totalDonations + totalDeathCharity + totalQuotations
+        : totalDonations + totalTahlil + totalDeathCharity + totalQuotations;
 
-  const openAddDialog = () => {
-    const defaultOrganisation =
-      currentOrganisationId ?? organisationsList?.items?.[0]?.id ?? "";
-    setEditingMosque(null);
-    reset({
-      ...defaultMosqueField,
-      organisation: defaultOrganisation ? String(defaultOrganisation) : "",
-    });
-    setIsDialogOpen(true);
-  };
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
-  const onSubmit = async (formData) => {
-
-    const payload = {
-      ...formData,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-      organisation: formData.organisation
-        ? { id: Number(formData.organisation) }
-        : null,
-    };
-
-    try {
-      if (editingMosque) {
-        await updateMosque.mutateAsync({ id: editingMosque.id, data: payload });
-      } else {
-        await createMosque.mutateAsync(payload);
-      }
-      setIsDialogOpen(false);
-      reset(defaultMosqueField);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!mosqueToDelete) return;
-    await deleteMosque.mutateAsync(mosqueToDelete.id);
-    setDeleteDialogOpen(false);
-    setMosqueToDelete(null);
-  };
-
-  if (loadingUser || permissionsLoading || orgLoading)
-    return <PageLoadingComponent />;
-
-  if (!hasAdminAccess) {
-    return <AccessDeniedComponent />;
-  }
+  const dashboardLabel = isTahfizAdmin ? translate("Tahfiz Dashboard") : translate("Admin Dashboard");
+  const dashboardPage = isTahfizAdmin ? "TahfizDashboard" : "AdminDashboard";
 
   if (!canView) {
     return (
       <div className="space-y-6">
         <Breadcrumb
           items={[
-            {
-              label: isSuperAdmin
-                ? translate("Super Admin Dashboard")
-                : translate("Admin Dashboard"),
-              page: isSuperAdmin ? "SuperadminDashboard" : "AdminDashboard",
-            },
-            {
-              label: translate("Manage Mosques"),
-              page: "ManageMosques",
-            },
+            { label: dashboardLabel, page: dashboardPage },
+            { label: translate("Financial Reports"), page: "FinancialReports" },
           ]}
         />
         <AccessDeniedComponent />
@@ -308,394 +194,483 @@ export default function ManageMosques() {
     );
   }
 
+  const allSummaryCards = [
+    { key: "donations", label: "Donations", total: totalDonations, count: donations.length, color: "#059669", icon: "💚" },
+    { key: "tahlils", label: "Tahlil", total: totalTahlil, count: tahlils.length, color: "#2563eb", icon: "💙", adminHidden: true },
+    { key: "deathCharityPayments", label: "Death Charity", total: totalDeathCharity, count: deathCharityPayments.length, color: "#d97706", icon: "🧡", tahfizHidden: true },
+    { key: "quotations", label: "Quotations", total: totalQuotations, count: quotations.length, color: "#7c3aed", icon: "💜", tahfizHidden: true },
+  ];
+
+  const summaryCards = allSummaryCards.filter((c) => {
+    if (c.tahfizHidden && isTahfizAdmin && !isAdmin) return false;
+    if (c.adminHidden && isAdmin && !isTahfizAdmin) return false;
+    return true;
+  });
+  const activeColor = TAB_META[activeTab]?.color ?? "#1c1917";
+
   return (
-    <div className="space-y-6">
-      <Breadcrumb
-        items={[
-          {
-            label: isSuperAdmin
-              ? translate("Super Admin Dashboard")
-              : translate("Admin Dashboard"),
-            page: isSuperAdmin ? "SuperadminDashboard" : "AdminDashboard",
-          },
-          {
-            label: translate("Manage Mosques"),
-            page: "ManageMosques",
-          },
-        ]}
-      />
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Landmark className="w-6 h-6 text-stone-600" />
-          {translate("Manage Mosques")}
-        </h1>
-        {canCreate && (
-          <Button
-            onClick={openAddDialog}
-            className="bg-stone-600 hover:bg-stone-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {translate("Add Mosque")}
-          </Button>
-        )}
-      </div>
+        .fr-root * { font-family: 'DM Sans', sans-serif; }
+        .fr-mono { font-family: 'DM Mono', monospace; }
 
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={translate("Name")}
-                value={setName}
-                onChange={(e) => setTempName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button
-              onClick={handleSearch}
-              className="bg-stone-600 hover:bg-stone-700 px-6"
-            >
-              {translate("Search")}
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Select value={tempState} onValueChange={setTempState}>
-              <SelectTrigger>
-                <SelectValue placeholder={translate("State")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate("All States")}</SelectItem>
-                {STATES_MY.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
+        .fr-select {
+          appearance: none;
+          -webkit-appearance: none;
+          height: 38px;
+          border-radius: 10px;
+          border: 1.5px solid #e7e5e4;
+          background: #fafaf9;
+          padding: 0 36px 0 12px;
+          font-size: 13.5px;
+          font-weight: 500;
+          color: #1c1917;
+          cursor: pointer;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 10px center;
+        }
+        .fr-select:focus {
+          outline: none;
+          border-color: #a8a29e;
+          box-shadow: 0 0 0 3px rgba(168,162,158,0.15);
+        }
+
+        .fr-year-input {
+          height: 38px;
+          width: 88px;
+          border-radius: 10px;
+          border: 1.5px solid #e7e5e4;
+          background: #fafaf9;
+          padding: 0 12px;
+          font-size: 13.5px;
+          font-weight: 500;
+          color: #1c1917;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          font-family: 'DM Mono', monospace;
+        }
+        .fr-year-input:focus {
+          outline: none;
+          border-color: #a8a29e;
+          box-shadow: 0 0 0 3px rgba(168,162,158,0.15);
+        }
+
+        .fr-grand-total {
+          background: linear-gradient(135deg, #1c1917 0%, #292524 60%, #3d3531 100%);
+          border-radius: 18px;
+          padding: 28px 32px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: relative;
+          overflow: hidden;
+        }
+        .fr-grand-total::before {
+          content: '';
+          position: absolute;
+          top: -60px;
+          right: -60px;
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.03);
+        }
+        .fr-grand-total::after {
+          content: '';
+          position: absolute;
+          bottom: -40px;
+          left: 30%;
+          width: 140px;
+          height: 140px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.02);
+        }
+
+        .fr-summary-card {
+          border-radius: 14px;
+          border: 1.5px solid #f5f5f4;
+          background: #ffffff;
+          padding: 20px;
+          transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+          cursor: default;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .fr-summary-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+          border-color: #e7e5e4;
+        }
+
+        .fr-card-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: inline-block;
+          margin-right: 8px;
+          flex-shrink: 0;
+        }
+
+        .fr-tab-bar {
+          display: flex;
+          border-bottom: 1.5px solid #f5f5f4;
+          overflow-x: auto;
+          padding: 0 4px;
+          gap: 2px;
+        }
+        .fr-tab-bar::-webkit-scrollbar { display: none; }
+
+        .fr-tab-btn {
+          padding: 14px 20px;
+          font-size: 13.5px;
+          font-weight: 500;
+          border: none;
+          background: none;
+          cursor: pointer;
+          white-space: nowrap;
+          color: #a8a29e;
+          border-bottom: 2.5px solid transparent;
+          margin-bottom: -1.5px;
+          transition: color 0.15s, border-color 0.15s;
+          border-radius: 8px 8px 0 0;
+          position: relative;
+        }
+        .fr-tab-btn:hover { color: #57534e; background: #fafaf9; }
+        .fr-tab-btn.active { color: var(--tab-color); border-bottom-color: var(--tab-color); }
+
+        .fr-export-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          height: 38px;
+          padding: 0 16px;
+          border-radius: 10px;
+          border: 1.5px solid #e7e5e4;
+          background: #ffffff;
+          font-size: 13px;
+          font-weight: 600;
+          color: #44403c;
+          cursor: pointer;
+          transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .fr-export-btn:hover {
+          background: #fafaf9;
+          border-color: #d6d3d1;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+          transform: translateY(-1px);
+        }
+        .fr-export-btn:active { transform: translateY(0); }
+
+        .fr-table thead tr th {
+          background: #fafaf9;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          color: #a8a29e;
+          padding: 12px 16px;
+          border-bottom: 1.5px solid #f5f5f4;
+        }
+        .fr-table tbody tr td {
+          padding: 13px 16px;
+          font-size: 13.5px;
+          color: #44403c;
+          border-bottom: 1px solid #fafaf9;
+        }
+        .fr-table tbody tr:last-child td { border-bottom: none; }
+        .fr-table tbody tr:hover td { background: #fafaf9; }
+
+        .fr-ref-badge {
+          font-family: 'DM Mono', monospace;
+          font-size: 12px;
+          font-weight: 500;
+          background: #f5f5f4;
+          color: #44403c;
+          padding: 3px 8px;
+          border-radius: 6px;
+          display: inline-block;
+        }
+
+        .fr-status-pill {
+          display: inline-block;
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 11.5px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+
+        .fr-amount {
+          font-family: 'DM Mono', monospace;
+          font-size: 13px;
+          font-weight: 500;
+          color: #1c1917;
+        }
+
+        .fr-outer-card {
+          border-radius: 18px;
+          border: 1.5px solid #f5f5f4;
+          background: #ffffff;
+          overflow: hidden;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .fr-top-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 20px;
+          flex-wrap: wrap;
+          gap: 8px;
+          background: #ffffff;
+        }
+      `}</style>
+
+      <div className="fr-root space-y-6">
+        <Breadcrumb
+          items={[
+            { label: dashboardLabel, page: dashboardPage },
+            { label: translate("Financial Reports"), page: "FinancialReports" },
+          ]}
+        />
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1c1917", display: "flex", alignItems: "center", gap: 10, margin: 0 }}>
+            <span style={{ width: 36, height: 36, borderRadius: 10, background: "#f5f5f4", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
+            </span>
+            {translate("Financial Reports")}
+          </h1>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ position: "relative" }}>
+              <select
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+                className="fr-select"
+              >
+                {MONTHS.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
                 ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleReset}>
-              <X className="w-4 h-4 mr-2" /> {translate("Reset")}
-            </Button>
+              </select>
+            </div>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="fr-year-input"
+              min={2000}
+              max={2100}
+            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{translate("Mosque name")}</TableHead>
-                <TableHead className="text-center">
-                  {translate("PIC Name")}
-                </TableHead>
-                <TableHead className="text-center">
-                  {translate("State")}
-                </TableHead>
-                <TableHead className="text-center">
-                  {translate("Image")}
-                </TableHead>
-                <TableHead className="text-center">
-                  {translate("Actions")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tableLoading ? (
-                <InlineLoadingComponent isTable colSpan={5} />
-              ) : tableItems.length === 0 ? (
-                <NoDataTableComponent colSpan={5} />
-              ) : (
-                tableItems.map((mosque) => (
-                  <TableRow key={mosque.id}>
-                    <TableCell className="font-medium">{mosque.name}</TableCell>
-                    <TableCell className="text-center">
-                      {mosque.picname}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {mosque.state}
-                    </TableCell>
-                    <TableCell>
-                      <img
-                        src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
-                        alt="photo"
-                        className="w-12 h-10 object-cover rounded mx-auto"
-                      />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        {canEdit && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditDialog(mosque)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {canDelete && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setMosqueToDelete(mosque);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-        {effectiveTotalPages > 0 && (
-          <Pagination
-            currentPage={urlPage}
-            totalPages={effectiveTotalPages}
-            onPageChange={(p) =>
-              setSearchParams({
-                ...Object.fromEntries(searchParams),
-                page: p.toString(),
-              })
-            }
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={(v) => {
-              setItemsPerPage(v);
-              setSearchParams({
-                ...Object.fromEntries(searchParams),
-                page: "1",
-              });
-            }}
-            totalItems={effectiveTotal}
-          />
-        )}
-      </Card>
+        <div className="fr-grand-total">
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <p style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 6 }}>
+              Grand Total — {MONTHS[month - 1]} {year}
+            </p>
+            <p style={{ fontSize: 34, fontWeight: 700, color: "#ffffff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
+              {fmt(grandTotal)}
+            </p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 8, fontWeight: 400 }}>
+              {summaryCards.reduce((s, c) => s + c.count, 0)} total transactions
+            </p>
+          </div>
+          <TrendingUp style={{ width: 44, height: 44, color: "rgba(255,255,255,0.12)", position: "relative", zIndex: 1 }} />
+        </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingMosque
-                ? translate("Edit Mosque")
-                : translate("Add Mosque")}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm
-              name="name"
-              control={control}
-              label={translate("Mosque name")}
-              required
-            />
-            <SelectForm
-              name="state"
-              control={control}
-              label={translate("State")}
-              placeholder={translate("Select states")}
-              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-              required
-              errors={errors}
-            />
-            <TextInputForm
-              name="address"
-              control={control}
-              label={translate("Address")}
-              isTextArea
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="email"
-                control={control}
-                label={translate("Email")}
-              />
-              <TextInputForm
-                name="url"
-                control={control}
-                label={translate("Website / URL")}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                if (!navigator.geolocation) return;
-                setIsLocating(true);
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => {
-                    setValue("latitude", pos.coords.latitude.toFixed(16));
-                    setValue("longitude", pos.coords.longitude.toFixed(16));
-                    setIsLocating(false);
-                  },
-                  () => {
-                    setIsLocating(false);
-                  },
-                );
-              }}
-              disabled={isLocating}
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              {isLocating
-                ? translate("Getting location...")
-                : translate("Get Current Location")}
-            </Button>
-
-            <SelectForm
-              name="organisation"
-              control={control}
-              placeholder={translate("Select Organisation")}
-              label={translate("Organisation")}
-              options={(organisationsList?.items || []).map((org) => ({
-                label: org.name,
-                value: org.id,
-              }))}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="picname"
-                control={control}
-                label={translate("PIC Name")}
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="picphoneno"
-                control={control}
-                label={translate("PIC Phone No.")}
-                required
-                errors={errors}
-              />
-            </div>
-
-            <CheckboxForm
-              name="canarrangefuneral"
-              control={control}
-              label={translate("Can Arrange Funeral")}
-            />
-
-            <CheckboxForm
-              name="hasdeathcharity"
-              control={control}
-              label={translate("Has Death Charity")}
-            />
-
-            <div className="space-y-2">
-              <Label>{translate("Photo")}</Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  key={photoFileKey}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
-                  disabled={uploading}
-                  className="cursor-pointer"
-                />
-                {uploading && (
-                  <div className="flex items-center gap-2 text-sm text-stone-600">
-                    <span>{translate("Uploading...")}</span>
-                  </div>
-                )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+          {summaryCards.map(({ key, label, total, count, color, icon }) => (
+            <div key={key} className="fr-summary-card">
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+                <span className="fr-card-dot" style={{ background: color }} />
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a8a29e" }}>
+                  {label}
+                </span>
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-stone-500">
-                  {translate("Or paste image URL")}
-                </Label>
-                <Input
-                  type="url"
-                  placeholder="https://"
-                  value={photoUrlInput}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setPhotoUrlInput(value);
-                    setValue("photourl", value);
-                    if (value) {
-                      setPhotoFileKey((prev) => prev + 1);
-                    }
-                  }}
-                />
-              </div>
-
-              {photourl && (
-                <div className="mt-3 relative w-40 h-40 group">
-                  <img
-                    src={
-                      photoUrlInput
-                        ? photoUrlInput
-                        : resolveFileUrl(photourl, "bucket-mosque")
-                    }
-                    alt="Mosque preview"
-                    className="w-full h-full object-cover rounded-lg border-2 border-stone-100 shadow-sm"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <ImageIcon className="text-white w-8 h-8" />
-                  </div>
-                </div>
-              )}
+              <p style={{ fontSize: 20, fontWeight: 700, color, fontFamily: "'DM Mono', monospace", marginBottom: 4 }}>
+                {fmt(total)}
+              </p>
+              <p style={{ fontSize: 12, color: "#d6d3d1", fontWeight: 500 }}>
+                {count} records
+              </p>
             </div>
+          ))}
+        </div>
 
-            <DialogFooter className="pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
+        <div className="fr-outer-card">
+          <div className="fr-top-bar" style={{ paddingTop: 4, paddingBottom: 0 }}>
+            <div className="fr-tab-bar" style={{ flex: 1, border: "none", padding: 0 }}>
+              {TABS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`fr-tab-btn ${activeTab === key ? "active" : ""}`}
+                  style={{ "--tab-color": TAB_META[key]?.color ?? "#1c1917" }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div style={{ padding: "8px 0 8px 12px" }}>
+              <button
+                className="fr-export-btn"
+                onClick={() => exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quotations, month, year })}
               >
-                {translate("Cancel")}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || uploading}
-                className="bg-stone-600 hover:bg-stone-700 min-w-[100px]"
-              >
-                {isSubmitting ? (
-                  <InlineLoadingComponent />
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" /> {translate("Save")}
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                <Download style={{ width: 14, height: 14, color: "#78716c" }} />
+                Export CSV
+              </button>
+            </div>
+          </div>
 
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title={translate("Delete Mosque")}
-        description={`${translate("Delete")} "${mosqueToDelete?.name}"?`}
-        onConfirm={confirmDelete}
-        confirmText={translate("Delete")}
-        variant="destructive"
-      />
-    </div>
+          <div style={{ borderTop: "1.5px solid #f5f5f4" }}>
+            {activeTab === "donations" && (
+              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th>Reference No</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr><td colSpan={4}><InlineLoadingComponent isTable colSpan={4} /></td></tr>
+                  ) : donations.length === 0 ? (
+                    <tr><td colSpan={4}><NoDataTableComponent colSpan={4} /></td></tr>
+                  ) : (
+                    donations.map((r) => (
+                      <tr key={r.id}>
+                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
+                        <td className="text-center"><span className="fr-amount">{fmt(r.amount)}</span></td>
+                        <td className="text-center">
+                          <span className="fr-status-pill" style={{
+                            background: r.status?.toLowerCase() === "paid" ? "#d1fae5" : "#f5f5f4",
+                            color: r.status?.toLowerCase() === "paid" ? "#065f46" : "#78716c",
+                          }}>{r.status || "-"}</span>
+                        </td>
+                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.createdat)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === "tahlils" && (
+              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th>Reference No</th>
+                    <th>Service Amt</th>
+                    <th>Platform Fee</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr><td colSpan={5}><InlineLoadingComponent isTable colSpan={5} /></td></tr>
+                  ) : tahlils.length === 0 ? (
+                    <tr><td colSpan={5}><NoDataTableComponent colSpan={5} /></td></tr>
+                  ) : (
+                    tahlils.map((r) => (
+                      <tr key={r.id}>
+                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
+                        <td className="text-center"><span className="fr-amount">{fmt(r.serviceamount)}</span></td>
+                        <td className="text-center"><span className="fr-amount" style={{ color: "#78716c" }}>{fmt(r.platformfeeamount)}</span></td>
+                        <td className="text-center">
+                          <span className="fr-status-pill" style={{
+                            background: r.status?.toLowerCase() === "paid" ? "#dbeafe" : "#f5f5f4",
+                            color: r.status?.toLowerCase() === "paid" ? "#1d4ed8" : "#78716c",
+                          }}>{r.status || "-"}</span>
+                        </td>
+                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.createdat)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === "deathCharityPayments" && (
+              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th>Reference No</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Method</th>
+                    <th>Date Paid</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr><td colSpan={5}><InlineLoadingComponent isTable colSpan={5} /></td></tr>
+                  ) : deathCharityPayments.length === 0 ? (
+                    <tr><td colSpan={5}><NoDataTableComponent colSpan={5} /></td></tr>
+                  ) : (
+                    deathCharityPayments.map((r) => (
+                      <tr key={r.id}>
+                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
+                        <td className="text-center"><span className="fr-amount">{fmt(r.amount)}</span></td>
+                        <td className="text-center" style={{ fontSize: 13 }}>{r.paymenttype || "-"}</td>
+                        <td className="text-center">
+                          <span className="fr-status-pill" style={{ background: "#fef3c7", color: "#92400e" }}>
+                            {r.paymentmethod || "-"}
+                          </span>
+                        </td>
+                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.paidat)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeTab === "quotations" && (
+              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th>Reference No</th>
+                    <th>Payer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr><td colSpan={5}><InlineLoadingComponent isTable colSpan={5} /></td></tr>
+                  ) : quotations.length === 0 ? (
+                    <tr><td colSpan={5}><NoDataTableComponent colSpan={5} /></td></tr>
+                  ) : (
+                    quotations.map((r) => (
+                      <tr key={r.id}>
+                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
+                        <td className="text-center" style={{ fontWeight: 500, fontSize: 13.5 }}>{r.payername || "-"}</td>
+                        <td className="text-center"><span className="fr-amount">{fmt(r.totalamount)}</span></td>
+                        <td className="text-center">
+                          <span className="fr-status-pill" style={{
+                            background: r.status?.toLowerCase() === "paid" ? "#ede9fe" : "#f5f5f4",
+                            color: r.status?.toLowerCase() === "paid" ? "#5b21b6" : "#78716c",
+                          }}>{r.status || "-"}</span>
+                        </td>
+                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.createdat)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

@@ -12,8 +12,8 @@ export class Permission {
     })
     user?: User | null;
 
-    @Column("varchar", { length: 20 })
-    slug!: string;
+    @Column("varchar", { length: 100, nullable: true })
+    slug?: string;
 
     @Column({ type: "boolean", default: true })
     enabled!: boolean;

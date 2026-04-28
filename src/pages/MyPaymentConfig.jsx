@@ -18,7 +18,8 @@ const maskValue = (value = "") => {
 };
 
 export default function MyPaymentConfig() {
-  const { loadingUser, hasAdminAccess, currentUser, isTahfizAdmin } = useAdminAccess();
+  const { loadingUser, hasAdminAccess, currentUser, isTahfizAdmin } =
+    useAdminAccess();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const entity = useMemo(() => {
@@ -72,20 +73,22 @@ export default function MyPaymentConfig() {
   }
 
   if (!entity.entityId || !entity.entityType) {
-    return (
-      <NoDataCardComponent isPage/>
-    );
+    return <NoDataCardComponent isPage />;
   }
 
-  const dashboardLabel = isTahfizAdmin ? translate('Tahfiz Dashboard') : translate('Admin Dashboard');
-  const dashboardPage = isTahfizAdmin ? 'TahfizDashboard' : 'AdminDashboard';
+  const dashboardLabel = isTahfizAdmin
+    ? translate("Tahfiz Dashboard")
+    : translate("Admin Dashboard");
+  const dashboardPage = isTahfizAdmin ? "TahfizDashboard" : "AdminDashboard";
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: dashboardLabel, page: dashboardPage },
-        { label: translate('Payment Config'), page: 'MyPaymentConfig' }
-      ]} />
+      <Breadcrumb
+        items={[
+          { label: dashboardLabel, page: dashboardPage },
+          { label: translate("Payment Config"), page: "MyPaymentConfig" },
+        ]}
+      />
 
       <div className="flex items-center justify-between">
         <div>
@@ -93,9 +96,7 @@ export default function MyPaymentConfig() {
             <CreditCard className="w-7 h-7 text-purple-600" />
             {translate("My Payment Configuration")}
           </h1>
-          <p className="text-slate-600 text-sm mt-1">
-            {entity.entityName}
-          </p>
+          <p className="text-slate-600 text-sm mt-1">{entity.entityName}</p>
         </div>
 
         <Button
@@ -108,7 +109,7 @@ export default function MyPaymentConfig() {
       </div>
 
       {groupedConfigs.length === 0 ? (
-        <NoDataCardComponent isPage/>
+        <NoDataCardComponent isPage />
       ) : (
         <div>
           {groupedConfigs.map(([platformName, configs]) => (
@@ -121,12 +122,18 @@ export default function MyPaymentConfig() {
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 {configs.map((config) => {
-                  const isSecret = config.paymentfield?.fieldtype === "password";
+                  const isSecret =
+                    config.paymentfield?.fieldtype === "password";
                   return (
-                    <div key={config.id} className="rounded-lg border border-slate-100 p-3 bg-white">
+                    <div
+                      key={config.id}
+                      className="rounded-lg border border-slate-100 p-3 bg-white"
+                    >
                       <p className="text-xs text-slate-500 mb-1 flex items-center gap-1">
                         <KeyRound className="w-3 h-3" />
-                        {config.paymentfield?.label || config.paymentfield?.key || "-"}
+                        {config.paymentfield?.label ||
+                          config.paymentfield?.key ||
+                          "-"}
                       </p>
                       <p className="text-sm font-medium text-slate-700 break-all">
                         {isSecret ? maskValue(config.value) : config.value}

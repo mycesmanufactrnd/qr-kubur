@@ -290,13 +290,22 @@ export default function ManageGraves() {
           {translate("Manage Graves")}
         </h1>
         {canCreate && (
-          <Button
-            onClick={openAddDialog}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {translate("Add Grave")}
-          </Button>
+          <div>
+            <Button
+              onClick={openAddDialog}
+              className="bg-amber-600 hover:bg-amber-700 mr-2"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {translate("Upload Grave")}
+            </Button>
+            <Button
+              onClick={openAddDialog}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {translate("Add Grave")}
+            </Button>
+          </div>
         )}
       </div>
 

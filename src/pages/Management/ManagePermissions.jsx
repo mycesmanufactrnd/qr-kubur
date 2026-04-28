@@ -104,6 +104,15 @@ export default function ManagePermissions() {
     }));
   };
 
+  const toggleAllInCategory = (slugs) => {
+    const allEnabled = slugs.every((s) => !!userPermissions[s]);
+    setUserPermissions((prev) => {
+      const next = { ...prev };
+      slugs.forEach((s) => { next[s] = !allEnabled; });
+      return next;
+    });
+  };
+
   if (loadingUser || loadingUsers || permissionsLoading || loadingPermissions) {
     return <PageLoadingComponent />;
   }
@@ -274,11 +283,29 @@ export default function ManagePermissions() {
 
                       return true;
                     })
-                    .map(([key, category]) => (
+                    .map(([key, category]) => {
+                      const categorySlugs = category.permissions.map((p) => p.slug);
+                      const allEnabled = categorySlugs.every((s) => !!userPermissions[s]);
+                      return (
                       <div key={key} className="space-y-3">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {category.label}
-                        </h4>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {category.label}
+                          </h4>
+                          {canEdit && (
+                            <button
+                              type="button"
+                              onClick={() => toggleAllInCategory(categorySlugs)}
+                              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                                allEnabled
+                                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+                              }`}
+                            >
+                              {allEnabled ? "Disable All" : "Enable All"}
+                            </button>
+                          )}
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {category.permissions.map((perm) => (
                             <div
@@ -304,7 +331,8 @@ export default function ManagePermissions() {
                           ))}
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                 </div>
               </div>
             )}
