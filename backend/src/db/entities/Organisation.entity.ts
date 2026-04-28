@@ -110,9 +110,6 @@ export class Organisation {
   @OneToMany(() => ServiceOffered, (services) => services.organisation)
   services!: ServiceOffered[];
 
-  @OneToMany(() => Quotation, (quotations) => quotations.organisation)
-  quotations?: Quotation[];
-
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 

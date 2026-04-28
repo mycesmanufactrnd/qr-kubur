@@ -68,6 +68,7 @@ import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
 // Payment
+import FinancialReports from '@/pages/Payment/FinancialReports.jsx';
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
 import PaymentComparison from '@/pages/Payment/PaymentComparison.jsx';
@@ -79,6 +80,7 @@ import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
 import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
 import OrganisationQuickRegister from '@/pages/OrganisationQuickRegister.jsx';
 import MyPaymentConfig from '@/pages/MyPaymentConfig.jsx';
+import MapView from '@/pages/MapView.jsx';
 
 
 export const PAGES = {
@@ -140,6 +142,7 @@ export const PAGES = {
     "UserTransactionRecords": UserTransactionRecords,
     "FAQ": FAQ,
     "ViewLogs": ViewLogs,
+    "FinancialReports": FinancialReports,
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
     "PaymentComparison": PaymentComparison,
@@ -154,6 +157,7 @@ export const PAGES = {
     "RukunIslam": RukunIslam,
     "DeathCharityUserPayment": DeathCharityUserPayment,
     "GanttChartScheduling": GanttChartScheduling,
+    "MapView": MapView,
 
     // Dashboard
     "AdminDashboard": AdminDashboard,

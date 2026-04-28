@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import {
   BookOpen,
   Users,
@@ -10,31 +10,27 @@ import {
   Sparkles,
   List,
   CreditCard,
-} from 'lucide-react';
+} from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { translate } from '@/utils/translations';
-import PageLoadingComponent from '@/components/PageLoadingComponent';
-import AccessDeniedComponent from '@/components/AccessDeniedComponent.jsx';
-import { useAdminAccess } from '@/utils/auth';
-import { useGetAdminDashboardStats } from '@/hooks/useDashboardMutations';
-import { formatRM } from '@/utils/helpers';
+import { translate } from "@/utils/translations";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
+import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
+import { useAdminAccess } from "@/utils/auth";
+import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
+import { formatRM } from "@/utils/helpers";
 
 export default function TahfizDashboard() {
-  const {
-    currentUser,
-    loadingUser,
-    hasAdminAccess,
-    isSuperAdmin,
-  } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
+    useAdminAccess();
 
   const { TTRStats, DDVStats, isTTRLoading, isDDVLoading } =
-  useGetAdminDashboardStats({
-    currentUser,
-    isSuperAdmin,
-    statsNeeded: ["TTR", "DDV"],
-  });
+    useGetAdminDashboardStats({
+      currentUser,
+      isSuperAdmin,
+      statsNeeded: ["TTR", "DDV"],
+    });
 
   const tahfizCount = TTRStats?.tahfizCount ?? 0;
   const tahlilRequestCount = TTRStats?.tahlilRequestCount ?? 0;
@@ -50,26 +46,34 @@ export default function TahfizDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              {translate('Tahfiz Dashboard')}
+              {translate("Tahfiz Dashboard")}
             </h1>
             <p className="text-slate-600 text-sm font-medium">
-              السلام عليكم • {currentUser?.full_name || translate('Admin')}
+              السلام عليكم • {currentUser?.full_name || translate("Admin")}
             </p>
           </div>
 
           {isSuperAdmin && (
             <div className="flex gap-2">
-              <Link to={createPageUrl('AdminDashboard')}>
-                <Button variant="outline" className="gap-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all">
+              <Link to={createPageUrl("AdminDashboard")}>
+                <Button
+                  variant="outline"
+                  className="gap-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all"
+                >
                   <BookOpen className="w-4 h-4 text-indigo-600" />
-                  <span className="text-indigo-700">{translate('Admin')}</span>
+                  <span className="text-indigo-700">{translate("Admin")}</span>
                 </Button>
               </Link>
 
-              <Link to={createPageUrl('SuperAdminDashboard')}>
-                <Button variant="outline" className="gap-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-all">
+              <Link to={createPageUrl("SuperAdminDashboard")}>
+                <Button
+                  variant="outline"
+                  className="gap-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-all"
+                >
                   <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span className="text-purple-700">{translate('Super Admin')}</span>
+                  <span className="text-purple-700">
+                    {translate("Super Admin")}
+                  </span>
                 </Button>
               </Link>
             </div>
@@ -78,50 +82,49 @@ export default function TahfizDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-        <Link to={createPageUrl('ManageTahfizCenters')}>
+        <Link to={createPageUrl("ManageTahfizCenters")}>
           <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-amber-50 to-orange-50 hover:scale-105">
             <CardContent className="p-6">
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-amber-700 font-medium mb-1">
-                {translate('Tahfiz Centers')}
+                {translate("Tahfiz Centers")}
               </p>
               <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                {isTTRLoading ? '—' : tahfizCount}
+                {isTTRLoading ? "—" : tahfizCount}
               </p>
             </CardContent>
           </Card>
         </Link>
 
-        <Link to={createPageUrl('ManageTahlilRequests')}>
+        <Link to={createPageUrl("ManageTahlilRequests")}>
           <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-teal-50 to-cyan-50 hover:scale-105">
             <CardContent className="p-6">
               <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
                 <Calendar className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-teal-700 font-medium mb-1">
-                {translate('Tahlil Requests')}
+                {translate("Tahlil Requests")}
               </p>
               <p className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                {isTTRLoading ? '—' : tahlilRequestCount}
+                {isTTRLoading ? "—" : tahlilRequestCount}
               </p>
             </CardContent>
           </Card>
         </Link>
 
-        <Link to={createPageUrl('ManageDonations')}>
+        <Link to={createPageUrl("ManageDonations")}>
           <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-rose-50 to-pink-50 hover:scale-105">
             <CardContent className="p-6">
               <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
                 <Heart className="w-6 h-6 text-white" />
               </div>
               <p className="text-sm text-rose-700 font-medium mb-1">
-                {translate('Total Donations')}
+                {translate("Total Donations")}
               </p>
               <p className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
-                {isDDVLoading ? '—' : donationCount}
+                {isDDVLoading ? "—" : donationCount}
               </p>
             </CardContent>
           </Card>
@@ -133,14 +136,13 @@ export default function TahfizDashboard() {
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
             <p className="text-sm text-emerald-700 font-medium mb-1">
-              {translate('Verified Donations')}
+              {translate("Verified Donations")}
             </p>
             <p className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-              {isDDVLoading ? '—' : `${formatRM(donationVerified)}`}
+              {isDDVLoading ? "—" : `${formatRM(donationVerified)}`}
             </p>
           </CardContent>
         </Card>
-
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -151,33 +153,41 @@ export default function TahfizDashboard() {
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
                   <BookOpen className="w-4 h-4 text-white" />
                 </div>
-                {translate('Tahfiz Overview')}
+                {translate("Tahfiz Overview")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm pt-6">
               <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
-                <span className="text-amber-700 font-medium">{translate('Tahfiz Centers')}</span>
+                <span className="text-amber-700 font-medium">
+                  {translate("Tahfiz Centers")}
+                </span>
                 <span className="font-bold text-lg bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                   {tahfizCount}
                 </span>
               </div>
 
               <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-100">
-                <span className="text-teal-700 font-medium">{translate('Pending Tahlil Requests')}</span>
+                <span className="text-teal-700 font-medium">
+                  {translate("Pending Tahlil Requests")}
+                </span>
                 <span className="font-bold text-lg bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
                   {tahlilRequestCount}
                 </span>
               </div>
 
               <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-100">
-                <span className="text-rose-700 font-medium">{translate('Total Donations')}</span>
+                <span className="text-rose-700 font-medium">
+                  {translate("Total Donations")}
+                </span>
                 <span className="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
                   {donationCount}
                 </span>
               </div>
 
               <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100">
-                <span className="text-emerald-700 font-medium">{translate('Verified Donations')}</span>
+                <span className="text-emerald-700 font-medium">
+                  {translate("Verified Donations")}
+                </span>
                 <span className="font-bold text-lg bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
                   {formatRM(donationVerified)}
                 </span>
@@ -193,35 +203,81 @@ export default function TahfizDashboard() {
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                {translate('Quick Actions')}
+                {translate("Quick Actions")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-6">
               {[
-                { label: translate('Manage Tahfiz Centers'), page: 'ManageTahfizCenters', icon: BookOpen, color: 'amber' },
-                { label: translate('Manage Tahlil Requests'), page: 'ManageTahlilRequests', icon: Calendar, color: 'teal' },
-                { label: translate('Manage Donations'), page: 'ManageDonations', icon: Heart, color: 'pink' },
-                { label: translate('Manage Activity Posts'), page: 'ManageActivityPosts', icon: List, color: 'yellow' },
-                { label: translate('My Payment Config'), page: 'MyPaymentConfig', icon: CreditCard, color: 'purple' },
-                { label: translate('Manage Users'), page: 'ManageUsers', icon: Users, color: 'blue' },
-                { label: translate('Manage Permissions'), page: 'ManagePermissions', icon: UserCheck, color: 'green' },
+                {
+                  label: translate("Financial Reports"),
+                  page: "FinancialReports",
+                  icon: BarChart,
+                  color: "purple",
+                },
+                {
+                  label: translate("Manage Tahfiz Centers"),
+                  page: "ManageTahfizCenters",
+                  icon: BookOpen,
+                  color: "amber",
+                },
+                {
+                  label: translate("Manage Tahlil Requests"),
+                  page: "ManageTahlilRequests",
+                  icon: Calendar,
+                  color: "teal",
+                },
+                {
+                  label: translate("Manage Donations"),
+                  page: "ManageDonations",
+                  icon: Heart,
+                  color: "pink",
+                },
+                {
+                  label: translate("Manage Activity Posts"),
+                  page: "ManageActivityPosts",
+                  icon: List,
+                  color: "yellow",
+                },
+                {
+                  label: translate("My Payment Config"),
+                  page: "MyPaymentConfig",
+                  icon: CreditCard,
+                  color: "purple",
+                },
+                {
+                  label: translate("Manage Users"),
+                  page: "ManageUsers",
+                  icon: Users,
+                  color: "blue",
+                },
+                {
+                  label: translate("Manage Permissions"),
+                  page: "ManagePermissions",
+                  icon: UserCheck,
+                  color: "green",
+                },
               ].map((action, i) => (
                 <Link key={i} to={createPageUrl(action.page)}>
                   <Button
                     variant="ghost"
                     className={`w-full justify-start hover:bg-${action.color}-50 transition-all group mb-2`}
                   >
-                    <div className={`w-8 h-8 rounded-lg bg-${action.color}-100 group-hover:bg-${action.color}-200 flex items-center justify-center mr-3 transition-all`}>
-                      <action.icon className={`w-4 h-4 text-${action.color}-600`} />
+                    <div
+                      className={`w-8 h-8 rounded-lg bg-${action.color}-100 group-hover:bg-${action.color}-200 flex items-center justify-center mr-3 transition-all`}
+                    >
+                      <action.icon
+                        className={`w-4 h-4 text-${action.color}-600`}
+                      />
                     </div>
-                    <span className="text-slate-700 group-hover:text-slate-900 font-medium">{action.label}</span>
+                    <span className="text-slate-700 group-hover:text-slate-900 font-medium">
+                      {action.label}
+                    </span>
                   </Button>
                 </Link>
               ))}
             </CardContent>
           </Card>
         </div>
-
       </div>
     </div>
   );

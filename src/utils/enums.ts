@@ -1,3 +1,4 @@
+import L from "leaflet";
 
 export const LANG = [ "en", "ms", "ar" ];
 

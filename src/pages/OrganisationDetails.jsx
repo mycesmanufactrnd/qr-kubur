@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import FileUploadForm from '@/components/forms/FileUploadForm';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -24,6 +25,7 @@ import TextInputForm from '@/components/forms/TextInputForm';
 import { userGoogleAccess } from '@/utils/auth';
 import { resolveFileUrl } from '@/utils';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { translate } from '@/utils/translations';
 
 const SAVED_PHONE_KEY = "userphoneno";
 
@@ -35,14 +37,16 @@ export default function OrganisationDetails() {
   const [searchParams] = useSearchParams();
   const organisationId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
   const deadpersonId = searchParams.get('deadpersonId') ? Number(searchParams.get('deadpersonId')) : null;
+  const graveId = searchParams.get('graveId') ? Number(searchParams.get('graveId')) : null;
   const [selectedServices, setSelectedServices] = useState([]);
   const [isQuotationDialogOpen, setIsQuotationDialogOpen] = useState(false);
   const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
+  const [uploading, setUploading] = useState(false);
 
-  const { control, watch, setValue, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: { payername: '', payeremail: '', payerphone: '', paymentMethod: '' },
+  const { control, watch, setValue, handleSubmit, register, formState: { errors } } = useForm({
+    defaultValues: { payername: '', payeremail: '', payerphone: '', paymentMethod: '', servicephotourl: '', servicedescription: '' },
   });
   const paymentMethod = watch('paymentMethod');
 
@@ -51,6 +55,24 @@ export default function OrganisationDetails() {
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createQuoteRunningNoMutation = trpc.runningNo.createQuotationRunningNo.useMutation();
   const createOrganisationQuotation = trpc.quotation.create.useMutation();
+
+  const handleFileUpload = async (file, bucketName) => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: fd });
+      if (!res.ok) { showError("Failed to upload photo"); return null; }
+      const data = await res.json();
+      showSuccess("Photo uploaded");
+      return data.file_url;
+    } catch {
+      showError("Failed to upload photo");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const pendingQuotationRaw = sessionStorage.getItem("quotationPending") || '{}';
   const status_id = searchParams.get("status_id");
@@ -75,8 +97,12 @@ export default function OrganisationDetails() {
     { enabled: !!organisationId }
   );
   const { data: deadPerson } = trpc.deadperson.getDeadPersonById.useQuery(
-    { id: deadpersonId ?? 0 },
+    { id: deadpersonId ?? null },
     { enabled: !!deadpersonId }
+  );
+  const { data: graveRecord } = trpc.grave.getGraveById.useQuery(
+    { id: graveId ?? 0 },
+    { enabled: !!graveId }
   );
   const { data: paymentConfigs = [] } = useGetConfigByEntity({
     entityId: organisationId ?? undefined,
@@ -113,6 +139,7 @@ export default function OrganisationDetails() {
   }, [selectedPlatform]);
 
   const isFromDeadPerson = !!deadpersonId;
+  const isFromGrave = !!graveId;
   const serviceItems = useMemo(() => {
     if (!organisation) return [];
     return (organisation.serviceoffered || []).map((name) => ({
@@ -151,6 +178,7 @@ export default function OrganisationDetails() {
     const url = new URL(baseUrl);
     if (formData?.organisation?.id) url.searchParams.set("id", formData.organisation.id);
     if (formData?.deadperson?.id) url.searchParams.set("deadpersonId", formData.deadperson.id);
+    if (formData?.grave?.id) url.searchParams.set("graveId", formData.grave.id);
     const handleFinally = () => {
       window.location.href = url.toString();
       sessionStorage.removeItem("quotationPending");
@@ -197,6 +225,10 @@ export default function OrganisationDetails() {
   }, [searchParams]);
 
   const onSubmit = async (formData) => {
+    if (isFromGrave && !formData.servicephotourl) {
+      showError('Gambar Perkhidmatan diperlukan');
+      return;
+    }
     const isValid = validateFields(
       { ...formData, selectedServiceItems, paymentPlatforms, paymentMethod },
       [
@@ -211,12 +243,15 @@ export default function OrganisationDetails() {
     const payerphone = (formData.payerphone || '').trim() || '0123456789';
     const quotationDetails = {
       organisation: { id: Number(organisationId) },
-      deadperson: { id: Number(deadpersonId) },
+      deadperson: deadpersonId ? { id: Number(deadpersonId) } : null,
+      grave: graveId ? { id: Number(graveId) } : null,
       selectedservices: selectedServiceItems.map((item) => ({ service: item.name, price: Number(item.price || 0) })),
       serviceamount: Number(quotationSubtotal.toFixed(2)),
       maintenancefeeamount: Number(PLATFORM_FEE.toFixed(2)),
       totalamount: Number(quotationTotal.toFixed(2)),
       payername, payeremail, payerphone,
+      servicephotourl: isFromGrave ? (formData.servicephotourl || null) : null,
+      servicedescription: isFromGrave ? (formData.servicedescription || null) : null,
     };
     const phone = (formData.payerphone || '').trim();
     const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
@@ -268,7 +303,6 @@ export default function OrganisationDetails() {
   return (
     <div className="min-h-screen bg-slate-50">
 
-      {/* Hero */}
       <div className="relative h-64 md:h-80 overflow-hidden">
         {imageSrc ? (
           <img src={imageSrc} alt={organisation.name} className="w-full h-full object-cover" />
@@ -277,7 +311,6 @@ export default function OrganisationDetails() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
 
-        {/* Back */}
         <button
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center bg-black/30 backdrop-blur-md border border-white/20 rounded-full text-white active:opacity-70 transition-opacity"
@@ -285,7 +318,6 @@ export default function OrganisationDetails() {
           <ArrowLeft className="w-4 h-4" />
         </button>
 
-        {/* Share */}
         <button
           onClick={() => shareLink({ title: organisation?.name, text: `Visit ${organisation?.name}`, url: window.location.href })}
           className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-black/30 backdrop-blur-md border border-white/20 rounded-full text-white active:opacity-70 transition-opacity"
@@ -293,7 +325,6 @@ export default function OrganisationDetails() {
           <Share2 className="w-4 h-4" />
         </button>
 
-        {/* Title */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 md:px-8 md:pb-8">
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-wrap gap-2 mb-2">
@@ -340,7 +371,7 @@ export default function OrganisationDetails() {
                 </div>
 
                 <div className="p-4">
-                  {isFromDeadPerson ? (
+                  {(isFromDeadPerson || isFromGrave) ? (
                     <div className="space-y-2">
                       {serviceItems.map((serviceItem) => {
                         const isSelected = selectedServices.includes(serviceItem.name);
@@ -471,7 +502,7 @@ export default function OrganisationDetails() {
       </div>
 
       <Dialog open={isQuotationDialogOpen} onOpenChange={setIsQuotationDialogOpen}>
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
 
           <div className="px-5 pt-5 pb-2 border-b border-slate-100">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1">
@@ -495,6 +526,9 @@ export default function OrganisationDetails() {
                 {deadPerson?.name && (
                   <p className="text-xs text-slate-400 mt-0.5">For: <span className="font-semibold text-slate-600">{deadPerson.name}</span></p>
                 )}
+                {graveRecord?.name && (
+                  <p className="text-xs text-slate-400 mt-0.5">Kubur: <span className="font-semibold text-slate-600">{graveRecord.name}</span></p>
+                )}
                 <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
                   {selectedServiceItems.map((item) => (
                     <div key={item.name} className="flex items-center justify-between px-4 py-3">
@@ -516,6 +550,39 @@ export default function OrganisationDetails() {
                   </div>
                 </div>
               </div>
+
+              {isFromGrave && (
+                <div className="space-y-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-violet-600">Maklumat Perkhidmatan</p>
+                  <FileUploadForm
+                    name="servicephotourl"
+                    control={control}
+                    label="Gambar / Foto Lokasi"
+                    required
+                    errors={errors}
+                    bucketName="bucket-grave-service-quotation"
+                    handleFileUpload={handleFileUpload}
+                    uploading={uploading}
+                    translate={translate}
+                    isNeedPasteURL={false}
+                  />
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-700">Penerangan Ringkas</label>
+                    <Controller
+                      name="servicedescription"
+                      control={control}
+                      render={({ field }) => (
+                        <textarea
+                          {...field}
+                          rows={3}
+                          placeholder="Nyatakan keperluan atau penerangan ringkas..."
+                          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-300 resize-none"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
 
               {paymentPlatforms.length > 0 && (
                 <div className="space-y-2">

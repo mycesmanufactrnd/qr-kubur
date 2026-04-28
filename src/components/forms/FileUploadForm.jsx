@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { resolveFileUrl } from '@/utils';
+import { resolveFileUrl } from "@/utils";
 
 export default function FileUploadForm({
   name,
@@ -13,6 +13,7 @@ export default function FileUploadForm({
   bucketName,
   handleFileUpload,
   uploading = false,
+  isNeedPasteURL = true,
   translate = (v) => v,
 }) {
   const errorMessage = errors?.[name]?.message;
@@ -50,11 +51,7 @@ export default function FileUploadForm({
       <Controller
         name={name}
         control={control}
-        rules={
-          required
-            ? { required: `${label} is required` }
-            : undefined
-        }
+        rules={required ? { required: `${label} is required` } : undefined}
         render={({ field }) => {
           const previewValue = isUrlMode ? urlInput : field.value;
           const previewSrc = previewValue
@@ -91,27 +88,29 @@ export default function FileUploadForm({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-gray-500">
-                  {translate("Or paste image URL")}
-                </Label>
-                <Input
-                  type="url"
-                  placeholder="https://"
-                  value={urlInput}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setUrlInput(value);
-                    if (value) {
-                      setIsUrlMode(true);
-                      setFileInputKey((prev) => prev + 1);
-                    } else {
-                      setIsUrlMode(false);
-                    }
-                    field.onChange(value);
-                  }}
-                />
-              </div>
+              {isNeedPasteURL && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-gray-500">
+                    {translate("Or paste image URL")}
+                  </Label>
+                  <Input
+                    type="url"
+                    placeholder="https://"
+                    value={urlInput}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setUrlInput(value);
+                      if (value) {
+                        setIsUrlMode(true);
+                        setFileInputKey((prev) => prev + 1);
+                      } else {
+                        setIsUrlMode(false);
+                      }
+                      field.onChange(value);
+                    }}
+                  />
+                </div>
+              )}
 
               {previewSrc && (
                 <div className="mt-2 relative inline-block">

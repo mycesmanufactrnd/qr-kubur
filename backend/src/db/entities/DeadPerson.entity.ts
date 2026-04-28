@@ -53,9 +53,6 @@ export class DeadPerson {
   @OneToMany(() => Suggestion, (suggestions) => suggestions.deadperson)
   suggestions?: Suggestion[] | [];
 
-  @OneToMany(() => Quotation, (quotations) => quotations.deadperson)
-  quotations?: Quotation[];
-
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 

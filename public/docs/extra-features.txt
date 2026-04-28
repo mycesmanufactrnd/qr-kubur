@@ -1,6 +1,7 @@
 ✅ 1. quick action - user tekan tahlil icon and senarai semua tahfiz center yg ada service tahlil
-1.2 - grave service -> request _> amek gmbr and bayar
+✅ 1.2 - grave service -> request _> amek gmbr and bayar and bila scan qr (kt maklumat tu ada button untuk dptkn tahlil dan yaasin)
 2. check time limit (kene check upload evidence/bagi warning kt kita ngn dia) - firebase
+2.5 kalau masuk service buat FCM untuk organisation yg terlibat
 3. template untuk jenazah dgn kubur
 ✅ 4. khairat kematian (kalau xde)
 5. report bulanan (duit keluar)
@@ -9,9 +10,9 @@
 ✅ 8. donation amek la 0.50 (donation report)
 ❓ 9. notification tahlil start - and suggested date
 10. centralize suma of parent organisation
-11. kubur, ada pin, and dia leh tekan.. and bila scan qr (kt maklumat tu ada button untuk dptkn tahlil dan yaasin)
+✅ 11. kubur, ada pin, and dia leh tekan.. 
 12. family tree
-13. scan -> utk service kubur -> then list deceased
+✅ 13. scan -> utk service kubur -> then list deceased
 ✅ 14. asmaulhusna, x perlu.. rukun islam iman x perlu, calendar islam ok, prayer time x perlu, herotage site ok
 ✅ 15. panduan talkin
 ✅ 16. nombor fon save -> at semua yg createBillMutation

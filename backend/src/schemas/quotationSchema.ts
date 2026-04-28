@@ -9,6 +9,7 @@ export const quotationSelectedServiceSchema = z.object({
 export const quotationSchema = z.object({
   organisation: z.object({ id: z.number() }).nullable().optional(),
   deadperson: z.object({ id: z.number() }).nullable().optional(),
+  grave: z.object({ id: z.number() }).nullable().optional(),
   selectedservices: z.array(quotationSelectedServiceSchema).min(1),
   referenceno: z.string().optional().nullable(),
   payername: z.string().optional().nullable(),
@@ -18,4 +19,6 @@ export const quotationSchema = z.object({
   maintenancefeeamount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").nullable(),
   totalamount: z.number().refine((v) => Number.isFinite(v), "Invalid amount").nullable(),
   status: z.enum(QuotationStatus).optional().default(QuotationStatus.PENDING),
+  servicephotourl: z.string().optional().nullable(),
+  servicedescription: z.string().optional().nullable(),
 });

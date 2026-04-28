@@ -362,7 +362,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Bottom Navigation Bar - Mobile Only */}
       {!isAdmin && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-2xl lg:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-[1000] bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-2xl lg:hidden">
           <div className="flex items-center justify-around py-1">
             {bottomNavItems.map((item) => {
               const isActive = currentPageName === item.page;
