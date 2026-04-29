@@ -372,12 +372,7 @@ export function useLoginGoogle() {
     onSuccess: (data) => {
       setLoading(false);
       setStoredGoogleAuth(data.user);
-
-      const storedFcmToken = localStorage.getItem("fcmToken");
-      if (storedFcmToken && data.user?.id) {
-        trpcClient.google.saveDeviceToken.mutate({ googleUserId: data.user.id, fcmToken: storedFcmToken }).catch(() => {});
-      }
-
+      // FCM token registration is handled by useFCM() in App.jsx on every mount.
       navigate(createPageUrl("UserDashboard"));
     },
     onError: (err) => {
