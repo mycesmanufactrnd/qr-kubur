@@ -124,11 +124,14 @@ export default function ManageGraves() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadDragOver, setUploadDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const GRAVE_TEMPLATE_HEADERS = [
     "name", "state", "block", "lot", "address",
     "latitude", "longitude", "picname", "picphoneno", "totalgraves", "photourl"
   ];
+
+  const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
 
   const downloadGraveTemplate = () => {
     const csv = GRAVE_TEMPLATE_HEADERS.join(",") + "\n";
@@ -145,11 +148,55 @@ export default function ManageGraves() {
     e.preventDefault();
     setUploadDragOver(false);
     const file = e.dataTransfer?.files?.[0] ?? e.target?.files?.[0];
-    if (file) setUploadFile(file);
+    if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "xlsx", "xls"].includes(ext)) {
+      showError(translate("Only CSV and Excel files are accepted"));
+      return;
+    }
+    setUploadFile(file);
   };
 
-  const handleSaveUpload = () => {
-    console.log("Uploaded file:", uploadFile);
+  const handleSaveUpload = async () => {
+    if (!uploadFile) return;
+    setIsUploading(true);
+    try {
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        localStorage.getItem("accessToken");
+
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const res = await fetch("/api/upload/graves/bulk", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showError(data.error || translate("Import failed"));
+        return;
+      }
+
+      const { count, errors } = data;
+      if (errors?.length > 0) {
+        showError(`${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`);
+      } else {
+        showSuccess(`${count} ${translate("graves imported successfully")}`);
+      }
+
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      refetchGraves();
+    } catch (err) {
+      console.error(err);
+      showError(translate("Import failed"));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const {
@@ -174,7 +221,7 @@ export default function ManageGraves() {
     }
   }, [parentAndChildQuery.data]);
 
-  const { gravesList, totalPages, isLoading } = useGetGravePaginated({
+  const { gravesList, totalPages, isLoading, refetch: refetchGraves } = useGetGravePaginated({
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName,
@@ -534,7 +581,7 @@ export default function ManageGraves() {
       <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) setUploadFile(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{translate("Upload Graves via CSV")}</DialogTitle>
+            <DialogTitle>{translate("Upload Graves via CSV / Excel")}</DialogTitle>
             <DialogDescription>
               {translate("Download the template, fill in the data, then upload the file.")}
             </DialogDescription>
@@ -562,7 +609,7 @@ export default function ManageGraves() {
             </div>
 
             <label
-              htmlFor="grave-csv-upload"
+              htmlFor="grave-file-upload"
               onDragOver={(e) => { e.preventDefault(); setUploadDragOver(true); }}
               onDragLeave={() => setUploadDragOver(false)}
               onDrop={handleUploadFileDrop}
@@ -575,9 +622,9 @@ export default function ManageGraves() {
               }`}
             >
               <input
-                id="grave-csv-upload"
+                id="grave-file-upload"
                 type="file"
-                accept=".csv"
+                accept={ACCEPTED_UPLOAD_TYPES}
                 className="hidden"
                 onChange={handleUploadFileDrop}
               />
@@ -600,26 +647,26 @@ export default function ManageGraves() {
                 <>
                   <Upload className="w-8 h-8 text-stone-300" />
                   <p className="text-sm font-medium text-stone-500">
-                    {translate("Click or drag & drop your CSV file here")}
+                    {translate("Click or drag & drop your file here")}
                   </p>
-                  <p className="text-xs text-stone-400">.csv {translate("files only")}</p>
+                  <p className="text-xs text-stone-400">.csv, .xlsx, .xls</p>
                 </>
               )}
             </label>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => { setUploadDialogOpen(false); setUploadFile(null); }}>
+            <Button type="button" variant="outline" disabled={isUploading} onClick={() => { setUploadDialogOpen(false); setUploadFile(null); }}>
               {translate("Cancel")}
             </Button>
             <Button
               type="button"
               className="bg-amber-600 hover:bg-amber-700"
-              disabled={!uploadFile}
+              disabled={!uploadFile || isUploading}
               onClick={handleSaveUpload}
             >
               <Save className="w-4 h-4 mr-2" />
-              {translate("Save")}
+              {isUploading ? translate("Importing...") : translate("Import")}
             </Button>
           </DialogFooter>
         </DialogContent>

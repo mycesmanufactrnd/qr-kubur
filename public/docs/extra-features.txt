@@ -24,4 +24,5 @@
 ✅ 22. derma default nama (hamba allah)
 ❓23. live tahlil ---- setup di server
 24. dashboard connection masjid ngn kubur
+✅ 24.5 dashboard statistic
 25. derma & tahlil, ada web page yg direct untuk derma dan tahlil

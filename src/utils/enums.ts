@@ -1,6 +1,6 @@
 import L from "leaflet";
 
-export const LANG = [ "en", "ms", "ar" ];
+export const LANG = ["en", "ms", "ar"];
 
 export type Coordinates = {
   latitude: number;
@@ -8,32 +8,91 @@ export type Coordinates = {
 };
 
 export const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+export const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+export const PIE_COLORS = [
+  "#059669",
+  "#2563eb",
+  "#d97706",
+  "#7c3aed",
+  "#e11d48",
+  "#0ea5e9",
+  "#84cc16",
+  "#f97316",
 ];
 
 export const DONATION_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
 export const HIJRI_MONTHS = [
-  'Muharram', 'Safar', 'Rabi\' al-Awwal', 'Rabi\' al-Thani',
-  'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban',
-  'Ramadan', 'Shawwal', 'Dhul-Qi\'dah', 'Dhul-Hijjah'
+  "Muharram",
+  "Safar",
+  "Rabi' al-Awwal",
+  "Rabi' al-Thani",
+  "Jumada al-Awwal",
+  "Jumada al-Thani",
+  "Rajab",
+  "Sha'ban",
+  "Ramadan",
+  "Shawwal",
+  "Dhul-Qi'dah",
+  "Dhul-Hijjah",
 ];
 
-export const ISLAMIC_EVENTS_CATEGORIES = ['Event', 'Fasting', 'Prayer', 'Hajj'];
+export const ISLAMIC_EVENTS_CATEGORIES = ["Event", "Fasting", "Prayer", "Hajj"];
 
 export const STATES_MY = [
-    "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan", "Pahang", 
-    "Perak", "Perlis", "Pulau Pinang", "Sabah", "Sarawak", "Selangor", 
-    "Terengganu", "Kuala Lumpur", "Putrajaya", "Labuan"
+  "Johor",
+  "Kedah",
+  "Kelantan",
+  "Melaka",
+  "Negeri Sembilan",
+  "Pahang",
+  "Perak",
+  "Perlis",
+  "Pulau Pinang",
+  "Sabah",
+  "Sarawak",
+  "Selangor",
+  "Terengganu",
+  "Kuala Lumpur",
+  "Putrajaya",
+  "Labuan",
 ];
 
 export const normalizeState = (stateFromUrl) => {
-  if (!stateFromUrl) return 'nearby';
+  if (!stateFromUrl) return "nearby";
 
-  return STATES_MY.find(
-    s => s.toLowerCase() === stateFromUrl.toLowerCase()
-  ) || 'nearby';
+  return (
+    STATES_MY.find((s) => s.toLowerCase() === stateFromUrl.toLowerCase()) ||
+    "nearby"
+  );
 };
 
 const defaultSurahId = 1;
@@ -42,52 +101,112 @@ export const QURAN_API = `https://alquran-api.pages.dev/api/quran/surah/${defaul
 export const SURAH_DATA = {
   1: {
     audio: {
-      1: { reciter: "Mishary Rashid Al-Afasy", url: "https://server8.mp3quran.net/afs/001.mp3" },
-      2: { reciter: "Abu Bakr Al-Shatri", url: "https://server11.mp3quran.net/shatri/001.mp3" },
-      3: { reciter: "Nasser Al-Qatami", url: "https://server6.mp3quran.net/qtm/001.mp3" },
-      4: { reciter: "Yasser Al-Dosari", url: "https://server11.mp3quran.net/yasser/001.mp3" },
+      1: {
+        reciter: "Mishary Rashid Al-Afasy",
+        url: "https://server8.mp3quran.net/afs/001.mp3",
+      },
+      2: {
+        reciter: "Abu Bakr Al-Shatri",
+        url: "https://server11.mp3quran.net/shatri/001.mp3",
+      },
+      3: {
+        reciter: "Nasser Al-Qatami",
+        url: "https://server6.mp3quran.net/qtm/001.mp3",
+      },
+      4: {
+        reciter: "Yasser Al-Dosari",
+        url: "https://server11.mp3quran.net/yasser/001.mp3",
+      },
     },
   },
   36: {
     audio: {
-      1: { reciter: "Mishary Rashid Al-Afasy", url: "https://server8.mp3quran.net/afs/036.mp3" },
-      2: { reciter: "Abu Bakr Al-Shatri", url: "https://server11.mp3quran.net/shatri/036.mp3" },
-      3: { reciter: "Nasser Al-Qatami", url: "https://server6.mp3quran.net/qtm/036.mp3" },
-      4: { reciter: "Yasser Al-Dosari", url: "https://server11.mp3quran.net/yasser/036.mp3" },
+      1: {
+        reciter: "Mishary Rashid Al-Afasy",
+        url: "https://server8.mp3quran.net/afs/036.mp3",
+      },
+      2: {
+        reciter: "Abu Bakr Al-Shatri",
+        url: "https://server11.mp3quran.net/shatri/036.mp3",
+      },
+      3: {
+        reciter: "Nasser Al-Qatami",
+        url: "https://server6.mp3quran.net/qtm/036.mp3",
+      },
+      4: {
+        reciter: "Yasser Al-Dosari",
+        url: "https://server11.mp3quran.net/yasser/036.mp3",
+      },
     },
   },
   112: {
     audio: {
-      1: { reciter: "Mishary Rashid Al-Afasy", url: "https://server8.mp3quran.net/afs/112.mp3" },
-      2: { reciter: "Abu Bakr Al-Shatri", url: "https://server11.mp3quran.net/shatri/112.mp3" },
-      3: { reciter: "Nasser Al-Qatami", url: "https://server6.mp3quran.net/qtm/112.mp3" },
-      4: { reciter: "Yasser Al-Dosari", url: "https://server11.mp3quran.net/yasser/112.mp3" },
+      1: {
+        reciter: "Mishary Rashid Al-Afasy",
+        url: "https://server8.mp3quran.net/afs/112.mp3",
+      },
+      2: {
+        reciter: "Abu Bakr Al-Shatri",
+        url: "https://server11.mp3quran.net/shatri/112.mp3",
+      },
+      3: {
+        reciter: "Nasser Al-Qatami",
+        url: "https://server6.mp3quran.net/qtm/112.mp3",
+      },
+      4: {
+        reciter: "Yasser Al-Dosari",
+        url: "https://server11.mp3quran.net/yasser/112.mp3",
+      },
     },
   },
   113: {
     audio: {
-      1: { reciter: "Mishary Rashid Al-Afasy", url: "https://server8.mp3quran.net/afs/113.mp3" },
-      2: { reciter: "Abu Bakr Al-Shatri", url: "https://server11.mp3quran.net/shatri/113.mp3" },
-      3: { reciter: "Nasser Al-Qatami", url: "https://server6.mp3quran.net/qtm/113.mp3" },
-      4: { reciter: "Yasser Al-Dosari", url: "https://server11.mp3quran.net/yasser/113.mp3" },
+      1: {
+        reciter: "Mishary Rashid Al-Afasy",
+        url: "https://server8.mp3quran.net/afs/113.mp3",
+      },
+      2: {
+        reciter: "Abu Bakr Al-Shatri",
+        url: "https://server11.mp3quran.net/shatri/113.mp3",
+      },
+      3: {
+        reciter: "Nasser Al-Qatami",
+        url: "https://server6.mp3quran.net/qtm/113.mp3",
+      },
+      4: {
+        reciter: "Yasser Al-Dosari",
+        url: "https://server11.mp3quran.net/yasser/113.mp3",
+      },
     },
   },
   114: {
     audio: {
-      1: { reciter: "Mishary Rashid Al-Afasy", url: "https://server8.mp3quran.net/afs/114.mp3" },
-      2: { reciter: "Abu Bakr Al-Shatri", url: "https://server11.mp3quran.net/shatri/114.mp3" },
-      3: { reciter: "Nasser Al-Qatami", url: "https://server6.mp3quran.net/qtm/114.mp3" },
-      4: { reciter: "Yasser Al-Dosari", url: "https://server11.mp3quran.net/yasser/114.mp3" },
+      1: {
+        reciter: "Mishary Rashid Al-Afasy",
+        url: "https://server8.mp3quran.net/afs/114.mp3",
+      },
+      2: {
+        reciter: "Abu Bakr Al-Shatri",
+        url: "https://server11.mp3quran.net/shatri/114.mp3",
+      },
+      3: {
+        reciter: "Nasser Al-Qatami",
+        url: "https://server6.mp3quran.net/qtm/114.mp3",
+      },
+      4: {
+        reciter: "Yasser Al-Dosari",
+        url: "https://server11.mp3quran.net/yasser/114.mp3",
+      },
     },
   },
 };
 
 export const RECITERS = [
-  { id: 1, reciter: "Mishary Rashid Al-Afasy", },
+  { id: 1, reciter: "Mishary Rashid Al-Afasy" },
   { id: 2, reciter: "Abu Bakr Al-Shatri" },
   { id: 3, reciter: "Nasser Al-Qatami" },
   { id: 4, reciter: "Yasser Al-Dosari" },
-]
+];
 
 export const SURAH_LIST = [
   { id: 1, label: "Al-Fatihah" },
@@ -102,42 +221,42 @@ export const getServiceLabel = (value: string) => {
 };
 
 export const getServiceLabels = (values: string[] = []) => {
-  return values.map(v => getServiceLabel(v)).join(', ');
+  return values.map((v) => getServiceLabel(v)).join(", ");
 };
 
 export const ACTION_MAPS = {
-  create: 'Created Successfully',
-  upload: 'Upload Successfully',
-  save: 'Saved Successfully',
-  edit: 'Edited Successfully',
-  update: 'Edited Successfully',
-  delete: 'Deleted Successfully',
-  approve: 'Approved Successfully',
-  deny: 'Denied Successfully',
-  import: 'Imported Successfully',
+  create: "Created Successfully",
+  upload: "Upload Successfully",
+  save: "Saved Successfully",
+  edit: "Edited Successfully",
+  update: "Edited Successfully",
+  delete: "Deleted Successfully",
+  approve: "Approved Successfully",
+  deny: "Denied Successfully",
+  import: "Imported Successfully",
 } as const;
 
 export const ACTION_FAILURE_MAPS = {
-  create: 'Creation Failed',
-  upload: 'Upload Failed',
-  save: 'Saved Failed',
-  edit: 'Edit Failed',
-  update: 'Edit Failed',
-  delete: 'Deletion Failed',
-  approve: 'Approval Failed',
-  deny: 'Denial Failed',
-  import: 'Import Failed',
+  create: "Creation Failed",
+  upload: "Upload Failed",
+  save: "Saved Failed",
+  edit: "Edit Failed",
+  update: "Edit Failed",
+  delete: "Deletion Failed",
+  approve: "Approval Failed",
+  deny: "Denial Failed",
+  import: "Import Failed",
 } as const;
 
 export enum ActiveInactiveStatus {
   ACTIVE = "active",
-  INACTIVE = "inactive"
+  INACTIVE = "inactive",
 }
 
 export enum GraveStatus {
   ACTIVE = "active",
   FULL = "full",
-  MAINTENANCE = "maintenance"
+  MAINTENANCE = "maintenance",
 }
 
 export enum ApprovalStatus {
@@ -170,38 +289,38 @@ export const paymentToyyibStatus = {
 
 export const SST_PERCENTAGE = 0.06;
 export const PLATFORM_FEE = 2;
-export const PLATFORM_DONATION_FEE = 1.50;
+export const PLATFORM_DONATION_FEE = 1.5;
 export const SERVICE_FEE = 3;
 
 export const ORG_SERVICE_FEE = 0.05;
 export const ORG_SHARE = 0.95;
 
 export enum WaqfCategory {
-  EDUCATION = 'Education',
-  MOSQUE = 'Mosque',
-  HEALTHCARE = 'Healthcare',
-  ORPHANS = 'Orphans',
-  WATER = 'Water',
-  GENERALCHARITY = 'General Charity',
+  EDUCATION = "Education",
+  MOSQUE = "Mosque",
+  HEALTHCARE = "Healthcare",
+  ORPHANS = "Orphans",
+  WATER = "Water",
+  GENERALCHARITY = "General Charity",
 }
 
 export enum ProjectStatus {
-  PLANNED = 'Planned',
-  ONGOING = 'Ongoing',
-  COMPLETED = 'Completed',
-  ONHOLD = 'On Hold',
+  PLANNED = "Planned",
+  ONGOING = "Ongoing",
+  COMPLETED = "Completed",
+  ONHOLD = "On Hold",
 }
 
 export enum WaqfType {
-  CASH = 'Cash Waqf',
-  PROPERTY = 'Property Waqf',
-  ASSET = 'Asset Waqf',
+  CASH = "Cash Waqf",
+  PROPERTY = "Property Waqf",
+  ASSET = "Asset Waqf",
 }
 
 export enum ClaimStatus {
-  PENDING = 'Pending',
-  APPROVED = 'Approved',
-  PAID = 'Paid',
+  PENDING = "Pending",
+  APPROVED = "Approved",
+  PAID = "Paid",
 }
 
 export enum QuotationStatus {
