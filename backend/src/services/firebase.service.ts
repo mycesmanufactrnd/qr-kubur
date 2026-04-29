@@ -1,4 +1,7 @@
 import admin from "firebase-admin";
+import { GoogleUserDevice, GoogleUserRecord } from "../db/entities.ts";
+import { AppDataSource } from "../datasource.ts";
+import type { EntityNameGoogleUserRecord } from "../db/enums.ts";
 
 let initialized = false;
 
@@ -78,5 +81,53 @@ export const sendPushNotifications = async (
     }
   } catch (e) {
     console.error("[FCM] sendPushNotifications error:", e);
+  }
+};
+
+export const sendNotificationFCMFromGoogle = async ({
+  entityname,
+  entityid,
+  extraParam
+}: {
+  entityname: EntityNameGoogleUserRecord,
+  entityid: string | number,
+  extraParam: any,
+}) => {
+  try {
+    const recordRepo = AppDataSource.getRepository(GoogleUserRecord);
+    const deviceRepo = AppDataSource.getRepository(GoogleUserDevice);
+
+    const record = await recordRepo.findOne({
+      where: { entityname: entityname, entityid: Number(entityid) },
+      relations: ["googleuser"],
+    });
+
+    if (record?.googleuser?.id) {
+      const devices = await deviceRepo.findBy({
+        googleuser: { id: record.googleuser.id },
+      });
+
+      const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+
+      if (tokens.length > 0) {
+
+        if (entityname === "tahlilrequest") {
+          const dateStr = extraParam.data.suggesteddate
+            ? new Date(extraParam.data.suggesteddate).toLocaleDateString("ms-MY")
+            : "-";
+  
+          await sendPushNotifications(
+            tokens,
+            {
+              title: "Permintaan Tahlil Diterima",
+              body: `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`,
+            },
+            { requestId: String(extraParam.id) },
+          );
+        } 
+      }
+    }
+  } catch (error) {
+    console.error("[FCM] Failed to notify tahlil requestor:", error);
   }
 };

@@ -93,8 +93,6 @@ export default function ManageTahlilRequests() {
   const [uploadDialogFile, setUploadDialogFile] = useState(null);
   const [uploadDialogPreview, setUploadDialogPreview] = useState("");
   const [uploadDialogFileKey, setUploadDialogFileKey] = useState(0);
-  const [imgLoading, setImgLoading] = useState(true);
-  const [imgError, setImgError] = useState(false);
   const [suggestedDateError, setSuggestedDateError] = useState("");
 
   const { loading: permissionsLoading, canView } = useCrudPermissions("tahlil");

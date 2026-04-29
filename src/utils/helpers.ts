@@ -151,3 +151,8 @@ export function formatRM(value: number | string | null | undefined) {
   })}`;
 }
 
+export function formatDate(d: Date | string | null | undefined): string {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString("en-MY");
+}
+

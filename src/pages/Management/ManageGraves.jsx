@@ -10,6 +10,9 @@ import {
   X,
   Save,
   QrCode,
+  Upload,
+  Download,
+  FileText,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,6 +121,36 @@ export default function ManageGraves() {
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
   const [qrGrave, setQRGrave] = useState({});
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadDragOver, setUploadDragOver] = useState(false);
+
+  const GRAVE_TEMPLATE_HEADERS = [
+    "name", "state", "block", "lot", "address",
+    "latitude", "longitude", "picname", "picphoneno", "totalgraves", "photourl"
+  ];
+
+  const downloadGraveTemplate = () => {
+    const csv = GRAVE_TEMPLATE_HEADERS.join(",") + "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "graves_template.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUploadFileDrop = (e) => {
+    e.preventDefault();
+    setUploadDragOver(false);
+    const file = e.dataTransfer?.files?.[0] ?? e.target?.files?.[0];
+    if (file) setUploadFile(file);
+  };
+
+  const handleSaveUpload = () => {
+    console.log("Uploaded file:", uploadFile);
+  };
 
   const {
     loading: permissionsLoading,
@@ -292,10 +325,10 @@ export default function ManageGraves() {
         {canCreate && (
           <div>
             <Button
-              onClick={openAddDialog}
+              onClick={() => { setUploadFile(null); setUploadDialogOpen(true); }}
               className="bg-amber-600 hover:bg-amber-700 mr-2"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Upload className="w-4 h-4 mr-2" />
               {translate("Upload Grave")}
             </Button>
             <Button
@@ -497,6 +530,100 @@ export default function ManageGraves() {
           />
         )}
       </Card>
+
+      <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) setUploadFile(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{translate("Upload Graves via CSV")}</DialogTitle>
+            <DialogDescription>
+              {translate("Download the template, fill in the data, then upload the file.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3">
+              <div className="flex items-center gap-2 text-sm text-stone-600">
+                <FileText className="w-4 h-4 text-stone-400" />
+                <span className="font-medium">{translate("CSV Template")}</span>
+                <span className="text-xs text-stone-400">
+                  ({GRAVE_TEMPLATE_HEADERS.length} {translate("columns")})
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={downloadGraveTemplate}
+                className="gap-1.5 text-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {translate("Download")}
+              </Button>
+            </div>
+
+            <label
+              htmlFor="grave-csv-upload"
+              onDragOver={(e) => { e.preventDefault(); setUploadDragOver(true); }}
+              onDragLeave={() => setUploadDragOver(false)}
+              onDrop={handleUploadFileDrop}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 ${
+                uploadDragOver
+                  ? "border-amber-400 bg-amber-50"
+                  : uploadFile
+                    ? "border-emerald-400 bg-emerald-50"
+                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100"
+              }`}
+            >
+              <input
+                id="grave-csv-upload"
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleUploadFileDrop}
+              />
+              {uploadFile ? (
+                <>
+                  <FileText className="w-8 h-8 text-emerald-500" />
+                  <p className="text-sm font-medium text-emerald-700">{uploadFile.name}</p>
+                  <p className="text-xs text-emerald-500">
+                    {(uploadFile.size / 1024).toFixed(1)} KB
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); setUploadFile(null); }}
+                    className="text-xs text-stone-400 hover:text-stone-600 underline mt-1"
+                  >
+                    {translate("Remove")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 text-stone-300" />
+                  <p className="text-sm font-medium text-stone-500">
+                    {translate("Click or drag & drop your CSV file here")}
+                  </p>
+                  <p className="text-xs text-stone-400">.csv {translate("files only")}</p>
+                </>
+              )}
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => { setUploadDialogOpen(false); setUploadFile(null); }}>
+              {translate("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={!uploadFile}
+              onClick={handleSaveUpload}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {translate("Save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

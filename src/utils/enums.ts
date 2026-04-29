@@ -7,6 +7,11 @@ export type Coordinates = {
   longitude: number;
 };
 
+export const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
+
 export const DONATION_AMOUNTS = [10, 20, 50, 100, 200, 500];
 
 export const HIJRI_MONTHS = [

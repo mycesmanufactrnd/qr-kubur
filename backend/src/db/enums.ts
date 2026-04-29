@@ -83,3 +83,6 @@ export enum OnlineTransactionStatus {
   FAILED = "Failed", // Payment failed
   REFUNDED = "Refunded", // Refunded to payer
 }
+
+export type EntityNameGoogleUserRecord = "tahlilrequest" | "donation" | "quotation" | "deathcharity"
+

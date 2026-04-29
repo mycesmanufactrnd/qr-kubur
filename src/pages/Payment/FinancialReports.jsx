@@ -8,24 +8,11 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
-
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
-
-const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
-];
+import { MONTHS, ORG_SHARE } from "@/utils/enums";
+import { formatRM, formatDate } from "@/utils/helpers";
 
 const ALL_TABS = [
   { key: "donations", label: "Donations" },
@@ -34,17 +21,35 @@ const ALL_TABS = [
   { key: "quotations", label: "Quotations", tahfizHidden: true },
 ];
 
-const fmt = (n) => `RM ${Number(n || 0).toFixed(2)}`;
-const fmtDate = (d) => (d ? new Date(d).toLocaleDateString("en-GB") : "-");
 
 const TAB_META = {
-  donations: { color: "#059669", bg: "rgba(5,150,105,0.08)", accent: "#d1fae5" },
+  donations: {
+    color: "#059669",
+    bg: "rgba(5,150,105,0.08)",
+    accent: "#d1fae5",
+  },
   tahlils: { color: "#2563eb", bg: "rgba(37,99,235,0.08)", accent: "#dbeafe" },
-  deathCharityPayments: { color: "#d97706", bg: "rgba(217,119,6,0.08)", accent: "#fef3c7" },
-  quotations: { color: "#7c3aed", bg: "rgba(124,58,237,0.08)", accent: "#ede9fe" },
+  deathCharityPayments: {
+    color: "#d97706",
+    bg: "rgba(217,119,6,0.08)",
+    accent: "#fef3c7",
+  },
+  quotations: {
+    color: "#7c3aed",
+    bg: "rgba(124,58,237,0.08)",
+    accent: "#ede9fe",
+  },
 };
 
-function exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quotations, month, year }) {
+function exportToCSV({
+  activeTab,
+  donations,
+  tahlils,
+  deathCharityPayments,
+  quotations,
+  month,
+  year,
+}) {
   const monthName = MONTHS[month - 1];
   let headers = [];
   let rows = [];
@@ -57,38 +62,59 @@ function exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quot
       r.referenceno || "-",
       Number(r.amount || 0).toFixed(2),
       r.status || "-",
-      fmtDate(r.createdat),
+      formatDate(r.createdat),
     ]);
   } else if (activeTab === "tahlils") {
     title = `Tahlil Report — ${monthName} ${year}`;
-    headers = ["Reference No", "Service Amount (RM)", "Platform Fee (RM)", "Total (RM)", "Status", "Date"];
+    headers = [
+      "Reference No",
+      "Service Amount (RM)",
+      "Platform Fee (RM)",
+      "Total (RM)",
+      "Status",
+      "Date",
+    ];
     rows = tahlils.map((r) => [
       r.referenceno || "-",
       Number(r.serviceamount || 0).toFixed(2),
       Number(r.platformfeeamount || 0).toFixed(2),
-      (Number(r.serviceamount || 0) + Number(r.platformfeeamount || 0)).toFixed(2),
+      (Number(r.serviceamount || 0) + Number(r.platformfeeamount || 0)).toFixed(
+        2,
+      ),
       r.status || "-",
-      fmtDate(r.createdat),
+      formatDate(r.createdat),
     ]);
   } else if (activeTab === "deathCharityPayments") {
     title = `Death Charity Payments Report — ${monthName} ${year}`;
-    headers = ["Reference No", "Amount (RM)", "Payment Type", "Payment Method", "Date Paid"];
+    headers = [
+      "Reference No",
+      "Amount (RM)",
+      "Payment Type",
+      "Payment Method",
+      "Date Paid",
+    ];
     rows = deathCharityPayments.map((r) => [
       r.referenceno || "-",
       Number(r.amount || 0).toFixed(2),
       r.paymenttype || "-",
       r.paymentmethod || "-",
-      fmtDate(r.paidat),
+      formatDate(r.paidat),
     ]);
   } else if (activeTab === "quotations") {
     title = `Quotations Report — ${monthName} ${year}`;
-    headers = ["Reference No", "Payer Name", "Total Amount (RM)", "Status", "Date"];
+    headers = [
+      "Reference No",
+      "Payer Name",
+      "Total Amount (RM)",
+      "Status",
+      "Date",
+    ];
     rows = quotations.map((r) => [
       r.referenceno || "-",
       r.payername || "-",
-      Number(r.totalamount || 0).toFixed(2),
+      Number(r.serviceamount * ORG_SHARE || 0).toFixed(2),
       r.status || "-",
-      fmtDate(r.createdat),
+      formatDate(r.createdat),
     ]);
   }
 
@@ -101,7 +127,7 @@ function exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quot
 
   const csvLines = [
     escapeCSV(title),
-    `Generated on,${new Date().toLocaleDateString("en-GB")}`,
+    `Generated on,${formatDate(new Date())}`,
     `Period,${monthName} ${year}`,
     `Total Records,${rows.length}`,
     "",
@@ -109,7 +135,9 @@ function exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quot
     ...rows.map((r) => r.map(escapeCSV).join(",")),
   ];
 
-  const blob = new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([csvLines.join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -119,9 +147,10 @@ function exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quot
 }
 
 export default function FinancialReports() {
-  const { loadingUser, hasAdminAccess, isTahfizAdmin, isAdmin, currentUser } = useAdminAccess();
-  const { loading: permissionsLoading, canView } = useCrudPermissions("financial_reports");
-  const [, setSearchParams] = useSearchParams();
+  const { loadingUser, hasAdminAccess, isTahfizAdmin, isAdmin, currentUser } =
+    useAdminAccess();
+  const { loading: permissionsLoading, canView } =
+    useCrudPermissions("financial_reports");
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -151,8 +180,12 @@ export default function FinancialReports() {
       checkRole: { admin: !!isAdmin, tahfiz: !!isTahfizAdmin },
       currentUser: {
         id: currentUser?.id ?? 0,
-        organisation: currentUser?.organisation?.id ? { id: currentUser.organisation.id } : null,
-        tahfizcenter: currentUser?.tahfizcenter?.id ? { id: currentUser.tahfizcenter.id } : null,
+        organisation: currentUser?.organisation?.id
+          ? { id: currentUser.organisation.id }
+          : null,
+        tahfizcenter: currentUser?.tahfizcenter?.id
+          ? { id: currentUser.tahfizcenter.id }
+          : null,
       },
     },
     { enabled },
@@ -163,10 +196,23 @@ export default function FinancialReports() {
   const deathCharityPayments = data?.deathCharityPayments ?? [];
   const quotations = data?.quotations ?? [];
 
-  const totalDonations = donations.reduce((s, d) => s + Number(d.amount || 0), 0);
-  const totalTahlil = tahlils.reduce((s, t) => s + Number(t.serviceamount || 0) + Number(t.platformfeeamount || 0), 0);
-  const totalDeathCharity = deathCharityPayments.reduce((s, p) => s + Number(p.amount || 0), 0);
-  const totalQuotations = quotations.reduce((s, q) => s + Number(q.totalamount || 0), 0);
+  const totalDonations = donations.reduce(
+    (s, d) => s + Number(d.amount || 0),
+    0,
+  );
+  const totalTahlil = tahlils.reduce(
+    (s, t) =>
+      s + Number(t.serviceamount || 0) + Number(t.platformfeeamount || 0),
+    0,
+  );
+  const totalDeathCharity = deathCharityPayments.reduce(
+    (s, p) => s + Number(p.amount || 0),
+    0,
+  );
+  const totalQuotations = quotations.reduce(
+    (s, q) => s + Number(q.serviceamount * ORG_SHARE || 0),
+    0,
+  );
   const grandTotal =
     isTahfizAdmin && !isAdmin
       ? totalDonations + totalTahlil
@@ -177,7 +223,9 @@ export default function FinancialReports() {
   if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
-  const dashboardLabel = isTahfizAdmin ? translate("Tahfiz Dashboard") : translate("Admin Dashboard");
+  const dashboardLabel = isTahfizAdmin
+    ? translate("Tahfiz Dashboard")
+    : translate("Admin Dashboard");
   const dashboardPage = isTahfizAdmin ? "TahfizDashboard" : "AdminDashboard";
 
   if (!canView) {
@@ -195,10 +243,41 @@ export default function FinancialReports() {
   }
 
   const allSummaryCards = [
-    { key: "donations", label: "Donations", total: totalDonations, count: donations.length, color: "#059669", icon: "💚" },
-    { key: "tahlils", label: "Tahlil", total: totalTahlil, count: tahlils.length, color: "#2563eb", icon: "💙", adminHidden: true },
-    { key: "deathCharityPayments", label: "Death Charity", total: totalDeathCharity, count: deathCharityPayments.length, color: "#d97706", icon: "🧡", tahfizHidden: true },
-    { key: "quotations", label: "Quotations", total: totalQuotations, count: quotations.length, color: "#7c3aed", icon: "💜", tahfizHidden: true },
+    {
+      key: "donations",
+      label: "Donations",
+      total: totalDonations,
+      count: donations.length,
+      color: "#059669",
+      icon: "💚",
+    },
+    {
+      key: "tahlils",
+      label: "Tahlil",
+      total: totalTahlil,
+      count: tahlils.length,
+      color: "#2563eb",
+      icon: "💙",
+      adminHidden: true,
+    },
+    {
+      key: "deathCharityPayments",
+      label: "Death Charity",
+      total: totalDeathCharity,
+      count: deathCharityPayments.length,
+      color: "#d97706",
+      icon: "🧡",
+      tahfizHidden: true,
+    },
+    {
+      key: "quotations",
+      label: "Quotations",
+      total: totalQuotations,
+      count: quotations.length,
+      color: "#7c3aed",
+      icon: "💜",
+      tahfizHidden: true,
+    },
   ];
 
   const summaryCards = allSummaryCards.filter((c) => {
@@ -438,8 +517,28 @@ export default function FinancialReports() {
         />
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1c1917", display: "flex", alignItems: "center", gap: 10, margin: 0 }}>
-            <span style={{ width: 36, height: 36, borderRadius: 10, background: "#f5f5f4", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <h1
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              color: "#1c1917",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              margin: 0,
+            }}
+          >
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: "#f5f5f4",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
             </span>
             {translate("Financial Reports")}
@@ -453,7 +552,9 @@ export default function FinancialReports() {
                 className="fr-select"
               >
                 {MONTHS.map((m, i) => (
-                  <option key={i + 1} value={i + 1}>{m}</option>
+                  <option key={i + 1} value={i + 1}>
+                    {m}
+                  </option>
                 ))}
               </select>
             </div>
@@ -470,30 +571,90 @@ export default function FinancialReports() {
 
         <div className="fr-grand-total">
           <div style={{ position: "relative", zIndex: 1 }}>
-            <p style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 6 }}>
+            <p
+              style={{
+                fontSize: 10.5,
+                color: "rgba(255,255,255,0.45)",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
+            >
               Grand Total — {MONTHS[month - 1]} {year}
             </p>
-            <p style={{ fontSize: 34, fontWeight: 700, color: "#ffffff", lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>
-              {fmt(grandTotal)}
+            <p
+              style={{
+                fontSize: 34,
+                fontWeight: 700,
+                color: "#ffffff",
+                lineHeight: 1,
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              {formatRM(grandTotal)}
             </p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 8, fontWeight: 400 }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.35)",
+                marginTop: 8,
+                fontWeight: 400,
+              }}
+            >
               {summaryCards.reduce((s, c) => s + c.count, 0)} total transactions
             </p>
           </div>
-          <TrendingUp style={{ width: 44, height: 44, color: "rgba(255,255,255,0.12)", position: "relative", zIndex: 1 }} />
+          <TrendingUp
+            style={{
+              width: 44,
+              height: 44,
+              color: "rgba(255,255,255,0.12)",
+              position: "relative",
+              zIndex: 1,
+            }}
+          />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: 12,
+          }}
+        >
           {summaryCards.map(({ key, label, total, count, color, icon }) => (
             <div key={key} className="fr-summary-card">
-              <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
                 <span className="fr-card-dot" style={{ background: color }} />
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a8a29e" }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.07em",
+                    textTransform: "uppercase",
+                    color: "#a8a29e",
+                  }}
+                >
                   {label}
                 </span>
               </div>
-              <p style={{ fontSize: 20, fontWeight: 700, color, fontFamily: "'DM Mono', monospace", marginBottom: 4 }}>
-                {fmt(total)}
+              <p
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color,
+                  fontFamily: "'DM Mono', monospace",
+                  marginBottom: 4,
+                }}
+              >
+                {formatRM(total)}
               </p>
               <p style={{ fontSize: 12, color: "#d6d3d1", fontWeight: 500 }}>
                 {count} records
@@ -503,8 +664,14 @@ export default function FinancialReports() {
         </div>
 
         <div className="fr-outer-card">
-          <div className="fr-top-bar" style={{ paddingTop: 4, paddingBottom: 0 }}>
-            <div className="fr-tab-bar" style={{ flex: 1, border: "none", padding: 0 }}>
+          <div
+            className="fr-top-bar"
+            style={{ paddingTop: 4, paddingBottom: 0 }}
+          >
+            <div
+              className="fr-tab-bar"
+              style={{ flex: 1, border: "none", padding: 0 }}
+            >
               {TABS.map(({ key, label }) => (
                 <button
                   key={key}
@@ -519,7 +686,17 @@ export default function FinancialReports() {
             <div style={{ padding: "8px 0 8px 12px" }}>
               <button
                 className="fr-export-btn"
-                onClick={() => exportToCSV({ activeTab, donations, tahlils, deathCharityPayments, quotations, month, year })}
+                onClick={() =>
+                  exportToCSV({
+                    activeTab,
+                    donations,
+                    tahlils,
+                    deathCharityPayments,
+                    quotations,
+                    month,
+                    year,
+                  })
+                }
               >
                 <Download style={{ width: 14, height: 14, color: "#78716c" }} />
                 Export CSV
@@ -529,7 +706,10 @@ export default function FinancialReports() {
 
           <div style={{ borderTop: "1.5px solid #f5f5f4" }}>
             {activeTab === "donations" && (
-              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table
+                className="fr-table"
+                style={{ width: "100%", borderCollapse: "collapse" }}
+              >
                 <thead>
                   <tr>
                     <th>Reference No</th>
@@ -540,21 +720,51 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr><td colSpan={4}><InlineLoadingComponent isTable colSpan={4} /></td></tr>
+                    <tr>
+                      <td colSpan={4}>
+                        <InlineLoadingComponent isTable colSpan={4} />
+                      </td>
+                    </tr>
                   ) : donations.length === 0 ? (
-                    <tr><td colSpan={4}><NoDataTableComponent colSpan={4} /></td></tr>
+                    <tr>
+                      <td colSpan={4}>
+                        <NoDataTableComponent colSpan={4} />
+                      </td>
+                    </tr>
                   ) : (
                     donations.map((r) => (
                       <tr key={r.id}>
-                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
-                        <td className="text-center"><span className="fr-amount">{fmt(r.amount)}</span></td>
                         <td className="text-center">
-                          <span className="fr-status-pill" style={{
-                            background: r.status?.toLowerCase() === "paid" ? "#d1fae5" : "#f5f5f4",
-                            color: r.status?.toLowerCase() === "paid" ? "#065f46" : "#78716c",
-                          }}>{r.status || "-"}</span>
+                          <span className="fr-ref-badge">
+                            {r.referenceno || "-"}
+                          </span>
                         </td>
-                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.createdat)}</td>
+                        <td className="text-center">
+                          <span className="fr-amount">{formatRM(r.amount)}</span>
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className="fr-status-pill"
+                            style={{
+                              background:
+                                r.status?.toLowerCase() === "paid"
+                                  ? "#d1fae5"
+                                  : "#f5f5f4",
+                              color:
+                                r.status?.toLowerCase() === "paid"
+                                  ? "#065f46"
+                                  : "#78716c",
+                            }}
+                          >
+                            {r.status || "-"}
+                          </span>
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ color: "#a8a29e", fontSize: 13 }}
+                        >
+                          {formatDate(r.createdat)}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -563,7 +773,10 @@ export default function FinancialReports() {
             )}
 
             {activeTab === "tahlils" && (
-              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table
+                className="fr-table"
+                style={{ width: "100%", borderCollapse: "collapse" }}
+              >
                 <thead>
                   <tr>
                     <th>Reference No</th>
@@ -575,22 +788,61 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr><td colSpan={5}><InlineLoadingComponent isTable colSpan={5} /></td></tr>
+                    <tr>
+                      <td colSpan={5}>
+                        <InlineLoadingComponent isTable colSpan={5} />
+                      </td>
+                    </tr>
                   ) : tahlils.length === 0 ? (
-                    <tr><td colSpan={5}><NoDataTableComponent colSpan={5} /></td></tr>
+                    <tr>
+                      <td colSpan={5}>
+                        <NoDataTableComponent colSpan={5} />
+                      </td>
+                    </tr>
                   ) : (
                     tahlils.map((r) => (
                       <tr key={r.id}>
-                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
-                        <td className="text-center"><span className="fr-amount">{fmt(r.serviceamount)}</span></td>
-                        <td className="text-center"><span className="fr-amount" style={{ color: "#78716c" }}>{fmt(r.platformfeeamount)}</span></td>
                         <td className="text-center">
-                          <span className="fr-status-pill" style={{
-                            background: r.status?.toLowerCase() === "paid" ? "#dbeafe" : "#f5f5f4",
-                            color: r.status?.toLowerCase() === "paid" ? "#1d4ed8" : "#78716c",
-                          }}>{r.status || "-"}</span>
+                          <span className="fr-ref-badge">
+                            {r.referenceno || "-"}
+                          </span>
                         </td>
-                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.createdat)}</td>
+                        <td className="text-center">
+                          <span className="fr-amount">
+                            {formatRM(r.serviceamount)}
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className="fr-amount"
+                            style={{ color: "#78716c" }}
+                          >
+                            {formatRM(r.platformfeeamount)}
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className="fr-status-pill"
+                            style={{
+                              background:
+                                r.status?.toLowerCase() === "paid"
+                                  ? "#dbeafe"
+                                  : "#f5f5f4",
+                              color:
+                                r.status?.toLowerCase() === "paid"
+                                  ? "#1d4ed8"
+                                  : "#78716c",
+                            }}
+                          >
+                            {r.status || "-"}
+                          </span>
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ color: "#a8a29e", fontSize: 13 }}
+                        >
+                          {formatDate(r.createdat)}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -599,7 +851,10 @@ export default function FinancialReports() {
             )}
 
             {activeTab === "deathCharityPayments" && (
-              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table
+                className="fr-table"
+                style={{ width: "100%", borderCollapse: "collapse" }}
+              >
                 <thead>
                   <tr>
                     <th>Reference No</th>
@@ -611,21 +866,45 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr><td colSpan={5}><InlineLoadingComponent isTable colSpan={5} /></td></tr>
+                    <tr>
+                      <td colSpan={5}>
+                        <InlineLoadingComponent isTable colSpan={5} />
+                      </td>
+                    </tr>
                   ) : deathCharityPayments.length === 0 ? (
-                    <tr><td colSpan={5}><NoDataTableComponent colSpan={5} /></td></tr>
+                    <tr>
+                      <td colSpan={5}>
+                        <NoDataTableComponent colSpan={5} />
+                      </td>
+                    </tr>
                   ) : (
                     deathCharityPayments.map((r) => (
                       <tr key={r.id}>
-                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
-                        <td className="text-center"><span className="fr-amount">{fmt(r.amount)}</span></td>
-                        <td className="text-center" style={{ fontSize: 13 }}>{r.paymenttype || "-"}</td>
                         <td className="text-center">
-                          <span className="fr-status-pill" style={{ background: "#fef3c7", color: "#92400e" }}>
+                          <span className="fr-ref-badge">
+                            {r.referenceno || "-"}
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <span className="fr-amount">{formatRM(r.amount)}</span>
+                        </td>
+                        <td className="text-center" style={{ fontSize: 13 }}>
+                          {r.paymenttype || "-"}
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className="fr-status-pill"
+                            style={{ background: "#fef3c7", color: "#92400e" }}
+                          >
                             {r.paymentmethod || "-"}
                           </span>
                         </td>
-                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.paidat)}</td>
+                        <td
+                          className="text-center"
+                          style={{ color: "#a8a29e", fontSize: 13 }}
+                        >
+                          {formatDate(r.paidat)}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -634,7 +913,10 @@ export default function FinancialReports() {
             )}
 
             {activeTab === "quotations" && (
-              <table className="fr-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table
+                className="fr-table"
+                style={{ width: "100%", borderCollapse: "collapse" }}
+              >
                 <thead>
                   <tr>
                     <th>Reference No</th>
@@ -646,22 +928,59 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr><td colSpan={5}><InlineLoadingComponent isTable colSpan={5} /></td></tr>
+                    <tr>
+                      <td colSpan={5}>
+                        <InlineLoadingComponent isTable colSpan={5} />
+                      </td>
+                    </tr>
                   ) : quotations.length === 0 ? (
-                    <tr><td colSpan={5}><NoDataTableComponent colSpan={5} /></td></tr>
+                    <tr>
+                      <td colSpan={5}>
+                        <NoDataTableComponent colSpan={5} />
+                      </td>
+                    </tr>
                   ) : (
                     quotations.map((r) => (
                       <tr key={r.id}>
-                        <td className="text-center"><span className="fr-ref-badge">{r.referenceno || "-"}</span></td>
-                        <td className="text-center" style={{ fontWeight: 500, fontSize: 13.5 }}>{r.payername || "-"}</td>
-                        <td className="text-center"><span className="fr-amount">{fmt(r.totalamount)}</span></td>
                         <td className="text-center">
-                          <span className="fr-status-pill" style={{
-                            background: r.status?.toLowerCase() === "paid" ? "#ede9fe" : "#f5f5f4",
-                            color: r.status?.toLowerCase() === "paid" ? "#5b21b6" : "#78716c",
-                          }}>{r.status || "-"}</span>
+                          <span className="fr-ref-badge">
+                            {r.referenceno || "-"}
+                          </span>
                         </td>
-                        <td style={{ color: "#a8a29e", fontSize: 13 }}>{fmtDate(r.createdat)}</td>
+                        <td
+                          className="text-center"
+                          style={{ fontWeight: 500, fontSize: 13.5 }}
+                        >
+                          {r.payername || "-"}
+                        </td>
+                        <td className="text-center">
+                          <span className="fr-amount">
+                            {formatRM(r.serviceamount * ORG_SHARE)}
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <span
+                            className="fr-status-pill"
+                            style={{
+                              background:
+                                r.status?.toLowerCase() === "paid"
+                                  ? "#ede9fe"
+                                  : "#f5f5f4",
+                              color:
+                                r.status?.toLowerCase() === "paid"
+                                  ? "#5b21b6"
+                                  : "#78716c",
+                            }}
+                          >
+                            {r.status || "-"}
+                          </span>
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ color: "#a8a29e", fontSize: 13 }}
+                        >
+                          {formatDate(r.createdat)}
+                        </td>
                       </tr>
                     ))
                   )}

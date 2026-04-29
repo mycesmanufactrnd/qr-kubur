@@ -5,7 +5,6 @@ import {
   CreditCard,
   Plus,
   Trash2,
-  ChevronDown,
   Info,
   CheckCircle2,
 } from "lucide-react";
@@ -19,8 +18,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import BackNavigation from "@/components/BackNavigation";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
