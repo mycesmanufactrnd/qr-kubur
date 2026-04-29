@@ -9,7 +9,7 @@
 ✅ 7. grave service (ni masjid nye saja, siapa yg jaga)
 ✅ 8. donation amek la 0.50 (donation report)
 ❓ 9. notification tahlil start - and suggested date
-10. centralize suma of parent organisation
+✅ 10. centralize suma of parent organisation
 ✅ 11. kubur, ada pin, and dia leh tekan.. 
 12. family tree
 ✅ 13. scan -> utk service kubur -> then list deceased

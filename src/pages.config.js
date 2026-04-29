@@ -74,6 +74,7 @@ import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
 import PaymentComparison from '@/pages/Payment/PaymentComparison.jsx';
 // Dashboard
 import __Layout from '@/Layout.jsx';
+import StatisticDashboard from '@/pages/Dashboards/StatisticDashboard';
 import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
 import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
 import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
@@ -160,6 +161,7 @@ export const PAGES = {
     "MapView": MapView,
 
     // Dashboard
+    "StatisticDashboard": StatisticDashboard,
     "AdminDashboard": AdminDashboard,
     "TahfizDashboard": TahfizDashboard,
     "SuperadminDashboard": SuperadminDashboard,

@@ -33,6 +33,7 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
 import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
+import { useMemo } from "react";
 
 export default function AdminDashboard() {
   const {
@@ -43,23 +44,24 @@ export default function AdminDashboard() {
     isTahfizAdmin,
   } = useAdminAccess();
 
-  let defaultStatsNeeded = ["OGDS"];
-  const isGraveServices = currentUser?.organisation?.isgraveservices;
-  const isCanBeDonated = currentUser?.organisation?.canbedonated;
-  const isHasManageMosque = currentUser?.organisation?.canmanagemosque;
+  const org = currentUser?.organisation;
 
-  if (isCanBeDonated) {
-    defaultStatsNeeded.push("DDV");
-  }
+  const isGraveServices = !!org?.isgraveservices;
+  const isCanBeDonated = !!org?.canbedonated;
+  const isHasManageMosque = !!org?.canmanagemosque;
 
-  if (isHasManageMosque) {
-    defaultStatsNeeded.push("CMC");
-  }
+  const statsNeeded = useMemo(() => {
+    const arr = ["OGDS"];
 
-  if (isGraveServices) {
-    defaultStatsNeeded.push("QUO");
-  }
+    if (isCanBeDonated) arr.push("DDV");
+    if (isHasManageMosque) arr.push("CMC");
+    if (isGraveServices) arr.push("QUO");
 
+    return arr;
+  }, [isCanBeDonated, isHasManageMosque, isGraveServices]);
+
+  const isReady = !!currentUser?.organisation?.id;
+  
   const {
     OGDSStats,
     DDVStats,
@@ -72,7 +74,8 @@ export default function AdminDashboard() {
   } = useGetAdminDashboardStats({
     currentUser,
     isSuperAdmin,
-    statsNeeded: defaultStatsNeeded,
+    statsNeeded,
+    enabled: isReady,
   });
 
   const organisationCount = OGDSStats?.organisationCount ?? 0;
@@ -258,26 +261,41 @@ export default function AdminDashboard() {
               })}
             </p>
           </div>
-          {isSuperAdmin && (
-            <div className="flex gap-2">
-              <Link to={createPageUrl("SuperAdminDashboard")}>
+          <div className="flex gap-2">
+            {isSuperAdmin ? (
+              <>
+                <Link to={createPageUrl("SuperAdminDashboard")}>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {translate("Super Admin")}
+                  </Button>
+                </Link>
+
+                <Link to={createPageUrl("TahfizDashboard")}>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    {translate("Tahfiz")}
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Link to={createPageUrl("StatisticDashboard")}>
                 <Button
                   variant="outline"
-                  className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+                  className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
                 >
-                  <Sparkles className="w-4 h-4" /> {translate("Super Admin")}
+                  <BarChart className="w-4 h-4" />
+                  {translate("Statistics")}
                 </Button>
               </Link>
-              <Link to={createPageUrl("TahfizDashboard")}>
-                <Button
-                  variant="outline"
-                  className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                >
-                  <BookOpen className="w-4 h-4" /> {translate("Tahfiz")}
-                </Button>
-              </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

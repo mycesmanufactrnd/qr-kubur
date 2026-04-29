@@ -26,11 +26,14 @@ export default function TahfizDashboard() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
     useAdminAccess();
 
+  const isReady = !!currentUser?.tahfizcenter?.id;
+
   const { TTRStats, DDVStats, isTTRLoading, isDDVLoading } =
     useGetAdminDashboardStats({
       currentUser,
       isSuperAdmin,
       statsNeeded: ["TTR", "DDV"],
+      enabled: isReady,
     });
 
   const tahfizCount = TTRStats?.tahfizCount ?? 0;
@@ -54,31 +57,41 @@ export default function TahfizDashboard() {
             </p>
           </div>
 
-          {isSuperAdmin && (
-            <div className="flex gap-2">
-              <Link to={createPageUrl("AdminDashboard")}>
-                <Button
-                  variant="outline"
-                  className="gap-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all"
-                >
-                  <BookOpen className="w-4 h-4 text-indigo-600" />
-                  <span className="text-indigo-700">{translate("Admin")}</span>
-                </Button>
-              </Link>
-
-              <Link to={createPageUrl("SuperAdminDashboard")}>
-                <Button
-                  variant="outline"
-                  className="gap-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-all"
-                >
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span className="text-purple-700">
+          <div className="flex gap-2">
+            {isSuperAdmin ? (
+              <>
+                <Link to={createPageUrl("SuperAdminDashboard")}>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+                  >
+                    <Sparkles className="w-4 h-4" />
                     {translate("Super Admin")}
-                  </span>
+                  </Button>
+                </Link>
+
+                <Link to={createPageUrl("AdminDashboard")}>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    {translate("Admin")}
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Link to={createPageUrl("StatisticDashboard")}>
+                <Button
+                  variant="outline"
+                  className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                >
+                  <BarChart className="w-4 h-4" />
+                  {translate("Statistics")}
                 </Button>
               </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

@@ -67,6 +67,14 @@ const handleAuthError = async (error) => {
 queryClient = new QueryClient({
   queryCache: new QueryCache({ onError: handleAuthError }),
   mutationCache: new MutationCache({ onError: handleAuthError }),
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: 1,
+      staleTime: 60_000,
+    },
+  },
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(

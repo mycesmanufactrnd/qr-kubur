@@ -4,12 +4,17 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const frontendNgrokUrl = process.env.FRONTEND_NGROK_URL;
 const backendNgrokUrl = process.env.BACKEND_NGROK_URL;
 console.log("\n🌍 BACKEND NGROK URL:");
 console.log(process.env.BACKEND_NGROK_URL || "❌ Not set");
-console.log("🌍 FRONTEND NGROK URL:");
+
+const frontendNgrokUrl = process.env.FRONTEND_NGROK_URL;
+console.log("\n🌍 FRONTEND NGROK URL:");
 console.log(process.env.FRONTEND_NGROK_URL || "❌ Not set");
+
+const viteTRPCUrl = process.env.VITE_TRPC_URL;
+console.log("\n🌍 TRPC URL:");
+console.log(process.env.VITE_TRPC_URL || "❌ Not set");
 
 import { AppDataSource } from "./datasource.ts";
 import Fastify from "fastify";
@@ -30,6 +35,10 @@ import { asyncLocalStorage } from "./helpers/requestContext.ts";
 
 const app = Fastify({
   trustProxy: true,
+  // tRPC batching joins multiple procedure names into a single `:path` segment.
+  // Fastify's router (find-my-way) has a relatively small default `maxParamLength`,
+  // which can cause batched URLs to 404 ("Route ... not found") when the segment is long.
+  maxParamLength: 5000,
 });
 
 await app.register(rateLimit, {
@@ -76,15 +85,22 @@ await app.register(formbody);
 
 registerAPIRoutes(app);
 
-app.register(fastifyTRPCPlugin, {
-  prefix: "/trpc",
-  trpcOptions: { 
-    router: appRouter, 
-    createContext, 
-    allowPostForQueries: true,
-    allowGetForQueries: true,
-  }
-});
+// NOTE: @trpc/server's Fastify adapter may ignore its own `prefix` option in some builds.
+// Wrap it in a Fastify plugin and use Fastify's `prefix` option so routes reliably mount under `/trpc`.
+app.register(
+  (instance, _opts, done) => {
+    instance.register(fastifyTRPCPlugin, {
+      trpcOptions: {
+        router: appRouter,
+        createContext,
+        allowPostForQueries: true,
+        allowGetForQueries: true,
+      },
+    });
+    done();
+  },
+  { prefix: "/trpc" },
+);
 
 app.get("/", async () => {
   return { message: "tRPC backend is running" };
@@ -158,6 +174,11 @@ async function bootstrap() {
 
     await app.listen({ port: PORT, host: '0.0.0.0' })
     console.log(`\n🚀 tRPC backend running`)
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log("\nFastify routes:");
+      console.log(app.printRoutes());
+    }
 
   } catch (err) {
     console.error("\n ❌ Server failed to start");

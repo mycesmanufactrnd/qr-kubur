@@ -2,18 +2,111 @@ import { trpc } from "@/utils/trpc";
 
 type StatsType = "OGDS" | "TTR" | "DDV" | "CMC" | "QUO";
 
+interface UseStatisticChartOptions {
+  year: number;
+  currentUser: any;
+  hasOrg: boolean;
+  hasTahfiz: boolean;
+  enabled?: boolean;
+}
+
+export function useGetStatisticChartData({
+  year,
+  currentUser,
+  hasOrg,
+  hasTahfiz,
+  enabled = true,
+}: UseStatisticChartOptions) {
+  return trpc.dashboard.getStatisticChartData.useQuery(
+    {
+      year,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
+      hasOrg,
+      hasTahfiz,
+    },
+    { enabled },
+  );
+}
+
+interface UseStatisticListOptions {
+  currentUser: any;
+  hasOrg: boolean;
+  hasTahfiz?: boolean;
+  page: number;
+  limit?: number;
+  enabled?: boolean;
+}
+
+export function useGetStatisticOrgList({
+  currentUser,
+  hasOrg,
+  page,
+  limit = 8,
+  enabled = true,
+}: UseStatisticListOptions) {
+  return trpc.dashboard.getStatisticOrgList.useQuery(
+    {
+      page,
+      limit,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      hasOrg,
+    },
+    { enabled: enabled && hasOrg },
+  );
+}
+
+export function useGetStatisticGraveList({
+  currentUser,
+  hasOrg,
+  page,
+  limit = 8,
+  enabled = true,
+}: UseStatisticListOptions) {
+  return trpc.dashboard.getStatisticGraveList.useQuery(
+    {
+      page,
+      limit,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      hasOrg,
+    },
+    { enabled: enabled && hasOrg },
+  );
+}
+
+export function useGetStatisticDonationList({
+  currentUser,
+  hasOrg,
+  hasTahfiz = false,
+  page,
+  limit = 8,
+  enabled = true,
+}: UseStatisticListOptions) {
+  return trpc.dashboard.getStatisticDonationList.useQuery(
+    {
+      page,
+      limit,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
+      hasOrg,
+      hasTahfiz,
+    },
+    { enabled: enabled && (hasOrg || hasTahfiz) },
+  );
+}
+
 interface UseDashboardOptions {
   currentUser: any;
   isSuperAdmin: boolean;
   statsNeeded: StatsType[];
+  enabled?: boolean;
 }
-
-const ORDER: StatsType[] = ["OGDS", "TTR", "DDV", "CMC", "QUO"];
 
 export function useGetAdminDashboardStats({
   currentUser,
   isSuperAdmin,
   statsNeeded,
+  enabled = true,
 }: UseDashboardOptions) {
   const needs = (s: StatsType) => statsNeeded.includes(s);
 
@@ -23,7 +116,7 @@ export function useGetAdminDashboardStats({
         currentUserOrganisation: currentUser?.organisation?.id ?? null,
         isSuperAdmin,
       },
-      { enabled: needs("OGDS") },
+      { enabled: enabled && needs("OGDS") },
     );
 
   const { data: TTRStats, isLoading: isTTRLoading } =
@@ -33,7 +126,7 @@ export function useGetAdminDashboardStats({
         isSuperAdmin,
       },
       {
-        enabled: needs("TTR") && (!needs("OGDS") || !!OGDSStats),
+        enabled: enabled && needs("TTR") && (!needs("OGDS") || !!OGDSStats),
       },
     );
 
@@ -46,7 +139,7 @@ export function useGetAdminDashboardStats({
       },
       {
         enabled:
-          needs("DDV") &&
+          enabled && needs("DDV") &&
           (!needs("OGDS") || !!OGDSStats) &&
           (!needs("TTR") || !!TTRStats),
       },
@@ -60,7 +153,7 @@ export function useGetAdminDashboardStats({
       },
       {
         enabled:
-          needs("CMC") &&
+          enabled && needs("CMC") &&
           (!needs("OGDS") || !!OGDSStats) &&
           (!needs("TTR") || !!TTRStats) &&
           (!needs("DDV") || !!DDVStats),
@@ -74,7 +167,7 @@ export function useGetAdminDashboardStats({
         isSuperAdmin,
       },
       {
-        enabled: needs("QUO"),
+        enabled: enabled && needs("QUO"),
       },
     );
 

@@ -23,7 +23,8 @@ export default defineConfig({
       interval: 100,
     },
     proxy: {
-      '/api': 'http://backend:8000'
+      '/api': 'http://backend:8000',
+      '/trpc': 'http://backend:8000',
     }
   },
 });

@@ -21,6 +21,7 @@ const getHeaders = () => {
 };
 
 const ngrokLink = "https://gbfcq-2001-e68-58d7-4c00-490-9521-41fc-1abf.run.pinggy-free.link/trpc";
+const trpcBaseUrl = import.meta.env.VITE_TRPC_URL ?? '/trpc';
 
 export const trpcClient = trpc.createClient({
   links: [
@@ -29,7 +30,7 @@ export const trpcClient = trpc.createClient({
         return op.context.skipBatch === true;
       },
       true: httpLink({
-        url: 'http://localhost:8000/trpc',
+        url: trpcBaseUrl,
         // url: ngrokLink,
         headers: getHeaders,
         fetch(url, options) {
@@ -41,7 +42,7 @@ export const trpcClient = trpc.createClient({
         },
       }),
       false: httpBatchLink({
-        url: 'http://localhost:8000/trpc',
+        url: trpcBaseUrl,
         // url: ngrokLink,
         headers: getHeaders,
         fetch(url, options) {
