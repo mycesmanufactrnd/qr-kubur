@@ -22,3 +22,29 @@ messaging.onBackgroundMessage((payload) => {
   };
   self.registration.showNotification(title, options);
 });
+
+// When user taps the notification, navigate to the URL set by the backend (data.url)
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const clickPath = event.notification.data?.url;
+  const url = clickPath
+    ? `${self.location.origin}${clickPath}`
+    : self.location.origin;
+
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        // If the app is already open, focus and navigate it
+        for (const client of clientList) {
+          if (client.url.startsWith(self.location.origin) && "focus" in client) {
+            client.focus();
+            return client.navigate(url);
+          }
+        }
+        // Otherwise open a new tab
+        return clients.openWindow(url);
+      })
+  );
+});

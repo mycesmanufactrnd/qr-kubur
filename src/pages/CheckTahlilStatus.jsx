@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Search, BookOpen, Clock, CheckCircle, XCircle, MapPin, User, Calendar } from 'lucide-react';
 import { formatRM } from '@/utils/helpers';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -72,6 +72,20 @@ export default function CheckTahlilStatus() {
   const [request, setRequest] = useState(defaultTahlilStatus);
   const [tahfizCenter, setTahfizCenter] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const autoSearched = useRef(false);
+
+  // Auto-search when opened from a push notification (e.g. /CheckTahlilStatus?ref=THL-2024-0001)
+  useEffect(() => {
+    if (autoSearched.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      autoSearched.current = true;
+      setReferenceId(ref);
+      setSearching(true);
+      setSearchKey(ref);
+    }
+  }, []);
 
   const { data: tahlilRequest, isLoading } = trpc.tahlilRequest.getByReferenceNo.useQuery(
     searchKey ? { referenceno: searchKey } : skipToken,

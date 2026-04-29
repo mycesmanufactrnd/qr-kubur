@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import { GoogleUserDevice, GoogleUserRecord } from "../db/entities.ts";
 import { AppDataSource } from "../datasource.ts";
+import { TahlilStatus } from "../db/enums.ts";
 import type { EntityNameGoogleUserRecord } from "../db/enums.ts";
 
 let initialized = false;
@@ -61,12 +62,23 @@ const initFirebase = () => {
 
 initFirebase();
 
+const STALE_TOKEN_CODES = new Set([
+  "messaging/registration-token-not-registered",
+  "messaging/invalid-registration-token",
+]);
+
+/**
+ * Sends push notifications and returns the list of tokens that are stale
+ * (expired/unregistered) so the caller can remove them from the DB.
+ */
 export const sendPushNotifications = async (
   tokens: string[],
   notification: { title: string; body: string },
   data?: Record<string, string>,
-): Promise<void> => {
-  if (!initialized || tokens.length === 0) return;
+): Promise<string[]> => {
+  if (!initialized || tokens.length === 0) return [];
+
+  const staleTokens: string[] = [];
 
   try {
     const response = await admin.messaging().sendEachForMulticast({
@@ -75,13 +87,25 @@ export const sendPushNotifications = async (
       data,
     });
 
-    const failed = response.responses.filter((r) => !r.success);
-    if (failed.length > 0) {
-      console.warn(`[FCM] ${failed.length}/${tokens.length} messages failed`);
+    response.responses.forEach((r, i) => {
+      if (!r.success) {
+        const code = r.error?.code;
+        console.warn(`[FCM] Token[${i}] failed:`, code, r.error?.message);
+        const token = tokens[i];
+        if (code && token && STALE_TOKEN_CODES.has(code)) {
+          staleTokens.push(token);
+        }
+      }
+    });
+
+    if (response.successCount > 0) {
+      console.log(`[FCM] ${response.successCount}/${tokens.length} sent successfully`);
     }
   } catch (e) {
     console.error("[FCM] sendPushNotifications error:", e);
   }
+
+  return staleTokens;
 };
 
 export const sendNotificationFCMFromGoogle = async ({
@@ -102,30 +126,50 @@ export const sendNotificationFCMFromGoogle = async ({
       relations: ["googleuser"],
     });
 
-    if (record?.googleuser?.id) {
-      const devices = await deviceRepo.findBy({
-        googleuser: { id: record.googleuser.id },
-      });
+    if (!record?.googleuser?.id) return;
 
-      const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    const devices = await deviceRepo.findBy({
+      googleuser: { id: record.googleuser.id },
+    });
 
-      if (tokens.length > 0) {
+    const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    if (tokens.length === 0) return;
 
-        if (entityname === "tahlilrequest") {
-          const dateStr = extraParam.data.suggesteddate
-            ? new Date(extraParam.data.suggesteddate).toLocaleDateString("ms-MY")
-            : "-";
-  
-          await sendPushNotifications(
-            tokens,
-            {
-              title: "Permintaan Tahlil Diterima",
-              body: `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`,
-            },
-            { requestId: String(extraParam.id) },
-          );
-        } 
+    let staleTokens: string[] = [];
+
+    if (entityname === "tahlilrequest") {
+      const status = extraParam.data?.status;
+      // prefer value passed from frontend; fall back to the GoogleUserRecord
+      const referenceno = extraParam.data?.referenceno ?? record.referenceno ?? "";
+
+      let title: string;
+      let body: string;
+
+      if (status === TahlilStatus.REJECTED) {
+        title = "Permintaan Tahlil Ditolak";
+        body = "Maaf, permintaan tahlil anda telah ditolak.";
+      } else {
+        const dateStr = extraParam.data?.suggesteddate
+          ? new Date(extraParam.data.suggesteddate).toLocaleDateString("ms-MY")
+          : "-";
+        title = `Permintaan Tahlil Diterima${referenceno ? ` - ${referenceno}` : ""}`;
+        body = `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`;
       }
+
+      staleTokens = await sendPushNotifications(
+        tokens,
+        { title, body },
+        {
+          requestId: String(extraParam.id),
+          url: referenceno ? `/CheckTahlilStatus?ref=${encodeURIComponent(referenceno)}` : "/CheckTahlilStatus",
+        },
+      );
+    }
+
+    // removing stale token
+    if (staleTokens.length > 0) {
+      await deviceRepo.delete(staleTokens.map((t) => ({ fcmToken: t })) as any);
+      console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
     }
   } catch (error) {
     console.error("[FCM] Failed to notify tahlil requestor:", error);

@@ -23,6 +23,7 @@ export const tahlilRequestApprovalSchema = z.object({
     z.coerce.date().nullable().optional(),
   ),
   photourls: z.array(z.string()).optional().nullable(),
+  referenceno: z.string().optional().nullable(),
 });
 
 export const tahlilRequestLiveURL = z.object({

@@ -2,7 +2,6 @@ import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
 import {
-  GoogleUserDevice,
   GoogleUserRecord,
   TahlilRequest,
 } from "../db/entities.ts";
@@ -155,7 +154,7 @@ export const tahlilRequestRouter = router({
 
       const savedTahlilRequests = await tahlilRequestRepo.save(tahlilRequests);
 
-      if (input.data.status === TahlilStatus.ACCEPTED) {
+      if (input.data.status === TahlilStatus.ACCEPTED || input.data.status === TahlilStatus.REJECTED) {
         await sendNotificationFCMFromGoogle({
           entityname: "tahlilrequest",
           entityid: input.id,

@@ -38,7 +38,9 @@ const app = Fastify({
   // tRPC batching joins multiple procedure names into a single `:path` segment.
   // Fastify's router (find-my-way) has a relatively small default `maxParamLength`,
   // which can cause batched URLs to 404 ("Route ... not found") when the segment is long.
-  maxParamLength: 5000,
+  routerOptions: {
+    maxParamLength: 5000,
+  },
 });
 
 await app.register(rateLimit, {
