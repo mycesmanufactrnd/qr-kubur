@@ -49,6 +49,7 @@ import {
   useGetTahfizPaginated,
   useTahfizMutations,
 } from "@/hooks/useTahfizMutations";
+import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { useUserMutations } from "@/hooks/useUserMutations";
 import { useAdminAccess } from "@/utils/auth";
 import { STATES_MY } from "@/utils/enums";
@@ -127,6 +128,11 @@ export default function ManageTahfizCenters() {
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
   const { createUser } = useUserMutations();
   const paymentConfigMutation = useUpsertConfigByEntity();
+
+  const { organisationsList } = useGetOrganisationPaginated({
+    page: 1,
+    pageSize: 500,
+  });
 
   const {
     control,
@@ -568,12 +574,24 @@ export default function ManageTahfizCenters() {
     setValue("serviceprice", serviceprice);
   };
 
-  const DEFAULT_TAHLIL_ENTRY = { id: "default-tahlil", service: "Tahlil Arwah", price: "0", isactive: true, isDefault: true };
+  const DEFAULT_TAHLIL_ENTRY = {
+    id: "default-tahlil",
+    service: "Tahlil Arwah",
+    price: "0",
+    isactive: true,
+    isDefault: true,
+  };
 
   const addServiceEntry = () => {
     const nextEntries = [
       ...serviceEntries,
-      { id: `${Date.now()}-${Math.random()}`, service: "", price: "", isactive: true, isDefault: false },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        service: "",
+        price: "",
+        isactive: true,
+        isDefault: false,
+      },
     ];
     setServiceEntries(nextEntries);
     syncServiceDraftToForm(nextEntries);
@@ -641,6 +659,7 @@ export default function ManageTahfizCenters() {
       serviceprice,
       latitude: center.latitude?.toString() || "",
       longitude: center.longitude?.toString() || "",
+      parentorganisation: center.parentorganisation?.id?.toString() || "",
     });
 
     const nextEntries = serviceoffered.map((service, index) => {
@@ -654,7 +673,9 @@ export default function ManageTahfizCenters() {
       };
     });
 
-    const hasTahlil = nextEntries.some((e) => e.service.toLowerCase() === "tahlil arwah");
+    const hasTahlil = nextEntries.some(
+      (e) => e.service.toLowerCase() === "tahlil arwah",
+    );
     if (!hasTahlil) nextEntries.unshift({ ...DEFAULT_TAHLIL_ENTRY });
 
     setServiceEntries(nextEntries);
@@ -679,7 +700,8 @@ export default function ManageTahfizCenters() {
 
       normalizedServices.push({
         service,
-        price: entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
         isactive: entry.isactive !== false,
       });
     }
@@ -703,6 +725,9 @@ export default function ManageTahfizCenters() {
       ...restFormData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      parentorganisation: formData.parentorganisation
+        ? { id: Number(formData.parentorganisation) }
+        : null,
       services: normalizedServices.map((serviceItem) => ({
         service: serviceItem.service,
         price: Number(serviceItem.price) || 0,
@@ -1085,6 +1110,19 @@ export default function ManageTahfizCenters() {
                   required
                   errors={errors}
                 />
+                <SelectForm
+                  name="parentorganisation"
+                  disabled={!isSuperAdmin}
+                  control={control}
+                  placeholder={translate("Select parent organisation")}
+                  label={translate("Parent Organisation")}
+                  options={Object.values(organisationsList.items).map(
+                    (org) => ({
+                      value: org.id,
+                      label: org.name,
+                    }),
+                  )}
+                />
                 <TextInputForm
                   name="description"
                   control={control}
@@ -1107,7 +1145,11 @@ export default function ManageTahfizCenters() {
                             value={entry.service}
                             disabled={isLocked}
                             onChange={(e) =>
-                              updateServiceEntry(entry.id, "service", e.target.value)
+                              updateServiceEntry(
+                                entry.id,
+                                "service",
+                                e.target.value,
+                              )
                             }
                           />
                           <Input
@@ -1117,7 +1159,11 @@ export default function ManageTahfizCenters() {
                             placeholder="RM 0.00"
                             value={entry.price}
                             onChange={(e) =>
-                              updateServiceEntry(entry.id, "price", e.target.value)
+                              updateServiceEntry(
+                                entry.id,
+                                "price",
+                                e.target.value,
+                              )
                             }
                           />
                           <button
@@ -1128,7 +1174,11 @@ export default function ManageTahfizCenters() {
                                 : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200"
                             }`}
                             onClick={() =>
-                              updateServiceEntry(entry.id, "isactive", entry.isactive === false)
+                              updateServiceEntry(
+                                entry.id,
+                                "isactive",
+                                entry.isactive === false,
+                              )
                             }
                           >
                             {entry.isactive !== false ? "Active" : "Inactive"}

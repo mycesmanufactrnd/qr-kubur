@@ -80,7 +80,9 @@ export default function ManageCollectionTree() {
   const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
   const orgId = currentUser?.organisation?.id;
 
-  const [selectedCollection, setSelectedCollection] = useState(/** @type {any} */ (null));
+  const [selectedCollection, setSelectedCollection] = useState(
+    /** @type {any} */ (null),
+  );
 
   const [showCreate, setShowCreate] = useState(false);
   const [createName, setCreateName] = useState("");
@@ -143,6 +145,7 @@ export default function ManageCollectionTree() {
               label: item.tahfiz.name,
               state: item.tahfiz.state,
               detailId: item.tahfizId,
+              parentOrg: item.tahfiz.parentorganisation?.name ?? null,
             },
           ];
         if (item.organisation)
@@ -174,7 +177,15 @@ export default function ManageCollectionTree() {
 
   const { data: tahfizData, isLoading: tahfizLoading } =
     trpc.tahfiz.getPaginated.useQuery(
-      { page: 1, pageSize: 30, filterName: addSearch || undefined },
+      {
+        page: 1,
+        pageSize: 30,
+        filterName: addSearch || undefined,
+        isFromParentOrg: {
+          status: true,
+          parentOrganisationId: Number(orgId),
+        },
+      },
       { enabled: showAdd && addType === "tahfiz" },
     );
 
@@ -624,7 +635,6 @@ export default function ManageCollectionTree() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Collection Dialog */}
       <Dialog
         open={showEdit}
         onOpenChange={(open) => {

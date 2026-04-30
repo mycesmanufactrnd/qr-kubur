@@ -97,6 +97,11 @@ function PlaceNode({ item, cfg, detailUrl, onRemove }) {
           {item.state && (
             <p className="text-xs text-muted-foreground truncate">{item.state}</p>
           )}
+          {item.parentOrg && (
+            <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5">
+              ↳ {item.parentOrg}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex gap-1">

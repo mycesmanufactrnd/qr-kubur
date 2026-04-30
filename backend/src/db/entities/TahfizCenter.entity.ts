@@ -13,6 +13,7 @@ import { TahlilRequest } from "./TahlilRequest.entity.js";
 import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
 import { ActivityPost } from "./ActivityPosts.entity.ts";
 import { ServiceOffered } from "./ServiceOffered.entity.ts";
+import { Organisation } from "./Organisation.entity.ts";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {
@@ -82,4 +83,11 @@ export class TahfizCenter {
   @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "createdbyId" })
   createdby?: User | null;
+
+  @Column("integer", { nullable: true })
+  parentorganisationId?: number | null;
+
+  @ManyToOne(() => Organisation, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "parentorganisationId" })
+  parentorganisation?: Organisation | null;
 }

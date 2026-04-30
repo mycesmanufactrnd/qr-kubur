@@ -62,7 +62,7 @@ export const collectionTreeRouter = router({
     .query(async ({ input }) => {
       return AppDataSource.getRepository(CollectionTreeItem).find({
         where: { collectionTreeId: input.collectionTreeId },
-        relations: ["grave", "mosque", "tahfiz", "organisation"],
+        relations: ["grave", "mosque", "tahfiz", "tahfiz.parentorganisation", "organisation"],
         order: { createdat: "DESC" },
       });
     }),

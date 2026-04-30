@@ -22,5 +22,6 @@ export const tahfizSchema = z.object({
   longitude: z.number().optional().nullable(),
   status: z.enum(ActiveInactiveStatus).optional(),
   photourl: z.string().optional().nullable(),
+  parentorganisation: z.object({ id: z.number() }).nullable().optional(),
 });
 

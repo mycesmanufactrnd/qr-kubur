@@ -52,7 +52,7 @@ export function useGetTahfizPaginated({
 
   const tahfizCenterList = { items: data?.items ?? [], total: data?.total ?? 0 };
   const totalPages = Math.ceil(tahfizCenterList.total / (pageSize ?? 10));
-
+  
   return { tahfizCenterList, totalPages, isLoading, refetch, error };
 }
 

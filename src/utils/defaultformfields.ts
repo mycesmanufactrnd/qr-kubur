@@ -62,6 +62,7 @@ export const defaultTahfizField = {
   latitude: '', 
   longitude: '',
   photourl: '',
+  parentorganisation: '',
   user_fullname: '',
   user_username: '',
   user_phoneno: '',

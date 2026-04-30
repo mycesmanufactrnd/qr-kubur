@@ -81,6 +81,13 @@ export const tahfizRouter = router({
         filterState: z.string().optional(),
         currentUserTahfizCenterId: z.number().optional(),
         isSuperAdmin: z.boolean().default(false),
+        isFromParentOrg: z
+          .object({
+            status: z.boolean().default(false),
+            parentOrganisationId: z.number().min(1),
+          })
+          .nullable()
+          .optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -91,19 +98,28 @@ export const tahfizRouter = router({
         filterState,
         currentUserTahfizCenterId,
         isSuperAdmin,
+        isFromParentOrg,
       } = input;
 
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
-      const query = tahfizRepo.createQueryBuilder("tahfiz");
+      const query = tahfizRepo
+        .createQueryBuilder("tahfiz")
+        .leftJoinAndSelect("tahfiz.parentorganisation", "parentorganisation");
 
       if (!isSuperAdmin) {
-        if (!currentUserTahfizCenterId) {
+        if (isFromParentOrg?.status) {
+          query.andWhere("parentorganisation.id = :parentId", {
+            parentId: isFromParentOrg.parentOrganisationId,
+          });
+        }
+        else if (currentUserTahfizCenterId) {
+          query.andWhere("tahfiz.id = :id", {
+            id: currentUserTahfizCenterId,
+          });
+        }
+        else {
           return { items: [], total: 0 };
         }
-
-        query.andWhere("tahfiz.id = :id", {
-          id: currentUserTahfizCenterId,
-        });
       }
 
       if (filterName?.trim()) {
@@ -139,6 +155,7 @@ export const tahfizRouter = router({
 
       const tahfiz = await AppDataSource.getRepository(TahfizCenter).findOne({
         where: { id: input.id },
+        relations: ["parentorganisation"],
       });
 
       if (!tahfiz) return null;
