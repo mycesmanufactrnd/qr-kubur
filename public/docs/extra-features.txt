@@ -1,14 +1,14 @@
 ✅ 1. quick action - user tekan tahlil icon and senarai semua tahfiz center yg ada service tahlil
 ✅ 1.2 - grave service -> request _> amek gmbr and bayar and bila scan qr (kt maklumat tu ada button untuk dptkn tahlil dan yaasin)
 2. check time limit (kene check upload evidence/bagi warning kt kita ngn dia) - firebase
-2.5 kalau masuk service buat FCM untuk organisation yg terlibat
+2.5 kalau masuk service buat email/notification untuk organisation yg terlibat
 ❓ 3. template untuk jenazah dgn kubur
 ✅ 4. khairat kematian (kalau xde)
 ✅ 5. report bulanan (duit keluar)
 ✅ 6. quotation details, letak gambar kubur, lot apa semua (more details)
 ✅ 7. grave service (ni masjid nye saja, siapa yg jaga)
 ✅ 8. donation amek la 0.50 (donation report)
-❓ 9. notification tahlil start - and suggested date
+✅ 9. notification tahlil start - and suggested date
 ✅ 10. centralize suma of parent organisation
 ✅ 11. kubur, ada pin, and dia leh tekan.. 
 12. family tree
@@ -22,7 +22,7 @@
 ✅ 20. donation untuk jaga kubur (letak di kubur (derma)), hide filter kalua ada pre select, just info
 21. search bar refine --- 
 ✅ 22. derma default nama (hamba allah)
-❓23. live tahlil ---- setup di server
+✅ 23. live tahlil ---- setup di server
 24. dashboard connection masjid ngn kubur
 ✅ 24.5 dashboard statistic
 25. derma & tahlil, ada web page yg direct untuk derma dan tahlil

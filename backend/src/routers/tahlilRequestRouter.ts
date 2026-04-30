@@ -1,10 +1,7 @@
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import {
-  GoogleUserRecord,
-  TahlilRequest,
-} from "../db/entities.ts";
+import { GoogleUserRecord, TahlilRequest } from "../db/entities.ts";
 import {
   tahlilRequestApprovalSchema,
   tahlilRequestLiveURL,
@@ -154,11 +151,14 @@ export const tahlilRequestRouter = router({
 
       const savedTahlilRequests = await tahlilRequestRepo.save(tahlilRequests);
 
-      if (input.data.status === TahlilStatus.ACCEPTED || input.data.status === TahlilStatus.REJECTED) {
+      if (
+        input.data.status === TahlilStatus.ACCEPTED ||
+        input.data.status === TahlilStatus.REJECTED
+      ) {
         await sendNotificationFCMFromGoogle({
           entityname: "tahlilrequest",
           entityid: input.id,
-          extraParam: input,
+          extraParam: { event: "tahlilrequest", inputData: input },
         });
       }
 
@@ -184,6 +184,22 @@ export const tahlilRequestRouter = router({
       });
 
       const saved = await tahlilRequestRepo.save(tahlilRequests);
+
+      // Notify each request owner that the live session has started
+      if (input.data.liveurl) {
+        await Promise.allSettled(
+          saved.map((request) =>
+            sendNotificationFCMFromGoogle({
+              entityname: "tahlilrequest",
+              entityid: request.id,
+              extraParam: {
+                event: "livetahlil",
+                inputData: { id: request.id },
+              },
+            }),
+          ),
+        );
+      }
 
       return saved;
     }),

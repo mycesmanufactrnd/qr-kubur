@@ -99,7 +99,9 @@ export const sendPushNotifications = async (
     });
 
     if (response.successCount > 0) {
-      console.log(`[FCM] ${response.successCount}/${tokens.length} sent successfully`);
+      console.log(
+        `[FCM] ${response.successCount}/${tokens.length} sent successfully`,
+      );
     }
   } catch (e) {
     console.error("[FCM] sendPushNotifications error:", e);
@@ -111,11 +113,14 @@ export const sendPushNotifications = async (
 export const sendNotificationFCMFromGoogle = async ({
   entityname,
   entityid,
-  extraParam
+  extraParam,
 }: {
-  entityname: EntityNameGoogleUserRecord,
-  entityid: string | number,
-  extraParam: any,
+  entityname: EntityNameGoogleUserRecord;
+  entityid: string | number;
+  extraParam: {
+    event: string;
+    [key: string]: any;
+  };
 }) => {
   try {
     const recordRepo = AppDataSource.getRepository(GoogleUserRecord);
@@ -128,6 +133,8 @@ export const sendNotificationFCMFromGoogle = async ({
 
     if (!record?.googleuser?.id) return;
 
+    const referenceno = record.referenceno ?? "";
+
     const devices = await deviceRepo.findBy({
       googleuser: { id: record.googleuser.id },
     });
@@ -137,32 +144,43 @@ export const sendNotificationFCMFromGoogle = async ({
 
     let staleTokens: string[] = [];
 
+    const { event, inputData } = extraParam;
+
     if (entityname === "tahlilrequest") {
-      const status = extraParam.data?.status;
-      // prefer value passed from frontend; fall back to the GoogleUserRecord
-      const referenceno = extraParam.data?.referenceno ?? record.referenceno ?? "";
+      const refUrl = referenceno
+        ? `/CheckTahlilStatus?ref=${encodeURIComponent(referenceno)}`
+        : "/CheckTahlilStatus";
 
-      let title: string;
-      let body: string;
+      let title: string = "";
+      let body: string = "";
 
-      if (status === TahlilStatus.REJECTED) {
-        title = "Permintaan Tahlil Ditolak";
-        body = "Maaf, permintaan tahlil anda telah ditolak.";
-      } else {
-        const dateStr = extraParam.data?.suggesteddate
-          ? new Date(extraParam.data.suggesteddate).toLocaleDateString("ms-MY")
-          : "-";
-        title = `Permintaan Tahlil Diterima${referenceno ? ` - ${referenceno}` : ""}`;
-        body = `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`;
+      if (event === "livetahlil") {
+        title = `Tahlil Langsung Bermula${referenceno ? ` - ${referenceno}` : ""}`;
+        body =
+          "Sesi tahlil langsung untuk permohonan anda telah bermula. Sertai sekarang!";
+      }
+
+      if (event === "tahlilrequest") {
+        const status = inputData.data?.status;
+
+        if (status === TahlilStatus.REJECTED) {
+          title = "Permintaan Tahlil Ditolak";
+          body = "Maaf, permintaan tahlil anda telah ditolak.";
+        } else {
+          const dateStr = inputData.data?.suggesteddate
+            ? new Date(inputData.data.suggesteddate).toLocaleDateString(
+                "ms-MY",
+              )
+            : "-";
+          title = `Permintaan Tahlil Diterima${referenceno ? ` - ${referenceno}` : ""}`;
+          body = `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`;
+        }
       }
 
       staleTokens = await sendPushNotifications(
         tokens,
         { title, body },
-        {
-          requestId: String(extraParam.id),
-          url: referenceno ? `/CheckTahlilStatus?ref=${encodeURIComponent(referenceno)}` : "/CheckTahlilStatus",
-        },
+        { requestId: String(inputData.id ?? ""), url: refUrl },
       );
     }
 
