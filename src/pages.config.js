@@ -45,6 +45,7 @@ import UserTransactionRecords from '@/pages/Settings/UserTransactionRecords';
 import FAQ from '@/pages/Settings/FAQ';
 import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 // Management
+import ManageCollectionTree from '@/pages/Management/ManageCollectionTree';
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
 import ManageDonations from '@/pages/Management/ManageDonations';
 import ManageGraves from '@/pages/Management/ManageGraves';
@@ -97,6 +98,7 @@ export const PAGES = {
     "IconLibrary": IconLibrary,
     "IslamicCalendar": IslamicCalendar,
     "DailyDua": DailyDua,
+    "ManageCollectionTree": ManageCollectionTree,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageDonations": ManageDonations,
     "ManageGraves": ManageGraves,

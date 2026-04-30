@@ -39,6 +39,7 @@ import { paymentDistributionRouter } from "./paymentDistributionRouter.ts";
 import { ganttchartRouter } from "./ganttchartRouter.ts";
 import { paymentComparisonRouter } from "./paymentComparisonRouter.ts";
 import { financialReportRouter } from "./financialReportRouter.ts";
+import { collectionTreeRouter } from "./collectionTreeRouter.ts";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -81,6 +82,7 @@ export const appRouter = trpcRouter({
   ganttchart: ganttchartRouter,
   paymentComparison: paymentComparisonRouter,
   financialReport: financialReportRouter,
+  collectionTree: collectionTreeRouter,
 });
 
 export type AppRouter = typeof appRouter;

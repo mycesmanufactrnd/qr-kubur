@@ -1215,12 +1215,12 @@ export default function ManageOrganisations() {
                     placeholder={translate("Select organisation type")}
                     label={translate("Organisation Type")}
                     options={organisationTypeOptions}
-                    // disabled={!isSuperAdmin}
                     required
                     errors={errors}
-                  />
+                    />
                   <SelectForm
                     name="parentorganisation"
+                    disabled={!isSuperAdmin}
                     control={control}
                     placeholder={translate("Select parent organisation")}
                     label={translate("Parent Organisation")}
