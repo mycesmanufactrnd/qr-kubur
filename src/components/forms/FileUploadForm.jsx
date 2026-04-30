@@ -21,11 +21,14 @@ export default function FileUploadForm({
   const [urlInput, setUrlInput] = useState("");
   const [isUrlMode, setIsUrlMode] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [localPreviewSrc, setLocalPreviewSrc] = useState("");
 
+  // Sync URL mode when field value changes externally
   useEffect(() => {
     if (!fieldValue) {
       setIsUrlMode(false);
       setUrlInput("");
+      setLocalPreviewSrc("");
       return;
     }
 
@@ -53,12 +56,15 @@ export default function FileUploadForm({
         control={control}
         rules={required ? { required: `${label} is required` } : undefined}
         render={({ field }) => {
-          const previewValue = isUrlMode ? urlInput : field.value;
-          const previewSrc = previewValue
+          const storedPreviewValue = isUrlMode ? urlInput : field.value;
+          const storedPreviewSrc = storedPreviewValue
             ? isUrlMode
-              ? previewValue
-              : resolveFileUrl(previewValue, bucketName)
+              ? storedPreviewValue
+              : resolveFileUrl(storedPreviewValue, bucketName)
             : "";
+
+          // Local blob URL takes priority; falls back to stored/resolved URL
+          const displaySrc = localPreviewSrc || storedPreviewSrc;
 
           return (
             <>
@@ -71,11 +77,18 @@ export default function FileUploadForm({
                     const file = e.target.files?.[0];
                     if (!file) return;
 
+                    // Show local preview immediately so user sees the image
+                    const objectUrl = URL.createObjectURL(file);
+                    setLocalPreviewSrc(objectUrl);
+
                     const fileName = await handleFileUpload(file, bucketName);
                     if (fileName) {
                       setIsUrlMode(false);
                       setUrlInput("");
                       field.onChange(fileName);
+                      // Keep local preview until field value resolves in next render
+                    } else {
+                      setLocalPreviewSrc("");
                     }
                   }}
                   disabled={uploading}
@@ -102,6 +115,7 @@ export default function FileUploadForm({
                       setUrlInput(value);
                       if (value) {
                         setIsUrlMode(true);
+                        setLocalPreviewSrc("");
                         setFileInputKey((prev) => prev + 1);
                       } else {
                         setIsUrlMode(false);
@@ -112,10 +126,10 @@ export default function FileUploadForm({
                 </div>
               )}
 
-              {previewSrc && (
+              {displaySrc && (
                 <div className="mt-2 relative inline-block">
                   <img
-                    src={previewSrc}
+                    src={displaySrc}
                     alt={translate("Preview")}
                     className="max-h-40 rounded border shadow-sm"
                   />

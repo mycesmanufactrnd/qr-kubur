@@ -11,6 +11,12 @@ import {
   Heart,
   Banknote,
   ChevronRight,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Mail,
+  Phone,
+  Image,
 } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
 import { trpc } from "@/utils/trpc";
@@ -18,6 +24,8 @@ import { translate } from "@/utils/translations";
 import { skipToken } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { formatRM } from "@/utils/helpers";
+import { resolveFileUrl } from "@/utils";
+import { QuotationStatus, TahlilStatus } from "@/utils/enums";
 
 const ENTITY_NAME_MAP = {
   donation: "Donation",
@@ -32,6 +40,33 @@ const ENTITY_COLOR = {
   quotation: "text-sky-600 bg-sky-50 border-sky-100",
   deathcharity: "text-purple-600 bg-purple-50 border-purple-100",
 };
+
+const QUOTATION_STATUS_CONFIG = {
+  [QuotationStatus.PENDING]: { label: "Pending", Icon: Clock, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", iconColor: "text-amber-500" },
+  [QuotationStatus.COMPLETED]: { label: "Completed", Icon: CheckCircle, bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", iconColor: "text-emerald-500" },
+  [QuotationStatus.REJECTED]: { label: "Rejected", Icon: XCircle, bg: "bg-red-50", border: "border-red-200", text: "text-red-700", iconColor: "text-red-500" },
+};
+
+const TAHLIL_STATUS_CONFIG = {
+  [TahlilStatus.PENDING]: { label: "Pending", Icon: Clock, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", iconColor: "text-amber-500" },
+  [TahlilStatus.ACCEPTED]: { label: "Accepted", Icon: BadgeCheck, bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700", iconColor: "text-blue-500" },
+  [TahlilStatus.COMPLETED]: { label: "Completed", Icon: CheckCircle, bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", iconColor: "text-emerald-500" },
+  [TahlilStatus.REJECTED]: { label: "Rejected", Icon: XCircle, bg: "bg-red-50", border: "border-red-200", text: "text-red-700", iconColor: "text-red-500" },
+};
+
+function StatusBadge({ status, configMap }) {
+  const cfg = configMap?.[status];
+  if (!cfg) return (
+    <span className="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-500">{status || "-"}</span>
+  );
+  const { Icon } = cfg;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-semibold ${cfg.bg} ${cfg.border} ${cfg.text}`}>
+      <Icon className={`w-4 h-4 ${cfg.iconColor}`} />
+      {translate(cfg.label)}
+    </span>
+  );
+}
 
 const formatEntityName = (name) => {
   if (!name) return "-";
@@ -54,7 +89,7 @@ function InfoRow({ icon: Icon, label, value }) {
           {label}
         </span>
       </div>
-      <span className="text-sm font-semibold text-slate-700 text-right max-w-[60%]">
+      <span className="text-sm font-semibold text-slate-700 text-right max-w-[60%] break-words">
         {value}
       </span>
     </div>
@@ -70,14 +105,10 @@ function AmountRow({ label, value, highlight }) {
           : "bg-slate-50 border-slate-100"
       }`}
     >
-      <span
-        className={`text-sm ${highlight ? "font-semibold text-emerald-700" : "text-slate-500"}`}
-      >
+      <span className={`text-sm ${highlight ? "font-semibold text-emerald-700" : "text-slate-500"}`}>
         {label}
       </span>
-      <span
-        className={`text-sm font-bold ${highlight ? "text-emerald-700" : "text-slate-900"}`}
-      >
+      <span className={`text-sm font-bold ${highlight ? "text-emerald-700" : "text-slate-900"}`}>
         {formatRM(value)}
       </span>
     </div>
@@ -137,8 +168,7 @@ export default function UserTransactionRecords() {
         : skipToken,
     );
 
-  const isDetailLoading =
-    loadingQuo || loadingTahlil || loadingDonation || loadingDC;
+  const isDetailLoading = loadingQuo || loadingTahlil || loadingDonation || loadingDC;
 
   const renderDetail = () => {
     if (isDetailLoading) {
@@ -153,31 +183,54 @@ export default function UserTransactionRecords() {
       const q = quotationDetail;
       return (
         <div className="space-y-4">
+          <div className="flex justify-center pb-1">
+            <StatusBadge status={q.status} configMap={QUOTATION_STATUS_CONFIG} />
+          </div>
+
           <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
-            <InfoRow icon={User} label="Pemohon" value={q.payername} />
-            <InfoRow icon={Building2} label="Organisasi" value={q.organisation?.name} />
-            <InfoRow icon={Heart} label="Si Mati" value={q.deadperson?.name} />
+            <InfoRow icon={User} label={translate("Requester")} value={q.payername} />
+            <InfoRow icon={Mail} label={translate("Email")} value={q.payeremail} />
+            <InfoRow icon={Phone} label={translate("Phone")} value={q.payerphone} />
+            <InfoRow icon={Building2} label={translate("Organisation")} value={q.organisation?.name} />
+            <InfoRow icon={Heart} label={translate("Deceased")} value={q.deadperson?.name} />
             <InfoRow
               icon={Calendar}
-              label="Tarikh"
+              label={translate("Date")}
               value={q.createdat ? new Date(q.createdat).toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" }) : null}
             />
           </div>
+
           {q.selectedservices?.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                Perkhidmatan
+                {translate("Services")}
               </p>
               {q.selectedservices.map((s, i) => (
-                <div key={i} className="flex justify-between px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm">
+                <div key={i} className="flex justify-between px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm">
                   <span className="text-slate-600">{s.service}</span>
                   <span className="font-semibold">{formatRM(s.price)}</span>
                 </div>
               ))}
+              {q.maintenancefeeamount != null && (
+                <AmountRow label={translate("Maintenance Fee")} value={q.maintenancefeeamount} />
+              )}
+              {q.totalamount != null && (
+                <AmountRow label={translate("Total Amount")} value={q.totalamount} highlight />
+              )}
             </div>
           )}
-          {q.totalamount != null && (
-            <AmountRow label="Jumlah" value={q.totalamount} highlight />
+
+          {q.photourl && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
+                {translate("Service Photos")}
+              </p>
+              <img
+                src={resolveFileUrl(q.photourl, "bucket-organisation-services-proof")}
+                alt={translate("Service completion")}
+                className="h-48 w-full rounded-xl object-cover border border-slate-100"
+              />
+            </div>
           )}
         </div>
       );
@@ -187,19 +240,31 @@ export default function UserTransactionRecords() {
       const t = tahlilDetail;
       return (
         <div className="space-y-4">
+          <div className="flex justify-center pb-1">
+            <StatusBadge status={t.status} configMap={TAHLIL_STATUS_CONFIG} />
+          </div>
+
           <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
-            <InfoRow icon={User} label="Pemohon" value={t.requestorname} />
-            <InfoRow icon={Building2} label="Pusat Tahfiz" value={t.tahfizcenter?.name} />
+            <InfoRow icon={User} label={translate("Requester")} value={t.requestorname} />
+            <InfoRow icon={Building2} label={translate("Tahfiz Center")} value={t.tahfizcenter?.name} />
             <InfoRow
               icon={Calendar}
-              label="Tarikh"
+              label={translate("Date")}
               value={t.createdat ? new Date(t.createdat).toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" }) : null}
             />
+            {t.suggesteddate && (
+              <InfoRow
+                icon={Calendar}
+                label={translate("Suggested Date")}
+                value={new Date(t.suggesteddate).toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            )}
           </div>
+
           {t.deceasednames?.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
-                Nama Arwah
+                {translate("Deceased Names")}
               </p>
               {t.deceasednames.map((name, i) => (
                 <div key={i} className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
@@ -209,11 +274,12 @@ export default function UserTransactionRecords() {
               ))}
             </div>
           )}
+
           {t.serviceamount != null && (
             <div className="space-y-1.5">
-              <AmountRow label="Jumlah Perkhidmatan" value={t.serviceamount} />
+              <AmountRow label={translate("Service Amount")} value={t.serviceamount} />
               {t.platformfeeamount != null && (
-                <AmountRow label="Jumlah Dibayar" value={Number(t.serviceamount) + Number(t.platformfeeamount)} highlight />
+                <AmountRow label={translate("Total Paid")} value={Number(t.serviceamount) + Number(t.platformfeeamount)} highlight />
               )}
             </div>
           )}
@@ -226,21 +292,21 @@ export default function UserTransactionRecords() {
       return (
         <div className="space-y-4">
           <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
-            <InfoRow icon={User} label="Penderma" value={d.donorname} />
-            <InfoRow icon={Building2} label="Organisasi" value={d.organisation?.name} />
-            <InfoRow icon={Building2} label="Pusat Tahfiz" value={d.tahfizcenter?.name} />
+            <InfoRow icon={User} label={translate("Donor")} value={d.donorname} />
+            <InfoRow icon={Building2} label={translate("Organisation")} value={d.organisation?.name} />
+            <InfoRow icon={Building2} label={translate("Tahfiz Center")} value={d.tahfizcenter?.name} />
             <InfoRow
               icon={Calendar}
-              label="Tarikh"
+              label={translate("Date")}
               value={d.createdat ? new Date(d.createdat).toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" }) : null}
             />
           </div>
           {d.amount != null && (
-            <AmountRow label="Jumlah Derma" value={d.amount} highlight />
+            <AmountRow label={translate("Donation Amount")} value={d.amount} highlight />
           )}
           {d.notes && (
             <div className="px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
-              <p className="text-[11px] text-slate-400 mb-1 uppercase tracking-wide font-semibold">Nota</p>
+              <p className="text-[11px] text-slate-400 mb-1 uppercase tracking-wide font-semibold">{translate("Notes")}</p>
               <p className="text-sm text-slate-700">{d.notes}</p>
             </div>
           )}
@@ -253,13 +319,13 @@ export default function UserTransactionRecords() {
       return (
         <div className="space-y-4">
           <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
-            <InfoRow icon={User} label="Ahli" value={dc.member?.fullname} />
-            <InfoRow icon={Building2} label="Organisasi" value={dc.member?.deathcharity?.organisation?.name} />
-            <InfoRow icon={BadgeCheck} label="Jenis Bayaran" value={dc.paymenttype?.toUpperCase()} />
-            <InfoRow icon={Banknote} label="Kaedah Bayaran" value={dc.paymentmethod?.toUpperCase()} />
+            <InfoRow icon={User} label={translate("Member")} value={dc.member?.fullname} />
+            <InfoRow icon={Building2} label={translate("Organisation")} value={dc.member?.deathcharity?.organisation?.name} />
+            <InfoRow icon={BadgeCheck} label={translate("Payment Type")} value={dc.paymenttype?.toUpperCase()} />
+            <InfoRow icon={Banknote} label={translate("Payment Method")} value={dc.paymentmethod?.toUpperCase()} />
             <InfoRow
               icon={Calendar}
-              label="Tahun Diliputi"
+              label={translate("Year Covered")}
               value={dc.coversfromyear
                 ? dc.coverstoyear && dc.coverstoyear !== dc.coversfromyear
                   ? `${dc.coversfromyear} – ${dc.coverstoyear}`
@@ -268,12 +334,12 @@ export default function UserTransactionRecords() {
             />
             <InfoRow
               icon={Calendar}
-              label="Tarikh Bayar"
+              label={translate("Payment Date")}
               value={dc.paidat ? new Date(dc.paidat).toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" }) : null}
             />
           </div>
           {dc.amount != null && (
-            <AmountRow label="Jumlah Bayaran" value={dc.amount} highlight />
+            <AmountRow label={translate("Payment Amount")} value={dc.amount} highlight />
           )}
         </div>
       );
@@ -328,9 +394,7 @@ export default function UserTransactionRecords() {
 
           {!isLoading && !error && !email && (
             <div className="px-4 py-6 text-sm text-slate-500">
-              {translate(
-                "Please sign in with Google to view your transaction records",
-              )}
+              {translate("Please sign in with Google to view your transaction records")}
             </div>
           )}
 
@@ -385,8 +449,8 @@ export default function UserTransactionRecords() {
       </div>
 
       <Dialog open={!!selectedRecord} onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}>
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
-          <div className="px-5 pt-5 pb-4 border-b border-slate-100">
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
+          <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1">
               {formatEntityName(selectedRecord?.entityname)}
             </DialogTitle>

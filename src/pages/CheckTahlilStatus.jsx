@@ -185,7 +185,7 @@ export default function CheckTahlilStatus() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
 
           <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
