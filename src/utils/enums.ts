@@ -328,3 +328,5 @@ export enum QuotationStatus {
   COMPLETED = "completed",
   REJECTED = "rejected",
 }
+
+export const QUOTATION_OVERDUE_DAYS = 7;

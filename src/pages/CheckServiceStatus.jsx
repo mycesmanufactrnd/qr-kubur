@@ -169,7 +169,7 @@ export default function CheckServiceStatus() {
           if (!open) handleClose();
         }}
       >
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
           <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
               {translate("Service Application Status")}
@@ -286,10 +286,16 @@ export default function CheckServiceStatus() {
                     ))}
                   </div>
                   {quotation.totalamount != null && (
+                    <>
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl">
+                      <span className="text-sm font-semibold text-sky-700">{translate("Maintenance Fee")}</span>
+                      <span className="text-sm font-bold text-sky-700">{formatRM(quotation.maintenancefeeamount)}</span>
+                    </div>
                     <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl">
                       <span className="text-sm font-semibold text-sky-700">{translate("Total Amount")}</span>
                       <span className="text-sm font-bold text-sky-700">{formatRM(quotation.totalamount)}</span>
                     </div>
+                    </>
                   )}
                 </div>
               )}
@@ -300,7 +306,7 @@ export default function CheckServiceStatus() {
                     {translate("Service Photos")}
                   </p>
                   <img
-                    src={resolveFileUrl(quotation.photourl, "organisation-services")}
+                    src={resolveFileUrl(quotation.photourl, "bucket-organisation-services-proof")}
                     alt="Service completion"
                     className="h-48 w-full rounded-xl object-cover border border-slate-100"
                   />

@@ -34,6 +34,7 @@ import { useAdminAccess } from "@/utils/auth";
 import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 import { useMemo } from "react";
+import QuotationOverdueAlert from "@/components/QuotationOverdueAlert";
 
 export default function AdminDashboard() {
   const {
@@ -244,6 +245,7 @@ export default function AdminDashboard() {
   }
 
   return (
+    <>
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -536,5 +538,7 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+    {isGraveServices && <QuotationOverdueAlert />}
+    </>
   );
 }

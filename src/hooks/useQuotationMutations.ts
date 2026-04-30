@@ -32,6 +32,25 @@ export function useGetQuotationPaginated({
   return { quotationList, totalPages, isLoading, refetch };
 }
 
+export function useGetAllQuotations() {
+  const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
+
+  const { data, isLoading } = trpc.quotation.getPaginated.useQuery(
+    {
+      page: 1,
+      pageSize: 500,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin,
+    },
+    { enabled: hasAdminAccess && !!currentUser },
+  );
+
+  return {
+    items: data?.items ?? [],
+    isLoading,
+  };
+}
+
 export function useUpdateQuotation() {
   const trpcUtils = trpc.useUtils();
 

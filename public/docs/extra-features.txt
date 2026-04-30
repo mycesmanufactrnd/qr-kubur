@@ -1,6 +1,6 @@
 ✅ 1. quick action - user tekan tahlil icon and senarai semua tahfiz center yg ada service tahlil
 ✅ 1.2 - grave service -> request _> amek gmbr and bayar and bila scan qr (kt maklumat tu ada button untuk dptkn tahlil dan yaasin)
-2. check time limit (kene check upload evidence/bagi warning kt kita ngn dia) - firebase
+✅ 2. check time limit (kene check upload evidence/bagi warning kt kita ngn dia) - firebase
 2.5 kalau masuk service buat email/notification untuk organisation yg terlibat
 ❓ 3. template untuk jenazah dgn kubur
 ✅ 4. khairat kematian (kalau xde)

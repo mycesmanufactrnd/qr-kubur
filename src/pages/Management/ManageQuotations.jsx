@@ -63,6 +63,11 @@ export default function ManageQuotations() {
   const [uploadDialogFileKey, setUploadDialogFileKey] = useState(0);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  const [inlineUploadFile, setInlineUploadFile] = useState(null);
+  const [inlineUploadPreview, setInlineUploadPreview] = useState("");
+  const [inlineUploadFileKey, setInlineUploadFileKey] = useState(0);
+  const [inlineUploadingPhoto, setInlineUploadingPhoto] = useState(false);
+
   const {
     loading: permissionsLoading,
     canView,
@@ -121,12 +126,17 @@ export default function ManageQuotations() {
     setSelectedQuotation(quotation);
     setTransactionAccount(null);
     setIsDialogOpen(true);
+    setInlineUploadFile(null);
+    setInlineUploadPreview("");
+    setInlineUploadFileKey((k) => k + 1);
   };
 
   const closeDialog = () => {
     setSelectedQuotation(null);
     setTransactionAccount(null);
     setIsDialogOpen(false);
+    setInlineUploadFile(null);
+    setInlineUploadPreview("");
   };
 
   const openUploadDialog = (quotation) => {
@@ -156,7 +166,7 @@ export default function ManageQuotations() {
     try {
       const formData = new FormData();
       formData.append("file", uploadDialogFile);
-      const res = await fetch(`/api/upload/organisation-services`, {
+      const res = await fetch(`/api/upload/bucket-organisation-services-proof`, {
         method: "POST",
         body: formData,
       });
@@ -175,6 +185,45 @@ export default function ManageQuotations() {
       showError(translate("Failed to upload photo"));
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  const handleInlineUploadFileChange = (file) => {
+    if (!file) return;
+    setInlineUploadFile(file);
+    setInlineUploadPreview(URL.createObjectURL(file));
+  };
+
+  const handleInlineUploadSubmit = async () => {
+    if (!selectedQuotation || !inlineUploadFile) return;
+    setInlineUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", inlineUploadFile);
+      const res = await fetch(`/api/upload/bucket-organisation-services-proof`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showError(err.error || translate("Failed to upload photo"));
+        return;
+      }
+      const uploadData = await res.json();
+      const updated = await updateMutation.mutateAsync({
+        id: selectedQuotation.id,
+        data: { photourl: uploadData.file_url },
+      });
+      if (updated) {
+        setSelectedQuotation((prev) => ({ ...prev, photourl: updated.photourl }));
+        setInlineUploadFile(null);
+        setInlineUploadPreview("");
+        setInlineUploadFileKey((k) => k + 1);
+      }
+    } catch {
+      showError(translate("Failed to upload photo"));
+    } finally {
+      setInlineUploadingPhoto(false);
     }
   };
 
@@ -457,7 +506,7 @@ export default function ManageQuotations() {
           </DialogHeader>
 
           {selectedQuotation && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-8">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -547,7 +596,7 @@ export default function ManageQuotations() {
                       <img
                         src={resolveFileUrl(
                           selectedQuotation.deadperson?.photourl,
-                          "organisation-services",
+                          "bucket-organisation-services-proof",
                         )}
                         alt={translate("Grave photo")}
                         className="h-40 w-full rounded object-cover border"
@@ -624,6 +673,61 @@ export default function ManageQuotations() {
                     {translate("Status")}
                   </p>
                   {getStatusBadge(selectedQuotation.status)}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">
+                    {translate("Upload Proof")}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {translate("Completion photo required before marking as completed.")}
+                  </p>
+                </div>
+
+                {selectedQuotation.photourl && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">{translate("Current Photo")}</p>
+                    <img
+                      src={resolveFileUrl(selectedQuotation.photourl, "bucket-organisation-services-proof")}
+                      alt={translate("Completion photo")}
+                      className="h-40 w-full rounded object-cover border"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500">{translate("Select Photo")}</p>
+                  <Input
+                    key={inlineUploadFileKey}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                    onChange={(e) => handleInlineUploadFileChange(e.target.files?.[0])}
+                    disabled={inlineUploadingPhoto}
+                  />
+                  {inlineUploadPreview ? (
+                    <img
+                      src={inlineUploadPreview}
+                      alt={translate("Preview")}
+                      className="h-40 w-full rounded object-cover border"
+                    />
+                  ) : (
+                    !selectedQuotation.photourl && (
+                      <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300">
+                        <Image className="w-10 h-10" />
+                      </div>
+                    )
+                  )}
+                  <Button
+                    onClick={handleInlineUploadSubmit}
+                    disabled={inlineUploadingPhoto || !inlineUploadFile}
+                    className="w-full bg-sky-600 hover:bg-sky-700"
+                    size="sm"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {inlineUploadingPhoto ? translate("Uploading...") : translate("Upload Photo")}
+                  </Button>
                 </div>
               </div>
 
@@ -723,14 +827,21 @@ export default function ManageQuotations() {
                   </Button>
                 )}
                 {canVerify && (
-                  <Button
-                    onClick={handleComplete}
-                    disabled={updateMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    {translate("Mark as Completed")}
-                  </Button>
+                  <div className="flex flex-col items-end gap-1">                    
+                    <Button
+                      onClick={handleComplete}
+                      disabled={updateMutation.isPending || !selectedQuotation?.photourl}
+                      className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {translate("Mark as Completed")}
+                    </Button>
+                    {!selectedQuotation?.photourl && (
+                      <p className="text-xs text-amber-600">
+                        {translate("Upload completion photo to enable")}
+                      </p>
+                    )}
+                  </div>
                 )}
               </>
             )}
@@ -758,7 +869,7 @@ export default function ManageQuotations() {
                 <img
                   src={resolveFileUrl(
                     uploadDialogQuotation.photourl,
-                    "organisation-services",
+                    "bucket-organisation-services-proof",
                   )}
                   alt={translate("Current photo")}
                   className="h-40 w-full rounded object-cover border"
