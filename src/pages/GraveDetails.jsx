@@ -219,7 +219,7 @@ export default function GraveDetails() {
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-base flex items-center gap-2 text-slate-800">
                   <Search className="w-4 h-4 text-emerald-600" />
-                  {translate("Cari Si Mati")}
+                  {translate("Cari Arwah")}
                 </CardTitle>
               </CardHeader>
 
@@ -267,7 +267,7 @@ export default function GraveDetails() {
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1 border-l-4 border-emerald-500 pl-4">
                 <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-                  {translate("Senarai Si Mati")}
+                  {translate("Senarai Arwah")}
                 </h2>
                 <Badge
                   variant="secondary"
@@ -341,7 +341,7 @@ export default function GraveDetails() {
                         <Search className="w-8 h-8 text-slate-300" />
                       </div>
                       <p className="text-slate-500 font-medium">
-                        Tiada rekod si mati dijumpai
+                        Tiada rekod Arwah dijumpai
                       </p>
                     </div>
                   )}

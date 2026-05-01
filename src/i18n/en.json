@@ -506,5 +506,14 @@
   "Service Amount": "Service Amount",
   "Total Paid": "Total Paid",
   "Tahlil Photos": "Tahlil Photos",
-  "Service Photos": "Service Photos"
+  "Service Photos": "Service Photos",
+
+  "Sign In": "Sign In",
+  "Guest Google Sign-In": "Guest Google Sign-In",
+  "Account": "Account",
+  "Transaction Record": "Transaction Record",
+  "Sign out of Google": "Sign out of Google",
+  "Phone Number": "Phone Number",
+  "Saved phone number used to pre-fill payment forms.": "Saved phone number used to pre-fill payment forms.",
+  "Organisation Register": "Organisation Register"
 }

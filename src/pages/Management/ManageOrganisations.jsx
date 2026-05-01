@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import {
@@ -502,6 +502,7 @@ export default function ManageOrganisations() {
     };
   };
 
+
   const { organisationsList, totalPages, isLoading } =
     useGetOrganisationPaginated({
       page: urlPage,
@@ -510,6 +511,8 @@ export default function ManageOrganisations() {
       filterType: urlType === "all" ? undefined : Number(urlType),
       filterState: urlState === "all" ? undefined : urlState,
     });
+
+  console.log("organisationsList", organisationsList);
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
   const { createOrganisation, updateOrganisation, deleteOrganisation } =
@@ -656,7 +659,7 @@ export default function ManageOrganisations() {
     };
 
     loadConfigs();
-  }, [isDialogOpen, editingOrg?.id, existingPaymentConfigs]);
+  }, [existingPaymentConfigs.length, editingOrg?.id, isDialogOpen]);
 
   useEffect(() => {
     return () => {
@@ -1217,7 +1220,7 @@ export default function ManageOrganisations() {
                     options={organisationTypeOptions}
                     required
                     errors={errors}
-                    />
+                  />
                   <SelectForm
                     name="parentorganisation"
                     disabled={!isSuperAdmin}

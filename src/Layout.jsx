@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils/index';
 import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
-import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX, Heart } from 'lucide-react';
+import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX, Heart, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -37,7 +37,8 @@ function LayoutContent({ children, currentPageName }) {
     isSuperAdmin, 
     isAdmin,
     isTahfizAdmin,
-    isEmployee
+    isEmployee,
+    isOrgAdminGraveSvc
   } = useAdminAccess();
 
   const { clearPermissions } = usePermissions();
@@ -97,6 +98,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminNavItems = [
     { name: translate ('Admin Dashboard'), icon: User, page: 'AdminDashboard' },
+    { name: translate('Manage Quotations'), icon: FileText, page: 'ManageQuotations' },
     { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
   ];
   
@@ -251,7 +253,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Header - Desktop Only */}
       <header className="hidden lg:block sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link to={createPageUrl(getMainPage())} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">

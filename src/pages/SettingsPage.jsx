@@ -311,7 +311,7 @@ export default function SettingsPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-                Account
+                {translate("Account")}
               </p>
             </div>
             <div className="flex items-center gap-3 px-4 py-4">

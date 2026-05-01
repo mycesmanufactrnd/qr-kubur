@@ -1,48 +1,62 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../utils/index';
-import { CheckCircle, MapPin } from 'lucide-react';
+import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "../utils/index";
+import { CheckCircle, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ImageTextCaptcha from '../components/ImageTextCaptcha';
-import { showError, showWarning } from '../components/ToastrNotification';
-import BackNavigation from '@/components/BackNavigation';
-import { Controller, useForm } from 'react-hook-form';
-import { validateFields } from '@/utils/validations';
-import { trpc } from '@/utils/trpc';
-import { useCreateSuggestion, useRecentCountSuggestion } from '@/hooks/useSuggestionMutations';
-import { useGetGravesCoordinates } from '@/hooks/useGraveMutations';
-import { showEarthDistance } from '@/utils/helpers';
-import { defaultSuggestionField } from '@/utils/defaultformfields';
-import { useLocationContext } from '@/providers/LocationProvider';
-import { ipAddressQueryOptions } from '@/utils/queryOptions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import ImageTextCaptcha from "../components/ImageTextCaptcha";
+import { showError, showWarning } from "../components/ToastrNotification";
+import BackNavigation from "@/components/BackNavigation";
+import { Controller, useForm } from "react-hook-form";
+import { validateFields } from "@/utils/validations";
+import { trpc } from "@/utils/trpc";
+import {
+  useCreateSuggestion,
+  useRecentCountSuggestion,
+} from "@/hooks/useSuggestionMutations";
+import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
+import { showEarthDistance } from "@/utils/helpers";
+import { defaultSuggestionField } from "@/utils/defaultformfields";
+import { useLocationContext } from "@/providers/LocationProvider";
+import { ipAddressQueryOptions } from "@/utils/queryOptions";
 
 export default function SubmitSuggestion() {
   const { userLocation, userState } = useLocationContext();
-  const oneHourAgo = useMemo(() => new Date(Date.now() - 60 * 60 * 1000).toISOString(), []);
+  const oneHourAgo = useMemo(
+    () => new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    [],
+  );
   const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
     ...ipAddressQueryOptions,
   });
 
-  const recentCount = useRecentCountSuggestion(visitorIp, oneHourAgo); 
+  const recentCount = useRecentCountSuggestion(visitorIp, oneHourAgo);
 
-  const { 
-    control, 
-    handleSubmit: handleFormSubmit, 
-    reset: handleResetForm, setValue, watch 
+  const {
+    control,
+    handleSubmit: handleFormSubmit,
+    reset: handleResetForm,
+    setValue,
+    watch,
   } = useForm({
-    defaultValues: defaultSuggestionField
+    defaultValues: defaultSuggestionField,
   });
-  
+
   const [submitted, setSubmitted] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
-  const watchType = watch('type');
-  const watchSelectedGrave = watch('watchSelectedGrave');
+  const watchType = watch("type");
+  const watchSelectedGrave = watch("watchSelectedGrave");
 
   const createMutation = useCreateSuggestion();
 
@@ -53,24 +67,33 @@ export default function SubmitSuggestion() {
     userState,
   );
 
-  const { data: persons, isLoading: isPersonLoading } = trpc.deadperson.getDeadPersonByGraveId.useQuery(
-    { graveId: Number(watchSelectedGrave) ?? 0 },
-    { enabled: !!watchSelectedGrave }
-  );
+  const { data: persons, isLoading: isPersonLoading } =
+    trpc.deadperson.getDeadPersonByGraveId.useQuery(
+      { graveId: Number(watchSelectedGrave) ?? 0 },
+      { enabled: !!watchSelectedGrave },
+    );
 
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
-      { field: 'name', label: 'Name', type: 'text' },
-      { field: 'phoneno', label: 'Phone No.', type: 'phone' },
-      { field: 'type', label: 'Record Type', type: 'select' },
-      { field: 'entityId', label: 'Record', type: 'select' },
-      { field: 'suggestedchanges', label: 'Suggested Changes', type: 'text' },
-      { field: 'reason', label: 'Reason', type: 'text' },
+      { field: "name", label: "Name", type: "text" },
+      { field: "phoneno", label: "Phone No.", type: "phone" },
+      { field: "type", label: "Record Type", type: "select" },
+      { field: "entityId", label: "Record", type: "select" },
+      { field: "suggestedchanges", label: "Suggested Changes", type: "text" },
+      { field: "reason", label: "Reason", type: "text" },
     ]);
 
     if (!isValid) return;
-      
-    const { name, phoneno, type, entityId, watchSelectedGrave, suggestedchanges, reason } = formData;
+
+    const {
+      name,
+      phoneno,
+      type,
+      entityId,
+      watchSelectedGrave,
+      suggestedchanges,
+      reason,
+    } = formData;
 
     const suggestionData = {
       name,
@@ -78,7 +101,7 @@ export default function SubmitSuggestion() {
       type,
       suggestedchanges: suggestedchanges,
       reason,
-      status: 'pending',
+      status: "pending",
       visitorip: visitorIp ?? null,
     };
 
@@ -87,12 +110,12 @@ export default function SubmitSuggestion() {
       return;
     }
 
-    if (type === 'person') {
+    if (type === "person") {
       suggestionData.grave = { id: Number(watchSelectedGrave) };
       suggestionData.deadperson = { id: Number(entityId) };
     }
 
-    if (type === 'grave') {
+    if (type === "grave") {
       suggestionData.grave = { id: Number(entityId) };
     }
 
@@ -103,8 +126,7 @@ export default function SubmitSuggestion() {
   const handleCaptchaVerified = async () => {
     if (!pendingSubmission) return;
 
-    createMutation.mutateAsync(pendingSubmission)
-    .then((res) => {
+    createMutation.mutateAsync(pendingSubmission).then((res) => {
       if (res) {
         setSubmitted(true);
       }
@@ -113,7 +135,7 @@ export default function SubmitSuggestion() {
   };
 
   const handleCaptchaFailed = () => {
-    showError('Captcha gagal. Sila isi semula borang.');
+    showError("Captcha gagal. Sila isi semula borang.");
     handleResetForm();
     setPendingSubmission(null);
   };
@@ -126,12 +148,14 @@ export default function SubmitSuggestion() {
             <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Cadangan Dihantar!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Cadangan Dihantar!
+            </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Cadangan anda telah dihantar kepada admin untuk semakan. 
-              Kami akan memaklumkan anda selepas semakan selesai.
+              Cadangan anda telah dihantar kepada admin untuk semakan. Kami akan
+              memaklumkan anda selepas semakan selesai.
             </p>
-            <Link to={createPageUrl('UserDashboard')}>
+            <Link to={createPageUrl("UserDashboard")}>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
                 Kembali ke Utama
               </Button>
@@ -141,7 +165,7 @@ export default function SubmitSuggestion() {
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-lg mx-auto space-y-4 pb-2">
       <BackNavigation title="Suggestion" />
@@ -149,7 +173,9 @@ export default function SubmitSuggestion() {
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label htmlFor="name" className="dark:text-gray-300">Name <span className="text-red-500">*</span></Label>
+              <Label htmlFor="name" className="dark:text-gray-300">
+                Name <span className="text-red-500">*</span>
+              </Label>
               <Controller
                 name="name"
                 control={control}
@@ -157,7 +183,8 @@ export default function SubmitSuggestion() {
                 render={({ field }) => (
                   <input
                     {...field}
-                    id="name" type="text"
+                    id="name"
+                    type="text"
                     placeholder="Enter name"
                     className="w-full border rounded px-3 py-1 mt-1"
                   />
@@ -166,7 +193,9 @@ export default function SubmitSuggestion() {
             </div>
 
             <div>
-              <Label htmlFor="phoneno" className="dark:text-gray-300">Phone No. <span className="text-red-500">*</span></Label>
+              <Label htmlFor="phoneno" className="dark:text-gray-300">
+                Phone No. <span className="text-red-500">*</span>
+              </Label>
               <Controller
                 name="phoneno"
                 control={control}
@@ -174,7 +203,8 @@ export default function SubmitSuggestion() {
                 render={({ field }) => (
                   <input
                     {...field}
-                    id="phoneno" type="text"
+                    id="phoneno"
+                    type="text"
                     placeholder="Enter phone no."
                     className="w-full border rounded px-3 py-1 mt-1"
                   />
@@ -183,7 +213,9 @@ export default function SubmitSuggestion() {
             </div>
 
             <div>
-              <Label htmlFor="type" className="dark:text-gray-300">Jenis Rekod <span className="text-red-500">*</span></Label>
+              <Label htmlFor="type" className="dark:text-gray-300">
+                Jenis Rekod <span className="text-red-500">*</span>
+              </Label>
               <Controller
                 name="type"
                 control={control}
@@ -193,15 +225,15 @@ export default function SubmitSuggestion() {
                     value={field.value}
                     onValueChange={(val) => {
                       field.onChange(val);
-                      setValue('watchSelectedGrave', '');
-                      setValue('entityId', '');
+                      setValue("watchSelectedGrave", "");
+                      setValue("entityId", "");
                     }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih jenis rekod" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="person">Rekod Si Mati</SelectItem>
+                      <SelectItem value="person">Rekod Arwah</SelectItem>
                       <SelectItem value="grave">Tanah Perkuburan</SelectItem>
                     </SelectContent>
                   </Select>
@@ -210,47 +242,29 @@ export default function SubmitSuggestion() {
             </div>
 
             {/* Grave Selection for Person */}
-              {watch('type') === 'person' && (
-                <Controller
-                  name="watchSelectedGrave"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <div>
-                      <Label className="dark:text-gray-300">Pilih Kubur <span className="text-red-500">*</span></Label>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger><SelectValue placeholder="Pilih kubur" /></SelectTrigger>
-                        <SelectContent>
-                          {nearbyGraves.map(grave => (
-                            <SelectItem key={grave.id} value={String(grave.id)}>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="w-3 h-3" />
-                                {grave.name}
-                                {showEarthDistance(grave.distance)}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                />
-            )}
-
-            {/* Person Selection */}
-            {watch('type') === 'person' && watch('watchSelectedGrave') && (
+            {watch("type") === "person" && (
               <Controller
-              name="entityId"
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
+                name="watchSelectedGrave"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
                   <div>
-                    <Label className="dark:text-gray-300">Pilih Si Mati <span className="text-red-500">*</span></Label>
-                    <Select value={String(field.value)} onValueChange={field.onChange}>
-                      <SelectTrigger><SelectValue placeholder="Pilih si mati" /></SelectTrigger>
+                    <Label className="dark:text-gray-300">
+                      Pilih Kubur <span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih kubur" />
+                      </SelectTrigger>
                       <SelectContent>
-                        {!isPersonLoading && persons.map(p => (
-                          <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                        {nearbyGraves.map((grave) => (
+                          <SelectItem key={grave.id} value={String(grave.id)}>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3 h-3" />
+                              {grave.name}
+                              {showEarthDistance(grave.distance)}
+                            </div>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -259,21 +273,54 @@ export default function SubmitSuggestion() {
               />
             )}
 
-            {/* Grave Selection */}
-            {watch('type') === 'grave' && (
+            {watch("type") === "person" && watch("watchSelectedGrave") && (
               <Controller
                 name="entityId"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <div>
-                    <Label>Pilih Kubur <span className="text-red-500">*</span></Label>
+                    <Label className="dark:text-gray-300">
+                      Pilih Arwah <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Arwah" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!isPersonLoading &&
+                          persons.map((p) => (
+                            <SelectItem key={p.id} value={String(p.id)}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
+            )}
+
+            {/* Grave Selection */}
+            {watch("type") === "grave" && (
+              <Controller
+                name="entityId"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <div>
+                    <Label>
+                      Pilih Kubur <span className="text-red-500">*</span>
+                    </Label>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Pilih kubur berdekatan" />
                       </SelectTrigger>
                       <SelectContent>
-                        {nearbyGraves.slice(0, 20).map(grave => (
+                        {nearbyGraves.slice(0, 20).map((grave) => (
                           <SelectItem key={grave.id} value={String(grave.id)}>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-3 h-3" />
@@ -290,13 +337,19 @@ export default function SubmitSuggestion() {
             )}
 
             <div>
-              <Label htmlFor="suggestedchanges" className="dark:text-gray-300">Cadangan Pembetulan <span className="text-red-500">*</span></Label>
+              <Label htmlFor="suggestedchanges" className="dark:text-gray-300">
+                Cadangan Pembetulan <span className="text-red-500">*</span>
+              </Label>
               <Controller
                 name="suggestedchanges"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <Textarea {...field} rows={5} placeholder="Nyatakan pembetulan..." />
+                  <Textarea
+                    {...field}
+                    rows={5}
+                    placeholder="Nyatakan pembetulan..."
+                  />
                 )}
               />
 
@@ -306,7 +359,9 @@ export default function SubmitSuggestion() {
             </div>
 
             <div>
-              <Label htmlFor="reason" className="dark:text-gray-300">Sebab / Justifikasi <span className="text-red-500">*</span></Label>
+              <Label htmlFor="reason" className="dark:text-gray-300">
+                Sebab / Justifikasi <span className="text-red-500">*</span>
+              </Label>
               <Controller
                 name="reason"
                 control={control}
@@ -320,9 +375,9 @@ export default function SubmitSuggestion() {
               <Button
                 type="submit"
                 disabled={
-                  !watch('type') ||
-                  !watch('entityId') ||
-                  !watch('suggestedchanges')
+                  !watch("type") ||
+                  !watch("entityId") ||
+                  !watch("suggestedchanges")
                 }
               >
                 Hantar Cadangan

@@ -147,11 +147,7 @@ export default function ManageMosques() {
   const { data: mosquesByOrganisation = [], isLoading: loadingOrgMosques } =
     useGetMosquesByOrganisationId(isOrgScoped ? currentOrganisationId : null);
 
-  const { organisationsList, isLoading: orgLoading } =
-    useGetOrganisationPaginated({
-      page: 1,
-      pageSize: 100,
-    });
+  const { organisationsList, isLoading: orgLoading } = useGetOrganisationPaginated({});
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
@@ -249,7 +245,6 @@ export default function ManageMosques() {
   };
 
   const onSubmit = async (formData) => {
-
     const payload = {
       ...formData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,

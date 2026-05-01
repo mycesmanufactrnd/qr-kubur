@@ -1,6 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '../utils/index';
-import { ChevronRight, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "../utils/index";
+import { ChevronRight, ArrowLeft } from "lucide-react";
 
 export default function Breadcrumb({ items }) {
   const navigate = useNavigate();
@@ -10,38 +10,52 @@ export default function Breadcrumb({ items }) {
       <nav className="flex items-center gap-2 text-sm">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
-          
-          return (            
+
+          return (
             <span
               key={item.page || item.label || index}
               className="flex items-center gap-2"
             >
               {/* Chevron separator (not shown for first item) */}
-              {index > 0 && (
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              )}
+              {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
 
               {/* Last item = current page (not clickable) */}
               {isLast ? (
+                // Last item (never clickable)
                 <span
                   className="text-gray-900 dark:text-white font-medium"
                   aria-current="page"
                 >
                   {item.label}
                 </span>
-              ) : (
-                /* Intermediate items = links */
+              ) : item.action ? (
+                // If action exists → button
+                <button
+                  type="button"
+                  onClick={item.action}
+                  className="hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  {item.label}
+                </button>
+              ) : item.page ? (
+                // If page exists → Link
                 <Link
                   to={createPageUrl(item.page)}
                   className="hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   {item.label}
                 </Link>
+              ) : (
+                // Fallback (no page, no action)
+                <span className="text-gray-500 dark:text-gray-400">
+                  {item.label}
+                </span>
               )}
             </span>
           );
 
-          {/*
+          {
+            /*
             <React.Fragment key={index}>
               {index > 0 && (
                 <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -58,7 +72,8 @@ export default function Breadcrumb({ items }) {
                 </Link>
               )}
             </React.Fragment>
-          */}
+          */
+          }
         })}
       </nav>
     </div>

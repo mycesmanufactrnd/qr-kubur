@@ -78,10 +78,9 @@ export default function ManageUsers() {
         ? Number(filterOrganisationId)
         : null,
   });
-  const { organisationsList: organisations } = useGetOrganisationPaginated({
-    page: 1,
-    pageSize: isSuperAdmin ? 1000 : 10,
-  });
+
+  const { organisationsList: organisations } = useGetOrganisationPaginated({});
+
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
   const { createUser, updateUser, deleteUser } = useUserMutations();

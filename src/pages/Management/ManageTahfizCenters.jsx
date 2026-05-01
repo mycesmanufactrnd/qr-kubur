@@ -129,10 +129,7 @@ export default function ManageTahfizCenters() {
   const { createUser } = useUserMutations();
   const paymentConfigMutation = useUpsertConfigByEntity();
 
-  const { organisationsList } = useGetOrganisationPaginated({
-    page: 1,
-    pageSize: 500,
-  });
+  const { organisationsList } = useGetOrganisationPaginated({});
 
   const {
     control,
@@ -544,7 +541,7 @@ export default function ManageTahfizCenters() {
     };
 
     loadConfigs();
-  }, [existingPaymentConfigs, editingCenter?.id, isDialogOpen]);
+  }, [existingPaymentConfigs.length, editingCenter?.id, isDialogOpen]);
 
   const syncServiceDraftToForm = (entries) => {
     const normalized = [];

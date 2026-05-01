@@ -20,13 +20,17 @@
 ✅ 18. bayaran khairat kematian transaction history untuk user
 ✅ 19. mydigital Id, or tangkap gamabr IC and get number 
 ✅ 20. donation untuk jaga kubur (letak di kubur (derma)), hide filter kalua ada pre select, just info
-21. search bar refine --- 
+✅ 21. search bar refine --- 
 ✅ 22. derma default nama (hamba allah)
 ✅ 23. live tahlil ---- setup di server
-24. dashboard connection masjid ngn kubur
+✅ 24. dashboard connection masjid ngn kubur
 ✅ 24.5 dashboard statistic
 25. derma & tahlil, ada web page yg direct untuk derma dan tahlil
-
+✅ 26. semua Si mati -> arwah
+27. melayukan semua & night mode
+28. letak nama waris ngn no fon kat maklumat jenazah
+29. frequent backup data
+30. organisationList ---> jagn list all, adakan filter sikit
 
 ***** disabled={!isSuperAdmin} ******
 search tu, supaya boleh masukkn permission jgak

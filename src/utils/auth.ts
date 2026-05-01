@@ -1,9 +1,9 @@
-import { createPageUrl } from './index';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { trpc, trpcClient } from './trpc';
-import { STATES_MY } from './enums';
-import { useNavigate } from 'react-router-dom';
-import { captureError } from './helpers';
+import { createPageUrl } from "./index";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { trpc, trpcClient } from "./trpc";
+import { STATES_MY } from "./enums";
+import { useNavigate } from "react-router-dom";
+import { captureError } from "./helpers";
 
 const GOOGLE_AUTH_KEY = "googleAuth";
 const GOOGLE_SIGNED_OUT_KEY = "googleSignedOut";
@@ -36,7 +36,9 @@ const getStoredTokensFallback = () => {
 
 export function getStoredGoogleUser(): any | null {
   try {
-    const raw = localStorage.getItem(GOOGLE_AUTH_KEY) ?? sessionStorage.getItem(GOOGLE_AUTH_KEY);
+    const raw =
+      localStorage.getItem(GOOGLE_AUTH_KEY) ??
+      sessionStorage.getItem(GOOGLE_AUTH_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -86,7 +88,9 @@ export function handleLoginTRPC() {
         sessionStorage.setItem("clientIP", data.clientIp);
         sessionStorage.setItem("appUserAuth", JSON.stringify(data));
 
-        const permissions = await trpcClient.permission.getByUser.query({ userId: data.id });
+        const permissions = await trpcClient.permission.getByUser.query({
+          userId: data.id,
+        });
         sessionStorage.setItem("permissions", JSON.stringify(permissions));
 
         if (data.role === "superadmin") {
@@ -100,7 +104,11 @@ export function handleLoginTRPC() {
           return;
         }
 
-        if (data.role === "admin" || data.role === "employee" || data.organisation) {
+        if (
+          data.role === "admin" ||
+          data.role === "employee" ||
+          data.organisation
+        ) {
           window.location.href = createPageUrl("AdminDashboard");
           return;
         }
@@ -111,7 +119,11 @@ export function handleLoginTRPC() {
         clearTokensFallback();
         setError("Your account is not set up for admin access.");
       } catch (e: any) {
-        captureError("Login failed", { action: "login" }, { message: e?.message });
+        captureError(
+          "Login failed",
+          { action: "login" },
+          { message: e?.message },
+        );
         console.error(e);
         sessionStorage.removeItem("appUserAuth");
         sessionStorage.removeItem("permissions");
@@ -122,7 +134,11 @@ export function handleLoginTRPC() {
       }
     },
     onError: (err) => {
-      captureError("Login failed", { action: "login" }, { message: err.message });
+      captureError(
+        "Login failed",
+        { action: "login" },
+        { message: err.message },
+      );
       console.error(err);
       setError(err.message || "Login failed");
       setLoading(false);
@@ -145,14 +161,14 @@ export function handleLoginTRPC() {
 export async function refreshAccessToken() {
   try {
     const { refreshToken } = getStoredTokensFallback();
-    
+
     if (!refreshToken) {
       console.warn("No refresh token available");
       return null;
     }
 
-    const response = await trpcClient.auth.refresh.mutate({ 
-      refreshToken 
+    const response = await trpcClient.auth.refresh.mutate({
+      refreshToken,
     });
 
     if (response) {
@@ -168,21 +184,21 @@ export async function refreshAccessToken() {
 }
 
 export async function handleLogout(clearPermissions?: () => void) {
-    clearPermissions?.();
-    
-    try {
-      await trpcClient.auth.logout.mutate();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-    
-    sessionStorage.removeItem('appUserAuth');
-    sessionStorage.removeItem('superAdminAuth');
-    sessionStorage.removeItem('isImpersonating');
-    clearTokensFallback();
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    sessionStorage.removeItem('permissions'); 
-    window.location.href = createPageUrl('AppUserLogin');
+  clearPermissions?.();
+
+  try {
+    await trpcClient.auth.logout.mutate();
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+
+  sessionStorage.removeItem("appUserAuth");
+  sessionStorage.removeItem("superAdminAuth");
+  sessionStorage.removeItem("isImpersonating");
+  clearTokensFallback();
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem("permissions");
+  window.location.href = createPageUrl("AppUserLogin");
 }
 
 export function removeImpersonation() {
@@ -216,12 +232,16 @@ async function refreshAppUserAuth(cachedUser: any) {
   if (!cachedUser?.id) return null;
 
   try {
-    const refreshedUser = await trpcClient.users.getUserById.query({ id: Number(cachedUser.id) });
+    const refreshedUser = await trpcClient.users.getUserById.query({
+      id: Number(cachedUser.id),
+    });
 
     if (refreshedUser) {
       sessionStorage.setItem("appUserAuth", JSON.stringify(refreshedUser));
 
-      const permissions = await trpcClient.permission.getByUser.query({ userId: Number(refreshedUser.id) });
+      const permissions = await trpcClient.permission.getByUser.query({
+        userId: Number(refreshedUser.id),
+      });
       sessionStorage.setItem("permissions", JSON.stringify(permissions));
 
       return refreshedUser;
@@ -251,7 +271,6 @@ export function useAdminAccess() {
           if (isMounted) {
             setCurrentUser(cachedUser);
           }
-
         }
       } catch (e) {
         if (isMounted) {
@@ -301,15 +320,18 @@ export function useAdminAccess() {
   const isEmployee = currentUser?.role === "employee";
   const isTahfizAdmin = isAdmin && !!currentUser?.tahfizcenter?.id;
   const isOrganisationAdmin = isAdmin && !!currentUser?.organisation?.id;
+  const isOrgAdminGraveSvc =
+    !!isOrganisationAdmin && !!currentUser?.organisation?.isgraveservices;
 
   const hasAdminAccess = isSuperAdmin || isAdmin || isEmployee;
 
   let currentUserStates = [];
   if (isSuperAdmin) {
     currentUserStates = STATES_MY;
-  }
-  else {
-    currentUserStates = Array.isArray(currentUser?.states) ? currentUser.states : [currentUser?.states].filter(Boolean);
+  } else {
+    currentUserStates = Array.isArray(currentUser?.states)
+      ? currentUser.states
+      : [currentUser?.states].filter(Boolean);
   }
 
   const checkRole = {
@@ -318,17 +340,22 @@ export function useAdminAccess() {
     employee: isEmployee,
     tahfiz: isTahfizAdmin,
     organisation: isOrganisationAdmin,
-  }
+  };
 
   const userEmail = currentUser?.email ?? null;
 
-  return { 
-    role, 
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, isAdmin, isEmployee, isTahfizAdmin, isOrganisationAdmin,
-    checkRole, 
+  return {
+    role,
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
+    isAdmin,
+    isEmployee,
+    isTahfizAdmin,
+    isOrganisationAdmin,
+    isOrgAdminGraveSvc,
+    checkRole,
     currentUserStates,
     userEmail,
     refreshUser,

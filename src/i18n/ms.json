@@ -120,7 +120,7 @@
   "Pending Items": "Item Menunggu",
   "Pending Approvals": "Kelulusan Menunggu",
   "Total Graves": "Jumlah Kubur",
-  "Total Deceased": "Jumlah Si Mati",
+  "Total Deceased": "Jumlah Arwah",
   "Total Organisations": "Jumlah Organisasi",
   "Total Tahfiz": "Jumlah Tahfiz",
   "Total Donations": "Jumlah Derma",
@@ -130,7 +130,7 @@
 
   "Manage Users": "Urus Pengguna",
   "Manage Graves": "Urus Kubur",
-  "Manage Deceased": "Urus Si Mati",
+  "Manage Deceased": "Urus Arwah",
   "Manage Organisations": "Urus Organisasi",
   "Manage Tahfiz": "Urus Tahfiz",
   "Manage Suggestions": "Urus Cadangan",
@@ -193,7 +193,7 @@
   "Admin Notes": "Catatan Admin",
   "Record Details": "Butiran Rekod",
   "Awaiting Review": "Menunggu semakan",
-  "Record Person": "Rekod Si Mati",
+  "Record Person": "Rekod Arwah",
   "Record Grave": "Tanah Perkuburan",
   "Record Org": "Organisasi",
   "Tahfiz Center": "Pusat Tahfiz",
@@ -240,7 +240,7 @@
   "Advanced Search":"Carian Lanjutan",
   "All cemeteries": "Semua tanah perkuburan",
   "Select cemetery": "Pilih tanah perkuburan",
-  "Search for the deceased's name...": "Cari nama si mati...",
+  "Search for the deceased's name...": "Cari nama Arwah...",
 
   "Manage User Permissions": "Urus Kebenaran Pengguna",
   "Search User": "Cari Pengguna",
@@ -361,7 +361,7 @@
 
   "Record Type": "Jenis Rekod",
   "Select Record Type": "Pilih Jenis Rekod",
-  "Select Deceased": "Pilih Si Mati",
+  "Select Deceased": "Pilih Arwah",
   "Select nearby grave": "Pilih kubur berdekatan",
   "Specify Correction...": "Nyatakan pembetulan…",
   "Example: 'The name should be Ahmad bin Abu, not Ahmad bin Bakar'": "Contoh: \"Nama sepatutnya Ahmad bin Abu, bukan Ahmad bin Bakar\"",
@@ -508,5 +508,14 @@
   "Service Amount": "Jumlah Perkhidmatan",
   "Total Paid": "Jumlah Dibayar",
   "Tahlil Photos": "Gambar Tahlil",
-  "Service Photos": "Gambar Perkhidmatan"
+  "Service Photos": "Gambar Perkhidmatan",
+
+  "Sign In": "Log Masuk",
+  "Guest Google Sign-In": "Log Masuk Google (Tetamu)",
+  "Account": "Akaun",
+  "Transaction Record": "Rekod Transaksi",
+  "Sign out of Google": "Log Keluar Google",
+  "Phone Number": "Nombor Telefon",
+  "Saved phone number used to pre-fill payment forms.": "Nombor telefon yang disimpan akan diisi secara automatik dalam borang pembayaran.",
+  "Organisation Register": "Daftar Organisasi"
 }

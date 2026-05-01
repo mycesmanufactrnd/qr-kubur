@@ -496,5 +496,14 @@
   "Service Amount": "مبلغ الخدمة",
   "Total Paid": "الإجمالي المدفوع",
   "Tahlil Photos": "صور التهليل",
-  "Service Photos": "صور الخدمة"
+  "Service Photos": "صور الخدمة",
+
+  "Sign In": "تسجيل الدخول",
+  "Guest Google Sign-In": "تسجيل الدخول بـ Google للضيف",
+  "Account": "الحساب",
+  "Transaction Record": "سجل المعاملات",
+  "Sign out of Google": "تسجيل الخروج من Google",
+  "Phone Number": "رقم الهاتف",
+  "Saved phone number used to pre-fill payment forms.": "رقم الهاتف المحفوظ يُستخدم لملء نماذج الدفع تلقائياً.",
+  "Organisation Register": "تسجيل المنظمة"
 }
