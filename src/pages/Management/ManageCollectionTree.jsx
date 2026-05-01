@@ -664,6 +664,8 @@ export default function ManageCollectionTree() {
           <button
             onClick={() => setShowCreate(true)}
             className="relative flex items-center gap-1.5 h-9 px-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold transition-all backdrop-blur-sm"
+          >
+            <Plus className="w-4 h-4" />
             New Collection
           </button>
         </div>

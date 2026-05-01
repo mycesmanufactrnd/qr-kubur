@@ -1,50 +1,68 @@
+// ─── Dashboards ───────────────────────────────────────────────────────────────
+import __Layout from '@/Layout.jsx';
+import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
+import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
+import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
+import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
+import StatisticDashboard from '@/pages/Dashboards/StatisticDashboard';
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 import AppUserLogin from '@/pages/AppUserLogin';
-import SearchTahlil from '@/pages/SearchTahlil';
-import CheckTahlilStatus from '@/pages/CheckTahlilStatus';
-import CheckServiceStatus from '@/pages/CheckServiceStatus';
-import DeadPersonDetails from '@/pages/DeadPersonDetails';
-import DonationPage from '@/pages/DonationPage';
-import GraveDetails from '@/pages/GraveDetails';
-import ManageUsers from '@/pages/Management/ManageUsers';
-import NotificationPage from '@/pages/NotificationPage';
+import ImpersonateUser from '@/pages/ImpersonateUser';
+
+// ─── Public / User-facing ─────────────────────────────────────────────────────
 import ScanQR from '@/pages/ScanQR';
 import SearchGrave from '@/pages/SearchGrave';
-import SearchWaqf from '@/pages/SearchWaqf';
-import SearchHeritage from '@/pages/SearchHeritage';
-import HeritageDetails from '@/pages/HeritageDetails';
+import GraveDetails from '@/pages/GraveDetails';
+import DeadPersonDetails from '@/pages/DeadPersonDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
 import TahfizDetails from '@/pages/TahfizDetails';
-import OrganisationDetails from '@/pages/OrganisationDetails.jsx';
-import SettingsPage from '@/pages/SettingsPage';
-import SubmitSuggestion from '@/pages/SubmitSuggestion';
-// import GraveService from '@/pages/GraveService';
-import SurahPage from '@/pages/SurahPage';
-import TahlilRequestPage from '@/pages/TahlilRequestPage';
-import SolatJenazah from '@/pages/SolatJenazah.jsx';
+import SearchHeritage from '@/pages/SearchHeritage';
+import HeritageDetails from '@/pages/HeritageDetails';
+import SearchWaqf from '@/pages/SearchWaqf';
+import WaqfDetail from '@/pages/WaqfDetail.jsx';
 import SearchMosque from '@/pages/SearchMosque.jsx';
+import MosqueDetails from '@/pages/MosqueDetails.jsx';
+import OrganisationDetails from '@/pages/OrganisationDetails.jsx';
+import MapView from '@/pages/MapView.jsx';
+import NotificationPage from '@/pages/NotificationPage';
+import SettingsPage from '@/pages/SettingsPage';
+
+// ─── Donations & Payments ─────────────────────────────────────────────────────
+import DonationPage from '@/pages/DonationPage';
+import DeathCharityUserPayment from '@/pages/DeathCharityUserPayment.jsx';
+import CheckServiceStatus from '@/pages/CheckServiceStatus';
+
+// ─── Tahlil & Requests ────────────────────────────────────────────────────────
+import TahlilRequestPage from '@/pages/TahlilRequestPage';
+import SearchTahlil from '@/pages/SearchTahlil';
+import CheckTahlilStatus from '@/pages/CheckTahlilStatus';
+
+// ─── Islamic Content ──────────────────────────────────────────────────────────
+import SurahPage from '@/pages/SurahPage';
+import SolatJenazah from '@/pages/SolatJenazah.jsx';
+import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
 import DailyDua from '@/pages/DailyDua.jsx';
-import JitsiRoom from '@/pages/JitsiRoom.jsx';
-import WaqfDetail from '@/pages/WaqfDetail.jsx';
-import MosqueDetails from '@/pages/MosqueDetails.jsx';
-import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
 import AsmaulHusna from '@/pages/Asmaulhusna.jsx';
 import Tasbih from '@/pages/Tasbih.jsx';
 import PrayerTimes from '@/pages/PrayerTimes.jsx';
 import RukunIslam from '@/pages/RukunIslam.jsx';
-import DeathCharityUserPayment from '@/pages/DeathCharityUserPayment.jsx';
-// Superadmin & Settings
-import GanttChartScheduling from '@/pages/GanttChartScheduling';
-import ViewLogs from '@/pages/ViewLogs';
-import ImpersonateUser from '@/pages/ImpersonateUser';
-import IconLibrary from '@/pages/Settings/IconLibrary';
-import Ollama from '@/pages/Settings/Ollama.jsx';
+
+// ─── Suggestions & Misc ───────────────────────────────────────────────────────
+import SubmitSuggestion from '@/pages/SubmitSuggestion';
+import JitsiRoom from '@/pages/JitsiRoom.jsx';
+import OrganisationQuickRegister from '@/pages/OrganisationQuickRegister.jsx';
+import MyPaymentConfig from '@/pages/MyPaymentConfig.jsx';
+
+// ─── Settings (public pages) ──────────────────────────────────────────────────
 import PrivacyPolicy from '@/pages/Settings/PrivacyPolicy';
 import TermsAndConditions from '@/pages/Settings/TermsAndConditions';
 import UserTransactionRecords from '@/pages/Settings/UserTransactionRecords';
 import FAQ from '@/pages/Settings/FAQ';
-import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
-// Management
+
+// ─── Management ───────────────────────────────────────────────────────────────
+import ManageUsers from '@/pages/Management/ManageUsers';
 import ManageCollectionTree from '@/pages/Management/ManageCollectionTree';
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
 import ManageDonations from '@/pages/Management/ManageDonations';
@@ -52,8 +70,6 @@ import ManageGraves from '@/pages/Management/ManageGraves';
 import ManageOrganisationTypes from '@/pages/Management/ManageOrganisationTypes';
 import ManageOrganisations from '@/pages/Management/ManageOrganisations.jsx';
 import ManageTempOrganisations from '@/pages/Management/ManageTempOrganisations.jsx';
-import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
-import ManagePaymentPlatforms from '@/pages/Management/ManagePaymentPlatforms';
 import ManagePermissions from '@/pages/Management/ManagePermissions.jsx';
 import ManageSuggestions from '@/pages/Management/ManageSuggestions';
 import ManageTahfizCenters from '@/pages/Management/ManageTahfizCenters';
@@ -68,36 +84,88 @@ import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMembe
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
-// Payment
+
+// ─── Payment ──────────────────────────────────────────────────────────────────
+import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
+import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
+import ManagePaymentPlatforms from '@/pages/Management/ManagePaymentPlatforms';
 import FinancialReports from '@/pages/Payment/FinancialReports.jsx';
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
 import PaymentComparison from '@/pages/Payment/PaymentComparison.jsx';
-// Dashboard
-import __Layout from '@/Layout.jsx';
-import StatisticDashboard from '@/pages/Dashboards/StatisticDashboard';
-import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
-import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
-import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
-import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
-import OrganisationQuickRegister from '@/pages/OrganisationQuickRegister.jsx';
-import MyPaymentConfig from '@/pages/MyPaymentConfig.jsx';
-import MapView from '@/pages/MapView.jsx';
+
+// ─── Superadmin / System ──────────────────────────────────────────────────────
+import GanttChartScheduling from '@/pages/GanttChartScheduling';
+import ViewLogs from '@/pages/ViewLogs';
+import IconLibrary from '@/pages/Settings/IconLibrary';
+import Ollama from '@/pages/Settings/Ollama.jsx';
 
 
 export const PAGES = {
-    "Ollama": Ollama,
-    "JitsiRoom": JitsiRoom,
+    // ── Dashboards ──────────────────────────────────────────────────────────
+    "UserDashboard": UserDashboard,
+    "AdminDashboard": AdminDashboard,
+    "TahfizDashboard": TahfizDashboard,
+    "SuperadminDashboard": SuperadminDashboard,
+    "StatisticDashboard": StatisticDashboard,
+
+    // ── Auth ────────────────────────────────────────────────────────────────
     "AppUserLogin": AppUserLogin,
+    "ImpersonateUser": ImpersonateUser,
+
+    // ── Public / User-facing ────────────────────────────────────────────────
+    "ScanQR": ScanQR,
+    "SearchGrave": SearchGrave,
+    "GraveDetails": GraveDetails,
+    "DeadPersonDetails": DeadPersonDetails,
+    "SearchTahfiz": SearchTahfiz,
+    "TahfizDetails": TahfizDetails,
+    "SearchHeritage": SearchHeritage,
+    "HeritageDetails": HeritageDetails,
+    "SearchWaqf": SearchWaqf,
+    "WaqfDetail": WaqfDetail,
+    "SearchMosque": SearchMosque,
+    "MosqueDetailsPage": MosqueDetails,
+    "OrganisationDetails": OrganisationDetails,
+    "MapView": MapView,
+    "NotificationPage": NotificationPage,
+    "SettingsPage": SettingsPage,
+
+    // ── Donations & Payments ────────────────────────────────────────────────
+    "DonationPage": DonationPage,
+    "DeathCharityUserPayment": DeathCharityUserPayment,
+    "CheckServiceStatus": CheckServiceStatus,
+
+    // ── Tahlil & Requests ───────────────────────────────────────────────────
+    "TahlilRequestPage": TahlilRequestPage,
     "SearchTahlil": SearchTahlil,
     "CheckTahlilStatus": CheckTahlilStatus,
-    "CheckServiceStatus": CheckServiceStatus,
-    "DeadPersonDetails": DeadPersonDetails,
-    "DonationPage": DonationPage,
-    "GraveDetails": GraveDetails,
-    "IconLibrary": IconLibrary,
+
+    // ── Islamic Content ─────────────────────────────────────────────────────
+    "SurahPage": SurahPage,
+    "SolatJenazah": SolatJenazah,
+    "JenazahEmergency": JenazahEmergency,
     "IslamicCalendar": IslamicCalendar,
     "DailyDua": DailyDua,
+    "Asmaulhusna": AsmaulHusna,
+    "Tasbih": Tasbih,
+    "PrayerTimes": PrayerTimes,
+    "RukunIslam": RukunIslam,
+
+    // ── Suggestions & Misc ──────────────────────────────────────────────────
+    "SubmitSuggestion": SubmitSuggestion,
+    "JitsiRoom": JitsiRoom,
+    "OrganisationQuickRegister": OrganisationQuickRegister,
+    "MyPaymentConfig": MyPaymentConfig,
+
+    // ── Settings (public pages) ─────────────────────────────────────────────
+    "PrivacyPolicy": PrivacyPolicy,
+    "TermsAndConditions": TermsAndConditions,
+    "UserTransactionRecords": UserTransactionRecords,
+    "FAQ": FAQ,
+
+    // ── Management ──────────────────────────────────────────────────────────
+    "ManageUsers": ManageUsers,
     "ManageCollectionTree": ManageCollectionTree,
     "ManageDeadPersons": ManageDeadPersons,
     "ManageDonations": ManageDonations,
@@ -105,9 +173,6 @@ export const PAGES = {
     "ManageOrganisationTypes": ManageOrganisationTypes,
     "ManageOrganisations": ManageOrganisations,
     "ManageTempOrganisations": ManageTempOrganisations,
-    "ManagePaymentFields": ManagePaymentFields,
-    "ManagePaymentDistribution": ManagePaymentDistribution,
-    "ManagePaymentPlatforms": ManagePaymentPlatforms,
     "ManagePermissions": ManagePermissions,
     "ManageSuggestions": ManageSuggestions,
     "ManageTahfizCenters": ManageTahfizCenters,
@@ -122,52 +187,22 @@ export const PAGES = {
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ManageQuotations": ManageQuotations,
-    "ImpersonateUser": ImpersonateUser,
-    "ManageUsers": ManageUsers,
-    "NotificationPage": NotificationPage,
-    "PrivacyPolicy": PrivacyPolicy,
-    "ScanQR": ScanQR,
-    "SearchGrave": SearchGrave,
-    "SearchWaqf": SearchWaqf,
-    "SearchHeritage": SearchHeritage,
-    "HeritageDetails": HeritageDetails,
-    "SearchTahfiz": SearchTahfiz,
-    "TahfizDetails": TahfizDetails,
-    "OrganisationDetails": OrganisationDetails,
-    "SettingsPage": SettingsPage,
-    "OrganisationQuickRegister": OrganisationQuickRegister,
-    "MyPaymentConfig": MyPaymentConfig,
-    "SubmitSuggestion": SubmitSuggestion,
-    "SurahPage": SurahPage,
-    // "GraveService": GraveService,
-    "TahlilRequestPage": TahlilRequestPage,
-    "TermsAndConditions": TermsAndConditions,
-    "UserTransactionRecords": UserTransactionRecords,
-    "FAQ": FAQ,
-    "ViewLogs": ViewLogs,
+
+    // ── Payment ─────────────────────────────────────────────────────────────
+    "ManagePaymentDistribution": ManagePaymentDistribution,
+    "ManagePaymentFields": ManagePaymentFields,
+    "ManagePaymentPlatforms": ManagePaymentPlatforms,
     "FinancialReports": FinancialReports,
+    
+    // ── Superadmin / System ─────────────────────────────────────────────────
+    "PaymentComparison": PaymentComparison,
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
-    "PaymentComparison": PaymentComparison,
-    "SolatJenazah": SolatJenazah,
-    "SearchMosque": SearchMosque,
-    "WaqfDetail": WaqfDetail,
-    "MosqueDetailsPage": MosqueDetails,
-    "JenazahEmergency": JenazahEmergency,
-    "Asmaulhusna": AsmaulHusna,
-    "Tasbih": Tasbih,
-    "PrayerTimes": PrayerTimes,
-    "RukunIslam": RukunIslam,
-    "DeathCharityUserPayment": DeathCharityUserPayment,
     "GanttChartScheduling": GanttChartScheduling,
-    "MapView": MapView,
+    "ViewLogs": ViewLogs,
+    "IconLibrary": IconLibrary,
+    "Ollama": Ollama,
 
-    // Dashboard
-    "StatisticDashboard": StatisticDashboard,
-    "AdminDashboard": AdminDashboard,
-    "TahfizDashboard": TahfizDashboard,
-    "SuperadminDashboard": SuperadminDashboard,
-    "UserDashboard": UserDashboard,
 }
 
 export const pagesConfig = {

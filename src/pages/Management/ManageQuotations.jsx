@@ -1,4 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import MobileManageQuotations from "@/pages/Mobile/ManageQuotations";
+
+function useIsNarrow(threshold = 1024) {
+  const [narrow, setNarrow] = useState(() => window.innerWidth < threshold);
+  const handler = useCallback(() => setNarrow(window.innerWidth < threshold), [threshold]);
+  useEffect(() => {
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [handler]);
+  return narrow;
+}
 import {
   FileText,
   CheckCircle,
@@ -7,6 +19,7 @@ import {
   Upload,
   Image,
   MapPin,
+  X,
 } from "lucide-react";
 import DirectionButton from "@/components/DirectionButton";
 import ShareButton from "@/components/ShareButton";
@@ -48,10 +61,43 @@ import { formatRM } from "@/utils/helpers";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
 import { showError } from "@/components/ToastrNotification";
 
-export default function ManageQuotations() {
+function ManageQuotationsDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const [page, setPage] = useState(1);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlPage     = parseInt(searchParams.get("page")      || "1");
+  const urlStatus   = searchParams.get("status")   || "all";
+  const urlService  = searchParams.get("service")  || "";
+  const urlDateFrom = searchParams.get("dateFrom") || "";
+  const urlDateTo   = searchParams.get("dateTo")   || "";
+
+  const [tempStatus,   setTempStatus]   = useState(urlStatus);
+  const [tempService,  setTempService]  = useState(urlService);
+  const [tempDateFrom, setTempDateFrom] = useState(urlDateFrom);
+  const [tempDateTo,   setTempDateTo]   = useState(urlDateTo);
+
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    setTempStatus(urlStatus);
+    setTempService(urlService);
+    setTempDateFrom(urlDateFrom);
+    setTempDateTo(urlDateTo);
+  }, [urlStatus, urlService, urlDateFrom, urlDateTo]);
+
+  const handleSearch = () => {
+    const params = { page: "1" };
+    if (tempStatus !== "all") params.status  = tempStatus;
+    if (tempService)          params.service = tempService;
+    if (tempDateFrom)         params.dateFrom = tempDateFrom;
+    if (tempDateTo)           params.dateTo   = tempDateTo;
+    setSearchParams(params);
+  };
+
+  const handleReset = () => setSearchParams({});
+  const page = urlPage;
+  const setPage = (p) => setSearchParams({ ...Object.fromEntries(searchParams), page: String(p) });
+
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [transactionAccount, setTransactionAccount] = useState(null);
@@ -78,6 +124,10 @@ export default function ManageQuotations() {
   const { quotationList, totalPages, isLoading } = useGetQuotationPaginated({
     page,
     pageSize: itemsPerPage,
+    filterStatus: urlStatus === "all" ? null : urlStatus,
+    filterService: urlService || null,
+    dateFrom: urlDateFrom || null,
+    dateTo: urlDateTo || null,
   });
 
   const updateMutation = useUpdateQuotation();
@@ -368,6 +418,47 @@ export default function ManageQuotations() {
         </h1>
       </div>
 
+      <Card className="border-0 shadow-md">
+        <CardContent className="p-4 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <p className="text-xs text-gray-500 mb-1">{translate("Status")}</p>
+              <select
+                value={tempStatus}
+                onChange={(e) => setTempStatus(e.target.value)}
+                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+              >
+                <option value="all">{translate("All Status")}</option>
+                <option value="pending">{translate("Pending")}</option>
+                <option value="completed">{translate("Completed")}</option>
+                <option value="rejected">{translate("Rejected")}</option>
+              </select>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">{translate("Service")}</p>
+              <Input
+                placeholder={translate("Service name")}
+                value={tempService}
+                onChange={(e) => setTempService(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">{translate("Date From")}</p>
+              <Input type="date" value={tempDateFrom} onChange={(e) => setTempDateFrom(e.target.value)} />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1">{translate("Date To")}</p>
+              <Input type="date" value={tempDateTo} onChange={(e) => setTempDateTo(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleSearch} className="bg-sky-600 hover:bg-sky-700 px-6">{translate("Search")}</Button>
+            <Button variant="outline" onClick={handleReset}><X className="w-4 h-4 mr-2" />{translate("Reset")}</Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-3 gap-4">
         {[
           {
@@ -480,13 +571,13 @@ export default function ManageQuotations() {
           </Table>
           {totalPages > 0 && (
             <Pagination
-              currentPage={page}
+              currentPage={urlPage}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={(p) => setSearchParams({ ...Object.fromEntries(searchParams), page: String(p) })}
               itemsPerPage={itemsPerPage}
               onItemsPerPageChange={(v) => {
                 setItemsPerPage(v);
-                setPage(1);
+                setSearchParams({ ...Object.fromEntries(searchParams), page: "1" });
               }}
               totalItems={quotationList.total}
             />
@@ -921,4 +1012,9 @@ export default function ManageQuotations() {
       </Dialog>
     </div>
   );
+}
+
+export default function ManageQuotations() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? <MobileManageQuotations /> : <ManageQuotationsDesktop />;
 }

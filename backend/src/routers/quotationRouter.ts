@@ -48,10 +48,14 @@ export const quotationRouter = router({
         pageSize: z.number().min(1).optional().default(10),
         currentUserOrganisation: z.number().optional().nullable(),
         isSuperAdmin: z.boolean().optional().default(false),
+        filterStatus: z.nativeEnum(QuotationStatus).optional().nullable(),
+        filterService: z.string().optional().nullable(),
+        dateFrom: z.string().optional().nullable(),
+        dateTo: z.string().optional().nullable(),
       }),
     )
     .query(async ({ input }) => {
-      const { page = 1, pageSize = 10, currentUserOrganisation, isSuperAdmin } = input;
+      const { page = 1, pageSize = 10, currentUserOrganisation, isSuperAdmin, filterStatus, filterService, dateFrom, dateTo } = input;
       const quotationRepo = AppDataSource.getRepository(Quotation);
 
       const qb = quotationRepo
@@ -65,6 +69,26 @@ export const quotationRouter = router({
       if (!isSuperAdmin) {
         if (!currentUserOrganisation) return { items: [], total: 0 };
         qb.where("quotation.organisationId = :orgId", { orgId: currentUserOrganisation });
+      }
+
+      if (filterStatus) {
+        qb.andWhere("quotation.status = :status", { status: filterStatus });
+      }
+
+      if (filterService) {
+        qb.andWhere("LOWER(CAST(quotation.selectedservices AS TEXT)) LIKE :service", {
+          service: `%${filterService.toLowerCase()}%`,
+        });
+      }
+
+      if (dateFrom) {
+        qb.andWhere("quotation.createdat >= :dateFrom", { dateFrom: new Date(dateFrom) });
+      }
+
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        qb.andWhere("quotation.createdat <= :dateTo", { dateTo: end });
       }
 
       const [items, total] = await qb.getManyAndCount();

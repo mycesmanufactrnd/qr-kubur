@@ -2,16 +2,23 @@ import { translate } from "@/utils/translations";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useAdminAccess } from "@/utils/auth";
+import { createPageUrl } from "@/utils";
 
 export default function BackNavigation({ title = "Back" }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { hasAdminAccess, isTahfizAdmin } = useAdminAccess();
 
   const handleBack = () => {
     const params = new URLSearchParams(location.search);
     const haveParam = params.get("status_id") === "1";
 
-    if (haveParam) {
+    if (isTahfizAdmin) {
+      navigate(createPageUrl("TahfizDashboard"), { replace: true });
+    } else if (hasAdminAccess) {
+      navigate(createPageUrl("AdminDashboard"), { replace: true });
+    } else if (haveParam) {
       navigate("/", { replace: true });
     } else {
       navigate(-1);

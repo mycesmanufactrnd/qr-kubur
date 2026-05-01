@@ -7,9 +7,17 @@ const titleMessage = "Quotation";
 export function useGetQuotationPaginated({
   page,
   pageSize,
+  filterStatus,
+  filterService,
+  dateFrom,
+  dateTo,
 }: {
   page: number;
   pageSize: number;
+  filterStatus?: string | null;
+  filterService?: string | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
 }) {
   const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
@@ -19,6 +27,10 @@ export function useGetQuotationPaginated({
       pageSize,
       currentUserOrganisation: currentUser?.organisation?.id ?? null,
       isSuperAdmin,
+      filterStatus: filterStatus as any ?? null,
+      filterService: filterService ?? null,
+      dateFrom: dateFrom ?? null,
+      dateTo: dateTo ?? null,
     },
     { enabled: hasAdminAccess && !!currentUser },
   );

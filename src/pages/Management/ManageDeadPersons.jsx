@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import MobileManageDeadPersons from "@/pages/Mobile/ManageDeadPersons";
 import { useSearchParams } from "react-router-dom";
 import {
   Users,
@@ -66,7 +67,22 @@ import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { resolveFileUrl } from "@/utils";
 
+function useIsNarrow(threshold = 1024) {
+  const [narrow, setNarrow] = useState(() => window.innerWidth < threshold);
+  const handler = useCallback(() => setNarrow(window.innerWidth < threshold), [threshold]);
+  useEffect(() => {
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [handler]);
+  return narrow;
+}
+
 export default function ManageDeadPersons() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? <MobileManageDeadPersons /> : <ManageDeadPersonsDesktop />;
+}
+
+function ManageDeadPersonsDesktop() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
     useAdminAccess();
 

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import MobileManageGraves from "@/pages/Mobile/ManageGraves";
 import { useSearchParams } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import {
@@ -68,7 +69,22 @@ import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { resolveFileUrl } from "@/utils";
 
+function useIsNarrow(threshold = 1024) {
+  const [narrow, setNarrow] = useState(() => window.innerWidth < threshold);
+  const handler = useCallback(() => setNarrow(window.innerWidth < threshold), [threshold]);
+  useEffect(() => {
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [handler]);
+  return narrow;
+}
+
 export default function ManageGraves() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? <MobileManageGraves /> : <ManageGravesDesktop />;
+}
+
+function ManageGravesDesktop() {
   const {
     currentUser,
     loadingUser,
