@@ -62,70 +62,70 @@ function KpiCard({
 }) {
   const cm = {
     emerald: {
-      bg: "bg-emerald-50",
+      bg: "bg-emerald-50 dark:bg-emerald-900/20",
       icon: "bg-emerald-500",
-      text: "text-emerald-700",
-      val: "text-emerald-800",
+      text: "text-emerald-700 dark:text-emerald-400",
+      val: "text-emerald-800 dark:text-emerald-300",
     },
     blue: {
-      bg: "bg-blue-50",
+      bg: "bg-blue-50 dark:bg-blue-900/20",
       icon: "bg-blue-500",
-      text: "text-blue-700",
-      val: "text-blue-800",
+      text: "text-blue-700 dark:text-blue-400",
+      val: "text-blue-800 dark:text-blue-300",
     },
     violet: {
-      bg: "bg-violet-50",
+      bg: "bg-violet-50 dark:bg-violet-900/20",
       icon: "bg-violet-500",
-      text: "text-violet-700",
-      val: "text-violet-800",
+      text: "text-violet-700 dark:text-violet-400",
+      val: "text-violet-800 dark:text-violet-300",
     },
     amber: {
-      bg: "bg-amber-50",
+      bg: "bg-amber-50 dark:bg-amber-900/20",
       icon: "bg-amber-500",
-      text: "text-amber-700",
-      val: "text-amber-800",
+      text: "text-amber-700 dark:text-amber-400",
+      val: "text-amber-800 dark:text-amber-300",
     },
     rose: {
-      bg: "bg-rose-50",
+      bg: "bg-rose-50 dark:bg-rose-900/20",
       icon: "bg-rose-500",
-      text: "text-rose-700",
-      val: "text-rose-800",
+      text: "text-rose-700 dark:text-rose-400",
+      val: "text-rose-800 dark:text-rose-300",
     },
     teal: {
-      bg: "bg-teal-50",
+      bg: "bg-teal-50 dark:bg-teal-900/20",
       icon: "bg-teal-500",
-      text: "text-teal-700",
-      val: "text-teal-800",
+      text: "text-teal-700 dark:text-teal-400",
+      val: "text-teal-800 dark:text-teal-300",
     },
     orange: {
-      bg: "bg-orange-50",
+      bg: "bg-orange-50 dark:bg-orange-900/20",
       icon: "bg-orange-500",
-      text: "text-orange-700",
-      val: "text-orange-800",
+      text: "text-orange-700 dark:text-orange-400",
+      val: "text-orange-800 dark:text-orange-300",
     },
     green: {
-      bg: "bg-green-50",
+      bg: "bg-green-50 dark:bg-green-900/20",
       icon: "bg-green-500",
-      text: "text-green-700",
-      val: "text-green-800",
+      text: "text-green-700 dark:text-green-400",
+      val: "text-green-800 dark:text-green-300",
     },
     sky: {
-      bg: "bg-sky-50",
+      bg: "bg-sky-50 dark:bg-sky-900/20",
       icon: "bg-sky-500",
-      text: "text-sky-700",
-      val: "text-sky-800",
+      text: "text-sky-700 dark:text-sky-400",
+      val: "text-sky-800 dark:text-sky-300",
     },
     indigo: {
-      bg: "bg-indigo-50",
+      bg: "bg-indigo-50 dark:bg-indigo-900/20",
       icon: "bg-indigo-500",
-      text: "text-indigo-700",
-      val: "text-indigo-800",
+      text: "text-indigo-700 dark:text-indigo-400",
+      val: "text-indigo-800 dark:text-indigo-300",
     },
     slate: {
-      bg: "bg-slate-50",
+      bg: "bg-slate-50 dark:bg-slate-800",
       icon: "bg-slate-500",
-      text: "text-slate-700",
-      val: "text-slate-800",
+      text: "text-slate-700 dark:text-slate-400",
+      val: "text-slate-800 dark:text-slate-300",
     },
   };
   const c = cm[color] ?? cm.slate;
@@ -139,9 +139,7 @@ function KpiCard({
             <Icon className="w-5 h-5 text-white" />
           </div>
         </div>
-        <p
-          className={`text-xs font-semibold uppercase tracking-wide ${c.text} mb-1`}
-        >
+        <p className={`text-xs font-semibold uppercase tracking-wide ${c.text} mb-1`}>
           {label}
         </p>
         <p className={`text-2xl font-bold ${c.val}`}>
@@ -151,7 +149,7 @@ function KpiCard({
               ? formatRM(value)
               : (value ?? 0).toLocaleString()}
         </p>
-        {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+        {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -169,30 +167,30 @@ function SectionHeader({ title, icon: Icon, color = "slate" }) {
     slate: "border-l-slate-400",
   };
   const text = {
-    emerald: "text-emerald-600",
-    blue: "text-blue-600",
-    amber: "text-amber-600",
-    rose: "text-rose-600",
-    teal: "text-teal-600",
-    violet: "text-violet-600",
-    sky: "text-sky-600",
-    slate: "text-slate-600",
+    emerald: "text-emerald-600 dark:text-emerald-400",
+    blue: "text-blue-600 dark:text-blue-400",
+    amber: "text-amber-600 dark:text-amber-400",
+    rose: "text-rose-600 dark:text-rose-400",
+    teal: "text-teal-600 dark:text-teal-400",
+    violet: "text-violet-600 dark:text-violet-400",
+    sky: "text-sky-600 dark:text-sky-400",
+    slate: "text-slate-600 dark:text-slate-400",
   };
   return (
     <div
       className={`flex items-center gap-3 mb-4 pl-3 border-l-4 ${border[color] ?? border.slate}`}
     >
       <Icon className={`w-5 h-5 ${text[color] ?? text.slate}`} />
-      <h2 className="text-base font-bold text-slate-800">{title}</h2>
+      <h2 className="text-base font-bold text-slate-800 dark:text-slate-200">{title}</h2>
     </div>
   );
 }
 
 function ChartCard({ title, children, loading, minHeight = 260 }) {
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="border-0 shadow-sm dark:bg-slate-800">
       <CardHeader className="pb-2 pt-4 px-5">
-        <CardTitle className="text-sm font-semibold text-slate-700">
+        <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           {title}
         </CardTitle>
       </CardHeader>
@@ -216,16 +214,16 @@ const fmtTooltipMoney = (v) => formatRM(v);
 const fmtTooltipCount = (v) => v?.toLocaleString?.() ?? v;
 
 const STATUS_COLOR = {
-  active: "bg-emerald-100 text-emerald-700",
-  inactive: "bg-rose-100 text-rose-700",
-  verified: "bg-emerald-100 text-emerald-700",
-  pending: "bg-amber-100 text-amber-700",
-  rejected: "bg-rose-100 text-rose-700",
+  active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  inactive: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+  verified: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  pending: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  rejected: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
 };
 
 function StatusBadge({ status }) {
   const s = String(status ?? "").toLowerCase();
-  const cls = STATUS_COLOR[s] ?? "bg-slate-100 text-slate-600";
+  const cls = STATUS_COLOR[s] ?? "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400";
   return (
     <span
       className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}
@@ -246,7 +244,7 @@ function DataTable({
 }) {
   const totalPages = Math.ceil(total / limit);
   return (
-    <div className="rounded-xl border border-slate-100 overflow-hidden bg-white shadow-sm">
+    <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 shadow-sm">
       {loading ? (
         <div className="h-24 flex items-center justify-center">
           <InlineLoadingComponent />
@@ -256,11 +254,11 @@ function DataTable({
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
+                <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700">
                   {columns.map((c) => (
                     <th
                       key={c.key}
-                      className="px-4 py-2.5 text-left font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"
+                      className="px-4 py-2.5 text-left font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap"
                     >
                       {c.label}
                     </th>
@@ -272,7 +270,7 @@ function DataTable({
                   <tr>
                     <td
                       colSpan={columns.length}
-                      className="px-4 py-8 text-center text-slate-400"
+                      className="px-4 py-8 text-center text-slate-400 dark:text-slate-500"
                     >
                       {translate("No data")}
                     </td>
@@ -281,10 +279,10 @@ function DataTable({
                   data.map((row, i) => (
                     <tr
                       key={row.id ?? i}
-                      className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                      className="border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors"
                     >
                       {columns.map((c) => (
-                        <td key={c.key} className="px-4 py-2.5 text-slate-700">
+                        <td key={c.key} className="px-4 py-2.5 text-slate-700 dark:text-slate-300">
                           {c.render ? c.render(row) : (row[c.key] ?? "—")}
                         </td>
                       ))}
@@ -295,8 +293,8 @@ function DataTable({
             </table>
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-100 bg-white">
-              <span className="text-xs text-slate-400">
+            <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 {(page - 1) * limit + 1}–{Math.min(page * limit, total)}{" "}
                 {translate("of")} {total}
               </span>
@@ -473,10 +471,10 @@ export default function StatisticDashboard() {
       <div className="mb-6">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-2">
               {translate("Statistic Dashboard")}
             </h1>
-            <p className="text-slate-500 flex items-center gap-2 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 flex items-center gap-2 text-sm">
               <Activity className="w-4 h-4" />
               {currentUser?.full_name || translate("Admin")} •{" "}
               {new Date().toLocaleDateString("en-MY", {
@@ -490,7 +488,7 @@ export default function StatisticDashboard() {
             <Button
               variant="outline"
               onClick={() => navigate(-1)}
-              className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/20"
             >
               <ChevronLeft className="w-4 h-4" />
               {translate("Back")}
@@ -503,13 +501,13 @@ export default function StatisticDashboard() {
       <div className="flex items-center justify-between flex-wrap gap-3 mb-8">
         <div className="flex gap-2 flex-wrap">
           {hasOrg && (
-            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 font-medium px-3 py-1">
+            <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-medium px-3 py-1">
               <Building2 className="w-3.5 h-3.5 mr-1.5" />
               {translate("Organisation Admin")}
             </Badge>
           )}
           {hasTahfiz && (
-            <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-medium px-3 py-1">
+            <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800 font-medium px-3 py-1">
               <BookOpen className="w-3.5 h-3.5 mr-1.5" />
               {translate("Tahfiz Admin")}
             </Badge>
@@ -518,14 +516,14 @@ export default function StatisticDashboard() {
 
         {/* Year picker for charts */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-medium">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             {translate("Chart Year")}:
           </span>
           <div className="relative">
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="appearance-none h-8 pl-3 pr-8 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 cursor-pointer focus:outline-none focus:border-slate-400"
+              className="appearance-none h-8 pl-3 pr-8 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
             >
               {yearOptions.map((y) => (
                 <option key={y} value={y}>
@@ -533,7 +531,7 @@ export default function StatisticDashboard() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -595,7 +593,7 @@ export default function StatisticDashboard() {
                       data={combinedOrgMonthly}
                       margin={{ top: 4, right: 16, left: -10, bottom: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis
                         dataKey="label"
                         tick={{ fontSize: 11, fill: "#94a3b8" }}
@@ -610,7 +608,7 @@ export default function StatisticDashboard() {
                       />
                       <Tooltip
                         formatter={fmtTooltipCount}
-                        contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                        contentStyle={{ borderRadius: 8, fontSize: 12, background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0" }}
                       />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                       <Line
@@ -643,7 +641,7 @@ export default function StatisticDashboard() {
                   loading={isChartLoading}
                 >
                   {gravesByState.length === 0 ? (
-                    <div className="flex items-center justify-center h-56 text-slate-400 text-sm">
+                    <div className="flex items-center justify-center h-56 text-slate-400 dark:text-slate-500 text-sm">
                       {translate("No data")}
                     </div>
                   ) : (
@@ -655,7 +653,7 @@ export default function StatisticDashboard() {
                       >
                         <CartesianGrid
                           strokeDasharray="3 3"
-                          stroke="#f1f5f9"
+                          stroke="#334155"
                           horizontal={false}
                         />
                         <XAxis
@@ -668,14 +666,14 @@ export default function StatisticDashboard() {
                         <YAxis
                           type="category"
                           dataKey="state"
-                          tick={{ fontSize: 10, fill: "#64748b" }}
+                          tick={{ fontSize: 10, fill: "#94a3b8" }}
                           axisLine={false}
                           tickLine={false}
                           width={72}
                         />
                         <Tooltip
                           formatter={fmtTooltipCount}
-                          contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                          contentStyle={{ borderRadius: 8, fontSize: 12, background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0" }}
                         />
                         <Bar
                           dataKey="count"
@@ -692,7 +690,7 @@ export default function StatisticDashboard() {
 
             {/* Organisations list */}
             <div className="mt-6">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {translate("Organisations")}
               </p>
               <DataTable
@@ -715,7 +713,7 @@ export default function StatisticDashboard() {
 
             {/* Graves list */}
             <div className="mt-4">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {translate("Graves")}
               </p>
               <DataTable
@@ -780,7 +778,7 @@ export default function StatisticDashboard() {
                     data={monthlyTahlilData}
                     margin={{ top: 4, right: 16, left: -10, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                     <XAxis
                       dataKey="label"
                       tick={{ fontSize: 11, fill: "#94a3b8" }}
@@ -795,7 +793,7 @@ export default function StatisticDashboard() {
                     />
                     <Tooltip
                       formatter={fmtTooltipCount}
-                      contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                      contentStyle={{ borderRadius: 8, fontSize: 12, background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0" }}
                     />
                     <Bar
                       dataKey="count"
@@ -865,7 +863,7 @@ export default function StatisticDashboard() {
                       data={monthlyDonationsData}
                       margin={{ top: 4, right: 24, left: -10, bottom: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis
                         dataKey="label"
                         tick={{ fontSize: 11, fill: "#94a3b8" }}
@@ -893,7 +891,7 @@ export default function StatisticDashboard() {
                             ? formatRM(v)
                             : fmtTooltipCount(v)
                         }
-                        contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                        contentStyle={{ borderRadius: 8, fontSize: 12, background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0" }}
                       />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                       <Bar
@@ -924,7 +922,7 @@ export default function StatisticDashboard() {
                 loading={isChartLoading}
               >
                 {donationsByStatus.length === 0 ? (
-                  <div className="flex items-center justify-center h-56 text-slate-400 text-sm">
+                  <div className="flex items-center justify-center h-56 text-slate-400 dark:text-slate-500 text-sm">
                     {translate("No data")}
                   </div>
                 ) : (
@@ -953,7 +951,7 @@ export default function StatisticDashboard() {
                         </Pie>
                         <Tooltip
                           formatter={fmtTooltipCount}
-                          contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                          contentStyle={{ borderRadius: 8, fontSize: 12, background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0" }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -961,7 +959,7 @@ export default function StatisticDashboard() {
                       {donationsByStatus.map((d, i) => (
                         <span
                           key={d.status}
-                          className="text-xs flex items-center gap-1"
+                          className="text-xs flex items-center gap-1 text-slate-600 dark:text-slate-400"
                         >
                           <span
                             className="w-2.5 h-2.5 rounded-full inline-block"
@@ -980,7 +978,7 @@ export default function StatisticDashboard() {
 
             {/* Donations list */}
             <div className="mt-6">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {translate("Recent Donations")}
               </p>
               <DataTable
@@ -993,7 +991,7 @@ export default function StatisticDashboard() {
                       <span>
                         {row.source ?? "—"}
                         {row.sourceType === "tahfiz" && (
-                          <span className="ml-1 text-amber-600 text-xs">
+                          <span className="ml-1 text-amber-600 dark:text-amber-400 text-xs">
                             (Tahfiz)
                           </span>
                         )}
