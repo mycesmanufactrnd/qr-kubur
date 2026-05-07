@@ -40,7 +40,7 @@ export default function BackNavigation({ title = "Back" }) {
           {translate(title)}
         </h1>
       </div>
-      <hr className="my-4 border-0" />
+      <hr className="my-2 border-0" />
     </>
   );
 }

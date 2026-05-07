@@ -53,7 +53,6 @@ import RukunIslam from '@/pages/RukunIslam.jsx';
 import SubmitSuggestion from '@/pages/SubmitSuggestion';
 import JitsiRoom from '@/pages/JitsiRoom.jsx';
 import OrganisationQuickRegister from '@/pages/OrganisationQuickRegister.jsx';
-import MyPaymentConfig from '@/pages/MyPaymentConfig.jsx';
 
 // ─── Settings (public pages) ──────────────────────────────────────────────────
 import PrivacyPolicy from '@/pages/Settings/PrivacyPolicy';
@@ -62,6 +61,7 @@ import UserTransactionRecords from '@/pages/Settings/UserTransactionRecords';
 import FAQ from '@/pages/Settings/FAQ';
 
 // ─── Management ───────────────────────────────────────────────────────────────
+import ManagePaymentConfig from '@/pages/Management/ManagePaymentConfig.jsx';
 import ManageUsers from '@/pages/Management/ManageUsers';
 import ManageCollectionTree from '@/pages/Management/ManageCollectionTree';
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
@@ -156,15 +156,15 @@ export const PAGES = {
     "SubmitSuggestion": SubmitSuggestion,
     "JitsiRoom": JitsiRoom,
     "OrganisationQuickRegister": OrganisationQuickRegister,
-    "MyPaymentConfig": MyPaymentConfig,
-
+    
     // ── Settings (public pages) ─────────────────────────────────────────────
     "PrivacyPolicy": PrivacyPolicy,
     "TermsAndConditions": TermsAndConditions,
     "UserTransactionRecords": UserTransactionRecords,
     "FAQ": FAQ,
-
+    
     // ── Management ──────────────────────────────────────────────────────────
+    "ManagePaymentConfig": ManagePaymentConfig,
     "ManageUsers": ManageUsers,
     "ManageCollectionTree": ManageCollectionTree,
     "ManageDeadPersons": ManageDeadPersons,

@@ -31,7 +31,7 @@ export default function QRCodeDialog({ open, onOpenChange, data }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm text-center">
+      <DialogContent className="max-w-[85vw] sm:max-w-sm text-center">
         <DialogHeader>
           <DialogTitle>{translate('QR Code')}</DialogTitle>
         </DialogHeader>

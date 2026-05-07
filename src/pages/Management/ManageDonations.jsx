@@ -1,4 +1,6 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useEffect, useState } from "react";
+import MobileManageDonations from "@/pages/Mobile/ManageDonations";
 import { Heart, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,7 +38,14 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
 import { formatRM } from "@/utils/helpers";
 
+
 export default function ManageDonations() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileManageDonations />;
+  return <ManageDonationsDesktop />;
+}
+
+function ManageDonationsDesktop() {
   const { loadingUser, hasAdminAccess, isTahfizAdmin } = useAdminAccess();
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);

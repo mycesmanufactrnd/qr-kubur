@@ -505,5 +505,12 @@
   "Sign out of Google": "تسجيل الخروج من Google",
   "Phone Number": "رقم الهاتف",
   "Saved phone number used to pre-fill payment forms.": "رقم الهاتف المحفوظ يُستخدم لملء نماذج الدفع تلقائياً.",
-  "Organisation Register": "تسجيل المنظمة"
+  "Organisation Register": "تسجيل المنظمة",
+
+  "Search by name": "البحث حسب الاسم",
+  "Clear": "مسح",
+  "Clear donor information": "مسح معلومات المتبرع",
+  "Save Phone Number": "حفظ رقم الهاتف",
+  "Save {phone} for future use?": "هل تريد حفظ {phone} للاستخدام في المستقبل؟",
+  "No": "لا"
 }

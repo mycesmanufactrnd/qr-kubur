@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import ManageDeathCharityMemberMobile from "@/pages/Mobile/ManageDeathCharityMember";
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { translate } from '@/utils/translations';
@@ -31,8 +32,16 @@ import { ClaimStatus } from '@/utils/enums';
 import { createPageUrl } from '@/utils';
 import { useGetDeathCharityByOrganisation } from '@/hooks/useDeathCharityMutations';
 import { useDeathCharityClaimMutations } from '@/hooks/useDeathCharityClaimMutations';
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+
 
 export default function ManageDeathCharityMember() {
+  const isNarrow = useIsNarrow(1024);
+  if (isNarrow) return <ManageDeathCharityMemberMobile />;
+  return <ManageDeathCharityMemberDesktop />;
+}
+
+function ManageDeathCharityMemberDesktop() {
   const navigate = useNavigate();
 
   const { loadingUser, currentUser, hasAdminAccess } = useAdminAccess();

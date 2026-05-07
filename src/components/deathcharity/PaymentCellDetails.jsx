@@ -110,35 +110,57 @@ export default function PaymentCellDetails({ payments = [], year }) {
     };
 
     return (
-        <div className="mb-6">
-            <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+        <div className="mb-6 space-y-3">
+            {/* ── Mobile: card list ── */}
+            <div className="md:hidden space-y-2">
+                {filteredPayments.length === 0 ? (
+                    <p className="text-center text-slate-400 text-sm py-8">No records</p>
+                ) : (
+                    filteredPayments.map((p, idx) => (
+                        <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-semibold text-slate-800">
+                                    {p.coversfromyear}
+                                    {p.coverstoyear && p.coverstoyear !== p.coversfromyear ? ` – ${p.coverstoyear}` : ""}
+                                </p>
+                                <p className="text-sm font-bold text-emerald-700">{formatRM(p.amount)}</p>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${getPaymentTypeBadge(p.paymenttype)}`}>
+                                    {p.paymenttype?.toUpperCase()}
+                                </span>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getPaymentMethodBadge(p.paymentmethod)}`}>
+                                    {p.paymentmethod?.toUpperCase()}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                                <span className="font-mono">{p.referenceno || "—"}</span>
+                                <span>{p.paidat ? new Date(p.paidat).toLocaleDateString('en-GB') : "—"}</span>
+                            </div>
+                            <button
+                                onClick={() => handleOpenDetail(p)}
+                                className="w-full h-9 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 active:opacity-70 transition-opacity"
+                            >
+                                Status Details
+                            </button>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* ── Desktop: table ── */}
+            <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
                 <table className="w-full border-collapse">
                     <thead>
                         <tr className="bg-gradient-to-r from-slate-50 to-slate-100">
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Year From
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Year To
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Amount
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Type
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Method
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Reference No.
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Paid At
-                            </th>
-                            <th className="border-b-2 border-slate-300 px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Transfer Status
-                            </th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Year From</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Year To</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Amount</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Type</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Method</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Reference No.</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Paid At</th>
+                            <th className="border-b-2 border-slate-300 px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Transfer Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-100">
@@ -146,19 +168,10 @@ export default function PaymentCellDetails({ payments = [], year }) {
                             <NoDataTableComponent colSpan={8} />
                         ) : (
                             filteredPayments.map((p, idx) => (
-                                <tr
-                                    key={idx}
-                                    className="hover:bg-slate-50 transition-colors duration-150"
-                                >
-                                    <td className="px-4 py-3 text-sm text-slate-700 font-medium">
-                                        {p.coversfromyear}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-700 font-medium">
-                                        {p.coverstoyear || p.coversfromyear}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-900 font-semibold text-right">
-                                        {formatRM(p.amount)}
-                                    </td>
+                                <tr key={idx} className="hover:bg-slate-50 transition-colors duration-150">
+                                    <td className="px-4 py-3 text-sm text-slate-700 font-medium">{p.coversfromyear}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700 font-medium">{p.coverstoyear || p.coversfromyear}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-900 font-semibold text-right">{formatRM(p.amount)}</td>
                                     <td className="px-4 py-3 text-center">
                                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getPaymentTypeBadge(p.paymenttype)}`}>
                                             {p.paymenttype.toUpperCase()}
@@ -203,12 +216,12 @@ export default function PaymentCellDetails({ payments = [], year }) {
             </div>
 
             <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-                <DialogContent className="max-w-3xl">
+                <DialogContent className="max-w-[95vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Payment Details</DialogTitle>
                     </DialogHeader>
                     {selectedPayment && (
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                                 <p className="text-sm font-semibold text-gray-700">Payment Information</p>
                                 <div>
@@ -250,7 +263,7 @@ export default function PaymentCellDetails({ payments = [], year }) {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 border-l pl-6">
+                            <div className="space-y-4 md:border-l md:pl-6 border-t pt-4 md:border-t-0 md:pt-0">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-sm font-semibold text-gray-700">Platform Transfer Status</p>

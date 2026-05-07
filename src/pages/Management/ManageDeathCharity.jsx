@@ -1,6 +1,8 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
+import MobileManageDeathCharity from '@/pages/Mobile/ManageDeathCharity';
 import { translate } from '@/utils/translations';
 import { MapPin, Plus, Edit, Trash2, Search, X, Save } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +31,14 @@ import { useGetOrganisationPaginated } from '@/hooks/useOrganisationMutations';
 import { Switch } from '@/components/ui/switch';
 import { useGetMosquesByOrganisationId } from '@/hooks/useMosqueMutations';
 
+
 export default function ManageDeathCharity() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileManageDeathCharity />;
+  return <ManageDeathCharityDesktop />;
+}
+
+function ManageDeathCharityDesktop() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();

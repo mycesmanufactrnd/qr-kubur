@@ -1,3 +1,5 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import ManageTahlilRequestsMobile from "@/pages/Mobile/ManageTahlilRequests";
 import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
@@ -58,6 +60,12 @@ import { showError } from "@/components/ToastrNotification";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
 
 export default function ManageTahlilRequests() {
+  const isNarrow = useIsNarrow(1024);
+  if (isNarrow) return <ManageTahlilRequestsMobile />;
+  return <ManageTahlilRequestsDesktop />;
+}
+
+function ManageTahlilRequestsDesktop() {
   const navigate = useNavigate();
   const { loadingUser, isTahfizAdmin, isSuperAdmin, currentUser } =
     useAdminAccess();

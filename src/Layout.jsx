@@ -1,9 +1,37 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils/index';
-import { PermissionsProvider, usePermissions } from '@/components/PermissionsContext';
-import { Home, Search, Settings, Menu, X, LogOut, QrCode, ChevronDown, Bell, Shield, User, UserX, Heart, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils/index";
+import {
+  PermissionsProvider,
+  usePermissions,
+} from "@/components/PermissionsContext";
+import {
+  Home,
+  Search,
+  Settings,
+  Menu,
+  X,
+  LogOut,
+  QrCode,
+  ChevronDown,
+  Bell,
+  Shield,
+  User,
+  UserX,
+  Heart,
+  FileText,
+  ScrollText,
+  ClipboardList,
+  Building2,
+  FileSignature,
+  Users,
+  Church,
+  UserCheck,
+  Landmark,
+  LayoutDashboard,
+  CreditCard,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,53 +40,58 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { translate } from '@/utils/translations';
-import { handleLogout, removeImpersonation, useAdminAccess } from '@/utils/auth';
-import PageLoadingComponent from '@/components/PageLoadingComponent.jsx';
-import { trpc } from './utils/trpc';
-import { notificationQueryOptions } from '@/utils/queryOptions';
+import { translate } from "@/utils/translations";
+import {
+  handleLogout,
+  removeImpersonation,
+  useAdminAccess,
+} from "@/utils/auth";
+import PageLoadingComponent from "@/components/PageLoadingComponent.jsx";
+import { trpc } from "./utils/trpc";
+import { notificationQueryOptions } from "@/utils/queryOptions";
 
 export default function Layout({ children, currentPageName }) {
   return (
     <PermissionsProvider>
-      <LayoutContent 
-        children={children} 
-        currentPageName={currentPageName}
-      />
+      <LayoutContent children={children} currentPageName={currentPageName} />
     </PermissionsProvider>
   );
 }
 
 function LayoutContent({ children, currentPageName }) {
-  const { 
-    currentUser, 
-    loadingUser, 
-    hasAdminAccess, 
-    isSuperAdmin, 
+  const {
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
     isAdmin,
     isTahfizAdmin,
     isEmployee,
-    isOrgAdminGraveSvc
+    isOrgGraveService,
+    hasMosques,
+    hasGraves,
+    hasDeathCharity,
   } = useAdminAccess();
 
   const { clearPermissions } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isImpersonating, setIsImpersonating] = useState('false');
+  const [isImpersonating, setIsImpersonating] = useState("false");
 
-  const { data: unreadData , isLoading } = trpc.notification.getUnreadNotificationCount.useQuery(
-    { receiveremail: currentUser?.email ?? '' },
-    { 
-      enabled: !!currentUser?.email,
-      ...notificationQueryOptions,
-    }
-  );
-  
+  const { data: unreadData, isLoading } =
+    trpc.notification.getUnreadNotificationCount.useQuery(
+      { receiveremail: currentUser?.email ?? "" },
+      {
+        enabled: !!currentUser?.email,
+        ...notificationQueryOptions,
+      },
+    );
+
   const unreadNotiCount = unreadData?.count ?? 0;
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    const isImpersonating = sessionStorage.getItem('isImpersonating');
-    
+    const savedTheme = localStorage.getItem("theme") || "light";
+    const isImpersonating = sessionStorage.getItem("isImpersonating");
+
     setIsImpersonating(isImpersonating);
 
     applyTheme(savedTheme);
@@ -66,67 +99,154 @@ function LayoutContent({ children, currentPageName }) {
 
   const applyTheme = (theme) => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
+    if (theme === "dark") {
+      root.classList.add("dark");
     } else {
-      root.classList.remove('dark');
+      root.classList.remove("dark");
     }
   };
 
   useEffect(() => {
     if (loadingUser) return;
-    
-    if (isTahfizAdmin && (currentPageName === 'AppUserLogin' )) {
-      window.location.href = createPageUrl('TahfizDashboard');
+
+    if (isTahfizAdmin && currentPageName === "AppUserLogin") {
+      window.location.href = createPageUrl("TahfizDashboard");
     }
 
-    if ((isAdmin || isEmployee) && (currentPageName === 'AppUserLogin' )) {
-      window.location.href = createPageUrl('AdminDashboard');
+    if ((isAdmin || isEmployee) && currentPageName === "AppUserLogin") {
+      window.location.href = createPageUrl("AdminDashboard");
     }
 
-    if (isSuperAdmin && (currentPageName === 'AppUserLogin' )) {
-      window.location.href = createPageUrl('SuperadminDashboard');
+    if (isSuperAdmin && currentPageName === "AppUserLogin") {
+      window.location.href = createPageUrl("SuperadminDashboard");
     }
-    
   }, [isAdmin, currentPageName, currentUser, loadingUser]);
 
-  const isUserDashboard = currentPageName === 'UserDashboard';
+  const isUserDashboard = currentPageName === "UserDashboard";
 
   const onLogoutClick = () => {
     handleLogout(clearPermissions);
   };
 
   const adminNavItems = [
-    { name: translate ('Admin Dashboard'), icon: User, page: 'AdminDashboard' },
-    { name: translate('Manage Quotations'), icon: FileText, page: 'ManageQuotations' },
-    { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
+    {
+      name: translate("Admin Dashboard"),
+      icon: LayoutDashboard,
+      page: "AdminDashboard",
+    },
+    {
+      name: translate("Manage Users"),
+      icon: Users,
+      page: "ManageUsers",
+    },
+    ...(hasGraves
+      ? [
+          {
+            name: translate("Manage Graves"),
+            icon: Landmark,
+            page: "ManageGraves",
+          },
+          {
+            name: translate("Manage Dead Person"),
+            icon: UserCheck,
+            page: "ManageDeadPersons",
+          },
+        ]
+      : []),
+    ...(hasMosques
+      ? [
+          {
+            name: translate("Manage Mosques"),
+            icon: Building2,
+            page: "ManageMosques",
+          },
+        ]
+      : []),
+    ...(hasDeathCharity
+      ? [
+          {
+            name: translate("Manage Death Charity"),
+            icon: Heart,
+            page: "ManageDeathCharity",
+          },
+          {
+            name: translate("Manage Death Charity Members"),
+            icon: Users,
+            page: "ManageDeathCharityMember",
+          },
+        ]
+      : []),
+    ...(isOrgGraveService
+      ? [
+          {
+            name: translate("Manage Quotations"),
+            icon: FileSignature,
+            page: "ManageQuotations",
+          },
+        ]
+      : []),
+    ...(isTahfizAdmin
+      ? [
+          {
+            name: translate("Manage Tahfiz Center"),
+            icon: Building2,
+            page: "ManageTahfizCenters",
+          },
+          {
+            name: translate("Manage Tahlil Requests"),
+            icon: ClipboardList,
+            page: "ManageTahlilRequests",
+          },
+        ]
+      : []),
+    {
+      name: translate("Manage Activity Posts"),
+      icon: ScrollText,
+      page: "ManageActivityPosts",
+    },
+    {
+      name: translate("Manage Payment Config"),
+      icon: CreditCard,
+      page: "ManagePaymentConfig",
+    },
+    {
+      name: translate("Settings"),
+      icon: Settings,
+      page: "SettingsPage",
+    },
   ];
-  
+
   const superAdminNavItems = [
+    {
+      name: translate("Super Admin"),
+      icon: Shield,
+      page: "SuperadminDashboard",
+    },
+    {
+      name: translate("Impersonate User"),
+      icon: UserX,
+      page: "ImpersonateUser",
+    },
     ...adminNavItems,
-    { name: translate ('Super Admin'), icon: Shield, page: 'SuperadminDashboard' },
-    { name: translate ('Impersonate User'), icon: UserX, page: 'ImpersonateUser' },
   ];
 
   if (loadingUser) {
-    return (
-      <PageLoadingComponent/>
-    );
+    return <PageLoadingComponent />;
   }
 
   function getMainPage() {
-    if (isSuperAdmin) return 'SuperadminDashboard';
-    if (isTahfizAdmin) return 'TahfizDashboard';
-    if (isAdmin || isEmployee) return 'AdminDashboard';
-    return 'AppUserLogin';
+    if (isSuperAdmin) return "SuperadminDashboard";
+    if (isTahfizAdmin) return "TahfizDashboard";
+    if (isAdmin || isEmployee) return "AdminDashboard";
+    return "AppUserLogin";
   }
 
   const bottomNavItems = [
-    { name: translate('Main'), icon: Home, page: 'UserDashboard' },
-    { name: translate('Search'), icon: Search, page: 'SearchGrave' },
-    { name: translate('QR Code'), icon: QrCode, page: 'ScanQR' },
-    { name: translate('Donation'), icon: Heart, page: 'DonationPage' },
-    { name: translate('Settings'), icon: Settings, page: 'SettingsPage' },
+    { name: translate("Main"), icon: Home, page: "UserDashboard" },
+    { name: translate("Search"), icon: Search, page: "SearchGrave" },
+    { name: translate("QR Code"), icon: QrCode, page: "ScanQR" },
+    { name: translate("Donation"), icon: Heart, page: "DonationPage" },
+    { name: translate("Settings"), icon: Settings, page: "SettingsPage" },
   ];
 
   return (
@@ -144,11 +264,16 @@ function LayoutContent({ children, currentPageName }) {
               <Menu className="w-6 h-6" />
             </Button>
 
-            <Link to={createPageUrl(getMainPage())} className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 
+            <Link
+              to={createPageUrl(getMainPage())}
+              className="flex items-center gap-2"
+            >
+              <div
+                className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 
                 flex items-center justify-center 
                 shadow-lg shadow-emerald-200/60 
-                hover:scale-105 transition">
+                hover:scale-105 transition"
+              >
                 <QrCode className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -162,20 +287,28 @@ function LayoutContent({ children, currentPageName }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                    {currentUser?.fullname?.[0] || currentUser?.email?.[0]?.toUpperCase()}
+                    {currentUser?.fullname?.[0] ||
+                      currentUser?.email?.[0]?.toUpperCase()}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2 border-b">
-                  <p className="text-sm font-medium">{currentUser?.fullname || 'User'}</p>
+                  <p className="text-sm font-medium">
+                    {currentUser?.fullname || "User"}
+                  </p>
                   <p className="text-xs text-gray-500">{currentUser?.email}</p>
-                  <p className="text-xs text-emerald-600 capitalize">{currentUser?.role}</p>
+                  <p className="text-xs text-emerald-600 capitalize">
+                    {currentUser?.role}
+                  </p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={onLogoutClick}
+                  className="text-red-600"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
-                  {translate('Log Out')}
+                  {translate("Log Out")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -195,11 +328,13 @@ function LayoutContent({ children, currentPageName }) {
 
           <div
             className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 lg:hidden ${
-              isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+              isMenuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
             <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-              <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Menu</h2>
+              <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                Menu
+              </h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -217,8 +352,8 @@ function LayoutContent({ children, currentPageName }) {
                   onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     currentPageName === item.page
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -236,8 +371,8 @@ function LayoutContent({ children, currentPageName }) {
                       onClick={() => setIsMenuOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                         currentPageName === item.page
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'text-gray-600 hover:bg-gray-100'
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "text-gray-600 hover:bg-gray-100"
                       }`}
                     >
                       <item.icon className="w-5 h-5" />
@@ -255,7 +390,10 @@ function LayoutContent({ children, currentPageName }) {
       <header className="hidden lg:block sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
         <div className="mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            <Link to={createPageUrl(getMainPage())} className="flex items-center gap-3">
+            <Link
+              to={createPageUrl(getMainPage())}
+              className="flex items-center gap-3"
+            >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                 <QrCode className="w-5 h-5 text-white" />
               </div>
@@ -263,12 +401,17 @@ function LayoutContent({ children, currentPageName }) {
                 <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                   QR Kubur
                 </h1>
-                <p className="text-xs text-gray-500">{translate('Grave Management System')}</p>
+                <p className="text-xs text-gray-500">
+                  {translate("Grave Management System")}
+                </p>
               </div>
             </Link>
             <div className="flex items-center gap-3">
               {hasAdminAccess && (
-                <Link to={createPageUrl('NotificationPage')} className="relative">
+                <Link
+                  to={createPageUrl("NotificationPage")}
+                  className="relative"
+                >
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="w-5 h-5" />
                     {unreadNotiCount > 0 && (
@@ -284,26 +427,37 @@ function LayoutContent({ children, currentPageName }) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
-                        {currentUser.fullname?.[0] || currentUser.email?.[0]?.toUpperCase()}
+                        {currentUser.fullname?.[0] ||
+                          currentUser.email?.[0]?.toUpperCase()}
                       </div>
                       <span className="text-sm font-medium text-gray-700">
-                        {currentUser.fullname || currentUser.email?.split('@')[0]}
+                        {currentUser.fullname ||
+                          currentUser.email?.split("@")[0]}
                       </span>
                       <ChevronDown className="w-4 h-4 text-gray-400" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-3 py-2 border-b">
-                      <p className="text-sm font-medium">{currentUser.fullname || 'User'}</p>
-                      <p className="text-xs text-gray-500">{currentUser.email}</p>
-                      <p className="text-xs text-emerald-600 capitalize">{currentUser.role}</p>
+                      <p className="text-sm font-medium">
+                        {currentUser.fullname || "User"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {currentUser.email}
+                      </p>
+                      <p className="text-xs text-emerald-600 capitalize">
+                        {currentUser.role}
+                      </p>
                     </div>
 
                     {isAdmin && (
                       <>
                         {adminNavItems.map((item) => (
                           <DropdownMenuItem key={item.page} asChild>
-                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
+                            <Link
+                              to={createPageUrl(item.page)}
+                              className="flex items-center gap-2"
+                            >
                               <item.icon className="w-4 h-4" />
                               {item.name}
                             </Link>
@@ -317,7 +471,10 @@ function LayoutContent({ children, currentPageName }) {
                         <DropdownMenuSeparator />
                         {superAdminNavItems.map((item) => (
                           <DropdownMenuItem key={item.page} asChild>
-                            <Link to={createPageUrl(item.page)} className="flex items-center gap-2">
+                            <Link
+                              to={createPageUrl(item.page)}
+                              className="flex items-center gap-2"
+                            >
                               <item.icon className="w-4 h-4" />
                               {item.name}
                             </Link>
@@ -325,27 +482,31 @@ function LayoutContent({ children, currentPageName }) {
                         ))}
                       </>
                     )}
-                    
+
                     <DropdownMenuSeparator />
                     {isImpersonating === "true" ? (
-                      <DropdownMenuItem onClick={removeImpersonation} className="text-red-600">
-                        <LogOut className="w-4 h-4 mr-2" /> 
-                        {translate('Leave Impersonating')}
+                      <DropdownMenuItem
+                        onClick={removeImpersonation}
+                        className="text-red-600"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        {translate("Leave Impersonating")}
                       </DropdownMenuItem>
                     ) : (
-                      <DropdownMenuItem onClick={onLogoutClick} className="text-red-600">
+                      <DropdownMenuItem
+                        onClick={onLogoutClick}
+                        className="text-red-600"
+                      >
                         <LogOut className="w-4 h-4 mr-2" />
-                        {translate('Log Out')}
+                        {translate("Log Out")}
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link to={createPageUrl('AppUserLogin')}>
-                  <Button 
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200"
-                  >
-                    {translate('Log In')}
+                <Link to={createPageUrl("AppUserLogin")}>
+                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200">
+                    {translate("Log In")}
                   </Button>
                 </Link>
               )}
@@ -356,7 +517,7 @@ function LayoutContent({ children, currentPageName }) {
 
       <main
         className={`flex-1 max-w-7xl mx-auto w-full
-          ${isUserDashboard ? 'pb-10' : 'px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6'}          
+          ${isUserDashboard ? "pb-10" : "px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6"}          
         `}
       >
         {children}
@@ -374,17 +535,23 @@ function LayoutContent({ children, currentPageName }) {
                   to={createPageUrl(item.page)}
                   className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'text-emerald-600'
-                      : 'text-gray-500 active:bg-gray-100'
+                      ? "text-emerald-600"
+                      : "text-gray-500 active:bg-gray-100"
                   }`}
                 >
-                  <div className={`relative ${isActive ? 'scale-110' : ''} transition-transform`}>
-                    <item.icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                  <div
+                    className={`relative ${isActive ? "scale-110" : ""} transition-transform`}
+                  >
+                    <item.icon
+                      className={`w-6 h-6 ${isActive ? "stroke-[2.5]" : "stroke-[2]"}`}
+                    />
                     {isActive && (
                       <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-600" />
                     )}
                   </div>
-                  <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-emerald-600' : 'text-gray-600'}`}>
+                  <span
+                    className={`text-[10px] mt-1 font-medium ${isActive ? "text-emerald-600" : "text-gray-600"}`}
+                  >
                     {item.name}
                   </span>
                 </Link>
@@ -402,12 +569,30 @@ function LayoutContent({ children, currentPageName }) {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <QrCode className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm text-gray-600">© {new Date().getFullYear()} {translate('QR Kubur. All Rights Reserved.')}</span>
+              <span className="text-sm text-gray-600">
+                © {new Date().getFullYear()}{" "}
+                {translate("QR Kubur. All Rights Reserved.")}
+              </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <Link to={createPageUrl('UserDashboard')} className="hover:text-emerald-600 transition-colors">{translate('Main')}</Link>
-              <Link to={createPageUrl('SurahPage')} className="hover:text-emerald-600 transition-colors">{translate('Surah & Prayer')}</Link>
-              <Link to={createPageUrl('DonationPage')} className="hover:text-emerald-600 transition-colors">{translate('Donate')}</Link>
+              <Link
+                to={createPageUrl("UserDashboard")}
+                className="hover:text-emerald-600 transition-colors"
+              >
+                {translate("Main")}
+              </Link>
+              <Link
+                to={createPageUrl("SurahPage")}
+                className="hover:text-emerald-600 transition-colors"
+              >
+                {translate("Surah & Prayer")}
+              </Link>
+              <Link
+                to={createPageUrl("DonationPage")}
+                className="hover:text-emerald-600 transition-colors"
+              >
+                {translate("Donate")}
+              </Link>
             </div>
           </div>
         </div>

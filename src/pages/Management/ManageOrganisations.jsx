@@ -1,17 +1,19 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import MobileManageOrganisation from "@/pages/Mobile/ManageOrganisation";
+
 import { translate } from "@/utils/translations";
 import {
   Building2,
   Plus,
   Edit,
   Trash2,
-  Search,
-  X,
   Save,
   CreditCard,
   MapPin,
 } from "lucide-react";
+import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +79,12 @@ import AgreeServiceTerms from "@/components/AgreeServiceTerms";
 const DEFAULT_USER_PASSWORD = "password";
 
 export default function ManageOrganisations() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileManageOrganisation />;
+  return <ManageOrganisationsDesktop />;
+}
+
+function ManageOrganisationsDesktop() {
   const {
     currentUser,
     loadingUser,
@@ -511,8 +519,6 @@ export default function ManageOrganisations() {
       filterType: urlType === "all" ? undefined : Number(urlType),
       filterState: urlState === "all" ? undefined : urlState,
     });
-
-  console.log("organisationsList", organisationsList);
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
   const { createOrganisation, updateOrganisation, deleteOrganisation } =
@@ -989,65 +995,46 @@ export default function ManageOrganisations() {
         )}
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={translate("Search Organisation Name")}
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button
-              onClick={handleSearch}
-              className="bg-violet-600 hover:bg-violet-700 px-6"
-            >
-              {translate("Search")}
-            </Button>
-          </div>
+      <SearchBar
+        value={tempName}
+        onChange={setTempName}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        placeholder={translate("Search Organisation Name")}
+        buttonClassName="bg-violet-600 hover:bg-violet-700"
+        filtersClassName="grid grid-cols-1 sm:grid-cols-3 gap-3"
+      >
+        <Select value={String(tempType)} onValueChange={setTempType}>
+          <SelectTrigger>
+            <SelectValue placeholder={translate("Organisation Type")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{translate("All Types")}</SelectItem>
+            {organisationTypeList.items.map((type) => (
+              <SelectItem key={type.id} value={String(type.id)}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Select value={String(tempType)} onValueChange={setTempType}>
-              <SelectTrigger>
-                <SelectValue placeholder={translate("Organisation Type")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate("All Types")}</SelectItem>
-                {organisationTypeList.items.map((type) => (
-                  <SelectItem key={type.id} value={String(type.id)}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={tempState} onValueChange={setTempState}>
-              <SelectTrigger>
-                <SelectValue placeholder={translate("State")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate("All States")}</SelectItem>
-                {(isSuperAdmin
-                  ? STATES_MY
-                  : STATES_MY.filter((s) => currentUserStates.includes(s))
-                ).map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline" onClick={handleReset} className="w-full">
-              <X className="w-4 h-4 mr-2" /> {translate("Reset")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <Select value={tempState} onValueChange={setTempState}>
+          <SelectTrigger>
+            <SelectValue placeholder={translate("State")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{translate("All States")}</SelectItem>
+            {(isSuperAdmin
+              ? STATES_MY
+              : STATES_MY.filter((s) => currentUserStates.includes(s))
+            ).map((state) => (
+              <SelectItem key={state} value={state}>
+                {state}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SearchBar>
 
       <Card className="border-0 shadow-md">
         <CardContent className="p-0">

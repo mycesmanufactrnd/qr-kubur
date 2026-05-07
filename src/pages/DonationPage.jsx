@@ -816,7 +816,7 @@ export default function DonationPage() {
                 className="h-10 rounded-xl border-slate-200 text-sm"
               />
               <Input
-                placeholder={translate("Phone No.")}
+                placeholder={translate("Phone No")}
                 value={donorphoneno}
                 onChange={(e) => setValue("donorphoneno", e.target.value)}
                 className="h-10 rounded-xl border-slate-200 text-sm"
@@ -869,10 +869,10 @@ export default function DonationPage() {
             proceedToPayment(payload);
           }
         }}
-        title="Simpan No. Telefon"
-        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
-        confirmText="Simpan"
-        cancelText="Tidak"
+        title={translate("Save Phone Number")}
+        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        confirmText={translate("Save")}
+        cancelText={translate("No")}
         onConfirm={() => {
           localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
         }}

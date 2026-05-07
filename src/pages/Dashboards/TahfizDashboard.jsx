@@ -1,3 +1,4 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
@@ -21,8 +22,17 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
 import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
+import MobileTahfizDashboard from "@/pages/Mobile/TahfizDashboard";
+import { useState, useEffect } from "react";
+
 
 export default function TahfizDashboard() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileTahfizDashboard />;
+  return <TahfizDashboardDesktop />;
+}
+
+function TahfizDashboardDesktop() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
     useAdminAccess();
 
@@ -254,7 +264,7 @@ export default function TahfizDashboard() {
                 },
                 {
                   label: translate("My Payment Config"),
-                  page: "MyPaymentConfig",
+                  page: "ManagePaymentConfig",
                   icon: CreditCard,
                   color: "purple",
                 },

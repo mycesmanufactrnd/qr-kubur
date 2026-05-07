@@ -1,16 +1,8 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import MobileManageQuotations from "@/pages/Mobile/ManageQuotations";
 
-function useIsNarrow(threshold = 1024) {
-  const [narrow, setNarrow] = useState(() => window.innerWidth < threshold);
-  const handler = useCallback(() => setNarrow(window.innerWidth < threshold), [threshold]);
-  useEffect(() => {
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, [handler]);
-  return narrow;
-}
 import {
   FileText,
   CheckCircle,

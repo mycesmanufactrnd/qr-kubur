@@ -16,8 +16,16 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { useCrudPermissions } from '@/components/PermissionsContext';
 import { useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
+import { useIsNarrow } from '@/hooks/useIsNarrow';
+import MobileManageDeathCharityLedger from '@/pages/Mobile/ManageDeathCharityLedger';
 
 export default function ManageDeathCharityLedger() {
+  const isNarrow = useIsNarrow(1024);
+  if (isNarrow) return <MobileManageDeathCharityLedger />;
+  return <ManageDeathCharityLedgerDesktop />;
+}
+
+function ManageDeathCharityLedgerDesktop() {
   const [searchParams] = useSearchParams();
   const urlMemberId = searchParams.get('member') ? Number(searchParams.get('member')) : null;
   const urlDeathCharityId = searchParams.get('deathcharity') ? Number(searchParams.get('deathcharity')) : null;

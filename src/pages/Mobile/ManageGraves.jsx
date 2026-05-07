@@ -5,13 +5,13 @@ import {
   Plus,
   Edit,
   Trash2,
-  Search,
   X,
   Save,
   QrCode,
   Navigation,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -261,7 +261,6 @@ export default function MobileManageGraves() {
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
@@ -377,25 +376,15 @@ export default function MobileManageGraves() {
       <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Graves")} />
 
-        {/* Search + Add */}
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") { setAppliedSearch(search); setPage(1); } }}
-                placeholder={translate("Cemetery name")}
-                className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              />
-            </div>
-            <button
-              onClick={() => { setAppliedSearch(search); setPage(1); }}
-              className="h-10 px-4 rounded-xl bg-emerald-600 text-white text-sm font-medium active:opacity-80"
-            >
-              {translate("Search")}
-            </button>
+          {/* Filter + Add */}
+          <div className="flex items-center justify-between">
+            <AdvancedFilters
+              parameter={[
+                { label: translate("Name"), type: "text", searchColumn: "name" },
+              ]}
+              onApplyFilter={(f) => { setAppliedSearch(f.name || ""); setPage(1); }}
+            />
             {canCreate && (
               <button
                 onClick={openAdd}

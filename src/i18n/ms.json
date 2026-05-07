@@ -517,5 +517,13 @@
   "Sign out of Google": "Log Keluar Google",
   "Phone Number": "Nombor Telefon",
   "Saved phone number used to pre-fill payment forms.": "Nombor telefon yang disimpan akan diisi secara automatik dalam borang pembayaran.",
-  "Organisation Register": "Daftar Organisasi"
+  "Organisation Register": "Daftar Organisasi",
+
+  "Search by name": "Cari mengikut nama",
+  "Clear": "Kosongkan",
+  "Clear donor information": "Kosongkan maklumat penderma",
+  "Select organisation": "Pilih organisasi",
+  "Save Phone Number": "Simpan No. Telefon",
+  "Save {phone} for future use?": "Simpan {phone} untuk kegunaan masa hadapan?",
+  "No": "Tidak"
 }

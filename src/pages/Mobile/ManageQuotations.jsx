@@ -6,13 +6,12 @@ import {
   Camera,
   ChevronRight,
   FileText,
-  Filter,
   MapPin,
-  Search,
   X,
   Upload,
   Image,
 } from "lucide-react";
+import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
@@ -399,34 +398,10 @@ export default function MobileManageQuotations() {
   const [itemsPerPage] = useState(10);
   const [selected, setSelected] = useState(null);
 
-  // filter state
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [tempService,  setTempService]  = useState("");
-  const [tempStatus,   setTempStatus]   = useState("all");
-  const [tempDateFrom, setTempDateFrom] = useState("");
-  const [tempDateTo,   setTempDateTo]   = useState("");
   const [appliedService,  setAppliedService]  = useState("");
   const [appliedStatus,   setAppliedStatus]   = useState("");
   const [appliedDateFrom, setAppliedDateFrom] = useState("");
   const [appliedDateTo,   setAppliedDateTo]   = useState("");
-
-  const applyFilter = () => {
-    setAppliedService(tempService);
-    setAppliedStatus(tempStatus === "all" ? "" : tempStatus);
-    setAppliedDateFrom(tempDateFrom);
-    setAppliedDateTo(tempDateTo);
-    setPage(1);
-    setFilterOpen(false);
-  };
-
-  const resetFilter = () => {
-    setTempService(""); setTempStatus("all"); setTempDateFrom(""); setTempDateTo("");
-    setAppliedService(""); setAppliedStatus(""); setAppliedDateFrom(""); setAppliedDateTo("");
-    setPage(1);
-    setFilterOpen(false);
-  };
-
-  const hasFilter = !!(appliedService || appliedStatus || appliedDateFrom || appliedDateTo);
 
   const { quotationList, totalPages, isLoading } = useGetQuotationPaginated({
     page,
@@ -462,74 +437,27 @@ export default function MobileManageQuotations() {
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
           {/* Filter bar */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilterOpen((o) => !o)}
-              className={`flex items-center gap-1.5 h-10 px-3 rounded-xl border text-sm font-medium transition-colors ${
-                hasFilter
-                  ? "bg-sky-600 text-white border-sky-600"
-                  : "bg-white text-slate-700 border-slate-200"
-              }`}
-            >
-              <Filter className="w-4 h-4" />
-              {translate("Filter")}
-              {hasFilter && <span className="ml-1 w-4 h-4 rounded-full bg-white/30 text-xs flex items-center justify-center">!</span>}
-            </button>
-            {hasFilter && (
-              <button
-                onClick={resetFilter}
-                className="flex items-center gap-1 h-10 px-3 rounded-xl border border-slate-200 text-sm text-slate-500 bg-white active:opacity-70"
-              >
-                <X className="w-3.5 h-3.5" />
-                {translate("Reset")}
-              </button>
-            )}
+          <div className="flex items-center">
+            <AdvancedFilters
+              parameter={[
+                { label: translate("Status"), type: "select", searchColumn: "status", options: [
+                  { id: "pending",   name: translate("Pending") },
+                  { id: "completed", name: translate("Completed") },
+                  { id: "rejected",  name: translate("Rejected") },
+                ]},
+                { label: translate("Service"), type: "text", searchColumn: "service" },
+                { label: translate("Date From"), type: "date", searchColumn: "dateFrom" },
+                { label: translate("Date To"),   type: "date", searchColumn: "dateTo" },
+              ]}
+              onApplyFilter={(f) => {
+                setAppliedStatus(f.status || "");
+                setAppliedService(f.service || "");
+                setAppliedDateFrom(f.dateFrom || "");
+                setAppliedDateTo(f.dateTo || "");
+                setPage(1);
+              }}
+            />
           </div>
-
-          {filterOpen && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3">
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500">{translate("Status")}</p>
-                <select
-                  value={tempStatus}
-                  onChange={(e) => setTempStatus(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm bg-white"
-                >
-                  <option value="all">{translate("All Status")}</option>
-                  <option value="pending">{translate("Pending")}</option>
-                  <option value="completed">{translate("Completed")}</option>
-                  <option value="rejected">{translate("Rejected")}</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500">{translate("Service")}</p>
-                <input
-                  value={tempService}
-                  onChange={(e) => setTempService(e.target.value)}
-                  placeholder={translate("Service name")}
-                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-500">{translate("Date From")}</p>
-                  <input type="date" value={tempDateFrom} onChange={(e) => setTempDateFrom(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-500">{translate("Date To")}</p>
-                  <input type="date" value={tempDateTo} onChange={(e) => setTempDateTo(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300" />
-                </div>
-              </div>
-              <button
-                onClick={applyFilter}
-                className="w-full h-11 rounded-xl bg-sky-600 text-white font-medium text-sm active:opacity-80"
-              >
-                {translate("Apply Filter")}
-              </button>
-            </div>
-          )}
 
           {isLoading ? (
             <InlineLoadingComponent />
@@ -539,9 +467,11 @@ export default function MobileManageQuotations() {
               <p className="text-sm">{translate("No records")}</p>
             </div>
           ) : (
-            quotationList.items.map((q) => (
-              <QuotationCard key={q.id} q={q} onClick={setSelected} />
-            ))
+            <div className="space-y-3">
+              {quotationList.items.map((q) => (
+                <QuotationCard key={q.id} q={q} onClick={setSelected} />
+              ))}
+            </div>
           )}
 
           {totalPages > 1 && (

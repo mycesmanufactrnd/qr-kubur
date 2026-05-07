@@ -163,6 +163,15 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                   </Select>
                 )}
 
+                {p.type === "date" && (
+                  <Input
+                    type="date"
+                    value={filterValues[p.searchColumn]}
+                    onChange={e => handleChange(p.searchColumn, e.target.value)}
+                    className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm"
+                  />
+                )}
+
                 {p.type === "checkbox" && (
                   <Button
                     type="button"

@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
 import { AppDataSource } from "../datasource.ts";
-import { Donation, GoogleUserRecord, OnlineTransaction } from "../db/entities.ts";
+import {
+  Donation,
+  GoogleUserRecord,
+  OnlineTransaction,
+} from "../db/entities.ts";
 import {
   donationSchema,
   donationApprovalSchema,
@@ -36,10 +40,21 @@ export const donationRouter = router({
             tahfiz: z.boolean(),
           })
           .optional(),
+        filterStatus: z.string().optional().nullable(),
+        filterDateFrom: z.string().optional().nullable(),
+        filterDateTo: z.string().optional().nullable(),
       }),
     )
     .query(async ({ input }) => {
-      const { page = 1, pageSize = 10, currentUser, checkRole } = input;
+      const {
+        page = 1,
+        pageSize = 10,
+        currentUser,
+        checkRole,
+        filterStatus,
+        filterDateFrom,
+        filterDateTo,
+      } = input;
 
       const donationRepo = AppDataSource.getRepository(Donation);
       const query = donationRepo.createQueryBuilder("donation");
@@ -63,6 +78,24 @@ export const donationRouter = router({
               orgId: currentUser.organisation.id,
             });
         }
+      }
+
+      if (filterStatus) {
+        query.andWhere("donation.status = :status", {
+          status: filterStatus,
+        });
+      }
+
+      if (filterDateFrom) {
+        query.andWhere("donation.createdat >= :dateFrom", {
+          dateFrom: filterDateFrom,
+        });
+      }
+
+      if (filterDateTo) {
+        query.andWhere("donation.createdat <= :dateTo", {
+          dateTo: filterDateTo,
+        });
       }
 
       if (page && pageSize) {

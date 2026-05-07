@@ -1,4 +1,6 @@
-﻿import React, { useEffect, useState } from "react";
+﻿import { useIsNarrow } from "@/hooks/useIsNarrow";
+import ManageTahfizCentersMobile from "@/pages/Mobile/ManageTahfizCenters";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   BookOpen,
@@ -73,6 +75,12 @@ import FileUploadForm from "@/components/forms/FileUploadForm";
 const DEFAULT_USER_PASSWORD = "password";
 
 export default function ManageTahfizCenters() {
+  const isNarrow = useIsNarrow(1024);
+  if (isNarrow) return <ManageTahfizCentersMobile />;
+  return <ManageTahfizCentersDesktop />;
+}
+
+function ManageTahfizCentersDesktop() {
   const {
     currentUser,
     hasAdminAccess,

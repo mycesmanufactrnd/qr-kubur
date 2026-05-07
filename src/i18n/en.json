@@ -515,5 +515,13 @@
   "Sign out of Google": "Sign out of Google",
   "Phone Number": "Phone Number",
   "Saved phone number used to pre-fill payment forms.": "Saved phone number used to pre-fill payment forms.",
-  "Organisation Register": "Organisation Register"
+  "Organisation Register": "Organisation Register",
+
+  "Search by name": "Search by name",
+  "Clear": "Clear",
+  "Clear donor information": "Clear donor information",
+  "Select organisation": "Select organisation",
+  "Save Phone Number": "Save Phone Number",
+  "Save {phone} for future use?": "Save {phone} for future use?",
+  "No": "No"
 }

@@ -1,15 +1,14 @@
+// @ts-nocheck
 import { useMemo, useState } from "react";
 import { CreditCard, Edit3, KeyRound, Sparkles } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import BackNavigation from "@/components/BackNavigation";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PaymentConfigDialog from "@/components/PaymentConfigDialog";
+import NoDataCardComponent from "@/components/NoDataCardComponent";
 import { useAdminAccess } from "@/utils/auth";
 import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
 import { translate } from "@/utils/translations";
-import NoDataCardComponent from "@/components/NoDataCardComponent";
-import Breadcrumb from "@/components/Breadcrumb";
 
 const maskValue = (value = "") => {
   if (!value) return "-";
@@ -17,9 +16,8 @@ const maskValue = (value = "") => {
   return `${"*".repeat(Math.max(3, value.length - 4))}${value.slice(-4)}`;
 };
 
-export default function MyPaymentConfig() {
-  const { loadingUser, hasAdminAccess, currentUser, isTahfizAdmin } =
-    useAdminAccess();
+export default function MobileManagePaymentConfig() {
+  const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const entity = useMemo(() => {
@@ -30,7 +28,6 @@ export default function MyPaymentConfig() {
         entityName: currentUser.tahfizcenter.name || "Tahfiz",
       };
     }
-
     if (currentUser?.organisation?.id) {
       return {
         entityId: Number(currentUser.organisation.id),
@@ -38,12 +35,7 @@ export default function MyPaymentConfig() {
         entityName: currentUser.organisation.name || "Organisation",
       };
     }
-
-    return {
-      entityId: null,
-      entityType: null,
-      entityName: null,
-    };
+    return { entityId: null, entityType: null, entityName: null };
   }, [currentUser]);
 
   const { data: existingConfigs = [], isLoading } = useGetConfigByEntity({
@@ -54,98 +46,77 @@ export default function MyPaymentConfig() {
 
   const groupedConfigs = useMemo(() => {
     const grouped = {};
-
     for (const config of existingConfigs) {
       const platformName = config.paymentplatform?.name || "Unknown Platform";
       if (!grouped[platformName]) grouped[platformName] = [];
       grouped[platformName].push(config);
     }
-
     return Object.entries(grouped);
   }, [existingConfigs]);
 
-  if (loadingUser || isLoading) {
-    return <PageLoadingComponent />;
-  }
-
-  if (!hasAdminAccess) {
-    return <AccessDeniedComponent />;
-  }
-
-  if (!entity.entityId || !entity.entityType) {
+  if (loadingUser || isLoading) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!entity.entityId || !entity.entityType)
     return <NoDataCardComponent isPage />;
-  }
-
-  const dashboardLabel = isTahfizAdmin
-    ? translate("Tahfiz Dashboard")
-    : translate("Admin Dashboard");
-  const dashboardPage = isTahfizAdmin ? "TahfizDashboard" : "AdminDashboard";
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb
-        items={[
-          { label: dashboardLabel, page: dashboardPage },
-          { label: translate("Payment Config"), page: "MyPaymentConfig" },
-        ]}
-      />
+    <div className="min-h-screen pb-6">
+      <BackNavigation title={translate("Payment Configuration")} />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
-            <CreditCard className="w-7 h-7 text-purple-600" />
-            {translate("My Payment Configuration")}
-          </h1>
-          <p className="text-slate-600 text-sm mt-1">{entity.entityName}</p>
+      <div className="max-w-2xl mx-auto px-3 space-y-4">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-slate-700">
+            {entity.entityName}
+          </p>
+        </div>
+        <div className="flex items-center pt-1">
+          <button
+            onClick={() => setIsDialogOpen(true)}
+            className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-purple-600 text-white text-sm font-semibold active:opacity-80 transition-opacity shadow-sm"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            {translate("Update Config")}
+          </button>
         </div>
 
-        <Button
-          onClick={() => setIsDialogOpen(true)}
-          className="bg-gradient-to-r from-purple-600 to-indigo-600"
-        >
-          <Edit3 className="w-4 h-4 mr-2" />
-          {translate("Update Config")}
-        </Button>
-      </div>
-
-      {groupedConfigs.length === 0 ? (
-        <NoDataCardComponent isPage />
-      ) : (
-        <div>
-          {groupedConfigs.map(([platformName, configs]) => (
-            <Card key={platformName} className="border-0 shadow-md">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-slate-100">
-                <CardTitle className="text-slate-800 flex items-center gap-2 text-base">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
+        {groupedConfigs.length === 0 ? (
+          <NoDataCardComponent />
+        ) : (
+          groupedConfigs.map(([platformName, configs]) => (
+            <div
+              key={platformName}
+              className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+            >
+              <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-slate-100">
+                <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
+                <p className="text-sm font-semibold text-slate-800">
                   {platformName}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3">
+                </p>
+              </div>
+
+              <div className="divide-y divide-slate-50">
                 {configs.map((config) => {
                   const isSecret =
                     config.paymentfield?.fieldtype === "password";
                   return (
-                    <div
-                      key={config.id}
-                      className="rounded-lg border border-slate-100 p-3 bg-white"
-                    >
-                      <p className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                    <div key={config.id} className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
                         <KeyRound className="w-3 h-3" />
                         {config.paymentfield?.label ||
                           config.paymentfield?.key ||
                           "-"}
-                      </p>
+                      </div>
                       <p className="text-sm font-medium text-slate-700 break-all">
                         {isSecret ? maskValue(config.value) : config.value}
                       </p>
                     </div>
                   );
                 })}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       <PaymentConfigDialog
         open={isDialogOpen}

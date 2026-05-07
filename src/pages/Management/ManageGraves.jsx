@@ -1,3 +1,4 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useCallback, useEffect, useState } from "react";
 import MobileManageGraves from "@/pages/Mobile/ManageGraves";
 import { useSearchParams } from "react-router-dom";
@@ -7,14 +8,13 @@ import {
   Plus,
   Edit,
   Trash2,
-  Search,
-  X,
   Save,
   QrCode,
   Upload,
   Download,
   FileText,
 } from "lucide-react";
+import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,15 +69,6 @@ import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { resolveFileUrl } from "@/utils";
 
-function useIsNarrow(threshold = 1024) {
-  const [narrow, setNarrow] = useState(() => window.innerWidth < threshold);
-  const handler = useCallback(() => setNarrow(window.innerWidth < threshold), [threshold]);
-  useEffect(() => {
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, [handler]);
-  return narrow;
-}
 
 export default function ManageGraves() {
   const isNarrow = useIsNarrow();
@@ -406,69 +397,53 @@ function ManageGravesDesktop() {
         )}
       </div>
 
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={translate("Cemetery name")}
-                value={tempName}
-                onChange={(e) => setTempName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button onClick={handleSearch} className="bg-emerald-600 px-6">
-              {translate("Search")}
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            {isSuperAdmin && (
-              <Select value={tempState} onValueChange={setTempState}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Negeri" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{translate("All States")}</SelectItem>
-                  {STATES_MY.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Select value={tempStatus} onValueChange={setTempStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate("All Status")}</SelectItem>
-                <SelectItem value="active">{translate("Active")}</SelectItem>
-                <SelectItem value="full">{translate("Full")}</SelectItem>
-                <SelectItem value="maintenance">
-                  {translate("Maintenance")}
+      <SearchBar
+        value={tempName}
+        onChange={setTempName}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        placeholder={translate("Cemetery name")}
+        filtersClassName="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3"
+      >
+        {isSuperAdmin && (
+          <Select value={tempState} onValueChange={setTempState}>
+            <SelectTrigger>
+              <SelectValue placeholder="Negeri" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{translate("All States")}</SelectItem>
+              {STATES_MY.map((state) => (
+                <SelectItem key={state} value={state}>
+                  {state}
                 </SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              placeholder={translate("Block")}
-              value={tempBlock}
-              onChange={(e) => setTempBlock(e.target.value)}
-            />
-            <Input
-              placeholder={translate("Lot")}
-              value={tempLot}
-              onChange={(e) => setTempLot(e.target.value)}
-            />
-            <Button variant="outline" onClick={handleReset} className="w-full">
-              <X className="w-4 h-4 mr-2" /> {translate("Reset")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <Select value={tempStatus} onValueChange={setTempStatus}>
+          <SelectTrigger>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{translate("All Status")}</SelectItem>
+            <SelectItem value="active">{translate("Active")}</SelectItem>
+            <SelectItem value="full">{translate("Full")}</SelectItem>
+            <SelectItem value="maintenance">
+              {translate("Maintenance")}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          placeholder={translate("Block")}
+          value={tempBlock}
+          onChange={(e) => setTempBlock(e.target.value)}
+        />
+        <Input
+          placeholder={translate("Lot")}
+          value={tempLot}
+          onChange={(e) => setTempLot(e.target.value)}
+        />
+      </SearchBar>
 
       <Card className="border-0 shadow-md">
         <CardContent className="p-0">

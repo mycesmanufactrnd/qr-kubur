@@ -13,6 +13,8 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
 import { MONTHS, ORG_SHARE } from "@/utils/enums";
 import { formatRM, formatDate } from "@/utils/helpers";
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import BackNavigation from "@/components/BackNavigation";
 
 const ALL_TABS = [
   { key: "donations", label: "Donations" },
@@ -20,7 +22,6 @@ const ALL_TABS = [
   { key: "deathCharityPayments", label: "Death Charity", tahfizHidden: true },
   { key: "quotations", label: "Quotations", tahfizHidden: true },
 ];
-
 
 const TAB_META = {
   donations: {
@@ -152,6 +153,7 @@ export default function FinancialReports() {
   const { loading: permissionsLoading, canView } =
     useCrudPermissions("financial_reports");
 
+  const isNarrow = useIsNarrow(1024);
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -228,20 +230,6 @@ export default function FinancialReports() {
     : translate("Admin Dashboard");
   const dashboardPage = isTahfizAdmin ? "TahfizDashboard" : "AdminDashboard";
 
-  if (!canView) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumb
-          items={[
-            { label: dashboardLabel, page: dashboardPage },
-            { label: translate("Financial Reports"), page: "FinancialReports" },
-          ]}
-        />
-        <AccessDeniedComponent />
-      </div>
-    );
-  }
-
   const allSummaryCards = [
     {
       key: "donations",
@@ -285,7 +273,27 @@ export default function FinancialReports() {
     if (c.adminHidden && isAdmin && !isTahfizAdmin) return false;
     return true;
   });
-  const activeColor = TAB_META[activeTab]?.color ?? "#1c1917";
+
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        {isNarrow ? (
+          <BackNavigation title={translate("Financial Reports")} />
+        ) : (
+          <Breadcrumb
+            items={[
+              { label: dashboardLabel, page: dashboardPage },
+              {
+                label: translate("Financial Reports"),
+                page: "FinancialReports",
+              },
+            ]}
+          />
+        )}
+        <AccessDeniedComponent />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -508,41 +516,50 @@ export default function FinancialReports() {
         }
       `}</style>
 
-      <div className="fr-root space-y-6">
-        <Breadcrumb
-          items={[
-            { label: dashboardLabel, page: dashboardPage },
-            { label: translate("Financial Reports"), page: "FinancialReports" },
-          ]}
-        />
+      <div className="fr-root space-y-3 md:space-y-6">
+        {isNarrow ? (
+          <BackNavigation title={translate("Financial Reports")} />
+        ) : (
+          <Breadcrumb
+            items={[
+              { label: dashboardLabel, page: dashboardPage },
+              {
+                label: translate("Financial Reports"),
+                page: "FinancialReports",
+              },
+            ]}
+          />
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1
-            style={{
-              fontSize: 22,
-              fontWeight: 700,
-              color: "#1c1917",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              margin: 0,
-            }}
-          >
-            <span
+          {!isNarrow && (
+            <h1
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: "#f5f5f4",
+                fontSize: 22,
+                fontWeight: 700,
+                color: "#1c1917",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: 10,
+                margin: 0,
               }}
             >
-              <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
-            </span>
-            {translate("Financial Reports")}
-          </h1>
+              <span
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: "#f5f5f4",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
+              </span>
+              {translate("Financial Reports")}
+            </h1>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ position: "relative" }}>
@@ -720,17 +737,9 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr>
-                      <td colSpan={4}>
-                        <InlineLoadingComponent isTable colSpan={4} />
-                      </td>
-                    </tr>
+                    <InlineLoadingComponent isTable colSpan={4} />
                   ) : donations.length === 0 ? (
-                    <tr>
-                      <td colSpan={4}>
-                        <NoDataTableComponent colSpan={4} />
-                      </td>
-                    </tr>
+                    <NoDataTableComponent colSpan={4} />
                   ) : (
                     donations.map((r) => (
                       <tr key={r.id}>
@@ -740,7 +749,9 @@ export default function FinancialReports() {
                           </span>
                         </td>
                         <td className="text-center">
-                          <span className="fr-amount">{formatRM(r.amount)}</span>
+                          <span className="fr-amount">
+                            {formatRM(r.amount)}
+                          </span>
                         </td>
                         <td className="text-center">
                           <span
@@ -788,17 +799,9 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <InlineLoadingComponent isTable colSpan={5} />
-                      </td>
-                    </tr>
+                    <InlineLoadingComponent isTable colSpan={5} />
                   ) : tahlils.length === 0 ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <NoDataTableComponent colSpan={5} />
-                      </td>
-                    </tr>
+                    <NoDataTableComponent colSpan={5} />
                   ) : (
                     tahlils.map((r) => (
                       <tr key={r.id}>
@@ -866,17 +869,9 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <InlineLoadingComponent isTable colSpan={5} />
-                      </td>
-                    </tr>
+                    <InlineLoadingComponent isTable colSpan={5} />
                   ) : deathCharityPayments.length === 0 ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <NoDataTableComponent colSpan={5} />
-                      </td>
-                    </tr>
+                    <NoDataTableComponent colSpan={5} />
                   ) : (
                     deathCharityPayments.map((r) => (
                       <tr key={r.id}>
@@ -886,7 +881,9 @@ export default function FinancialReports() {
                           </span>
                         </td>
                         <td className="text-center">
-                          <span className="fr-amount">{formatRM(r.amount)}</span>
+                          <span className="fr-amount">
+                            {formatRM(r.amount)}
+                          </span>
                         </td>
                         <td className="text-center" style={{ fontSize: 13 }}>
                           {r.paymenttype || "-"}
@@ -928,17 +925,9 @@ export default function FinancialReports() {
                 </thead>
                 <tbody>
                   {isLoading ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <InlineLoadingComponent isTable colSpan={5} />
-                      </td>
-                    </tr>
+                    <InlineLoadingComponent isTable colSpan={5} />
                   ) : quotations.length === 0 ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <NoDataTableComponent colSpan={5} />
-                      </td>
-                    </tr>
+                    <NoDataTableComponent colSpan={5} />
                   ) : (
                     quotations.map((r) => (
                       <tr key={r.id}>

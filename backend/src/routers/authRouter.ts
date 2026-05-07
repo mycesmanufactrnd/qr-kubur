@@ -11,7 +11,7 @@ import {
 import { assertRole } from "../helpers/authHelper.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OAuth2Client } from "google-auth-library";
-import { GoogleUser } from "../db/entities.ts";
+import { DeathCharity, GoogleUser, Grave, Mosque } from "../db/entities.ts";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -24,7 +24,7 @@ const setCookies = (reply: any, accessToken: string, refreshToken: string) => {
   const isProd = process.env.NODE_ENV === "production";
   const accessExp = Number(process.env.ACCESS_TOKEN_EXPIRY);
   const refreshExp = Number(process.env.REFRESH_TOKEN_EXPIRY);
-  
+
   reply.setCookie("accessToken", accessToken, {
     httpOnly: true,
     secure: isProd, // HTTPS only in production
@@ -93,6 +93,39 @@ export const authRouter = router({
         role,
       });
 
+      const mosqueRepo = AppDataSource.getRepository(Mosque);
+
+      const hasMosques = user.organisation?.id
+        ? await mosqueRepo
+            .createQueryBuilder("mosque")
+            .where("mosque.organisationId = :orgId", {
+              orgId: user.organisation.id,
+            })
+            .getExists()
+        : false;
+
+      const graveRepo = AppDataSource.getRepository(Grave);
+
+      const hasGraves = user.organisation?.id
+        ? await graveRepo
+            .createQueryBuilder("grave")
+            .where("grave.organisationId = :orgId", {
+              orgId: user.organisation.id,
+            })
+            .getExists()
+        : false;
+
+      const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
+      
+      const hasDeathCharity = user.organisation?.id
+        ? await deathCharityRepo
+            .createQueryBuilder("deathcharity")
+            .where("deathcharity.organisationId = :orgId", {
+              orgId: user.organisation.id,
+            })
+            .getExists()
+        : false;
+
       setCookies(ctx.reply, accessToken, refreshToken);
 
       const { password, organisation, tahfizcenter, ...userWithoutPassword } =
@@ -105,6 +138,9 @@ export const authRouter = router({
         clientIp,
         organisation,
         tahfizcenter,
+        hasMosques,
+        hasGraves,
+        hasDeathCharity,
         ...userWithoutPassword,
       };
     }),

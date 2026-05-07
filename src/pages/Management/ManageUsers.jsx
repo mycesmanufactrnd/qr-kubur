@@ -1,3 +1,5 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import ManageUsersMobile from "@/pages/Mobile/ManageUsers";
 import { useState } from "react";
 import { Users, Plus, Edit, Trash2, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +40,12 @@ import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 
 export default function ManageUsers() {
+  const isNarrow = useIsNarrow(1024);
+  if (isNarrow) return <ManageUsersMobile />;
+  return <ManageUsersDesktop />;
+}
+
+function ManageUsersDesktop() {
   const {
     currentUser,
     loadingUser,

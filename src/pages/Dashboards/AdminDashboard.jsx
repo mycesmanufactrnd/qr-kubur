@@ -1,3 +1,4 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils/index";
 import {
@@ -33,10 +34,18 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
 import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import QuotationOverdueAlert from "@/components/QuotationOverdueAlert";
+import MobileAdminDashboard from "@/pages/Mobile/AdminDashboard";
+
 
 export default function AdminDashboard() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileAdminDashboard />;
+  return <AdminDashboardDesktop />;
+}
+
+function AdminDashboardDesktop() {
   const {
     currentUser,
     loadingUser,
@@ -463,7 +472,7 @@ export default function AdminDashboard() {
                   },
                   {
                     label: translate("My Payment Config"),
-                    page: "MyPaymentConfig",
+                    page: "ManagePaymentConfig",
                     icon: CreditCard,
                     color: "emerald",
                   },

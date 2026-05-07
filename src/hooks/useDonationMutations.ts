@@ -5,6 +5,9 @@ import { showSuccess, showApiError } from "@/components/ToastrNotification";
 type useGetDonationPaginatedParams = {
   page?: number;
   pageSize?: number;
+  filterStatus?: string | null;
+  filterDateFrom?: string | null;
+  filterDateTo?: string | null;
 };
 
 const titleMessage = "Donation";
@@ -12,6 +15,9 @@ const titleMessage = "Donation";
 export function useGetDonationPaginated({
   page,
   pageSize,
+  filterStatus,
+  filterDateFrom,
+  filterDateTo,
 }: useGetDonationPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
 
@@ -22,6 +28,9 @@ export function useGetDonationPaginated({
         pageSize,
         currentUser,
         checkRole,
+        filterStatus,
+        filterDateFrom,
+        filterDateTo,
       },
       { enabled: hasAdminAccess && !!currentUser },
     );

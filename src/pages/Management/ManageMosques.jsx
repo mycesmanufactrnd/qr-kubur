@@ -1,5 +1,7 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import MobileManageMosques from "@/pages/Mobile/ManageMosques";
 import { translate } from "@/utils/translations";
 import {
   Landmark,
@@ -69,7 +71,14 @@ import { defaultMosqueField } from "@/utils/defaultformfields";
 import { useForm } from "react-hook-form";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 
+
 export default function ManageMosques() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileManageMosques />;
+  return <ManageMosquesDesktop />;
+}
+
+function ManageMosquesDesktop() {
   const {
     currentUser,
     loadingUser,

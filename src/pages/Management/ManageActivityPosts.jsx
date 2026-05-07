@@ -1,6 +1,8 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import MobileManageActivityPosts from "@/pages/Mobile/ManageActivityPosts";
 import { translate } from "@/utils/translations";
 import { MapPin, Plus, Edit, Trash2, Search, X, Save } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,7 +46,14 @@ import FileUploadForm from "@/components/forms/FileUploadForm";
 import RichTextEditorForm from "@/components/forms/RichTextEditorForm";
 import { resolveFileUrl } from "@/utils";
 
+
 export default function ManageActivityPosts() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileManageActivityPosts />;
+  return <ManageActivityPostsDesktop />;
+}
+
+function ManageActivityPostsDesktop() {
   const {
     currentUser,
     loadingUser,

@@ -1,3 +1,4 @@
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useCallback, useEffect, useState } from "react";
 import MobileManageDeadPersons from "@/pages/Mobile/ManageDeadPersons";
 import { useSearchParams } from "react-router-dom";
@@ -67,15 +68,6 @@ import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { resolveFileUrl } from "@/utils";
 
-function useIsNarrow(threshold = 1024) {
-  const [narrow, setNarrow] = useState(() => window.innerWidth < threshold);
-  const handler = useCallback(() => setNarrow(window.innerWidth < threshold), [threshold]);
-  useEffect(() => {
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, [handler]);
-  return narrow;
-}
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
