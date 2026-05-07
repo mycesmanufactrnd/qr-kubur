@@ -253,13 +253,13 @@ function LayoutContent({ children, currentPageName }) {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-white to-teal-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Mobile Header - Admin Only */}
       {isAdmin && (
-        <header className="lg:hidden sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
+        <header className="lg:hidden sticky top-0 z-50 bg-emerald-900 dark:bg-gray-900/80 backdrop-blur-xl border-b">
           <div className="flex items-center justify-between h-14 px-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 dark:text-gray-300"
+              className="text-white dark:text-gray-300"
             >
               <Menu className="w-6 h-6" />
             </Button>
@@ -269,16 +269,17 @@ function LayoutContent({ children, currentPageName }) {
               className="flex items-center gap-2"
             >
               <div
-                className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 
-                flex items-center justify-center 
-                shadow-lg shadow-emerald-200/60 
-                hover:scale-105 transition"
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:scale-105 transition overflow-hidden"
               >
-                <QrCode className="w-4 h-4 text-white" />
+                <img
+                  src="/Logo.jpg"
+                  alt="Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
-                <h1 className="text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  QR Kubur
+                <h1 className="text-sm font-bold bg-white bg-clip-text text-transparent">
+                  QubuR
                 </h1>
               </div>
             </Link>
@@ -387,27 +388,31 @@ function LayoutContent({ children, currentPageName }) {
       )}
 
       {/* Header - Desktop Only */}
-      <header className="hidden lg:block sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-emerald-100 dark:border-gray-700 shadow-sm">
+      <header className="hidden lg:block sticky top-0 z-50 bg-emerald-900 dark:bg-gray-900/80 border-b border-emerald-100 dark:border-gray-700 shadow-sm">
         <div className="mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link
               to={createPageUrl(getMainPage())}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
-                <QrCode className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
+                <img
+                  src="/Logo.jpg"
+                  alt="Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  QR Kubur
+                <h1 className="text-lg font-bold bg-white bg-clip-text text-transparent">
+                  QubuR
                 </h1>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-white">
                   {translate("Grave Management System")}
                 </p>
               </div>
             </Link>
             <div className="flex items-center gap-3">
-              {hasAdminAccess && (
+              {/* {hasAdminAccess && (
                 <Link
                   to={createPageUrl("NotificationPage")}
                   className="relative"
@@ -421,20 +426,20 @@ function LayoutContent({ children, currentPageName }) {
                     )}
                   </Button>
                 </Link>
-              )}
+              )} */}
               {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
+                    <Button variant="ghost" className="flex items-center gap-2 hover:bg-white/10 ">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
                         {currentUser.fullname?.[0] ||
                           currentUser.email?.[0]?.toUpperCase()}
                       </div>
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-white">
                         {currentUser.fullname ||
                           currentUser.email?.split("@")[0]}
                       </span>
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                      <ChevronDown className="w-4 h-4 text-white" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -566,12 +571,16 @@ function LayoutContent({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <QrCode className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img
+                  src="/Logo.jpg"
+                  alt="Logo"
+                  className="w-5 h-5 object-cover"
+                />
               </div>
               <span className="text-sm text-gray-600">
                 © {new Date().getFullYear()}{" "}
-                {translate("QR Kubur. All Rights Reserved.")}
+                {translate("QubuR. All Rights Reserved.")}
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">

@@ -46,9 +46,9 @@ import TextInputForm from "@/components/forms/TextInputForm";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { userGoogleAccess } from "@/utils/auth";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { translate } from "@/utils/translations";
 
 const CUSTOM_SERVICE_KEY = "custom";
-const CUSTOM_SERVICE_LABEL = "Perkhidmatan Khas (Nota)";
 const SAVED_PHONE_KEY = "userphoneno";
 
 function Section({ title, icon: Icon, children, accent = "emerald" }) {
@@ -97,7 +97,7 @@ export default function TahlilRequestPage() {
   const createTahlilRequest = trpc.tahlilRequest.create.useMutation({
     onSuccess: () => {
       setSubmitted(true);
-      showSuccess("Terima kasih! Permohonan anda telah direkodkan.");
+      showSuccess(translate("Thank you! Your application has been recorded."));
       reset({ ...defaultTahlilRequestField, tahfizId: preSelectedTahfiz });
     },
   });
@@ -249,7 +249,7 @@ export default function TahlilRequestPage() {
 
     if (statusText === "Success") {
       setSubmittedDeceasedNames(formData.deceasednames);
-      showSuccess("Pembayaran berjaya!");
+      showSuccess(translate("Payment successful!"));
 
       const storedUser =
         localStorage.getItem("googleAuth") ||
@@ -316,9 +316,9 @@ export default function TahlilRequestPage() {
           clearQueryParams();
         });
     } else if (statusText === "Pending") {
-      showError("Pembayaran masih dalam proses.");
+      showError(translate("Payment is still being processed."));
     } else {
-      showError("Pembayaran gagal.");
+      showError(translate("Payment failed."));
     }
   }, [searchParams]);
 
@@ -446,7 +446,7 @@ export default function TahlilRequestPage() {
       formData.selectedservices?.includes(CUSTOM_SERVICE_KEY) &&
       !formData.customservice?.trim()
     ) {
-      showError("Sila jelaskan perkhidmatan khas.");
+      showError(translate("Please specify the special service."));
       return;
     }
     if (!formData.selectedservices?.includes(CUSTOM_SERVICE_KEY))
@@ -491,11 +491,11 @@ export default function TahlilRequestPage() {
         shouldRedirect={false}
         extraContent={
           <p className="text-gray-600 mb-6">
-            Permohonan tahlil untuk arwah{" "}
+            {translate("Tahlil application for the deceased")}{" "}
             <span className="font-bold text-emerald-600">
               {submittedDeceasedNames.filter((n) => n).join(", ")}
             </span>{" "}
-            telah dihantar ke pusat tahfiz.
+            {translate("has been sent to the tahfiz center.")}
           </p>
         }
         actionButton={
@@ -503,7 +503,7 @@ export default function TahlilRequestPage() {
             onClick={() => setSubmitted(false)}
             className="bg-emerald-600 hover:bg-emerald-700"
           >
-            Buat Permohonan Lagi
+            {translate("Submit Another Application")}
           </Button>
         }
       />
@@ -515,18 +515,18 @@ export default function TahlilRequestPage() {
   const deceasedNames = watch("deceasednames");
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
-      <BackNavigation title="Mohon Servis" />
+    <div className="min-h-screen pb-10">
+      <BackNavigation title={translate("Request Service")} />
 
-      <div className="max-w-2xl mx-auto px-4 space-y-4">
+      <div className="max-w-2xl mx-auto px-2 space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Section title="Pilih Pusat Tahfiz" icon={Building2} accent="emerald">
+          <Section title={translate("Select Tahfiz Center")} icon={Building2} accent="emerald">
             <Select
               value={tahfizId}
               onValueChange={(v) => setValue("tahfizId", v)}
             >
               <SelectTrigger className="w-full h-11 rounded-xl border-slate-200 text-sm">
-                <SelectValue placeholder="Pilih pusat tahfiz" />
+                <SelectValue placeholder={translate("Select Tahfiz Center")} />
               </SelectTrigger>
               <SelectContent>
                 {tahfizCenters.map((c) => (
@@ -540,7 +540,7 @@ export default function TahlilRequestPage() {
 
           {selectedTahfiz && (
             <Section
-              title="Jenis Perkhidmatan"
+              title={translate("Service Type")}
               icon={CheckCircle2}
               accent="violet"
             >
@@ -551,7 +551,7 @@ export default function TahlilRequestPage() {
                   );
                   const serviceLabel =
                     serviceValue === CUSTOM_SERVICE_KEY
-                      ? CUSTOM_SERVICE_LABEL
+                      ? translate("Special Service (Note)")
                       : serviceValue;
                   const price = selectedTahfizServicePrice[serviceValue];
 
@@ -602,7 +602,7 @@ export default function TahlilRequestPage() {
 
               {(selectedservices || []).includes(CUSTOM_SERVICE_KEY) && (
                 <Textarea
-                  placeholder="Jelaskan perkhidmatan khas..."
+                  placeholder={translate("Specify special service...")}
                   value={customservice}
                   onChange={(e) => setValue("customservice", e.target.value)}
                   className="mt-3 rounded-xl border-slate-200 text-sm resize-none"
@@ -615,78 +615,85 @@ export default function TahlilRequestPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-rose-500">
-                Maklumat Arwah
+                {translate("Deceased Information")}
               </p>
               <button
                 type="button"
                 onClick={handleAddDeceased}
                 className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-100 active:opacity-70 transition-opacity"
               >
-                <Plus className="w-3 h-3" /> Tambah
+                <Plus className="w-3 h-3" /> {translate("Add")}
               </button>
             </div>
             <div className="p-4 space-y-2">
-              {deceasedNames.map((name, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <div className="w-6 h-6 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold text-rose-400">
-                      {i + 1}
-                    </span>
-                  </div>
-                  <Input
-                    placeholder={`Nama Arwah ${deceasedNames.length > 1 ? i + 1 : ""}`}
-                    value={name}
-                    onChange={(e) => handleDeceasedChange(i, e.target.value)}
-                    className="flex-1 h-10 rounded-xl border-slate-200 text-sm"
-                  />
-                  {deceasedNames.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveDeceased(i)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors shrink-0"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+              {deceasedNames && deceasedNames.length === 0 ? (
+                <div className="text-sm text-slate-400 text-center py-2">
+                  {translate("No deceased names")}
                 </div>
-              ))}
+              ) : (
+                deceasedNames.map((name, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <div className="w-6 h-6 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-bold text-rose-400">
+                        {i + 1}
+                      </span>
+                    </div>
+
+                    <Input
+                      placeholder={`${translate("Deceased Name")}${deceasedNames.length > 1 ? ` ${i + 1}` : ""}`}
+                      value={name}
+                      onChange={(e) => handleDeceasedChange(i, e.target.value)}
+                      className="flex-1 h-10 rounded-xl border-slate-200 text-sm"
+                    />
+
+                    {deceasedNames.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDeceased(i)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
-          <Section title="Maklumat Pemohon" icon={Info} accent="blue">
+          <Section title={translate("Requester Information")} icon={Info} accent="blue">
             <div className="space-y-3">
               <TextInputForm
                 name="requestorname"
                 control={control}
-                label="Nama Pemohon"
+                label={translate("Requester Name")}
                 required
                 errors={errors}
               />
               <TextInputForm
                 name="requestoremail"
                 control={control}
-                label="Emel"
+                label={translate("Email")}
                 required
                 errors={errors}
               />
               <TextInputForm
                 name="requestorphoneno"
                 control={control}
-                label="No. Telefon"
+                label={translate("Phone No")}
                 required
                 errors={errors}
               />
               <div className="flex gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-600 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
                 <span>
-                  Resit pembayaran akan dihantar ke emel yang diberikan. Simpan
-                  nombor rujukan untuk menonton siaran langsung Tahlil.
+                  {translate("Payment receipt will be sent to the provided email. Save reference number to watch the Tahlil live stream.")}
                 </span>
               </div>
             </div>
           </Section>
 
-          <Section title="Jumlah Derma" icon={null} accent="amber">
+          <Section title={translate("Donation Amount")} icon={null} accent="amber">
             <div className="grid grid-cols-3 gap-2 mb-3">
               {DONATION_AMOUNTS.map((amt) => {
                 const isActive = amount === String(amt);
@@ -715,7 +722,7 @@ export default function TahlilRequestPage() {
             </div>
             <Input
               type="number"
-              placeholder="Jumlah lain (RM)"
+              placeholder={`${translate("Other amount")} (RM)`}
               value={customAmount}
               onChange={(e) => {
                 setValue("customAmount", e.target.value);
@@ -730,7 +737,7 @@ export default function TahlilRequestPage() {
               <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
                 <CreditCard className="w-4 h-4 text-emerald-600" />
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-                  Kaedah Pembayaran
+                  {translate("Payment Method")}
                 </p>
               </div>
               <div className="p-4 space-y-2">
@@ -794,7 +801,7 @@ export default function TahlilRequestPage() {
                 {hasService && (
                   <div className="p-3 bg-slate-50 border-b border-slate-100">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
-                      Servis Dipilih
+                      {translate("Selected Services")}
                     </p>
                     <div className="space-y-1">
                       {validServiceTypes.map(
@@ -817,7 +824,7 @@ export default function TahlilRequestPage() {
 
                 {hasDonation && (
                   <div className="flex justify-between items-center p-3 bg-amber-50 border-b border-slate-100 text-sm">
-                    <span className="text-amber-700 font-medium">Derma</span>
+                    <span className="text-amber-700 font-medium">{translate("Donation")}</span>
                     <span className="font-semibold text-amber-700">
                       RM {donationAmount.toFixed(2)}
                     </span>
@@ -826,7 +833,7 @@ export default function TahlilRequestPage() {
 
                 {platformFee > 0 && (
                   <div className="flex justify-between items-center p-3 border-b border-slate-100 text-sm">
-                    <span className="text-slate-500">Yuran Platform</span>
+                    <span className="text-slate-500">{translate("Platform Fee")}</span>
                     <span className="text-slate-600">
                       RM {platformFee.toFixed(2)}
                     </span>
@@ -835,7 +842,7 @@ export default function TahlilRequestPage() {
 
                 <div className="flex justify-between items-center p-3 bg-emerald-50">
                   <span className="text-sm font-bold text-emerald-800">
-                    Jumlah Keseluruhan
+                    {translate("Total Amount")}
                   </span>
                   <span className="text-base font-bold text-emerald-700">
                     RM {finalAmountWithFee.toFixed(2)}
@@ -848,7 +855,7 @@ export default function TahlilRequestPage() {
             type="submit"
             className="w-full h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-violet-500 text-white font-semibold text-sm shadow-lg shadow-violet-200 active:opacity-80 transition-all"
           >
-            Hantar Permohonan
+            {translate("Submit Application")}
           </Button>
         </form>
       </div>
@@ -865,10 +872,10 @@ export default function TahlilRequestPage() {
             proceedToPayment(payload);
           }
         }}
-        title="Simpan No. Telefon"
-        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
-        confirmText="Simpan"
-        cancelText="Tidak"
+        title={translate("Save Phone Number")}
+        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        confirmText={translate("Save")}
+        cancelText={translate("No")}
         onConfirm={() => {
           localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
         }}

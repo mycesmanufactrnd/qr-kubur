@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
         <p>Last updated: 22 January 2026</p>
 
         <p className="mb-4">
-          This Privacy Policy explains how QR Kubur collects, uses, discloses, and protects your personal information when you access or use our system. By using our service, you agree to the terms of this Privacy Policy.
+          This Privacy Policy explains how QubuR collects, uses, discloses, and protects your personal information when you access or use our system. By using our service, you agree to the terms of this Privacy Policy.
         </p>
 
         <h2 className="text-xl font-semibold mt-4">1. Information We Collect</h2>

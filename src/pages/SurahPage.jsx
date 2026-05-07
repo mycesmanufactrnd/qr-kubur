@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { trpc } from "@/utils/trpc";
 import { getCurrentLanguage, translate } from "@/utils/translations";
 import { SURAH_DATA, SURAH_LIST, RECITERS } from "@/utils/enums";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import BackNavigation from "@/components/BackNavigation";
 
 const TABS = [
@@ -23,7 +29,11 @@ function Section({ title, accent = "emerald", children }) {
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
       {title && (
         <div className="px-4 py-3 border-b border-slate-100">
-          <p className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}>{title}</p>
+          <p
+            className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}
+          >
+            {title}
+          </p>
         </div>
       )}
       <div className="p-4">{children}</div>
@@ -51,10 +61,10 @@ export default function SurahPage() {
   }, [surahId]);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen pb-10">
       <BackNavigation title={translate("Surah, Doa & Tahlil")} />
 
-      <div className="max-w-3xl mx-auto px-4 space-y-4">
+      <div className="max-w-2xl mx-auto px-2 space-y-4">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-1.5 flex gap-1">
           {TABS.map(({ value, label }) => {
             const isActive = activeTab === value;
@@ -76,10 +86,12 @@ export default function SurahPage() {
 
         {activeTab === "surah" && (
           <div className="space-y-4">
-
             <Section title={translate("Select Qari")} accent="emerald">
               <div className="space-y-3">
-                <Select value={String(reciterId)} onValueChange={(v) => setReciterId(Number(v))}>
+                <Select
+                  value={String(reciterId)}
+                  onValueChange={(v) => setReciterId(Number(v))}
+                >
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm">
                     <SelectValue placeholder={translate("Select Qari")} />
                   </SelectTrigger>
@@ -110,7 +122,10 @@ export default function SurahPage() {
 
             <Section title={translate("Surah")} accent="emerald">
               <div className="space-y-4">
-                <Select value={String(surahId)} onValueChange={(v) => setSurahId(Number(v))}>
+                <Select
+                  value={String(surahId)}
+                  onValueChange={(v) => setSurahId(Number(v))}
+                >
                   <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm">
                     <SelectValue placeholder="Pilih Surah" />
                   </SelectTrigger>
@@ -138,10 +153,15 @@ export default function SurahPage() {
                               {idx + 1}
                             </span>
                           </div>
-                          <p dir="rtl" className="text-right text-2xl leading-loose text-slate-800 font-arabic">
+                          <p
+                            dir="rtl"
+                            className="text-right text-2xl leading-loose text-slate-800 font-arabic"
+                          >
                             {v.text}
                           </p>
-                          <p className="text-sm text-slate-500 leading-relaxed">{v.translation}</p>
+                          <p className="text-sm text-slate-500 leading-relaxed">
+                            {v.translation}
+                          </p>
                           {idx < surahQuery.data.verses.length - 1 && (
                             <div className="h-px bg-slate-100 mt-3" />
                           )}
@@ -158,7 +178,9 @@ export default function SurahPage() {
         {activeTab === "doa" && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">{translate("Doa")}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                {translate("Doa")}
+              </p>
             </div>
             <iframe
               src={`${DoaTahlilPdf}#toolbar=0&navpanes=0`}
@@ -171,7 +193,9 @@ export default function SurahPage() {
         {activeTab === "tahlil" && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">{translate("Tahlil")}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                {translate("Tahlil")}
+              </p>
             </div>
             <iframe
               src={`${TahlilPdf}#toolbar=0&navpanes=0`}
@@ -180,11 +204,13 @@ export default function SurahPage() {
             />
           </div>
         )}
-        
+
         {activeTab === "talqin" && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">{translate("Talqin")}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                {translate("Talqin")}
+              </p>
             </div>
             <iframe
               src={`${TalqinPdf}#toolbar=0&navpanes=0`}

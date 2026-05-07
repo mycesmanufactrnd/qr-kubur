@@ -131,10 +131,10 @@ export default function CheckTahlilStatus() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen pb-10">
       <BackNavigation title={translate('Tahlil Status')} />
 
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-4">
+      <div className="max-w-2xl mx-auto px-2 pt-6 space-y-4">
 
         <div className="flex flex-col items-center text-center gap-2 pb-2">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-200 mb-1">

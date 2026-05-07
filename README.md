@@ -1,1 +1,1 @@
-# QR Kubur App
+# QubuR

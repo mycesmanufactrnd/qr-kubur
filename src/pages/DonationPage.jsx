@@ -504,10 +504,10 @@ export default function DonationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen pb-10">
       <BackNavigation title={translate("Donation")} />
 
-      <div className="max-w-2xl mx-auto px-4 space-y-4">
+      <div className="max-w-2xl mx-auto px-2 space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Section
             title={translate("Donation Recipient")}

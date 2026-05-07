@@ -13,6 +13,7 @@ import {
   AlertCircle,
   HelpCircle,
   Newspaper,
+  Text,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -266,7 +267,7 @@ export default function UserDashboard() {
         <div className="db-toprow">
           <div>
             <div className="db-greeting">{translate("Assalamualaikum")}</div>
-            <div className="db-appname">QR Kubur</div>
+            <div className="db-appname">QubuR</div>
             <div className="db-tagline">
               {translate("Funeral Guide & Management")}
             </div>
@@ -328,6 +329,12 @@ export default function UserDashboard() {
               label: translate("Service Status"),
               page: "CheckServiceStatus",
               g: G.teal,
+            },
+            {
+              icon: Text,
+              label: translate("Daily Dua"),
+              page: "DailyDua",
+              g: G.sapphire,
             },
           ].map(({ icon: Icon, label, page, g }) => (
             <Link key={page} to={createPageUrl(page)} className="db-qbtn">

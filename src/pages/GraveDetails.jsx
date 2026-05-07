@@ -85,8 +85,8 @@ export default function GraveDetails() {
     return (
       <NoDataCardComponent
         isPage
-        title={translate("noGravesFound")}
-        description="Tiada Maklumat Dijumpai"
+        title={translate("No graves found")}
+        description={translate("No information found")}
       />
     );
   }
@@ -162,7 +162,7 @@ export default function GraveDetails() {
               <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-3 px-4">
                 <CardTitle className="text-base flex items-center gap-2 text-slate-800">
                   <Info className="w-4 h-4 text-emerald-600" />
-                  Maklumat Kubur
+                  {translate("Cemetery Information")}
                 </CardTitle>
               </CardHeader>
 
@@ -174,11 +174,11 @@ export default function GraveDetails() {
 
                   <div className="flex-1 min-w-0">
                     <p className="text-[9px] uppercase font-semibold text-slate-400 tracking-wide">
-                      Penyelia (PIC)
+                      {translate("Supervisor (PIC)")}
                     </p>
 
                     <p className="font-medium text-sm text-slate-700 truncate">
-                      {grave.picname || "Tiada Maklumat"}
+                      {grave.picname || translate("No information")}
                     </p>
 
                     {grave.picphoneno && (
@@ -200,7 +200,7 @@ export default function GraveDetails() {
 
                   <div>
                     <p className="text-[9px] uppercase font-semibold text-slate-400 tracking-wide">
-                      Kapasiti
+                      {translate("Capacity")}
                     </p>
 
                     <p className="font-semibold text-base text-slate-700">
@@ -219,7 +219,7 @@ export default function GraveDetails() {
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-base flex items-center gap-2 text-slate-800">
                   <Search className="w-4 h-4 text-emerald-600" />
-                  {translate("Cari Arwah")}
+                  {translate("Search Deceased")}
                 </CardTitle>
               </CardHeader>
 
@@ -227,11 +227,11 @@ export default function GraveDetails() {
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-1">
-                      {translate("Nama")}
+                      {translate("Name")}
                     </label>
 
                     <Input
-                      placeholder={translate("Cari nama...")}
+                      placeholder={translate("Search name...")}
                       value={searchName}
                       onChange={(e) => setSearchName(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -241,7 +241,7 @@ export default function GraveDetails() {
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-1">
-                      {translate("Tarikh")}
+                      {translate("Date")}
                     </label>
 
                     <div className="flex gap-2">
@@ -267,13 +267,13 @@ export default function GraveDetails() {
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1 border-l-4 border-emerald-500 pl-4">
                 <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-                  {translate("Senarai Arwah")}
+                  {translate("Deceased List")}
                 </h2>
                 <Badge
                   variant="secondary"
                   className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0 px-3"
                 >
-                  {filtered.length} Rekod
+                  {filtered.length} {translate("Record")}
                 </Badge>
               </div>
 
@@ -327,7 +327,7 @@ export default function GraveDetails() {
                             />
                             <ShareButton
                               title={person.name}
-                              textMessage={`Lokasi Kubur ${person.name}`}
+                              textMessage={`${translate("Grave Location")} ${person.name}`}
                             />
                           </div>
                         </div>
@@ -341,7 +341,7 @@ export default function GraveDetails() {
                         <Search className="w-8 h-8 text-slate-300" />
                       </div>
                       <p className="text-slate-500 font-medium">
-                        Tiada rekod Arwah dijumpai
+                        {translate("No deceased records found")}
                       </p>
                     </div>
                   )}

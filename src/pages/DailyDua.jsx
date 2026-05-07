@@ -52,17 +52,7 @@ export default function DailyDua() {
 
   return (
     <div className="min-h-screen pb-12">
-      <BackNavigation title={translate('Daily Dua & Dhikr')} />
-
-      <div className="flex flex-col items-center text-center gap-2 px-4 pb-6">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-200 mb-1">
-          <Book className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-base font-bold text-slate-800">Du'a & Dhikr</h2>
-        <p className="text-xs text-slate-400 max-w-[220px] leading-relaxed">
-          Verily, in the remembrance of Allah do hearts find rest
-        </p>
-      </div>
+      <BackNavigation title={translate(`Daily Du'a & Dhikr`)} />
 
       <div className="relative mb-4 px-4">
         <div className="bg-white rounded-2xl border border-slate-100 p-3 shadow-lg overflow-x-auto scrollbar-hide">

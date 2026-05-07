@@ -519,7 +519,7 @@ export default function SettingsPage() {
             label={translate("Contact / Feedback")}
             action={() =>
               (window.location.href =
-                "mailto:support@qrkubur.com?subject=Maklum Balas QR Kubur")
+                "mailto:support@qrkubur.com?subject=Maklum Balas QubuR")
             }
           />
           <NavRow
