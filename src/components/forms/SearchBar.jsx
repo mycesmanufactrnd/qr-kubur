@@ -33,9 +33,8 @@ export default function SearchBar({
   children,
 }) {
   return (
-    <Card className="border-0 shadow-md">
+    <Card className="border-0 shadow-md dark:bg-slate-800">
       <CardContent className="p-4 space-y-3">
-        {/* ── Search row ── */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -44,7 +43,7 @@ export default function SearchBar({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
-              className="pl-10"
+              className="pl-10 dark:border-white"
             />
           </div>
           <Button onClick={onSearch} className={`px-6 ${buttonClassName}`}>
@@ -52,12 +51,19 @@ export default function SearchBar({
           </Button>
         </div>
 
-        {/* ── Filters row (only rendered when children are provided) ── */}
         {children && (
           <div className={filtersClassName}>
             {children}
             {onReset && (
-              <Button variant="outline" onClick={onReset} className="w-full">
+              <Button
+                variant="outline"
+                onClick={onReset}
+                className="w-full 
+                  bg-transparent 
+                  border-slate-400/40 
+                  text-inherit 
+                  hover:bg-white/10"
+              >
                 <X className="w-4 h-4 mr-2" />
                 {translate("Reset")}
               </Button>

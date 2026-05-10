@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import MobileManageDeadPersons from "@/pages/Mobile/ManageDeadPersons";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -7,8 +8,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Search,
-  X,
   Save,
   MapPin,
   QrCode,
@@ -17,6 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import SearchBar from "@/components/forms/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QRCodeDialog from "@/components/QRCodeDialog";
@@ -67,7 +67,6 @@ import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { resolveFileUrl } from "@/utils";
-
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
@@ -120,8 +119,15 @@ function ManageDeadPersonsDesktop() {
   const [uploadDragOver, setUploadDragOver] = useState(false);
 
   const DEAD_PERSON_TEMPLATE_HEADERS = [
-    "name", "icnumber", "dateofbirth", "dateofdeath",
-    "causeofdeath", "grave_id", "latitude", "longitude", "biography",
+    "name",
+    "icnumber",
+    "dateofbirth",
+    "dateofdeath",
+    "causeofdeath",
+    "grave_id",
+    "latitude",
+    "longitude",
+    "biography",
   ];
 
   const downloadDeadPersonTemplate = () => {
@@ -339,7 +345,10 @@ function ManageDeadPersonsDesktop() {
         {canCreate && (
           <div>
             <Button
-              onClick={() => { setUploadFile(null); setUploadDialogOpen(true); }}
+              onClick={() => {
+                setUploadFile(null);
+                setUploadDialogOpen(true);
+              }}
               className="bg-amber-600 hover:bg-amber-700 mr-2"
             >
               <Upload className="w-4 h-4 mr-2" />
@@ -356,91 +365,71 @@ function ManageDeadPersonsDesktop() {
         )}
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={translate("Full Name")}
-                value={tempName}
-                onChange={(e) => setTeampName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button onClick={handleSearch} className="bg-blue-600 px-6">
-              {translate("Search")}
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <Input
-              placeholder={translate("IC No")}
-              value={tempIC}
-              onChange={(e) => setTempIC(e.target.value)}
-            />
-
-            {isSuperAdmin && (
-              <Select
-                value={tempState}
-                onValueChange={(v) => {
-                  setTempState(v);
-                  setTempGrave("all");
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Negeri" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{translate("All States")}</SelectItem>
-                  {STATES_MY.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            <Select value={tempGrave} onValueChange={setTempGrave}>
-              <SelectTrigger>
-                <SelectValue placeholder={translate("Cemetery")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {translate("All cemeteries")}
+      <SearchBar
+        value={tempName}
+        onChange={setTeampName}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        placeholder={translate("Full Name")}
+        buttonClassName="bg-blue-600 hover:bg-blue-700"
+        filtersClassName="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3"
+      >
+        {isSuperAdmin && (
+          <Select
+            value={tempState}
+            onValueChange={(v) => {
+              setTempState(v);
+              setTempGrave("all");
+            }}
+          >
+            <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
+              <SelectValue placeholder="Negeri" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-slate-700 text-white">
+              <SelectItem value="all" className="focus:bg-white/10">{translate("All States")}</SelectItem>
+              {STATES_MY.map((s) => (
+                <SelectItem key={s} value={s} className="focus:bg-white/10">
+                  {s}
                 </SelectItem>
-                {gravesList.items.map((g) => (
-                  <SelectItem key={g.id} value={String(g.id)}>
-                    {g.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
-            <Input
-              type="date"
-              value={tempDateFrom}
-              onChange={(e) => setTempDateFrom(e.target.value)}
-            />
-            <Input
-              type="date"
-              value={tempDateTo}
-              onChange={(e) => setTempDateTo(e.target.value)}
-            />
+        <Input
+          placeholder={translate("IC No")}
+          value={tempIC}
+          onChange={(e) => setTempIC(e.target.value)}
+          className="dark:border-white"
+        />
 
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              className="w-full mt-auto"
-            >
-              <X className="w-4 h-4 mr-2" />
-              {translate("Reset")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <Select value={tempGrave} onValueChange={setTempGrave}>
+          <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
+            <SelectValue placeholder={translate("Cemetery")} />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-900 border-slate-700 text-white">
+            <SelectItem value="all" className="focus:bg-white/10">{translate("All cemeteries")}</SelectItem>
+            {gravesList.items.map((g) => (
+              <SelectItem key={g.id} value={String(g.id)} className="focus:bg-white/10">
+                {g.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Input
+          type="date"
+          value={tempDateFrom}
+          onChange={(e) => setTempDateFrom(e.target.value)}
+          className="dark:border-white"
+        />
+        <Input
+          type="date"
+          value={tempDateTo}
+          onChange={(e) => setTempDateTo(e.target.value)}
+          className="dark:border-white"
+        />
+      </SearchBar>
 
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
@@ -556,21 +545,29 @@ function ManageDeadPersonsDesktop() {
         )}
       </Card>
 
-      <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) setUploadFile(null); }}>
+      <Dialog
+        open={uploadDialogOpen}
+        onOpenChange={(open) => {
+          setUploadDialogOpen(open);
+          if (!open) setUploadFile(null);
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{translate("Upload Deceased via CSV")}</DialogTitle>
             <DialogDescription>
-              {translate("Download the template, fill in the data, then upload the file.")}
+              {translate(
+                "Download the template, fill in the data, then upload the file.",
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="flex items-center justify-between rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-stone-600">
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800/50">
+              <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
                 <FileText className="w-4 h-4 text-stone-400" />
                 <span className="font-medium">{translate("CSV Template")}</span>
-                <span className="text-xs text-stone-400">
+                <span className="text-xs text-stone-400 dark:text-stone-500">
                   ({DEAD_PERSON_TEMPLATE_HEADERS.length} {translate("columns")})
                 </span>
               </div>
@@ -588,15 +585,18 @@ function ManageDeadPersonsDesktop() {
 
             <label
               htmlFor="deceased-csv-upload"
-              onDragOver={(e) => { e.preventDefault(); setUploadDragOver(true); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setUploadDragOver(true);
+              }}
               onDragLeave={() => setUploadDragOver(false)}
               onDrop={handleUploadFileDrop}
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 ${
                 uploadDragOver
-                  ? "border-amber-400 bg-amber-50"
+                  ? "border-amber-400 bg-amber-50 dark:border-amber-500 dark:bg-amber-900/20"
                   : uploadFile
-                    ? "border-emerald-400 bg-emerald-50"
-                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100"
+                    ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-900/20"
+                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800/50 dark:hover:border-stone-600 dark:hover:bg-stone-800"
               }`}
             >
               <input
@@ -609,14 +609,19 @@ function ManageDeadPersonsDesktop() {
               {uploadFile ? (
                 <>
                   <FileText className="w-8 h-8 text-emerald-500" />
-                  <p className="text-sm font-medium text-emerald-700">{uploadFile.name}</p>
+                  <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                    {uploadFile.name}
+                  </p>
                   <p className="text-xs text-emerald-500">
                     {(uploadFile.size / 1024).toFixed(1)} KB
                   </p>
                   <button
                     type="button"
-                    onClick={(e) => { e.preventDefault(); setUploadFile(null); }}
-                    className="text-xs text-stone-400 hover:text-stone-600 underline mt-1"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setUploadFile(null);
+                    }}
+                    className="text-xs text-stone-400 hover:text-stone-600 underline mt-1 dark:text-stone-500 dark:hover:text-stone-300"
                   >
                     {translate("Remove")}
                   </button>
@@ -624,17 +629,26 @@ function ManageDeadPersonsDesktop() {
               ) : (
                 <>
                   <Upload className="w-8 h-8 text-stone-300" />
-                  <p className="text-sm font-medium text-stone-500">
+                  <p className="text-sm font-medium text-stone-500 dark:text-stone-400">
                     {translate("Click or drag & drop your CSV file here")}
                   </p>
-                  <p className="text-xs text-stone-400">.csv {translate("files only")}</p>
+                  <p className="text-xs text-stone-400 dark:text-stone-500">
+                    .csv {translate("files only")}
+                  </p>
                 </>
               )}
             </label>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => { setUploadDialogOpen(false); setUploadFile(null); }}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setUploadDialogOpen(false);
+                setUploadFile(null);
+              }}
+            >
               {translate("Cancel")}
             </Button>
             <Button

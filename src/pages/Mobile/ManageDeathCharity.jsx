@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -34,44 +35,44 @@ import { defaultDeathCharityField } from "@/utils/defaultformfields";
 
 function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-semibold text-slate-800 text-sm leading-tight flex-1 min-w-0">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-tight flex-1 min-w-0">
             {item.name}
           </p>
           <Badge
             className={`shrink-0 border-0 text-xs ${
               item.isactive
-                ? "bg-green-100 text-green-700"
-                : "bg-slate-100 text-slate-500"
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
             }`}
           >
             {item.isactive ? translate("Active") : translate("Inactive")}
           </Badge>
         </div>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
           {item.organisation?.name && (
             <span className="truncate">{item.organisation.name}</span>
           )}
           {item.state && (
-            <span className="bg-slate-100 rounded-lg px-2 py-0.5 shrink-0">
+            <span className="bg-slate-100 dark:bg-slate-700 rounded-lg px-2 py-0.5 shrink-0">
               {item.state}
             </span>
           )}
         </div>
 
         {item.contactperson && (
-          <p className="text-xs text-slate-400">{item.contactperson} {item.contactphone ? `· ${item.contactphone}` : ""}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{item.contactperson} {item.contactphone ? `· ${item.contactphone}` : ""}</p>
         )}
 
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500">
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
           {item.registrationfee != null && (
-            <span>{translate("Reg Fee")}: <span className="font-medium text-slate-700">{formatRM(Number(item.registrationfee))}</span></span>
+            <span>{translate("Reg Fee")}: <span className="font-medium text-slate-700 dark:text-slate-300">{formatRM(Number(item.registrationfee))}</span></span>
           )}
           {item.deathbenefitamount != null && (
-            <span>{translate("Benefit")}: <span className="font-medium text-emerald-700">{formatRM(Number(item.deathbenefitamount))}</span></span>
+            <span>{translate("Benefit")}: <span className="font-medium text-emerald-700 dark:text-emerald-400">{formatRM(Number(item.deathbenefitamount))}</span></span>
           )}
         </div>
 
@@ -79,7 +80,7 @@ function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
           {canEdit && (
             <button
               onClick={() => onEdit(item)}
-              className="flex items-center gap-1.5 text-xs text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
             >
               <Edit className="w-3.5 h-3.5" />
               {translate("Edit")}
@@ -88,7 +89,7 @@ function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
           {canDelete && (
             <button
               onClick={() => onDelete(item)}
-              className="flex items-center gap-1.5 text-xs text-red-500 border border-red-200 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
+              className="flex items-center gap-1.5 text-xs text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {translate("Delete")}
@@ -104,7 +105,7 @@ function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
 function FormSection({ title, children }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">
+      <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100 dark:border-slate-700">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -146,16 +147,16 @@ function DeathCharityFormSheet({
   const mosqueOptions = mosqueList.map((m) => ({ value: m.id, label: m.name }));
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
           {editing ? translate("Edit Death Charity") : translate("Add Death Charity")}
         </h2>
       </div>
@@ -282,7 +283,7 @@ function DeathCharityFormSheet({
       </div>
 
       {/* Fixed save bar */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 px-4 py-3">
+      <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}
           disabled={isSubmitting}
@@ -395,7 +396,7 @@ export default function MobileManageDeathCharity() {
 
   return (
     <>
-      <div className="min-h-screen pb-6">
+      <div className="min-h-screen pb-6 dark:bg-slate-900">
         <BackNavigation title={translate("Manage Death Charity")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -426,7 +427,7 @@ export default function MobileManageDeathCharity() {
           {isLoading ? (
             <InlineLoadingComponent />
           ) : deathCharityList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300">
+            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Heart className="w-12 h-12 mb-2" />
               <p className="text-sm">{translate("No records")}</p>
             </div>

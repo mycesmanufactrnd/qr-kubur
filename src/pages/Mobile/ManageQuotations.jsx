@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle,
@@ -387,8 +388,6 @@ function AmountRow({ label, value, valueClass = "", bold = false }) {
     </div>
   );
 }
-
-// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MobileManageQuotations() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();

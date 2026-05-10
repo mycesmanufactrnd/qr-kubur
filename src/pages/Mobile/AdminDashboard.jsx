@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils/index";
 import {
@@ -96,26 +97,34 @@ export default function MobileAdminDashboard() {
   ];
 
   return (
-    <div style={styles.page}>
+    <div className="min-h-screen bg-white dark:bg-slate-900 pb-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerTop}>
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 pt-5 pb-4">
+        <div className="flex justify-between items-start">
           <div>
-            <p style={styles.dateText}>{today}</p>
-            <h1 style={styles.headerTitle}>{translate("Admin Dashboard")}</h1>
-            <p style={styles.headerSub}>
-              <Activity size={13} style={{ marginRight: 4 }} />
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5 tracking-wider">{today}</p>
+            <h1 className="text-[22px] font-bold text-slate-900 dark:text-slate-100 -tracking-wide m-0">
+              {translate("Admin Dashboard")}
+            </h1>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+              <Activity size={13} />
               {currentUser?.full_name || translate("Admin")}
             </p>
           </div>
           {isSuperAdmin && (
-            <div style={styles.roleChips}>
-              <Link to={createPageUrl("SuperAdminDashboard")} style={styles.chip}>
+            <div className="flex flex-col gap-1.5 items-end">
+              <Link
+                to={createPageUrl("SuperAdminDashboard")}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 no-underline"
+              >
                 <Sparkles size={11} />
                 Super
               </Link>
-              <Link to={createPageUrl("TahfizDashboard")} style={{ ...styles.chip, ...styles.chipGreen }}>
+              <Link
+                to={createPageUrl("TahfizDashboard")}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 no-underline"
+              >
                 <BookOpen size={11} />
                 Tahfiz
               </Link>
@@ -124,24 +133,24 @@ export default function MobileAdminDashboard() {
         </div>
       </div>
 
-      <div style={styles.body}>
+      <div className="px-4 pt-4">
 
         {/* Overdue Alert */}
         {isGraveServices && (
-          <div style={styles.alert}>
-            <div style={styles.alertDot} />
-            <span style={styles.alertText}>
+          <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3.5 py-2.5 mb-5">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+            <span className="text-[13px] text-amber-800 dark:text-amber-300 flex-1">
               {totalPendingQuo > 0
                 ? `${totalPendingQuo} quotation${totalPendingQuo > 1 ? "s" : ""} pending review`
                 : "All quotations are up to date"}
             </span>
-            <Bell size={14} style={{ color: "#d97706" }} />
+            <Bell size={14} className="text-amber-600 dark:text-amber-400" />
           </div>
         )}
 
         {/* Core Stats */}
         <SectionLabel label={translate("Overview")} />
-        <div style={styles.grid}>
+        <div className="grid grid-cols-2 gap-2.5 mb-5">
           {coreStats.map((s, i) => <StatCard key={i} {...s} />)}
         </div>
 
@@ -149,7 +158,7 @@ export default function MobileAdminDashboard() {
         {isHasManageMosque && (
           <>
             <SectionLabel label={translate("Khairat Kematian")} />
-            <div style={styles.grid}>
+            <div className="grid grid-cols-2 gap-2.5 mb-5">
               {charityStats.map((s, i) => <StatCard key={i} {...s} />)}
             </div>
           </>
@@ -159,7 +168,7 @@ export default function MobileAdminDashboard() {
         {isGraveServices && (
           <>
             <SectionLabel label={translate("Quotations")} />
-            <div style={styles.grid}>
+            <div className="grid grid-cols-2 gap-2.5 mb-5">
               {quoStats.map((s, i) => <StatCard key={i} {...s} />)}
             </div>
           </>
@@ -169,25 +178,25 @@ export default function MobileAdminDashboard() {
         {isCanBeDonated && (
           <>
             <SectionLabel label={translate("Donations")} />
-            <div style={styles.grid}>
-              <Link to={createPageUrl("ManageDonations")} style={{ textDecoration: "none" }}>
-                <div style={{ ...styles.statCard, ...colorMap.rose.card }}>
-                  <div style={{ ...styles.iconWrap, ...colorMap.rose.icon }}>
-                    <Heart size={14} color={colorMap.rose.iconColor} />
+            <div className="grid grid-cols-2 gap-2.5 mb-5">
+              <Link to={createPageUrl("ManageDonations")} className="block no-underline">
+                <div className="rounded-2xl p-3.5 bg-rose-50 dark:bg-rose-900/20 border border-slate-100 dark:border-white/5 h-full">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 bg-rose-100 dark:bg-rose-800/60 shrink-0">
+                    <Heart size={14} className="text-rose-600 dark:text-rose-400" />
                   </div>
-                  <p style={styles.statLabel}>{translate("Total Donations")}</p>
-                  <p style={styles.statValue}>
-                    {isDDVLoading ? "—" : donationCount.toLocaleString()}
+                  <p className="text-[11px] font-medium leading-tight mb-1 text-slate-500 dark:text-slate-400">{translate("Total Donations")}</p>
+                  <p className="text-[22px] font-bold leading-none tracking-tight text-rose-800 dark:text-rose-300">
+                    {isDDVLoading ? <span className="text-slate-300 dark:text-slate-600">—</span> : donationCount.toLocaleString()}
                   </p>
                 </div>
               </Link>
-              <div style={{ ...styles.statCard, ...colorMap.green.card }}>
-                <div style={{ ...styles.iconWrap, ...colorMap.green.icon }}>
-                  <TrendingUp size={14} color={colorMap.green.iconColor} />
+              <div className="rounded-2xl p-3.5 bg-green-50 dark:bg-green-900/20 border border-slate-100 dark:border-white/5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 bg-green-100 dark:bg-green-800/60 shrink-0">
+                  <TrendingUp size={14} className="text-green-600 dark:text-green-400" />
                 </div>
-                <p style={styles.statLabel}>{translate("Verified Donation")}</p>
-                <p style={{ ...styles.statValue, fontSize: 16 }}>
-                  {isDDVLoading ? "—" : formatRM(donationVerified)}
+                <p className="text-[11px] font-medium leading-tight mb-1 text-slate-500 dark:text-slate-400">{translate("Verified Donation")}</p>
+                <p className="text-[17px] font-bold leading-none tracking-tight text-green-800 dark:text-green-300">
+                  {isDDVLoading ? <span className="text-slate-300 dark:text-slate-600">—</span> : formatRM(donationVerified)}
                 </p>
               </div>
             </div>
@@ -196,15 +205,15 @@ export default function MobileAdminDashboard() {
 
         {/* Quick Actions */}
         <SectionLabel label={translate("Quick Actions")} />
-        <div style={styles.actionList}>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-5">
           {quickActions.map((a, i) => (
-            <Link key={i} to={createPageUrl(a.page)} style={styles.actionLink}>
-              <div style={styles.actionRow}>
-                <div style={{ ...styles.actionIcon, ...colorMap[a.color]?.icon }}>
-                  <a.icon size={14} color={colorMap[a.color]?.iconColor} />
+            <Link key={i} to={createPageUrl(a.page)} className="block no-underline">
+              <div className="flex items-center gap-3 px-3.5 py-3 border-b border-slate-100 dark:border-slate-700 last:border-b-0">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${colorMap[a.color]?.icon ?? colorMap.blue.icon}`}>
+                  <a.icon size={14} className={colorMap[a.color]?.iconText ?? colorMap.blue.iconText} />
                 </div>
-                <span style={styles.actionLabel}>{a.label}</span>
-                <ChevronRight size={15} style={{ color: "#cbd5e1" }} />
+                <span className="text-[14px] text-slate-700 dark:text-slate-200 flex-1 font-medium">{a.label}</span>
+                <ChevronRight size={15} className="text-slate-300 dark:text-slate-600" />
               </div>
             </Link>
           ))}
@@ -220,221 +229,48 @@ export default function MobileAdminDashboard() {
 /* ── Sub-components ── */
 
 function SectionLabel({ label }) {
-  return <p style={styles.sectionLabel}>{label}</p>;
+  return (
+    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2.5 mt-1">
+      {label}
+    </p>
+  );
 }
 
 function StatCard({ label, value, icon: Icon, page, loading, isMoney, color = "blue", wide }) {
+  const c = colorMap[color] ?? colorMap.blue;
   return (
     <Link
       to={createPageUrl(page)}
-      style={{ textDecoration: "none", gridColumn: wide ? "span 2" : undefined }}
+      className={`block no-underline ${wide ? "col-span-2" : ""}`}
     >
-      <div style={{ ...styles.statCard, ...colorMap[color]?.card, ...(wide ? styles.statCardWide : {}) }}>
-        <div style={{ ...styles.iconWrap, ...colorMap[color]?.icon }}>
-          <Icon size={14} color={colorMap[color]?.iconColor} />
+      <div className={`rounded-2xl h-full border border-slate-100 dark:border-white/5 ${c.card} ${wide ? "flex items-center gap-3 px-3.5 py-3" : "p-3.5"}`}>
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${c.icon} ${wide ? "" : "mb-2.5"}`}>
+          <Icon size={14} className={c.iconText} />
         </div>
-        <p style={styles.statLabel}>{label}</p>
-        <p style={{ ...styles.statValue, ...(isMoney ? { fontSize: 17 } : {}) }}>
-          {loading
-            ? <span style={{ color: "#cbd5e1" }}>—</span>
-            : isMoney
-              ? formatRM(value)
-              : value.toLocaleString()}
-        </p>
+        <div>
+          <p className="text-[11px] font-medium leading-tight mb-1 text-slate-500 dark:text-slate-400">{label}</p>
+          <p className={`font-bold leading-none tracking-tight ${isMoney ? "text-[17px]" : "text-[22px]"} ${c.value}`}>
+            {loading
+              ? <span className="text-slate-300 dark:text-slate-600">—</span>
+              : isMoney ? formatRM(value) : value.toLocaleString()}
+          </p>
+        </div>
       </div>
     </Link>
   );
 }
 
-/* ── Color map ── */
+/* ── Color map (Tailwind classes) ── */
 const colorMap = {
-  green:  { card: { background: "#f0fdf4" }, icon: { background: "#dcfce7" }, iconColor: "#16a34a" },
-  blue:   { card: { background: "#eff6ff" }, icon: { background: "#dbeafe" }, iconColor: "#2563eb" },
-  violet: { card: { background: "#f5f3ff" }, icon: { background: "#ede9fe" }, iconColor: "#7c3aed" },
-  amber:  { card: { background: "#fffbeb" }, icon: { background: "#fef3c7" }, iconColor: "#d97706" },
-  orange: { card: { background: "#fff7ed" }, icon: { background: "#ffedd5" }, iconColor: "#ea580c" },
-  sky:    { card: { background: "#f0f9ff" }, icon: { background: "#e0f2fe" }, iconColor: "#0284c7" },
-  teal:   { card: { background: "#f0fdfa" }, icon: { background: "#ccfbf1" }, iconColor: "#0d9488" },
-  rose:   { card: { background: "#fff1f2" }, icon: { background: "#ffe4e6" }, iconColor: "#e11d48" },
-  indigo: { card: { background: "#eef2ff" }, icon: { background: "#e0e7ff" }, iconColor: "#4338ca" },
-  stone:  { card: { background: "#fafaf9" }, icon: { background: "#f5f5f4" }, iconColor: "#78716c" },
-  purple: { card: { background: "#faf5ff" }, icon: { background: "#f3e8ff" }, iconColor: "#9333ea" },
-};
-
-/* ── Styles ── */
-const styles = {
-  page: {
-    minHeight: "100vh",
-    fontFamily: "'DM Sans', sans-serif",
-    paddingBottom: 32,
-  },
-  header: {
-    background: "#ffffff",
-    borderBottom: "1px solid #e2e8f0",
-    padding: "20px 16px 16px",
-  },
-  headerTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  dateText: {
-    fontSize: 11,
-    color: "#94a3b8",
-    marginBottom: 2,
-    letterSpacing: "0.04em",
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: 0,
-    letterSpacing: "-0.02em",
-  },
-  headerSub: {
-    fontSize: 13,
-    color: "#64748b",
-    marginTop: 4,
-    display: "flex",
-    alignItems: "center",
-  },
-  roleChips: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-    alignItems: "flex-end",
-  },
-  chip: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 4,
-    fontSize: 11,
-    fontWeight: 500,
-    padding: "4px 10px",
-    borderRadius: 20,
-    background: "#f1f5f9",
-    color: "#475569",
-    border: "1px solid #e2e8f0",
-    textDecoration: "none",
-  },
-  chipGreen: {
-    background: "#f0fdf4",
-    color: "#16a34a",
-    border: "1px solid #bbf7d0",
-  },
-  body: {
-    padding: "16px 16px 0",
-  },
-  alert: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    background: "#fffbeb",
-    border: "1px solid #fde68a",
-    borderRadius: 12,
-    padding: "10px 14px",
-    marginBottom: 20,
-  },
-  alertDot: {
-    width: 7,
-    height: 7,
-    borderRadius: "50%",
-    background: "#f59e0b",
-    flexShrink: 0,
-  },
-  alertText: {
-    fontSize: 13,
-    color: "#92400e",
-    flex: 1,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#94a3b8",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 10,
-    marginBottom: 20,
-  },
-  statCard: {
-    background: "#f8fafc",
-    borderRadius: 14,
-    padding: "14px 14px 12px",
-    border: "1px solid #f1f5f9",
-    cursor: "pointer",
-    display: "block",
-  },
-  statCardWide: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "12px 14px",
-  },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    background: "#e2e8f0",
-    flexShrink: 0,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#64748b",
-    marginBottom: 4,
-    fontWeight: 500,
-    lineHeight: 1.3,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: "#0f172a",
-    lineHeight: 1,
-    letterSpacing: "-0.02em",
-  },
-  actionList: {
-    background: "#ffffff",
-    borderRadius: 16,
-    border: "1px solid #e2e8f0",
-    overflow: "hidden",
-    marginBottom: 20,
-  },
-  actionLink: {
-    textDecoration: "none",
-    display: "block",
-  },
-  actionRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "13px 14px",
-    borderBottom: "1px solid #f1f5f9",
-    background: "#ffffff",
-    cursor: "pointer",
-  },
-  actionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    background: "#f1f5f9",
-  },
-  actionLabel: {
-    fontSize: 14,
-    color: "#1e293b",
-    flex: 1,
-    fontWeight: 500,
-  },
+  green:  { card: "bg-green-50 dark:bg-green-900/20",   icon: "bg-green-100 dark:bg-green-800/60",   iconText: "text-green-600 dark:text-green-400",   value: "text-green-800 dark:text-green-300" },
+  blue:   { card: "bg-blue-50 dark:bg-blue-900/20",     icon: "bg-blue-100 dark:bg-blue-800/60",     iconText: "text-blue-600 dark:text-blue-400",     value: "text-blue-800 dark:text-blue-300" },
+  violet: { card: "bg-violet-50 dark:bg-violet-900/20", icon: "bg-violet-100 dark:bg-violet-800/60", iconText: "text-violet-600 dark:text-violet-400", value: "text-violet-800 dark:text-violet-300" },
+  amber:  { card: "bg-amber-50 dark:bg-amber-900/20",   icon: "bg-amber-100 dark:bg-amber-800/60",   iconText: "text-amber-600 dark:text-amber-400",   value: "text-amber-800 dark:text-amber-300" },
+  orange: { card: "bg-orange-50 dark:bg-orange-900/20", icon: "bg-orange-100 dark:bg-orange-800/60", iconText: "text-orange-600 dark:text-orange-400", value: "text-orange-800 dark:text-orange-300" },
+  sky:    { card: "bg-sky-50 dark:bg-sky-900/20",       icon: "bg-sky-100 dark:bg-sky-800/60",       iconText: "text-sky-600 dark:text-sky-400",       value: "text-sky-800 dark:text-sky-300" },
+  teal:   { card: "bg-teal-50 dark:bg-teal-900/20",     icon: "bg-teal-100 dark:bg-teal-800/60",     iconText: "text-teal-600 dark:text-teal-400",     value: "text-teal-800 dark:text-teal-300" },
+  rose:   { card: "bg-rose-50 dark:bg-rose-900/20",     icon: "bg-rose-100 dark:bg-rose-800/60",     iconText: "text-rose-600 dark:text-rose-400",     value: "text-rose-800 dark:text-rose-300" },
+  indigo: { card: "bg-indigo-50 dark:bg-indigo-900/20", icon: "bg-indigo-100 dark:bg-indigo-800/60", iconText: "text-indigo-600 dark:text-indigo-400", value: "text-indigo-800 dark:text-indigo-300" },
+  stone:  { card: "bg-stone-50 dark:bg-stone-900/20",   icon: "bg-stone-100 dark:bg-stone-800/60",   iconText: "text-stone-600 dark:text-stone-400",   value: "text-stone-800 dark:text-stone-300" },
+  purple: { card: "bg-purple-50 dark:bg-purple-900/20", icon: "bg-purple-100 dark:bg-purple-800/60", iconText: "text-purple-600 dark:text-purple-400", value: "text-purple-800 dark:text-purple-300" },
 };

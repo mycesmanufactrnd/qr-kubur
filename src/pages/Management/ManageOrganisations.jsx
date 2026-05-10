@@ -336,7 +336,7 @@ function ManageOrganisationsDesktop() {
                 disabled={isUploading}
               />
               {isUploading && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-slate-400">
                   {translate("Uploading...")}
                 </span>
               )}
@@ -1036,7 +1036,7 @@ function ManageOrganisationsDesktop() {
         </Select>
       </SearchBar>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -1173,7 +1173,7 @@ function ManageOrganisationsDesktop() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[90vw] max-h-[95vh] min-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[90vw] max-h-[95vh] min-h-[80vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingOrg ? translate("Edit") : translate("Add New")}
@@ -1188,7 +1188,7 @@ function ManageOrganisationsDesktop() {
               }
             >
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                <h3 className="text-sm font-medium text-gray-700 border-b py-2 dark:text-slate-300 dark:border-slate-700">
                   {translate("Organsiation Details")}
                 </h3>
                 <TextInputForm
@@ -1316,7 +1316,7 @@ function ManageOrganisationsDesktop() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                <h3 className="text-sm font-medium text-gray-700 border-b py-2 dark:text-slate-300 dark:border-slate-700">
                   {translate("Payment Config")}
                 </h3>
                 <div>
@@ -1329,7 +1329,7 @@ function ManageOrganisationsDesktop() {
                       .map((platform) => (
                         <Label
                           key={platform.code}
-                          className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
+                          className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-700/50"
                         >
                           <Checkbox
                             checked={selectedPaymentPlatforms.includes(
@@ -1366,7 +1366,7 @@ function ManageOrganisationsDesktop() {
                   return (
                     <div
                       key={platformCode}
-                      className="border rounded-lg p-4 bg-gray-50"
+                      className="border rounded-lg p-4 bg-gray-50 dark:bg-slate-700/50 dark:border-slate-600"
                     >
                       <h3 className="font-semibold mb-4 flex items-center gap-2">
                         {platform.name} {translate("config")}
@@ -1382,7 +1382,7 @@ function ManageOrganisationsDesktop() {
                   );
                 })}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 border-b py-2 flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-700 border-b py-2 flex items-center justify-between dark:text-slate-300 dark:border-slate-700">
                     {translate("Grave Service")}
                     <button
                       type="button"
@@ -1438,8 +1438,8 @@ function ManageOrganisationsDesktop() {
                             type="button"
                             className={`col-span-2 font-medium px-2 py-1 rounded border transition-colors ${
                               entry.isactive !== false
-                                ? "bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
-                                : "bg-gray-100 text-gray-500 border-gray-300 hover:bg-gray-200"
+                                ? "bg-green-50 text-green-700 border-green-300 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
+                                : "bg-gray-100 text-gray-500 border-gray-300 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 dark:hover:bg-slate-600"
                             }`}
                             onClick={() =>
                               updateServiceEntry(
@@ -1474,7 +1474,7 @@ function ManageOrganisationsDesktop() {
                   </div>
                 )}
                 {!isGraveServicesChecked && (
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
                     {translate("No grave service")}
                   </div>
                 )}
@@ -1482,7 +1482,7 @@ function ManageOrganisationsDesktop() {
 
               {canAddOrgUsers && (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                  <h3 className="text-sm font-medium text-gray-700 border-b py-2 dark:text-slate-300 dark:border-slate-700">
                     {translate("Add User")}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1531,7 +1531,7 @@ function ManageOrganisationsDesktop() {
                     )}
                   </div>
 
-                  <div className="border rounded-lg overflow-hidden">
+                  <div className="border rounded-lg overflow-hidden dark:border-slate-700">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1547,7 +1547,7 @@ function ManageOrganisationsDesktop() {
                           <TableRow>
                             <TableCell
                               colSpan={5}
-                              className="text-center text-xs text-gray-500"
+                              className="text-center text-xs text-gray-500 dark:text-slate-400"
                             >
                               No users added yet.
                             </TableCell>
@@ -1557,7 +1557,7 @@ function ManageOrganisationsDesktop() {
                             <TableRow
                               key={entry.id}
                               className={
-                                editingUserIndex === index ? "bg-violet-50" : ""
+                                editingUserIndex === index ? "bg-violet-50 dark:bg-violet-900/20" : ""
                               }
                             >
                               <TableCell className="font-medium">
@@ -1596,11 +1596,11 @@ function ManageOrganisationsDesktop() {
                     </Table>
                   </div>
                   <div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-slate-400">
                       Default password: {DEFAULT_USER_PASSWORD}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-slate-400">
                     State follows organisation.
                   </span>
                 </div>

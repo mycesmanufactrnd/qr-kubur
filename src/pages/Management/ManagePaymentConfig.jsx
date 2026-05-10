@@ -102,7 +102,7 @@ function ManagePaymentConfigDesktop() {
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
             <CreditCard className="w-7 h-7 text-purple-600" />
-            {translate("My Payment Configuration")}
+            {translate("Payment Config")}
           </h1>
           <p className="text-slate-600 text-sm mt-1">{entity.entityName}</p>
         </div>

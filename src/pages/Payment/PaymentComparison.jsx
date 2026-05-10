@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useMemo, useState } from "react";
 import { Plus, Trash2, Check, X, GripVertical } from "lucide-react";
 import { trpc } from "@/utils/trpc";

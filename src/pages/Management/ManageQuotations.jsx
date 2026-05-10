@@ -11,7 +11,6 @@ import {
   Upload,
   Image,
   MapPin,
-  X,
 } from "lucide-react";
 import DirectionButton from "@/components/DirectionButton";
 import ShareButton from "@/components/ShareButton";
@@ -34,6 +33,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import SearchBar from "@/components/forms/SearchBar";
 import LoadingUser from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -57,16 +64,16 @@ function ManageQuotationsDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlPage     = parseInt(searchParams.get("page")      || "1");
-  const urlStatus   = searchParams.get("status")   || "all";
-  const urlService  = searchParams.get("service")  || "";
+  const urlPage = parseInt(searchParams.get("page") || "1");
+  const urlStatus = searchParams.get("status") || "all";
+  const urlService = searchParams.get("service") || "";
   const urlDateFrom = searchParams.get("dateFrom") || "";
-  const urlDateTo   = searchParams.get("dateTo")   || "";
+  const urlDateTo = searchParams.get("dateTo") || "";
 
-  const [tempStatus,   setTempStatus]   = useState(urlStatus);
-  const [tempService,  setTempService]  = useState(urlService);
+  const [tempStatus, setTempStatus] = useState(urlStatus);
+  const [tempService, setTempService] = useState(urlService);
   const [tempDateFrom, setTempDateFrom] = useState(urlDateFrom);
-  const [tempDateTo,   setTempDateTo]   = useState(urlDateTo);
+  const [tempDateTo, setTempDateTo] = useState(urlDateTo);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -79,16 +86,17 @@ function ManageQuotationsDesktop() {
 
   const handleSearch = () => {
     const params = { page: "1" };
-    if (tempStatus !== "all") params.status  = tempStatus;
-    if (tempService)          params.service = tempService;
-    if (tempDateFrom)         params.dateFrom = tempDateFrom;
-    if (tempDateTo)           params.dateTo   = tempDateTo;
+    if (tempStatus !== "all") params.status = tempStatus;
+    if (tempService) params.service = tempService;
+    if (tempDateFrom) params.dateFrom = tempDateFrom;
+    if (tempDateTo) params.dateTo = tempDateTo;
     setSearchParams(params);
   };
 
   const handleReset = () => setSearchParams({});
   const page = urlPage;
-  const setPage = (p) => setSearchParams({ ...Object.fromEntries(searchParams), page: String(p) });
+  const setPage = (p) =>
+    setSearchParams({ ...Object.fromEntries(searchParams), page: String(p) });
 
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -208,10 +216,13 @@ function ManageQuotationsDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", uploadDialogFile);
-      const res = await fetch(`/api/upload/bucket-organisation-services-proof`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `/api/upload/bucket-organisation-services-proof`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         showError(err.error || translate("Failed to upload photo"));
@@ -242,10 +253,13 @@ function ManageQuotationsDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", inlineUploadFile);
-      const res = await fetch(`/api/upload/bucket-organisation-services-proof`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `/api/upload/bucket-organisation-services-proof`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         showError(err.error || translate("Failed to upload photo"));
@@ -257,7 +271,10 @@ function ManageQuotationsDesktop() {
         data: { photourl: uploadData.file_url },
       });
       if (updated) {
-        setSelectedQuotation((prev) => ({ ...prev, photourl: updated.photourl }));
+        setSelectedQuotation((prev) => ({
+          ...prev,
+          photourl: updated.photourl,
+        }));
         setInlineUploadFile(null);
         setInlineUploadPreview("");
         setInlineUploadFileKey((k) => k + 1);
@@ -297,21 +314,21 @@ function ManageQuotationsDesktop() {
     switch (status) {
       case QuotationStatus.PENDING:
         return (
-          <Badge className="bg-yellow-100 text-yellow-700">
+          <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Pending")}
           </Badge>
         );
       case QuotationStatus.COMPLETED:
         return (
-          <Badge className="bg-green-100 text-green-700">
+          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Completed")}
           </Badge>
         );
       case QuotationStatus.REJECTED:
         return (
-          <Badge className="bg-red-100 text-red-700">
+          <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Rejected")}
           </Badge>
@@ -325,49 +342,49 @@ function ManageQuotationsDesktop() {
     switch (status) {
       case "Pending":
         return (
-          <Badge className="bg-yellow-100 text-yellow-700">
+          <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Pending")}
           </Badge>
         );
       case "Paid":
         return (
-          <Badge className="bg-emerald-100 text-emerald-700">
+          <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Paid")}
           </Badge>
         );
       case "Held":
         return (
-          <Badge className="bg-amber-100 text-amber-700">
+          <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Held")}
           </Badge>
         );
       case "Transfer Pending":
         return (
-          <Badge className="bg-blue-100 text-blue-700">
+          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Transfer Pending")}
           </Badge>
         );
       case "Transferred":
         return (
-          <Badge className="bg-green-100 text-green-700">
+          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Transferred")}
           </Badge>
         );
       case "Failed":
         return (
-          <Badge className="bg-red-100 text-red-700">
+          <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Failed")}
           </Badge>
         );
       case "Refunded":
         return (
-          <Badge className="bg-slate-100 text-slate-700">
+          <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Refunded")}
           </Badge>
@@ -404,52 +421,69 @@ function ManageQuotationsDesktop() {
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <FileText className="w-6 h-6 text-sky-600" />
           {translate("Manage Quotations")}
         </h1>
       </div>
 
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4 space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">{translate("Status")}</p>
-              <select
-                value={tempStatus}
-                onChange={(e) => setTempStatus(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                <option value="all">{translate("All Status")}</option>
-                <option value="pending">{translate("Pending")}</option>
-                <option value="completed">{translate("Completed")}</option>
-                <option value="rejected">{translate("Rejected")}</option>
-              </select>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-1">{translate("Service")}</p>
-              <Input
-                placeholder={translate("Service name")}
-                value={tempService}
-                onChange={(e) => setTempService(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-1">{translate("Date From")}</p>
-              <Input type="date" value={tempDateFrom} onChange={(e) => setTempDateFrom(e.target.value)} />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-1">{translate("Date To")}</p>
-              <Input type="date" value={tempDateTo} onChange={(e) => setTempDateTo(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleSearch} className="bg-sky-600 hover:bg-sky-700 px-6">{translate("Search")}</Button>
-            <Button variant="outline" onClick={handleReset}><X className="w-4 h-4 mr-2" />{translate("Reset")}</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchBar
+        value={tempService}
+        onChange={setTempService}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        placeholder={translate("Service name")}
+        buttonClassName="bg-sky-600 hover:bg-sky-700"
+        filtersClassName="grid grid-cols-2 sm:grid-cols-4 gap-3"
+      >
+        <Select value={tempStatus} onValueChange={setTempStatus}>
+          <SelectTrigger className="bg-transparent border-slate-300 text-slate-900 dark:border-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 focus:ring-0">
+            <SelectValue placeholder={translate("Status")} />
+          </SelectTrigger>
+
+          <SelectContent className="bg-white text-slate-900 border-slate-200 dark:bg-slate-900 dark:text-white dark:border-slate-700">
+            <SelectItem
+              value="all"
+              className="focus:bg-slate-100 dark:focus:bg-white/10"
+            >
+              {translate("All Status")}
+            </SelectItem>
+
+            <SelectItem
+              value="pending"
+              className="focus:bg-slate-100 dark:focus:bg-white/10"
+            >
+              {translate("Pending")}
+            </SelectItem>
+
+            <SelectItem
+              value="completed"
+              className="focus:bg-slate-100 dark:focus:bg-white/10"
+            >
+              {translate("Completed")}
+            </SelectItem>
+
+            <SelectItem
+              value="rejected"
+              className="focus:bg-slate-100 dark:focus:bg-white/10"
+            >
+              {translate("Rejected")}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          value={tempDateFrom}
+          onChange={(e) => setTempDateFrom(e.target.value)}
+          className="dark:border-white"
+        />
+        <Input
+          type="date"
+          value={tempDateTo}
+          onChange={(e) => setTempDateTo(e.target.value)}
+          className="dark:border-white"
+        />
+      </SearchBar>
 
       <div className="grid grid-cols-3 gap-4">
         {[
@@ -475,18 +509,20 @@ function ManageQuotationsDesktop() {
             color: "red",
           },
         ].map((stat, i) => (
-          <Card key={i} className="border-0 shadow-md">
+          <Card key={i} className="border-0 shadow-md dark:bg-slate-800">
             <CardContent className="p-4 text-center">
               <p className={`text-2xl font-bold text-${stat.color}-600`}>
                 {stat.value}
               </p>
-              <p className="text-sm text-gray-500">{stat.label}</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">
+                {stat.label}
+              </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -565,11 +601,19 @@ function ManageQuotationsDesktop() {
             <Pagination
               currentPage={urlPage}
               totalPages={totalPages}
-              onPageChange={(p) => setSearchParams({ ...Object.fromEntries(searchParams), page: String(p) })}
+              onPageChange={(p) =>
+                setSearchParams({
+                  ...Object.fromEntries(searchParams),
+                  page: String(p),
+                })
+              }
               itemsPerPage={itemsPerPage}
               onItemsPerPageChange={(v) => {
                 setItemsPerPage(v);
-                setSearchParams({ ...Object.fromEntries(searchParams), page: "1" });
+                setSearchParams({
+                  ...Object.fromEntries(searchParams),
+                  page: "1",
+                });
               }}
               totalItems={quotationList.total}
             />
@@ -583,7 +627,7 @@ function ManageQuotationsDesktop() {
           if (!open) closeDialog();
         }}
       >
-        <DialogContent className="max-w-[80vw] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-[80vw] max-h-[85vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>{translate("Quotation Details")}</DialogTitle>
           </DialogHeader>
@@ -593,7 +637,7 @@ function ManageQuotationsDesktop() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-slate-400">
                       {translate("Payer")}
                     </p>
                     <p className="font-semibold">
@@ -601,16 +645,16 @@ function ManageQuotationsDesktop() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-slate-400">
                       {translate("Reference No")}
                     </p>
-                    <p className="font-mono text-sm break-all bg-gray-50 p-1.5 rounded">
+                    <p className="font-mono text-sm break-all bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-1.5 rounded">
                       {selectedQuotation.referenceno || "-"}
                     </p>
                   </div>
                   {selectedQuotation.payeremail && (
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Email")}
                       </p>
                       <p>{selectedQuotation.payeremail}</p>
@@ -618,7 +662,7 @@ function ManageQuotationsDesktop() {
                   )}
                   {selectedQuotation.payerphone && (
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Phone")}
                       </p>
                       <p>{selectedQuotation.payerphone}</p>
@@ -627,22 +671,28 @@ function ManageQuotationsDesktop() {
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
                     {translate("Organisation")}
                   </p>
                   <p>{selectedQuotation.organisation?.name || "-"}</p>
                 </div>
 
-                {(selectedQuotation.organisation?.latitude || selectedQuotation.organisation?.longitude) && (
+                {(selectedQuotation.organisation?.latitude ||
+                  selectedQuotation.organisation?.longitude) && (
                   <div>
                     <p className="text-sm text-gray-500 mb-1.5">
                       {translate("Location")}
                     </p>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 mb-2">
                       <MapPin className="w-3.5 h-3.5 shrink-0" />
                       <span>
-                        {Number(selectedQuotation.organisation.latitude).toFixed(6)},&nbsp;
-                        {Number(selectedQuotation.organisation.longitude).toFixed(6)}
+                        {Number(
+                          selectedQuotation.organisation.latitude,
+                        ).toFixed(6)}
+                        ,&nbsp;
+                        {Number(
+                          selectedQuotation.organisation.longitude,
+                        ).toFixed(6)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -662,7 +712,7 @@ function ManageQuotationsDesktop() {
                 {selectedQuotation.deadperson && (
                   <div>
                     <>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Deceased")}
                       </p>
                       <p>{selectedQuotation.deadperson?.name || "-"}</p>
@@ -696,7 +746,7 @@ function ManageQuotationsDesktop() {
                     {(selectedQuotation.selectedservices || []).map((s, i) => (
                       <div
                         key={i}
-                        className="flex justify-between text-sm bg-gray-50 rounded px-3 py-1.5"
+                        className="flex justify-between text-sm bg-gray-50 dark:bg-slate-700/50 rounded px-3 py-1.5"
                       >
                         <span>{s.service}</span>
                         <span className="font-semibold">
@@ -717,13 +767,13 @@ function ManageQuotationsDesktop() {
                       return (
                         <>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">
+                            <span className="text-gray-500 dark:text-slate-400">
                               {translate("Service Amount")}
                             </span>
                             <span>{formatRM(svc)}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">
+                            <span className="text-gray-500 dark:text-slate-400">
                               {translate("Platform Fee")} (5%)
                             </span>
                             <span className="text-red-500">
@@ -761,19 +811,26 @@ function ManageQuotationsDesktop() {
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                     {translate("Upload Proof")}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    {translate("Completion photo required before marking as completed.")}
+                  <p className="text-xs text-gray-400 dark:text-slate-500">
+                    {translate(
+                      "Completion photo required before marking as completed.",
+                    )}
                   </p>
                 </div>
 
                 {selectedQuotation.photourl && (
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500">{translate("Current Photo")}</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">
+                      {translate("Current Photo")}
+                    </p>
                     <img
-                      src={resolveFileUrl(selectedQuotation.photourl, "bucket-organisation-services-proof")}
+                      src={resolveFileUrl(
+                        selectedQuotation.photourl,
+                        "bucket-organisation-services-proof",
+                      )}
                       alt={translate("Completion photo")}
                       className="h-40 w-full rounded object-cover border"
                     />
@@ -781,12 +838,16 @@ function ManageQuotationsDesktop() {
                 )}
 
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-500">{translate("Select Photo")}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
+                    {translate("Select Photo")}
+                  </p>
                   <Input
                     key={inlineUploadFileKey}
                     type="file"
                     accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                    onChange={(e) => handleInlineUploadFileChange(e.target.files?.[0])}
+                    onChange={(e) =>
+                      handleInlineUploadFileChange(e.target.files?.[0])
+                    }
                     disabled={inlineUploadingPhoto}
                   />
                   {inlineUploadPreview ? (
@@ -797,7 +858,7 @@ function ManageQuotationsDesktop() {
                     />
                   ) : (
                     !selectedQuotation.photourl && (
-                      <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300">
+                      <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300 dark:border-slate-600 dark:text-slate-600">
                         <Image className="w-10 h-10" />
                       </div>
                     )
@@ -809,17 +870,19 @@ function ManageQuotationsDesktop() {
                     size="sm"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    {inlineUploadingPhoto ? translate("Uploading...") : translate("Upload Photo")}
+                    {inlineUploadingPhoto
+                      ? translate("Uploading...")
+                      : translate("Upload Photo")}
                   </Button>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                     {`${translate("Platform Transfer Status")} - ${translate("Quotation")}`}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-slate-500">
                     {translate(
                       "This shows the status of fund transfer to the selected recipient.",
                     )}
@@ -827,13 +890,13 @@ function ManageQuotationsDesktop() {
                 </div>
 
                 {onlineTransactionLoading && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 dark:text-slate-500">
                     {translate("Loading...")}
                   </span>
                 )}
 
                 {!onlineTransactionLoading && !transactionAccount && (
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-gray-400 dark:text-slate-500">
                     {translate("No online transaction account found")}
                   </div>
                 )}
@@ -841,13 +904,13 @@ function ManageQuotationsDesktop() {
                 {transactionAccount && (
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Status")}
                       </p>
                       {getTransactionStatusBadge(transactionAccount.status)}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Bank Name")}
                       </p>
                       <p className="font-semibold">
@@ -855,7 +918,7 @@ function ManageQuotationsDesktop() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Account No")}
                       </p>
                       <p className="font-semibold">
@@ -863,7 +926,7 @@ function ManageQuotationsDesktop() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Reference Transfer No")}
                       </p>
                       <p className="font-semibold">
@@ -871,7 +934,7 @@ function ManageQuotationsDesktop() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {translate("Photo")}
                       </p>
                       {transactionAccount.photourl ? (
@@ -884,7 +947,9 @@ function ManageQuotationsDesktop() {
                           className="h-36 w-full rounded object-cover border"
                         />
                       ) : (
-                        <p className="text-sm text-gray-400">-</p>
+                        <p className="text-sm text-gray-400 dark:text-slate-500">
+                          -
+                        </p>
                       )}
                     </div>
                   </div>
@@ -910,10 +975,12 @@ function ManageQuotationsDesktop() {
                   </Button>
                 )}
                 {canVerify && (
-                  <div className="flex flex-col items-end gap-1">                    
+                  <div className="flex flex-col items-end gap-1">
                     <Button
                       onClick={handleComplete}
-                      disabled={updateMutation.isPending || !selectedQuotation?.photourl}
+                      disabled={
+                        updateMutation.isPending || !selectedQuotation?.photourl
+                      }
                       className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
@@ -938,7 +1005,7 @@ function ManageQuotationsDesktop() {
           if (!open) closeUploadDialog();
         }}
       >
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>{translate("Upload Completion Photo")}</DialogTitle>
           </DialogHeader>
@@ -946,7 +1013,7 @@ function ManageQuotationsDesktop() {
           <div className="space-y-4">
             {uploadDialogQuotation?.photourl && (
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-slate-400">
                   {translate("Current Photo")}
                 </p>
                 <img
@@ -961,7 +1028,7 @@ function ManageQuotationsDesktop() {
             )}
 
             <div className="space-y-2">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 {translate("Select New Photo")}
               </p>
               <Input
@@ -979,7 +1046,7 @@ function ManageQuotationsDesktop() {
                 />
               ) : (
                 !uploadDialogQuotation?.photourl && (
-                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300">
+                  <div className="flex items-center justify-center h-40 border-2 border-dashed rounded text-gray-300 dark:border-slate-600 dark:text-slate-600">
                     <Image className="w-10 h-10" />
                   </div>
                 )

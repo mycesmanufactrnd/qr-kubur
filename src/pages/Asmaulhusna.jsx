@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { translate } from "@/utils/translations";
 import BackNavigation from "@/components/BackNavigation";

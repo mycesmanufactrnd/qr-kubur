@@ -51,18 +51,18 @@ function MemberCard({
     (item.deathcharity.coverschildren || item.deathcharity.coversspouse);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-1">
-          <p className="font-semibold text-slate-800 text-sm leading-tight flex-1 min-w-0">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-tight flex-1 min-w-0">
             {item.fullname}
           </p>
           <>
             <Badge
               className={`shrink-0 h-7 px-2 flex items-center border-0 text-xs ${
                 item.isactive
-                  ? "bg-green-100 text-green-700"
-                  : "bg-slate-100 text-slate-500"
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
               }`}
             >
               {item.isactive ? translate("Active") : translate("Inactive")}
@@ -79,20 +79,20 @@ function MemberCard({
           </>
         </div>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
           {item.icnumber && <span>{item.icnumber}</span>}
           {item.phone && <span>{item.phone}</span>}
         </div>
 
         {item.deathcharity?.name && (
-          <p className="text-xs text-slate-400">{item.deathcharity.name}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{item.deathcharity.name}</p>
         )}
 
         <div className="flex items-center gap-2 flex-wrap pt-1">
           {canEdit && (
             <button
               onClick={() => onEdit(item)}
-              className="flex items-center gap-1.5 text-xs text-emerald-600 border border-emerald-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
             >
               <Edit className="w-3.5 h-3.5" />
               {translate("Edit")}
@@ -101,7 +101,7 @@ function MemberCard({
           {canEdit && hasCoverage && (
             <button
               onClick={() => onCoverage(item)}
-              className="flex items-center gap-1.5 text-xs text-green-600 border border-green-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
             >
               <UserPlus className="w-3.5 h-3.5" />
               {translate("Coverage")}
@@ -110,7 +110,7 @@ function MemberCard({
           {canEdit && (
             <button
               onClick={() => onClaim(item)}
-              className="flex items-center gap-1.5 text-xs text-amber-600 border border-amber-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
             >
               <DiamondPlus className="w-3.5 h-3.5" />
               {translate("Claim")}
@@ -119,7 +119,7 @@ function MemberCard({
           {canEdit && (
             <button
               onClick={() => onLedger(item)}
-              className="flex items-center gap-1.5 text-xs text-blue-600 border border-blue-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
             >
               <CreditCard className="w-3.5 h-3.5" />
               {translate("Ledger")}
@@ -136,7 +136,7 @@ function MemberCard({
 function FormSection({ title, children }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">
+      <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100 dark:border-slate-700">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -176,15 +176,15 @@ function MemberFormSheet({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
           {editing
             ? translate("Edit Death Charity Member")
             : translate("Add Death Charity Member")}
@@ -250,7 +250,7 @@ function MemberFormSheet({
         </FormSection>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 shrink-0">
+      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         <button
           type="button"
           onClick={handleSubmit(onSubmit)}
@@ -319,19 +319,19 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-slate-800 text-sm">
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
             {translate("Manage Coverage")}
           </h2>
-          <p className="text-xs text-slate-400 truncate">{member?.fullname}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{member?.fullname}</p>
         </div>
       </div>
 
@@ -340,11 +340,11 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
           <FormSection title={`${translate("Spouse")} (${spouses.length}/4)`}>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">
+                <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
                   {translate("Full Name")}
                 </label>
                 <input
-                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   value={spouseForm.fullname}
                   onChange={(e) =>
                     setSpouseForm({ ...spouseForm, fullname: e.target.value })
@@ -353,11 +353,11 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">
+                <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
                   {translate("IC No")}
                 </label>
                 <input
-                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   value={spouseForm.icnumber}
                   onChange={(e) =>
                     setSpouseForm({ ...spouseForm, icnumber: e.target.value })
@@ -370,7 +370,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
               type="button"
               onClick={addSpouse}
               disabled={spouses.length >= 4}
-              className="flex items-center gap-1.5 text-xs text-emerald-600 border border-emerald-200 rounded-lg px-3 py-2 active:opacity-70 disabled:opacity-40"
+              className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 active:opacity-70 disabled:opacity-40"
             >
               <Plus className="w-3.5 h-3.5" />
               {translate("Add Spouse")}
@@ -383,7 +383,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                     className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
                   >
                     <input
-                      className="h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={s.fullname}
                       onChange={(e) => {
                         const updated = [...spouses];
@@ -395,7 +395,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                       }}
                     />
                     <input
-                      className="h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={s.icnumber}
                       onChange={(e) => {
                         const updated = [...spouses];
@@ -409,7 +409,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                     <button
                       type="button"
                       onClick={() => removeSpouse(i)}
-                      className="w-8 h-8 flex items-center justify-center text-red-500 rounded-lg border border-red-100 active:opacity-70"
+                      className="w-8 h-8 flex items-center justify-center text-red-500 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-800 active:opacity-70"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -424,11 +424,11 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
           <FormSection title={`${translate("Children")} (${children.length})`}>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">
+                <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
                   {translate("Full Name")}
                 </label>
                 <input
-                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   value={childForm.fullname}
                   onChange={(e) =>
                     setChildForm({ ...childForm, fullname: e.target.value })
@@ -437,11 +437,11 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">
+                <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
                   {translate("IC No")}
                 </label>
                 <input
-                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   value={childForm.icnumber}
                   onChange={(e) =>
                     setChildForm({ ...childForm, icnumber: e.target.value })
@@ -453,7 +453,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
             <button
               type="button"
               onClick={addChild}
-              className="flex items-center gap-1.5 text-xs text-emerald-600 border border-emerald-200 rounded-lg px-3 py-2 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 active:opacity-70"
             >
               <Plus className="w-3.5 h-3.5" />
               {translate("Add Child")}
@@ -466,7 +466,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                     className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
                   >
                     <input
-                      className="h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={c.fullname}
                       onChange={(e) => {
                         const updated = [...children];
@@ -478,7 +478,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                       }}
                     />
                     <input
-                      className="h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={c.icnumber}
                       onChange={(e) => {
                         const updated = [...children];
@@ -492,7 +492,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                     <button
                       type="button"
                       onClick={() => removeChild(i)}
-                      className="w-8 h-8 flex items-center justify-center text-red-500 rounded-lg border border-red-100 active:opacity-70"
+                      className="w-8 h-8 flex items-center justify-center text-red-500 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-800 active:opacity-70"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -504,7 +504,7 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 shrink-0">
+      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         <button
           type="button"
           onClick={handleSave}
@@ -558,15 +558,15 @@ function ClaimSheet({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
           {translate("Claim List")}
         </h2>
       </div>
@@ -582,21 +582,21 @@ function ClaimSheet({
               {unselected.map((item, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-xl border border-slate-100 p-3 flex items-start justify-between gap-2"
+                  className="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-3 flex items-start justify-between gap-2"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-slate-800 truncate">
+                    <p className="font-medium text-sm text-slate-800 dark:text-slate-100 truncate">
                       {item.deceasedname}
                     </p>
-                    <p className="text-xs text-slate-500 capitalize">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
                       {item.relationship}
                     </p>
                     {item.dependentId ? (
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         {item.claimedamount}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         RM {item.totalAmount} ({item.numberOfClaims}{" "}
                         {translate("claims")})
                       </p>
@@ -605,7 +605,7 @@ function ClaimSheet({
                   <button
                     type="button"
                     onClick={() => handleSelect(item)}
-                    className="shrink-0 text-xs text-emerald-600 border border-emerald-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+                    className="shrink-0 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
                   >
                     {translate("Select")}
                   </button>
@@ -625,33 +625,33 @@ function ClaimSheet({
               {selectedClaims.map((item, i) => (
                 <div
                   key={i}
-                  className="bg-emerald-50 rounded-xl border border-emerald-100 p-3 space-y-2"
+                  className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800 p-3 space-y-2"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-medium text-sm text-slate-800">
+                      <p className="font-medium text-sm text-slate-800 dark:text-slate-100">
                         {item.deceasedname}
                       </p>
-                      <p className="text-xs text-slate-500 capitalize">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
                         {item.relationship}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleSelect(item)}
-                      className="shrink-0 text-xs text-red-500 border border-red-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+                      className="shrink-0 text-xs text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
                     >
                       {translate("Remove")}
                     </button>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 mb-1 block">
+                    <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
                       {translate("Payout Amount (RM)")}
                     </label>
                     <input
                       type="number"
                       min="0"
-                      className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={item.payoutamount}
                       onChange={(e) => {
                         const updated = [...selectedClaims];
@@ -670,7 +670,7 @@ function ClaimSheet({
         </FormSection>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 shrink-0">
+      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         <button
           type="button"
           onClick={() => onSave(selectedClaims)}
@@ -856,7 +856,7 @@ export default function ManageDeathCharityMember() {
   const items = deathCharityMemberList?.items ?? [];
 
   return (
-    <div className="min-h-screen pb-6">
+    <div className="min-h-screen pb-6 dark:bg-slate-900">
       <BackNavigation title={translate("Death Charity Member")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -887,7 +887,7 @@ export default function ManageDeathCharityMember() {
         {isLoading ? (
           <InlineLoadingComponent />
         ) : items.length === 0 ? (
-          <div className="text-center text-slate-400 text-sm py-12">
+          <div className="text-center text-slate-400 dark:text-slate-600 text-sm py-12">
             {translate("No members found")}
           </div>
         ) : (

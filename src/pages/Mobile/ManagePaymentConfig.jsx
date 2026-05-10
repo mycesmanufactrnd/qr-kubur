@@ -60,12 +60,12 @@ export default function MobileManagePaymentConfig() {
     return <NoDataCardComponent isPage />;
 
   return (
-    <div className="min-h-screen pb-6">
-      <BackNavigation title={translate("Payment Configuration")} />
+    <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <BackNavigation title={translate("Payment Config")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-4">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold text-slate-700">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {entity.entityName}
           </p>
         </div>
@@ -85,28 +85,28 @@ export default function MobileManagePaymentConfig() {
           groupedConfigs.map(([platformName, configs]) => (
             <div
               key={platformName}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+              className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden"
             >
-              <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-slate-100">
-                <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
-                <p className="text-sm font-semibold text-slate-800">
+              <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-b border-slate-100 dark:border-slate-700">
+                <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                   {platformName}
                 </p>
               </div>
 
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-slate-50 dark:divide-slate-700">
                 {configs.map((config) => {
                   const isSecret =
                     config.paymentfield?.fieldtype === "password";
                   return (
                     <div key={config.id} className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mb-1">
                         <KeyRound className="w-3 h-3" />
                         {config.paymentfield?.label ||
                           config.paymentfield?.key ||
                           "-"}
                       </div>
-                      <p className="text-sm font-medium text-slate-700 break-all">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 break-all">
                         {isSecret ? maskValue(config.value) : config.value}
                       </p>
                     </div>

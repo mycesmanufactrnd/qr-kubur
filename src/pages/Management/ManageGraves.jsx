@@ -69,7 +69,6 @@ import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { resolveFileUrl } from "@/utils";
 
-
 export default function ManageGraves() {
   const isNarrow = useIsNarrow();
   return isNarrow ? <MobileManageGraves /> : <ManageGravesDesktop />;
@@ -134,8 +133,17 @@ function ManageGravesDesktop() {
   const [isUploading, setIsUploading] = useState(false);
 
   const GRAVE_TEMPLATE_HEADERS = [
-    "name", "state", "block", "lot", "address",
-    "latitude", "longitude", "picname", "picphoneno", "totalgraves", "photourl"
+    "name",
+    "state",
+    "block",
+    "lot",
+    "address",
+    "latitude",
+    "longitude",
+    "picname",
+    "picphoneno",
+    "totalgraves",
+    "photourl",
   ];
 
   const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
@@ -190,7 +198,9 @@ function ManageGravesDesktop() {
 
       const { count, errors } = data;
       if (errors?.length > 0) {
-        showError(`${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`);
+        showError(
+          `${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`,
+        );
       } else {
         showSuccess(`${count} ${translate("graves imported successfully")}`);
       }
@@ -228,7 +238,12 @@ function ManageGravesDesktop() {
     }
   }, [parentAndChildQuery.data]);
 
-  const { gravesList, totalPages, isLoading, refetch: refetchGraves } = useGetGravePaginated({
+  const {
+    gravesList,
+    totalPages,
+    isLoading,
+    refetch: refetchGraves,
+  } = useGetGravePaginated({
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName,
@@ -240,7 +255,7 @@ function ManageGravesDesktop() {
   });
 
   const { organisationsList } = useGetOrganisationPaginated({});
-  
+
   const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
 
   const handleFileUpload = async (file, bucketName) => {
@@ -373,14 +388,17 @@ function ManageGravesDesktop() {
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
           <MapPin className="w-6 h-6 text-emerald-600" />
           {translate("Manage Graves")}
         </h1>
         {canCreate && (
           <div>
             <Button
-              onClick={() => { setUploadFile(null); setUploadDialogOpen(true); }}
+              onClick={() => {
+                setUploadFile(null);
+                setUploadDialogOpen(true);
+              }}
               className="bg-amber-600 hover:bg-amber-700 mr-2"
             >
               <Upload className="w-4 h-4 mr-2" />
@@ -421,14 +439,21 @@ function ManageGravesDesktop() {
           </Select>
         )}
         <Select value={tempStatus} onValueChange={setTempStatus}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translate("All Status")}</SelectItem>
-            <SelectItem value="active">{translate("Active")}</SelectItem>
-            <SelectItem value="full">{translate("Full")}</SelectItem>
-            <SelectItem value="maintenance">
+
+          <SelectContent className="bg-slate-900 border-slate-700 text-white">
+            <SelectItem value="all" className="focus:bg-white/10">
+              {translate("All Status")}
+            </SelectItem>
+            <SelectItem value="active" className="focus:bg-white/10">
+              {translate("Active")}
+            </SelectItem>
+            <SelectItem value="full" className="focus:bg-white/10">
+              {translate("Full")}
+            </SelectItem>
+            <SelectItem value="maintenance" className="focus:bg-white/10">
               {translate("Maintenance")}
             </SelectItem>
           </SelectContent>
@@ -437,15 +462,17 @@ function ManageGravesDesktop() {
           placeholder={translate("Block")}
           value={tempBlock}
           onChange={(e) => setTempBlock(e.target.value)}
+          className="dark:border-white"
         />
         <Input
           placeholder={translate("Lot")}
           value={tempLot}
           onChange={(e) => setTempLot(e.target.value)}
+          className="dark:border-white"
         />
       </SearchBar>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -570,21 +597,31 @@ function ManageGravesDesktop() {
         )}
       </Card>
 
-      <Dialog open={uploadDialogOpen} onOpenChange={(open) => { setUploadDialogOpen(open); if (!open) setUploadFile(null); }}>
-        <DialogContent className="max-w-md">
+      <Dialog
+        open={uploadDialogOpen}
+        onOpenChange={(open) => {
+          setUploadDialogOpen(open);
+          if (!open) setUploadFile(null);
+        }}
+      >
+        <DialogContent className="max-w-md dark:bg-slate-800">
           <DialogHeader>
-            <DialogTitle>{translate("Upload Graves via CSV / Excel")}</DialogTitle>
+            <DialogTitle>
+              {translate("Upload Graves via CSV / Excel")}
+            </DialogTitle>
             <DialogDescription>
-              {translate("Download the template, fill in the data, then upload the file.")}
+              {translate(
+                "Download the template, fill in the data, then upload the file.",
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="flex items-center justify-between rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-stone-600">
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800/50">
+              <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
                 <FileText className="w-4 h-4 text-stone-400" />
                 <span className="font-medium">{translate("CSV Template")}</span>
-                <span className="text-xs text-stone-400">
+                <span className="text-xs text-stone-400 dark:text-stone-500">
                   ({GRAVE_TEMPLATE_HEADERS.length} {translate("columns")})
                 </span>
               </div>
@@ -602,15 +639,18 @@ function ManageGravesDesktop() {
 
             <label
               htmlFor="grave-file-upload"
-              onDragOver={(e) => { e.preventDefault(); setUploadDragOver(true); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setUploadDragOver(true);
+              }}
               onDragLeave={() => setUploadDragOver(false)}
               onDrop={handleUploadFileDrop}
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 ${
                 uploadDragOver
-                  ? "border-amber-400 bg-amber-50"
+                  ? "border-amber-400 bg-amber-50 dark:border-amber-500 dark:bg-amber-900/20"
                   : uploadFile
-                    ? "border-emerald-400 bg-emerald-50"
-                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100"
+                    ? "border-emerald-400 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-900/20"
+                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800/50 dark:hover:border-stone-600 dark:hover:bg-stone-800"
               }`}
             >
               <input
@@ -623,14 +663,19 @@ function ManageGravesDesktop() {
               {uploadFile ? (
                 <>
                   <FileText className="w-8 h-8 text-emerald-500" />
-                  <p className="text-sm font-medium text-emerald-700">{uploadFile.name}</p>
+                  <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                    {uploadFile.name}
+                  </p>
                   <p className="text-xs text-emerald-500">
                     {(uploadFile.size / 1024).toFixed(1)} KB
                   </p>
                   <button
                     type="button"
-                    onClick={(e) => { e.preventDefault(); setUploadFile(null); }}
-                    className="text-xs text-stone-400 hover:text-stone-600 underline mt-1"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setUploadFile(null);
+                    }}
+                    className="text-xs text-stone-400 hover:text-stone-600 underline mt-1 dark:text-stone-500 dark:hover:text-stone-300"
                   >
                     {translate("Remove")}
                   </button>
@@ -638,17 +683,27 @@ function ManageGravesDesktop() {
               ) : (
                 <>
                   <Upload className="w-8 h-8 text-stone-300" />
-                  <p className="text-sm font-medium text-stone-500">
+                  <p className="text-sm font-medium text-stone-500 dark:text-stone-400">
                     {translate("Click or drag & drop your file here")}
                   </p>
-                  <p className="text-xs text-stone-400">.csv, .xlsx, .xls</p>
+                  <p className="text-xs text-stone-400 dark:text-stone-500">
+                    .csv, .xlsx, .xls
+                  </p>
                 </>
               )}
             </label>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" disabled={isUploading} onClick={() => { setUploadDialogOpen(false); setUploadFile(null); }}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isUploading}
+              onClick={() => {
+                setUploadDialogOpen(false);
+                setUploadFile(null);
+              }}
+            >
               {translate("Cancel")}
             </Button>
             <Button
@@ -665,7 +720,7 @@ function ManageGravesDesktop() {
       </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingGrave ? translate("Edit Grave") : translate("Add Grave")}

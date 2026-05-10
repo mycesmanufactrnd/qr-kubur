@@ -205,7 +205,7 @@ function LayoutContent({ children, currentPageName }) {
       page: "ManageActivityPosts",
     },
     {
-      name: translate("Manage Payment Config"),
+      name: translate("Payment Config"),
       icon: CreditCard,
       page: "ManagePaymentConfig",
     },

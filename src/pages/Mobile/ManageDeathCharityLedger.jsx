@@ -36,15 +36,15 @@ function PaymentSheet({ memberId, payments, onSubmit, onClose, selectedYear }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         >
-          <X className="w-4 h-4 text-slate-500" />
+          <X className="w-4 h-4 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="text-sm font-semibold text-slate-800">
+        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
           {translate("Add Payment")}
         </h2>
       </div>
@@ -71,8 +71,8 @@ function YearRow({ year, periodPayments, onAdd }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm overflow-hidden ${
-        hasPaid ? "border border-emerald-100" : "border border-slate-100"
+      className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden ${
+        hasPaid ? "border border-emerald-100 dark:border-emerald-800/50" : "border border-slate-100 dark:border-slate-700"
       }`}
     >
       <div className="flex items-center gap-3 px-4 py-3">
@@ -80,8 +80,8 @@ function YearRow({ year, periodPayments, onAdd }) {
         <div
           className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold ${
             hasPaid
-              ? "bg-emerald-50 text-emerald-800"
-              : "bg-slate-50 text-slate-400"
+              ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300"
+              : "bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
           }`}
         >
           {year}
@@ -91,16 +91,16 @@ function YearRow({ year, periodPayments, onAdd }) {
         <div className="flex-1 min-w-0">
           {hasPaid ? (
             <>
-              <p className="text-sm font-semibold text-emerald-700 leading-tight">
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 leading-tight">
                 {formatRM(totalAmount)}
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                 {periodPayments.length} {translate("payment")}
                 {periodPayments.length > 1 ? "s" : ""}
               </p>
             </>
           ) : (
-            <p className="text-sm text-slate-300">{translate("No payment")}</p>
+            <p className="text-sm text-slate-300 dark:text-slate-600">{translate("No payment")}</p>
           )}
         </div>
 
@@ -111,13 +111,13 @@ function YearRow({ year, periodPayments, onAdd }) {
               {periodPayments.slice(0, 2).map((p, i) => (
                 <span
                   key={i}
-                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
                 >
                   {p.paymentmethod}
                 </span>
               ))}
               {periodPayments.length > 2 && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
                   +{periodPayments.length - 2}
                 </span>
               )}
@@ -127,8 +127,8 @@ function YearRow({ year, periodPayments, onAdd }) {
             onClick={() => onAdd(year)}
             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-all active:scale-95 shrink-0 ${
               hasPaid
-                ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                : "bg-slate-50 border border-slate-200 text-slate-400"
+                ? "bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                : "bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500"
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -237,7 +237,7 @@ export default function MobileManageDeathCharityLedger() {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50 pb-8">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-8">
         <BackNavigation title={translate("Death Charity Ledger")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-2.5 pt-1">
@@ -254,7 +254,7 @@ export default function MobileManageDeathCharityLedger() {
                 setSelectedMember(null);
               }}
             >
-              <SelectTrigger className="w-full h-11 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 shadow-sm">
+              <SelectTrigger className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 shadow-sm">
                 <SelectValue placeholder={translate("Select Death Charity")} />
               </SelectTrigger>
               <SelectContent>
@@ -276,7 +276,7 @@ export default function MobileManageDeathCharityLedger() {
               }}
               disabled={!selectedDeathCharity}
             >
-              <SelectTrigger className="w-full h-11 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 shadow-sm disabled:opacity-50">
+              <SelectTrigger className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 shadow-sm disabled:opacity-50">
                 <SelectValue placeholder={translate("Select Member")} />
               </SelectTrigger>
               <SelectContent>
@@ -292,15 +292,15 @@ export default function MobileManageDeathCharityLedger() {
           {selectedMember ? (
             <>
               {/* ── Member card ── */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                  <User className="w-4 h-4 text-slate-500" />
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm px-4 py-3 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 truncate leading-tight">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate leading-tight">
                     {selectedMember.fullname}
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                     {selectedMember.icnumber}
                     {selectedMember.phone ? ` · ${selectedMember.phone}` : ""}
                   </p>
@@ -308,8 +308,8 @@ export default function MobileManageDeathCharityLedger() {
                 <span
                   className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
                     selectedMember.isactive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-slate-100 text-slate-500"
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
                   }`}
                 >
                   {selectedMember.isactive
@@ -320,27 +320,27 @@ export default function MobileManageDeathCharityLedger() {
 
               {/* ── Stats ── */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="bg-blue-50 rounded-2xl p-3 text-center">
-                  <p className="text-[10px] text-blue-500 font-semibold uppercase tracking-wide mb-1">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-3 text-center">
+                  <p className="text-[10px] text-blue-500 dark:text-blue-400 font-semibold uppercase tracking-wide mb-1">
                     {translate("Total Paid")}
                   </p>
-                  <p className="text-sm font-bold text-blue-700">
+                  <p className="text-sm font-bold text-blue-700 dark:text-blue-300">
                     {formatRM(stats.totalPaid)}
                   </p>
                 </div>
-                <div className="bg-emerald-50 rounded-2xl p-3 text-center">
-                  <p className="text-[10px] text-emerald-500 font-semibold uppercase tracking-wide mb-1">
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3 text-center">
+                  <p className="text-[10px] text-emerald-500 dark:text-emerald-400 font-semibold uppercase tracking-wide mb-1">
                     {translate("Payments")}
                   </p>
-                  <p className="text-sm font-bold text-emerald-700">
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
                     {stats.totalPayments}
                   </p>
                 </div>
-                <div className="bg-pink-50 rounded-2xl p-3 text-center">
-                  <p className="text-[10px] text-pink-500 font-semibold uppercase tracking-wide mb-1">
+                <div className="bg-pink-50 dark:bg-pink-900/20 rounded-2xl p-3 text-center">
+                  <p className="text-[10px] text-pink-500 dark:text-pink-400 font-semibold uppercase tracking-wide mb-1">
                     {translate("Reg.")}
                   </p>
-                  <p className="text-sm font-bold text-pink-700">
+                  <p className="text-sm font-bold text-pink-700 dark:text-pink-300">
                     {stats.registrationPayments}
                   </p>
                 </div>
@@ -361,10 +361,10 @@ export default function MobileManageDeathCharityLedger() {
               )}
 
               {/* ── Year filter ── */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm px-4 py-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     {translate("Filter by Year")}
                   </p>
                 </div>
@@ -373,7 +373,7 @@ export default function MobileManageDeathCharityLedger() {
                     value={startYear.toString()}
                     onValueChange={(value) => setStartYear(Number(value))}
                   >
-                    <SelectTrigger className="flex-1 h-9 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800">
+                    <SelectTrigger className="flex-1 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-sm font-medium text-slate-800 dark:text-slate-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -388,13 +388,13 @@ export default function MobileManageDeathCharityLedger() {
                     </SelectContent>
                   </Select>
 
-                  <span className="text-slate-300 shrink-0">—</span>
+                  <span className="text-slate-300 dark:text-slate-600 shrink-0">—</span>
 
                   <Select
                     value={endYear.toString()}
                     onValueChange={(value) => setEndYear(Number(value))}
                   >
-                    <SelectTrigger className="flex-1 h-9 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800">
+                    <SelectTrigger className="flex-1 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-sm font-medium text-slate-800 dark:text-slate-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -428,10 +428,10 @@ export default function MobileManageDeathCharityLedger() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-slate-300" />
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-slate-300 dark:text-slate-600" />
               </div>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-400 dark:text-slate-500">
                 {loadingMembers
                   ? translate("Loading...")
                   : translate("Select a member to view the ledger")}

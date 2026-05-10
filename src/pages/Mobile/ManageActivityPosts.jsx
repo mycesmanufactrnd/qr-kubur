@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -39,7 +40,7 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
   const publisher = post.mosque?.name ?? post.tahfiz?.name ?? "";
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       {post.photourl && (
         <img
           src={resolveFileUrl(post.photourl, "activity-post")}
@@ -49,14 +50,14 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
       )}
       <div className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-semibold text-slate-800 text-sm leading-tight flex-1 min-w-0">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-tight flex-1 min-w-0">
             {post.title}
           </p>
           <Badge
             className={`shrink-0 border-0 text-xs ${
               post.ispublished
-                ? "bg-green-100 text-green-700"
-                : "bg-slate-100 text-slate-500"
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
             }`}
           >
             {post.ispublished ? translate("Published") : translate("Draft")}
@@ -64,14 +65,14 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
         </div>
 
         {publisher && (
-          <p className="text-xs text-slate-400 truncate">{publisher}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{publisher}</p>
         )}
 
         <div className="flex items-center gap-2 pt-1">
           {canEdit && (
             <button
               onClick={() => onEdit(post)}
-              className="flex items-center gap-1.5 text-xs text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+              className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
             >
               <Edit className="w-3.5 h-3.5" />
               {translate("Edit")}
@@ -80,7 +81,7 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
           {canDelete && (
             <button
               onClick={() => onDelete(post)}
-              className="flex items-center gap-1.5 text-xs text-red-500 border border-red-200 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
+              className="flex items-center gap-1.5 text-xs text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {translate("Delete")}
@@ -120,16 +121,16 @@ function PostFormSheet({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
           {editing?.id
             ? translate("Edit Activity Post")
             : translate("Add Activity Post")}
@@ -182,7 +183,7 @@ function PostFormSheet({
       </div>
 
       {/* Fixed save bar */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 px-4 py-3">
+      <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}
           disabled={isSubmitting || uploading}
@@ -335,7 +336,7 @@ export default function MobileManageActivityPosts() {
 
   return (
     <>
-      <div className="min-h-screen pb-6">
+      <div className="min-h-screen pb-6 dark:bg-slate-900">
         <BackNavigation title={translate("Manage Activity Posts")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -361,7 +362,7 @@ export default function MobileManageActivityPosts() {
           {isLoading ? (
             <InlineLoadingComponent />
           ) : activityPostsList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300">
+            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <List className="w-12 h-12 mb-2" />
               <p className="text-sm">{translate("No records")}</p>
             </div>

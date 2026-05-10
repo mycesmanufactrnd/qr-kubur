@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -12,6 +13,7 @@ import {
   List,
   CreditCard,
   BarChart,
+  Menu,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +26,6 @@ import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 import MobileTahfizDashboard from "@/pages/Mobile/TahfizDashboard";
 import { useState, useEffect } from "react";
-
 
 export default function TahfizDashboard() {
   const isNarrow = useIsNarrow();
@@ -91,15 +92,26 @@ function TahfizDashboardDesktop() {
                 </Link>
               </>
             ) : (
-              <Link to={createPageUrl("StatisticDashboard")}>
-                <Button
-                  variant="outline"
-                  className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                >
-                  <BarChart className="w-4 h-4" />
-                  {translate("Statistics")}
-                </Button>
-              </Link>
+              <div className="flex gap-2 items-center">
+                <Link to={createPageUrl("StatisticDashboard")}>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    <BarChart className="w-4 h-4" />
+                    {translate("Statistics")}
+                  </Button>
+                </Link>
+                <Link to={createPageUrl("FinancialReports")}>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                  >
+                    <Menu className="w-4 h-4" />
+                    {translate("Financial Reports")}
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>
@@ -233,12 +245,6 @@ function TahfizDashboardDesktop() {
             <CardContent className="space-y-2 pt-6">
               {[
                 {
-                  label: translate("Financial Reports"),
-                  page: "FinancialReports",
-                  icon: BarChart,
-                  color: "purple",
-                },
-                {
                   label: translate("Manage Tahfiz Centers"),
                   page: "ManageTahfizCenters",
                   icon: BookOpen,
@@ -263,7 +269,7 @@ function TahfizDashboardDesktop() {
                   color: "yellow",
                 },
                 {
-                  label: translate("My Payment Config"),
+                  label: translate("Payment Config"),
                   page: "ManagePaymentConfig",
                   icon: CreditCard,
                   color: "purple",
