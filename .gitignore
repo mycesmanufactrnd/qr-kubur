@@ -38,6 +38,7 @@ backend/src/db/_journal.json
 backend/database/
 backend/.env
 supabase_storage/
+storage_data/
 
 package-lock.json
 

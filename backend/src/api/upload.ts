@@ -1,8 +1,10 @@
 import { randomUUID } from 'crypto';
 import type { FastifyInstance } from "fastify";
-import { supabaseStorageClient } from "../supabase.ts";
+import path from "path";
 import { verifyToken } from "../auth.ts";
 import { bulkImportGraves } from "../services/upload.service.ts";
+import { getStorage } from "../storage/storage.ts";
+import { createStoredFile, findStoredFile } from "../services/storageMetadata.service.ts";
 
 
 export const registerUploadRoutes = (app: FastifyInstance) => {
@@ -26,20 +28,29 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
       console.log("Uploading file:", filename, mimetype, "size:", buffer.length);
 
-      const safeName = `${randomUUID()}-${filename}`;
+      const originalBaseName = path.basename(filename).replace(/[\\/:*?"<>|]+/g, "_");
+      const safeName = `${randomUUID()}-${originalBaseName}`;
 
       console.log('New name:', safeName);
 
-      const { data, error } = await supabaseStorageClient.storage
-        .from(bucket!)
-        .upload(safeName, buffer, { contentType: mimetype, upsert: false });
+      const storage = getStorage();
+      const result = await storage.putObject({
+        bucket,
+        key: safeName,
+        body: buffer,
+        contentType: mimetype,
+      });
 
-      if (error) {
-        console.error("Supabase upload error:", error);
-        return reply.status(500).send({ error: error.message || 'Upload failed' });
-      }
+      const stored = await createStoredFile({
+        bucket: result.bucket,
+        key: result.key,
+        originalName: filename,
+        contentType: result.contentType ?? null,
+        sizeBytes: result.sizeBytes,
+        uploadedById: (request as any).user?.id ? Number((request as any).user.id) : null,
+      });
 
-      return reply.send({ file_url: safeName });
+      return reply.send({ file_url: safeName, file_id: stored.id });
     } catch (err: any) {
       console.error("Upload failed:");
       console.error(err);
@@ -76,20 +87,17 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
     const { filename, bucket } = req.params as { filename: string, bucket: string };
 
     try {
-      const { data, error } = await supabaseStorageClient
-        .storage
-        .from(bucket)
-        .download(filename);
+      const storage = getStorage();
+      const stored = await findStoredFile(bucket, filename);
 
-      if (error || !data) {
-        return reply.status(404).send({ error: 'File not found in bucket' });
-      }
+      const obj = await storage.getObject(bucket, filename);
+      if (!obj) return reply.status(404).send({ error: 'File not found in bucket' });
 
-      const contentType = data.type || 'application/octet-stream';
-
-      const arrayBuffer = await data.arrayBuffer();
-      reply.header('Content-Type', contentType);
-      return reply.send(Buffer.from(arrayBuffer));
+      reply.header(
+        "Content-Type",
+        stored?.contentType ?? obj.contentType ?? "application/octet-stream",
+      );
+      return reply.send(obj.stream);
     } catch (err) {
       console.error('Failed to fetch file:', err);
       return reply.status(500).send({ error: 'Cannot get file from storage' });

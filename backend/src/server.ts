@@ -1,8 +1,19 @@
 import "reflect-metadata";
 import * as dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+const envCandidates = [
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(process.cwd(), "..", ".env"),
+];
+
+for (const candidate of envCandidates) {
+  if (fs.existsSync(candidate)) {
+    dotenv.config({ path: candidate });
+    break;
+  }
+}
 
 const backendNgrokUrl = process.env.BACKEND_NGROK_URL;
 console.log("\n🌍 BACKEND NGROK URL:");
@@ -22,7 +33,6 @@ import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext } from "./trpc.ts";
 import { appRouter } from "./routers/appRouter.ts";
-import { supabaseClient } from "./supabase.ts";
 import multipart from '@fastify/multipart';
 import formbody from "@fastify/formbody";
 import cookie from '@fastify/cookie'; //cookie support for secure httpOnly cookies
@@ -32,6 +42,7 @@ import { getBucketConfig } from "./config/bucket.config.ts";
 import { getBillplzConfig } from "./config/billplz.config.ts";
 import { verifyToken } from "./auth.ts";
 import { asyncLocalStorage } from "./helpers/requestContext.ts";
+import { getStorage } from "./storage/storage.ts";
 
 const app = Fastify({
   trustProxy: true,
@@ -64,7 +75,7 @@ await app.register(import('@fastify/cors'), {
       backendNgrokUrl,
       'pinggy-free.link',
       'ngrok',
-    ].filter(Boolean);
+    ].filter((v): v is string => Boolean(v));
 
     const isAllowed = allowed.some((a) => origin.includes(a));
 
@@ -160,12 +171,10 @@ if (missingBucketsKeys.length === 0) {
 
 async function bootstrap() {
   try {
-    // Supabase Connection
-    const { error } = await supabaseClient.auth.getSession();
-    if (error) {
-      throw error;
-    }
-    console.log("\n✅ Supabase connected");
+    // Storage
+    const storage = getStorage();
+    await storage.check();
+    console.log(`\n✅ Storage ready (${storage.driver})`);
 
     // Database (TypeORM)
     await AppDataSource.initialize();

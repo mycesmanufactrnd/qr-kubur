@@ -22,7 +22,7 @@
     "docker:logs:backend": "docker compose --env-file .env logs -f backend",
     "docker:logs:frontend": "docker compose --env-file .env logs -f frontend",
     "docker:restart:dev:logs": "npm run docker:restart:dev && npm run docker:logs:backend",
-    "docker:supabase": "docker exec -it supabase_db psql -U postgres -d supabase",
+    "docker:psql": "docker exec -it postgres_db psql -U postgres -d qr_kubur",
     "docker:seed:prod": "docker compose exec backend npm run seed:prod"
   },
   "dependencies": {

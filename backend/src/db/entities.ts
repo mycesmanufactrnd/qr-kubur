@@ -41,3 +41,4 @@ export * from "./entities/DeathCharity/DeathCharityClaim.entity.ts";
 export * from "./entities/DeathCharity/DeathCharityMember.entity.ts";
 export * from "./entities/DeathCharity/DeathCharityDependent.entity.ts";
 export * from "./entities/DeathCharity/DeathCharityPayment.entity.ts";
+export * from "./entities/StoredFile.entity.ts";

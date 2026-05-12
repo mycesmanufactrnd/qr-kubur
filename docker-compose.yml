@@ -1,37 +1,23 @@
 services:
   db:
-    image: supabase/postgres:15.14.1.067
-    container_name: supabase_db
+    image: postgres:15-alpine
+    container_name: postgres_db
     env_file: .env
     restart: unless-stopped
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
-      - ./volumes/db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:Z
-      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/01-roles.sql:Z
+      - ./volumes/db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql
       - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-
-  storage:
-    image: supabase/storage-api:latest
-    container_name: supabase_storage
-    env_file: .env
-    restart: unless-stopped
-    ports:
-      - "${STORAGE_PORT}:5000"
-    volumes:
-      - ./supabase_storage:/var/lib/storage
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      ANON_KEY: ${ANON_KEY}
-      SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
-      STORAGE_BACKEND: file
+      POSTGRES_USER: ${POSTGRES_USER}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -39,14 +25,17 @@ services:
       dockerfile: ../dockerfiles/backend.dockerfile
     container_name: backend
     env_file: .env
+    environment:
+      DOCKER: "true"
     ports:
       - "${BACKEND_PORT}:8000"
     volumes:
       - ./backend:/usr/src/app
       - backend_node_modules:/usr/src/app/node_modules
+      - ./storage_data:/usr/src/app/storage_data
     depends_on:
-      - db
-      - storage
+      db:
+        condition: service_healthy
 
   frontend:
     build:
