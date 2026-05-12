@@ -24,7 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-/* ─────────────────────────── PaymentSheet ─────────────────────────── */
 function PaymentSheet({ memberId, payments, onSubmit, onClose, selectedYear }) {
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -237,12 +236,11 @@ export default function MobileManageDeathCharityLedger() {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-8">
+      <div className="min-h-screen pb-8">
         <BackNavigation title={translate("Death Charity Ledger")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-2.5 pt-1">
 
-          {/* ── Selectors ── */}
           <div className="space-y-2">
             <Select
               value={selectedDeathCharity?.id?.toString() || ""}

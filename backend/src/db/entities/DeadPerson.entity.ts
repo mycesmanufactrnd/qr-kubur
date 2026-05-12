@@ -50,6 +50,12 @@ export class DeadPerson {
   @Column("double precision", { nullable: true })
   longitude?: number | null;
 
+  @Column("varchar", { length: 255, nullable: true })
+  heirname?: string;
+
+  @Column("varchar", { length: 255, nullable: true })
+  heirphoneno?: string;
+
   @OneToMany(() => Suggestion, (suggestions) => suggestions.deadperson)
   suggestions?: Suggestion[] | [];
 

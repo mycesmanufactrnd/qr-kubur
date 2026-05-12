@@ -8,7 +8,7 @@ export default function TermsAndConditions() {
   const navigate = useNavigate();
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 h-screen flex flex-col pb-2">
+    <div className="max-w-4xl mx-auto space-y-4 h-screen flex flex-col pb-10">
       <div className="flex items-center gap-3 pt-2">
         <Button
           variant="ghost"
@@ -18,13 +18,13 @@ export default function TermsAndConditions() {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">
           {translate('Terms & Conditions')}
         </h1>
       </div>
 
-      <div className="flex-1 bg-white rounded-lg shadow-md overflow-y-auto p-6">
-        <div className="text-gray-700 space-y-4 leading-relaxed">
+      <div className="flex-1 bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-y-auto p-6">
+        <div className="text-gray-700 dark:text-slate-300 space-y-4 leading-relaxed">
 
           <p>Last updated: January 22, 2026</p>
           <p>Please read these terms and conditions carefully before using Our Service.</p>

@@ -374,7 +374,7 @@ export default function MobileManageGraves() {
 
   return (
     <>
-      <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Graves")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -396,7 +396,6 @@ export default function MobileManageGraves() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
             <InlineLoadingComponent />
           ) : gravesList.items.length === 0 ? (

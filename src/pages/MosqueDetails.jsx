@@ -27,7 +27,7 @@ export default function MosqueDetailsPage() {
   if (isMosqueError || !mosque) return <NoDataCardComponent isPage={true} description="Mosque Not Found" />;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
 
       <div className="relative h-64 md:h-80 overflow-hidden">
         {mosque.photourl ? (
@@ -109,40 +109,40 @@ export default function MosqueDetailsPage() {
 
           <div className="lg:col-span-2 space-y-4">
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <BookOpen className="w-4 h-4 text-emerald-600" />
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">{translate('About')}</p>
               </div>
               <div className="p-4 space-y-4">
-                <p className="text-sm text-slate-600 leading-relaxed">
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   {mosque.description || `${translate('Welcome to')} ${mosque.name}. ${translate('This mosque serves as a spiritual hub.')}`}
                 </p>
 
                 {(mosque.picphoneno || mosque.email) && (
-                  <div className="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
+                  <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
                     {mosque.picphoneno && (
-                      <a href={`tel:${mosque.picphoneno}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                      <a href={`tel:${mosque.picphoneno}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center shrink-0">
                           <Phone className="w-3.5 h-3.5 text-emerald-600" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[10px] text-slate-400 uppercase tracking-wide">{translate('Phone No.')}</p>
-                          <p className="text-sm font-semibold text-slate-700">{mosque.picphoneno}</p>
+                          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{mosque.picphoneno}</p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
                       </a>
                     )}
                     {mosque.email && (
-                      <a href={`mailto:${mosque.email}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                      <a href={`mailto:${mosque.email}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center shrink-0">
                           <Mail className="w-3.5 h-3.5 text-emerald-600" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[10px] text-slate-400 uppercase tracking-wide">{translate('Email')}</p>
                           <p className="text-sm font-semibold text-slate-700 truncate">{mosque.email}</p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
                       </a>
                     )}
                   </div>

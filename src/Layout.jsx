@@ -510,7 +510,7 @@ function LayoutContent({ children, currentPageName }) {
                 </DropdownMenu>
               ) : (
                 <Link to={createPageUrl("AppUserLogin")}>
-                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-200">
+                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white">
                     {translate("Log In")}
                   </Button>
                 </Link>

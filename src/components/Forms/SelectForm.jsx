@@ -42,7 +42,7 @@ export default function SelectForm({
             onValueChange={field.onChange}
             disabled={disabled}
           >
-            <SelectTrigger disabled={disabled}>
+            <SelectTrigger disabled={disabled} className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
 

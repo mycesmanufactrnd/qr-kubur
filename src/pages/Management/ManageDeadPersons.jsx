@@ -70,7 +70,8 @@ import { resolveFileUrl } from "@/utils";
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
-  return isNarrow ? <MobileManageDeadPersons /> : <ManageDeadPersonsDesktop />;
+  if (isNarrow) return <MobileManageDeadPersons />;
+  return <ManageDeadPersonsDesktop />;
 }
 
 function ManageDeadPersonsDesktop() {
@@ -386,7 +387,9 @@ function ManageDeadPersonsDesktop() {
               <SelectValue placeholder="Negeri" />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-700 text-white">
-              <SelectItem value="all" className="focus:bg-white/10">{translate("All States")}</SelectItem>
+              <SelectItem value="all" className="focus:bg-white/10">
+                {translate("All States")}
+              </SelectItem>
               {STATES_MY.map((s) => (
                 <SelectItem key={s} value={s} className="focus:bg-white/10">
                   {s}
@@ -408,9 +411,15 @@ function ManageDeadPersonsDesktop() {
             <SelectValue placeholder={translate("Cemetery")} />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-700 text-white">
-            <SelectItem value="all" className="focus:bg-white/10">{translate("All cemeteries")}</SelectItem>
+            <SelectItem value="all" className="focus:bg-white/10">
+              {translate("All cemeteries")}
+            </SelectItem>
             {gravesList.items.map((g) => (
-              <SelectItem key={g.id} value={String(g.id)} className="focus:bg-white/10">
+              <SelectItem
+                key={g.id}
+                value={String(g.id)}
+                className="focus:bg-white/10"
+              >
                 {g.name}
               </SelectItem>
             ))}

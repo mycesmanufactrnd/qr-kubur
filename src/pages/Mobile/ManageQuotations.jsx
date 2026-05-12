@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { translate } from "@/utils/translations";
 import { resolveFileUrl } from "@/utils";
@@ -28,26 +27,28 @@ import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { showError } from "@/components/ToastrNotification";
 import DirectionButton from "@/components/DirectionButton";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
+import NoDataCardComponent from "@/components/NoDataCardComponent";
 
 function StatusBadge({ status }) {
   switch (status) {
     case QuotationStatus.PENDING:
       return (
-        <Badge className="bg-yellow-100 text-yellow-700 border-0 text-xs">
+        <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-0 text-xs">
           <Clock className="w-3 h-3 mr-1" />
           {translate("Pending")}
         </Badge>
       );
     case QuotationStatus.COMPLETED:
       return (
-        <Badge className="bg-green-100 text-green-700 border-0 text-xs">
+        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0 text-xs">
           <CheckCircle className="w-3 h-3 mr-1" />
           {translate("Completed")}
         </Badge>
       );
     case QuotationStatus.REJECTED:
       return (
-        <Badge className="bg-red-100 text-red-700 border-0 text-xs">
+        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-0 text-xs">
           <XCircle className="w-3 h-3 mr-1" />
           {translate("Rejected")}
         </Badge>
@@ -56,8 +57,6 @@ function StatusBadge({ status }) {
       return <Badge variant="secondary" className="text-xs">{status}</Badge>;
   }
 }
-
-// ─── Quotation card ───────────────────────────────────────────────────────────
 
 function QuotationCard({ q, onClick }) {
   const orgAmount =
@@ -68,40 +67,38 @@ function QuotationCard({ q, onClick }) {
   return (
     <button
       onClick={() => onClick(q)}
-      className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-2 active:opacity-70 transition-opacity"
+      className="w-full text-left bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4 space-y-2 active:opacity-70 transition-opacity"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-semibold text-slate-800 truncate text-sm">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 truncate text-sm">
             {q.payername || translate("No Name")}
           </p>
-          <p className="text-xs text-slate-400 font-mono truncate">
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate">
             {q.referenceno || "-"}
           </p>
         </div>
         <StatusBadge status={q.status} />
       </div>
 
-      <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         <span className="truncate max-w-[55%]">
           {q.organisation?.name || "-"}
         </span>
-        <span className="font-semibold text-emerald-700 shrink-0">{orgAmount}</span>
+        <span className="font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">{orgAmount}</span>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-slate-400">
+      <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
         <span>{(q.selectedservices || []).length} {translate("Services")}</span>
         <span>{new Date(q.createdat).toLocaleDateString("ms-MY")}</span>
       </div>
 
       <div className="flex items-center justify-end">
-        <ChevronRight className="w-4 h-4 text-slate-300" />
+        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600" />
       </div>
     </button>
   );
 }
-
-// ─── Detail sheet ─────────────────────────────────────────────────────────────
 
 function DetailSheet({ quotation, onClose, canVerify, canReject }) {
   const updateMutation = useUpdateQuotation();
@@ -176,31 +173,27 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
   const photoReady = !!(preview || localPhotoUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 truncate text-sm">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 truncate text-sm">
             {quotation.payername || translate("No Name")}
           </p>
-          <p className="text-xs text-slate-400 font-mono truncate">
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate">
             {quotation.referenceno || "-"}
           </p>
         </div>
         <StatusBadge status={quotation.status} />
       </div>
 
-      {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-32">
-
-        {/* Payer info */}
-        <div className="bg-slate-50 rounded-xl p-3 space-y-2 text-sm">
+        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2 text-sm">
           <Row label={translate("Organisation")} value={quotation.organisation?.name || "-"} />
           {quotation.payeremail && (
             <Row label={translate("Email")} value={quotation.payeremail} />
@@ -213,13 +206,12 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
           )}
         </div>
 
-        {/* Direction */}
         {(quotation.organisation?.latitude || quotation.organisation?.longitude) && (
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
               {translate("Location")}
             </p>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span>
                 {Number(quotation.organisation.latitude).toFixed(5)},{" "}
@@ -233,24 +225,22 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
           </div>
         )}
 
-        {/* Services */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             {translate("Selected Services")}
           </p>
           <div className="space-y-1">
             {(quotation.selectedservices || []).map((s, i) => (
               <div
                 key={i}
-                className="flex justify-between text-sm bg-slate-50 rounded-lg px-3 py-2"
+                className="flex justify-between text-sm bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2"
               >
-                <span className="text-slate-700">{s.service}</span>
-                <span className="font-semibold text-slate-800">{formatRM(s.price)}</span>
+                <span className="text-slate-700 dark:text-slate-300">{s.service}</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRM(s.price)}</span>
               </div>
             ))}
           </div>
 
-          {/* Amount breakdown */}
           <div className="border-t pt-2 space-y-1.5 text-sm">
             {svc != null ? (
               <>
@@ -278,13 +268,11 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
           </div>
         </div>
 
-        {/* Photo upload */}
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             {translate("Completion Photo")}
           </p>
 
-          {/* Current / preview image */}
           {(preview || localPhotoUrl) ? (
             <img
               src={
@@ -292,15 +280,14 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
                 resolveFileUrl(localPhotoUrl, "bucket-organisation-services-proof")
               }
               alt={translate("Completion photo")}
-              className="w-full h-48 rounded-xl object-cover border border-slate-100"
+              className="w-full h-48 rounded-xl object-cover border border-slate-100 dark:border-slate-700"
             />
           ) : (
-            <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl text-slate-300">
+            <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-slate-300 dark:text-slate-600">
               <Image className="w-10 h-10" />
             </div>
           )}
 
-          {/* Hidden file input — capture=environment opens rear camera on mobile */}
           <input
             ref={fileInputRef}
             type="file"
@@ -315,7 +302,7 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 active:opacity-70 disabled:opacity-50 transition-opacity"
+              className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50 transition-opacity"
             >
               <Camera className="w-4 h-4" />
               {translate("Take / Choose Photo")}
@@ -335,9 +322,8 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
         </div>
       </div>
 
-      {/* Fixed action bar */}
       {quotation.status === QuotationStatus.PENDING && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 px-4 py-3 space-y-2 safe-area-bottom">
+        <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3 space-y-2 safe-area-bottom">
           {canVerify && (
             <button
               onClick={handleComplete}
@@ -357,7 +343,7 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
             <button
               onClick={handleReject}
               disabled={updateMutation.isPending}
-              className="w-full h-11 rounded-2xl border border-red-200 text-red-600 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-40 active:opacity-80 transition-opacity"
+              className="w-full h-11 rounded-2xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-40 active:opacity-80 transition-opacity"
             >
               <XCircle className="w-4 h-4" />
               {translate("Reject")}
@@ -369,13 +355,11 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
   );
 }
 
-// ─── Small helpers ────────────────────────────────────────────────────────────
-
 function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-slate-500 shrink-0">{label}</span>
-      <span className="text-slate-800 text-right break-all">{value}</span>
+      <span className="text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
+      <span className="text-slate-800 dark:text-slate-200 text-right break-all">{value}</span>
     </div>
   );
 }
@@ -383,7 +367,7 @@ function Row({ label, value }) {
 function AmountRow({ label, value, valueClass = "", bold = false }) {
   return (
     <div className={`flex justify-between ${bold ? "font-bold" : ""}`}>
-      <span className="text-slate-500">{label}</span>
+      <span className="text-slate-500 dark:text-slate-400">{label}</span>
       <span className={valueClass}>{value}</span>
     </div>
   );
@@ -411,7 +395,6 @@ export default function MobileManageQuotations() {
     dateTo: appliedDateTo || null,
   });
 
-  // Lock body scroll while detail sheet is open so only the sheet itself scrolls.
   useEffect(() => {
     if (selected) {
       document.body.style.overflow = "hidden";
@@ -426,16 +409,15 @@ export default function MobileManageQuotations() {
     };
   }, [selected]);
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
     <>
-      <div className="min-h-screen pb-6">
+      <div className="min-h-screen pb-6 ">
         <BackNavigation title={translate("Manage Quotations")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter bar */}
           <div className="flex items-center">
             <AdvancedFilters
               parameter={[
@@ -459,12 +441,9 @@ export default function MobileManageQuotations() {
           </div>
 
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : quotationList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300">
-              <FileText className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <NoDataCardComponent isPage/>
           ) : (
             <div className="space-y-3">
               {quotationList.items.map((q) => (

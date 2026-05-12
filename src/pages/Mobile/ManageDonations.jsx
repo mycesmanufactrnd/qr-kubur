@@ -317,11 +317,10 @@ export default function MobileManageDonations() {
 
   return (
     <>
-      <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Donations")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter bar */}
           <div className="flex items-center">
             <AdvancedFilters
               parameter={[

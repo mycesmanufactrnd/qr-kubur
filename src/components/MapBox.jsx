@@ -1,4 +1,4 @@
-import React from 'react';
+// @ts-nocheck
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -48,9 +48,9 @@ export default function MapBox({ dataMap, userLocation, pageToUrl }) {
 
   if (!hasCenterLocation && !userLocation) {
     return (
-      <div className="h-full flex items-center justify-center bg-slate-50 rounded-2xl">
-        <div className="text-center text-slate-500">
-          <MapPin className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+      <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-2xl">
+        <div className="text-center text-slate-500 dark:text-slate-400">
+          <MapPin className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
           <p>No location to display</p>
         </div>
       </div>

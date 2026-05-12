@@ -29,26 +29,26 @@ const STATUS_CONFIG = {
   [QuotationStatus.PENDING]: {
     label: translate("Pending"),
     icon: Clock,
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    text: "text-amber-700",
-    iconColor: "text-amber-500",
+    bg: "bg-amber-50 dark:bg-amber-900/20",
+    border: "border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-400",
+    iconColor: "text-amber-500 dark:text-amber-400",
   },
   [QuotationStatus.COMPLETED]: {
     label: translate("Completed"),
     icon: CheckCircle,
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    text: "text-emerald-700",
-    iconColor: "text-emerald-500",
+    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-200 dark:border-emerald-800",
+    text: "text-emerald-700 dark:text-emerald-400",
+    iconColor: "text-emerald-500 dark:text-emerald-400",
   },
   [QuotationStatus.REJECTED]: {
     label: translate("Rejected"),
     icon: XCircle,
-    bg: "bg-red-50",
-    border: "border-red-200",
-    text: "text-red-700",
-    iconColor: "text-red-500",
+    bg: "bg-red-50 dark:bg-red-900/20",
+    border: "border-red-200 dark:border-red-800",
+    text: "text-red-700 dark:text-red-400",
+    iconColor: "text-red-500 dark:text-red-400",
   },
 };
 
@@ -56,7 +56,7 @@ function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status];
   if (!cfg)
     return (
-      <span className="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-500">
+      <span className="px-3 py-1 text-xs rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
         {status}
       </span>
     );
@@ -115,26 +115,26 @@ export default function CheckServiceStatus() {
 
       <div className="max-w-2xl mx-auto px-2 pt-6 space-y-4">
         <div className="flex flex-col items-center text-center gap-2 pb-2">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-200 mb-1">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center mb-1">
             <Briefcase className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-base font-bold text-slate-800">
+          <h2 className="text-base font-bold text-slate-800 dark:text-slate-200">
             {translate("Check Service Status")}
           </h2>
-          <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed">
+          <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[260px] leading-relaxed">
             {translate("Enter reference number to check your service status.")}
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-          <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 space-y-3">
+          <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100 dark:border-slate-700">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-sky-600">
               {translate("Service Search")}
             </p>
           </div>
 
           <div className="space-y-1.5 pt-1">
-            <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+            <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               {translate("Transaction Reference No.")}
             </label>
             <Input
@@ -142,23 +142,23 @@ export default function CheckServiceStatus() {
               value={referenceId}
               onChange={(e) => setReferenceId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition"
             />
           </div>
 
           <Button
             onClick={handleSearch}
             disabled={searching}
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-sky-200 active:opacity-80 transition-all disabled:opacity-50"
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 text-white text-sm font-semibold flex items-center justify-center gap-2 active:opacity-80 transition-all disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
             {searching ? translate("Searching...") : translate("Search Status")}
           </Button>
         </div>
 
-        <div className="flex gap-2.5 items-start px-4 py-3.5 bg-blue-50 border border-blue-100 rounded-2xl">
+        <div className="flex gap-2.5 items-start px-4 py-3.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl">
           <span className="text-base mt-0.5">💡</span>
-          <p className="text-xs text-blue-600 leading-relaxed">
+          <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
             <span className="font-bold">{translate("Tip")}:</span> {translate("Your reference number can be found in the payment receipt sent to your email.")}
           </p>
         </div>
@@ -170,14 +170,14 @@ export default function CheckServiceStatus() {
           if (!open) handleClose();
         }}
       >
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
-          <div className="px-5 pt-5 pb-4 border-b border-slate-100 text-center">
-            <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white dark:bg-slate-900">
+          <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-700 text-center">
+            <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
               {translate("Service Application Status")}
             </DialogTitle>
             {quotation && (
               <div className="flex flex-col items-center gap-2.5">
-                <span className="text-lg font-bold tracking-widest font-mono text-slate-800">
+                <span className="text-lg font-bold tracking-widest font-mono text-slate-800 dark:text-slate-200">
                   {quotation.referenceno}
                 </span>
                 <StatusBadge status={quotation.status} />
@@ -187,7 +187,7 @@ export default function CheckServiceStatus() {
 
           {quotation && (
             <div className="px-5 py-4 space-y-5">
-              <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
                 {quotation.payername && (
                   <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2 shrink-0">
@@ -196,7 +196,7 @@ export default function CheckServiceStatus() {
                         {translate("Requester")}
                       </span>
                     </div>
-                    <span className="text-sm font-semibold text-slate-700">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {quotation.payername}
                     </span>
                   </div>
@@ -279,22 +279,22 @@ export default function CheckServiceStatus() {
                     {quotation.selectedservices.map((s, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl"
+                        className="flex items-center justify-between px-3 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-xl"
                       >
-                        <span className="text-sm font-medium text-slate-700">{s.service}</span>
-                        <span className="text-sm font-semibold text-slate-900">{formatRM(s.price)}</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{s.service}</span>
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatRM(s.price)}</span>
                       </div>
                     ))}
                   </div>
                   {quotation.totalamount != null && (
                     <>
-                    <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl">
-                      <span className="text-sm font-semibold text-sky-700">{translate("Maintenance Fee")}</span>
-                      <span className="text-sm font-bold text-sky-700">{formatRM(quotation.maintenancefeeamount)}</span>
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800 rounded-xl">
+                      <span className="text-sm font-semibold text-sky-700 dark:text-sky-400">{translate("Maintenance Fee")}</span>
+                      <span className="text-sm font-bold text-sky-700 dark:text-sky-400">{formatRM(quotation.maintenancefeeamount)}</span>
                     </div>
-                    <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 border border-sky-100 rounded-xl">
-                      <span className="text-sm font-semibold text-sky-700">{translate("Total Amount")}</span>
-                      <span className="text-sm font-bold text-sky-700">{formatRM(quotation.totalamount)}</span>
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800 rounded-xl">
+                      <span className="text-sm font-semibold text-sky-700 dark:text-sky-400">{translate("Total Amount")}</span>
+                      <span className="text-sm font-bold text-sky-700 dark:text-sky-400">{formatRM(quotation.totalamount)}</span>
                     </div>
                     </>
                   )}
@@ -309,14 +309,14 @@ export default function CheckServiceStatus() {
                   <img
                     src={resolveFileUrl(quotation.photourl, "bucket-organisation-services-proof")}
                     alt="Service completion"
-                    className="h-48 w-full rounded-xl object-cover border border-slate-100"
+                    className="h-48 w-full rounded-xl object-cover border border-slate-100 dark:border-slate-700"
                   />
                 </div>
               )}
 
               <Button
                 onClick={handleClose}
-                className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-70 transition-opacity"
+                className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm font-semibold active:opacity-70 transition-opacity"
               >
                 {translate("Close")}
               </Button>

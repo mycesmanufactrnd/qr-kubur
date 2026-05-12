@@ -13,27 +13,27 @@ const EmergencyMosqueCard = ({ mosque }) => {
   if (!mosque) return null;
 
   return (
-    <div className="bg-white border border-red-100 rounded-xl p-3 space-y-2">
+    <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-900/30 rounded-xl p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-gray-900 leading-tight truncate">{mosque.name}</p>
+          <p className="font-semibold text-sm text-gray-900 dark:text-slate-100 leading-tight truncate">{mosque.name}</p>
           {mosque.picname && (
-            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
               <User className="w-3 h-3 flex-shrink-0" />
               {mosque.picname}
             </p>
           )}
         </div>
         {mosque.distance && (
-          <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+          <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
             {showEarthDistance(mosque.distance)}
           </span>
         )}
       </div>
 
       {mosque.address && (
-        <p className="text-xs text-gray-500 flex items-start gap-1 line-clamp-1">
-          <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-gray-400" />
+        <p className="text-xs text-gray-500 dark:text-slate-400 flex items-start gap-1 line-clamp-1">
+          <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-gray-400 dark:text-slate-500" />
           {mosque.address}
         </p>
       )}
@@ -44,7 +44,7 @@ const EmergencyMosqueCard = ({ mosque }) => {
           className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg ${
             mosque.picphoneno
               ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'bg-gray-100 text-gray-400 pointer-events-none'
+              : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 pointer-events-none'
           }`}
         >
           <Phone className="w-3.5 h-3.5" /> Call
@@ -71,12 +71,12 @@ export default function JenazahEmergency() {
   );
 
   return (
-    <div className="space-y-3 pb-2">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 space-y-3 pb-2">
       <BackNavigation title={translate('Jenazah Emergency') || "Kecemasan Jenazah"} />
 
-      <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-        <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-        <p className="text-xs text-red-700">Contact the nearest mosque for immediate funeral arrangements.</p>
+      <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+        <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+        <p className="text-xs text-red-700 dark:text-red-400">Contact the nearest mosque for immediate funeral arrangements.</p>
       </div>
 
       {isLoading ? (

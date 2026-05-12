@@ -221,7 +221,7 @@ function MosqueFormSheet({
           type="button"
           onClick={getLocation}
           disabled={isLocating}
-          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 active:opacity-70 disabled:opacity-50"
+          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
         >
           <Navigation className="w-4 h-4" />
           {isLocating ? translate("Getting location...") : translate("Get Current Location")}
@@ -265,7 +265,7 @@ function MosqueFormSheet({
       </div>
 
       {/* Fixed save bar */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 px-4 py-3">
+      <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}
           disabled={isSubmitting || uploading}
@@ -430,7 +430,7 @@ export default function MobileManageMosques() {
 
   return (
     <>
-      <div className="min-h-screen pb-6">
+      <div className="min-h-screen pb-6 dark:bg-slate-900">
         <BackNavigation title={translate("Manage Mosques")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -461,7 +461,7 @@ export default function MobileManageMosques() {
           {listLoading ? (
             <InlineLoadingComponent />
           ) : listItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300">
+            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Landmark className="w-12 h-12 mb-2" />
               <p className="text-sm">{translate("No records")}</p>
             </div>

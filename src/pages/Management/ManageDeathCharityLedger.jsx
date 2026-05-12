@@ -1,38 +1,68 @@
 // @ts-nocheck
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, User, BookOpen } from 'lucide-react';
-import PaymentForm from '@/components/deathcharity/PaymentForm';
-import { useGetMemberByDeathCharity } from '@/hooks/useDeathCharityMemberMutations';
-import { useDeathCharityPaymentMutations, useGetPaymentByMemberId } from '@/hooks/useDeathCharityPaymentMutations';
-import { useSearchParams } from 'react-router-dom';
-import { useGetDeathCharityByOrganisation } from '@/hooks/useDeathCharityMutations';
-import { translate } from '@/utils/translations';
-import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import Breadcrumb from '@/components/Breadcrumb';
-import { useCrudPermissions } from '@/components/PermissionsContext';
-import { useAdminAccess } from '@/utils/auth';
-import PageLoadingComponent from '@/components/PageLoadingComponent';
-import { useIsNarrow } from '@/hooks/useIsNarrow';
-import MobileManageDeathCharityLedger from '@/pages/Mobile/ManageDeathCharityLedger';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Plus, User, BookOpen } from "lucide-react";
+import PaymentForm from "@/components/deathcharity/PaymentForm";
+import { useGetMemberByDeathCharity } from "@/hooks/useDeathCharityMemberMutations";
+import {
+  useDeathCharityPaymentMutations,
+  useGetPaymentByMemberId,
+} from "@/hooks/useDeathCharityPaymentMutations";
+import { useSearchParams } from "react-router-dom";
+import { useGetDeathCharityByOrganisation } from "@/hooks/useDeathCharityMutations";
+import { translate } from "@/utils/translations";
+import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import Breadcrumb from "@/components/Breadcrumb";
+import { useCrudPermissions } from "@/components/PermissionsContext";
+import { useAdminAccess } from "@/utils/auth";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import MobileManageDeathCharityLedger from "@/pages/Mobile/ManageDeathCharityLedger";
 
 export default function ManageDeathCharityLedger() {
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   if (isNarrow) return <MobileManageDeathCharityLedger />;
   return <ManageDeathCharityLedgerDesktop />;
 }
 
 function ManageDeathCharityLedgerDesktop() {
   const [searchParams] = useSearchParams();
-  const urlMemberId = searchParams.get('member') ? Number(searchParams.get('member')) : null;
-  const urlDeathCharityId = searchParams.get('deathcharity') ? Number(searchParams.get('deathcharity')) : null;
+  const urlMemberId = searchParams.get("member")
+    ? Number(searchParams.get("member"))
+    : null;
+  const urlDeathCharityId = searchParams.get("deathcharity")
+    ? Number(searchParams.get("deathcharity"))
+    : null;
 
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions('death_charity');
+  const {
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
+    currentUserStates,
+  } = useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("death_charity");
 
   const currentYear = new Date().getFullYear();
   const [selectedDeathCharity, setSelectedDeathCharity] = useState(null);
@@ -45,16 +75,13 @@ function ManageDeathCharityLedgerDesktop() {
 
   const { data: deathCharityList = [] } = useGetDeathCharityByOrganisation();
 
-  const { data: deathCharityMemberList = [], isLoading: loadingMembers } = 
+  const { data: deathCharityMemberList = [], isLoading: loadingMembers } =
     useGetMemberByDeathCharity(selectedDeathCharity?.id);
 
   useEffect(() => {
-    if (
-      urlDeathCharityId &&
-      deathCharityList?.length > 0
-    ) {
+    if (urlDeathCharityId && deathCharityList?.length > 0) {
       const found = deathCharityList.find(
-        (d) => Number(d.id) === Number(urlDeathCharityId)
+        (d) => Number(d.id) === Number(urlDeathCharityId),
       );
 
       if (found) {
@@ -64,12 +91,9 @@ function ManageDeathCharityLedgerDesktop() {
   }, [urlDeathCharityId, deathCharityList]);
 
   useEffect(() => {
-    if (
-      urlMemberId &&
-      deathCharityMemberList?.length > 0
-    ) {
+    if (urlMemberId && deathCharityMemberList?.length > 0) {
       const found = deathCharityMemberList.find(
-        (m) => Number(m.id) === Number(urlMemberId)
+        (m) => Number(m.id) === Number(urlMemberId),
       );
 
       if (found) {
@@ -108,27 +132,32 @@ function ManageDeathCharityLedgerDesktop() {
 
   const paymentsByPeriod = useMemo(() => {
     const grouped = {};
-    
-    payments.forEach(payment => {
+
+    payments.forEach((payment) => {
       if (!payment.coversfromyear) return;
-      
+
       const fromYear = payment.coversfromyear;
       const toYear = payment.coverstoyear || fromYear;
-      
+
       // Add payment to all years it covers
       for (let year = fromYear; year <= toYear; year++) {
         if (!grouped[year]) grouped[year] = [];
         grouped[year].push(payment);
       }
     });
-    
+
     return grouped;
   }, [payments]);
 
   const stats = useMemo(() => {
-    const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-    const registrationPayments = payments.filter(p => p.paymenttype === 'registration').length;
-    
+    const totalPaid = payments.reduce(
+      (sum, p) => sum + (Number(p.amount) || 0),
+      0,
+    );
+    const registrationPayments = payments.filter(
+      (p) => p.paymenttype === "registration",
+    ).length;
+
     return { totalPaid, registrationPayments, totalPayments: payments.length };
   }, [payments]);
 
@@ -139,8 +168,7 @@ function ManageDeathCharityLedgerDesktop() {
 
   const handleCreatePayment = async (data) => {
     try {
-      await createDeathCharityPayment.mutateAsync(data)
-      .then((res) => {
+      await createDeathCharityPayment.mutateAsync(data).then((res) => {
         if (res) {
           setShowPaymentDialog(false);
           setSelectedCell(null);
@@ -152,46 +180,62 @@ function ManageDeathCharityLedgerDesktop() {
   };
 
   if (loadingUser || permissionsLoading) {
-    return (
-      <PageLoadingComponent/>
-    );
+    return <PageLoadingComponent />;
   }
 
   if (!hasAdminAccess) {
-    return (
-      <AccessDeniedComponent/>
-    );
+    return <AccessDeniedComponent />;
   }
 
   if (!canView) {
     return (
       <div className="space-y-6">
-        <Breadcrumb items={[
-          { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
-          ...(selectedMember
-            ? [ { label: translate('Manage Death Charity Member'), page: 'ManageDeathCharityMember'} ]
-            : []),
-          { label: translate('Manage Death Charity Ledger'), page: 'ManageDeathCharityLedger' }
-        ]} />
-        <AccessDeniedComponent/>
+        <Breadcrumb
+          items={[
+            { label: translate("Admin Dashboard"), page: "AdminDashboard" },
+            ...(selectedMember
+              ? [
+                  {
+                    label: translate("Manage Death Charity Member"),
+                    page: "ManageDeathCharityMember",
+                  },
+                ]
+              : []),
+            {
+              label: translate("Manage Death Charity Ledger"),
+              page: "ManageDeathCharityLedger",
+            },
+          ]}
+        />
+        <AccessDeniedComponent />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: translate('Admin Dashboard'), page: 'AdminDashboard' },
-        ...(selectedMember
-          ? [ { label: translate('Manage Death Charity Member'), page: 'ManageDeathCharityMember'} ]
-          : []),
-        { label: translate('Manage Death Charity Ledger'), page: 'ManageDeathCharityLedger' }
-      ]} />
+      <Breadcrumb
+        items={[
+          { label: translate("Admin Dashboard"), page: "AdminDashboard" },
+          ...(selectedMember
+            ? [
+                {
+                  label: translate("Manage Death Charity Member"),
+                  page: "ManageDeathCharityMember",
+                },
+              ]
+            : []),
+          {
+            label: translate("Manage Death Charity Ledger"),
+            page: "ManageDeathCharityLedger",
+          },
+        ]}
+      />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-emerald-600" />
-          {translate('Manage Death Charity Ledger')}
+          {translate("Manage Death Charity Ledger")}
         </h1>
       </div>
 
@@ -200,12 +244,18 @@ function ManageDeathCharityLedgerDesktop() {
           <CardContent className="p-6">
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Select Death Charity</label>
-                <Select 
-                  value={selectedDeathCharity?.id ? String(selectedDeathCharity.id) : ""}
+                <label className="text-sm font-medium text-slate-700">
+                  Select Death Charity
+                </label>
+                <Select
+                  value={
+                    selectedDeathCharity?.id
+                      ? String(selectedDeathCharity.id)
+                      : ""
+                  }
                   onValueChange={(id) => {
                     const found = deathCharityList.find(
-                      (m) => Number(m.id) === Number(id)
+                      (m) => Number(m.id) === Number(id),
                     );
                     setSelectedDeathCharity(found);
                     setSelectedMember(null);
@@ -215,22 +265,27 @@ function ManageDeathCharityLedgerDesktop() {
                     <SelectValue placeholder="Choose a member..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {deathCharityList.map(deathcharity => (
-                      <SelectItem key={deathcharity.id} value={String(deathcharity.id)}>
+                    {deathCharityList.map((deathcharity) => (
+                      <SelectItem
+                        key={deathcharity.id}
+                        value={String(deathcharity.id)}
+                      >
                         {deathcharity.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Select Member</label>
-                <Select 
+                <label className="text-sm font-medium text-slate-700">
+                  Select Member
+                </label>
+                <Select
                   value={selectedMember?.id ? String(selectedMember.id) : ""}
                   onValueChange={(id) => {
                     const found = deathCharityMemberList.find(
-                      (m) => Number(m.id) === Number(id)
+                      (m) => Number(m.id) === Number(id),
                     );
                     setSelectedMember(found);
                   }}
@@ -239,7 +294,7 @@ function ManageDeathCharityLedgerDesktop() {
                     <SelectValue placeholder="Choose a member..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {deathCharityMemberList.map(member => (
+                    {deathCharityMemberList.map((member) => (
                       <SelectItem key={member.id} value={String(member.id)}>
                         {member.fullname} ({member.icnumber})
                       </SelectItem>
@@ -252,12 +307,23 @@ function ManageDeathCharityLedgerDesktop() {
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <User className="w-4 h-4" />
-                    <span className="font-medium">{selectedMember.fullname}</span>
-                    <Badge className={selectedMember.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}>
+                    <span className="font-medium">
+                      {selectedMember.fullname}
+                    </span>
+                    <Badge
+                      className={
+                        selectedMember.status === "active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-slate-100 text-slate-700"
+                      }
+                    >
                       {selectedMember.status}
                     </Badge>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">IC: {selectedMember.icnumber} • Phone: {selectedMember.phone}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    IC: {selectedMember.icnumber} • Phone:{" "}
+                    {selectedMember.phone}
+                  </p>
                 </div>
               )}
             </div>
@@ -266,15 +332,23 @@ function ManageDeathCharityLedgerDesktop() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-xs text-blue-600 mb-1">Total Paid</p>
-                  <p className="text-lg font-bold text-blue-700">RM {stats.totalPaid.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-blue-700">
+                    RM {stats.totalPaid.toFixed(2)}
+                  </p>
                 </div>
                 <div className="bg-emerald-50 rounded-lg p-3">
-                  <p className="text-xs text-emerald-600 mb-1">Total Payments</p>
-                  <p className="text-lg font-bold text-emerald-700">{stats.totalPayments}</p>
+                  <p className="text-xs text-emerald-600 mb-1">
+                    Total Payments
+                  </p>
+                  <p className="text-lg font-bold text-emerald-700">
+                    {stats.totalPayments}
+                  </p>
                 </div>
                 <div className="bg-pink-50 rounded-lg p-3">
                   <p className="text-xs text-pink-600 mb-1">Registration</p>
-                  <p className="text-lg font-bold text-pink-700">{stats.registrationPayments}</p>
+                  <p className="text-lg font-bold text-pink-700">
+                    {stats.registrationPayments}
+                  </p>
                 </div>
               </div>
             )}
@@ -292,13 +366,21 @@ function ManageDeathCharityLedgerDesktop() {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Start Year</label>
-                        <Select value={startYear.toString()} onValueChange={v => setStartYear(Number(v))}>
+                        <label className="text-sm font-medium text-slate-700">
+                          Start Year
+                        </label>
+                        <Select
+                          value={startYear.toString()}
+                          onValueChange={(v) => setStartYear(Number(v))}
+                        >
                           <SelectTrigger className="w-24">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.from({ length: 20 }, (_, i) => currentYear - 10 + i).map(year => (
+                            {Array.from(
+                              { length: 20 },
+                              (_, i) => currentYear - 10 + i,
+                            ).map((year) => (
                               <SelectItem key={year} value={year.toString()}>
                                 {year}
                               </SelectItem>
@@ -308,13 +390,21 @@ function ManageDeathCharityLedgerDesktop() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">End Year</label>
-                        <Select value={endYear.toString()} onValueChange={v => setEndYear(Number(v))}>
+                        <label className="text-sm font-medium text-slate-700">
+                          End Year
+                        </label>
+                        <Select
+                          value={endYear.toString()}
+                          onValueChange={(v) => setEndYear(Number(v))}
+                        >
                           <SelectTrigger className="w-24">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Array.from({ length: 20 }, (_, i) => currentYear + i).map(year => (
+                            {Array.from(
+                              { length: 20 },
+                              (_, i) => currentYear + i,
+                            ).map((year) => (
                               <SelectItem key={year} value={year.toString()}>
                                 {year}
                               </SelectItem>
@@ -331,14 +421,14 @@ function ManageDeathCharityLedgerDesktop() {
             <Card className="border-0 shadow-lg overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Payment Ledger</span>                  
+                  <span>Payment Ledger</span>
                   <Button onClick={() => setShowPaymentDialog(true)} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Payment
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">                
+              <CardContent className="p-0">
                 <div className="space-y-4 p-4">
                   {columnRows.map((yearRow, rowIndex) => (
                     <table
@@ -361,7 +451,10 @@ function ManageDeathCharityLedgerDesktop() {
                         <tr>
                           {yearRow.map((year, idx) => {
                             const periodPayments = paymentsByPeriod[year] || [];
-                            const totalAmount = periodPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                            const totalAmount = periodPayments.reduce(
+                              (sum, p) => sum + (Number(p.amount) || 0),
+                              0,
+                            );
 
                             return (
                               <td
@@ -376,13 +469,18 @@ function ManageDeathCharityLedgerDesktop() {
                                     </p>
                                     <div className="flex flex-wrap gap-1 justify-center mt-1">
                                       {periodPayments.map((payment, i) => (
-                                        <Badge key={i} variant="outline" className="text-xs">
+                                        <Badge
+                                          key={i}
+                                          variant="outline"
+                                          className="text-xs"
+                                        >
                                           {payment.paymentmethod}
                                         </Badge>
                                       ))}
                                     </div>
                                     <p className="text-xs text-slate-500 mt-1">
-                                      {periodPayments.length} payment{periodPayments.length > 1 ? 's' : ''}
+                                      {periodPayments.length} payment
+                                      {periodPayments.length > 1 ? "s" : ""}
                                     </p>
                                   </div>
                                 ) : (
@@ -411,7 +509,8 @@ function ManageDeathCharityLedgerDesktop() {
               Select a Member
             </h3>
             <p className="text-slate-500">
-              Choose a member from the dropdown above to view their payment ledger
+              Choose a member from the dropdown above to view their payment
+              ledger
             </p>
           </Card>
         )}

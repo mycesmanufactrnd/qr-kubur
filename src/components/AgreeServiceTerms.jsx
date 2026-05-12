@@ -2,7 +2,7 @@ import { translate } from "@/utils/translations";
 
 export default function AgreeServiceTerms() {
   return (
-    <div className="space-y-3 text-sm text-slate-700">
+    <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
       <p>
         {translate(
           "This Service Agreement outlines the terms for offering services through the platform. By accepting, you agree to the conditions below.",

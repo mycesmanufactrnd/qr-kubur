@@ -389,7 +389,7 @@ export default function MobileManageOrganisation() {
 
   return (
     <>
-      <div className="min-h-screen pb-6">
+      <div className="min-h-screen pb-6 dark:bg-slate-900">
         <BackNavigation title={translate("Manage Organisations")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -418,11 +418,10 @@ export default function MobileManageOrganisation() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
             <InlineLoadingComponent />
           ) : organisationsList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300">
+            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Building2 className="w-12 h-12 mb-2" />
               <p className="text-sm">{translate("No records")}</p>
             </div>
@@ -517,20 +516,20 @@ function OrgCard({ org, organisationTypeList, canEdit, canDelete, onEdit, onDele
   const states = Array.isArray(org.states) ? org.states.join(", ") : org.states;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="flex gap-3 p-4">
         <img
           src={resolveFileUrl(org.photourl, "bucket-organisation")}
           alt={org.name}
-          className="w-16 h-16 object-cover rounded-xl shrink-0 bg-slate-100"
+          className="w-16 h-16 object-cover rounded-xl shrink-0 bg-slate-100 dark:bg-slate-700"
         />
         <div className="flex-1 min-w-0 space-y-1">
-          <p className="font-semibold text-slate-800 text-sm truncate">{org.name}</p>
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">{org.name}</p>
           <div className="flex items-center gap-1.5 flex-wrap">
             {typeName && (
               <Badge variant="secondary" className="text-xs px-1.5 py-0">{typeName}</Badge>
             )}
-            {states && <span className="text-xs text-slate-400">{states}</span>}
+            {states && <span className="text-xs text-slate-400 dark:text-slate-500">{states}</span>}
           </div>
           {org.serviceoffered?.length > 0 && (
             <div className="flex flex-wrap gap-1">
@@ -548,7 +547,7 @@ function OrgCard({ org, organisationTypeList, canEdit, canDelete, onEdit, onDele
         {canEdit && (
           <button
             onClick={onEdit}
-            className="flex items-center gap-1.5 text-xs text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+            className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
           >
             <Edit className="w-3.5 h-3.5" />
             {translate("Edit")}
@@ -557,7 +556,7 @@ function OrgCard({ org, organisationTypeList, canEdit, canDelete, onEdit, onDele
         {canDelete && (
           <button
             onClick={onDelete}
-            className="flex items-center gap-1.5 text-xs text-red-500 border border-red-200 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
+            className="flex items-center gap-1.5 text-xs text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
           >
             <Trash2 className="w-3.5 h-3.5" />
             {translate("Delete")}
@@ -578,12 +577,12 @@ function OrgFormSheet({
   createOrganisation, updateOrganisation,
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 bg-white shrink-0">
-        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100">
-          <X className="w-5 h-5 text-slate-500" />
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
+        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-900 flex-1 text-base">
+        <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex-1 text-base">
           {editingOrg ? translate("Edit Organisation") : translate("Add Organisation")}
         </h2>
         <Button
@@ -692,13 +691,13 @@ function OrgFormSheet({
               {serviceEntries.map((entry) => (
                 <div key={entry.id} className="flex gap-2 items-center">
                   <input
-                    className="flex-1 h-9 px-3 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
+                    className="flex-1 h-9 px-3 text-sm border dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
                     placeholder={translate("Service Name")}
                     value={entry.service}
                     onChange={(e) => updateServiceEntry(entry.id, "service", e.target.value)}
                   />
                   <input
-                    className="w-20 h-9 px-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
+                    className="w-20 h-9 px-2 text-sm border dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
                     type="number"
                     step="0.01"
                     placeholder="RM"
@@ -709,8 +708,8 @@ function OrgFormSheet({
                     type="button"
                     className={`shrink-0 px-2 py-1 text-xs rounded border font-medium transition-colors ${
                       entry.isactive !== false
-                        ? "bg-green-50 text-green-700 border-green-300"
-                        : "bg-gray-100 text-gray-500 border-gray-300"
+                        ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700"
+                        : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600"
                     }`}
                     onClick={() => updateServiceEntry(entry.id, "isactive", entry.isactive === false)}
                   >
@@ -731,7 +730,7 @@ function OrgFormSheet({
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-slate-400">{translate("No grave service")}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">{translate("No grave service")}</p>
           )}
         </FormSection>
 
@@ -774,13 +773,13 @@ function OrgFormSheet({
                     key={entry.id}
                     className={`flex items-center gap-2 p-2.5 rounded-lg border text-sm ${
                       editingUserIndex === idx
-                        ? "bg-violet-50 border-violet-200"
-                        : "bg-slate-50 border-slate-200"
+                        ? "bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-700"
+                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                     }`}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{entry.fullname}</p>
-                      <p className="text-xs text-slate-500">{entry.username} • {entry.role}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{entry.username} • {entry.role}</p>
                     </div>
                     <button
                       type="button"
@@ -807,7 +806,7 @@ function OrgFormSheet({
                 ))}
               </div>
             )}
-            <p className="text-xs text-slate-400">Default password: {DEFAULT_USER_PASSWORD}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Default password: {DEFAULT_USER_PASSWORD}</p>
           </FormSection>
         )}
       </div>
@@ -818,7 +817,7 @@ function OrgFormSheet({
 function FormSection({ title, children }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100">
+      <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 pb-2 border-b border-slate-100 dark:border-slate-700">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>

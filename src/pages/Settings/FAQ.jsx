@@ -223,23 +223,23 @@ const FAQ_DATA = [
 function FAQItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-slate-100 last:border-0">
+    <div className="border-b border-slate-100 dark:border-slate-700 last:border-0">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left hover:bg-slate-50 transition-colors"
+        className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
       >
-        <span className="text-sm font-semibold text-slate-700 leading-snug">
+        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-snug">
           {translate(q)}
         </span>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+          <ChevronUp className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+          <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
         )}
       </button>
       {open && (
         <div className="px-4 pb-4">
-          <p className="text-sm text-slate-500 leading-relaxed">{translate(a)}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{translate(a)}</p>
         </div>
       )}
     </div>
@@ -248,15 +248,15 @@ function FAQItem({ q, a }) {
 
 export default function FAQ() {
   return (
-    <div className="min-h-screen bg-slate-50 pb-12">
+    <div className="min-h-screen pb-12">
       <BackNavigation title={translate("FAQ")} />
 
       <div className="max-w-2xl mx-auto px-3 pt-4 space-y-4">
         <div className="flex flex-col items-center text-center gap-1.5 pb-2">
-          <h2 className="text-base font-bold text-slate-800">
+          <h2 className="text-base font-bold text-slate-800 dark:text-slate-200">
             {translate("Frequently Asked Questions")}
           </h2>
-          <p className="text-xs text-slate-400 max-w-[260px]">
+          <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[260px]">
             {translate("Answers to common questions about this application")}
           </p>
         </div>
@@ -264,11 +264,11 @@ export default function FAQ() {
         {FAQ_DATA.map((section) => (
           <div
             key={section.category}
-            className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
           >
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
               <span className="text-base">{section.icon}</span>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                 {translate(section.category)}
               </p>
             </div>
@@ -280,11 +280,11 @@ export default function FAQ() {
           </div>
         ))}
 
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-4 text-center space-y-1">
-          <p className="text-sm font-semibold text-blue-700">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl px-4 py-4 text-center space-y-1">
+          <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
             {translate("Still have questions?")}
           </p>
-          <p className="text-xs text-blue-500">
+          <p className="text-xs text-blue-500 dark:text-blue-400">
             {translate("Contact your organisation management or use the Suggestion feature in this app.")}
           </p>
         </div>

@@ -92,7 +92,7 @@ export default function GraveDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
       <div className="relative h-72 md:h-80 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
         {grave.photourl ? (
           <img
@@ -158,17 +158,17 @@ export default function GraveDetails() {
 
         <div className="grid lg:grid-cols-3 gap-8 items-start px-1">
           <div className="space-y-6 lg:order-2">
-            <Card className="border-0 shadow-sm overflow-hidden bg-white">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-3 px-4">
-                <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+            <Card className="border-0 shadow-sm overflow-hidden bg-white dark:bg-slate-800">
+              <CardHeader className="bg-slate-50/50 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 py-3 px-4">
+                <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
                   <Info className="w-4 h-4 text-emerald-600" />
                   {translate("Cemetery Information")}
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="py-4 px-4 space-y-3">
-                <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600">
+                  <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shrink-0">
                     <Phone className="w-4 h-4 text-emerald-600" />
                   </div>
 
@@ -177,7 +177,7 @@ export default function GraveDetails() {
                       {translate("Supervisor (PIC)")}
                     </p>
 
-                    <p className="font-medium text-sm text-slate-700 truncate">
+                    <p className="font-medium text-sm text-slate-700 dark:text-slate-200 truncate">
                       {grave.picname || translate("No information")}
                     </p>
 
@@ -193,8 +193,8 @@ export default function GraveDetails() {
                 </div>
 
                 {/* Capacity */}
-                <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600">
+                  <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shrink-0">
                     <Users className="w-4 h-4 text-emerald-600" />
                   </div>
 
@@ -203,9 +203,9 @@ export default function GraveDetails() {
                       {translate("Capacity")}
                     </p>
 
-                    <p className="font-semibold text-base text-slate-700">
+                    <p className="font-semibold text-base text-slate-700 dark:text-slate-200">
                       {grave.totalgraves ?? 0}
-                      <span className="text-xs font-normal text-slate-500 ml-1">
+                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">
                         Lot
                       </span>
                     </p>
@@ -215,9 +215,9 @@ export default function GraveDetails() {
             </Card>
           </div>
           <div className="lg:col-span-2 space-y-8 lg:order-1">
-            <Card className="border-0 shadow-sm bg-white">
+            <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
               <CardHeader className="py-3 px-4">
-                <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+                <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
                   <Search className="w-4 h-4 text-emerald-600" />
                   {translate("Search Deceased")}
                 </CardTitle>
@@ -235,7 +235,7 @@ export default function GraveDetails() {
                       value={searchName}
                       onChange={(e) => setSearchName(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                      className="h-9 text-sm border-slate-200 bg-slate-50 focus:bg-white transition-colors"
+                      className="h-9 text-sm border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 transition-colors"
                     />
                   </div>
 
@@ -266,12 +266,12 @@ export default function GraveDetails() {
             </Card>
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1 border-l-4 border-emerald-500 pl-4">
-                <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                   {translate("Deceased List")}
                 </h2>
                 <Badge
                   variant="secondary"
-                  className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0 px-3"
+                  className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 border-0 px-3"
                 >
                   {filtered.length} {translate("Record")}
                 </Badge>
@@ -284,11 +284,11 @@ export default function GraveDetails() {
                   {displayedPersons.map((person) => (
                     <Card
                       key={person.id}
-                      className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden bg-white group"
+                      className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden bg-white dark:bg-slate-800 group"
                     >
                       <CardContent className="p-0">
                         <div className="flex items-stretch min-h-[80px] sm:min-h-[90px]">
-                          <div className="w-16 sm:w-20 shrink-0 bg-slate-100 overflow-hidden flex items-center justify-center">
+                          <div className="w-16 sm:w-20 shrink-0 bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
                             <InitialAvatarImage
                               src={resolveFileUrl(
                                 person.photourl,
@@ -303,11 +303,11 @@ export default function GraveDetails() {
                               to={`${createPageUrl("DeadPersonDetails")}?id=${person.id}`}
                               className="hover:text-emerald-600 transition-colors"
                             >
-                              <p className="font-semibold text-sm sm:text-base text-slate-900 leading-tight truncate mb-0.5">
+                              <p className="font-semibold text-sm sm:text-base text-slate-900 dark:text-slate-100 leading-tight truncate mb-0.5">
                                 {person.name}
                               </p>
 
-                              <div className="flex items-center gap-1 text-slate-500">
+                              <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
                                 <Calendar className="w-3 h-3 text-emerald-500" />
                                 <span className="text-[11px] font-medium">
                                   {person.dateofdeath
@@ -320,7 +320,7 @@ export default function GraveDetails() {
                             </Link>
                           </div>
 
-                          <div className="px-3 py-2 sm:px-4 sm:py-3 flex flex-col justify-center gap-2 min-w-[90px] sm:min-w-[110px] bg-slate-50/80 border-l border-slate-100">
+                          <div className="px-3 py-2 sm:px-4 sm:py-3 flex flex-col justify-center gap-2 min-w-[90px] sm:min-w-[110px] bg-slate-50/80 dark:bg-slate-700/50 border-l border-slate-100 dark:border-slate-700">
                             <DirectionButton
                               latitude={person.latitude || grave.latitude}
                               longitude={person.longitude || grave.longitude}
@@ -336,11 +336,11 @@ export default function GraveDetails() {
                   ))}
 
                   {filtered.length === 0 && (
-                    <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-100">
-                      <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Search className="w-8 h-8 text-slate-300" />
+                    <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border-2 border-dashed border-slate-100 dark:border-slate-700">
+                      <div className="bg-slate-50 dark:bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                       </div>
-                      <p className="text-slate-500 font-medium">
+                      <p className="text-slate-500 dark:text-slate-400 font-medium">
                         {translate("No deceased records found")}
                       </p>
                     </div>

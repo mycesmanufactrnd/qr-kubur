@@ -11,7 +11,8 @@
 ✅ 9. notification tahlil start - and suggested date
 ✅ 10. centralize suma of parent organisation
 ✅ 11. kubur, ada pin, and dia leh tekan.. 
-12. family tree
+✅ 12. family tree organisation
+12.1. family tree arwah
 ✅ 13. scan -> utk service kubur -> then list deceased
 ✅ 14. asmaulhusna, x perlu.. rukun islam iman x perlu, calendar islam ok, prayer time x perlu, herotage site ok
 ✅ 15. panduan talkin
@@ -27,7 +28,7 @@
 ✅ 24.5 dashboard statistic
 25. derma & tahlil, ada web page yg direct untuk derma dan tahlil
 ✅ 26. semua Si mati -> arwah
-27. melayukan semua & night mode
+❓ 27. melayukan semua & night mode
 28. letak nama waris ngn no fon kat maklumat jenazah
 29. frequent backup data
 30. organisationList ---> jagn list all, adakan filter sikit

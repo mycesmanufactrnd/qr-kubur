@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Heart,
@@ -64,8 +65,8 @@ function Section({
     rose: "text-rose-500",
   };
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
         <div className="flex items-center gap-2">
           {Icon && <Icon className={`w-4 h-4 ${colors[accent]}`} />}
           <p
@@ -103,7 +104,7 @@ function TypeToggle({ value, onChange }) {
             className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all active:scale-95 ${
               isActive
                 ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
-                : "bg-slate-50 border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
+                : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-emerald-300 hover:bg-emerald-50"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -515,8 +516,8 @@ export default function DonationPage() {
             accent="rose"
           >
             {isPreselected ? (
-              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-rose-100 bg-rose-50">
-                <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-rose-100 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20">
+                <div className="w-9 h-9 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shrink-0">
                   {urlParamType === "organisation" ? (
                     <Building2 className="w-4 h-4 text-rose-500" />
                   ) : (
@@ -529,7 +530,7 @@ export default function DonationPage() {
                       ? translate("Organisation")
                       : translate("Tahfiz Center")}
                   </p>
-                  <p className="text-sm font-semibold text-slate-800 truncate">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                     {selectedRecipientObj?.name ?? translate("Loading...")}
                   </p>
                 </div>
@@ -558,7 +559,7 @@ export default function DonationPage() {
                       setValue("selectedRecipient", "");
                       setValue("paymentMethod", "");
                     }}
-                    className="pl-8 pr-8 h-10 rounded-xl border-slate-200 text-sm"
+                    className="pl-8 pr-8 h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 text-sm"
                   />
                   {searchQuery && (
                     <button
@@ -586,7 +587,7 @@ export default function DonationPage() {
                       setValue("paymentMethod", "");
                     }}
                   >
-                    <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm flex-1">
+                    <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm flex-1">
                       <SelectValue placeholder={translate("State")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -614,7 +615,7 @@ export default function DonationPage() {
                       setValue("selectedRecipient", v);
                   }}
                 >
-                  <SelectTrigger className="h-10 rounded-xl border-slate-200 text-sm">
+                  <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm">
                     <SelectValue
                       placeholder={
                         isListLoading
@@ -669,7 +670,7 @@ export default function DonationPage() {
                       className={`py-2.5 rounded-xl text-sm font-semibold border transition-all active:scale-95 ${
                         isActive
                           ? "bg-amber-500 border-amber-500 text-white shadow-sm"
-                          : "bg-slate-50 border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+                          : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-amber-300 hover:bg-amber-50"
                       }`}
                     >
                       RM {amt}
@@ -686,32 +687,32 @@ export default function DonationPage() {
                   setValue("customAmount", e.target.value);
                   setValue("amount", "");
                 }}
-                className="h-10 rounded-xl border-slate-200 bg-slate-50 text-sm"
+                className="h-10 rounded-xl border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 text-sm"
               />
 
               {baseAmount > 0 && (
-                <div className="rounded-xl overflow-hidden border border-slate-100">
-                  <div className="flex justify-between items-center px-3 py-2 bg-slate-50 text-sm">
-                    <span className="text-slate-500">
+                <div className="rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700">
+                  <div className="flex justify-between items-center px-3 py-2 bg-slate-50 dark:bg-slate-700 text-sm">
+                    <span className="text-slate-500 dark:text-slate-400">
                       {translate("Donation Amount")}
                     </span>
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
                       RM {baseAmount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center px-3 py-2 border-t border-slate-100 text-sm">
-                    <span className="text-slate-500">
+                  <div className="flex justify-between items-center px-3 py-2 border-t border-slate-100 dark:border-slate-700 text-sm">
+                    <span className="text-slate-500 dark:text-slate-400">
                       {translate("Platform Fee")}
                     </span>
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
                       RM {Number(PLATFORM_DONATION_FEE).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center px-3 py-2.5 bg-emerald-50 border-t border-slate-100">
-                    <span className="text-sm font-bold text-emerald-800">
+                  <div className="flex justify-between items-center px-3 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border-t border-slate-100 dark:border-slate-700">
+                    <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
                       {translate("Total Amount")}
                     </span>
-                    <span className="text-base font-bold text-emerald-700">
+                    <span className="text-base font-bold text-emerald-700 dark:text-emerald-400">
                       RM {payableAmount.toFixed(2)}
                     </span>
                   </div>
@@ -735,15 +736,15 @@ export default function DonationPage() {
                       onClick={() => setValue("paymentMethod", p.code)}
                       className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-emerald-400 bg-emerald-50"
-                          : "border-slate-100 bg-slate-50 hover:bg-slate-100"
+                          ? "border-emerald-400 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/20"
+                          : "border-slate-100 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-700"
                       }`}
                     >
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                           isSelected
                             ? "border-emerald-500 bg-emerald-500"
-                            : "border-slate-300"
+                            : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
                         {isSelected && (
@@ -752,7 +753,7 @@ export default function DonationPage() {
                       </div>
                       <CreditCard className="w-4 h-4 text-slate-400" />
                       <span
-                        className={`text-sm font-medium ${isSelected ? "text-emerald-800" : "text-slate-700"}`}
+                        className={`text-sm font-medium ${isSelected ? "text-emerald-800 dark:text-emerald-300" : "text-slate-700 dark:text-slate-300"}`}
                       >
                         {p.name}
                       </span>
@@ -761,7 +762,7 @@ export default function DonationPage() {
                 })}
 
                 {selectedPlatform && (
-                  <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
+                  <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-600 space-y-2">
                     {selectedPlatform.fields.map((f) =>
                       f.fieldtype === "image" ? (
                         <img
@@ -771,8 +772,8 @@ export default function DonationPage() {
                           className="max-w-[180px] rounded-lg border"
                         />
                       ) : (
-                        <p key={f.key} className="text-xs text-slate-600">
-                          <span className="font-semibold text-slate-800">
+                        <p key={f.key} className="text-xs text-slate-600 dark:text-slate-400">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {f.label}:
                           </span>{" "}
                           {f.value}
@@ -807,28 +808,28 @@ export default function DonationPage() {
                 placeholder={translate("Name")}
                 value={donorname}
                 onChange={(e) => setValue("donorname", e.target.value)}
-                className="h-10 rounded-xl border-slate-200 text-sm"
+                className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm"
               />
               <Input
                 placeholder={translate("Email")}
                 value={donoremail}
                 onChange={(e) => setValue("donoremail", e.target.value)}
-                className="h-10 rounded-xl border-slate-200 text-sm"
+                className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm"
               />
               <Input
                 placeholder={translate("Phone No")}
                 value={donorphoneno}
                 onChange={(e) => setValue("donorphoneno", e.target.value)}
-                className="h-10 rounded-xl border-slate-200 text-sm"
+                className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm"
               />
               <Textarea
                 placeholder={translate("Notes")}
                 value={notes}
                 onChange={(e) => setValue("notes", e.target.value)}
-                className="rounded-xl border-slate-200 text-sm resize-none"
+                className="rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm resize-none"
                 rows={3}
               />
-              <div className="flex gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-600 leading-relaxed">
+              <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
                 <span>
                   {translate(
@@ -845,8 +846,8 @@ export default function DonationPage() {
             className={`w-full h-12 rounded-2xl font-semibold text-sm shadow-lg transition-all
             ${
               paymentPlatforms.length > 0
-                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-emerald-200 active:opacity-80"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white active:opacity-80"
+                : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-600 cursor-not-allowed"
             }
           `}
           >

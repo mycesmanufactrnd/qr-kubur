@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Newspaper,
   Text,
+  Map,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -238,6 +239,29 @@ const css = `
     background-size: 200% auto;
     animation: shimmer 2.5s linear infinite;
   }
+
+  /* ── Dark mode ── */
+  .dark .db { background: #0f172a; }
+
+  .dark .db-quick-wrap {
+    background: #1e293b;
+    border-color: rgba(255,255,255,0.05);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.25);
+  }
+  .dark .db-quick-title { color: #475569; }
+  .dark .db-qlabel { color: #94a3b8; }
+
+  .dark .db-ns-label { color: #f1f5f9; }
+
+  .dark .db-row-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.3);
+  }
+  .dark .db-row-icon { background: #334155 !important; }
+  .dark .db-row-title { color: #f1f5f9; }
+  .dark .db-row-sub { color: #64748b; }
+  .dark .db-row-arrow { color: #475569; }
 `;
 
 const G = {
@@ -331,9 +355,9 @@ export default function UserDashboard() {
               g: G.teal,
             },
             {
-              icon: Text,
-              label: translate("Daily Dua"),
-              page: "DailyDua",
+              icon: Map,
+              label: translate("Map"),
+              page: "MapView",
               g: G.sapphire,
             },
           ].map(({ icon: Icon, label, page, g }) => (

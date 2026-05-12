@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { createPageUrl, resolveFileUrl } from "../utils/index";
 import {
@@ -178,7 +179,7 @@ export default function ScanQR() {
 
   if (graveLoading || personLoading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <BackNavigation title={translate("Scan QR")} />
         <PageLoadingComponent />
       </div>
@@ -186,7 +187,7 @@ export default function ScanQR() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <style>{css}</style>
       <BackNavigation title={translate("Scan QR Code")} />
 
@@ -282,17 +283,17 @@ export default function ScanQR() {
         )}
 
         {error && (
-          <div className="flex items-center gap-3 px-4 py-3.5 bg-red-50 border border-red-100 rounded-2xl">
-            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-4 h-4 text-red-500" />
+          <div className="flex items-center gap-3 px-4 py-3.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl">
+            <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4 text-red-500 dark:text-red-400" />
             </div>
-            <p className="text-sm font-medium text-red-600 flex-1">{error}</p>
+            <p className="text-sm font-medium text-red-600 dark:text-red-400 flex-1">{error}</p>
             <button
               onClick={() => {
                 setError("");
                 setScanning(true);
               }}
-              className="text-xs text-red-400 font-semibold underline underline-offset-2 shrink-0 active:opacity-70"
+              className="text-xs text-red-400 dark:text-red-500 font-semibold underline underline-offset-2 shrink-0 active:opacity-70"
             >
               {translate("Try again")}
             </button>
@@ -301,7 +302,7 @@ export default function ScanQR() {
 
         {result && (
           <>
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
               <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-white" />
                 <p className="text-xs font-semibold text-white uppercase tracking-widest">
@@ -311,24 +312,24 @@ export default function ScanQR() {
 
               <div className="p-4 space-y-3">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-800 leading-tight">
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">
                     {result.data.name}
                   </h3>
 
                   {result.type === "grave" && result.data.state && (
-                    <p className="flex items-center gap-1 text-sm text-slate-500 mt-1">
+                    <p className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 mt-1">
                       <MapPin className="w-3.5 h-3.5" />
                       {result.data.state}
                     </p>
                   )}
                   {result.type === "grave" && result.data.block && (
-                    <p className="text-sm text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">
                       {translate("Block")} {result.data.block},{" "}
                       {translate("Lot")} {result.data.lot}
                     </p>
                   )}
                   {result.type === "deadperson" && result.data.dateofdeath && (
-                    <p className="text-sm text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">
                       {new Date(result.data.dateofdeath).toLocaleDateString(
                         "ms-MY",
                       )}
@@ -345,7 +346,7 @@ export default function ScanQR() {
                   </button>
                   <button
                     onClick={handleReset}
-                    className="flex items-center gap-1.5 px-4 h-11 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-70 transition-opacity"
+                    className="flex items-center gap-1.5 px-4 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold active:opacity-70 transition-opacity"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     {translate("Scan Again")}
@@ -446,30 +447,30 @@ export default function ScanQR() {
         )}
 
         {!result && !scanning && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                 {translate("How to use")}
               </p>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-slate-50 dark:divide-slate-700">
               {[
                 {
                   step: "01",
                   icon: Camera,
-                  color: "bg-emerald-50 text-emerald-600",
+                  color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
                   text: translate("Open camera to scan the QR code"),
                 },
                 {
                   step: "02",
                   icon: ScanLine,
-                  color: "bg-blue-50 text-blue-500",
+                  color: "bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400",
                   text: translate("Aim at the QR code on the grave marker"),
                 },
                 {
                   step: "03",
                   icon: CheckCircle,
-                  color: "bg-violet-50 text-violet-500",
+                  color: "bg-violet-50 dark:bg-violet-900/30 text-violet-500 dark:text-violet-400",
                   text: translate("Grave details will appear automatically"),
                 },
               ].map(({ step, icon: Icon, color, text }) => (
@@ -479,10 +480,10 @@ export default function ScanQR() {
                   >
                     <Icon className="w-4 h-4" />
                   </div>
-                  <p className="text-sm text-slate-600 leading-snug flex-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-snug flex-1">
                     {text}
                   </p>
-                  <span className="text-xs font-bold text-slate-200">
+                  <span className="text-xs font-bold text-slate-200 dark:text-slate-700">
                     {step}
                   </span>
                 </div>

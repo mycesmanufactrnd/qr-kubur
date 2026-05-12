@@ -40,7 +40,7 @@ import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 
 export default function ManageUsers() {
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   if (isNarrow) return <ManageUsersMobile />;
   return <ManageUsersDesktop />;
 }
@@ -281,7 +281,7 @@ function ManageUsersDesktop() {
         <CardContent className="p-3 lg:p-4">
           <div className="flex gap-2">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <Input
                 placeholder={translate("Search User")}
                 value={search}
@@ -332,16 +332,16 @@ function ManageUsersDesktop() {
               <CardContent className="p-3 lg:p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-medium text-emerald-700">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
                         {user.fullname?.[0] || user.email?.[0]?.toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">
+                      <p className="font-semibold text-gray-900 dark:text-slate-100 truncate">
                         {user.fullname || user.email}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
                         {user.email}
                       </p>
                       <div className="flex gap-2 mt-1 flex-wrap">
@@ -369,7 +369,7 @@ function ManageUsersDesktop() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleDeleteUser(user)}
-                          className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -412,7 +412,7 @@ function ManageUsersDesktop() {
           {editUser && (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                   {translate("Full Name")}{" "}
                   <span className="text-red-500">*</span>
                 </label>
@@ -426,7 +426,7 @@ function ManageUsersDesktop() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                   {translate("Username")}{" "}
                   <span className="text-red-500">*</span>
                 </label>
@@ -440,7 +440,7 @@ function ManageUsersDesktop() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                   {translate("Phone No")}{" "}
                 </label>
                 <Input
@@ -454,7 +454,7 @@ function ManageUsersDesktop() {
 
               {!isAddMode ? (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                     {translate("Password")}
                   </label>
                   <Input
@@ -469,7 +469,7 @@ function ManageUsersDesktop() {
                 </div>
               ) : (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                     {translate("Password")}{" "}
                     <span className="text-red-500">*</span>
                   </label>
@@ -484,7 +484,7 @@ function ManageUsersDesktop() {
               )}
 
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                   {translate("Role")}
                 </label>
                 <Select
@@ -510,7 +510,7 @@ function ManageUsersDesktop() {
 
               {(isSuperAdmin || currentUser?.organisation?.id) && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                     {translate("Organisation")}
                   </label>
                   <Select
@@ -544,7 +544,7 @@ function ManageUsersDesktop() {
 
               {(isSuperAdmin || currentUser?.tahfizcenter?.id) && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">
+                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                     {translate("Tahfiz Center")}
                   </label>
                   <Select
@@ -578,10 +578,10 @@ function ManageUsersDesktop() {
               )}
 
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                   {translate("State")} <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border dark:border-slate-700 rounded dark:bg-slate-800/50">
                   {currentUserStates.map((states) => (
                     <div key={states} className="flex items-center space-x-2">
                       <Checkbox

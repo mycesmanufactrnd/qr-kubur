@@ -20,7 +20,7 @@ const maskValue = (value = "") => {
 };
 
 export default function ManagePaymentConfig() {
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   if (isNarrow) return <MobileManagePaymentConfig />;
   return <ManagePaymentConfigDesktop />;
 }

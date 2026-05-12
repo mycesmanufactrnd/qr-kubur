@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -60,8 +61,8 @@ function Section({ title, icon: Icon, children, accent = "emerald" }) {
     rose: "text-rose-500",
   };
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
         {Icon && <Icon className={`w-4 h-4 ${colors[accent]}`} />}
         <p
           className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}
@@ -515,7 +516,7 @@ export default function TahlilRequestPage() {
   const deceasedNames = watch("deceasednames");
 
   return (
-    <div className="min-h-screen pb-10">
+    <div className="min-h-screen pb-10 bg-slate-50 dark:bg-slate-900">
       <BackNavigation title={translate("Request Service")} />
 
       <div className="max-w-2xl mx-auto px-2 space-y-4">
@@ -525,7 +526,7 @@ export default function TahlilRequestPage() {
               value={tahfizId}
               onValueChange={(v) => setValue("tahfizId", v)}
             >
-              <SelectTrigger className="w-full h-11 rounded-xl border-slate-200 text-sm">
+              <SelectTrigger className="w-full h-11 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm">
                 <SelectValue placeholder={translate("Select Tahfiz Center")} />
               </SelectTrigger>
               <SelectContent>
@@ -561,15 +562,15 @@ export default function TahlilRequestPage() {
                       onClick={() => toggleServiceType(serviceValue)}
                       className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-violet-400 bg-violet-50 shadow-sm"
-                          : "border-slate-100 bg-slate-50 hover:bg-slate-100"
+                          ? "border-violet-400 bg-violet-50 dark:border-violet-600 dark:bg-violet-900/20 shadow-sm"
+                          : "border-slate-100 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-700"
                       }`}
                     >
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                           isSelected
                             ? "border-violet-500 bg-violet-500"
-                            : "border-slate-300"
+                            : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
                         {isSelected && (
@@ -577,7 +578,7 @@ export default function TahlilRequestPage() {
                         )}
                       </div>
                       <span
-                        className={`flex-1 text-sm font-medium ${isSelected ? "text-violet-800" : "text-slate-700"}`}
+                        className={`flex-1 text-sm font-medium ${isSelected ? "text-violet-800 dark:text-violet-300" : "text-slate-700 dark:text-slate-300"}`}
                       >
                         {serviceLabel}
                       </span>
@@ -587,9 +588,9 @@ export default function TahlilRequestPage() {
                             className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                               price > 0
                                 ? isSelected
-                                  ? "bg-violet-200 text-violet-700"
-                                  : "bg-slate-200 text-slate-600"
-                                : "bg-emerald-100 text-emerald-600"
+                                  ? "bg-violet-200 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
+                                  : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                                : "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
                             }`}
                           >
                             {price > 0 ? `RM ${price}` : ""}
@@ -605,35 +606,35 @@ export default function TahlilRequestPage() {
                   placeholder={translate("Specify special service...")}
                   value={customservice}
                   onChange={(e) => setValue("customservice", e.target.value)}
-                  className="mt-3 rounded-xl border-slate-200 text-sm resize-none"
+                  className="mt-3 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm resize-none"
                   rows={3}
                 />
               )}
             </Section>
           )}
 
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-rose-500">
                 {translate("Deceased Information")}
               </p>
               <button
                 type="button"
                 onClick={handleAddDeceased}
-                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-100 active:opacity-70 transition-opacity"
+                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 active:opacity-70 transition-opacity"
               >
                 <Plus className="w-3 h-3" /> {translate("Add")}
               </button>
             </div>
             <div className="p-4 space-y-2">
               {deceasedNames && deceasedNames.length === 0 ? (
-                <div className="text-sm text-slate-400 text-center py-2">
+                <div className="text-sm text-slate-400 dark:text-slate-500 text-center py-2">
                   {translate("No deceased names")}
                 </div>
               ) : (
                 deceasedNames.map((name, i) => (
                   <div key={i} className="flex gap-2 items-center">
-                    <div className="w-6 h-6 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 flex items-center justify-center shrink-0">
                       <span className="text-[10px] font-bold text-rose-400">
                         {i + 1}
                       </span>
@@ -643,14 +644,14 @@ export default function TahlilRequestPage() {
                       placeholder={`${translate("Deceased Name")}${deceasedNames.length > 1 ? ` ${i + 1}` : ""}`}
                       value={name}
                       onChange={(e) => handleDeceasedChange(i, e.target.value)}
-                      className="flex-1 h-10 rounded-xl border-slate-200 text-sm"
+                      className="flex-1 h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm"
                     />
 
                     {deceasedNames.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveDeceased(i)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors shrink-0"
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20 text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -684,7 +685,7 @@ export default function TahlilRequestPage() {
                 required
                 errors={errors}
               />
-              <div className="flex gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-600 leading-relaxed">
+              <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
                 <span>
                   {translate("Payment receipt will be sent to the provided email. Save reference number to watch the Tahlil live stream.")}
@@ -712,7 +713,7 @@ export default function TahlilRequestPage() {
                     className={`py-2.5 rounded-xl text-sm font-semibold border transition-all active:scale-95 ${
                       isActive
                         ? "bg-amber-500 border-amber-500 text-white shadow-sm"
-                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+                        : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-amber-300 hover:bg-amber-50"
                     }`}
                   >
                     RM {amt}
@@ -728,13 +729,13 @@ export default function TahlilRequestPage() {
                 setValue("customAmount", e.target.value);
                 setValue("amount", "");
               }}
-              className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm"
+              className="h-11 rounded-xl border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 text-sm"
             />
           </Section>
 
           {selectedTahfiz && paymentPlatforms.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <CreditCard className="w-4 h-4 text-emerald-600" />
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
                   {translate("Payment Method")}
@@ -749,15 +750,15 @@ export default function TahlilRequestPage() {
                       onClick={() => setValue("paymentMethod", p.code)}
                       className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-emerald-400 bg-emerald-50"
-                          : "border-slate-100 bg-slate-50 hover:bg-slate-100"
+                          ? "border-emerald-400 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/20"
+                          : "border-slate-100 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-700"
                       }`}
                     >
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                           isSelected
                             ? "border-emerald-500 bg-emerald-500"
-                            : "border-slate-300"
+                            : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
                         {isSelected && (
@@ -766,7 +767,7 @@ export default function TahlilRequestPage() {
                       </div>
                       <CreditCard className="w-4 h-4 text-slate-400" />
                       <span
-                        className={`text-sm font-medium ${isSelected ? "text-emerald-800" : "text-slate-700"}`}
+                        className={`text-sm font-medium ${isSelected ? "text-emerald-800 dark:text-emerald-300" : "text-slate-700 dark:text-slate-300"}`}
                       >
                         {p.name}
                       </span>
@@ -775,7 +776,7 @@ export default function TahlilRequestPage() {
                 })}
 
                 {selectedPlatform && (
-                  <div className="mt-3 space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="mt-3 space-y-2 p-3 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-600">
                     {selectedPlatform.fields.map((f) =>
                       f.fieldtype === "image" ? (
                         <img
@@ -785,8 +786,8 @@ export default function TahlilRequestPage() {
                           className="max-w-[180px] rounded-lg border"
                         />
                       ) : (
-                        <p key={f.key} className="text-xs text-slate-600">
-                          <span className="font-semibold text-slate-800">
+                        <p key={f.key} className="text-xs text-slate-600 dark:text-slate-400">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {f.label}:
                           </span>{" "}
                           {f.value}
@@ -797,10 +798,10 @@ export default function TahlilRequestPage() {
                 )}
               </div>
 
-              <div className="mx-4 mb-4 rounded-xl border border-slate-100 overflow-hidden">
+              <div className="mx-4 mb-4 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
                 {hasService && (
-                  <div className="p-3 bg-slate-50 border-b border-slate-100">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-700 border-b border-slate-100 dark:border-slate-600">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
                       {translate("Selected Services")}
                     </p>
                     <div className="space-y-1">
@@ -811,8 +812,8 @@ export default function TahlilRequestPage() {
                               key={type}
                               className="flex justify-between text-sm"
                             >
-                              <span className="text-slate-600">{type}</span>
-                              <span className="font-semibold text-slate-800">
+                              <span className="text-slate-600 dark:text-slate-400">{type}</span>
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">
                                 RM {selectedTahfizServicePrice[type]}
                               </span>
                             </div>
@@ -823,28 +824,28 @@ export default function TahlilRequestPage() {
                 )}
 
                 {hasDonation && (
-                  <div className="flex justify-between items-center p-3 bg-amber-50 border-b border-slate-100 text-sm">
-                    <span className="text-amber-700 font-medium">{translate("Donation")}</span>
-                    <span className="font-semibold text-amber-700">
+                  <div className="flex justify-between items-center p-3 bg-amber-50 dark:bg-amber-900/20 border-b border-slate-100 dark:border-slate-700 text-sm">
+                    <span className="text-amber-700 dark:text-amber-400 font-medium">{translate("Donation")}</span>
+                    <span className="font-semibold text-amber-700 dark:text-amber-400">
                       RM {donationAmount.toFixed(2)}
                     </span>
                   </div>
                 )}
 
                 {platformFee > 0 && (
-                  <div className="flex justify-between items-center p-3 border-b border-slate-100 text-sm">
-                    <span className="text-slate-500">{translate("Platform Fee")}</span>
-                    <span className="text-slate-600">
+                  <div className="flex justify-between items-center p-3 border-b border-slate-100 dark:border-slate-700 text-sm">
+                    <span className="text-slate-500 dark:text-slate-400">{translate("Platform Fee")}</span>
+                    <span className="text-slate-600 dark:text-slate-400">
                       RM {platformFee.toFixed(2)}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center p-3 bg-emerald-50">
-                  <span className="text-sm font-bold text-emerald-800">
+                <div className="flex justify-between items-center p-3 bg-emerald-50 dark:bg-emerald-900/20">
+                  <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
                     {translate("Total Amount")}
                   </span>
-                  <span className="text-base font-bold text-emerald-700">
+                  <span className="text-base font-bold text-emerald-700 dark:text-emerald-400">
                     RM {finalAmountWithFee.toFixed(2)}
                   </span>
                 </div>

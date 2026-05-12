@@ -20,17 +20,17 @@ const STATUS_CONFIG = {
   active: {
     label: "Active",
     className:
-      "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100",
+      "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border-emerald-100 dark:border-emerald-800",
     icon: null,
   },
   full: {
     label: "Full",
-    className: "bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-100",
+    className: "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 border-rose-100 dark:border-rose-800",
     icon: null,
   },
   maintenance: {
     label: "Maintenance",
-    className: "bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-100",
+    className: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-100 dark:border-amber-800",
     icon: <Hammer className="w-3 h-3 mr-1" />,
   },
 };
@@ -76,12 +76,12 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
 
   const status = STATUS_CONFIG[grave.status?.toLowerCase()] || {
     label: grave.status,
-    className: "bg-slate-50 text-slate-600 border-slate-100",
+    className: "bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-600",
     icon: null,
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="relative h-36 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
           src={resolveFileUrl(grave.photourl, "bucket-grave")}
@@ -133,7 +133,7 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
           {grave.totalgraves > 0 && (
             <Badge
               variant="outline"
-              className="text-xs text-slate-500 border-slate-200"
+              className="text-xs text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600"
             >
               {grave.totalgraves} {translate("Total Grave")}
             </Badge>
@@ -141,8 +141,8 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
         </div>
 
         {grave.address && (
-          <div className="flex items-start gap-2 text-sm text-slate-600">
-            <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+            <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500 mt-0.5 shrink-0" />
             <span className="line-clamp-2">{grave.address}</span>
           </div>
         )}
@@ -152,13 +152,12 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
             to={createPageUrl(`GraveDetails?id=${grave.id}`)}
             className="flex-1"
           >
-            <Button
-              size="sm"
-              className="w-full rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-100 transition-colors active:opacity-75"
+            <button
+              className="w-full h-8 rounded-xl border border-emerald-200 dark:border-emerald-700 bg-transparent text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:opacity-75"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               {translate("Details") || "View Details"}
-            </Button>
+            </button>
           </Link>
           {grave.organisation && (
             <DonationButton

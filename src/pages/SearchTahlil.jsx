@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { translate } from '@/utils/translations';
@@ -137,13 +138,12 @@ export default function SearchTahlil() {
           ))}
           {displayedCount < visibleList.length && (
             <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
-                className="rounded-full px-10 border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm"
+              <button
+                className="rounded-full px-10 py-2 border border-teal-200 dark:border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 shadow-sm text-sm font-medium transition-colors"
                 onClick={() => setDisplayedCount((prev) => prev + 10)}
               >
                 {translate('Load more')}
-              </Button>
+              </button>
             </div>
           )}
         </div>
@@ -154,7 +154,7 @@ export default function SearchTahlil() {
 
 function TahlilQuickCard({ tahfiz, onRequest }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="relative h-28 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
           src={resolveFileUrl(tahfiz.photourl, 'tahfiz-center')}
@@ -187,13 +187,13 @@ function TahlilQuickCard({ tahfiz, onRequest }) {
             {tahfiz.serviceoffered.slice(0, 4).map((s, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-medium rounded-full"
+                className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-[10px] font-medium rounded-full"
               >
                 {s}
               </span>
             ))}
             {tahfiz.serviceoffered.length > 4 && (
-              <span className="px-2 py-0.5 bg-slate-50 border border-slate-200 text-slate-400 text-[10px] rounded-full">
+              <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500 text-[10px] rounded-full">
                 +{tahfiz.serviceoffered.length - 4}
               </span>
             )}
@@ -210,7 +210,7 @@ function TahlilQuickCard({ tahfiz, onRequest }) {
           {tahfiz.phone && (
             <a
               href={`tel:${tahfiz.phone}`}
-              className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0"
+              className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 shrink-0"
             >
               <Phone className="w-4 h-4" />
             </a>

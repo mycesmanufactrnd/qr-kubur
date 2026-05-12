@@ -65,7 +65,7 @@ export default function MobileAdminDashboard() {
     { label: translate("Total Graves"), value: graveCount, icon: MapPin, page: "ManageGraves", loading: isOGDSLoading, color: "green" },
     { label: translate("Total Deceased"), value: deadPersonCount, icon: Users, page: "ManageDeadPersons", loading: isOGDSLoading, color: "blue" },
     { label: translate("Organisations"), value: organisationCount, icon: Building2, page: "ManageOrganisations", loading: isOGDSLoading, color: "violet" },
-    { label: translate("Suggestions"), value: suggestionCount, icon: FileText, page: "ManageSuggestions", loading: isOGDSLoading, color: "amber" },
+    // { label: translate("Suggestions"), value: suggestionCount, icon: FileText, page: "ManageSuggestions", loading: isOGDSLoading, color: "amber" },
   ];
 
   const charityStats = [

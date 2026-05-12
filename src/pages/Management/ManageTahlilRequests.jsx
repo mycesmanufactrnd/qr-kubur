@@ -60,7 +60,7 @@ import { showError } from "@/components/ToastrNotification";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
 
 export default function ManageTahlilRequests() {
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   if (isNarrow) return <ManageTahlilRequestsMobile />;
   return <ManageTahlilRequestsDesktop />;
 }
@@ -492,28 +492,28 @@ function ManageTahlilRequestsDesktop() {
     switch (status) {
       case TahlilStatus.PENDING:
         return (
-          <Badge variant="default" className="bg-yellow-100 text-yellow-700">
+          <Badge variant="default" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Pending")}
           </Badge>
         );
       case TahlilStatus.ACCEPTED:
         return (
-          <Badge variant="default" className="bg-blue-100 text-blue-700">
+          <Badge variant="default" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Accepted")}
           </Badge>
         );
       case TahlilStatus.COMPLETED:
         return (
-          <Badge variant="default" className="bg-green-100 text-green-700">
+          <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Completed")}
           </Badge>
         );
       case TahlilStatus.REJECTED:
         return (
-          <Badge variant="default" className="bg-red-100 text-red-700">
+          <Badge variant="default" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Rejected")}
           </Badge>
@@ -531,49 +531,49 @@ function ManageTahlilRequestsDesktop() {
     switch (status) {
       case "Pending":
         return (
-          <Badge variant="default" className="bg-yellow-100 text-yellow-700">
+          <Badge variant="default" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Pending")}
           </Badge>
         );
       case "Paid":
         return (
-          <Badge variant="default" className="bg-emerald-100 text-emerald-700">
+          <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Paid")}
           </Badge>
         );
       case "Held":
         return (
-          <Badge variant="default" className="bg-amber-100 text-amber-700">
+          <Badge variant="default" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Held")}
           </Badge>
         );
       case "Transfer Pending":
         return (
-          <Badge variant="default" className="bg-blue-100 text-blue-700">
+          <Badge variant="default" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
             <Clock className="w-3 h-3 mr-1" />
             {translate("Transfer Pending")}
           </Badge>
         );
       case "Transferred":
         return (
-          <Badge variant="default" className="bg-green-100 text-green-700">
+          <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Transferred")}
           </Badge>
         );
       case "Failed":
         return (
-          <Badge variant="default" className="bg-red-100 text-red-700">
+          <Badge variant="default" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Failed")}
           </Badge>
         );
       case "Refunded":
         return (
-          <Badge variant="default" className="bg-slate-100 text-slate-700">
+          <Badge variant="default" className="bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Refunded")}
           </Badge>
@@ -594,13 +594,13 @@ function ManageTahlilRequestsDesktop() {
     return (
       <div className="relative mt-2 h-28 w-full">
         {loading && !error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded border">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded border dark:border-gray-700">
             <span className="text-xs text-gray-400">Loading...</span>
           </div>
         )}
 
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded border">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded border dark:border-gray-700">
             <span className="text-xs text-red-400">Failed to load image</span>
           </div>
         )}
@@ -936,7 +936,7 @@ function ManageTahlilRequestsDesktop() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {translate("Requestor Name")}
                     </p>
                     <p className="font-semibold">
@@ -944,17 +944,17 @@ function ManageTahlilRequestsDesktop() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {translate("Reference No.")}
                     </p>
-                    <p className="font-mono text-sm break-all bg-gray-50 p-1.5 rounded">
+                    <p className="font-mono text-sm break-all bg-gray-50 dark:bg-gray-700 p-1.5 rounded">
                       {selectedRequest.referenceno || "-"}
                     </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {translate("Phone No.")}
                     </p>
                     <p className="font-semibold">
@@ -963,7 +963,7 @@ function ManageTahlilRequestsDesktop() {
                   </div>
                   {selectedRequest.requestoremail && (
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {translate("Email")}
                       </p>
                       <p>{selectedRequest.requestoremail}</p>
@@ -992,7 +992,7 @@ function ManageTahlilRequestsDesktop() {
                 </div>
                 {selectedRequest.customservice && (
                   <div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {translate("Custom Service")}
                     </p>
                     <p>{selectedRequest.customservice}</p>
@@ -1025,11 +1025,11 @@ function ManageTahlilRequestsDesktop() {
                 {(selectedRequest?.status === TahlilStatus.ACCEPTED ||
                   selectedRequest?.status === TahlilStatus.COMPLETED) && (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {`${translate("Tahlil Photos")} (${translate("for requestor")})`}
                     </p>
                     {selectedRequest?.status === TahlilStatus.COMPLETED && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
                         {translate("Upload disabled after completion")}
                       </p>
                     )}
@@ -1087,13 +1087,13 @@ function ManageTahlilRequestsDesktop() {
                           </Button>
                         </div>
                         {tahlilPhotoUploading && (
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             {translate("Uploading...")}
                           </span>
                         )}
                         {pendingPhotoPreview && (
                           <div className="space-y-1">
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                               {translate("New Photo Preview")}
                             </p>
                             <img
@@ -1122,7 +1122,7 @@ function ManageTahlilRequestsDesktop() {
                 </div>
 
                 {!onlineTransactionLoading && !transactionAccount && (
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-gray-400 dark:text-gray-500">
                     {translate("No online transaction account found")}
                   </div>
                 )}
@@ -1130,13 +1130,13 @@ function ManageTahlilRequestsDesktop() {
                 {transactionAccount && (
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {translate("Status")}
                       </p>
                       {getTransactionStatusBadge(transactionAccount.status)}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {translate("Bank Name")}
                       </p>
                       <p className="font-semibold">
@@ -1144,7 +1144,7 @@ function ManageTahlilRequestsDesktop() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {translate("Account No.")}
                       </p>
                       <p className="font-semibold">
@@ -1152,7 +1152,7 @@ function ManageTahlilRequestsDesktop() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {translate("Reference Transfer No")}
                       </p>
                       <p className="font-semibold">
@@ -1160,7 +1160,7 @@ function ManageTahlilRequestsDesktop() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {translate("Photo")}
                       </p>
                       {transactionAccount.photourl ? (
@@ -1180,7 +1180,7 @@ function ManageTahlilRequestsDesktop() {
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-400">-</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">-</p>
                       )}
                     </div>
                   </div>
@@ -1327,7 +1327,7 @@ function ManageTahlilRequestsDesktop() {
               />
               {uploadDialogPreview && (
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {translate("New Photo Preview")}
                   </p>
                   <img

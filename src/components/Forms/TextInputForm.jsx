@@ -55,7 +55,7 @@ export default function TextInputForm({
         }}
         render={({ field }) => {
           if (isTextArea) {
-            return <Textarea {...field} value={field.value ?? ""} rows={rows} />;
+            return <Textarea {...field} value={field.value ?? ""} rows={rows} className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" />;
           }
 
           return (
@@ -80,10 +80,10 @@ export default function TextInputForm({
                     field.onChange(e.target.value);
                   }
                 }}
-                className={isMoney ? "pr-12" : undefined}
+                className={isMoney ? "pr-12 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" : "dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"}
               />
               {isMoney && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-slate-400 pointer-events-none">
                   RM
                 </span>
               )}

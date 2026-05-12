@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
 import { translate } from "@/utils/translations";
 import { showWarning } from "@/components/ToastrNotification.jsx";
@@ -146,13 +147,12 @@ export default function SearchTahfiz() {
           ))}
           {displayedCount < tahfizList.length && (
             <div className="flex justify-center pt-4">
-              <Button
-                variant="outline"
-                className="rounded-full px-10 border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm"
+              <button
+                className="rounded-full px-10 py-2 border border-teal-200 dark:border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 shadow-sm text-sm font-medium transition-colors"
                 onClick={() => setDisplayedCount((prev) => prev + 10)}
               >
                 {translate("Load more")}
-              </Button>
+              </button>
             </div>
           )}
         </div>

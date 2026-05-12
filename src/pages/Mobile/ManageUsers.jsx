@@ -28,15 +28,15 @@ import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
 // ─── Role badge ───────────────────────────────────────────────────────────────
 
 const roleColors = {
-  superadmin: "bg-violet-100 text-violet-700",
-  admin: "bg-blue-100 text-blue-700",
-  employee: "bg-slate-100 text-slate-600",
+  superadmin: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  admin: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  employee: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400",
 };
 
 const avatarColors = {
-  superadmin: "bg-violet-100 text-violet-700",
-  admin: "bg-blue-100 text-blue-700",
-  employee: "bg-slate-100 text-slate-600",
+  superadmin: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  admin: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  employee: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400",
 };
 
 // ─── User card ────────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
   const affiliation = user.organisation?.name ?? user.tahfizcenter?.name ?? "";
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="flex gap-3 p-4">
         <div
           className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-semibold text-sm ${
@@ -56,7 +56,7 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
           {initial}
         </div>
         <div className="flex-1 min-w-0 space-y-1">
-          <p className="font-semibold text-slate-800 text-sm truncate">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
             {user.fullname || user.email}
           </p>
           <p className="text-xs text-slate-400 truncate">{user.email}</p>
@@ -76,7 +76,7 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
         {canEdit && (
           <button
             onClick={() => onEdit(user)}
-            className="flex items-center gap-1.5 text-xs text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 active:opacity-70"
+            className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
           >
             <Edit className="w-3.5 h-3.5" />
             {translate("Edit")}
@@ -85,7 +85,7 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
         {canDelete && (
           <button
             onClick={() => onDelete(user)}
-            className="flex items-center gap-1.5 text-xs text-red-500 border border-red-200 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
+            className="flex items-center gap-1.5 text-xs text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg px-2.5 py-1.5 active:opacity-70 ml-auto"
           >
             <Trash2 className="w-3.5 h-3.5" />
             {translate("Delete")}
@@ -101,7 +101,7 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
 function Field({ label, required, children }) {
   return (
     <div className="space-y-1">
-      <p className="text-xs font-medium text-slate-600">
+      <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </p>
@@ -111,7 +111,7 @@ function Field({ label, required, children }) {
 }
 
 const inputCls =
-  "w-full h-10 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white disabled:opacity-50 disabled:bg-slate-50";
+  "w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white dark:bg-slate-800 dark:text-slate-200 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-700";
 
 // ─── Form sheet ───────────────────────────────────────────────────────────────
 
@@ -180,16 +180,16 @@ function UserFormSheet({
     !!currentUser?.organisation;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <X className="w-5 h-5 text-slate-500" />
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
           {isAddMode ? translate("Add User") : translate("Edit User")}
         </h2>
       </div>
@@ -315,7 +315,7 @@ function UserFormSheet({
                   className={`h-9 rounded-xl border text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-default ${
                     selected
                       ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-slate-600 border-slate-200"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
                   }`}
                 >
                   {state}
@@ -327,7 +327,7 @@ function UserFormSheet({
       </div>
 
       {/* Fixed save bar */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 px-4 py-3">
+      <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={() => onSave(local)}
           disabled={isSaving}
@@ -460,7 +460,7 @@ export default function MobileManageUsers() {
 
   return (
     <>
-      <div className="min-h-screen pb-6">
+      <div className="min-h-screen pb-6 dark:bg-slate-900">
         <BackNavigation title={translate("Manage Users")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
@@ -491,7 +491,7 @@ export default function MobileManageUsers() {
           {isLoading ? (
             <InlineLoadingComponent />
           ) : appUsers.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300">
+            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Users className="w-12 h-12 mb-2" />
               <p className="text-sm">{translate("No records")}</p>
             </div>

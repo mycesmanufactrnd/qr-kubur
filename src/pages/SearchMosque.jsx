@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import { useGetMosqueCoordinates } from '@/hooks/useMosqueMutations';
 import { Button } from "@/components/ui/button";

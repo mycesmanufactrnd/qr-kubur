@@ -154,7 +154,7 @@ export default function FinancialReports() {
   const { loading: permissionsLoading, canView } =
     useCrudPermissions("financial_reports");
 
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);

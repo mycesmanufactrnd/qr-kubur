@@ -65,24 +65,31 @@ export default function MobileTahfizDashboard() {
   ];
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
-        <div style={styles.headerTop}>
+    <div className="min-h-screen pb-8 dark:bg-slate-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 pt-5 pb-4">
+        <div className="flex justify-between items-start">
           <div>
-            <p style={styles.dateText}>{today}</p>
-            <h1 style={styles.headerTitle}>{translate("Tahfiz Dashboard")}</h1>
-            <p style={styles.headerSub}>
-              <Activity size={13} style={{ marginRight: 4 }} />
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">{today}</p>
+            <h1 className="text-[22px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">{translate("Tahfiz Dashboard")}</h1>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+              <Activity size={13} />
               {currentUser?.full_name || translate("Admin")}
             </p>
           </div>
           {isSuperAdmin && (
-            <div style={styles.roleChips}>
-              <Link to={createPageUrl("SuperAdminDashboard")} style={styles.chip}>
+            <div className="flex flex-col gap-1.5 items-end">
+              <Link
+                to={createPageUrl("SuperAdminDashboard")}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 no-underline"
+              >
                 <Sparkles size={11} />
                 Super
               </Link>
-              <Link to={createPageUrl("AdminDashboard")} style={{ ...styles.chip, ...styles.chipGreen }}>
+              <Link
+                to={createPageUrl("AdminDashboard")}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 no-underline"
+              >
                 <BookOpen size={11} />
                 Admin
               </Link>
@@ -91,55 +98,54 @@ export default function MobileTahfizDashboard() {
         </div>
       </div>
 
-      <div style={styles.body}>
-
+      <div className="px-4 pt-4">
         <SectionLabel label={translate("Overview")} />
-        <div style={styles.grid}>
+        <div className="grid grid-cols-2 gap-2.5 mb-5">
           {coreStats.map((s, i) => <StatCard key={i} {...s} />)}
         </div>
 
-        {/* Quick Actions */}
         <SectionLabel label={translate("Quick Actions")} />
-        <div style={styles.actionList}>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-5">
           {quickActions.map((a, i) => (
-            <Link key={i} to={createPageUrl(a.page)} style={styles.actionLink}>
-              <div style={{
-                ...styles.actionRow,
-                ...(i === quickActions.length - 1 ? { borderBottom: "none" } : {}),
-              }}>
-                <div style={{ ...styles.actionIcon, ...colorMap[a.color]?.icon }}>
-                  <a.icon size={14} color={colorMap[a.color]?.iconColor} />
-                </div>
-                <span style={styles.actionLabel}>{a.label}</span>
-                <ChevronRight size={15} style={{ color: "#cbd5e1" }} />
+            <Link
+              key={i}
+              to={createPageUrl(a.page)}
+              className={`flex items-center gap-3 px-3.5 py-3 no-underline bg-white dark:bg-slate-800 active:bg-slate-50 dark:active:bg-slate-700 transition-colors ${
+                i < quickActions.length - 1 ? "border-b border-slate-100 dark:border-slate-700" : ""
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${colorMap[a.color]?.iconBg}`}>
+                <a.icon size={14} className={colorMap[a.color]?.iconColor} />
               </div>
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-100 flex-1">{a.label}</span>
+              <ChevronRight size={15} className="text-slate-300 dark:text-slate-600" />
             </Link>
           ))}
         </div>
-
       </div>
     </div>
   );
 }
 
 function SectionLabel({ label }) {
-  return <p style={styles.sectionLabel}>{label}</p>;
+  return (
+    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2.5 mt-1">
+      {label}
+    </p>
+  );
 }
 
-function StatCard({ label, value, icon: Icon, page, loading, isMoney, color = "blue", wide }) {
+function StatCard({ label, value, icon: Icon, page, loading, isMoney, color = "blue" }) {
   return (
-    <Link
-      to={createPageUrl(page)}
-      style={{ textDecoration: "none", gridColumn: wide ? "span 2" : undefined }}
-    >
-      <div style={{ ...styles.statCard, ...colorMap[color]?.card, ...(wide ? styles.statCardWide : {}) }}>
-        <div style={{ ...styles.iconWrap, ...colorMap[color]?.icon }}>
-          <Icon size={14} color={colorMap[color]?.iconColor} />
+    <Link to={createPageUrl(page)} className="no-underline">
+      <div className={`rounded-2xl border p-3.5 ${colorMap[color]?.card}`}>
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 ${colorMap[color]?.iconBg}`}>
+          <Icon size={14} className={colorMap[color]?.iconColor} />
         </div>
-        <p style={styles.statLabel}>{label}</p>
-        <p style={{ ...styles.statValue, ...(isMoney ? { fontSize: 17 } : {}) }}>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight mb-1">{label}</p>
+        <p className={`font-bold text-slate-900 dark:text-slate-100 leading-none tracking-tight ${isMoney ? "text-[17px]" : "text-[22px]"}`}>
           {loading
-            ? <span style={{ color: "#cbd5e1" }}>—</span>
+            ? <span className="text-slate-200 dark:text-slate-700">—</span>
             : isMoney
               ? formatRM(value)
               : value.toLocaleString()}
@@ -149,170 +155,13 @@ function StatCard({ label, value, icon: Icon, page, loading, isMoney, color = "b
   );
 }
 
-/* ── Color map ── */
 const colorMap = {
-  green:  { card: { background: "#f0fdf4" }, icon: { background: "#dcfce7" }, iconColor: "#16a34a" },
-  blue:   { card: { background: "#eff6ff" }, icon: { background: "#dbeafe" }, iconColor: "#2563eb" },
-  violet: { card: { background: "#f5f3ff" }, icon: { background: "#ede9fe" }, iconColor: "#7c3aed" },
-  amber:  { card: { background: "#fffbeb" }, icon: { background: "#fef3c7" }, iconColor: "#d97706" },
-  orange: { card: { background: "#fff7ed" }, icon: { background: "#ffedd5" }, iconColor: "#ea580c" },
-  teal:   { card: { background: "#f0fdfa" }, icon: { background: "#ccfbf1" }, iconColor: "#0d9488" },
-  rose:   { card: { background: "#fff1f2" }, icon: { background: "#ffe4e6" }, iconColor: "#e11d48" },
-  indigo: { card: { background: "#eef2ff" }, icon: { background: "#e0e7ff" }, iconColor: "#4338ca" },
-};
-
-/* ── Styles ── */
-const styles = {
-  page: {
-    minHeight: "100vh",
-    fontFamily: "'DM Sans', sans-serif",
-    paddingBottom: 32,
-  },
-  header: {
-    background: "#ffffff",
-    borderBottom: "1px solid #e2e8f0",
-    padding: "20px 16px 16px",
-  },
-  headerTop: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  dateText: {
-    fontSize: 11,
-    color: "#94a3b8",
-    marginBottom: 2,
-    letterSpacing: "0.04em",
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: 0,
-    letterSpacing: "-0.02em",
-  },
-  headerSub: {
-    fontSize: 13,
-    color: "#64748b",
-    marginTop: 4,
-    display: "flex",
-    alignItems: "center",
-  },
-  roleChips: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-    alignItems: "flex-end",
-  },
-  chip: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 4,
-    fontSize: 11,
-    fontWeight: 500,
-    padding: "4px 10px",
-    borderRadius: 20,
-    background: "#f1f5f9",
-    color: "#475569",
-    border: "1px solid #e2e8f0",
-    textDecoration: "none",
-  },
-  chipGreen: {
-    background: "#f0fdf4",
-    color: "#16a34a",
-    border: "1px solid #bbf7d0",
-  },
-  body: {
-    padding: "16px 16px 0",
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#94a3b8",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 10,
-    marginBottom: 20,
-  },
-  statCard: {
-    background: "#f8fafc",
-    borderRadius: 14,
-    padding: "14px 14px 12px",
-    border: "1px solid #f1f5f9",
-    cursor: "pointer",
-    display: "block",
-  },
-  statCardWide: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "12px 14px",
-  },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-    background: "#e2e8f0",
-    flexShrink: 0,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#64748b",
-    marginBottom: 4,
-    fontWeight: 500,
-    lineHeight: 1.3,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: "#0f172a",
-    lineHeight: 1,
-    letterSpacing: "-0.02em",
-  },
-  actionList: {
-    background: "#ffffff",
-    borderRadius: 16,
-    border: "1px solid #e2e8f0",
-    overflow: "hidden",
-    marginBottom: 20,
-  },
-  actionLink: {
-    textDecoration: "none",
-    display: "block",
-  },
-  actionRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "13px 14px",
-    borderBottom: "1px solid #f1f5f9",
-    background: "#ffffff",
-    cursor: "pointer",
-  },
-  actionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    background: "#f1f5f9",
-  },
-  actionLabel: {
-    fontSize: 14,
-    color: "#1e293b",
-    flex: 1,
-    fontWeight: 500,
-  },
+  green:  { card: "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30",     iconBg: "bg-green-100 dark:bg-green-900/40",   iconColor: "text-green-600 dark:text-green-400" },
+  blue:   { card: "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30",         iconBg: "bg-blue-100 dark:bg-blue-900/40",     iconColor: "text-blue-600 dark:text-blue-400" },
+  violet: { card: "bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/30", iconBg: "bg-violet-100 dark:bg-violet-900/40", iconColor: "text-violet-600 dark:text-violet-400" },
+  amber:  { card: "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30",     iconBg: "bg-amber-100 dark:bg-amber-900/40",   iconColor: "text-amber-600 dark:text-amber-400" },
+  orange: { card: "bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800/30", iconBg: "bg-orange-100 dark:bg-orange-900/40", iconColor: "text-orange-600 dark:text-orange-400" },
+  teal:   { card: "bg-teal-50 dark:bg-teal-900/20 border-teal-100 dark:border-teal-800/30",         iconBg: "bg-teal-100 dark:bg-teal-900/40",     iconColor: "text-teal-600 dark:text-teal-400" },
+  rose:   { card: "bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800/30",         iconBg: "bg-rose-100 dark:bg-rose-900/40",     iconColor: "text-rose-600 dark:text-rose-400" },
+  indigo: { card: "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800/30", iconBg: "bg-indigo-100 dark:bg-indigo-900/40", iconColor: "text-indigo-600 dark:text-indigo-400" },
 };

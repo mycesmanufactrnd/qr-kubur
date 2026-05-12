@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
   };
 
   return (
-    <Card className="group overflow-hidden bg-white hover:shadow-xl transition-all duration-500 border-0 shadow-md">
+    <Card className="group overflow-hidden bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-500 border-0 shadow-md">
       <div className="relative h-40 bg-gradient-to-br from-pink-500 via-red-500 to-orange-600 overflow-hidden">
         <BannerImageWithFallback
           src={resolveFileUrl(mosque.photourl, 'bucket-mosque')}
@@ -88,8 +89,8 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
 
       <CardContent className="p-4 space-y-4">
         {mosque.address && (
-          <div className="flex items-center gap-2 text-sm text-slate-600 line-clamp-1">
-            <MapPinHouse className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
+            <MapPinHouse className="w-4 h-4 text-slate-400 dark:text-slate-500" />
             <span>{mosque.address}</span>
           </div>
         )}
@@ -99,13 +100,12 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
             to={`${createPageUrl('MosqueDetailsPage')}?id=${mosque.id}`} 
             className="flex-1"
           >
-            <Button 
-              variant="outline" 
-              className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300"
+            <button
+              className="w-full h-9 flex items-center justify-center rounded-md border border-emerald-200 dark:border-emerald-700 bg-transparent text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors px-3"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               {translate('Details') || 'View Details'}
-            </Button>
+            </button>
           </Link>
           <div className="flex gap-2">
             <DonationButton recipientId={mosque.organisation?.id} recipientType={'organisation'} state={mosque.state}/>

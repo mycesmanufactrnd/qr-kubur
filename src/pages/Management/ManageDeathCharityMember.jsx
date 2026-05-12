@@ -37,7 +37,7 @@ import { useIsNarrow } from "@/hooks/useIsNarrow";
 
 
 export default function ManageDeathCharityMember() {
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   if (isNarrow) return <ManageDeathCharityMemberMobile />;
   return <ManageDeathCharityMemberDesktop />;
 }

@@ -8,8 +8,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Search,
-  X,
   Save,
   ImageIcon,
   MapPin,
@@ -53,6 +51,7 @@ import { Label } from "@/components/ui/label";
 
 import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
+import SearchBar from "@/components/forms/SearchBar";
 
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -345,48 +344,30 @@ function ManageMosquesDesktop() {
         )}
       </div>
 
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={translate("Name")}
-                value={setName}
-                onChange={(e) => setTempName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button
-              onClick={handleSearch}
-              className="bg-stone-600 hover:bg-stone-700 px-6"
-            >
-              {translate("Search")}
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Select value={tempState} onValueChange={setTempState}>
-              <SelectTrigger>
-                <SelectValue placeholder={translate("State")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{translate("All States")}</SelectItem>
-                {STATES_MY.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleReset}>
-              <X className="w-4 h-4 mr-2" /> {translate("Reset")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchBar
+        value={setName}
+        onChange={setTempName}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        placeholder={translate("Name")}
+        buttonClassName="bg-stone-600 hover:bg-stone-700"
+      >
+        <Select value={tempState} onValueChange={setTempState}>
+          <SelectTrigger>
+            <SelectValue placeholder={translate("State")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{translate("All States")}</SelectItem>
+            {STATES_MY.map((state) => (
+              <SelectItem key={state} value={state}>
+                {state}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SearchBar>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -623,13 +604,13 @@ function ManageMosquesDesktop() {
                   className="cursor-pointer"
                 />
                 {uploading && (
-                  <div className="flex items-center gap-2 text-sm text-stone-600">
+                  <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
                     <span>{translate("Uploading...")}</span>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-stone-500">
+                <Label className="text-xs text-stone-500 dark:text-slate-400">
                   {translate("Or paste image URL")}
                 </Label>
                 <Input
@@ -656,7 +637,7 @@ function ManageMosquesDesktop() {
                         : resolveFileUrl(photourl, "bucket-mosque")
                     }
                     alt="Mosque preview"
-                    className="w-full h-full object-cover rounded-lg border-2 border-stone-100 shadow-sm"
+                    className="w-full h-full object-cover rounded-lg border-2 border-stone-100 dark:border-slate-700 shadow-sm"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                     <ImageIcon className="text-white w-8 h-8" />

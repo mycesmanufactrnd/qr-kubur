@@ -75,7 +75,7 @@ import FileUploadForm from "@/components/forms/FileUploadForm";
 const DEFAULT_USER_PASSWORD = "password";
 
 export default function ManageTahfizCenters() {
-  const isNarrow = useIsNarrow(1024);
+  const isNarrow = useIsNarrow();
   if (isNarrow) return <ManageTahfizCentersMobile />;
   return <ManageTahfizCentersDesktop />;
 }
@@ -968,7 +968,7 @@ function ManageTahfizCentersDesktop() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -1096,7 +1096,7 @@ function ManageTahfizCentersDesktop() {
               }
             >
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 py-2">
                   {translate("Tahfiz Details")}
                 </h3>
                 <TextInputForm
@@ -1175,8 +1175,8 @@ function ManageTahfizCentersDesktop() {
                             type="button"
                             className={`col-span-2 text-[10px] font-semibold py-1.5 rounded-md border transition-colors ${
                               entry.isactive !== false
-                                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                                : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200"
+                                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+                                : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600"
                             }`}
                             onClick={() =>
                               updateServiceEntry(
@@ -1287,7 +1287,7 @@ function ManageTahfizCentersDesktop() {
                 />
               </div>
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 py-2">
                   {translate("Payment Config")}
                 </h3>
                 <div>
@@ -1337,7 +1337,7 @@ function ManageTahfizCentersDesktop() {
                   return (
                     <div
                       key={platformCode}
-                      className="border rounded-lg p-4 bg-gray-50"
+                      className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 dark:border-gray-700"
                     >
                       <h3 className="font-semibold mb-4 flex items-center gap-2">
                         {platform.name} {translate("config")}
@@ -1355,7 +1355,7 @@ function ManageTahfizCentersDesktop() {
               </div>
               {canAddTahfizUsers && (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-700 border-b py-2">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 py-2">
                     {translate("Add User")}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1419,7 +1419,7 @@ function ManageTahfizCentersDesktop() {
                           <TableRow>
                             <TableCell
                               colSpan={6}
-                              className="text-center text-xs text-gray-500"
+                              className="text-center text-xs text-gray-500 dark:text-gray-400"
                             >
                               No users added yet.
                             </TableCell>
@@ -1429,7 +1429,7 @@ function ManageTahfizCentersDesktop() {
                             <TableRow
                               key={entry.id}
                               className={
-                                editingUserIndex === index ? "bg-amber-50" : ""
+                                editingUserIndex === index ? "bg-amber-50 dark:bg-amber-900/20" : ""
                               }
                             >
                               <TableCell className="font-medium">
@@ -1468,7 +1468,7 @@ function ManageTahfizCentersDesktop() {
                     </Table>
                   </div>
                   <div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       Default password: {DEFAULT_USER_PASSWORD}
                     </span>
                   </div>

@@ -34,7 +34,7 @@ export default function BackNavigation({ title = "Back" }) {
           onClick={handleBack}
           className="h-3 w-5 dark:text-gray-300"
         >
-          <ArrowLeft className="w-5 h-5 text-stone-700" />
+          <ArrowLeft className="w-5 h-5 text-stone-700 dark:text-white" />
         </Button>
         <h1 className="text-md font-bold text-gray-900 dark:text-white">
           {translate(title)}

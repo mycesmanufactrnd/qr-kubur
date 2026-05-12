@@ -34,7 +34,7 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="relative h-36 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
           src={resolveFileUrl(tahfiz.photourl, 'tahfiz-center')}
@@ -74,13 +74,13 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
             {tahfiz.serviceoffered.slice(0, 3).map((service, idx) => (
               <span
                 key={idx}
-                className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-medium rounded-full"
+                className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium rounded-full"
               >
                 {service}
               </span>
             ))}
             {tahfiz.serviceoffered.length > 3 && (
-              <span className="px-2 py-0.5 bg-slate-50 border border-slate-200 text-slate-400 text-[11px] rounded-full">
+              <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500 text-[11px] rounded-full">
                 +{tahfiz.serviceoffered.length - 3}
               </span>
             )}
@@ -90,20 +90,20 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
         {tahfiz.phone && (
           <a
             href={`tel:${tahfiz.phone}`}
-            className="flex items-center gap-2 text-xs text-slate-500"
+            className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"
             onClick={e => e.stopPropagation()}
           >
-            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <Phone className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
             <span>{tahfiz.phone}</span>
           </a>
         )}
 
         <div className="flex items-center gap-2 pt-0.5">
           <Link to={createPageUrl(`TahfizDetails?id=${tahfiz.id}`)} className="flex-1">
-            <Button size="sm" className="w-full rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-100 transition-colors active:opacity-75">
+            <button className="w-full h-9 rounded-xl border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors active:opacity-75">
               <ExternalLink className="w-3.5 h-3.5" />
               {translate('Details') || 'View Details'}
-            </Button>
+            </button>
           </Link>
           <DonationButton recipientId={tahfiz.id} recipientType="tahfiz" state={tahfiz.state} />
           <Button

@@ -234,7 +234,7 @@ export default function OrganisationQuickRegister() {
                 }}
                 disabled={isUploading}
               />
-              {isUploading && <span className="text-sm text-gray-500">{translate('Uploading...')}</span>}
+              {isUploading && <span className="text-sm text-gray-500 dark:text-slate-400">{translate('Uploading...')}</span>}
             </div>
             {previewSrc && (
               <img src={previewSrc} alt="Preview" className="mt-2 h-20 rounded border" />
@@ -337,18 +337,18 @@ export default function OrganisationQuickRegister() {
   };
 
   return (
-    <div className="min-h-screen pb-10">
+    <div className="min-h-screen pb-10 bg-slate-50 dark:bg-slate-900">
       <BackNavigation title={translate("Organisation Register")} />
 
       <div className="px-2 max-w-3xl mx-auto space-y-4">
         <Card className="border-0 shadow-md m-0">
           <CardContent className="p-4 space-y-1">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {translate(
                 "Submit your organisation details. Admin will review and approve or reject your request.",
               )}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-500">
               {translate(
                 "If approved, a temporary admin account will be created using contact email with default password: password",
               )}
@@ -357,14 +357,14 @@ export default function OrganisationQuickRegister() {
         </Card>
 
         {isSubmitted && (
-          <Card className="border border-emerald-100 shadow-sm bg-emerald-50">
+          <Card className="border border-emerald-100 dark:border-emerald-800 shadow-sm bg-emerald-50 dark:bg-emerald-900/20">
             <CardContent className="p-4 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-emerald-700">
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
                   {translate("Registration submitted")}
                 </p>
-                <p className="text-xs text-emerald-700/80">
+                <p className="text-xs text-emerald-700/80 dark:text-emerald-400/80">
                   {translate("Your request is pending admin approval.")}
                 </p>
               </div>
@@ -565,7 +565,7 @@ export default function OrganisationQuickRegister() {
               <br />
 
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 border-b dark:border-slate-700 pb-2">
                   {translate('Payment Config')}
                 </h3>
                 <div>
@@ -576,7 +576,7 @@ export default function OrganisationQuickRegister() {
                     {paymentPlatforms.filter(p => p?.code).map(platform => (
                       <Label
                         key={platform.code}
-                        className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
+                        className="flex items-center gap-3 p-3 rounded border dark:border-slate-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700"
                       >
                         <Checkbox
                           checked={selectedPaymentPlatforms.includes(platform.code)}
@@ -600,7 +600,7 @@ export default function OrganisationQuickRegister() {
                   if (!platform || fields.length === 0) return null;
 
                   return (
-                    <div key={platformCode} className="border rounded-lg p-4 bg-gray-50">
+                    <div key={platformCode} className="border dark:border-slate-700 rounded-lg p-4 bg-gray-50 dark:bg-slate-800">
                       <h3 className="font-semibold mb-4 flex items-center gap-2">
                         {platform.name} {translate('config')}
                       </h3>
@@ -616,9 +616,9 @@ export default function OrganisationQuickRegister() {
                 })}
               </div>
 
-              <hr />
+              <hr className="dark:border-slate-700" />
 
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {translate("Contact Person (Temporary Admin)")}
               </p>
 
