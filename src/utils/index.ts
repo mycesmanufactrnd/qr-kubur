@@ -8,3 +8,25 @@ export function resolveFileUrl(photourl: string | null | undefined, bucket: stri
     return `/api/file/${bucket}/${encodeURIComponent(photourl)}`;
 }
 
+export function appendCurrentUserToFormData(formData: FormData) {
+  try {
+    const raw = sessionStorage.getItem("appUserAuth");
+    if (!raw) return;
+
+    const user = JSON.parse(raw);
+    const id = Number(user?.id);
+    if (!Number.isFinite(id) || id <= 0) return;
+
+    const meta = {
+      id,
+      fullname: typeof user?.fullname === "string" ? user.fullname : null,
+      organisationId: user?.organisation?.id ? Number(user.organisation.id) : null,
+      tahfizcenterId: user?.tahfizcenter?.id ? Number(user.tahfizcenter.id) : null,
+    };
+
+    formData.append("currentUser", JSON.stringify(meta));
+  } catch {
+    // ignore
+  }
+}
+

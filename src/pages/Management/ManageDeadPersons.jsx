@@ -66,7 +66,7 @@ import TextInputForm from "@/components/forms/TextInputForm";
 import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
@@ -272,6 +272,7 @@ function ManageDeadPersonsDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
 
       const res = await fetch(`/api/upload/${bucketName}`, {
         method: "POST",

@@ -25,7 +25,7 @@ import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -266,6 +266,7 @@ export default function MobileManageDeadPersons() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
       const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: formData });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

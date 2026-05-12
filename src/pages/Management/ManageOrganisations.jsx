@@ -55,7 +55,7 @@ import { getLabelFromId, hashPassword } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { trpc } from "@/utils/trpc";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
@@ -231,6 +231,7 @@ function ManageOrganisationsDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
 
       const res = await fetch("/api/upload/bucket-organisation-config", {
         method: "POST",
@@ -692,6 +693,7 @@ function ManageOrganisationsDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
 
       const res = await fetch(`/api/upload/${bucketName}`, {
         method: "POST",

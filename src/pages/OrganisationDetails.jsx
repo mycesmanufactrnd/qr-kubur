@@ -23,7 +23,7 @@ import { validateFields } from '@/utils/validations';
 import { showError, showSuccess } from '@/components/ToastrNotification';
 import TextInputForm from '@/components/forms/TextInputForm';
 import { userGoogleAccess } from '@/utils/auth';
-import { resolveFileUrl } from '@/utils';
+import { appendCurrentUserToFormData, resolveFileUrl } from '@/utils';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { translate } from '@/utils/translations';
 
@@ -61,6 +61,7 @@ export default function OrganisationDetails() {
     try {
       const fd = new FormData();
       fd.append("file", file);
+      appendCurrentUserToFormData(fd);
       const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: fd });
       if (!res.ok) { showError("Failed to upload photo"); return null; }
       const data = await res.json();

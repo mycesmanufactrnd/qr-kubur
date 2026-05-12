@@ -1,5 +1,6 @@
 import { AppDataSource } from "../datasource.ts";
 import { StoredFile } from "../db/entities/StoredFile.entity.ts";
+import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.ts";
 
 export type CreateStoredFileInput = {
   bucket: string;
@@ -7,7 +8,7 @@ export type CreateStoredFileInput = {
   originalName?: string | null;
   contentType?: string | null;
   sizeBytes?: number | null;
-  uploadedById?: number | null;
+  uploadedBy?: StoredFileUploadedBy | null;
 };
 
 export const createStoredFile = async (input: CreateStoredFileInput) => {
@@ -18,7 +19,7 @@ export const createStoredFile = async (input: CreateStoredFileInput) => {
     originalName: input.originalName ?? null,
     contentType: input.contentType ?? null,
     sizeBytes: input.sizeBytes ?? null,
-    uploadedById: input.uploadedById ?? null,
+    uploadedBy: input.uploadedBy ?? null,
   });
   return await repo.save(row);
 };
@@ -27,4 +28,3 @@ export const findStoredFile = async (bucket: string, key: string) => {
   const repo = AppDataSource.getRepository(StoredFile);
   return await repo.findOne({ where: { bucket, key } });
 };
-

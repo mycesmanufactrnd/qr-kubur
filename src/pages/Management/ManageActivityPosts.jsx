@@ -45,7 +45,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import RichTextEditorForm from "@/components/forms/RichTextEditorForm";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 
 export default function ManageActivityPosts() {
@@ -142,6 +142,7 @@ function ManageActivityPostsDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
 
       const res = await fetch(`/api/upload/${bucketName}`, {
         method: "POST",

@@ -54,7 +54,7 @@ import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import JitsiController from "@/components/jitsi/JitsiController";
-import { createPageUrl, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, createPageUrl, resolveFileUrl } from "@/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { showError } from "@/components/ToastrNotification";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
@@ -270,6 +270,7 @@ function ManageTahlilRequestsDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
 
       const res = await fetch("/api/upload/bucket-tahfiz-tahlil", {
         method: "POST",

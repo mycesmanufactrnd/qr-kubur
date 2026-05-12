@@ -45,7 +45,7 @@ import LoadingUser from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { translate } from "@/utils/translations";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import {
   useGetQuotationPaginated,
   useUpdateQuotation,
@@ -216,6 +216,7 @@ function ManageQuotationsDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", uploadDialogFile);
+      appendCurrentUserToFormData(formData);
       const res = await fetch(
         `/api/upload/bucket-organisation-services-proof`,
         {
@@ -253,6 +254,7 @@ function ManageQuotationsDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", inlineUploadFile);
+      appendCurrentUserToFormData(formData);
       const res = await fetch(
         `/api/upload/bucket-organisation-services-proof`,
         {

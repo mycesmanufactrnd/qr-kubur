@@ -16,7 +16,7 @@ import Pagination from "@/components/Pagination";
 import { getLabelFromId, hashPassword } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
@@ -209,6 +209,7 @@ export default function MobileManageOrganisation() {
     try {
       const fd = new FormData();
       fd.append("file", file);
+      appendCurrentUserToFormData(fd);
       const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: fd });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));

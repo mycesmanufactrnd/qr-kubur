@@ -57,7 +57,7 @@ import { useAdminAccess } from "@/utils/auth";
 import { STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
 import { hashPassword } from "@/utils/helpers";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import { trpc } from "@/utils/trpc";
 import {
   useGetConfigByEntity,
@@ -317,6 +317,7 @@ function ManageTahfizCentersDesktop() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
 
       const res = await fetch("/api/upload/bucket-tahfiz-config", {
         method: "POST",
@@ -828,6 +829,7 @@ function ManageTahfizCentersDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
 
       const res = await fetch(`/api/upload/${bucketName}`, {
         method: "POST",

@@ -1,5 +1,12 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
+export type StoredFileUploadedBy = {
+  id: number;
+  fullname?: string | null;
+  organisationId?: number | null;
+  tahfizcenterId?: number | null;
+};
+
 @Entity("stored_file")
 @Index(["bucket", "key"], { unique: true })
 export class StoredFile {
@@ -24,7 +31,6 @@ export class StoredFile {
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
 
-  @Column("integer", { nullable: true })
-  uploadedById?: number | null;
+  @Column("jsonb", { nullable: true })
+  uploadedBy?: StoredFileUploadedBy | null;
 }
-

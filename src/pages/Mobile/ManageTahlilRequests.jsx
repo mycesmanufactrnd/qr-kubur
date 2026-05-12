@@ -15,7 +15,7 @@ import Pagination from "@/components/Pagination";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { translate } from "@/utils/translations";
-import { createPageUrl, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, createPageUrl, resolveFileUrl } from "@/utils";
 import { showError } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -680,6 +680,7 @@ export default function ManageTahlilRequests() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
       const res = await fetch("/api/upload/bucket-tahfiz-tahlil", {
         method: "POST",
         body: formData,

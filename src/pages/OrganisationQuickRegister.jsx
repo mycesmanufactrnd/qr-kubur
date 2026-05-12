@@ -19,6 +19,7 @@ import { translate } from "@/utils/translations";
 import { STATES_MY } from "@/utils/enums";
 import { showApiError, showError, showSuccess } from "@/components/ToastrNotification";
 import { defaultQuickRegisterForm } from "@/utils/defaultformfields";
+import { appendCurrentUserToFormData } from "@/utils";
 
 export default function OrganisationQuickRegister() {
   const [serviceEntries, setServiceEntries] = useState([]);
@@ -146,6 +147,7 @@ export default function OrganisationQuickRegister() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      appendCurrentUserToFormData(formData);
 
       const res = await fetch('/api/upload/bucket-organisation-config', {
         method: 'POST',

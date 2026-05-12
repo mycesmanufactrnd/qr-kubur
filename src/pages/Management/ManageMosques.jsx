@@ -57,7 +57,7 @@ import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { STATES_MY } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 import {
   useGetMosquePaginated,
@@ -193,6 +193,7 @@ function ManageMosquesDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
 
       const res = await fetch("/api/upload/bucket-mosque", {
         method: "POST",

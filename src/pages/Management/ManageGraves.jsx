@@ -67,7 +67,7 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 export default function ManageGraves() {
   const isNarrow = useIsNarrow();
@@ -263,6 +263,7 @@ function ManageGravesDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
 
       const res = await fetch(`/api/upload/${bucketName}`, {
         method: "POST",

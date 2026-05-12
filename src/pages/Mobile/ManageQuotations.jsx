@@ -19,7 +19,7 @@ import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { translate } from "@/utils/translations";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import { useGetQuotationPaginated, useUpdateQuotation } from "@/hooks/useQuotationMutations";
 import { ORG_SERVICE_FEE, ORG_SHARE, QuotationStatus } from "@/utils/enums";
@@ -129,6 +129,7 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
       const res = await fetch(`/api/upload/bucket-organisation-services-proof`, {
         method: "POST",
         body: formData,

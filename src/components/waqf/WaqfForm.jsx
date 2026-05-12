@@ -9,7 +9,7 @@ import TextInputForm from '../forms/TextInputForm';
 import SelectForm from '../forms/SelectForm';
 import { ProjectStatus, WaqfCategory, WaqfType } from '@/utils/enums';
 import { defaultWaqfProjectField } from '@/utils/defaultformfields';
-import { resolveFileUrl } from '@/utils';
+import { appendCurrentUserToFormData, resolveFileUrl } from '@/utils';
 
 export default function WaqfForm({ project, onSubmit, onCancel, }) {
     const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
@@ -56,6 +56,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
         try {
             const formDataUpload = new FormData();
             formDataUpload.append('file', file);
+            appendCurrentUserToFormData(formDataUpload);
         
             const res = await fetch('/api/upload/waqf-project', { method: 'POST', body: formDataUpload });
             if (!res.ok) {

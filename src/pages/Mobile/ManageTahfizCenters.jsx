@@ -21,7 +21,7 @@ import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
-import { resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { hashPassword } from "@/utils/helpers";
 import { showError, showSuccess } from "@/components/ToastrNotification";
@@ -369,6 +369,7 @@ function TahfizFormSheet({
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
       const res = await fetch("/api/upload/bucket-tahfiz-config", {
         method: "POST",
         body: formData,
@@ -397,6 +398,7 @@ function TahfizFormSheet({
     try {
       const formData = new FormData();
       formData.append("file", file);
+      appendCurrentUserToFormData(formData);
       const res = await fetch(`/api/upload/${bucketName}`, {
         method: "POST",
         body: formData,

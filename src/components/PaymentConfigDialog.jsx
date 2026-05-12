@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
 import { translate } from '@/utils/translations';
-import { resolveFileUrl } from '@/utils';
+import { appendCurrentUserToFormData, resolveFileUrl } from '@/utils';
 import { trpc } from '@/utils/trpc';
 import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/hooks/usePaymentConfigMutations';
 
@@ -147,6 +147,7 @@ export default function PaymentConfigDialog({
     try {
       const formData = new FormData();
       formData.append('file', file);
+      appendCurrentUserToFormData(formData);
 
       const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
 

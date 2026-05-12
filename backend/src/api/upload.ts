@@ -5,26 +5,84 @@ import { verifyToken } from "../auth.ts";
 import { bulkImportGraves } from "../services/upload.service.ts";
 import { getStorage } from "../storage/storage.ts";
 import { createStoredFile, findStoredFile } from "../services/storageMetadata.service.ts";
+import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.ts";
 
+const parseUploadedBy = (raw: string | undefined): StoredFileUploadedBy | null => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    const id = Number(parsed?.id);
+    if (!Number.isFinite(id) || id <= 0) return null;
+
+    const fullname =
+      typeof parsed?.fullname === "string"
+        ? parsed.fullname
+        : typeof parsed?.name === "string"
+          ? parsed.name
+          : null;
+
+    const organisationIdRaw = parsed?.organisationId ?? parsed?.organisation?.id;
+    const tahfizcenterIdRaw = parsed?.tahfizcenterId ?? parsed?.tahfizcenter?.id;
+
+    const organisationId = organisationIdRaw != null ? Number(organisationIdRaw) : null;
+    const tahfizcenterId = tahfizcenterIdRaw != null ? Number(tahfizcenterIdRaw) : null;
+
+    return {
+      id,
+      fullname,
+      organisationId: Number.isFinite(organisationId) ? organisationId : null,
+      tahfizcenterId: Number.isFinite(tahfizcenterId) ? tahfizcenterId : null,
+    };
+  } catch {
+    return null;
+  }
+};
 
 export const registerUploadRoutes = (app: FastifyInstance) => {
   app.post('/api/upload/:bucket', async (request, reply) => {
     try {
       const { bucket } = request.params as { bucket: string };
 
-      const file = await request.file();
+      let currentUserRaw: string | undefined;
+      let filename: string | undefined;
+      let mimetype: string | undefined;
+      let buffer: Buffer | undefined;
 
-      if (!file) return reply.status(400).send({ error: 'No file uploaded' });
+      if (request.isMultipart && request.isMultipart()) {
+        for await (const part of request.parts()) {
+          if (part.type === "field" && part.fieldname === "currentUser") {
+            currentUserRaw = String(part.value);
+            continue;
+          }
 
-      const { filename, mimetype, file: fileStream } = file;
+          if (part.type === "file" && part.fieldname === "file") {
+            filename = part.filename;
+            mimetype = part.mimetype;
+            buffer = await part.toBuffer();
+            continue;
+          }
 
-      // Convert stream to buffer
-      const chunks: Buffer[] = [];
-      for await (const chunk of fileStream) {
-        chunks.push(chunk);
+          // Always consume any extra files to avoid stalling multipart parsing.
+          if (part.type === "file") {
+            await part.toBuffer();
+          }
+        }
+      } else {
+        const file = await request.file();
+        if (file) {
+          filename = file.filename;
+          mimetype = file.mimetype;
+          buffer = await file.toBuffer();
+          const candidate = file.fields?.currentUser;
+          if (candidate && !Array.isArray(candidate) && (candidate as any).type === "field") {
+            currentUserRaw = String((candidate as any).value);
+          }
+        }
       }
-      
-      const buffer = Buffer.concat(chunks);
+
+      if (!filename || !mimetype || !buffer) {
+        return reply.status(400).send({ error: 'No file uploaded' });
+      }
 
       console.log("Uploading file:", filename, mimetype, "size:", buffer.length);
 
@@ -41,13 +99,15 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
         contentType: mimetype,
       });
 
+      const uploadedBy = parseUploadedBy(currentUserRaw) ?? (request.user?.id ? { id: Number(request.user.id) } : null);
+
       const stored = await createStoredFile({
         bucket: result.bucket,
         key: result.key,
         originalName: filename,
         contentType: result.contentType ?? null,
         sizeBytes: result.sizeBytes,
-        uploadedById: (request as any).user?.id ? Number((request as any).user.id) : null,
+        uploadedBy,
       });
 
       return reply.send({ file_url: safeName, file_id: stored.id });
