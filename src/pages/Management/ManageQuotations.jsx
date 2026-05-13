@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";

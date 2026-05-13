@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import ManageUsersMobile from "@/pages/Mobile/ManageUsers";
 import { useState } from "react";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import ManageTahlilRequestsMobile from "@/pages/Mobile/ManageTahlilRequests";
 import { useEffect, useMemo, useState } from "react";

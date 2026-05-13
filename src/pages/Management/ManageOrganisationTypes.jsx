@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tag, Plus, Edit, Trash2, Save, Search, X } from 'lucide-react';

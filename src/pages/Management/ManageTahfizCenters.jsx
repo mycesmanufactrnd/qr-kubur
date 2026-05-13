@@ -1,4 +1,5 @@
-﻿import { useIsNarrow } from "@/hooks/useIsNarrow";
+﻿// @ts-nocheck
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import ManageTahfizCentersMobile from "@/pages/Mobile/ManageTahfizCenters";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";

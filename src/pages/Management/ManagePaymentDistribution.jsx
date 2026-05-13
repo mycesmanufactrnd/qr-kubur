@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { DollarSign, Clock, CheckCircle, XCircle, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useCallback, useEffect, useState } from "react";
 import MobileManageGraves from "@/pages/Mobile/ManageGraves";

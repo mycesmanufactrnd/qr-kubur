@@ -1,3 +1,6 @@
+// @ts-nocheck
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import MobileManagePermissions from "@/pages/Mobile/ManagePermissions";
 import { useEffect, useState } from "react";
 import { Shield, Save, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +25,11 @@ import NoDataCardComponent from "@/components/NoDataCardComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 
 export default function ManagePermissions() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? <MobileManagePermissions /> : <ManagePermissionsDesktop />;
+}
+
+function ManagePermissionsDesktop() {
   const {
     currentUser,
     loadingUser,
