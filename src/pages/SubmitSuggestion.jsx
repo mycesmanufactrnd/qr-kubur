@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils/index";

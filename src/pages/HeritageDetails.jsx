@@ -1,20 +1,34 @@
-import { useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, BookOpen, Navigation, Globe, Star, Share2, Eye} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { motion } from 'framer-motion';
-import { useGetHeritageById, useHeritageMutations } from '@/hooks/useHeritageMutations';
-import { openDirections, shareLink } from '@/utils/helpers';
-import { resolveFileUrl } from '@/utils';
-import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
-import NoDataCardComponent from '@/components/NoDataCardComponent';
+// @ts-nocheck
+import { useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  MapPin,
+  Clock,
+  BookOpen,
+  Navigation,
+  Globe,
+  Star,
+  Share2,
+  Eye,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { motion } from "framer-motion";
+import {
+  useGetHeritageById,
+  useHeritageMutations,
+} from "@/hooks/useHeritageMutations";
+import { openDirections, shareLink } from "@/utils/helpers";
+import { resolveFileUrl } from "@/utils";
+import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
+import NoDataCardComponent from "@/components/NoDataCardComponent";
 
 export default function HeritageDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const siteId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
+  const siteId = searchParams.get("id") ? Number(searchParams.get("id")) : null;
 
   const { data: site, isLoading, isError } = useGetHeritageById(siteId);
 
@@ -23,28 +37,26 @@ export default function HeritageDetails() {
   useEffect(() => {
     if (!siteId) return;
 
-    const viewedSites = JSON.parse(sessionStorage.getItem('viewedSites') || '[]');
+    const viewedSites = JSON.parse(
+      sessionStorage.getItem("viewedSites") || "[]",
+    );
 
     if (!viewedSites.includes(siteId)) {
-      sessionStorage.setItem('viewedSites', JSON.stringify([...viewedSites, siteId]));
+      sessionStorage.setItem(
+        "viewedSites",
+        JSON.stringify([...viewedSites, siteId]),
+      );
 
       incrementViewCount.mutate({ id: siteId });
     }
   }, [siteId, incrementViewCount]);
 
   if (isLoading) {
-    return (
-      <ListCardSkeletonComponent/>
-    );
+    return <ListCardSkeletonComponent />;
   }
 
   if (isError || !site) {
-    return (
-      <NoDataCardComponent
-        isPage
-        description="Site Not Found"
-      />
-    );
+    return <NoDataCardComponent isPage description="Site Not Found" />;
   }
 
   return (
@@ -52,7 +64,7 @@ export default function HeritageDetails() {
       <div className="relative h-72 md:h-96">
         {site.photourl ? (
           <img
-            src={resolveFileUrl(site.photourl, 'heritage-site')} 
+            src={resolveFileUrl(site.photourl, "heritage-site")}
             alt={site.name}
             className="w-full h-full object-cover"
           />
@@ -61,13 +73,16 @@ export default function HeritageDetails() {
             <MapPin className="w-16 h-16 text-stone-400" />
           </div>
         )}
-        
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
-        <Button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
+
+        <Button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
+        >
           <ArrowLeft className="w-5 h-5 text-stone-700" />
         </Button>
-        
+
         <Button
           onClick={(e) => {
             e.stopPropagation();
@@ -104,13 +119,19 @@ export default function HeritageDetails() {
 
           <div className="flex flex-wrap items-center gap-3 mb-6">
             {site.era && (
-              <Badge variant="secondary" className="bg-stone-100 text-stone-700">
+              <Badge
+                variant="secondary"
+                className="bg-stone-100 text-stone-700"
+              >
                 <Clock className="w-3 h-3 mr-1" />
                 {site.era}
               </Badge>
             )}
             {site.state && (
-              <Badge variant="secondary" className="bg-stone-100 text-stone-700">
+              <Badge
+                variant="secondary"
+                className="bg-stone-100 text-stone-700"
+              >
                 <MapPin className="w-3 h-3 mr-1" />
                 {site.state}
               </Badge>
@@ -123,7 +144,7 @@ export default function HeritageDetails() {
 
           <div className="flex gap-3 mb-8">
             {site.latitude && site.longitude && (
-              <Button 
+              <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   openDirections(site.latitude, site.longitude);
@@ -135,9 +156,9 @@ export default function HeritageDetails() {
               </Button>
             )}
             {site.url && (
-              <Button 
+              <Button
                 variant="outline"
-                onClick={() => window.open(site.url, '_blank')}
+                onClick={() => window.open(site.url, "_blank")}
                 className="flex-1 h-12 rounded-xl border-stone-300"
               >
                 <Globe className="w-4 h-4 mr-2" />
@@ -177,7 +198,9 @@ export default function HeritageDetails() {
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 prose max-w-full">
                 <div
                   className="text-stone-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: site.historicalsources || '' }}
+                  dangerouslySetInnerHTML={{
+                    __html: site.historicalsources || "",
+                  }}
                 />
               </div>
             </section>

@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { showWarning } from '@/components/ToastrNotification.jsx';
 import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';

@@ -1,19 +1,20 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
-import { translate } from '@/utils/translations';
-import { showWarning } from '@/components/ToastrNotification.jsx';
-import { STATES_MY } from '@/utils/enums';
-import { useGetGravesCoordinates } from '@/hooks/useGraveMutations';
-import { useLocationContext } from '@/providers/LocationProvider';
+// @ts-nocheck
+import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import { translate } from "@/utils/translations";
+import { showWarning } from "@/components/ToastrNotification.jsx";
+import { STATES_MY } from "@/utils/enums";
+import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
+import { useLocationContext } from "@/providers/LocationProvider";
 import { Button } from "@/components/ui/button";
-import BackNavigation from '@/components/BackNavigation';
-import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
-import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
-import FoundDataLength from '@/components/FoundDataLength';
-import ShowNearLocation from '@/components/ShowNearLocation';
-import NoDataCardComponent from '@/components/NoDataCardComponent';
-import GraveCardList from '@/components/GraveCardList';
-import PullToRefresh from '@/components/mobile/PullToRefresh';
+import BackNavigation from "@/components/BackNavigation";
+import AdvancedFilters from "@/components/mobile/AdvancedFilters.jsx";
+import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
+import FoundDataLength from "@/components/FoundDataLength";
+import ShowNearLocation from "@/components/ShowNearLocation";
+import NoDataCardComponent from "@/components/NoDataCardComponent";
+import GraveCardList from "@/components/GraveCardList";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function SearchGrave() {
   const location = useLocation();
@@ -22,10 +23,11 @@ export default function SearchGrave() {
   const [favoriteVersion, setFavoriteVersion] = useState(0);
 
   const favoritedGraveIds = useMemo(() => {
-    return JSON.parse(localStorage.getItem('favoritedgrave') || '[]');
+    return JSON.parse(localStorage.getItem("favoritedgrave") || "[]");
   }, [favoriteVersion]);
-  
-  const { userLocation, locationDenied, userState, requestLocation } = useLocationContext();
+
+  const { userLocation, locationDenied, userState, requestLocation } =
+    useLocationContext();
 
   useEffect(() => {
     if (defaultFilter.isFavorited) {
@@ -42,15 +44,19 @@ export default function SearchGrave() {
 
   useEffect(() => {
     if (locationDenied) {
-      showWarning(translate('Location not available'));
+      showWarning(translate("Location not available"));
     }
   }, [locationDenied]);
 
-  const { data: gravesList = [], isLoading, refetch } = useGetGravesCoordinates(
+  const {
+    data: gravesList = [],
+    isLoading,
+    refetch,
+  } = useGetGravesCoordinates(
     userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
-    filters
+    filters,
   );
 
   const handlePullRefresh = async () => {
@@ -64,11 +70,15 @@ export default function SearchGrave() {
     return (
       <PullToRefresh onRefresh={handlePullRefresh}>
         <div className="space-y-3 pb-6 px-1">
-          <BackNavigation title={translate('Search Grave')} />
+          <BackNavigation title={translate("Search Grave")} />
           <div className="flex items-center gap-2 rounded-xl">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
                 {
                   label: translate("State"),
                   type: "select",
@@ -82,7 +92,10 @@ export default function SearchGrave() {
           <div className="px-1">
             <FoundDataLength dataList={[]} data="Grave(s)" />
           </div>
-          <NoDataCardComponent isPage title={translate('No Favorited Graves Found')} />
+          <NoDataCardComponent
+            isPage
+            title={translate("No Favorited Graves Found")}
+          />
         </div>
       </PullToRefresh>
     );
@@ -90,9 +103,9 @@ export default function SearchGrave() {
 
   return (
     <div className="space-y-3 pb-6 px-1">
-      <BackNavigation title={translate('Search Grave')} />
+      <BackNavigation title={translate("Search Grave")} />
       {!defaultFilter.isFavorited && <ShowNearLocation />}
-      
+
       <div className="flex items-center gap-2 rounded-xl">
         <AdvancedFilters
           parameter={[
@@ -105,9 +118,9 @@ export default function SearchGrave() {
             },
           ]}
           onApplyFilter={(newFilters) => {
-            setFilters(prev => ({
+            setFilters((prev) => ({
               ...newFilters,
-              ...(defaultFilter.isFavorited ? { ids: favoritedGraveIds } : {})
+              ...(defaultFilter.isFavorited ? { ids: favoritedGraveIds } : {}),
             }));
             setDisplayedCount(10);
           }}
@@ -123,20 +136,20 @@ export default function SearchGrave() {
         {isLoading ? (
           <ListCardSkeletonComponent />
         ) : locationDenied ? (
-          <NoDataCardComponent isNoGPS/>
+          <NoDataCardComponent isNoGPS />
         ) : gravesList.length === 0 ? (
           <NoDataCardComponent
             isPage
-            title={translate('No Graves Found')}
+            title={translate("No Graves Found")}
             description="Sila cuba carian lain atau ubah penapis."
           />
         ) : (
           <div className="space-y-4">
             {gravesList.slice(0, displayedCount).map((grave) => (
-              <GraveCardList 
-                key={grave.id} 
-                grave={grave} 
-                onFavoriteChange={() => setFavoriteVersion(prev => prev + 1)}
+              <GraveCardList
+                key={grave.id}
+                grave={grave}
+                onFavoriteChange={() => setFavoriteVersion((prev) => prev + 1)}
               />
             ))}
 
@@ -145,9 +158,9 @@ export default function SearchGrave() {
                 <Button
                   variant="outline"
                   className="rounded-full px-10 border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm"
-                  onClick={() => setDisplayedCount(prev => prev + 10)}
+                  onClick={() => setDisplayedCount((prev) => prev + 10)}
                 >
-                  {translate('Load More')}
+                  {translate("Load More")}
                 </Button>
               </div>
             )}

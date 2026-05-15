@@ -1,3 +1,4 @@
+// @ts-nocheck
 import BackNavigation from "@/components/BackNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { translate } from '@/utils/translations';

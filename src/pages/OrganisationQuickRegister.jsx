@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { Building2, MapPin, Plus, Save, X, CheckCircle2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { JitsiMeeting } from "@jitsi/react-sdk";
 import { useAdminAccess } from "@/utils/auth";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
