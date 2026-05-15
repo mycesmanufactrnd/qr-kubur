@@ -7,7 +7,7 @@ export type StoredFileUploadedBy = {
   tahfizcenterId?: number | null;
 };
 
-@Entity("stored_file")
+@Entity("storedfile")
 @Index(["bucket", "key"], { unique: true })
 export class StoredFile {
   @PrimaryGeneratedColumn()

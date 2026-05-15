@@ -264,7 +264,7 @@ function ManageUsersDesktop() {
       />
 
       <div className="flex items-center justify-between">
-        <h1 className="text-xl lg:text-2xl font-bold">
+        <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
           {translate("Manage Users")}
         </h1>
         {canCreate && (
@@ -278,7 +278,7 @@ function ManageUsersDesktop() {
         )}
       </div>
 
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm dark:bg-slate-800">
         <CardContent className="p-3 lg:p-4">
           <div className="flex gap-2">
             <div className="flex-1 relative">
@@ -328,7 +328,7 @@ function ManageUsersDesktop() {
           appUsers.items.map((user) => (
             <Card
               key={user.id}
-              className="border-0 shadow-sm hover:shadow-md transition-shadow"
+              className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-800"
             >
               <CardContent className="p-3 lg:p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -370,7 +370,7 @@ function ManageUsersDesktop() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleDeleteUser(user)}
-                          className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -402,7 +402,7 @@ function ManageUsersDesktop() {
         <DialogContent
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
-          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+          className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-800"
         >
           <DialogHeader>
             <DialogTitle>

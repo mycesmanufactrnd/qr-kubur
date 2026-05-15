@@ -14,7 +14,7 @@
 ## File uploads
 - Upload: `POST /api/upload/:bucket` (multipart `file`)
 - Fetch: `GET /api/file/:bucket/:filename`
-- Stored metadata table: `stored_file` (created via TypeORM sync or migration)
+- Stored metadata table: `storedfile` (created via TypeORM sync or migration)
 
 ## Storage config
 - Disk (default): `STORAGE_DRIVER=disk`, `STORAGE_DISK_ROOT=/usr/src/app/storage_data`

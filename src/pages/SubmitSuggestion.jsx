@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "../utils/index";
 import { CheckCircle, MapPin } from "lucide-react";
@@ -28,9 +28,13 @@ import { showEarthDistance } from "@/utils/helpers";
 import { defaultSuggestionField } from "@/utils/defaultformfields";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { ipAddressQueryOptions } from "@/utils/queryOptions";
+import { useAdminAccess, getStoredGoogleUser } from "@/utils/auth";
+
+const PHONE_STORAGE_KEY = "suggestion_phoneno";
 
 export default function SubmitSuggestion() {
   const { userLocation, userState } = useLocationContext();
+  const { currentUser } = useAdminAccess();
   const oneHourAgo = useMemo(
     () => new Date(Date.now() - 60 * 60 * 1000).toISOString(),
     [],
@@ -51,6 +55,33 @@ export default function SubmitSuggestion() {
     defaultValues: defaultSuggestionField,
   });
 
+  // Prefill from logged-in user or localStorage
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.fullname) setValue("name", currentUser.fullname);
+      if (currentUser.email) setValue("email", currentUser.email);
+      if (currentUser.phoneno) setValue("phoneno", currentUser.phoneno);
+      return;
+    }
+
+    let googleUser = null;
+    try {
+      const raw = localStorage.getItem("googleAuth");
+      googleUser = raw ? JSON.parse(raw) : getStoredGoogleUser();
+    } catch {
+      googleUser = getStoredGoogleUser();
+    }
+
+    if (googleUser) {
+      if (googleUser.name) setValue("name", googleUser.name);
+      if (googleUser.email) setValue("email", googleUser.email);
+      return;
+    }
+    
+    const savedPhone = localStorage.getItem(PHONE_STORAGE_KEY);
+    if (savedPhone) setValue("phoneno", savedPhone);
+  }, [currentUser]);
+
   const [submitted, setSubmitted] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [pendingSubmission, setPendingSubmission] = useState(null);
@@ -60,7 +91,7 @@ export default function SubmitSuggestion() {
 
   const createMutation = useCreateSuggestion();
 
-  const { data: nearbyGraves } = useGetGravesCoordinates(
+  const { data: nearbyGraves = [] } = useGetGravesCoordinates(
     userLocation
       ? { latitude: userLocation.lat, longitude: userLocation.lng }
       : null,
@@ -85,9 +116,15 @@ export default function SubmitSuggestion() {
 
     if (!isValid) return;
 
+    if (recentCount >= 3) {
+      showWarning("Anda telah mencapai had 3 cadangan sejam");
+      return;
+    }
+
     const {
       name,
       phoneno,
+      email,
       type,
       entityId,
       watchSelectedGrave,
@@ -98,16 +135,21 @@ export default function SubmitSuggestion() {
     const suggestionData = {
       name,
       phoneno,
+      email: email || null,
       type,
-      suggestedchanges: suggestedchanges,
+      suggestedchanges,
       reason,
       status: "pending",
       visitorip: visitorIp ?? null,
     };
 
-    if (recentCount >= 3) {
-      showWarning("Anda telah mencapai had 3 cadangan sejam");
-      return;
+    // Derive organisation from the selected grave
+    const graveId = type === "person" ? watchSelectedGrave : type === "grave" ? entityId : null;
+    const selectedGrave = graveId
+      ? nearbyGraves.find((g) => String(g.id) === String(graveId))
+      : null;
+    if (selectedGrave?.organisation?.id) {
+      suggestionData.organisation = { id: selectedGrave.organisation.id };
     }
 
     if (type === "person") {
@@ -128,6 +170,9 @@ export default function SubmitSuggestion() {
 
     createMutation.mutateAsync(pendingSubmission).then((res) => {
       if (res) {
+        if (pendingSubmission.phoneno) {
+          localStorage.setItem(PHONE_STORAGE_KEY, pendingSubmission.phoneno);
+        }
         setSubmitted(true);
       }
     });
@@ -206,6 +251,25 @@ export default function SubmitSuggestion() {
                     id="phoneno"
                     type="text"
                     placeholder="Enter phone no."
+                    className="w-full border rounded px-3 py-1 mt-1"
+                  />
+                )}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="email" className="dark:text-gray-300">
+                Email
+              </Label>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    id="email"
+                    type="email"
+                    placeholder="Enter email (optional)"
                     className="w-full border rounded px-3 py-1 mt-1"
                   />
                 )}

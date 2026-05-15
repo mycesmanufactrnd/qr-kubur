@@ -336,6 +336,10 @@ export default function StatisticDashboard() {
     isSuperAdmin,
     isTahfizAdmin,
     isOrganisationAdmin,
+    isOrgCanManageMosque,
+    isOrgGraveService,
+    isOrgCanBeDonated,
+    isOrgCanManageGrave,
   } = useAdminAccess();
 
   const now = new Date();
@@ -344,39 +348,35 @@ export default function StatisticDashboard() {
   const [gravePage, setGravePage] = useState(1);
   const [donationPage, setDonationPage] = useState(1);
 
-  const org = currentUser?.organisation;
-
-  const hasOrg = !!isOrganisationAdmin;
-  const hasTahfiz = !!isTahfizAdmin;
-
-  const isCanBeDonated = !!org?.canbedonated;
-  const isHasManageMosque = !!org?.canmanagemosque;
-  const isGraveServices = !!org?.isgraveservices;
-
   const isReady = hasAdminAccess && !loadingUser;
 
   const statsNeeded = useMemo(() => {
     const arr = [];
 
-    if (hasOrg) arr.push("OGDS");
-    if (hasTahfiz) arr.push("TTR");
+    if (isOrganisationAdmin) arr.push("OS");
 
-    const needsDDV = hasTahfiz || isCanBeDonated;
+    if (isOrgCanManageGrave) arr.push("GD");
+
+    if (isTahfizAdmin) arr.push("TTR");
+
+    const needsDDV = isTahfizAdmin || isOrgCanBeDonated;
     if (needsDDV) arr.push("DDV");
 
-    if (hasOrg && isHasManageMosque) arr.push("CMC");
-    if (hasOrg && isGraveServices) arr.push("QUO");
+    if (isOrganisationAdmin && isOrgCanManageMosque) arr.push("CMC");
+    if (isOrganisationAdmin && isOrgGraveService) arr.push("QUO");
 
     return arr;
-  }, [hasOrg, hasTahfiz, isCanBeDonated, isHasManageMosque, isGraveServices]);
+  }, [isOrganisationAdmin, isTahfizAdmin, isOrgCanBeDonated, isOrgCanManageMosque, isOrgGraveService]);
 
   const {
-    OGDSStats,
+    OSStats,
+    GDStats,
     TTRStats,
     DDVStats,
     CMCStats,
     QUOStats,
-    isOGDSLoading,
+    isOSLoading,
+    isGDLoading,
     isTTRLoading,
     isDDVLoading,
     isCMCLoading,
@@ -392,9 +392,9 @@ export default function StatisticDashboard() {
     useGetStatisticChartData({
       year,
       currentUser,
-      hasOrg,
-      hasTahfiz,
-      enabled: isReady && (hasOrg || hasTahfiz),
+      hasOrg: isOrganisationAdmin,
+      hasTahfiz: isTahfizAdmin,
+      enabled: isReady && (isOrganisationAdmin || isTahfizAdmin),
     });
 
   const listEnabled = isReady;
@@ -402,7 +402,7 @@ export default function StatisticDashboard() {
   const { data: orgListData, isLoading: isOrgListLoading } =
     useGetStatisticOrgList({
       currentUser,
-      hasOrg,
+      hasOrg: isOrganisationAdmin,
       page: orgPage,
       enabled: listEnabled,
     });
@@ -410,28 +410,27 @@ export default function StatisticDashboard() {
   const { data: graveListData, isLoading: isGraveListLoading } =
     useGetStatisticGraveList({
       currentUser,
-      hasOrg,
+      hasOrg: isOrganisationAdmin,
       page: gravePage,
-      enabled: listEnabled,
+      enabled: listEnabled && isOrgCanManageGrave,
     });
 
   const { data: donationListData, isLoading: isDonationListLoading } =
     useGetStatisticDonationList({
       currentUser,
-      hasOrg,
-      hasTahfiz,
+      hasOrg: isOrganisationAdmin,
+      hasTahfiz: isTahfizAdmin,
       page: donationPage,
-      enabled: listEnabled,
+      enabled: listEnabled && (isOrgCanBeDonated || isTahfizAdmin),
     });
 
   if (loadingUser) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
-  // KPI values
-  const graveCount = OGDSStats?.graveCount ?? 0;
-  const deadPersonCount = OGDSStats?.deadPersonCount ?? 0;
-  const orgCount = OGDSStats?.organisationCount ?? 0;
-  const suggestionCount = OGDSStats?.suggestionCount ?? 0;
+  const orgCount = OSStats?.organisationCount ?? 0;
+  const suggestionCount = OSStats?.suggestionCount ?? 0;
+  const graveCount = GDStats?.graveCount ?? 0;
+  const deadPersonCount = GDStats?.deadPersonCount ?? 0;
   const tahfizCount = TTRStats?.tahfizCount ?? 0;
   const tahlilRequestCount = TTRStats?.tahlilRequestCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
@@ -443,7 +442,6 @@ export default function StatisticDashboard() {
   const completeQuo = QUOStats?.totalCompleteQuo ?? 0;
   const payoutQuo = QUOStats?.totalPayoutQuo ?? 0;
 
-  // Chart data with month labels
   const addMonthLabel = (arr = []) =>
     arr.map((d, i) => ({ ...d, label: MONTHS_SHORT[i] }));
 
@@ -468,7 +466,6 @@ export default function StatisticDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
@@ -498,16 +495,15 @@ export default function StatisticDashboard() {
         </div>
       </div>
 
-      {/* Role badges + Year selector */}
       <div className="flex items-center justify-between flex-wrap gap-3 mb-8">
         <div className="flex gap-2 flex-wrap">
-          {hasOrg && (
+          {isOrganisationAdmin && (
             <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-medium px-3 py-1">
               <Building2 className="w-3.5 h-3.5 mr-1.5" />
               {translate("Organisation Admin")}
             </Badge>
           )}
-          {hasTahfiz && (
+          {isTahfizAdmin && (
             <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800 font-medium px-3 py-1">
               <BookOpen className="w-3.5 h-3.5 mr-1.5" />
               {translate("Tahfiz Admin")}
@@ -515,7 +511,6 @@ export default function StatisticDashboard() {
           )}
         </div>
 
-        {/* Year picker for charts */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             {translate("Chart Year")}:
@@ -538,8 +533,7 @@ export default function StatisticDashboard() {
       </div>
 
       <div className="space-y-10">
-        {/* ── Organisation & Cemetery ── */}
-        {hasOrg && (
+        {isOrganisationAdmin && (
           <div>
             <SectionHeader
               title={translate("Organisation & Cemetery")}
@@ -547,43 +541,44 @@ export default function StatisticDashboard() {
               color="emerald"
             />
 
-            {/* KPI row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <KpiCard
                 label={translate("Organisations")}
                 value={orgCount}
                 icon={Building2}
                 color="emerald"
-                loading={isOGDSLoading}
+                loading={isOSLoading}
               />
-              <KpiCard
-                label={translate("Graves")}
-                value={graveCount}
-                icon={MapPin}
-                color="teal"
-                loading={isOGDSLoading}
-              />
-              <KpiCard
-                label={translate("Deceased")}
-                value={deadPersonCount}
-                icon={Users}
-                color="blue"
-                loading={isOGDSLoading}
-                sub={translate("Registered deceased")}
-              />
+              {isOrgCanManageGrave && (
+                <KpiCard
+                  label={translate("Graves")}
+                  value={graveCount}
+                  icon={MapPin}
+                  color="teal"
+                  loading={isGDLoading}
+                />
+              )}
+              {isOrgCanManageGrave && (
+                <KpiCard
+                  label={translate("Deceased")}
+                  value={deadPersonCount}
+                  icon={Users}
+                  color="blue"
+                  loading={isGDLoading}
+                  sub={translate("Registered deceased")}
+                />
+              )}
               <KpiCard
                 label={translate("Suggestions")}
                 value={suggestionCount}
                 icon={FileText}
                 color="amber"
-                loading={isOGDSLoading}
+                loading={isOSLoading}
                 sub={translate("Pending review")}
               />
             </div>
 
-            {/* Charts row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Monthly new graves + deceased — line chart */}
+            {isOrgCanManageGrave && (<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2">
                 <ChartCard
                   title={`${translate("Monthly Graves & Deceased Added")} — ${year}`}
@@ -635,7 +630,6 @@ export default function StatisticDashboard() {
                 </ChartCard>
               </div>
 
-              {/* Graves by state — bar chart */}
               <div>
                 <ChartCard
                   title={translate("Graves by State")}
@@ -687,9 +681,8 @@ export default function StatisticDashboard() {
                   )}
                 </ChartCard>
               </div>
-            </div>
+            </div>)}
 
-            {/* Organisations list */}
             <div className="mt-6">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {translate("Organisations")}
@@ -712,36 +705,36 @@ export default function StatisticDashboard() {
               />
             </div>
 
-            {/* Graves list */}
-            <div className="mt-4">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
-                {translate("Graves")}
-              </p>
-              <DataTable
-                columns={[
-                  { key: "name", label: translate("Name") },
-                  { key: "orgName", label: translate("Organisation") },
-                  { key: "state", label: translate("State") },
-                  { key: "block", label: translate("Block") },
-                  { key: "lot", label: translate("Lot") },
-                  {
-                    key: "status",
-                    label: translate("Status"),
-                    render: (row) => <StatusBadge status={row.status} />,
-                  },
-                ]}
-                data={graveListData?.items ?? []}
-                page={gravePage}
-                total={graveListData?.total ?? 0}
-                onPageChange={setGravePage}
-                loading={isGraveListLoading}
-              />
-            </div>
+            {isOrgCanManageGrave && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                  {translate("Graves")}
+                </p>
+                <DataTable
+                  columns={[
+                    { key: "name", label: translate("Name") },
+                    { key: "orgName", label: translate("Organisation") },
+                    { key: "state", label: translate("State") },
+                    { key: "block", label: translate("Block") },
+                    { key: "lot", label: translate("Lot") },
+                    {
+                      key: "status",
+                      label: translate("Status"),
+                      render: (row) => <StatusBadge status={row.status} />,
+                    },
+                  ]}
+                  data={graveListData?.items ?? []}
+                  page={gravePage}
+                  total={graveListData?.total ?? 0}
+                  onPageChange={setGravePage}
+                  loading={isGraveListLoading}
+                />
+              </div>
+            )}
           </div>
         )}
 
-        {/* ── Tahfiz ── */}
-        {hasTahfiz && (
+        {isTahfizAdmin && (
           <div>
             <SectionHeader
               title={translate("Tahfiz")}
@@ -749,7 +742,6 @@ export default function StatisticDashboard() {
               color="amber"
             />
 
-            {/* KPI row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <KpiCard
                 label={translate("Tahfiz Centers")}
@@ -768,7 +760,6 @@ export default function StatisticDashboard() {
               />
             </div>
 
-            {/* Monthly tahlil chart */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ChartCard
                 title={`${translate("Monthly Tahlil Requests")} — ${year}`}
@@ -809,8 +800,7 @@ export default function StatisticDashboard() {
           </div>
         )}
 
-        {/* ── Donations ── */}
-        {(isCanBeDonated || hasTahfiz) && (
+        {(isOrgCanBeDonated || isTahfizAdmin) && (
           <div>
             <SectionHeader
               title={translate("Donations")}
@@ -818,7 +808,6 @@ export default function StatisticDashboard() {
               color="rose"
             />
 
-            {/* KPI row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <KpiCard
                 label={translate("Pending Donations")}
@@ -852,7 +841,6 @@ export default function StatisticDashboard() {
               ))}
             </div>
 
-            {/* Monthly donations chart */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2">
                 <ChartCard
@@ -917,7 +905,6 @@ export default function StatisticDashboard() {
                 </ChartCard>
               </div>
 
-              {/* Donation by status — pie */}
               <ChartCard
                 title={translate("Donations by Status")}
                 loading={isChartLoading}
@@ -977,7 +964,6 @@ export default function StatisticDashboard() {
               </ChartCard>
             </div>
 
-            {/* Donations list */}
             <div className="mt-6">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {translate("Recent Donations")}
@@ -1025,8 +1011,7 @@ export default function StatisticDashboard() {
           </div>
         )}
 
-        {/* ── Death Charity ── */}
-        {isHasManageMosque && (
+        {isOrgCanManageMosque && (
           <div>
             <SectionHeader
               title={translate("Death Charity (Khairat Kematian)")}
@@ -1062,8 +1047,7 @@ export default function StatisticDashboard() {
           </div>
         )}
 
-        {/* ── Quotations ── */}
-        {isGraveServices && (
+        {isOrgGraveService && (
           <div>
             <SectionHeader
               title={translate("Quotations")}
@@ -1116,13 +1100,13 @@ export default function StatisticDashboard() {
                 </p>
                 <p className="text-slate-400 text-sm mt-1">
                   {[
-                    hasOrg &&
+                    isOrganisationAdmin &&
                       `${graveCount.toLocaleString()} ${translate("Graves")}`,
-                    hasOrg &&
+                    isOrganisationAdmin &&
                       `${deadPersonCount.toLocaleString()} ${translate("Deceased")}`,
-                    hasOrg &&
+                    isOrganisationAdmin &&
                       `${orgCount.toLocaleString()} ${translate("Orgs")}`,
-                    hasTahfiz &&
+                    isTahfizAdmin &&
                       `${tahfizCount.toLocaleString()} ${translate("Tahfiz")}`,
                   ]
                     .filter(Boolean)
@@ -1138,11 +1122,11 @@ export default function StatisticDashboard() {
                 </p>
                 <p className="text-slate-400 text-sm mt-1">
                   {[
-                    (isCanBeDonated || hasTahfiz) &&
+                    (isOrgCanBeDonated || isTahfizAdmin) &&
                       `${formatRM(donationVerified)} ${translate("Donations")}`,
-                    isHasManageMosque &&
+                    isOrgCanManageMosque &&
                       `${formatRM(deathCharityPayout)} ${translate("Khairat")}`,
-                    isGraveServices &&
+                    isOrgGraveService &&
                       `${formatRM(payoutQuo)} ${translate("Quotations")}`,
                   ]
                     .filter(Boolean)

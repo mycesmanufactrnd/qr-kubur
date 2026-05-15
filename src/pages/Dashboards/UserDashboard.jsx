@@ -357,7 +357,8 @@ export default function UserDashboard() {
             {
               icon: Map,
               label: translate("Map"),
-              page: "MapView",
+              // page: "MapView",
+              page: "SubmitSuggestion",
               g: G.sapphire,
             },
           ].map(({ icon: Icon, label, page, g }) => (

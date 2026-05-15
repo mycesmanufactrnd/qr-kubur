@@ -10,14 +10,24 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
 import { STATES_MY } from "@/utils/enums";
-import { showApiError, showError, showSuccess } from "@/components/ToastrNotification";
+import {
+  showApiError,
+  showError,
+  showSuccess,
+} from "@/components/ToastrNotification";
 import { defaultQuickRegisterForm } from "@/utils/defaultformfields";
 import { appendCurrentUserToFormData } from "@/utils";
 
@@ -46,8 +56,10 @@ export default function OrganisationQuickRegister() {
   const isGraveServicesChecked = watch("isgraveservices");
   const isPaymentUploading = Object.values(paymentUploadingFiles).some(Boolean);
 
-  const allowedTypesQuery = trpc.tempOrganisation.getAllowedOrganisationTypes.useQuery();
-  const { data: paymentPlatforms = [] } = trpc.paymentPlatform.getActivePlatform.useQuery();
+  const allowedTypesQuery =
+    trpc.tempOrganisation.getAllowedOrganisationTypes.useQuery();
+  const { data: paymentPlatforms = [] } =
+    trpc.paymentPlatform.getActivePlatform.useQuery();
 
   const paymentFields = paymentPlatforms.flatMap((platform) =>
     (platform.paymentfields ?? []).map((field) => ({
@@ -55,7 +67,7 @@ export default function OrganisationQuickRegister() {
       platformCode: platform.code,
       platformName: platform.name,
       platformId: platform.id,
-    }))
+    })),
   );
 
   const registerMutation = trpc.tempOrganisation.register.useMutation({
@@ -64,7 +76,9 @@ export default function OrganisationQuickRegister() {
       setIsSubmitted(true);
       reset(defaultQuickRegisterForm);
       setServiceEntries([]);
-      Object.values(paymentPreviewUrls).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(paymentPreviewUrls).forEach((url) =>
+        URL.revokeObjectURL(url),
+      );
       setSelectedPaymentPlatforms([]);
       setPaymentConfigValues({});
       setPaymentUploadingFiles({});
@@ -84,7 +98,9 @@ export default function OrganisationQuickRegister() {
 
   useEffect(() => {
     return () => {
-      Object.values(paymentPreviewUrls).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(paymentPreviewUrls).forEach((url) =>
+        URL.revokeObjectURL(url),
+      );
     };
   }, [paymentPreviewUrls]);
 
@@ -123,7 +139,9 @@ export default function OrganisationQuickRegister() {
 
   const updateServiceEntry = (entryId, field, value) => {
     setServiceEntries((prev) =>
-      prev.map((entry) => (entry.id === entryId ? { ...entry, [field]: value } : entry)),
+      prev.map((entry) =>
+        entry.id === entryId ? { ...entry, [field]: value } : entry,
+      ),
     );
   };
 
@@ -140,34 +158,45 @@ export default function OrganisationQuickRegister() {
     });
   };
 
-  const handlePaymentFileUpload = async (platformCode, fieldKey, fieldType, file) => {
+  const handlePaymentFileUpload = async (
+    platformCode,
+    fieldKey,
+    fieldType,
+    file,
+  ) => {
     const uploadKey = `${platformCode}_${fieldKey}`;
     setPaymentUploadingFiles((prev) => ({ ...prev, [uploadKey]: true }));
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
       appendCurrentUserToFormData(formData);
 
-      const res = await fetch('/api/upload/bucket-organisation-config', {
-        method: 'POST',
+      const res = await fetch("/api/upload/bucket-organisation-config", {
+        method: "POST",
         body: formData,
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        showError(errorData.error || 'Failed to upload photo');
+        showError(errorData.error || "Failed to upload photo");
         return;
       }
 
       const data = await res.json();
 
-      setPaymentConfigValues((prev) => ({ ...prev, [uploadKey]: data.file_url }));
-      setPaymentPreviewUrls((prev) => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
-      showSuccess('Photo uploaded');
+      setPaymentConfigValues((prev) => ({
+        ...prev,
+        [uploadKey]: data.file_url,
+      }));
+      setPaymentPreviewUrls((prev) => ({
+        ...prev,
+        [uploadKey]: URL.createObjectURL(file),
+      }));
+      showSuccess("Photo uploaded");
     } catch (err) {
       console.error("Fetch error:", err);
-      showError('Failed To Upload File');
+      showError("Failed To Upload File");
     } finally {
       setPaymentUploadingFiles((prev) => ({ ...prev, [uploadKey]: false }));
     }
@@ -176,14 +205,17 @@ export default function OrganisationQuickRegister() {
   const validatePaymentConfig = () => {
     for (const platformCode of selectedPaymentPlatforms) {
       const fields = paymentFields.filter(
-        (field) => field.platformCode === platformCode && field.required
+        (field) => field.platformCode === platformCode && field.required,
       );
       for (const field of fields) {
         const value = paymentConfigValues[`${platformCode}_${field.key}`];
-        if (!value || value.trim() === '') {
+        if (!value || value.trim() === "") {
           const platformName =
-            paymentPlatforms.find((p) => p?.code === platformCode)?.name || 'platform';
-          showError(`${field.label || field.key} is required for ${platformName}`);
+            paymentPlatforms.find((p) => p?.code === platformCode)?.name ||
+            "platform";
+          showError(
+            `${field.label || field.key} is required for ${platformName}`,
+          );
           return false;
         }
       }
@@ -193,7 +225,9 @@ export default function OrganisationQuickRegister() {
 
   const buildPaymentConfigDraft = () => {
     const configs = selectedPaymentPlatforms.flatMap((platformCode) => {
-      const fields = paymentFields.filter((field) => field.platformCode === platformCode);
+      const fields = paymentFields.filter(
+        (field) => field.platformCode === platformCode,
+      );
       return fields
         .map((field) => {
           const value = paymentConfigValues[`${platformCode}_${field.key}`];
@@ -214,16 +248,17 @@ export default function OrganisationQuickRegister() {
 
   const renderPaymentField = (platform, field) => {
     const fieldId = `${platform.code}_${field.key}`;
-    const value = paymentConfigValues[fieldId] || '';
+    const value = paymentConfigValues[fieldId] || "";
     const isUploading = paymentUploadingFiles[fieldId];
 
     switch (field.fieldtype) {
-      case 'image': {
+      case "image": {
         const previewSrc = paymentPreviewUrls[fieldId] || value;
         return (
           <div>
             <Label>
-              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+              {field.label || field.key}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </Label>
             <div className="flex items-center gap-2">
               <Input
@@ -232,49 +267,70 @@ export default function OrganisationQuickRegister() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  handlePaymentFileUpload(platform.code, field.key, field.fieldtype, file);
+                  handlePaymentFileUpload(
+                    platform.code,
+                    field.key,
+                    field.fieldtype,
+                    file,
+                  );
                 }}
                 disabled={isUploading}
               />
-              {isUploading && <span className="text-sm text-gray-500 dark:text-slate-400">{translate('Uploading...')}</span>}
+              {isUploading && (
+                <span className="text-sm text-gray-500 dark:text-slate-400">
+                  {translate("Uploading...")}
+                </span>
+              )}
             </div>
             {previewSrc && (
-              <img src={previewSrc} alt="Preview" className="mt-2 h-20 rounded border" />
+              <img
+                src={previewSrc}
+                alt="Preview"
+                className="mt-2 h-20 rounded border"
+              />
             )}
           </div>
         );
       }
-      case 'textarea':
+      case "textarea":
         return (
           <div>
             <Label htmlFor={fieldId}>
-              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+              {field.label || field.key}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </Label>
             <Textarea
               id={fieldId}
               value={value}
               onChange={(e) =>
-                setPaymentConfigValues((prev) => ({ ...prev, [fieldId]: e.target.value }))
+                setPaymentConfigValues((prev) => ({
+                  ...prev,
+                  [fieldId]: e.target.value,
+                }))
               }
               placeholder={field.placeholder}
             />
           </div>
         );
-      case 'url':
-      case 'text':
-      case 'password':
+      case "url":
+      case "text":
+      case "password":
       default:
         return (
           <div>
             <Label htmlFor={fieldId}>
-              {field.label || field.key} {field.required && <span className="text-red-500">*</span>}
+              {field.label || field.key}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </Label>
             <Input
               id={fieldId}
-              type={field.fieldtype === 'password' ? 'password' : 'text'}
+              type={field.fieldtype === "password" ? "password" : "text"}
               value={value}
               onChange={(e) =>
-                setPaymentConfigValues((prev) => ({ ...prev, [fieldId]: e.target.value }))
+                setPaymentConfigValues((prev) => ({
+                  ...prev,
+                  [fieldId]: e.target.value,
+                }))
               }
               placeholder={field.placeholder}
             />
@@ -300,8 +356,6 @@ export default function OrganisationQuickRegister() {
       url: formData.url || null,
       latitude: formData.latitude ? Number(formData.latitude) : null,
       longitude: formData.longitude ? Number(formData.longitude) : null,
-      canbedonated: !!formData.canbedonated,
-      canmanagemosque: !!formData.canmanagemosque,
       isgraveservices: !!formData.isgraveservices,
       serviceoffered: formData.isgraveservices ? serviceoffered : [],
       serviceprice: formData.isgraveservices ? serviceprice : {},
@@ -454,42 +508,31 @@ export default function OrganisationQuickRegister() {
                 </div>
               </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    if (!navigator.geolocation) return;
-                    setIsLocating(true);
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => {
-                        setValue("latitude", pos.coords.latitude.toFixed(16));
-                        setValue("longitude", pos.coords.longitude.toFixed(16));
-                        setIsLocating(false);
-                      },
-                      () => {
-                        setIsLocating(false);
-                      },
-                    );
-                  }}
-                  disabled={isLocating}
-                >
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {isLocating
-                    ? translate("Getting location...")
-                    : translate("Get Current Location")}
-                </Button>
-              
-              <CheckboxForm
-                name="canmanagemosque"
-                control={control}
-                label={translate("Can Manage Mosque")}
-              />
-              <CheckboxForm
-                name="canbedonated"
-                control={control}
-                label={translate("Can Be Donated")}
-              />           
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  setIsLocating(true);
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setValue("latitude", pos.coords.latitude.toFixed(16));
+                      setValue("longitude", pos.coords.longitude.toFixed(16));
+                      setIsLocating(false);
+                    },
+                    () => {
+                      setIsLocating(false);
+                    },
+                  );
+                }}
+                disabled={isLocating}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                {isLocating
+                  ? translate("Getting location...")
+                  : translate("Get Current Location")}
+              </Button>
               <CheckboxForm
                 name="isgraveservices"
                 control={control}
@@ -519,7 +562,6 @@ export default function OrganisationQuickRegister() {
                       className="space-y-1 sm:grid sm:grid-cols-12 sm:items-center sm:gap-2"
                     >
                       <div className="flex gap-2 sm:contents">
-
                         <div className="flex-1 space-y-1 sm:col-span-7">
                           <Label className="text-xs text-slate-500">
                             {translate("Service Name")}
@@ -528,7 +570,11 @@ export default function OrganisationQuickRegister() {
                             placeholder={translate("Service Name")}
                             value={entry.service}
                             onChange={(e) =>
-                              updateServiceEntry(entry.id, "service", e.target.value)
+                              updateServiceEntry(
+                                entry.id,
+                                "service",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
@@ -543,7 +589,11 @@ export default function OrganisationQuickRegister() {
                             placeholder="RM 0.00"
                             value={entry.price}
                             onChange={(e) =>
-                              updateServiceEntry(entry.id, "price", e.target.value)
+                              updateServiceEntry(
+                                entry.id,
+                                "price",
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
@@ -557,7 +607,6 @@ export default function OrganisationQuickRegister() {
                         >
                           <X className="w-4 h-4" />
                         </Button>
-
                       </div>
                     </div>
                   ))}
@@ -568,46 +617,62 @@ export default function OrganisationQuickRegister() {
 
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 border-b dark:border-slate-700 pb-2">
-                  {translate('Payment Config')}
+                  {translate("Payment Config")}
                 </h3>
                 <div>
                   <Label className="text-base font-semibold mb-3 block">
-                    {translate('Select Payment Platforms')}
+                    {translate("Select Payment Platforms")}
                   </Label>
                   <div className="grid gap-3">
-                    {paymentPlatforms.filter(p => p?.code).map(platform => (
-                      <Label
-                        key={platform.code}
-                        className="flex items-center gap-3 p-3 rounded border dark:border-slate-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700"
-                      >
-                        <Checkbox
-                          checked={selectedPaymentPlatforms.includes(platform.code)}
-                          onCheckedChange={() => togglePaymentPlatform(platform.code)}
-                        />
-                        <div>
-                          <span className="font-medium">{platform.name}</span>
-                          <Badge variant="secondary" className="ml-2 capitalize text-xs">
-                            {platform.category}
-                          </Badge>
-                        </div>
-                      </Label>
-                    ))}
+                    {paymentPlatforms
+                      .filter((p) => p?.code)
+                      .map((platform) => (
+                        <Label
+                          key={platform.code}
+                          className="flex items-center gap-3 p-3 rounded border dark:border-slate-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700"
+                        >
+                          <Checkbox
+                            checked={selectedPaymentPlatforms.includes(
+                              platform.code,
+                            )}
+                            onCheckedChange={() =>
+                              togglePaymentPlatform(platform.code)
+                            }
+                          />
+                          <div>
+                            <span className="font-medium">{platform.name}</span>
+                            <Badge
+                              variant="secondary"
+                              className="ml-2 capitalize text-xs"
+                            >
+                              {platform.category}
+                            </Badge>
+                          </div>
+                        </Label>
+                      ))}
                   </div>
                 </div>
 
-                {selectedPaymentPlatforms.map(platformCode => {
-                  const platform = paymentPlatforms.find(p => p?.code === platformCode);
-                  const fields = paymentFields.filter(f => f?.platformCode === platformCode);
+                {selectedPaymentPlatforms.map((platformCode) => {
+                  const platform = paymentPlatforms.find(
+                    (p) => p?.code === platformCode,
+                  );
+                  const fields = paymentFields.filter(
+                    (f) => f?.platformCode === platformCode,
+                  );
 
                   if (!platform || fields.length === 0) return null;
 
                   return (
-                    <div key={platformCode} className="border dark:border-slate-700 rounded-lg p-4 bg-gray-50 dark:bg-slate-800">
+                    <div
+                      key={platformCode}
+                      className="border dark:border-slate-700 rounded-lg p-4 bg-gray-50 dark:bg-slate-800"
+                    >
                       <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        {platform.name} {translate('config')}
+                        {platform.name} {translate("config")}
                       </h3>
                       <div className="space-y-4">
-                        {fields.map(field => (
+                        {fields.map((field) => (
                           <div key={field.id}>
                             {renderPaymentField(platform, field)}
                           </div>
@@ -642,13 +707,21 @@ export default function OrganisationQuickRegister() {
                 />
               </div>
 
-              <TextInputForm
-                name="contactemail"
-                control={control}
-                label={translate("Username")}
-                required
-                errors={errors}
-              />
+              <div className="space-y-1">
+                <TextInputForm
+                  name="contactemail"
+                  control={control}
+                  label={`${translate("Username")} / ${translate("Email")}`}
+                  required
+                  errors={errors}
+                />
+
+                <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
+                  {translate(
+                    "This username will be used to log in. You can use your email address.",
+                  )}
+                </div>
+              </div>
 
               <Button
                 type="submit"
@@ -667,17 +740,22 @@ export default function OrganisationQuickRegister() {
           </CardContent>
         </Card>
 
-        <Dialog open={agreementOpen} onOpenChange={(open) => (!open ? handleAgreementClose() : null)}>
-          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[80vh] overflow-y-auto">            
+        <Dialog
+          open={agreementOpen}
+          onOpenChange={(open) => (!open ? handleAgreementClose() : null)}
+        >
+          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{translate("Service Agreement")}</DialogTitle>
             </DialogHeader>
-            <AgreeServiceTerms/>
+            <AgreeServiceTerms />
             <div className="pt-2">
               <CheckboxForm
                 name="agreeServiceTerms"
                 control={control}
-                label={translate("I agree to the 95:5 service payout agreement")}
+                label={translate(
+                  "I agree to the 95:5 service payout agreement",
+                )}
               />
             </div>
             <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-2">

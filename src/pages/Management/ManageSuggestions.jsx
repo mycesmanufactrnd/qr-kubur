@@ -174,6 +174,7 @@ export default function ManageSuggestions() {
                 <TableHead>{translate('Name')}</TableHead>
                 <TableHead className="text-center">{translate('Phone No.')}</TableHead>
                 <TableHead className="text-center">{translate('Suggestion Type')}</TableHead>
+                <TableHead className="text-center">{translate('Related Record')}</TableHead>
                 <TableHead className="text-center">{translate('Suggestion')}</TableHead>
                 <TableHead className="text-center">{translate('Status')}</TableHead>
                 <TableHead className="text-center">{translate('Date')}</TableHead>
@@ -182,9 +183,9 @@ export default function ManageSuggestions() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={7}/>
+                <InlineLoadingComponent isTable={true} colSpan={8}/>
               ) : suggestions.items.length === 0 ? (
-                <NoDataTableComponent colSpan={7}/>
+                <NoDataTableComponent colSpan={8}/>
               ) : (
                 suggestions.items.map(suggestion => (
                   <TableRow key={suggestion.id}>
@@ -194,6 +195,18 @@ export default function ManageSuggestions() {
                       <Badge variant="outline">
                         {getEntityTypeLabel(suggestion.type)}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-center text-xs text-gray-600 dark:text-gray-400">
+                      {suggestion.deadperson?.name && (
+                        <div className="font-medium">{suggestion.deadperson.name}</div>
+                      )}
+                      {suggestion.grave?.name && (
+                        <div className="text-gray-400 dark:text-gray-500">{suggestion.grave.name}</div>
+                      )}
+                      {suggestion.organisation?.name && (
+                        <div className="text-gray-400 dark:text-gray-500">{suggestion.organisation.name}</div>
+                      )}
+                      {!suggestion.deadperson && !suggestion.grave && !suggestion.organisation && '—'}
                     </TableCell>
                     <TableCell className="max-w-xs truncate text-center">
                       {suggestion.suggestedchanges?.substring(0, 50)}...
@@ -207,9 +220,9 @@ export default function ManageSuggestions() {
                         <CheckCircle className="w-4 h-4" />
                       </Button>
                       { canDelete && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleDelete(suggestion)}
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
@@ -244,10 +257,48 @@ export default function ManageSuggestions() {
           </DialogHeader>
           {selectedSuggestion && (
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Name')}</p>
+                  <p className="font-semibold dark:text-white">{selectedSuggestion.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Phone No.')}</p>
+                  <p className="font-semibold dark:text-white">{selectedSuggestion.phoneno}</p>
+                </div>
+                {selectedSuggestion.email && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Email')}</p>
+                    <p className="font-semibold dark:text-white">{selectedSuggestion.email}</p>
+                  </div>
+                )}
+              </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Suggestion Type')}</p>
                 <p className="font-semibold dark:text-white">{getEntityTypeLabel(selectedSuggestion.type)}</p>
               </div>
+              {(selectedSuggestion.organisation || selectedSuggestion.grave || selectedSuggestion.deadperson) && (
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-1">
+                  {selectedSuggestion.organisation?.name && (
+                    <div className="flex gap-2 text-sm">
+                      <span className="text-gray-400 dark:text-gray-500 min-w-[90px]">{translate('Organisation')}:</span>
+                      <span className="font-medium dark:text-gray-200">{selectedSuggestion.organisation.name}</span>
+                    </div>
+                  )}
+                  {selectedSuggestion.grave?.name && (
+                    <div className="flex gap-2 text-sm">
+                      <span className="text-gray-400 dark:text-gray-500 min-w-[90px]">{translate('Grave')}:</span>
+                      <span className="font-medium dark:text-gray-200">{selectedSuggestion.grave.name}</span>
+                    </div>
+                  )}
+                  {selectedSuggestion.deadperson?.name && (
+                    <div className="flex gap-2 text-sm">
+                      <span className="text-gray-400 dark:text-gray-500 min-w-[90px]">{translate('Deceased')}:</span>
+                      <span className="font-medium dark:text-gray-200">{selectedSuggestion.deadperson.name}</span>
+                    </div>
+                  )}
+                </div>
+              )}
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{translate('Suggested Changes')}</p>
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mt-1">

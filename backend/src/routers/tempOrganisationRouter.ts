@@ -106,8 +106,6 @@ export const tempOrganisationRouter = router({
         url: input.url?.trim() || undefined,
         latitude: input.latitude ?? undefined,
         longitude: input.longitude ?? undefined,
-        canbedonated: !!input.canbedonated,
-        canmanagemosque: !!input.canmanagemosque,
         isgraveservices: !!input.isgraveservices,
         serviceoffered: input.isgraveservices
           ? normalizedServices.serviceoffered
@@ -157,7 +155,53 @@ export const tempOrganisationRouter = router({
         .orderBy("temporganisation.createdat", "DESC")
         .getManyAndCount();
 
-      return { items, total };
+      const userIds = [
+        ...new Set(
+          items.flatMap((item) =>
+            [item.reviewedbyuserid, item.approvedadminuserid].filter(
+              (id): id is number => id != null,
+            ),
+          ),
+        ),
+      ];
+
+      const orgIds = [
+        ...new Set(
+          items
+            .map((item) => item.approvedorganisationid)
+            .filter((id): id is number => id != null),
+        ),
+      ];
+
+      const userRepo = AppDataSource.getRepository(User);
+      const orgRepo = AppDataSource.getRepository(Organisation);
+
+      const [users, orgs] = await Promise.all([
+        userIds.length > 0
+          ? userRepo.findByIds(userIds)
+          : Promise.resolve([]),
+        orgIds.length > 0
+          ? orgRepo.findByIds(orgIds)
+          : Promise.resolve([]),
+      ]);
+
+      const userMap = new Map(users.map((u) => [u.id, u.fullname]));
+      const orgMap = new Map(orgs.map((o) => [o.id, o.name]));
+
+      const enrichedItems = items.map((item) => ({
+        ...item,
+        reviewedbyusername: item.reviewedbyuserid != null
+          ? (userMap.get(item.reviewedbyuserid) ?? null)
+          : null,
+        approvedorganisationname: item.approvedorganisationid != null
+          ? (orgMap.get(item.approvedorganisationid) ?? null)
+          : null,
+        approvedadminusername: item.approvedadminuserid != null
+          ? (userMap.get(item.approvedadminuserid) ?? null)
+          : null,
+      }));
+
+      return { items: enrichedItems, total };
     }),
 
   review: adminProcedure
@@ -233,6 +277,7 @@ export const tempOrganisationRouter = router({
         const existingUser = await userRepo.findOne({
           where: { email: adminEmail },
         });
+        
         if (existingUser) {
           throw new TRPCError({
             code: "CONFLICT",
@@ -250,8 +295,6 @@ export const tempOrganisationRouter = router({
           url: tempOrganisation.url ?? undefined,
           latitude: tempOrganisation.latitude ?? undefined,
           longitude: tempOrganisation.longitude ?? undefined,
-          canbedonated: !!tempOrganisation.canbedonated,
-          canmanagemosque: !!tempOrganisation.canmanagemosque,
           isgraveservices: !!tempOrganisation.isgraveservices,
           status: tempOrganisation.status ?? ActiveInactiveStatus.ACTIVE,
         });
@@ -321,6 +364,7 @@ export const tempOrganisationRouter = router({
             organisation: savedOrganisation,
           }),
         );
+        
         await permissionRepo.save(defaultPermissions);
 
         tempOrganisation.approvalstatus = ApprovalStatus.APPROVED;

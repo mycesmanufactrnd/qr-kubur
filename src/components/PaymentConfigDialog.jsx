@@ -260,7 +260,7 @@ export default function PaymentConfigDialog({
                 }}
                 disabled={isUploading}
               />
-              {isUploading && <span className="text-sm text-gray-500">translate('uploading...')</span>}
+              {isUploading && <span className="text-sm text-gray-500 dark:text-gray-400">translate('uploading...')</span>}
             </div>
             {previewSrc && (
               <img src={previewSrc} alt="Preview" className="mt-2 h-20 rounded border" />
@@ -317,9 +317,9 @@ export default function PaymentConfigDialog({
             <Label className="text-base font-semibold mb-3 block">{translate('Select Payment Platforms')}</Label>
             <div className="grid gap-3">
               {platforms.filter(p => p?.code).map(platform => (
-                <Label 
+                <Label
                   key={platform.code}
-                  className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
+                  className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                 >
                   <Checkbox
                     checked={selectedPlatforms.includes(platform.code)}
@@ -343,7 +343,7 @@ export default function PaymentConfigDialog({
             if (!platform || fields.length === 0) return null;
 
             return (
-              <div key={platformCode} className="border rounded-lg p-4 bg-gray-50">
+              <div key={platformCode} className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   {platform.name} {translate('config')}
                 </h3>

@@ -19,9 +19,9 @@ import BackNavigation from "@/components/BackNavigation";
 
 const ALL_TABS = [
   { key: "donations", label: "Donations" },
-  { key: "tahlils", label: "Tahlil", adminHidden: true },
-  { key: "deathCharityPayments", label: "Death Charity", tahfizHidden: true },
-  { key: "quotations", label: "Quotations", tahfizHidden: true },
+  { key: "tahlils", label: "Tahlil" },
+  { key: "deathCharityPayments", label: "Death Charity" },
+  { key: "quotations", label: "Quotations" },
 ];
 
 const TAB_META = {
@@ -149,8 +149,16 @@ function exportToCSV({
 }
 
 export default function FinancialReports() {
-  const { loadingUser, hasAdminAccess, isTahfizAdmin, isAdmin, currentUser } =
-    useAdminAccess();
+  const {
+    loadingUser,
+    hasAdminAccess,
+    isTahfizAdmin,
+    isOrganisationAdmin,
+    isOrgCanManageMosque,
+    isOrgGraveService,
+    isOrgCanBeDonated,
+    currentUser,
+  } = useAdminAccess();
   const { loading: permissionsLoading, canView } =
     useCrudPermissions("financial_reports");
 
@@ -161,26 +169,25 @@ export default function FinancialReports() {
   const [activeTab, setActiveTab] = useState("donations");
 
   const enabled = !!currentUser?.id && !loadingUser;
-  // Pure tahfiz admin (no org role): donations + tahlils only
-  // Pure org admin (no tahfiz role): donations + deathCharity + quotations only
-  // Both roles (e.g. superadmin): all tabs
-  const TABS = ALL_TABS.filter((t) => {
-    if (t.tahfizHidden && isTahfizAdmin && !isAdmin) return false;
-    if (t.adminHidden && isAdmin && !isTahfizAdmin) return false;
-    return true;
+  const TABS = ALL_TABS.filter(({ key }) => {
+    if (key === "donations") return isOrgCanBeDonated || isTahfizAdmin;
+    if (key === "tahlils") return isTahfizAdmin;
+    if (key === "deathCharityPayments") return isOrgCanManageMosque;
+    if (key === "quotations") return isOrgGraveService;
+    return false;
   });
 
   useEffect(() => {
     if (TABS.length > 0 && !TABS.find((t) => t.key === activeTab)) {
       setActiveTab(TABS[0].key);
     }
-  }, [isTahfizAdmin, isAdmin]);
+  }, [isTahfizAdmin, isOrganisationAdmin, isOrgCanBeDonated, isOrgCanManageMosque, isOrgGraveService]);
 
   const { data, isLoading } = trpc.financialReport.getByReferenceNo.useQuery(
     {
       year,
       month,
-      checkRole: { admin: !!isAdmin, tahfiz: !!isTahfizAdmin },
+      checkRole: { admin: !!isOrganisationAdmin, tahfiz: !!isTahfizAdmin },
       currentUser: {
         id: currentUser?.id ?? 0,
         organisation: currentUser?.organisation?.id
@@ -217,11 +224,10 @@ export default function FinancialReports() {
     0,
   );
   const grandTotal =
-    isTahfizAdmin && !isAdmin
-      ? totalDonations + totalTahlil
-      : isAdmin && !isTahfizAdmin
-        ? totalDonations + totalDeathCharity + totalQuotations
-        : totalDonations + totalTahlil + totalDeathCharity + totalQuotations;
+    (isOrgCanBeDonated || isTahfizAdmin ? totalDonations : 0) +
+    (isTahfizAdmin ? totalTahlil : 0) +
+    (isOrgCanManageMosque ? totalDeathCharity : 0) +
+    (isOrgGraveService ? totalQuotations : 0);
 
   if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
@@ -247,7 +253,6 @@ export default function FinancialReports() {
       count: tahlils.length,
       color: "#2563eb",
       icon: "💙",
-      adminHidden: true,
     },
     {
       key: "deathCharityPayments",
@@ -256,7 +261,6 @@ export default function FinancialReports() {
       count: deathCharityPayments.length,
       color: "#d97706",
       icon: "🧡",
-      tahfizHidden: true,
     },
     {
       key: "quotations",
@@ -265,14 +269,15 @@ export default function FinancialReports() {
       count: quotations.length,
       color: "#7c3aed",
       icon: "💜",
-      tahfizHidden: true,
     },
   ];
 
-  const summaryCards = allSummaryCards.filter((c) => {
-    if (c.tahfizHidden && isTahfizAdmin && !isAdmin) return false;
-    if (c.adminHidden && isAdmin && !isTahfizAdmin) return false;
-    return true;
+  const summaryCards = allSummaryCards.filter(({ key }) => {
+    if (key === "donations") return isOrgCanBeDonated || isTahfizAdmin;
+    if (key === "tahlils") return isTahfizAdmin;
+    if (key === "deathCharityPayments") return isOrgCanManageMosque;
+    if (key === "quotations") return isOrgGraveService;
+    return false;
   });
 
   if (!canView) {

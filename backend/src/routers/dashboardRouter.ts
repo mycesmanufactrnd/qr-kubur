@@ -23,8 +23,8 @@ import {
 } from "../db/enums.ts";
 
 export const dashboardRouter = router({
-  // OGDS: Organisations, Graves, DeadPerson, Suggestion
-  getOGDSAdminStates: protectedProcedure
+  // OS: Organisations,Suggestion
+  getOSAdminStates: protectedProcedure
     .input(
       z.object({
         currentUserOrganisation: z.number().optional().nullable(),
@@ -35,15 +35,11 @@ export const dashboardRouter = router({
       const { isSuperAdmin, currentUserOrganisation } = input;
 
       const organisationRepo = AppDataSource.getRepository(Organisation);
-      const graveRepo = AppDataSource.getRepository(Grave);
-      const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
       const suggestionRepo = AppDataSource.getRepository(Suggestion);
 
       if (isSuperAdmin) {
         return {
           organisationCount: await organisationRepo.count(),
-          graveCount: await graveRepo.count(),
-          deadPersonCount: await deadPersonRepo.count(),
           suggestionCount: await suggestionRepo.count(),
         };
       }
@@ -51,8 +47,6 @@ export const dashboardRouter = router({
       if (!currentUserOrganisation) {
         return {
           organisationCount: 0,
-          graveCount: 0,
-          deadPersonCount: 0,
           suggestionCount: 0,
         };
       }
@@ -66,54 +60,98 @@ export const dashboardRouter = router({
         )
         .getRawMany();
 
-      const organisationIds = organisations.map((organisation) => organisation.id);
+      const organisationIds = organisations.map(
+        (organisation) => organisation.id,
+      );
 
       if (!organisationIds.length) {
         return {
           organisationCount: 0,
-          graveCount: 0,
-          deadPersonCount: 0,
           suggestionCount: 0,
         };
       }
 
-      const graves = await graveRepo
-        .createQueryBuilder("grave")
-        .select("grave.id", "id")
-        .where("grave.organisationId IN (:...ids)", { ids: organisationIds })
+      const suggestions = await suggestionRepo
+        .createQueryBuilder("suggestion")
+        .select("suggestion.id", "id")
+        .where("suggestion.graveId IN (:...ids)", {
+          ids: [currentUserOrganisation],
+        })
         .getRawMany();
-
-      const graveIds = graves.map((grave) => grave.id);
-
-      if (!graveIds.length) {
-        return {
-          organisationCount: organisationIds.length,
-          graveCount: 0,
-          deadPersonCount: 0,
-          suggestionCount: 0,
-        };
-      }
-
-      const [deadPersons, suggestions] = await Promise.all([
-        deadPersonRepo
-          .createQueryBuilder("deadperson")
-          .select("deadperson.id", "id")
-          .where("deadperson.graveId IN (:...ids)", { ids: graveIds })
-          .getRawMany(),
-
-        suggestionRepo
-          .createQueryBuilder("suggestion")
-          .select("suggestion.id", "id")
-          .where("suggestion.graveId IN (:...ids)", { ids: graveIds })
-          .getRawMany(),
-      ]);
 
       return {
         organisationCount: organisationIds.length,
-        graveCount: graveIds.length,
-        deadPersonCount: deadPersons.length,
         suggestionCount: suggestions.length,
       };
+    }),
+
+  // GD: Graves, DeadPerson
+  getGDAdminStates: protectedProcedure
+    .input(
+      z.object({
+        currentUserOrganisation: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().optional().default(false),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { isSuperAdmin, currentUserOrganisation } = input;
+
+      const organisationRepo = AppDataSource.getRepository(Organisation);
+      const graveRepo = AppDataSource.getRepository(Grave);
+      const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
+
+      // Super Admin → count everything
+      if (isSuperAdmin) {
+        const [graveCount, deadPersonCount] = await Promise.all([
+          graveRepo.count(),
+          deadPersonRepo.count(),
+        ]);
+
+        return { graveCount, deadPersonCount };
+      }
+
+      if (!currentUserOrganisation) {
+        return { graveCount: 0, deadPersonCount: 0 };
+      }
+
+      // Get organisation IDs (self + children)
+      const organisations = await organisationRepo
+        .createQueryBuilder("organisation")
+        .select("organisation.id", "id")
+        .where(
+          "organisation.id = :id OR organisation.parentorganisation = :id",
+          { id: currentUserOrganisation },
+        )
+        .getRawMany();
+
+      const organisationIds = organisations.map((o) => o.id);
+
+      if (!organisationIds.length) {
+        return { graveCount: 0, deadPersonCount: 0 };
+      }
+
+      // Count graves directly (no fetching rows)
+      const graveCount = await graveRepo
+        .createQueryBuilder("grave")
+        .where("grave.organisationId IN (:...ids)", { ids: organisationIds })
+        .getCount();
+
+      if (!graveCount) {
+        return { graveCount: 0, deadPersonCount: 0 };
+      }
+
+      // Count dead persons using subquery (no graveIds array needed)
+      const deadPersonCount = await deadPersonRepo
+        .createQueryBuilder("deadperson")
+        .innerJoin(
+          "deadperson.grave",
+          "grave",
+          "grave.organisationId IN (:...ids)",
+          { ids: organisationIds },
+        )
+        .getCount();
+
+      return { graveCount, deadPersonCount };
     }),
 
   // TTR: Tahfiz, Tahlil Request
@@ -358,7 +396,7 @@ export const dashboardRouter = router({
       };
     }),
 
-  // FOr Statistic
+  // For Statistic
   // Chart: all time-series + distribution data for StatisticDashboard
   getStatisticChartData: protectedProcedure
     .input(
@@ -371,7 +409,13 @@ export const dashboardRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const { year, currentUserOrganisation, currentUserTahfiz, hasOrg, hasTahfiz } = input;
+      const {
+        year,
+        currentUserOrganisation,
+        currentUserTahfiz,
+        hasOrg,
+        hasTahfiz,
+      } = input;
 
       const graveRepo = AppDataSource.getRepository(Grave);
       const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
@@ -396,9 +440,12 @@ export const dashboardRouter = router({
         const organisations = await AppDataSource.getRepository(Organisation)
           .createQueryBuilder("organisation")
           .select("organisation.id", "id")
-          .where("organisation.id = :id OR organisation.parentorganisation = :id", {
-            id: currentUserOrganisation,
-          })
+          .where(
+            "organisation.id = :id OR organisation.parentorganisation = :id",
+            {
+              id: currentUserOrganisation,
+            },
+          )
           .getRawMany();
 
         orgIds = organisations.map((organisation) => organisation.id);
@@ -414,7 +461,8 @@ export const dashboardRouter = router({
       }
 
       // --- Monthly Graves Added ---
-      let monthlyGraves: { month: number; count: number; amount: number }[] = fillMonths([]);
+      let monthlyGraves: { month: number; count: number; amount: number }[] =
+        fillMonths([]);
       if (hasOrg && orgIds.length) {
         const rows = await graveRepo
           .createQueryBuilder("grave")
@@ -432,7 +480,11 @@ export const dashboardRouter = router({
       }
 
       // --- Monthly Deceased Added ---
-      let monthlyDeadPersons: { month: number; count: number; amount: number }[] = fillMonths([]);
+      let monthlyDeadPersons: {
+        month: number;
+        count: number;
+        amount: number;
+      }[] = fillMonths([]);
       if (hasOrg && graveIds.length) {
         const rows = await deadPersonRepo
           .createQueryBuilder("deathperson")
@@ -450,11 +502,14 @@ export const dashboardRouter = router({
       }
 
       // --- Monthly Donations ---
-      let monthlyDonations: { month: number; count: number; amount: number }[] = fillMonths([]);
+      let monthlyDonations: { month: number; count: number; amount: number }[] =
+        fillMonths([]);
       if (hasOrg || hasTahfiz) {
         const conditions: string[] = [];
-        if (currentUserOrganisation) conditions.push("donation.organisationId = :orgId");
-        if (currentUserTahfiz) conditions.push("donation.tahfizcenterId = :tahfizId");
+        if (currentUserOrganisation)
+          conditions.push("donation.organisationId = :orgId");
+        if (currentUserTahfiz)
+          conditions.push("donation.tahfizcenterId = :tahfizId");
 
         if (conditions.length) {
           const rows = await donationRepo
@@ -481,14 +536,17 @@ export const dashboardRouter = router({
       }
 
       // --- Monthly Tahlil Requests ---
-      let monthlyTahlil: { month: number; count: number; amount: number }[] = fillMonths([]);
+      let monthlyTahlil: { month: number; count: number; amount: number }[] =
+        fillMonths([]);
       if (hasTahfiz && currentUserTahfiz) {
         const rows = await tahlilRepo
           .createQueryBuilder("tahlil")
           .select("EXTRACT(MONTH FROM tahlil.createdat)::int", "month")
           .addSelect("COUNT(*)", "count")
           .where("EXTRACT(YEAR FROM tahlil.createdat) = :year", { year })
-          .andWhere("tahlil.tahfizcenterId = :tahfizId", { tahfizId: currentUserTahfiz })
+          .andWhere("tahlil.tahfizcenterId = :tahfizId", {
+            tahfizId: currentUserTahfiz,
+          })
           .groupBy("month")
           .orderBy("month")
           .getRawMany();
@@ -518,11 +576,17 @@ export const dashboardRouter = router({
       }
 
       // --- Donation status breakdown ---
-      let donationsByStatus: { status: string; count: number; amount: number }[] = [];
+      let donationsByStatus: {
+        status: string;
+        count: number;
+        amount: number;
+      }[] = [];
       if (hasOrg || hasTahfiz) {
         const conditions: string[] = [];
-        if (currentUserOrganisation) conditions.push("donation.organisationId = :orgId");
-        if (currentUserTahfiz) conditions.push("donation.tahfizcenterId = :tahfizId");
+        if (currentUserOrganisation)
+          conditions.push("donation.organisationId = :orgId");
+        if (currentUserTahfiz)
+          conditions.push("donation.tahfizcenterId = :tahfizId");
 
         if (conditions.length) {
           const rows = await donationRepo
@@ -572,9 +636,12 @@ export const dashboardRouter = router({
       const orgRepo = AppDataSource.getRepository(Organisation);
       const qb = orgRepo
         .createQueryBuilder("organisation")
-        .where("organisation.id = :id OR organisation.parentorganisation = :id", {
-          id: currentUserOrganisation,
-        })
+        .where(
+          "organisation.id = :id OR organisation.parentorganisation = :id",
+          {
+            id: currentUserOrganisation,
+          },
+        )
         .orderBy("organisation.name", "ASC");
 
       const total = await qb.getCount();
@@ -612,9 +679,12 @@ export const dashboardRouter = router({
       const organisations = await orgRepo
         .createQueryBuilder("organisation")
         .select("organisation.id", "id")
-        .where("organisation.id = :id OR organisation.parentorganisation = :id", {
-          id: currentUserOrganisation,
-        })
+        .where(
+          "organisation.id = :id OR organisation.parentorganisation = :id",
+          {
+            id: currentUserOrganisation,
+          },
+        )
         .getRawMany();
       const orgIds = organisations.map((organisation) => organisation.id);
       if (!orgIds.length) return { items: [], total: 0 };
@@ -670,8 +740,10 @@ export const dashboardRouter = router({
       if (!hasOrg && !hasTahfiz) return { items: [], total: 0 };
 
       const conditions: string[] = [];
-      if (currentUserOrganisation) conditions.push("donation.organisationId = :orgId");
-      if (currentUserTahfiz) conditions.push("donation.tahfizcenterId = :tahfizId");
+      if (currentUserOrganisation)
+        conditions.push("donation.organisationId = :orgId");
+      if (currentUserTahfiz)
+        conditions.push("donation.tahfizcenterId = :tahfizId");
       if (!conditions.length) return { items: [], total: 0 };
 
       const donationRepo = AppDataSource.getRepository(Donation);
@@ -697,7 +769,8 @@ export const dashboardRouter = router({
           donorname: donation.donorname ?? null,
           amount: Number(donation.amount ?? 0),
           status: donation.status,
-          source: donation.organisation?.name ?? donation.tahfizcenter?.name ?? null,
+          source:
+            donation.organisation?.name ?? donation.tahfizcenter?.name ?? null,
           sourceType: donation.organisation ? "org" : "tahfiz",
           createdat: donation.createdat,
         })),

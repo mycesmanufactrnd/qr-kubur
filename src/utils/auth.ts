@@ -321,9 +321,9 @@ export function useAdminAccess() {
   const isTahfizAdmin = isAdmin && !!currentUser?.tahfizcenter?.id;
   const isOrganisationAdmin = isAdmin && !!currentUser?.organisation?.id;
   const isOrgGraveService = currentUser?.organisation?.isgraveservices;
-  const hasGraves = currentUser?.hasGraves;
-  const hasMosques = currentUser?.hasMosques;
-  const hasDeathCharity = currentUser?.hasDeathCharity;
+  const isOrgCanBeDonated = !!currentUser?.organisation?.canbedonated;
+  const isOrgCanManageMosque = !!currentUser?.organisation?.canmanagemosque;
+  const isOrgCanManageGrave = !!currentUser?.organisation?.canmanagegrave;
   const hasAdminAccess = isSuperAdmin || isAdmin || isEmployee;
 
   let currentUserStates = [];
@@ -350,9 +350,9 @@ export function useAdminAccess() {
     currentUser,
     loadingUser,
     hasAdminAccess,
-    hasMosques,
-    hasDeathCharity,
-    hasGraves,
+    isOrgCanBeDonated,
+    isOrgCanManageMosque,
+    isOrgCanManageGrave,
     isSuperAdmin,
     isAdmin,
     isEmployee,

@@ -8,10 +8,11 @@ export const suggestionSchema = z.object({
     suggestedchanges: z.string().min(1),
     reason: z.string().min(1),
     status: z.enum(ApprovalStatus).optional(),
+    email: z.string().email().optional().nullable(),
     visitorip: z.string().optional().nullable(),
     grave: z.object({ id: z.number() }).nullable().optional(),
     deadperson: z.object({ id: z.number() }).nullable().optional(),
-
+    organisation: z.object({ id: z.number() }).nullable().optional(),
 });
 
 export const suggestionApprovalSchema = z.object({

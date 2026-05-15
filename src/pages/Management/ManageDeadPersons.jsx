@@ -351,14 +351,14 @@ function ManageDeadPersonsDesktop() {
                 setUploadFile(null);
                 setUploadDialogOpen(true);
               }}
-              className="bg-amber-600 hover:bg-amber-700 mr-2"
+              className="bg-amber-600 hover:bg-amber-700 mr-2 text-white"
             >
               <Upload className="w-4 h-4 mr-2" />
               {translate("Upload New")}
             </Button>
             <Button
               onClick={openAddDialog}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               {translate("Add New")}
@@ -373,7 +373,7 @@ function ManageDeadPersonsDesktop() {
         onSearch={handleSearch}
         onReset={handleReset}
         placeholder={translate("Full Name")}
-        buttonClassName="bg-blue-600 hover:bg-blue-700"
+        buttonClassName="bg-blue-600 hover:bg-blue-700 text-white"
         filtersClassName="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3"
       >
         {isSuperAdmin && (
@@ -653,7 +653,7 @@ function ManageDeadPersonsDesktop() {
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               onClick={() => {
                 setUploadDialogOpen(false);
                 setUploadFile(null);
@@ -663,7 +663,7 @@ function ManageDeadPersonsDesktop() {
             </Button>
             <Button
               type="button"
-              className="bg-amber-600 hover:bg-amber-700"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
               disabled={!uploadFile}
               onClick={handleSaveUpload}
             >
@@ -752,7 +752,7 @@ function ManageDeadPersonsDesktop() {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full bg-blue-600"
               onClick={() => {
                 if (!navigator.geolocation) return;
                 setIsLocating(true);
@@ -793,7 +793,7 @@ function ManageDeadPersonsDesktop() {
             <DialogFooter>
               <Button
                 type="button"
-                variant="outline"
+                variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
                 {translate("Cancel")}

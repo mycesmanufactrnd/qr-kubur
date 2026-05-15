@@ -1,5 +1,11 @@
 import admin from "firebase-admin";
-import { GoogleUserDevice, GoogleUserRecord } from "../db/entities.ts";
+import { In } from "typeorm";
+import {
+  GoogleUserDevice,
+  GoogleUserRecord,
+  User,
+  UserDevice,
+} from "../db/entities.ts";
 import { AppDataSource } from "../datasource.ts";
 import { TahlilStatus } from "../db/enums.ts";
 import type { EntityNameGoogleUserRecord } from "../db/enums.ts";
@@ -191,5 +197,64 @@ export const sendNotificationFCMFromGoogle = async ({
     }
   } catch (error) {
     console.error("[FCM] Failed to notify tahlil requestor:", error);
+  }
+};
+
+export const sendNotificationFCMToOrganisation = async ({
+  organisationId,
+  event,
+  inputData,
+}: {
+  organisationId: number;
+  event: string;
+  inputData: Record<string, any>;
+}): Promise<void> => {
+  try {
+    const userRepo = AppDataSource.getRepository(User);
+    const deviceRepo = AppDataSource.getRepository(UserDevice);
+
+    const orgUsers = await userRepo.find({
+      where: { organisation: { id: organisationId } },
+      select: ["id"],
+    });
+    if (orgUsers.length === 0) return;
+
+    const devices = await deviceRepo.find({
+      where: { user: { id: In(orgUsers.map((u) => u.id)) } },
+    });
+
+    const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    if (tokens.length === 0) return;
+
+    let title = "";
+    let body = "";
+
+    if (event === "quotation_created") {
+      const services = (
+        (inputData.selectedservices as { service: string }[]) ?? []
+      )
+        .map((s) => s.service)
+        .join(", ");
+      title = "Perkhidmatan Baru Dipesan";
+      body = services
+        ? `Permohonan perkhidmatan baru telah diterima: ${services}`
+        : "Permohonan perkhidmatan baru telah diterima.";
+    }
+
+    if (!title) return;
+
+    const staleTokens = await sendPushNotifications(tokens, { title, body }, {
+      organisationId: String(organisationId),
+      event,
+    });
+
+    if (staleTokens.length > 0) {
+      await deviceRepo.delete(
+        staleTokens.map((t) => ({ fcmToken: t })) as any,
+      );
+      console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
+    }
+  } catch (error) {
+    console.error("[FCM] Failed to notify organisation:", error);
   }
 };

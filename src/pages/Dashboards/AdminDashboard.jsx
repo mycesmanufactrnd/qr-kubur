@@ -53,32 +53,34 @@ function AdminDashboardDesktop() {
     hasAdminAccess,
     isSuperAdmin,
     isTahfizAdmin,
+    isOrganisationAdmin,
+    isOrgCanManageMosque,
+    isOrgGraveService,
+    isOrgCanBeDonated,
+    isOrgCanManageGrave,
   } = useAdminAccess();
 
-  const org = currentUser?.organisation;
-
-  const isGraveServices = !!org?.isgraveservices;
-  const isCanBeDonated = !!org?.canbedonated;
-  const isHasManageMosque = !!org?.canmanagemosque;
-
   const statsNeeded = useMemo(() => {
-    const arr = ["OGDS"];
+    const arr = ["OS"];
 
-    if (isCanBeDonated) arr.push("DDV");
-    if (isHasManageMosque) arr.push("CMC");
-    if (isGraveServices) arr.push("QUO");
+    if (isOrgCanManageGrave) arr.push("GD");
+    if (isOrgCanBeDonated) arr.push("DDV");
+    if (isOrgCanManageMosque) arr.push("CMC");
+    if (isOrgGraveService) arr.push("QUO");
 
     return arr;
-  }, [isCanBeDonated, isHasManageMosque, isGraveServices]);
+  }, [isOrgCanManageGrave, isOrgCanBeDonated, isOrgCanManageMosque, isOrgGraveService]);
 
   const isReady = !!currentUser?.organisation?.id;
 
   const {
-    OGDSStats,
+    OSStats,
+    GDStats,
     DDVStats,
     CMCStats,
     QUOStats,
-    isOGDSLoading,
+    isOSLoading,
+    isGDLoading,
     isDDVLoading,
     isCMCLoading,
     isQUOLoading,
@@ -89,10 +91,10 @@ function AdminDashboardDesktop() {
     enabled: isReady,
   });
 
-  const organisationCount = OGDSStats?.organisationCount ?? 0;
-  const graveCount = OGDSStats?.graveCount ?? 0;
-  const deadPersonCount = OGDSStats?.deadPersonCount ?? 0;
-  const suggestionCount = OGDSStats?.suggestionCount ?? 0;
+  const organisationCount = OSStats?.organisationCount ?? 0;
+  const suggestionCount = OSStats?.suggestionCount ?? 0;
+  const graveCount = GDStats?.graveCount ?? 0;
+  const deadPersonCount = GDStats?.deadPersonCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
@@ -103,38 +105,42 @@ function AdminDashboardDesktop() {
   const totalPayoutQuo = QUOStats?.totalPayoutQuo ?? 0;
 
   const quickStats = [
-    {
-      label: translate("Total Graves"),
-      value: graveCount || 0,
-      icon: MapPin,
-      page: "ManageGraves",
-      loading: isOGDSLoading,
-      cardGradient:
-        "from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20",
-      iconGradient: "from-emerald-500 to-teal-500",
-      textGradient:
-        "from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400",
-      textColor: "text-emerald-700 dark:text-emerald-400",
-    },
-    {
-      label: translate("Total Deceased"),
-      value: deadPersonCount || 0,
-      icon: Users,
-      page: "ManageDeadPersons",
-      loading: isOGDSLoading,
-      cardGradient:
-        "from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20",
-      iconGradient: "from-blue-500 to-cyan-500",
-      textGradient:
-        "from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400",
-      textColor: "text-blue-700 dark:text-blue-400",
-    },
+    ...(isOrgCanManageGrave
+      ? [
+          {
+            label: translate("Total Graves"),
+            value: graveCount || 0,
+            icon: MapPin,
+            page: "ManageGraves",
+            loading: isGDLoading,
+            cardGradient:
+              "from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20",
+            iconGradient: "from-emerald-500 to-teal-500",
+            textGradient:
+              "from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400",
+            textColor: "text-emerald-700 dark:text-emerald-400",
+          },
+          {
+            label: translate("Total Deceased"),
+            value: deadPersonCount || 0,
+            icon: Users,
+            page: "ManageDeadPersons",
+            loading: isGDLoading,
+            cardGradient:
+              "from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20",
+            iconGradient: "from-blue-500 to-cyan-500",
+            textGradient:
+              "from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400",
+            textColor: "text-blue-700 dark:text-blue-400",
+          },
+        ]
+      : []),
     {
       label: translate("Total Organisations"),
       value: organisationCount || 0,
       icon: Building2,
       page: "ManageOrganisations",
-      loading: isOGDSLoading,
+      loading: isOSLoading,
       cardGradient:
         "from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20",
       iconGradient: "from-violet-500 to-purple-500",
@@ -232,27 +238,31 @@ function AdminDashboardDesktop() {
 
   const fullQuickStats = [
     ...quickStats,
-    ...(isHasManageMosque ? deathCharity : []),
-    ...(isGraveServices ? quotations : []),
+    ...(isOrgCanManageMosque ? deathCharity : []),
+    ...(isOrgGraveService ? quotations : []),
   ];
 
   const pendingItems = [
     {
       label: translate("Total Suggestions"),
       value: suggestionCount || 0,
-      loading: isDDVLoading,
+      loading: isOSLoading,
       page: "ManageSuggestions",
       color: "amber",
       icon: FileText,
     },
-    {
-      label: translate("Total Donations"),
-      value: donationCount || 0,
-      loading: isDDVLoading,
-      page: "ManageDonations",
-      color: "red",
-      icon: Heart,
-    },
+    ...(isOrgCanBeDonated
+      ? [
+          {
+            label: translate("Total Donations"),
+            value: donationCount || 0,
+            loading: isDDVLoading,
+            page: "ManageDonations",
+            color: "red",
+            icon: Heart,
+          },
+        ]
+      : []),
   ];
 
   if (loadingUser) {
@@ -426,7 +436,7 @@ function AdminDashboardDesktop() {
                   ))}
                 </div>
 
-                {isCanBeDonated && (
+                {isOrgCanBeDonated && (
                   <Card className="border-2 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
                     <CardContent className="p-5">
                       <div className="flex items-center justify-between">
@@ -470,18 +480,22 @@ function AdminDashboardDesktop() {
               <CardContent className="p-4">
                 <div className="space-y-2">
                   {[
-                    {
-                      label: translate("Manage Graves"),
-                      page: "ManageGraves",
-                      icon: MapPin,
-                      color: "emerald",
-                    },
-                    {
-                      label: translate("Manage Deceased"),
-                      page: "ManageDeadPersons",
-                      icon: Users,
-                      color: "blue",
-                    },
+                    ...(isOrgCanManageGrave
+                      ? [
+                          {
+                            label: translate("Manage Graves"),
+                            page: "ManageGraves",
+                            icon: MapPin,
+                            color: "emerald",
+                          },
+                          {
+                            label: translate("Manage Deceased"),
+                            page: "ManageDeadPersons",
+                            icon: Users,
+                            color: "blue",
+                          },
+                        ]
+                      : []),
                     {
                       label: translate("Manage Organisations"),
                       page: "ManageOrganisations",
@@ -494,8 +508,7 @@ function AdminDashboardDesktop() {
                       icon: CreditCard,
                       color: "emerald",
                     },
-                    // { label: translate('Manage Suggestions'), page: 'ManageSuggestions', icon: FileText, color: 'orange' },
-                    ...(isCanBeDonated
+                    ...(isOrgCanBeDonated
                       ? [
                           {
                             label: translate("Manage Donations"),
@@ -517,7 +530,7 @@ function AdminDashboardDesktop() {
                       icon: UserCheck,
                       color: "purple",
                     },
-                    ...(isHasManageMosque
+                    ...(isOrgCanManageMosque
                       ? [
                           {
                             label: translate("Manage Mosque"),
@@ -533,7 +546,7 @@ function AdminDashboardDesktop() {
                           },
                         ]
                       : []),
-                    ...(isGraveServices
+                    ...(isOrgGraveService
                       ? [
                           {
                             label: translate("Manage Quotations"),
@@ -565,7 +578,7 @@ function AdminDashboardDesktop() {
           </div>
         </div>
       </div>
-      {isGraveServices && <QuotationOverdueAlert />}
+      {isOrgGraveService && <QuotationOverdueAlert />}
     </>
   );
 }

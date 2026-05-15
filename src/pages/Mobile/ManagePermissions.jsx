@@ -33,7 +33,9 @@ function UserCard({ user, onSelect }) {
           <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
             {user.fullname}
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+            {user.email}
+          </p>
         </div>
         <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 shrink-0">
           {user.role}
@@ -96,10 +98,14 @@ function PermissionSheet({
                         : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
                     }`}
                   >
-                    {allEnabled ? translate("Disable All") : translate("Enable All")}
+                    {allEnabled
+                      ? translate("Disable All")
+                      : translate("Enable All")}
                   </button>
                 </div>
-                <div className={`grid gap-2 ${isNarrow ? "grid-cols-1" : "grid-cols-2"}`}>
+                <div
+                  className={`grid gap-2 ${isNarrow ? "grid-cols-1" : "grid-cols-2"}`}
+                >
                   {category.permissions.map((perm) => (
                     <div
                       key={perm.slug}
@@ -140,22 +146,19 @@ function PermissionSheet({
   );
 }
 
-// ─── Main page ─────────────────────────────────────────────────────────────────
-
 export default function MobileManagePermissions() {
   const {
-    currentUser,
     loadingUser,
     hasAdminAccess,
     isSuperAdmin,
-    isAdmin,
     isTahfizAdmin,
     isOrganisationAdmin,
+    isOrgGraveService,
+    isOrgCanBeDonated,
+    isOrgCanManageMosque,
+    isOrgCanManageGrave,
     refreshUser,
   } = useAdminAccess();
-
-  const canManageMosque = !!currentUser?.organisation?.canmanagemosque;
-  const canManageQuotations = !!currentUser?.organisation?.isgraveservices;
 
   const isNarrow = useIsNarrow(640);
 
@@ -167,7 +170,11 @@ export default function MobileManagePermissions() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [userPermissions, setUserPermissions] = useState({});
 
-  const { userList: users, totalPages, isLoading: loadingUsers } = useGetUserPaginated({
+  const {
+    userList: users,
+    totalPages,
+    isLoading: loadingUsers,
+  } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
     search: appliedSearch,
@@ -175,15 +182,15 @@ export default function MobileManagePermissions() {
 
   const upsertPermission = useUpsertPermission();
 
-  const { data: permissions = [], isLoading: loadingPermissions } = useGetPermission(
-    selectedUser?.id,
-    !!selectedUser,
-  );
+  const { data: permissions = [], isLoading: loadingPermissions } =
+    useGetPermission(selectedUser?.id, !!selectedUser);
 
   useEffect(() => {
     if (!selectedUser) return;
     const permMap = {};
-    permissions.forEach((p) => { permMap[p.slug] = p.enabled; });
+    permissions.forEach((p) => {
+      permMap[p.slug] = p.enabled;
+    });
     setUserPermissions((prev) => {
       if (JSON.stringify(prev) === JSON.stringify(permMap)) return prev;
       return permMap;
@@ -214,7 +221,9 @@ export default function MobileManagePermissions() {
     const allEnabled = slugs.every((s) => !!userPermissions[s]);
     setUserPermissions((prev) => {
       const next = { ...prev };
-      slugs.forEach((s) => { next[s] = !allEnabled; });
+      slugs.forEach((s) => {
+        next[s] = !allEnabled;
+      });
       return next;
     });
   };
@@ -223,21 +232,49 @@ export default function MobileManagePermissions() {
     if (!selectedUser?.id) return;
     await upsertPermission.mutateAsync({
       userId: selectedUser.id,
-      permissions: Object.entries(userPermissions).map(([slug, enabled]) => ({ slug, enabled })),
+      permissions: Object.entries(userPermissions).map(([slug, enabled]) => ({
+        slug,
+        enabled,
+      })),
     });
     const refreshedUser = await refreshUser?.();
     if (refreshedUser) window.location.reload();
   };
 
-  const visibleCategories = Object.entries(PERMISSION_CATEGORIES).filter(([key, category]) => {
-    if (key === "mosques" && !canManageMosque && !isSuperAdmin) return false;
-    if (key === "quotations" && !canManageQuotations && !isSuperAdmin) return false;
-    if (category.isSuperAdminOnly) return isSuperAdmin;
-    if (category.isTahfizAdminOnly) return isSuperAdmin || isTahfizAdmin;
-    if (category.isOrganisationAdminOnly) return isSuperAdmin || isOrganisationAdmin;
-    if (category.isAllAdmin) return isSuperAdmin || isAdmin;
-    return true;
-  });
+  const visibleCategories = Object.entries(PERMISSION_CATEGORIES).filter(
+    ([key, category]) => {
+      if (category.isSuperAdminOnly) 
+        return isSuperAdmin;
+
+      if (category.isTahfizAdminOnly) 
+        return isTahfizAdmin;
+
+      if (category.isAllAdmin) 
+        return isOrganisationAdmin;
+
+      if (key === "donations" && !isOrgCanBeDonated && !isSuperAdmin)
+        return false;
+      
+      if (
+        (key === "mosques" || key === "death_charity") &&
+        !isOrgCanManageMosque &&
+        !isSuperAdmin
+      )
+        return false;
+
+      if (
+        (key === "graves" || key === "dead_persons") &&
+        !isOrgCanManageGrave &&
+        !isSuperAdmin
+      )
+        return false;
+
+      if (key === "quotations" && !isOrgGraveService && !isSuperAdmin)
+        return false;
+
+      return true;
+    },
+  );
 
   if (loadingUser) return <LoadingUser />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
@@ -261,7 +298,10 @@ export default function MobileManagePermissions() {
             parameter={[
               { label: translate("Name"), type: "text", searchColumn: "name" },
             ]}
-            onApplyFilter={(f) => { setAppliedSearch(f.name || ""); setPage(1); }}
+            onApplyFilter={(f) => {
+              setAppliedSearch(f.name || "");
+              setPage(1);
+            }}
           />
 
           {/* User list */}

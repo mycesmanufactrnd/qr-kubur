@@ -4,6 +4,7 @@ import { AppDataSource } from "../datasource.ts";
 import { GoogleUserRecord, Quotation } from "../db/entities.ts";
 import { quotationSchema } from "../schemas/quotationSchema.ts";
 import { QuotationStatus } from "../db/enums.ts";
+import { sendNotificationFCMToOrganisation } from "../services/firebase.service.ts";
 
 export const quotationRouter = router({
   create: publicProcedure
@@ -26,6 +27,14 @@ export const quotationRouter = router({
         });
 
         await userRecordRepo.save(record);
+      }
+
+      if (input.organisation?.id) {
+        await sendNotificationFCMToOrganisation({
+          organisationId: input.organisation.id,
+          event: "quotation_created",
+          inputData: { selectedservices: input.selectedservices },
+        });
       }
 
       return savedQuotation;

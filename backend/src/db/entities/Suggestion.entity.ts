@@ -2,6 +2,8 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } f
 import { ApprovalStatus } from "../enums.ts";
 import { DeadPerson } from "./DeadPerson.entity.ts";
 import { Grave } from "./Grave.entity.ts";
+import { Organisation } from "./Organisation.entity.ts";
+
 @Entity("suggestion")
 export class Suggestion {
     @PrimaryGeneratedColumn()
@@ -12,13 +14,16 @@ export class Suggestion {
 
     @Column("varchar", { length: 20 })
     phoneno!: string;
-    
+
+    @Column("varchar", { length: 255, nullable: true })
+    email?: string;
+
     @Column("varchar", { length: 20 })
     type!: string;
 
     @Column("text")
     suggestedchanges!: string;
-    
+
     @Column("text")
     reason!: string;
 
@@ -32,7 +37,13 @@ export class Suggestion {
         nullable: true,
         onDelete: "SET NULL",
     })
-    grave?: Grave | null; 
+    grave?: Grave | null;
+
+    @ManyToOne(() => Organisation, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    organisation?: Organisation | null;
 
     @Column({
         type: "enum",

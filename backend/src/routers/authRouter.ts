@@ -11,7 +11,13 @@ import {
 import { assertRole } from "../helpers/authHelper.ts";
 import { AppDataSource } from "../datasource.ts";
 import { OAuth2Client } from "google-auth-library";
-import { DeathCharity, GoogleUser, Grave, Mosque } from "../db/entities.ts";
+import {
+  DeathCharity,
+  GoogleUser,
+  Grave,
+  Mosque,
+  UserDevice,
+} from "../db/entities.ts";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -93,39 +99,6 @@ export const authRouter = router({
         role,
       });
 
-      const mosqueRepo = AppDataSource.getRepository(Mosque);
-
-      const hasMosques = user.organisation?.id
-        ? await mosqueRepo
-            .createQueryBuilder("mosque")
-            .where("mosque.organisationId = :orgId", {
-              orgId: user.organisation.id,
-            })
-            .getExists()
-        : false;
-
-      const graveRepo = AppDataSource.getRepository(Grave);
-
-      const hasGraves = user.organisation?.id
-        ? await graveRepo
-            .createQueryBuilder("grave")
-            .where("grave.organisationId = :orgId", {
-              orgId: user.organisation.id,
-            })
-            .getExists()
-        : false;
-
-      const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
-      
-      const hasDeathCharity = user.organisation?.id
-        ? await deathCharityRepo
-            .createQueryBuilder("deathcharity")
-            .where("deathcharity.organisationId = :orgId", {
-              orgId: user.organisation.id,
-            })
-            .getExists()
-        : false;
-
       setCookies(ctx.reply, accessToken, refreshToken);
 
       const { password, organisation, tahfizcenter, ...userWithoutPassword } =
@@ -138,9 +111,6 @@ export const authRouter = router({
         clientIp,
         organisation,
         tahfizcenter,
-        hasMosques,
-        hasGraves,
-        hasDeathCharity,
         ...userWithoutPassword,
       };
     }),
@@ -259,5 +229,30 @@ export const authRouter = router({
         user,
         message: "Public login successful - no token required",
       };
+    }),
+
+  saveUserDeviceToken: protectedProcedure
+    .input(z.object({ fcmToken: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) throw new Error("Unauthorized");
+
+      const deviceRepo = AppDataSource.getRepository(UserDevice);
+
+      const existing = await deviceRepo.findOne({
+        where: { fcmToken: input.fcmToken },
+      });
+
+      if (existing) {
+        existing.user = { id: ctx.user.id } as any;
+        await deviceRepo.save(existing);
+      } else {
+        const device = deviceRepo.create({
+          fcmToken: input.fcmToken,
+          user: { id: ctx.user.id } as any,
+        });
+        await deviceRepo.save(device);
+      }
+
+      return { success: true };
     }),
 });

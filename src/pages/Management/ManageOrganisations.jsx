@@ -990,7 +990,7 @@ function ManageOrganisationsDesktop() {
         {canCreate && (
           <Button
             onClick={openAddDialog}
-            className="bg-violet-600 hover:bg-violet-700"
+            className="bg-violet-600 hover:bg-violet-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add New")}
@@ -1004,11 +1004,11 @@ function ManageOrganisationsDesktop() {
         onSearch={handleSearch}
         onReset={handleReset}
         placeholder={translate("Search Organisation Name")}
-        buttonClassName="bg-violet-600 hover:bg-violet-700"
+        buttonClassName="bg-violet-600 hover:bg-violet-700 text-white"
         filtersClassName="grid grid-cols-1 sm:grid-cols-3 gap-3"
       >
         <Select value={String(tempType)} onValueChange={setTempType}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("Organisation Type")} />
           </SelectTrigger>
           <SelectContent>
@@ -1022,7 +1022,7 @@ function ManageOrganisationsDesktop() {
         </Select>
 
         <Select value={tempState} onValueChange={setTempState}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("State")} />
           </SelectTrigger>
           <SelectContent>
@@ -1284,7 +1284,7 @@ function ManageOrganisationsDesktop() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white"
                   onClick={() => {
                     if (!navigator.geolocation) return;
                     setIsLocating(true);
@@ -1306,16 +1306,26 @@ function ManageOrganisationsDesktop() {
                     ? translate("Getting location...")
                     : translate("Get Current Location")}
                 </Button>
-                <CheckboxForm
-                  name="canmanagemosque"
-                  control={control}
-                  label={translate("Can Manage Mosque")}
-                />
-                <CheckboxForm
-                  name="canbedonated"
-                  control={control}
-                  label={translate("Can Be Donated")}
-                />
+                
+                {isSuperAdmin && (
+                  <>
+                    <CheckboxForm
+                      name="canmanagegrave"
+                      control={control}
+                      label={translate("Can Manage Grave")}
+                    />
+                    <CheckboxForm
+                      name="canmanagemosque"
+                      control={control}
+                      label={translate("Can Manage Mosque")}
+                    />
+                    <CheckboxForm
+                      name="canbedonated"
+                      control={control}
+                      label={translate("Can Be Donated")}
+                    />
+                  </>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -1412,7 +1422,7 @@ function ManageOrganisationsDesktop() {
                           className="grid grid-cols-12 gap-2 items-center"
                         >
                           <Input
-                            className="col-span-5"
+                            className="col-span-5 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
                             placeholder={translate("Service Name")}
                             value={entry.service}
                             onChange={(e) =>
@@ -1424,7 +1434,7 @@ function ManageOrganisationsDesktop() {
                             }
                           />
                           <Input
-                            className="col-span-3"
+                            className="col-span-3 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
                             type="number"
                             step="0.01"
                             placeholder="RM 0.00"
@@ -1469,8 +1479,8 @@ function ManageOrganisationsDesktop() {
                         type="button"
                         variant="outline"
                         onClick={addServiceEntry}
+                        className="bg-violet-600 hover:bg-violet-700 text-white"
                       >
-                        <Plus className="w-4 h-4 mr-2" />
                         {translate("Add Service")}
                       </Button>
                     </div>
@@ -1519,7 +1529,7 @@ function ManageOrganisationsDesktop() {
                     <Button
                       type="button"
                       onClick={handleAddOrUpdateUser}
-                      className="bg-violet-600 hover:bg-violet-700"
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
                     >
                       {editingUserIndex !== null ? "Update User" : "Add User"}
                     </Button>
@@ -1613,14 +1623,14 @@ function ManageOrganisationsDesktop() {
             <DialogFooter>
               <Button
                 type="button"
-                variant="outline"
+                variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
                 {translate("Cancel")}
               </Button>
               <Button
                 type="submit"
-                className="bg-violet-600"
+                className="bg-violet-600 text-white"
                 disabled={
                   createOrganisation.isPending ||
                   updateOrganisation.isPending ||

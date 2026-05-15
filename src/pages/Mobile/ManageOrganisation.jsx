@@ -674,10 +674,26 @@ function OrgFormSheet({
             <MapPin className="w-4 h-4 mr-2" />
             {isLocating ? translate("Getting location...") : translate("Get Current Location")}
           </Button>
-          <div className="space-y-2 pt-1">
-            <CheckboxForm name="canmanagemosque" control={control} label={translate("Can Manage Mosque")} />
-            <CheckboxForm name="canbedonated" control={control} label={translate("Can Be Donated")} />
-          </div>
+
+          {isSuperAdmin && (
+            <div className="space-y-2 pt-1">
+              <CheckboxForm
+                name="canmanagegrave"
+                control={control}
+                label={translate("Can Manage Grave")}
+              />
+              <CheckboxForm
+                name="canmanagemosque"
+                control={control}
+                label={translate("Can Manage Mosque")}
+              />
+              <CheckboxForm
+                name="canbedonated"
+                control={control}
+                label={translate("Can Be Donated")}
+              />
+            </div>
+          )}
         </FormSection>
 
         {/* Grave Services */}

@@ -44,12 +44,6 @@ export class TempOrganisation {
   longitude?: number;
 
   @Column({ type: "boolean", default: false })
-  canbedonated!: boolean;
-
-  @Column({ type: "boolean", default: false })
-  canmanagemosque!: boolean;
-
-  @Column({ type: "boolean", default: false })
   isgraveservices!: boolean;
 
   @Column("text", { array: true, nullable: true })

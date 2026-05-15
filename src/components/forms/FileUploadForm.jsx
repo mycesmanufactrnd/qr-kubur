@@ -73,6 +73,7 @@ export default function FileUploadForm({
                   key={fileInputKey}
                   type="file"
                   accept="image/*"
+                  className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -108,6 +109,7 @@ export default function FileUploadForm({
                   </Label>
                   <Input
                     type="url"
+                    className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
                     placeholder="https://"
                     value={urlInput}
                     onChange={(e) => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils/index";
@@ -68,9 +69,8 @@ function LayoutContent({ children, currentPageName }) {
     isTahfizAdmin,
     isEmployee,
     isOrgGraveService,
-    hasMosques,
-    hasGraves,
-    hasDeathCharity,
+    isOrgCanManageMosque,
+    isOrgCanManageGrave,
   } = useAdminAccess();
 
   const { clearPermissions } = usePermissions();
@@ -139,7 +139,7 @@ function LayoutContent({ children, currentPageName }) {
       icon: Users,
       page: "ManageUsers",
     },
-    ...(hasGraves
+    ...(isOrgCanManageGrave
       ? [
           {
             name: translate("Manage Graves"),
@@ -153,17 +153,13 @@ function LayoutContent({ children, currentPageName }) {
           },
         ]
       : []),
-    ...(hasMosques
+    ...(isOrgCanManageMosque
       ? [
           {
             name: translate("Manage Mosques"),
             icon: Building2,
             page: "ManageMosques",
           },
-        ]
-      : []),
-    ...(hasDeathCharity
-      ? [
           {
             name: translate("Manage Death Charity"),
             icon: Heart,
@@ -199,11 +195,15 @@ function LayoutContent({ children, currentPageName }) {
           },
         ]
       : []),
-    {
-      name: translate("Manage Activity Posts"),
-      icon: ScrollText,
-      page: "ManageActivityPosts",
-    },
+    ...(isOrgCanManageMosque
+      ? [
+          {
+            name: translate("Manage Activity Posts"),
+            icon: ScrollText,
+            page: "ManageActivityPosts",
+          },
+        ]
+      : []),
     {
       name: translate("Payment Config"),
       icon: CreditCard,

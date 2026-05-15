@@ -38,12 +38,13 @@ function ManagePermissionsDesktop() {
     isSuperAdmin,
     isTahfizAdmin,
     isOrganisationAdmin,
+    isOrgGraveService,
+    isOrgCanBeDonated,
+    isOrgCanManageMosque,
+    isOrgCanManageGrave,
     refreshUser,
   } = useAdminAccess();
   
-  const canManageMosque = !!currentUser?.organisation?.canmanagemosque;
-  const canManageQuotations = !!currentUser?.organisation?.isgraveservices;
-
   const {
     loading: permissionsLoading,
     canView,
@@ -263,31 +264,42 @@ function ManagePermissionsDesktop() {
                 <div className="space-y-6 max-h-[600px] overflow-y-auto">
                   {Object.entries(PERMISSION_CATEGORIES)
                     .filter(([key, category]) => {
-                      // Hide mosques section IF: user is NOT super admin AND user does NOT have canManageQuotations
-                      if (
-                        key === "mosques" &&
-                        !canManageMosque &&
-                        !isSuperAdmin
-                      )
-                        return false;
-
-                      // Hide “quotations” section IF: user is NOT super admin AND user does NOT have canManageQuotations
-                      if (
-                        key === "quotations" &&
-                        !canManageQuotations &&
-                        !isSuperAdmin
-                      )
-                        return false;
-
-                      if (category.isSuperAdminOnly) return isSuperAdmin;
+                      if (category.isSuperAdminOnly) 
+                        return isSuperAdmin;
 
                       if (category.isTahfizAdminOnly)
-                        return isSuperAdmin || isTahfizAdmin;
+                        return isTahfizAdmin;
 
-                      if (category.isOrganisationAdminOnly)
-                        return isSuperAdmin || isOrganisationAdmin;
+                      if (category.isAllAdmin)
+                        return isOrganisationAdmin;
 
-                      if (category.isAllAdmin) return isSuperAdmin || isAdmin;
+                      if (
+                        key === "donations" &&
+                        !isOrgCanBeDonated &&
+                        !isSuperAdmin
+                      )
+                        return false;
+
+                      if (
+                        (key === "mosques" || key === "death_charity") &&
+                        !isOrgCanManageMosque &&
+                        !isSuperAdmin
+                      )
+                        return false;
+
+                      if (
+                        (key === "graves" || key === "dead_persons") &&
+                        !isOrgCanManageGrave &&
+                        !isSuperAdmin
+                      )
+                        return false;
+
+                      if (
+                        (key === "quotations") &&
+                        !isOrgGraveService &&
+                        !isSuperAdmin
+                      )
+                        return false;
 
                       return true;
                     })

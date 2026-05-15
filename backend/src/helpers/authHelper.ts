@@ -7,7 +7,16 @@ export function assertRole(role: string): asserts role is UserRole {
 }
 
 type PermissionSeedUser = { id: number };
-type PermissionSeedOrg = { id?: number; canbedonated?: boolean; canmanagemosque?: boolean } | null | undefined;
+type PermissionSeedOrg =
+  | {
+      id?: number;
+      canbedonated?: boolean;
+      canmanagemosque?: boolean;
+      canmanagegrave?: boolean;
+      isgraveservices?: boolean;
+    }
+  | null
+  | undefined;
 type PermissionSeedTahfiz = { id?: number } | null | undefined;
 
 export function buildDefaultPermissions({
@@ -21,9 +30,12 @@ export function buildDefaultPermissions({
   tahfizcenter?: PermissionSeedTahfiz;
   organisation?: PermissionSeedOrg;
 }) {
+  if (!user || !role) return [];
+
   const permissions = [
     { slug: "permissions_edit", enabled: true, user },
     { slug: "permissions_view", enabled: true, user },
+    { slug: "financial_reports_view", enabled: true, user },
   ];
 
   if (role !== "admin") return permissions;
@@ -32,58 +44,88 @@ export function buildDefaultPermissions({
     { slug: "users_view", enabled: true, user },
     { slug: "users_create", enabled: true, user },
     { slug: "users_edit", enabled: true, user },
-    { slug: "users_delete", enabled: true, user }
+    { slug: "users_delete", enabled: true, user },
   );
 
   permissions.push(
     { slug: "posts_view", enabled: true, user },
     { slug: "posts_create", enabled: true, user },
     { slug: "posts_edit", enabled: true, user },
-    { slug: "posts_delete", enabled: true, user }
+    { slug: "posts_delete", enabled: true, user },
   );
 
   if (tahfizcenter?.id) {
     permissions.push(
       { slug: "donations_view", enabled: true, user },
       { slug: "donations_verify", enabled: true, user },
-      { slug: "donations_reject", enabled: true, user }
+      { slug: "donations_reject", enabled: true, user },
     );
 
     permissions.push(
       { slug: "tahfiz_view", enabled: true, user },
       { slug: "tahfiz_create", enabled: true, user },
       { slug: "tahfiz_edit", enabled: true, user },
-      { slug: "tahfiz_delete", enabled: true, user }
+      { slug: "tahfiz_delete", enabled: true, user },
     );
 
     permissions.push(
       { slug: "tahlil_view", enabled: true, user },
       { slug: "tahlil_accept", enabled: true, user },
       { slug: "tahlil_reject", enabled: true, user },
-      { slug: "tahlil_complete", enabled: true, user }
+      { slug: "tahlil_complete", enabled: true, user },
     );
-  } else if (organisation?.id) {
+  } 
+  else if (organisation?.id) {
     permissions.push(
       { slug: "organisations_view", enabled: true, user },
       { slug: "organisations_create", enabled: true, user },
       { slug: "organisations_edit", enabled: true, user },
-      { slug: "organisations_delete", enabled: true, user }
+      { slug: "organisations_delete", enabled: true, user },
     );
 
     if (organisation.canbedonated) {
       permissions.push(
         { slug: "donations_view", enabled: true, user },
         { slug: "donations_verify", enabled: true, user },
-        { slug: "donations_reject", enabled: true, user }
+        { slug: "donations_reject", enabled: true, user },
       );
     }
 
     if (organisation.canmanagemosque) {
       permissions.push(
+        // mosque
         { slug: "mosques_view", enabled: true, user },
         { slug: "mosques_create", enabled: true, user },
         { slug: "mosques_edit", enabled: true, user },
-        { slug: "mosques_delete", enabled: true, user }
+        { slug: "mosques_delete", enabled: true, user },
+        // death charity
+        { slug: "death_charity_view", enabled: true, user },
+        { slug: "death_charity_create", enabled: true, user },
+        { slug: "death_charity_edit", enabled: true, user },
+        { slug: "death_charity_delete", enabled: true, user },
+      );
+    }
+
+    if (organisation.canmanagegrave) {
+      permissions.push(
+        // grave
+        { slug: "graves_view", enabled: true, user },
+        { slug: "graves_create", enabled: true, user },
+        { slug: "graves_edit", enabled: true, user },
+        { slug: "graves_delete", enabled: true, user },
+        // dead person
+        { slug: "dead_persons_view", enabled: true, user },
+        { slug: "dead_persons_create", enabled: true, user },
+        { slug: "dead_persons_edit", enabled: true, user },
+        { slug: "dead_persons_delete", enabled: true, user },
+      );
+    }
+
+    if (organisation.isgraveservices) {
+      permissions.push(
+        { slug: "quotations_view", enabled: true, user },
+        { slug: "quotations_verify", enabled: true, user },
+        { slug: "quotations_reject", enabled: true, user },
       );
     }
   }

@@ -20,8 +20,6 @@ export const tempOrganisationRegisterSchema = z.object({
   url: z.string().optional().nullable(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
-  canbedonated: z.boolean().default(false),
-  canmanagemosque: z.boolean().default(false),
   isgraveservices: z.boolean().default(false),
   serviceoffered: z.array(z.string()).optional(),
   serviceprice: z.record(z.string(), z.number()).optional(),

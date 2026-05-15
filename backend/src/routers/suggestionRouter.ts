@@ -28,35 +28,32 @@ export const suggestionRouter = router({
                 page: z.number().min(1).optional(),
                 pageSize: z.number().min(1).optional(),
                 currentUser: z.object({
-                id: z.number(),
-                organisation: z.object({ id: z.number() }).nullable(),
-                tahfizcenter: z.object({ id: z.number() }).nullable(),
-            }),
-            checkRole: z.object({
-                superadmin: z.boolean(),
-                admin: z.boolean(),
-                employee: z.boolean(),
-                tahfiz: z.boolean(),
-            }).optional(),
+                    id: z.number(),
+                    organisation: z.object({ id: z.number() }).nullable(),
+                    tahfizcenter: z.object({ id: z.number() }).nullable(),
+                }),
+                checkRole: z.object({
+                    superadmin: z.boolean(),
+                    admin: z.boolean(),
+                    employee: z.boolean(),
+                    tahfiz: z.boolean(),
+                }).optional(),
             })
         )
         .query(async ({ input }) => {
-            const { page, pageSize , currentUser, checkRole } = input;
+            const { page, pageSize, currentUser, checkRole } = input;
 
             const suggestionRepo = AppDataSource.getRepository(Suggestion);
 
-            const query = suggestionRepo.createQueryBuilder("suggestion");
+            const query = suggestionRepo.createQueryBuilder("suggestion")
+                .leftJoinAndSelect("suggestion.grave", "grave")
+                .leftJoinAndSelect("suggestion.deadperson", "deadperson")
+                .leftJoinAndSelect("suggestion.organisation", "organisation");
 
-            if (!checkRole?.superadmin) {
-                if (currentUser.tahfizcenter) {
-                    query.leftJoinAndSelect("suggestion.tahfizcenter", "tahfizcenter")
-                        .andWhere("suggestion.tahfizcenterId = :tahfizId", { tahfizId: currentUser.tahfizcenter.id });
-                }
-
-                if (currentUser.organisation) {
-                    query.leftJoinAndSelect("suggestion.organisation", "organisation")
-                        .andWhere("suggestion.organisationId = :orgId", { orgId: currentUser.organisation.id });
-                }
+            if (!checkRole?.superadmin && currentUser.organisation) {
+                query.andWhere("suggestion.organisationId = :orgId", {
+                    orgId: currentUser.organisation.id,
+                });
             }
 
             if (page && pageSize) {

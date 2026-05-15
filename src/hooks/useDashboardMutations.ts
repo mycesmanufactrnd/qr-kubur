@@ -1,6 +1,6 @@
 import { trpc } from "@/utils/trpc";
 
-type StatsType = "OGDS" | "TTR" | "DDV" | "CMC" | "QUO";
+type StatsType = "OS" | "GD" | "TTR" | "DDV" | "CMC" | "QUO";
 
 interface UseStatisticChartOptions {
   year: number;
@@ -109,52 +109,54 @@ export function useGetAdminDashboardStats({
   enabled = true,
 }: UseDashboardOptions) {
   const needs = (s: StatsType) => statsNeeded.includes(s);
+  const orgId = currentUser?.organisation?.id ?? null;
+  const tahfizId = currentUser?.tahfizcenter?.id ?? null;
 
-  const { data: OGDSStats, isLoading: isOGDSLoading } =
-    trpc.dashboard.getOGDSAdminStates.useQuery(
+  const { data: OSStats, isLoading: isOSLoading } =
+    trpc.dashboard.getOSAdminStates.useQuery(
+      { currentUserOrganisation: orgId, isSuperAdmin },
+      { enabled: enabled && needs("OS") },
+    );
+
+  const { data: GDStats, isLoading: isGDLoading } =
+    trpc.dashboard.getGDAdminStates.useQuery(
+      { currentUserOrganisation: orgId, isSuperAdmin },
       {
-        currentUserOrganisation: currentUser?.organisation?.id ?? null,
-        isSuperAdmin,
+        enabled: enabled && needs("GD") && (!needs("OS") || !!OSStats),
       },
-      { enabled: enabled && needs("OGDS") },
     );
 
   const { data: TTRStats, isLoading: isTTRLoading } =
     trpc.dashboard.getTTRAdminStates.useQuery(
+      { currentUserTahfiz: tahfizId, isSuperAdmin },
       {
-        currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
-        isSuperAdmin,
-      },
-      {
-        enabled: enabled && needs("TTR") && (!needs("OGDS") || !!OGDSStats),
+        enabled:
+          enabled && needs("TTR") &&
+          (!needs("OS") || !!OSStats) &&
+          (!needs("GD") || !!GDStats),
       },
     );
 
   const { data: DDVStats, isLoading: isDDVLoading } =
     trpc.dashboard.getDDVAdminStates.useQuery(
-      {
-        currentUserTahfiz: currentUser?.tahfizcenter?.id ?? null,
-        currentUserOrganisation: currentUser?.organisation?.id ?? null,
-        isSuperAdmin,
-      },
+      { currentUserTahfiz: tahfizId, currentUserOrganisation: orgId, isSuperAdmin },
       {
         enabled:
           enabled && needs("DDV") &&
-          (!needs("OGDS") || !!OGDSStats) &&
+          (!needs("OS") || !!OSStats) &&
+          (!needs("GD") || !!GDStats) &&
           (!needs("TTR") || !!TTRStats),
       },
     );
 
   const { data: CMCStats, isLoading: isCMCLoading } =
     trpc.dashboard.getCMCAdminStates.useQuery(
-      {
-        currentUserOrganisation: currentUser?.organisation?.id ?? null,
-        isSuperAdmin,
-      },
+      { currentUserOrganisation: orgId, isSuperAdmin },
       {
         enabled:
           enabled && needs("CMC") &&
-          (!needs("OGDS") || !!OGDSStats) &&
+          (!needs("OS") || !!OSStats) &&
+          (!needs("GD") || !!GDStats) &&
           (!needs("TTR") || !!TTRStats) &&
           (!needs("DDV") || !!DDVStats),
       },
@@ -162,22 +164,19 @@ export function useGetAdminDashboardStats({
 
   const { data: QUOStats, isLoading: isQUOLoading } =
     trpc.dashboard.getQuotationStates.useQuery(
-      {
-        currentUserOrganisation: currentUser?.organisation?.id ?? null,
-        isSuperAdmin,
-      },
-      {
-        enabled: enabled && needs("QUO"),
-      },
+      { currentUserOrganisation: orgId, isSuperAdmin },
+      { enabled: enabled && needs("QUO") },
     );
 
   return {
-    OGDSStats,
+    OSStats,
+    GDStats,
     TTRStats,
     DDVStats,
     CMCStats,
     QUOStats,
-    isOGDSLoading,
+    isOSLoading,
+    isGDLoading,
     isTTRLoading,
     isDDVLoading,
     isCMCLoading,

@@ -6,15 +6,24 @@ import { initFCM } from "./firebase";
 
 export const useFCM = () => {
   useEffect(() => {
-    const googleUser = getStoredGoogleUser();
-    if (!googleUser?.id) return;
-
-    // Always refresh — FCM tokens rotate; stale tokens silently stop receiving pushes.
     initFCM().then((token) => {
       if (!token) return;
-      trpcClient.google.saveDeviceToken
-        .mutate({ googleUserId: googleUser.id, fcmToken: token })
-        .catch((e) => console.error("[FCM] saveDeviceToken failed:", e));
+
+      // Register for public Google users
+      const googleUser = getStoredGoogleUser();
+      if (googleUser?.id) {
+        trpcClient.google.saveDeviceToken
+          .mutate({ googleUserId: googleUser.id, fcmToken: token })
+          .catch((e) => console.error("[FCM] saveDeviceToken (google) failed:", e));
+      }
+
+      // Register for admin/employee users
+      const appUserAuth = sessionStorage.getItem("appUserAuth");
+      if (appUserAuth) {
+        trpcClient.auth.saveUserDeviceToken
+          .mutate({ fcmToken: token })
+          .catch((e) => console.error("[FCM] saveUserDeviceToken failed:", e));
+      }
     });
   }, []);
 };

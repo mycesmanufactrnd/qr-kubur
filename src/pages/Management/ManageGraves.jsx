@@ -401,14 +401,14 @@ function ManageGravesDesktop() {
                 setUploadFile(null);
                 setUploadDialogOpen(true);
               }}
-              className="bg-amber-600 hover:bg-amber-700 mr-2"
+              className="bg-amber-600 hover:bg-amber-700 mr-2 text-white"
             >
               <Upload className="w-4 h-4 mr-2" />
               {translate("Upload Grave")}
             </Button>
             <Button
               onClick={openAddDialog}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               {translate("Add Grave")}
@@ -423,11 +423,12 @@ function ManageGravesDesktop() {
         onSearch={handleSearch}
         onReset={handleReset}
         placeholder={translate("Cemetery name")}
+        buttonClassName="bg-emerald-600 text-white"
         filtersClassName="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3"
       >
         {isSuperAdmin && (
           <Select value={tempState} onValueChange={setTempState}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
               <SelectValue placeholder="Negeri" />
             </SelectTrigger>
             <SelectContent>
@@ -699,7 +700,7 @@ function ManageGravesDesktop() {
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               disabled={isUploading}
               onClick={() => {
                 setUploadDialogOpen(false);
@@ -710,7 +711,7 @@ function ManageGravesDesktop() {
             </Button>
             <Button
               type="button"
-              className="bg-amber-600 hover:bg-amber-700"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
               disabled={!uploadFile || isUploading}
               onClick={handleSaveUpload}
             >
@@ -784,7 +785,7 @@ function ManageGravesDesktop() {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full bg-emerald-600"
               onClick={() => {
                 if (!navigator.geolocation) return;
                 setIsLocating(true);
@@ -866,14 +867,14 @@ function ManageGravesDesktop() {
             <DialogFooter>
               <Button
                 type="button"
-                variant="outline"
+                variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
                 {translate("Cancel")}
               </Button>
               <Button
                 type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 disabled={
                   isSubmitting ||
                   uploading ||

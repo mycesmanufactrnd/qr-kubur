@@ -484,7 +484,7 @@ export default function ManageTempOrganisations() {
                       label={translate("Longitude")}
                       value={selectedItem.longitude}
                     />
-                    <Field
+                    {/* <Field
                       label={translate("Can be donated")}
                       value={
                         selectedItem.canbedonated
@@ -496,20 +496,7 @@ export default function ManageTempOrganisations() {
                           ? "text-emerald-700"
                           : "text-gray-500"
                       }
-                    />
-                    <Field
-                      label={translate("Can manage mosque")}
-                      value={
-                        selectedItem.canmanagemosque
-                          ? translate("Yes")
-                          : translate("No")
-                      }
-                      valueClass={
-                        selectedItem.canmanagemosque
-                          ? "text-emerald-700"
-                          : "text-gray-500"
-                      }
-                    />
+                    /> */}
                   </FieldGrid>
                 </Section>
 
@@ -557,16 +544,16 @@ export default function ManageTempOrganisations() {
                       }
                     />
                     <Field
-                      label={translate("Reviewed by user ID")}
-                      value={selectedItem.reviewedbyuserid}
+                      label={translate("Reviewed by")}
+                      value={selectedItem.reviewedbyusername ?? selectedItem.reviewedbyuserid}
                     />
                     <Field
-                      label={translate("Approved organisation ID")}
-                      value={selectedItem.approvedorganisationid}
+                      label={translate("Approved organisation")}
+                      value={selectedItem.approvedorganisationname ?? selectedItem.approvedorganisationid}
                     />
                     <Field
-                      label={translate("Approved admin user ID")}
-                      value={selectedItem.approvedadminuserid}
+                      label={translate("Approved admin user")}
+                      value={selectedItem.approvedadminusername ?? selectedItem.approvedadminuserid}
                     />
                   </FieldGrid>
                 </Section>

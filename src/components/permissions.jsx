@@ -149,23 +149,12 @@ export const PERMISSION_CATEGORIES = {
     isAllAdmin: true,
   },
 
-  // sementara ni belum lagi
-  // suggestions: {
-  //   label: 'Suggestion Records',
-  //   permissions: [
-  //     { slug: PERMISSIONS.SUGGESTIONS_VIEW, label: 'Lihat' },
-  //     { slug: PERMISSIONS.SUGGESTIONS_APPROVE, label: 'Luluskan' },
-  //     { slug: PERMISSIONS.SUGGESTIONS_REJECT, label: 'Tolak' },
-  //   ],
-  //   isAllAdmin: true,
-  // },
-
-  donations: {
-    label: "Donation Records",
+  suggestions: {
+    label: 'Suggestion Records',
     permissions: [
-      { slug: PERMISSIONS.DONATIONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.DONATIONS_VERIFY, label: "Sahkan" },
-      { slug: PERMISSIONS.DONATIONS_REJECT, label: "Tolak" },
+      { slug: PERMISSIONS.SUGGESTIONS_VIEW, label: 'Lihat' },
+      { slug: PERMISSIONS.SUGGESTIONS_APPROVE, label: 'Luluskan' },
+      { slug: PERMISSIONS.SUGGESTIONS_REJECT, label: 'Tolak' },
     ],
     isAllAdmin: true,
   },
@@ -199,73 +188,6 @@ export const PERMISSION_CATEGORIES = {
   },
   // End All Admin Only
 
-  // Start Organisation Admin Only
-  mosques: {
-    label: "Mosques",
-    permissions: [
-      { slug: PERMISSIONS.MOSQUES_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.MOSQUES_CREATE, label: "Tambah" },
-      { slug: PERMISSIONS.MOSQUES_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.MOSQUES_DELETE, label: "Padam" },
-    ],
-    isOrganisationAdminOnly: true,
-  },
-
-  death_charity: {
-    label: "Death Charity",
-    permissions: [
-      { slug: PERMISSIONS.DEATH_CHARITY_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: "Tambah" },
-      { slug: PERMISSIONS.DEATH_CHARITY_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: "Padam" },
-    ],
-    isOrganisationAdminOnly: true,
-  },
-
-  graves: {
-    label: "Graves",
-    permissions: [
-      { slug: PERMISSIONS.GRAVES_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.GRAVES_CREATE, label: "Tambah" },
-      { slug: PERMISSIONS.GRAVES_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.GRAVES_DELETE, label: "Padam" },
-    ],
-    isOrganisationAdminOnly: true,
-  },
-
-  dead_persons: {
-    label: "Dead Person Records",
-    permissions: [
-      { slug: PERMISSIONS.DEAD_PERSONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.DEAD_PERSONS_CREATE, label: "Tambah" },
-      { slug: PERMISSIONS.DEAD_PERSONS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.DEAD_PERSONS_DELETE, label: "Padam" },
-    ],
-    isOrganisationAdminOnly: true,
-  },
-
-  organisations: {
-    label: "Organisations",
-    permissions: [
-      { slug: PERMISSIONS.ORGANISATIONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: "Tambah" },
-      { slug: PERMISSIONS.ORGANISATIONS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.ORGANISATIONS_DELETE, label: "Padam" },
-    ],
-    isOrganisationAdminOnly: true,
-  },
-
-  quotations: {
-    label: "Quotations Records",
-    permissions: [
-      { slug: PERMISSIONS.QUOTATIONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.QUOTATIONS_VERIFY, label: "Sahkan" },
-      { slug: PERMISSIONS.QUOTATIONS_REJECT, label: "Tolak" },
-    ],
-    isOrganisationAdminOnly: true,
-  },
-  // End Organisation Admin Only
-
   // Start Tahfiz Admin Only
   tahfiz: {
     label: "Tahfiz Center",
@@ -289,6 +211,75 @@ export const PERMISSION_CATEGORIES = {
     isTahfizAdminOnly: true,
   },
   // End Tahfiz Admin Only
+  
+  // Manual Filter Start
+  donations: {
+    label: "Donation Records",
+    permissions: [
+      { slug: PERMISSIONS.DONATIONS_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.DONATIONS_VERIFY, label: "Sahkan" },
+      { slug: PERMISSIONS.DONATIONS_REJECT, label: "Tolak" },
+    ],
+  },
+
+  mosques: {
+    label: "Mosques",
+    permissions: [
+      { slug: PERMISSIONS.MOSQUES_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.MOSQUES_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.MOSQUES_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.MOSQUES_DELETE, label: "Padam" },
+    ],
+  },
+
+  death_charity: {
+    label: "Death Charity",
+    permissions: [
+      { slug: PERMISSIONS.DEATH_CHARITY_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.DEATH_CHARITY_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: "Padam" },
+    ],
+  },
+
+  graves: {
+    label: "Graves",
+    permissions: [
+      { slug: PERMISSIONS.GRAVES_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.GRAVES_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.GRAVES_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.GRAVES_DELETE, label: "Padam" },
+    ],
+  },
+
+  dead_persons: {
+    label: "Dead Person Records",
+    permissions: [
+      { slug: PERMISSIONS.DEAD_PERSONS_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.DEAD_PERSONS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.DEAD_PERSONS_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.DEAD_PERSONS_DELETE, label: "Padam" },
+    ],
+  },
+
+  organisations: {
+    label: "Organisations",
+    permissions: [
+      { slug: PERMISSIONS.ORGANISATIONS_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.ORGANISATIONS_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.ORGANISATIONS_DELETE, label: "Padam" },
+    ],
+  },
+
+  quotations: {
+    label: "Quotations Records",
+    permissions: [
+      { slug: PERMISSIONS.QUOTATIONS_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.QUOTATIONS_VERIFY, label: "Sahkan" },
+      { slug: PERMISSIONS.QUOTATIONS_REJECT, label: "Tolak" },
+    ],
+  },
 };
 
 // Helper to check if user has permission
