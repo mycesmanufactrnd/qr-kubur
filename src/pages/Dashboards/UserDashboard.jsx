@@ -338,16 +338,10 @@ export default function UserDashboard() {
               label: translate("Donation"),
               page: "DonationPage",
               g: G.sunset,
-            },
-            {
-              icon: BadgeCheck,
-              label: translate("Status Check"),
-              page: "StatusCheck",
-              g: G.crimson,
-            },
+            },            
             {
               icon: HelpCircle,
-              label: translate("Submit Suggestion"),
+              label: translate("Suggestion"),
               page: "SubmitSuggestion",
               g: G.teal,
             },
@@ -356,6 +350,12 @@ export default function UserDashboard() {
               label: translate("Map"),
               page: "MapView",
               g: G.sapphire,
+            },
+            {
+              icon: BadgeCheck,
+              label: translate("Status Check"),
+              page: "StatusCheck",
+              g: G.crimson,
             },
           ].map(({ icon: Icon, label, page, g }) => (
             <Link key={page} to={createPageUrl(page)} className="db-qbtn">

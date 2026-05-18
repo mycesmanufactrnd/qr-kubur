@@ -501,6 +501,7 @@
   "Enter reference number to check your service status.": "Masukkan No. rujukan untuk menyemak status perkhidmatan anda",
   "Application Search": "Carian Permohonan",
   "Service Search": "Carian Perkhidmatan",
+  "Service Name": "Nama Perkhidmatan",
   "Transaction Reference No.": "No. Rujukan Transaksi",
   "Search Status": "Cari Status",
   "Tip": "Tip",
@@ -757,5 +758,10 @@
   "Service Amt": "Jml. Perkhidmatan",
   "Method": "Kaedah",
   "Date Paid": "Tarikh Bayaran",
-  "Payer": "Pembayar"
+  "Payer": "Pembayar",
+  "active filters": "penapis aktif",
+  "Advanced Filter": "Penapis Lanjutan",
+  "Apply Filter": "Guna Penapis",
+  "No data available": "Tiada data tersedia",
+  "There is nothing to display at the moment": "Tiada sesuatu untuk dipaparkan buat masa ini"
 }

@@ -499,6 +499,7 @@
   "Enter reference number to check your service status.": "Enter your reference number to check your service status.",
   "Application Search": "Application Search",
   "Service Search": "Service Search",
+  "Service Name": "Service Name",
   "Transaction Reference No.": "Transaction Reference No.",
   "Search Status": "Search Status",
   "Tip": "Tip",
@@ -755,5 +756,10 @@
   "Service Amt": "Service Amt",
   "Method": "Method",
   "Date Paid": "Date Paid",
-  "Payer": "Payer"
+  "Payer": "Payer",
+  "active filters": "active filters",
+  "Advanced Filter": "Advanced Filter",
+  "Apply Filter": "Apply Filter",
+  "No data available": "No data available",
+  "There is nothing to display at the moment": "There is nothing to display at the moment"
 }

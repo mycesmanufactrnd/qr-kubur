@@ -435,7 +435,7 @@ function ManageQuotationsDesktop() {
         onChange={setTempService}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Service name")}
+        placeholder={translate("Service Name")}
         buttonClassName="bg-sky-600 hover:bg-sky-700"
         filtersClassName="grid grid-cols-2 sm:grid-cols-4 gap-3"
       >

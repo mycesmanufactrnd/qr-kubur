@@ -488,6 +488,7 @@
   "Enter reference number to check your service status.": "أدخل رقم المرجع للتحقق من حالة خدمتك",
   "Application Search": "بحث عن الطلب",
   "Service Search": "بحث عن الخدمة",
+  "Service Name": "اسم الخدمة",
   "Transaction Reference No.": "رقم مرجع المعاملة",
   "Search Status": "بحث عن الحالة",
   "Tip": "تلميح",
@@ -743,5 +744,10 @@
   "Service Amt": "مبلغ الخدمة",
   "Method": "الطريقة",
   "Date Paid": "تاريخ الدفع",
-  "Payer": "الدافع"
+  "Payer": "الدافع",
+  "active filters": "مرشحات نشطة",
+  "Advanced Filter": "تصفية متقدمة",
+  "Apply Filter": "تطبيق التصفية",
+  "No data available": "لا توجد بيانات",
+  "There is nothing to display at the moment": "لا يوجد شيء لعرضه في الوقت الحالي"
 }

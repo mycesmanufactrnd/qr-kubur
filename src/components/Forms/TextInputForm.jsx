@@ -18,6 +18,7 @@ export default function TextInputForm({
   isEmail = false,
   isMoney = false,
   step = "any",
+  placeholder,
 }) {
   const errorMessage = errors?.[name]?.message;
 
