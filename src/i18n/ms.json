@@ -16,6 +16,7 @@
   "Showing near your location": "Menunjukkan berhampiran lokasi anda",
   "Dashboard": "Papan Pemuka",
   "Quick Actions": "Akses Pantas",
+  "Refresh":"Muat Semula",
   "Search Grave": "Cari Kubur",
   "Search Heritage Site": "Cari Tapak Warisan",
   "Scan QR": "Imbas QR",
@@ -58,6 +59,7 @@
   "Your Location": "Lokasi Anda",
   "Kaabah": "Kaabah",
   "Detecting location...": "Mengesan lokasi...",
+  "Found":"dijumpai",
 
   "Notifications": "Notifikasi",
   "Unread": "Belum Dibaca",
@@ -68,7 +70,9 @@
   "State": "Negeri",
   "Nearby": "Berdekatan",
   "No graves found": "Tiada kubur dijumpai",
+  "Please try another search or change the filters.": "Sila cuba carian lain atau ubah penapis.",
   "Load More": "Muat Lagi",
+  
 
   "Tahfiz center name...": "Nama pusat tahfiz...",
   "Search Tahfiz Center": "Cari Pusat Tahfiz",
@@ -410,6 +414,7 @@
   "Link copied": "Pautan disalin",
 
   "Grave" : "Kubur",
+  "grave" : "kubur",
 
   "To Admin Dashboard": "Ke Admin Papan Pemuka",
 
@@ -449,6 +454,7 @@
   "Assalamualaikum": "Assalamualaikum",
   "Funeral Guide & Management": "Panduan & Pengurusan Jenazah",
   "Supplication & Doa": "Doa & Munajat",
+  "Guidance" : "Panduan",
   "Complete Collection": "Koleksi Lengkap",
   "Surah, Doa & Tahlil": "Surah, Doa & Tahlil",
   "Daily recitations, tahlil & prayer guide": "Bacaan harian, tahlil & panduan doa",
@@ -469,6 +475,7 @@
   "Islamic heritage & history sites": "Tapak warisan & sejarah Islam",
   "Donation": "Derma",
   "Service Status": "Status Perkhidmatan",
+  "Status Check":"Semak Status",
 
   "Thank you! Your donation has been recorded.": "Terima kasih! Derma anda telah direkodkan.",
   "Payment successful!": "Pembayaran berjaya!",

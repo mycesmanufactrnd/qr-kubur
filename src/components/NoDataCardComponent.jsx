@@ -109,7 +109,7 @@ export default function NoDataCardComponent({
                 }`}
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                Kembali
+                {translate("Back")}
               </Button>
               <Button
                 variant="outline"
@@ -122,7 +122,7 @@ export default function NoDataCardComponent({
                 }`}
               >
                 <Home className="w-3.5 h-3.5" />
-                Utama
+                {translate("Home")}
               </Button>
               <Button
                 size="sm"
@@ -134,7 +134,7 @@ export default function NoDataCardComponent({
                 }`}
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                Refresh
+                {translate("Refresh")}
               </Button>
             </div>
           )}

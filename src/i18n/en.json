@@ -16,6 +16,7 @@
   "Showing near your location": "Showing near your location",
   "Dashboard": "Dashboard",
   "Quick Actions": "Quick Actions",
+  "Refresh":"Refresh",
   "Search Grave": "Search Grave",
   "Search Heritage Site": "Search Heritage Site",
   "Scan QR": "Scan QR",
@@ -68,6 +69,7 @@
   "State": "State",
   "Nearby": "Nearby",
   "No graves found": "No graves found",
+  "Please try another search or change the filters.": "Please try another search or change the filters.",
   "Load More": "Load More",
 
   "Tahfiz center name...": "Tahfiz center name...",
@@ -410,6 +412,9 @@
   "Share": "Share",
   "Link copied": "Link copied",
 
+  "Grave" : "Grave",
+  "grave" : "grave",
+
   "To Admin Dashboard": "To Admin Dashboard",
 
   "Please complete the field": "Please complete the field:",
@@ -447,6 +452,7 @@
   "Assalamualaikum": "Assalamualaikum",
   "Funeral Guide & Management": "Funeral Guide & Management",
   "Supplication & Doa": "Supplication & Doa",
+  "Guidance": "Guidance",
   "Complete Collection": "Complete Collection",
   "Surah, Doa & Tahlil": "Surah, Doa & Tahlil",
   "Daily recitations, tahlil & prayer guide": "Daily recitations, tahlil & prayer guide",
@@ -467,6 +473,8 @@
   "Islamic heritage & history sites": "Islamic heritage & history sites",
   "Donation": "Donation",
   "Service Status": "Service Status",
+  "Status Check":"Status Check ",
+
 
   "Thank you! Your donation has been recorded.": "Thank you! Your donation has been recorded.",
   "Payment successful!": "Payment successful!",

@@ -16,6 +16,7 @@
   "Showing near your location": "عرض الأماكن بالقرب من موقعك",
   "Dashboard": "لوحة القيادة",
   "Quick Actions": "إجراءات سريعة",
+  "Refresh":"تحديث",
   "Search Grave": "البحث عن القبر",
   "Scan QR": "مسح QR",
   "Search Tahfiz": "البحث عن التحفيظ",
@@ -67,6 +68,7 @@
   "State": "الولاية",
   "Nearby": "قريب",
   "No graves found": "لم يتم العثور على قبور",
+  "Please try another search or change the filters.": "يرجى محاولة البحث مرة أخرى أو تغيير عوامل التصفية.",
   "Load More": "تحميل المزيد",
 
   "Tahfiz center name...": "اسم مركز التحفيظ...",
@@ -410,7 +412,11 @@
   "Share": "مشاركة",
   "Link copied": "تم نسخ الرابط",
 
+  "Grave" : "قبر",
+  
+
   "To Admin Dashboard": "إلى لوحة تحكم المشرف",
+
   "Please complete the field": "يرجى إكمال الحقل:",
   "Failed Verification": "فشل التحقق",
   "already exists in the system": "موجود بالفعل في النظام",
@@ -437,6 +443,7 @@
   "Assalamualaikum": "السلام عليكم",
   "Funeral Guide & Management": "دليل وإدارة الجنازة",
   "Supplication & Doa": "الدعاء والمناجاة",
+  "Guidance": "إرشاد",
   "Complete Collection": "المجموعة الكاملة",
   "Surah, Doa & Tahlil": "السور والدعاء والتهليل",
   "Daily recitations, tahlil & prayer guide": "الأذكار اليومية والتهليل ودليل الدعاء",
@@ -457,6 +464,8 @@
   "Islamic heritage & history sites": "مواقع التراث والتاريخ الإسلامي",
   "Donation": "تبرع",
   "Service Status": "حالة الخدمة",
+  "Status Check":"التحقق من الحالة",
+
 
   "Thank you! Your donation has been recorded.": "شكراً! تم تسجيل تبرعك.",
   "Payment successful!": "تمت عملية الدفع بنجاح!",

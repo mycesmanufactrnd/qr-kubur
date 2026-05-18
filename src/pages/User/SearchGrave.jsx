@@ -140,8 +140,8 @@ export default function SearchGrave() {
         ) : gravesList.length === 0 ? (
           <NoDataCardComponent
             isPage
-            title={translate("No Graves Found")}
-            description="Sila cuba carian lain atau ubah penapis."
+            title={translate("No graves found")}
+            description={translate("Please try another search or change the filters.")}
           />
         ) : (
           <div className="space-y-4">
