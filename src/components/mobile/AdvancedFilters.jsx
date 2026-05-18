@@ -95,14 +95,14 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
       {open && (
         <div
           data-ptr-ignore="true"
-          className="fixed inset-0 bg-black/40 z-[98] backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 z-[1001] backdrop-blur-md"
           onClick={() => setOpen(false)}
         />
       )}
 
       <div
         data-ptr-ignore="true"
-        className={`fixed bottom-0 left-0 w-full z-[99] transform transition-transform duration-300 ease-out ${
+        className={`fixed bottom-0 left-0 w-full z-[1002] transform transition-transform duration-300 ease-out ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >

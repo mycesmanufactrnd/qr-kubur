@@ -65,7 +65,7 @@ function ManagePaymentConfigDesktop() {
     const grouped = {};
 
     for (const config of existingConfigs) {
-      const platformName = config.paymentplatform?.name || "Unknown Platform";
+      const platformName = config.paymentplatform?.name || translate("Unknown Platform");
       if (!grouped[platformName]) grouped[platformName] = [];
       grouped[platformName].push(config);
     }

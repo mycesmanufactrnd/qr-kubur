@@ -147,6 +147,8 @@ export const defaultDeadPersonField = {
   causeofdeath: '',
   grave: '',
   biography: '',
+  heirname: '',
+  heirphoneno: '',
   photourl: '',
   latitude: '',
   longitude: '',

@@ -408,7 +408,7 @@ function ManageDeadPersonsDesktop() {
         />
 
         <Select value={tempGrave} onValueChange={setTempGrave}>
-          <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
+          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("Cemetery")} />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-700 text-white">
@@ -752,7 +752,7 @@ function ManageDeadPersonsDesktop() {
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-blue-600"
+              className="w-full bg-blue-600 text-white"
               onClick={() => {
                 if (!navigator.geolocation) return;
                 setIsLocating(true);
@@ -779,6 +779,20 @@ function ManageDeadPersonsDesktop() {
               control={control}
               label={translate("Biography")}
             />
+            <div className="grid grid-cols-2 gap-4">
+              <TextInputForm
+                name="heirname"
+                control={control}
+                label={translate("Nama Waris")}
+                errors={errors}
+              />
+              <TextInputForm
+                name="heirphoneno"
+                control={control}
+                label={translate("No. Tel. Waris")}
+                errors={errors}
+              />
+            </div>
             <FileUploadForm
               name="photourl"
               control={control}

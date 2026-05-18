@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { translate } from "@/utils/translations";
 
 export default function FoundDataLength({

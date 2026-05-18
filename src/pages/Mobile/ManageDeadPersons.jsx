@@ -181,6 +181,10 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
           {isLocating ? translate("Getting location...") : translate("Get Current Location")}
         </button>
         <TextInputForm name="biography" control={control} label={translate("Biography")} isTextArea />
+        <div className="grid grid-cols-2 gap-3">
+          <TextInputForm name="heirname" control={control} label={translate("Nama Waris")} errors={errors} />
+          <TextInputForm name="heirphoneno" control={control} label={translate("No. Tel. Waris")} errors={errors} />
+        </div>
         <FileUploadForm
           name="photourl"
           control={control}

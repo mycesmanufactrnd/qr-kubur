@@ -113,6 +113,24 @@ export default function DeadPersonDetails() {
                 </p>
               </div>
             )}
+
+            {(deadPersonDetails.heirname || deadPersonDetails.heirphoneno) && (
+              <div className="pt-2 border-t dark:border-gray-700">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {translate("Waris")}
+                </p>
+                {deadPersonDetails.heirname && (
+                  <p className="text-sm font-medium dark:text-white">
+                    {deadPersonDetails.heirname}
+                  </p>
+                )}
+                {deadPersonDetails.heirphoneno && (
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {deadPersonDetails.heirphoneno}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {deadPersonDetails.latitude && deadPersonDetails.longitude && (

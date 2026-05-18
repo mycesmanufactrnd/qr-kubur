@@ -129,7 +129,7 @@ export default function SearchGrave() {
       <PullToRefresh onRefresh={handlePullRefresh}>
         {!isLoading && (
           <div className="px-1">
-            <FoundDataLength dataList={gravesList} data="Grave(s)" />
+            <FoundDataLength dataList={gravesList} data={`${translate('Grave')}`} />
           </div>
         )}
 

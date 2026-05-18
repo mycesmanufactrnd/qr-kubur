@@ -236,12 +236,6 @@ function AdminDashboardDesktop() {
     },
   ];
 
-  const fullQuickStats = [
-    ...quickStats,
-    ...(isOrgCanManageMosque ? deathCharity : []),
-    ...(isOrgGraveService ? quotations : []),
-  ];
-
   const pendingItems = [
     {
       label: translate("Total Suggestions"),
@@ -304,7 +298,6 @@ function AdminDashboardDesktop() {
                       {translate("Super Admin")}
                     </Button>
                   </Link>
-
                   <Link to={createPageUrl("TahfizDashboard")}>
                     <Button
                       variant="outline"
@@ -326,7 +319,6 @@ function AdminDashboardDesktop() {
                       {translate("Statistics")}
                     </Button>
                   </Link>
-
                   <Link to={createPageUrl("FinancialReports")}>
                     <Button
                       variant="outline"
@@ -342,36 +334,20 @@ function AdminDashboardDesktop() {
           </div>
         </div>
 
+        {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {fullQuickStats.map((stat, i) => (
+          {quickStats.map((stat, i) => (
             <Link key={i} to={createPageUrl(stat.page)} className="block group">
-              <Card
-                className={`hover:shadow-xl transition-all duration-300 border-0
-              bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}
-              >
+              <Card className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}>
                 <CardContent className="p-6">
                   <div className="flex justify-between">
-                    <div
-                      className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient}
-                    rounded-xl flex items-center justify-center mb-4 shadow-lg`}
-                    >
+                    <div className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
                       <stat.icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p
-                        className={`text-sm font-medium mb-1 ${stat.textColor}`}
-                      >
-                        {stat.label}
-                      </p>
-                      <p
-                        className={`text-right text-3xl font-bold bg-gradient-to-r
-                      ${stat.textGradient} bg-clip-text text-transparent`}
-                      >
-                        {stat.loading
-                          ? "—"
-                          : stat.key === "money"
-                            ? `${formatRM(stat.value)}`
-                            : stat.value.toLocaleString()}
+                      <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>{stat.label}</p>
+                      <p className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}>
+                        {stat.loading ? "—" : stat.key === "money" ? `${formatRM(stat.value)}` : stat.value.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -381,90 +357,137 @@ function AdminDashboardDesktop() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <Card className="border-0 shadow-lg h-full dark:bg-slate-800">
-              <CardHeader className="border-b border-slate-100 dark:border-slate-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-slate-800 dark:text-slate-200 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm">
-                      <Clock className="w-4 h-4 text-white" />
-                    </div>
-                    {translate("Pending Approvals")}
-                  </CardTitle>
-
-                  <Badge
-                    variant="secondary"
-                    className="text-sm font-semibold px-3 py-1 bg-white/70 dark:bg-slate-700 backdrop-blur border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300"
-                  >
-                    {pendingItems.reduce(
-                      (sum, item) => sum + (item.value || 0),
-                      0,
-                    )}{" "}
-                    {translate("Total")}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {pendingItems.map((item, i) => (
-                    <Link key={i} to={createPageUrl(item.page)}>
-                      <Card className="border-2 dark:border-slate-700 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300 hover:shadow-md">
-                        <CardContent className="p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <div
-                              className={`p-2.5 rounded-lg bg-${item.color}-100`}
-                            >
-                              <item.icon
-                                className={`w-5 h-5 text-${item.color}-600`}
-                              />
-                            </div>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                              {item.loading ? (
-                                <InlineLoadingComponent />
-                              ) : (
-                                item.value
-                              )}
-                            </p>
-                          </div>
-                          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                            {item.label}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-
-                {isOrgCanBeDonated && (
-                  <Card className="border-2 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
-                    <CardContent className="p-5">
-                      <div className="flex items-center justify-between">
+        {/* Death Charity Section */}
+        {isOrgCanManageMosque && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1 h-6 bg-gradient-to-b from-amber-500 to-red-500 rounded-full" />
+              <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                {translate("Khairat Kematian")}
+              </h2>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {deathCharity.map((stat, i) => (
+                <Link key={i} to={createPageUrl(stat.page)} className="block group">
+                  <Card className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between">
+                        <div className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
+                          <stat.icon className="w-6 h-6 text-white" />
+                        </div>
                         <div>
-                          <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-1">
-                            {translate("Verified Donation")}
-                          </p>
-                          <p className="text-3xl font-bold text-green-900 dark:text-green-300">
-                            {isDDVLoading ? (
-                              <InlineLoadingComponent />
-                            ) : (
-                              `${formatRM(donationVerified)}`
-                            )}
+                          <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>{stat.label}</p>
+                          <p className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}>
+                            {stat.loading ? "—" : stat.key === "money" ? `${formatRM(stat.value)}` : stat.value.toLocaleString()}
                           </p>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className="bg-white dark:bg-slate-800 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400"
-                        >
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                          {translate("Live tracking")}
-                        </Badge>
                       </div>
                     </CardContent>
                   </Card>
-                )}
-              </CardContent>
-            </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quotations Section */}
+        {isOrgGraveService && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1 h-6 bg-gradient-to-b from-sky-500 to-blue-500 rounded-full" />
+              <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                {translate("Quotations")}
+              </h2>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {quotations.map((stat, i) => (
+                <Link key={i} to={createPageUrl(stat.page)} className="block group">
+                  <Card className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between">
+                        <div className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
+                          <stat.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>{stat.label}</p>
+                          <p className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}>
+                            {stat.loading ? "—" : stat.key === "money" ? `${formatRM(stat.value)}` : stat.value.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pending Approvals + Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-6 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full" />
+              <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                {translate("Pending Approvals")}
+              </h2>
+              <Badge
+                variant="secondary"
+                className="text-sm font-semibold px-3 py-1 bg-white/70 dark:bg-slate-700 backdrop-blur border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300"
+              >
+                {pendingItems.reduce((sum, item) => sum + (item.value || 0), 0)}{" "}
+                {translate("Total")}
+              </Badge>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {pendingItems.map((item, i) => (
+                <Link key={i} to={createPageUrl(item.page)}>
+                  <Card className="border-2 dark:border-slate-700 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300 hover:shadow-md">
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`p-2.5 rounded-lg bg-${item.color}-100`}>
+                          <item.icon className={`w-5 h-5 text-${item.color}-600`} />
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                          {item.loading ? <InlineLoadingComponent /> : item.value}
+                        </p>
+                      </div>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        {item.label}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            {isOrgCanBeDonated && (
+              <Card className="border-2 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-1">
+                        {translate("Verified Donation")}
+                      </p>
+                      <p className="text-3xl font-bold text-green-900 dark:text-green-300">
+                        {isDDVLoading ? <InlineLoadingComponent /> : `${formatRM(donationVerified)}`}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="bg-white dark:bg-slate-800 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400"
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      {translate("Live tracking")}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -482,79 +505,25 @@ function AdminDashboardDesktop() {
                   {[
                     ...(isOrgCanManageGrave
                       ? [
-                          {
-                            label: translate("Manage Graves"),
-                            page: "ManageGraves",
-                            icon: MapPin,
-                            color: "emerald",
-                          },
-                          {
-                            label: translate("Manage Deceased"),
-                            page: "ManageDeadPersons",
-                            icon: Users,
-                            color: "blue",
-                          },
+                          { label: translate("Manage Graves"), page: "ManageGraves", icon: MapPin, color: "emerald" },
+                          { label: translate("Manage Deceased"), page: "ManageDeadPersons", icon: Users, color: "blue" },
                         ]
                       : []),
-                    {
-                      label: translate("Manage Organisations"),
-                      page: "ManageOrganisations",
-                      icon: Building2,
-                      color: "violet",
-                    },
-                    {
-                      label: translate("Payment Config"),
-                      page: "ManagePaymentConfig",
-                      icon: CreditCard,
-                      color: "emerald",
-                    },
+                    { label: translate("Manage Organisations"), page: "ManageOrganisations", icon: Building2, color: "violet" },
+                    { label: translate("Payment Config"), page: "ManagePaymentConfig", icon: CreditCard, color: "emerald" },
                     ...(isOrgCanBeDonated
-                      ? [
-                          {
-                            label: translate("Manage Donations"),
-                            page: "ManageDonations",
-                            icon: Heart,
-                            color: "red",
-                          },
-                        ]
+                      ? [{ label: translate("Manage Donations"), page: "ManageDonations", icon: Heart, color: "red" }]
                       : []),
-                    {
-                      label: translate("Manage Users"),
-                      page: "ManageUsers",
-                      icon: Users,
-                      color: "indigo",
-                    },
-                    {
-                      label: translate("Manage Permissions"),
-                      page: "ManagePermissions",
-                      icon: UserCheck,
-                      color: "purple",
-                    },
+                    { label: translate("Manage Users"), page: "ManageUsers", icon: Users, color: "indigo" },
+                    { label: translate("Manage Permissions"), page: "ManagePermissions", icon: UserCheck, color: "purple" },
                     ...(isOrgCanManageMosque
                       ? [
-                          {
-                            label: translate("Manage Mosque"),
-                            page: "ManageMosques",
-                            icon: Landmark,
-                            color: "stone",
-                          },
-                          {
-                            label: translate("Manage Activity Posts"),
-                            page: "ManageActivityPosts",
-                            icon: List,
-                            color: "amber",
-                          },
+                          { label: translate("Manage Mosque"), page: "ManageMosques", icon: Landmark, color: "stone" },
+                          { label: translate("Manage Activity Posts"), page: "ManageActivityPosts", icon: List, color: "amber" },
                         ]
                       : []),
                     ...(isOrgGraveService
-                      ? [
-                          {
-                            label: translate("Manage Quotations"),
-                            page: "ManageQuotations",
-                            icon: ClipboardList,
-                            color: "sky",
-                          },
-                        ]
+                      ? [{ label: translate("Manage Quotations"), page: "ManageQuotations", icon: ClipboardList, color: "sky" }]
                       : []),
                   ].map((action, i) => (
                     <Link key={i} to={createPageUrl(action.page)}>
@@ -562,9 +531,7 @@ function AdminDashboardDesktop() {
                         variant="ghost"
                         className="w-full justify-start hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
                       >
-                        <action.icon
-                          className={`w-4 h-4 mr-3 text-${action.color}-600 group-hover:scale-110 transition-transform`}
-                        />
+                        <action.icon className={`w-4 h-4 mr-3 text-${action.color}-600 group-hover:scale-110 transition-transform`} />
                         <span className="text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
                           {action.label}
                         </span>

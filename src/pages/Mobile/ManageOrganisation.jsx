@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import { translate } from "@/utils/translations";
 import { useForm } from "react-hook-form";
-import {
-  Building2, Plus, Edit, Trash2, Save, MapPin, X,
-} from "lucide-react";
+import { Building2, Plus, Edit, Trash2, Save, MapPin, X } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,11 +34,21 @@ const DEFAULT_USER_PASSWORD = "password";
 
 export default function MobileManageOrganisation() {
   const {
-    currentUser, loadingUser, hasAdminAccess, isSuperAdmin, isAdmin, currentUserStates,
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
+    isAdmin,
+    currentUserStates,
   } = useAdminAccess();
 
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("organisations");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("organisations");
 
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
@@ -58,23 +66,32 @@ export default function MobileManageOrganisation() {
   const [editingUserIndex, setEditingUserIndex] = useState(null);
 
   const {
-    control, handleSubmit, reset, setValue, watch, getValues,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: defaultOrganisationField });
 
   const isGraveServicesChecked = watch("isgraveservices");
   const canAddOrgUsers = isSuperAdmin || isAdmin;
 
-  const { organisationsList, totalPages, isLoading } = useGetOrganisationPaginated({
-    page,
-    pageSize,
-    filterName: appliedSearch,
-    filterType: appliedFilterType === "all" ? undefined : Number(appliedFilterType),
-    filterState: appliedFilterState === "all" ? undefined : appliedFilterState,
-  });
+  const { organisationsList, totalPages, isLoading } =
+    useGetOrganisationPaginated({
+      page,
+      pageSize,
+      filterName: appliedSearch,
+      filterType:
+        appliedFilterType === "all" ? undefined : Number(appliedFilterType),
+      filterState:
+        appliedFilterState === "all" ? undefined : appliedFilterState,
+    });
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
-  const { createOrganisation, updateOrganisation, deleteOrganisation } = useOrganisationMutations();
+  const { createOrganisation, updateOrganisation, deleteOrganisation } =
+    useOrganisationMutations();
   const { createUser } = useUserMutations();
 
   useEffect(() => {
@@ -93,7 +110,9 @@ export default function MobileManageOrganisation() {
 
   const currentOrgType = currentUser?.organisation?.organisationtype ?? null;
   const restrictedOrgTypeNames = new Set([
-    "Syarikat Swasta", "Persatuan Sukarelawan", "Pertubuhan Kebajikan (NGO)",
+    "Syarikat Swasta",
+    "Persatuan Sukarelawan",
+    "Pertubuhan Kebajikan (NGO)",
   ]);
   const isRestrictedOrgType =
     !!currentOrgType?.name && restrictedOrgTypeNames.has(currentOrgType.name);
@@ -101,7 +120,12 @@ export default function MobileManageOrganisation() {
   const organisationTypeOptions = isSuperAdmin
     ? organisationTypeList.items.map((t) => ({ value: t.id, label: t.name }))
     : currentOrgType?.id
-      ? [{ value: currentOrgType.id, label: currentOrgType.name || String(currentOrgType.id) }]
+      ? [
+          {
+            value: currentOrgType.id,
+            label: currentOrgType.name || String(currentOrgType.id),
+          },
+        ]
       : [];
 
   const userRoleOptions = [
@@ -121,24 +145,40 @@ export default function MobileManageOrganisation() {
       seen.add(key);
       normalized.push({
         service,
-        price: entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
       });
     }
-    setValue("serviceoffered", normalized.map((i) => i.service));
-    setValue("serviceprice", Object.fromEntries(normalized.map((i) => [i.service, Number(i.price) || 0])));
+    setValue(
+      "serviceoffered",
+      normalized.map((i) => i.service),
+    );
+    setValue(
+      "serviceprice",
+      Object.fromEntries(
+        normalized.map((i) => [i.service, Number(i.price) || 0]),
+      ),
+    );
   };
 
   const addServiceEntry = () => {
     const next = [
       ...serviceEntries,
-      { id: `${Date.now()}-${Math.random()}`, service: "", price: "", isactive: true },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        service: "",
+        price: "",
+        isactive: true,
+      },
     ];
     setServiceEntries(next);
     syncServiceDraftToForm(next);
   };
 
   const updateServiceEntry = (id, field, val) => {
-    const next = serviceEntries.map((e) => e.id === id ? { ...e, [field]: val } : e);
+    const next = serviceEntries.map((e) =>
+      e.id === id ? { ...e, [field]: val } : e,
+    );
     setServiceEntries(next);
     syncServiceDraftToForm(next);
   };
@@ -174,7 +214,9 @@ export default function MobileManageOrganisation() {
     if (editingUserIndex !== null) {
       setUserEntries((prev) =>
         prev.map((e, i) =>
-          i === editingUserIndex ? { ...e, fullname, username, phoneno, role } : e,
+          i === editingUserIndex
+            ? { ...e, fullname, username, phoneno, role }
+            : e,
         ),
       );
       resetUserFields();
@@ -182,16 +224,35 @@ export default function MobileManageOrganisation() {
     }
     setUserEntries((prev) => [
       ...prev,
-      { id: `${Date.now()}-${Math.random()}`, fullname, username, phoneno, role },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        fullname,
+        username,
+        phoneno,
+        role,
+      },
     ]);
     resetUserFields();
   };
 
-  const buildUserPayload = async ({ fullname, username, phoneno, role, states, organisationId }) => {
+  const buildUserPayload = async ({
+    fullname,
+    username,
+    phoneno,
+    role,
+    states,
+    organisationId,
+  }) => {
     const f = (fullname || "").trim();
     const u = (username || "").trim();
-    if (!f || !u) { showError("Full Name and Username are required."); return null; }
-    if (!organisationId) { showError("Organisation is required."); return null; }
+    if (!f || !u) {
+      showError("Full Name and Username are required.");
+      return null;
+    }
+    if (!organisationId) {
+      showError("Organisation is required.");
+      return null;
+    }
     return {
       fullname: f,
       email: u,
@@ -210,7 +271,10 @@ export default function MobileManageOrganisation() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: fd });
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: fd,
+      });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         showError(d.error || "Failed to upload photo");
@@ -234,7 +298,11 @@ export default function MobileManageOrganisation() {
       !isSuperAdmin && isRestrictedOrgType && currentOrgType?.id
         ? currentOrgType.id.toString()
         : "";
-    reset({ ...defaultOrganisationField, states: defaultState, organisationtype: defaultOrgType });
+    reset({
+      ...defaultOrganisationField,
+      states: defaultState,
+      organisationtype: defaultOrgType,
+    });
     setServiceEntries([]);
     setUserEntries([]);
     resetUserFields();
@@ -277,7 +345,10 @@ export default function MobileManageOrganisation() {
         ? relationalServices.map((s, idx) => ({
             id: `${Date.now()}-${idx}`,
             service: s.service,
-            price: (s.price ? parseFloat(Number(s.price).toFixed(2)) : 0).toString(),
+            price: (s.price
+              ? parseFloat(Number(s.price).toFixed(2))
+              : 0
+            ).toString(),
             isactive: s.isactive !== false,
           }))
         : serviceoffered.map((s, idx) => ({
@@ -304,7 +375,8 @@ export default function MobileManageOrganisation() {
       seen.add(key);
       normalizedServices.push({
         service,
-        price: entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
         isactive: entry.isactive !== false,
       });
     }
@@ -315,8 +387,12 @@ export default function MobileManageOrganisation() {
     }
 
     const {
-      serviceoffered: _s, serviceprice: _p,
-      user_fullname, user_username, user_phoneno, user_role,
+      serviceoffered: _s,
+      serviceprice: _p,
+      user_fullname,
+      user_username,
+      user_phoneno,
+      user_role,
       ...restFormData
     } = formData;
 
@@ -328,7 +404,9 @@ export default function MobileManageOrganisation() {
       organisationtype: formData.organisationtype
         ? { id: Number(formData.organisationtype) }
         : null,
-      states: Array.isArray(formData.states) ? formData.states : [formData.states],
+      states: Array.isArray(formData.states)
+        ? formData.states
+        : [formData.states],
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       services: normalizedServices.map((s) => ({
@@ -342,7 +420,10 @@ export default function MobileManageOrganisation() {
 
     try {
       const res = editingOrg
-        ? await updateOrganisation.mutateAsync({ id: editingOrg.id, data: submitData })
+        ? await updateOrganisation.mutateAsync({
+            id: editingOrg.id,
+            data: submitData,
+          })
         : await createOrganisation.mutateAsync(submitData);
 
       const organisationId = editingOrg?.id ?? res?.id;
@@ -355,12 +436,17 @@ export default function MobileManageOrganisation() {
           role: user_role || "admin",
         };
         const hasPending =
-          pendingEntry.fullname || pendingEntry.username || pendingEntry.phoneno;
+          pendingEntry.fullname ||
+          pendingEntry.username ||
+          pendingEntry.phoneno;
         if (hasPending && (!pendingEntry.fullname || !pendingEntry.username)) {
           showError("Full Name and Username are required.");
           return;
         }
-        const toCreate = [...userEntries, ...(hasPending ? [pendingEntry] : [])];
+        const toCreate = [
+          ...userEntries,
+          ...(hasPending ? [pendingEntry] : []),
+        ];
         for (const entry of toCreate) {
           const payload = await buildUserPayload({
             fullname: entry.fullname,
@@ -394,13 +480,33 @@ export default function MobileManageOrganisation() {
         <BackNavigation title={translate("Manage Organisations")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter + Add */}
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
-                { label: translate("Type"), type: "select", searchColumn: "type", options: organisationTypeOptions.map((t) => ({ id: String(t.value), name: t.label })) },
-                ...(isSuperAdmin ? [{ label: translate("State"), type: "select", searchColumn: "state", options: STATES_MY.map((s) => ({ id: s, name: s })) }] : []),
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
+                {
+                  label: translate("Type"),
+                  type: "select",
+                  searchColumn: "type",
+                  options: organisationTypeOptions.map((t) => ({
+                    id: String(t.value),
+                    name: t.label,
+                  })),
+                },
+                ...(isSuperAdmin
+                  ? [
+                      {
+                        label: translate("State"),
+                        type: "select",
+                        searchColumn: "state",
+                        options: STATES_MY.map((s) => ({ id: s, name: s })),
+                      },
+                    ]
+                  : []),
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.name || "");
@@ -436,7 +542,10 @@ export default function MobileManageOrganisation() {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={() => openEditSheet(org)}
-                  onDelete={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}
+                  onDelete={() => {
+                    setOrgToDelete(org);
+                    setDeleteDialogOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -512,8 +621,18 @@ export default function MobileManageOrganisation() {
   );
 }
 
-function OrgCard({ org, organisationTypeList, canEdit, canDelete, onEdit, onDelete }) {
-  const typeName = getLabelFromId(organisationTypeList.items, org.organisationtype?.id);
+function OrgCard({
+  org,
+  organisationTypeList,
+  canEdit,
+  canDelete,
+  onEdit,
+  onDelete,
+}) {
+  const typeName = getLabelFromId(
+    organisationTypeList.items,
+    org.organisationtype?.id,
+  );
   const states = Array.isArray(org.states) ? org.states.join(", ") : org.states;
 
   return (
@@ -525,20 +644,36 @@ function OrgCard({ org, organisationTypeList, canEdit, canDelete, onEdit, onDele
           className="w-16 h-16 object-cover rounded-xl shrink-0 bg-slate-100 dark:bg-slate-700"
         />
         <div className="flex-1 min-w-0 space-y-1">
-          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">{org.name}</p>
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
+            {org.name}
+          </p>
           <div className="flex items-center gap-1.5 flex-wrap">
             {typeName && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0">{typeName}</Badge>
+              <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                {typeName}
+              </Badge>
             )}
-            {states && <span className="text-xs text-slate-400 dark:text-slate-500">{states}</span>}
+            {states && (
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                {states}
+              </span>
+            )}
           </div>
           {org.serviceoffered?.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {org.serviceoffered.slice(0, 3).map((s) => (
-                <Badge key={s} variant="outline" className="text-xs px-1.5 py-0">{s}</Badge>
+                <Badge
+                  key={s}
+                  variant="outline"
+                  className="text-xs px-1.5 py-0"
+                >
+                  {s}
+                </Badge>
               ))}
               {org.serviceoffered.length > 3 && (
-                <span className="text-xs text-slate-400">+{org.serviceoffered.length - 3}</span>
+                <span className="text-xs text-slate-400">
+                  +{org.serviceoffered.length - 3}
+                </span>
               )}
             </div>
           )}
@@ -569,30 +704,62 @@ function OrgCard({ org, organisationTypeList, canEdit, canDelete, onEdit, onDele
 }
 
 function OrgFormSheet({
-  editingOrg, control, handleSubmit, onSubmit, onClose, errors, isSubmitting, uploading,
-  isLocating, setIsLocating, setValue, getValues, isGraveServicesChecked,
-  serviceEntries, addServiceEntry, updateServiceEntry, removeServiceEntry,
-  organisationTypeOptions, organisationsList, isSuperAdmin, currentUserStates,
-  handleFileUpload, canAddOrgUsers, userEntries, setUserEntries, editingUserIndex,
-  setEditingUserIndex, handleAddOrUpdateUser, resetUserFields, userRoleOptions,
-  createOrganisation, updateOrganisation,
+  editingOrg,
+  control,
+  handleSubmit,
+  onSubmit,
+  onClose,
+  errors,
+  isSubmitting,
+  uploading,
+  isLocating,
+  setIsLocating,
+  setValue,
+  getValues,
+  isGraveServicesChecked,
+  serviceEntries,
+  addServiceEntry,
+  updateServiceEntry,
+  removeServiceEntry,
+  organisationTypeOptions,
+  organisationsList,
+  isSuperAdmin,
+  currentUserStates,
+  handleFileUpload,
+  canAddOrgUsers,
+  userEntries,
+  setUserEntries,
+  editingUserIndex,
+  setEditingUserIndex,
+  handleAddOrUpdateUser,
+  resetUserFields,
+  userRoleOptions,
+  createOrganisation,
+  updateOrganisation,
 }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
-        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+        <button
+          onClick={onClose}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+        >
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex-1 text-base">
-          {editingOrg ? translate("Edit Organisation") : translate("Add Organisation")}
+          {editingOrg
+            ? translate("Edit Organisation")
+            : translate("Add Organisation")}
         </h2>
         <Button
           onClick={handleSubmit(onSubmit)}
           size="sm"
           className="bg-violet-600 hover:bg-violet-700"
           disabled={
-            isSubmitting || uploading ||
-            createOrganisation.isPending || updateOrganisation.isPending
+            isSubmitting ||
+            uploading ||
+            createOrganisation.isPending ||
+            updateOrganisation.isPending
           }
         >
           <Save className="w-3.5 h-3.5 mr-1" />
@@ -604,35 +771,50 @@ function OrgFormSheet({
         {/* Organisation Details */}
         <FormSection title={translate("Organisation Details")}>
           <TextInputForm
-            name="name" control={control}
-            label={translate("Name")} required errors={errors}
+            name="name"
+            control={control}
+            label={translate("Name")}
+            required
+            errors={errors}
           />
           <SelectForm
-            name="organisationtype" control={control}
+            name="organisationtype"
+            control={control}
             label={translate("Organisation Type")}
             placeholder={translate("Select type")}
-            options={organisationTypeOptions} required errors={errors}
+            options={organisationTypeOptions}
+            required
+            errors={errors}
           />
           <SelectForm
-            name="parentorganisation" control={control}
+            name="parentorganisation"
+            control={control}
             label={translate("Parent Organisation")}
             placeholder={translate("Select parent")}
             disabled={!isSuperAdmin}
-            options={organisationsList.items.map((o) => ({ value: o.id, label: o.name }))}
+            options={organisationsList.items.map((o) => ({
+              value: o.id,
+              label: o.name,
+            }))}
           />
           <SelectForm
-            name="states" control={control}
+            name="states"
+            control={control}
             label={translate("State")}
             placeholder={translate("Select state")}
             options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-            required errors={errors}
+            required
+            errors={errors}
           />
           <TextInputForm
-            name="address" control={control}
-            label={translate("Address")} isTextArea
+            name="address"
+            control={control}
+            label={translate("Address")}
+            isTextArea
           />
           <FileUploadForm
-            name="photourl" control={control}
+            name="photourl"
+            control={control}
             label={translate("Photo")}
             bucketName="bucket-organisation"
             uploading={uploading}
@@ -640,17 +822,35 @@ function OrgFormSheet({
             translate={translate}
           />
           <div className="grid grid-cols-2 gap-3">
-            <TextInputForm name="phone" control={control} label={translate("Phone No.")} isPhone />
-            <TextInputForm name="email" control={control} label={translate("Email")} isEmail />
+            <TextInputForm
+              name="phone"
+              control={control}
+              label={translate("Phone No.")}
+              isPhone
+            />
+            <TextInputForm
+              name="email"
+              control={control}
+              label={translate("Email")}
+              isEmail
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <TextInputForm
-              name="latitude" control={control}
-              label={translate("Latitude")} isNumber required errors={errors}
+              name="latitude"
+              control={control}
+              label={translate("Latitude")}
+              isNumber
+              required
+              errors={errors}
             />
             <TextInputForm
-              name="longitude" control={control}
-              label={translate("Longitude")} isNumber required errors={errors}
+              name="longitude"
+              control={control}
+              label={translate("Longitude")}
+              isNumber
+              required
+              errors={errors}
             />
           </div>
           <Button
@@ -672,7 +872,9 @@ function OrgFormSheet({
             disabled={isLocating}
           >
             <MapPin className="w-4 h-4 mr-2" />
-            {isLocating ? translate("Getting location...") : translate("Get Current Location")}
+            {isLocating
+              ? translate("Getting location...")
+              : translate("Get Current Location")}
           </Button>
 
           {isSuperAdmin && (
@@ -699,7 +901,8 @@ function OrgFormSheet({
         {/* Grave Services */}
         <FormSection title={translate("Grave Services")}>
           <CheckboxForm
-            name="isgraveservices" control={control}
+            name="isgraveservices"
+            control={control}
             label={translate("Grave Services")}
             disabled={serviceEntries.length > 0}
           />
@@ -711,7 +914,9 @@ function OrgFormSheet({
                     className="flex-1 h-9 px-3 text-sm border dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
                     placeholder={translate("Service Name")}
                     value={entry.service}
-                    onChange={(e) => updateServiceEntry(entry.id, "service", e.target.value)}
+                    onChange={(e) =>
+                      updateServiceEntry(entry.id, "service", e.target.value)
+                    }
                   />
                   <input
                     className="w-20 h-9 px-2 text-sm border dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
@@ -719,7 +924,9 @@ function OrgFormSheet({
                     step="0.01"
                     placeholder="RM"
                     value={entry.price}
-                    onChange={(e) => updateServiceEntry(entry.id, "price", e.target.value)}
+                    onChange={(e) =>
+                      updateServiceEntry(entry.id, "price", e.target.value)
+                    }
                   />
                   <button
                     type="button"
@@ -728,9 +935,17 @@ function OrgFormSheet({
                         ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700"
                         : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 border-gray-300 dark:border-slate-600"
                     }`}
-                    onClick={() => updateServiceEntry(entry.id, "isactive", entry.isactive === false)}
+                    onClick={() =>
+                      updateServiceEntry(
+                        entry.id,
+                        "isactive",
+                        entry.isactive === false,
+                      )
+                    }
                   >
-                    {entry.isactive !== false ? translate("Active") : translate("Inactive")}
+                    {entry.isactive !== false
+                      ? translate("Active")
+                      : translate("Inactive")}
                   </button>
                   <button
                     type="button"
@@ -741,13 +956,20 @@ function OrgFormSheet({
                   </button>
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm" onClick={addServiceEntry}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addServiceEntry}
+              >
                 <Plus className="w-4 h-4 mr-1" />
                 {translate("Add Service")}
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-slate-400 dark:text-slate-500">{translate("No grave service")}</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">
+              {translate("No grave service")}
+            </p>
           )}
         </FormSection>
 
@@ -755,13 +977,27 @@ function OrgFormSheet({
         {canAddOrgUsers && (
           <FormSection title={translate("Add User")}>
             <div className="grid grid-cols-2 gap-3">
-              <TextInputForm name="user_fullname" control={control} label={translate("Full Name")} />
-              <TextInputForm name="user_username" control={control} label={translate("Username")} />
+              <TextInputForm
+                name="user_fullname"
+                control={control}
+                label={translate("Full Name")}
+              />
+              <TextInputForm
+                name="user_username"
+                control={control}
+                label={translate("Username")}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <TextInputForm name="user_phoneno" control={control} label={translate("Phone No.")} isPhone />
+              <TextInputForm
+                name="user_phoneno"
+                control={control}
+                label={translate("Phone No.")}
+                isPhone
+              />
               <SelectForm
-                name="user_role" control={control}
+                name="user_role"
+                control={control}
                 label={translate("Role")}
                 options={userRoleOptions}
                 placeholder="Select role"
@@ -774,10 +1010,17 @@ function OrgFormSheet({
                 className="bg-violet-600 hover:bg-violet-700"
                 onClick={handleAddOrUpdateUser}
               >
-                {editingUserIndex !== null ? translate("Update") : translate("Add User")}
+                {editingUserIndex !== null
+                  ? translate("Update")
+                  : translate("Add User")}
               </Button>
               {editingUserIndex !== null && (
-                <Button type="button" size="sm" variant="outline" onClick={resetUserFields}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={resetUserFields}
+                >
                   {translate("Cancel")}
                 </Button>
               )}
@@ -796,7 +1039,9 @@ function OrgFormSheet({
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{entry.fullname}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{entry.username} • {entry.role}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {entry.username} • {entry.role}
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -813,7 +1058,9 @@ function OrgFormSheet({
                     <button
                       type="button"
                       onClick={() => {
-                        setUserEntries((prev) => prev.filter((_, i) => i !== idx));
+                        setUserEntries((prev) =>
+                          prev.filter((_, i) => i !== idx),
+                        );
                         if (editingUserIndex === idx) resetUserFields();
                       }}
                     >
@@ -823,7 +1070,9 @@ function OrgFormSheet({
                 ))}
               </div>
             )}
-            <p className="text-xs text-slate-400 dark:text-slate-500">Default password: {DEFAULT_USER_PASSWORD}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              Default password: {DEFAULT_USER_PASSWORD}
+            </p>
           </FormSection>
         )}
       </div>

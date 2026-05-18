@@ -7,6 +7,8 @@ export const deadPersonSchema = z.object({
   dateofdeath: z.string().or(z.date()),
   causeofdeath: z.string().nullable(),
   biography: z.string().nullable(),
+  heirname: z.string().nullable().optional(),
+  heirphoneno: z.string().nullable().optional(),
   photourl: z.string().nullable(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),

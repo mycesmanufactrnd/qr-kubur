@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Plus,
@@ -7,6 +8,7 @@ import {
   Trash2,
   X,
   Save,
+  ShieldCheck,
 } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +18,7 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import LoadingUser from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { createPageUrl } from "@/utils/index";
 import { translate } from "@/utils/translations";
 import { hashPassword } from "@/utils/helpers";
 import { validateFields } from "@/utils/validations";
@@ -41,7 +44,7 @@ const avatarColors = {
 
 // ─── User card ────────────────────────────────────────────────────────────────
 
-function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
+function UserCard({ user, canEdit, canDelete, onEdit, onDelete, onManagePermissions }) {
   const initial = (user.fullname?.[0] ?? user.email?.[0] ?? "?").toUpperCase();
   const affiliation = user.organisation?.name ?? user.tahfizcenter?.name ?? "";
 
@@ -82,6 +85,13 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete }) {
             {translate("Edit")}
           </button>
         )}
+        <button
+          onClick={() => onManagePermissions(user)}
+          className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          {translate("Permissions")}
+        </button>
         {canDelete && (
           <button
             onClick={() => onDelete(user)}
@@ -380,6 +390,7 @@ export default function MobileManageUsers() {
   const { organisationsList: organisations } = useGetOrganisationPaginated({});
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
   const { createUser, updateUser, deleteUser } = useUserMutations();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const open = formOpen || deleteDialogOpen;
@@ -505,6 +516,7 @@ export default function MobileManageUsers() {
                   canDelete={canDelete}
                   onEdit={openEdit}
                   onDelete={(u) => { setUserToDelete(u); setDeleteDialogOpen(true); }}
+                  onManagePermissions={(u) => navigate(createPageUrl("ManagePermissions"), { state: { incomingUser: u } })}
                 />
               ))}
             </div>

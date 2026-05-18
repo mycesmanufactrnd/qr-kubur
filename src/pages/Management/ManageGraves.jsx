@@ -442,7 +442,7 @@ function ManageGravesDesktop() {
           </Select>
         )}
         <Select value={tempStatus} onValueChange={setTempStatus}>
-          <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
+          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
 

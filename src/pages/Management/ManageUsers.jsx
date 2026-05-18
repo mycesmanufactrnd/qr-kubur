@@ -2,7 +2,8 @@
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import ManageUsersMobile from "@/pages/Mobile/ManageUsers";
 import { useState } from "react";
-import { Users, Plus, Edit, Trash2, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Users, Plus, Edit, Trash2, Search, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ import { hashPassword } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
+import { createPageUrl } from "@/utils";
 
 export default function ManageUsers() {
   const isNarrow = useIsNarrow();
@@ -93,6 +95,7 @@ function ManageUsersDesktop() {
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
   const { createUser, updateUser, deleteUser } = useUserMutations();
+  const navigate = useNavigate();
 
   const handleAddUser = () => {
     setIsAddMode(true);
@@ -355,8 +358,8 @@ function ManageUsersDesktop() {
                       </div>
                     </div>
                   </div>
-                  {canEdit && (
-                    <div className="flex gap-2">
+                  <div className="flex gap-2">
+                    {canEdit && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -365,18 +368,26 @@ function ManageUsersDesktop() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      {canDelete && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteUser(user)}
-                          className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  )}
+                    )}
+                    {canEdit && canDelete && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteUser(user)}
+                        className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate(createPageUrl("ManagePermissions"), { state: { incomingUser: user } })}
+                      className="flex-shrink-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

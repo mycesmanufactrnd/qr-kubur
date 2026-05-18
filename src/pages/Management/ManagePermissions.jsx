@@ -2,7 +2,9 @@
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import MobileManagePermissions from "@/pages/Mobile/ManagePermissions";
 import { useEffect, useState } from "react";
-import { Shield, Save, Search } from "lucide-react";
+import { Shield, Save, Search, ArrowLeft } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { createPageUrl } from "@/utils/index";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,9 +53,12 @@ function ManagePermissionsDesktop() {
     canEdit,
   } = useCrudPermissions("permissions");
 
+  const location = useLocation();
+  const incomingUser = location.state?.incomingUser ?? null;
+
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(incomingUser);
   const [searchQuery, setSearchQuery] = useState("");
   const [userPermissions, setUserPermissions] = useState({});
 
@@ -122,7 +127,7 @@ function ManagePermissionsDesktop() {
     });
   };
 
-  if (loadingUser || loadingUsers || permissionsLoading || loadingPermissions) {
+  if (loadingUser || (!incomingUser && loadingUsers) || permissionsLoading || loadingPermissions) {
     return <PageLoadingComponent />;
   }
 
@@ -167,6 +172,9 @@ function ManagePermissionsDesktop() {
               : dashboardLabel,
             page: isSuperAdmin ? "SuperadminDashboard" : dashboardPage,
           },
+          ...(incomingUser
+            ? [{ label: translate("Manage Users"), page: "ManageUsers" }]
+            : []),
           {
             label: translate("Manage Permissions"),
             page: "ManagePermissions",
@@ -184,50 +192,78 @@ function ManagePermissionsDesktop() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4 space-y-4">
-            <div>
-              <Label className="text-sm text-gray-600 dark:text-gray-400">
-                {translate("Search User")}
-              </Label>
-              <div className="relative mt-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder={translate("Name")}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-gray-300 dark:border-white dark:text-white"
-                />
+            {incomingUser ? (
+              <div className="space-y-3">
+                <Link
+                  to={createPageUrl("ManageUsers")}
+                  className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  {translate("All Users")}
+                </Link>
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">
+                        {(incomingUser.fullname?.[0] ?? incomingUser.email?.[0] ?? "?").toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{incomingUser.fullname}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{incomingUser.email}</p>
+                      <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 capitalize mt-1 inline-block">{incomingUser.role}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">
+                    {translate("Search User")}
+                  </Label>
+                  <div className="relative mt-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder={translate("Name")}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 border-gray-300 dark:border-white dark:text-white"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {loadingUsers ? (
-                <InlineLoadingComponent />
-              ) : users.items.length === 0 ? (
-                <NoDataCardComponent />
-              ) : (
-                users.items.map((user) => (
-                  <button
-                    key={user.id}
-                    onClick={() => setSelectedUser(user)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      selectedUser?.id === user.id
-                        ? "bg-purple-50 border-purple-500 dark:bg-purple-900/20"
-                        : "bg-white border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    <p className="font-medium text-sm text-gray-900 dark:text-white">
-                      {user.fullname}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.email}
-                    </p>
-                    <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300">
-                      {user.role}
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
+                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                  {loadingUsers ? (
+                    <InlineLoadingComponent />
+                  ) : users.items.length === 0 ? (
+                    <NoDataCardComponent />
+                  ) : (
+                    users.items.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => setSelectedUser(user)}
+                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                          selectedUser?.id === user.id
+                            ? "bg-purple-50 border-purple-500 dark:bg-purple-900/20"
+                            : "bg-white border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        <p className="font-medium text-sm text-gray-900 dark:text-white">
+                          {user.fullname}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {user.email}
+                        </p>
+                        <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                          {user.role}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card className="lg:col-span-2 border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
@@ -359,7 +395,7 @@ function ManagePermissionsDesktop() {
           </CardContent>
         </Card>
       </div>
-      {users.total > 0 && (
+      {!incomingUser && users.total > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}
