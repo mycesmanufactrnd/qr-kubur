@@ -732,5 +732,16 @@
   "Or paste image URL": "أو الصق رابط الصورة",
   "Failed to upload photo": "فشل رفع الصورة",
   "Photo uploaded": "تم رفع الصورة",
-  "Select Organisation": "اختر المنظمة"
+  "Select Organisation": "اختر المنظمة",
+
+  "Grand Total": "المجموع الكلي",
+  "total transactions": "إجمالي المعاملات",
+  "records": "سجلات",
+  "Svc": "الخدمة",
+  "Fee": "الرسوم",
+  "Export CSV": "تصدير CSV",
+  "Service Amt": "مبلغ الخدمة",
+  "Method": "الطريقة",
+  "Date Paid": "تاريخ الدفع",
+  "Payer": "الدافع"
 }

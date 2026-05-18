@@ -33,9 +33,9 @@ import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext } from "./trpc.ts";
 import { appRouter } from "./routers/appRouter.ts";
-import multipart from '@fastify/multipart';
+import multipart from "@fastify/multipart";
 import formbody from "@fastify/formbody";
-import cookie from '@fastify/cookie'; //cookie support for secure httpOnly cookies
+import cookie from "@fastify/cookie"; //cookie support for secure httpOnly cookies
 import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
 import { registerAPIRoutes } from "./api/api.ts";
 import { getBucketConfig } from "./config/bucket.config.ts";
@@ -58,23 +58,22 @@ await app.register(rateLimit, {
   global: true,
   max: 60, // max request
   timeWindow: "1 minute", //Each IP is allowed max X requests per 1 minute sliding window
-  allowList: [
-    "127.0.0.1",
-  ]
+  allowList: ["127.0.0.1"],
 });
 
-await app.register(import('@fastify/cors'), {
+await app.register(import("@fastify/cors"), {
   origin: (origin, callback) => {
     // allow mobile apps, curl, postman
     if (!origin) return callback(null, true);
 
     const allowed = [
-      'localhost:5173',
-      'localhost:3000',
+      "localhost:5173",
+      "localhost:3000",
+      "https://qubur.mycesgroup.com",
       frontendNgrokUrl,
       backendNgrokUrl,
-      'pinggy-free.link',
-      'ngrok',
+      "pinggy-free.link",
+      "ngrok",
     ].filter((v): v is string => Boolean(v));
 
     const isAllowed = allowed.some((a) => origin.includes(a));
@@ -125,26 +124,23 @@ app.addHook("onRequest", (req, reply, done) => {
   if (!token && req.cookies?.accessToken) {
     token = req.cookies.accessToken;
   }
-  
+
   const user = token ? verifyToken(token) : null;
 
-  asyncLocalStorage.run(
-    { userId: user?.id ? Number(user.id) : null },
-    () => {
-      req.user = user;
-      done();
-    }
-  );
+  asyncLocalStorage.run({ userId: user?.id ? Number(user.id) : null }, () => {
+    req.user = user;
+    done();
+  });
 });
 
 const toyyibpayConfig = getToyyibpayConfig();
 
-console.log('\n📦 ToyyibPay Configs:');
+console.log("\n📦 ToyyibPay Configs:");
 console.table(
   Object.entries(toyyibpayConfig).map(([key, value]) => ({
     key,
-    value: value || '❌ MISSING'
-  }))
+    value: value || "❌ MISSING",
+  })),
 );
 
 const missingToyyibPayKeys = Object.entries(toyyibpayConfig)
@@ -152,9 +148,11 @@ const missingToyyibPayKeys = Object.entries(toyyibpayConfig)
   .map(([key]) => key);
 
 if (missingToyyibPayKeys.length === 0) {
-  console.log('✅ All toyyibPay configs loaded');
+  console.log("✅ All toyyibPay configs loaded");
 } else {
-  console.log(`❌ Missing toyyibPay configs: ${missingToyyibPayKeys.join(', ')}`);
+  console.log(
+    `❌ Missing toyyibPay configs: ${missingToyyibPayKeys.join(", ")}`,
+  );
 }
 
 const bucketConfig = getBucketConfig();
@@ -164,9 +162,9 @@ const missingBucketsKeys = Object.entries(bucketConfig)
   .map(([key]) => key);
 
 if (missingBucketsKeys.length === 0) {
-  console.log('\n✅ All bucket configs loaded');
+  console.log("\n✅ All bucket configs loaded");
 } else {
-  console.log(`❌ Missing bucket configs: ${missingBucketsKeys.join(', ')}`);
+  console.log(`❌ Missing bucket configs: ${missingBucketsKeys.join(", ")}`);
 }
 
 async function bootstrap() {
@@ -181,16 +179,15 @@ async function bootstrap() {
     console.log("\n✅ Database connected and synchronized!");
 
     // Start Fastify
-    const PORT = Number(process.env.BACKEND_PORT ?? 8083)
+    const PORT = Number(process.env.BACKEND_PORT ?? 8083);
 
-    await app.listen({ port: PORT, host: '0.0.0.0' })
-    console.log(`\n🚀 tRPC backend running`)
+    await app.listen({ port: PORT, host: "0.0.0.0" });
+    console.log(`\n🚀 tRPC backend running`);
 
     if (process.env.NODE_ENV !== "production") {
       console.log("\nFastify routes:");
       console.log(app.printRoutes());
     }
-
   } catch (err) {
     console.error("\n ❌ Server failed to start");
 
@@ -211,12 +208,11 @@ const missingBillplzKeys = Object.entries(billplzConfig)
   .map(([key]) => key);
 
 if (missingBillplzKeys.length === 0) {
-  console.log('✅ All Billplz configs loaded');
+  console.log("✅ All Billplz configs loaded");
 } else {
-  console.log(`\n❌ Missing Billplz configs: ${missingBillplzKeys.join(', ')}`);
+  console.log(`\n❌ Missing Billplz configs: ${missingBillplzKeys.join(", ")}`);
 }
 
 bootstrap();
-
 
 export type AppRouter = typeof appRouter;

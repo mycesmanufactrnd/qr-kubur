@@ -744,5 +744,16 @@
   "Or paste image URL": "Or paste image URL",
   "Failed to upload photo": "Failed to upload photo",
   "Photo uploaded": "Photo uploaded",
-  "Select Organisation": "Select Organisation"
+  "Select Organisation": "Select Organisation",
+
+  "Grand Total": "Grand Total",
+  "total transactions": "total transactions",
+  "records": "records",
+  "Svc": "Svc",
+  "Fee": "Fee",
+  "Export CSV": "Export CSV",
+  "Service Amt": "Service Amt",
+  "Method": "Method",
+  "Date Paid": "Date Paid",
+  "Payer": "Payer"
 }

@@ -746,5 +746,16 @@
   "Or paste image URL": "Atau tampal URL gambar",
   "Failed to upload photo": "Gagal memuat naik gambar",
   "Photo uploaded": "Gambar berjaya dimuat naik",
-  "Select Organisation": "Pilih Organisasi"
+  "Select Organisation": "Pilih Organisasi",
+
+  "Grand Total": "Jumlah Besar",
+  "total transactions": "jumlah transaksi",
+  "records": "rekod",
+  "Svc": "Perkhidmatan",
+  "Fee": "Yuran",
+  "Export CSV": "Eksport CSV",
+  "Service Amt": "Jml. Perkhidmatan",
+  "Method": "Kaedah",
+  "Date Paid": "Tarikh Bayaran",
+  "Payer": "Pembayar"
 }
