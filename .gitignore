@@ -1,6 +1,7 @@
 #env
 .env
 .env.backup
+.env.server
 
 # Logs
 logs

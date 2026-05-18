@@ -270,7 +270,7 @@ function ManageDeathCharityDesktop() {
             {isSuperAdmin && (
               <Select value={tempState} onValueChange={setTempState}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Negeri" />
+                  <SelectValue placeholder={translate("State")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{translate("All States")}</SelectItem>
@@ -333,7 +333,7 @@ function ManageDeathCharityDesktop() {
                       {deathCharity.organisation?.name ?? ""}
                     </TableCell>
                     <TableCell className="text-center">
-                      {deathCharity.isactive ? "Yes" : "No"}
+                      {deathCharity.isactive ? translate("Yes") : translate("No")}
                     </TableCell>
                     <TableCell className="text-center">
                       {canEdit && (
@@ -400,7 +400,7 @@ function ManageDeathCharityDesktop() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                Organization Details
+                {translate("Organisation Details")}
               </h3>
               <div className="grid grid-cols-1 gap-4">
                 <SelectForm
@@ -433,7 +433,7 @@ function ManageDeathCharityDesktop() {
             </div>
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                Basic Information
+                {translate("Basic Information")}
               </h3>
               <TextInputForm
                 name="name"
@@ -460,7 +460,7 @@ function ManageDeathCharityDesktop() {
             </div>
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                Contact Information
+                {translate("Contact Information")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <TextInputForm
@@ -481,7 +481,7 @@ function ManageDeathCharityDesktop() {
             </div>
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                Fee Information
+                {translate("Fee Information")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <TextInputForm
@@ -512,7 +512,7 @@ function ManageDeathCharityDesktop() {
             </div>
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                Coverage Details
+                {translate("Coverage Details")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <CheckboxForm
@@ -542,14 +542,14 @@ function ManageDeathCharityDesktop() {
             </div>
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                Status
+                {translate("Status")}
               </h3>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={isactive}
                   onCheckedChange={(v) => setValue("isactive", v)}
                 />
-                <Label>Active</Label>
+                <Label>{translate("Active")}</Label>
               </div>
             </div>
             <DialogFooter>

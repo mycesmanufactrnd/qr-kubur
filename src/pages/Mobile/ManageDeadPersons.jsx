@@ -136,7 +136,6 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
@@ -149,7 +148,6 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
         </h2>
       </div>
 
-      {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
         <TextInputForm name="name" control={control} label={translate("Name")} required errors={errors} />
         <TextInputForm name="icnumber" control={control} label={translate("IC No.")} required errors={errors} />
@@ -198,7 +196,6 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
         />
       </div>
 
-      {/* Fixed save bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}
@@ -212,8 +209,6 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
     </div>
   );
 }
-
-// ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function MobileManageDeadPersons() {
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
@@ -254,7 +249,6 @@ export default function MobileManageDeadPersons() {
   const { gravesList } = useGetGravePaginated({ organisationIds: accessibleOrgIds });
   const { createDeadPerson, updateDeadPerson, deleteDeadPerson } = useDeadPersonMutations();
 
-  // Lock body scroll when form/dialogs are open
   useEffect(() => {
     const open = formOpen || qrDialogOpen || deleteDialogOpen;
     document.body.style.overflow = open ? "hidden" : "";

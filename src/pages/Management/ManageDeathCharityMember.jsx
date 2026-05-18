@@ -443,7 +443,7 @@ function ManageDeathCharityMemberDesktop() {
                       <TableCell className="font-medium">{member.fullname}</TableCell>
                       <TableCell className="text-center">{member.icnumber}</TableCell>
                       <TableCell className="text-center">{member.phone}</TableCell>
-                      <TableCell className="text-center">{member.isactive ? 'Yes' : 'No'}</TableCell>
+                      <TableCell className="text-center">{member.isactive ? translate('Yes') : translate('No')}</TableCell>
                       <TableCell className="text-center">
                         {member.deathcharity?.name ?? ''}
                       </TableCell>

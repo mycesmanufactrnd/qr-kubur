@@ -351,7 +351,7 @@ function ManageActivityPostsDesktop() {
                       {getPublisher(post)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {post.ispublished ? "Yes" : "No"}
+                      {post.ispublished ? translate("Yes") : translate("No")}
                     </TableCell>
                     <TableCell>
                       <img
@@ -432,19 +432,32 @@ function ManageActivityPostsDesktop() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {isOrganisationAdmin && (
-              <SelectForm
-                name="mosque"
-                control={control}
-                label={translate("Mosque")}
-                placeholder={translate("Select Mosque")}
-                options={organisationMosques.map((mosque) => ({
-                  value: mosque.id,
-                  label: mosque.name,
-                }))}
-                required
-                errors={errors}
-                disabled={isMosquesLoading || organisationMosques.length === 0}
-              />
+              <>
+                <SelectForm
+                  name="mosque"
+                  control={control}
+                  label={translate("Mosque")}
+                  placeholder={
+                    isMosquesLoading
+                      ? translate("Loading...")
+                      : organisationMosques.length === 0
+                        ? translate("No mosque registered")
+                        : translate("Select Mosque")
+                  }
+                  options={organisationMosques.map((mosque) => ({
+                    value: mosque.id,
+                    label: mosque.name,
+                  }))}
+                  required={organisationMosques.length > 0}
+                  errors={errors}
+                  disabled={isMosquesLoading || organisationMosques.length === 0}
+                />
+                {!isMosquesLoading && organisationMosques.length === 0 && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">
+                    {translate("No mosque is registered under your organisation. You can still publish this post without one.")}
+                  </p>
+                )}
+              </>
             )}
             <TextInputForm
               name="title"

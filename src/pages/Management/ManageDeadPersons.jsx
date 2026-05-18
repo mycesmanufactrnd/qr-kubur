@@ -675,7 +675,7 @@ function ManageDeadPersonsDesktop() {
       </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
+        <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
               {editingPerson ? translate("edit") : translate("Add New")}

@@ -140,16 +140,29 @@ function PostFormSheet({
       {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
         {isOrganisationAdmin && (
-          <SelectForm
-            name="mosque"
-            control={control}
-            label={translate("Mosque")}
-            placeholder={translate("Select Mosque")}
-            options={mosqueOptions}
-            required
-            errors={errors}
-            disabled={isMosquesLoading || mosqueOptions.length === 0}
-          />
+          <>
+            <SelectForm
+              name="mosque"
+              control={control}
+              label={translate("Mosque")}
+              placeholder={
+                isMosquesLoading
+                  ? translate("Loading...")
+                  : mosqueOptions.length === 0
+                    ? translate("No mosque registered")
+                    : translate("Select Mosque")
+              }
+              options={mosqueOptions}
+              required={mosqueOptions.length > 0}
+              errors={errors}
+              disabled={isMosquesLoading || mosqueOptions.length === 0}
+            />
+            {!isMosquesLoading && mosqueOptions.length === 0 && (
+              <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">
+                {translate("No mosque is registered under your organisation. You can still publish this post without one.")}
+              </p>
+            )}
+          </>
         )}
         <TextInputForm
           name="title"
