@@ -15,7 +15,7 @@ import { trpc } from "@/utils/trpc";
 import { MONTHS, ORG_SHARE } from "@/utils/enums";
 import { formatRM, formatDate } from "@/utils/helpers";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import BackNavigation from "@/components/BackNavigation";
+import MobileFinancialReports from "@/pages/Mobile/FinancialReports";
 
 const ALL_TABS = [
   { key: "donations", label: "Donations" },
@@ -149,6 +149,12 @@ function exportToCSV({
 }
 
 export default function FinancialReports() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileFinancialReports />;
+  return <FinancialReportsDesktop />;
+}
+
+function FinancialReportsDesktop() {
   const {
     loadingUser,
     hasAdminAccess,
@@ -162,7 +168,6 @@ export default function FinancialReports() {
   const { loading: permissionsLoading, canView } =
     useCrudPermissions("financial_reports");
 
-  const isNarrow = useIsNarrow();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -283,19 +288,15 @@ export default function FinancialReports() {
   if (!canView) {
     return (
       <div className="space-y-6">
-        {isNarrow ? (
-          <BackNavigation title={translate("Financial Reports")} />
-        ) : (
-          <Breadcrumb
-            items={[
-              { label: dashboardLabel, page: dashboardPage },
-              {
-                label: translate("Financial Reports"),
-                page: "FinancialReports",
-              },
-            ]}
-          />
-        )}
+        <Breadcrumb
+          items={[
+            { label: dashboardLabel, page: dashboardPage },
+            {
+              label: translate("Financial Reports"),
+              page: "FinancialReports",
+            },
+          ]}
+        />
         <AccessDeniedComponent />
       </div>
     );
@@ -523,49 +524,43 @@ export default function FinancialReports() {
       `}</style>
 
       <div className="fr-root space-y-3 md:space-y-6">
-        {isNarrow ? (
-          <BackNavigation title={translate("Financial Reports")} />
-        ) : (
-          <Breadcrumb
-            items={[
-              { label: dashboardLabel, page: dashboardPage },
-              {
-                label: translate("Financial Reports"),
-                page: "FinancialReports",
-              },
-            ]}
-          />
-        )}
+        <Breadcrumb
+          items={[
+            { label: dashboardLabel, page: dashboardPage },
+            {
+              label: translate("Financial Reports"),
+              page: "FinancialReports",
+            },
+          ]}
+        />
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          {!isNarrow && (
-            <h1
+          <h1
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              color: "#1c1917",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              margin: 0,
+            }}
+          >
+            <span
               style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: "#1c1917",
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: "#f5f5f4",
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                margin: 0,
+                justifyContent: "center",
               }}
             >
-              <span
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: "#f5f5f4",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
-              </span>
-              {translate("Financial Reports")}
-            </h1>
-          )}
+              <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
+            </span>
+            {translate("Financial Reports")}
+          </h1>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ position: "relative" }}>

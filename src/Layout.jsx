@@ -31,6 +31,7 @@ import {
   Landmark,
   LayoutDashboard,
   CreditCard,
+  Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -138,6 +139,11 @@ function LayoutContent({ children, currentPageName }) {
       name: translate("Manage Users"),
       icon: Users,
       page: "ManageUsers",
+    },
+    {
+      name: translate("Manage Organisations"),
+      icon: Building,
+      page: "ManageOrganisation",
     },
     ...(isOrgCanManageGrave
       ? [
