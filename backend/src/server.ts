@@ -181,7 +181,7 @@ async function bootstrap() {
     console.log("\n✅ Database connected and synchronized!");
 
     // Start Fastify
-    const PORT = Number(process.env.BACKEND_PORT ?? 8000)
+    const PORT = Number(process.env.BACKEND_PORT ?? 8083)
 
     await app.listen({ port: PORT, host: '0.0.0.0' })
     console.log(`\n🚀 tRPC backend running`)
