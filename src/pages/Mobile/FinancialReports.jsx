@@ -364,7 +364,7 @@ export default function MobileFinancialReports() {
               marginBottom: 4,
             }}
           >
-            Grand Total — {MONTHS[month - 1]} {year}
+            {translate("Grand Total")} — {MONTHS[month - 1]} {year}
           </p>
           <p
             style={{
@@ -384,7 +384,7 @@ export default function MobileFinancialReports() {
               marginTop: 6,
             }}
           >
-            {summaryCards.reduce((s, c) => s + c.count, 0)} total transactions
+            {summaryCards.reduce((s, c) => s + c.count, 0)} {translate("total transactions")}
           </p>
         </div>
 
@@ -401,7 +401,7 @@ export default function MobileFinancialReports() {
                   style={{ background: color }}
                 />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
-                  {label}
+                  {translate(label)}
                 </span>
               </div>
               <p
@@ -411,7 +411,7 @@ export default function MobileFinancialReports() {
                 {formatRM(total)}
               </p>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                {count} records
+                {count} {translate("records")}
               </p>
             </div>
           ))}
@@ -438,7 +438,7 @@ export default function MobileFinancialReports() {
                     }
               }
             >
-              {label}
+              {translate(label)}
             </button>
           ))}
         </div>
@@ -509,8 +509,8 @@ export default function MobileFinancialReports() {
                       </div>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex gap-2 text-xs text-slate-400">
-                          <span>Svc: {formatRM(r.serviceamount)}</span>
-                          <span>Fee: {formatRM(r.platformfeeamount)}</span>
+                          <span>{translate("Svc")}: {formatRM(r.serviceamount)}</span>
+                          <span>{translate("Fee")}: {formatRM(r.platformfeeamount)}</span>
                         </div>
                         <span className="text-xs text-slate-400">
                           {formatDate(r.createdat)}

@@ -7,7 +7,7 @@ RUN npm install
 RUN npm install -g tsx
 
 # Source code mounted as volume, no need to COPY in dev
-EXPOSE 8000
+EXPOSE 8083
 CMD ["npm", "run", "dev"]
 
 

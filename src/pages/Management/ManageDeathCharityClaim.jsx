@@ -307,7 +307,7 @@ export default function ManageDeathCharityClaim() {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="space-y-4">
                         <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                            Death Charity Details
+                            {translate("Death Charity Details")}
                         </h3>
                         <div className="grid grid-cols-1 gap-4">
                             <SelectForm
@@ -355,7 +355,7 @@ export default function ManageDeathCharityClaim() {
                     </div>
                     <div className="space-y-4">
                         <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
-                            Basic Information
+                            {translate("Basic Information")}
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             <TextInputForm

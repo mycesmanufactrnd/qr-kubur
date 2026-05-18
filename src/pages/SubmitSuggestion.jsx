@@ -78,7 +78,7 @@ export default function SubmitSuggestion() {
       if (googleUser.email) setValue("email", googleUser.email);
       return;
     }
-    
+
     const savedPhone = localStorage.getItem(PHONE_STORAGE_KEY);
     if (savedPhone) setValue("phoneno", savedPhone);
   }, [currentUser]);
@@ -145,7 +145,12 @@ export default function SubmitSuggestion() {
     };
 
     // Derive organisation from the selected grave
-    const graveId = type === "person" ? watchSelectedGrave : type === "grave" ? entityId : null;
+    const graveId =
+      type === "person"
+        ? watchSelectedGrave
+        : type === "grave"
+          ? entityId
+          : null;
     const selectedGrave = graveId
       ? nearbyGraves.find((g) => String(g.id) === String(graveId))
       : null;
@@ -213,8 +218,9 @@ export default function SubmitSuggestion() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-4 pb-2">
+    <div className="min-h-screen pb-10">
       <BackNavigation title="Suggestion" />
+
       <form onSubmit={handleFormSubmit(onSubmit)}>
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">

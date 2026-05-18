@@ -21,7 +21,10 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { translate } from "@/utils/translations";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
-import { useGetQuotationPaginated, useUpdateQuotation } from "@/hooks/useQuotationMutations";
+import {
+  useGetQuotationPaginated,
+  useUpdateQuotation,
+} from "@/hooks/useQuotationMutations";
 import { ORG_SERVICE_FEE, ORG_SHARE, QuotationStatus } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -54,7 +57,11 @@ function StatusBadge({ status }) {
         </Badge>
       );
     default:
-      return <Badge variant="secondary" className="text-xs">{status}</Badge>;
+      return (
+        <Badge variant="secondary" className="text-xs">
+          {status}
+        </Badge>
+      );
   }
 }
 
@@ -85,11 +92,15 @@ function QuotationCard({ q, onClick }) {
         <span className="truncate max-w-[55%]">
           {q.organisation?.name || "-"}
         </span>
-        <span className="font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">{orgAmount}</span>
+        <span className="font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">
+          {orgAmount}
+        </span>
       </div>
 
       <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
-        <span>{(q.selectedservices || []).length} {translate("Services")}</span>
+        <span>
+          {(q.selectedservices || []).length} {translate("Services")}
+        </span>
         <span>{new Date(q.createdat).toLocaleDateString("ms-MY")}</span>
       </div>
 
@@ -130,10 +141,13 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
       const formData = new FormData();
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
-      const res = await fetch(`/api/upload/bucket-organisation-services-proof`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        `/api/upload/bucket-organisation-services-proof`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         showError(err.error || translate("Failed to upload photo"));
@@ -170,7 +184,8 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
     onClose();
   };
 
-  const svc = quotation.serviceamount != null ? Number(quotation.serviceamount) : null;
+  const svc =
+    quotation.serviceamount != null ? Number(quotation.serviceamount) : null;
   const photoReady = !!(preview || localPhotoUrl);
 
   return (
@@ -195,7 +210,10 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-32">
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2 text-sm">
-          <Row label={translate("Organisation")} value={quotation.organisation?.name || "-"} />
+          <Row
+            label={translate("Organisation")}
+            value={quotation.organisation?.name || "-"}
+          />
           {quotation.payeremail && (
             <Row label={translate("Email")} value={quotation.payeremail} />
           )}
@@ -203,11 +221,15 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
             <Row label={translate("Phone")} value={quotation.payerphone} />
           )}
           {quotation.deadperson?.name && (
-            <Row label={translate("Deceased")} value={quotation.deadperson.name} />
+            <Row
+              label={translate("Deceased")}
+              value={quotation.deadperson.name}
+            />
           )}
         </div>
 
-        {(quotation.organisation?.latitude || quotation.organisation?.longitude) && (
+        {(quotation.organisation?.latitude ||
+          quotation.organisation?.longitude) && (
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
               {translate("Location")}
@@ -236,8 +258,12 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
                 key={i}
                 className="flex justify-between text-sm bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2"
               >
-                <span className="text-slate-700 dark:text-slate-300">{s.service}</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRM(s.price)}</span>
+                <span className="text-slate-700 dark:text-slate-300">
+                  {s.service}
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {formatRM(s.price)}
+                </span>
               </div>
             ))}
           </div>
@@ -245,7 +271,10 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
           <div className="border-t pt-2 space-y-1.5 text-sm">
             {svc != null ? (
               <>
-                <AmountRow label={translate("Service Amount")} value={formatRM(svc)} />
+                <AmountRow
+                  label={translate("Service Amount")}
+                  value={formatRM(svc)}
+                />
                 <AmountRow
                   label={`${translate("Platform Fee")} (5%)`}
                   value={formatRM(svc * ORG_SERVICE_FEE)}
@@ -274,11 +303,14 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
             {translate("Completion Photo")}
           </p>
 
-          {(preview || localPhotoUrl) ? (
+          {preview || localPhotoUrl ? (
             <img
               src={
                 preview ||
-                resolveFileUrl(localPhotoUrl, "bucket-organisation-services-proof")
+                resolveFileUrl(
+                  localPhotoUrl,
+                  "bucket-organisation-services-proof",
+                )
               }
               alt={translate("Completion photo")}
               className="w-full h-48 rounded-xl object-cover border border-slate-100 dark:border-slate-700"
@@ -359,8 +391,12 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
 function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
-      <span className="text-slate-800 dark:text-slate-200 text-right break-all">{value}</span>
+      <span className="text-slate-500 dark:text-slate-400 shrink-0">
+        {label}
+      </span>
+      <span className="text-slate-800 dark:text-slate-200 text-right break-all">
+        {value}
+      </span>
     </div>
   );
 }
@@ -376,16 +412,21 @@ function AmountRow({ label, value, valueClass = "", bold = false }) {
 
 export default function MobileManageQuotations() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canVerify, canReject } = useCrudPermissions("quotations");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canVerify,
+    canReject,
+  } = useCrudPermissions("quotations");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [selected, setSelected] = useState(null);
 
-  const [appliedService,  setAppliedService]  = useState("");
-  const [appliedStatus,   setAppliedStatus]   = useState("");
+  const [appliedService, setAppliedService] = useState("");
+  const [appliedStatus, setAppliedStatus] = useState("");
   const [appliedDateFrom, setAppliedDateFrom] = useState("");
-  const [appliedDateTo,   setAppliedDateTo]   = useState("");
+  const [appliedDateTo, setAppliedDateTo] = useState("");
 
   const { quotationList, totalPages, isLoading } = useGetQuotationPaginated({
     page,
@@ -422,14 +463,31 @@ export default function MobileManageQuotations() {
           <div className="flex items-center">
             <AdvancedFilters
               parameter={[
-                { label: translate("Status"), type: "select", searchColumn: "status", options: [
-                  { id: "pending",   name: translate("Pending") },
-                  { id: "completed", name: translate("Completed") },
-                  { id: "rejected",  name: translate("Rejected") },
-                ]},
-                { label: translate("Service"), type: "text", searchColumn: "service" },
-                { label: translate("Date From"), type: "date", searchColumn: "dateFrom" },
-                { label: translate("Date To"),   type: "date", searchColumn: "dateTo" },
+                {
+                  label: translate("Status"),
+                  type: "select",
+                  searchColumn: "status",
+                  options: [
+                    { id: "pending", name: translate("Pending") },
+                    { id: "completed", name: translate("Completed") },
+                    { id: "rejected", name: translate("Rejected") },
+                  ],
+                },
+                {
+                  label: translate("Service"),
+                  type: "text",
+                  searchColumn: "service",
+                },
+                {
+                  label: translate("Date From"),
+                  type: "date",
+                  searchColumn: "dateFrom",
+                },
+                {
+                  label: translate("Date To"),
+                  type: "date",
+                  searchColumn: "dateTo",
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedStatus(f.status || "");
@@ -444,7 +502,7 @@ export default function MobileManageQuotations() {
           {isLoading ? (
             <InlineLoadingComponent isPage />
           ) : quotationList.items.length === 0 ? (
-            <NoDataCardComponent isPage/>
+            <NoDataCardComponent isPage />
           ) : (
             <div className="space-y-3">
               {quotationList.items.map((q) => (

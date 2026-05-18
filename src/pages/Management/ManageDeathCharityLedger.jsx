@@ -245,7 +245,7 @@ function ManageDeathCharityLedgerDesktop() {
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">
-                  Select Death Charity
+                  {translate("Select Death Charity")}
                 </label>
                 <Select
                   value={
@@ -262,7 +262,7 @@ function ManageDeathCharityLedgerDesktop() {
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose a member..." />
+                    <SelectValue placeholder={translate("Select Death Charity")} />
                   </SelectTrigger>
                   <SelectContent>
                     {deathCharityList.map((deathcharity) => (
@@ -279,7 +279,7 @@ function ManageDeathCharityLedgerDesktop() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">
-                  Select Member
+                  {translate("Select Member")}
                 </label>
                 <Select
                   value={selectedMember?.id ? String(selectedMember.id) : ""}
@@ -291,7 +291,7 @@ function ManageDeathCharityLedgerDesktop() {
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose a member..." />
+                    <SelectValue placeholder={translate("Select Member")} />
                   </SelectTrigger>
                   <SelectContent>
                     {deathCharityMemberList.map((member) => (
@@ -331,21 +331,21 @@ function ManageDeathCharityLedgerDesktop() {
             {selectedMember && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="text-xs text-blue-600 mb-1">Total Paid</p>
+                  <p className="text-xs text-blue-600 mb-1">{translate("Total Paid")}</p>
                   <p className="text-lg font-bold text-blue-700">
                     RM {stats.totalPaid.toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-emerald-50 rounded-lg p-3">
                   <p className="text-xs text-emerald-600 mb-1">
-                    Total Payments
+                    {translate("Total Payments")}
                   </p>
                   <p className="text-lg font-bold text-emerald-700">
                     {stats.totalPayments}
                   </p>
                 </div>
                 <div className="bg-pink-50 rounded-lg p-3">
-                  <p className="text-xs text-pink-600 mb-1">Registration</p>
+                  <p className="text-xs text-pink-600 mb-1">{translate("Registration")}</p>
                   <p className="text-lg font-bold text-pink-700">
                     {stats.registrationPayments}
                   </p>
@@ -361,13 +361,13 @@ function ManageDeathCharityLedgerDesktop() {
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="text-sm font-medium text-slate-700">
-                    Yearly Payment Ledger
+                    {translate("Yearly Payment Ledger")}
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">
-                          Start Year
+                          {translate("Start Year")}
                         </label>
                         <Select
                           value={startYear.toString()}
@@ -391,7 +391,7 @@ function ManageDeathCharityLedgerDesktop() {
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">
-                          End Year
+                          {translate("End Year")}
                         </label>
                         <Select
                           value={endYear.toString()}
@@ -421,10 +421,10 @@ function ManageDeathCharityLedgerDesktop() {
             <Card className="border-0 shadow-lg overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Payment Ledger</span>
+                  <span>{translate("Payment Ledger")}</span>
                   <Button onClick={() => setShowPaymentDialog(true)} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Payment
+                    {translate("Add Payment")}
                   </Button>
                 </CardTitle>
               </CardHeader>
@@ -479,14 +479,13 @@ function ManageDeathCharityLedgerDesktop() {
                                       ))}
                                     </div>
                                     <p className="text-xs text-slate-500 mt-1">
-                                      {periodPayments.length} payment
-                                      {periodPayments.length > 1 ? "s" : ""}
+                                      {periodPayments.length} {periodPayments.length === 1 ? translate("payment") : translate("payments")}
                                     </p>
                                   </div>
                                 ) : (
                                   <div className="text-center text-slate-300">
                                     <Plus className="w-6 h-6 mx-auto mb-1" />
-                                    <p className="text-xs">Add</p>
+                                    <p className="text-xs">{translate("Add")}</p>
                                   </div>
                                 )}
                               </td>
@@ -506,11 +505,10 @@ function ManageDeathCharityLedgerDesktop() {
           <Card className="text-center py-16">
             <User className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <h3 className="text-lg font-semibold text-slate-700 mb-2">
-              Select a Member
+              {translate("Select a Member")}
             </h3>
             <p className="text-slate-500">
-              Choose a member from the dropdown above to view their payment
-              ledger
+              {translate("Choose a member from the dropdown above to view their payment ledger")}
             </p>
           </Card>
         )}
@@ -519,7 +517,7 @@ function ManageDeathCharityLedgerDesktop() {
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Payment</DialogTitle>
+            <DialogTitle>{translate("Add Payment")}</DialogTitle>
           </DialogHeader>
           <PaymentForm
             memberId={selectedMember?.id}

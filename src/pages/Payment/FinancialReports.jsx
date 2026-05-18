@@ -605,7 +605,7 @@ function FinancialReportsDesktop() {
                 marginBottom: 6,
               }}
             >
-              Grand Total — {MONTHS[month - 1]} {year}
+              {translate("Grand Total")} — {MONTHS[month - 1]} {year}
             </p>
             <p
               style={{
@@ -626,7 +626,7 @@ function FinancialReportsDesktop() {
                 fontWeight: 400,
               }}
             >
-              {summaryCards.reduce((s, c) => s + c.count, 0)} total transactions
+              {summaryCards.reduce((s, c) => s + c.count, 0)} {translate("total transactions")}
             </p>
           </div>
           <TrendingUp
@@ -666,7 +666,7 @@ function FinancialReportsDesktop() {
                     color: "#a8a29e",
                   }}
                 >
-                  {label}
+                  {translate(label)}
                 </span>
               </div>
               <p
@@ -681,7 +681,7 @@ function FinancialReportsDesktop() {
                 {formatRM(total)}
               </p>
               <p style={{ fontSize: 12, color: "#d6d3d1", fontWeight: 500 }}>
-                {count} records
+                {count} {translate("records")}
               </p>
             </div>
           ))}
@@ -703,7 +703,7 @@ function FinancialReportsDesktop() {
                   className={`fr-tab-btn ${activeTab === key ? "active" : ""}`}
                   style={{ "--tab-color": TAB_META[key]?.color ?? "#1c1917" }}
                 >
-                  {label}
+                  {translate(label)}
                 </button>
               ))}
             </div>
@@ -723,7 +723,7 @@ function FinancialReportsDesktop() {
                 }
               >
                 <Download style={{ width: 14, height: 14, color: "#78716c" }} />
-                Export CSV
+                {translate("Export CSV")}
               </button>
             </div>
           </div>
@@ -736,10 +736,10 @@ function FinancialReportsDesktop() {
               >
                 <thead>
                   <tr>
-                    <th>Reference No</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th>{translate("Reference No")}</th>
+                    <th>{translate("Amount")}</th>
+                    <th>{translate("Status")}</th>
+                    <th>{translate("Date")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -797,11 +797,11 @@ function FinancialReportsDesktop() {
               >
                 <thead>
                   <tr>
-                    <th>Reference No</th>
-                    <th>Service Amt</th>
-                    <th>Platform Fee</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th>{translate("Reference No")}</th>
+                    <th>{translate("Service Amt")}</th>
+                    <th>{translate("Platform Fee")}</th>
+                    <th>{translate("Status")}</th>
+                    <th>{translate("Date")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -867,11 +867,11 @@ function FinancialReportsDesktop() {
               >
                 <thead>
                   <tr>
-                    <th>Reference No</th>
-                    <th>Amount</th>
-                    <th>Type</th>
-                    <th>Method</th>
-                    <th>Date Paid</th>
+                    <th>{translate("Reference No")}</th>
+                    <th>{translate("Amount")}</th>
+                    <th>{translate("Type")}</th>
+                    <th>{translate("Method")}</th>
+                    <th>{translate("Date Paid")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -923,11 +923,11 @@ function FinancialReportsDesktop() {
               >
                 <thead>
                   <tr>
-                    <th>Reference No</th>
-                    <th>Payer</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th>{translate("Reference No")}</th>
+                    <th>{translate("Payer")}</th>
+                    <th>{translate("Total")}</th>
+                    <th>{translate("Status")}</th>
+                    <th>{translate("Date")}</th>
                   </tr>
                 </thead>
                 <tbody>

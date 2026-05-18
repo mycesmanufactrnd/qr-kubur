@@ -116,7 +116,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
             <div>
               <h3 className="text-base font-bold text-slate-800">{translate("Advanced Filter")}</h3>
               {activeCount > 0 && (
-                <p className="text-xs text-emerald-600 font-medium mt-0.5">{activeCount} filter aktif</p>
+                <p className="text-xs text-emerald-600 font-medium mt-0.5">{activeCount} {translate("active filters")}</p>
               )}
             </div>
             <button
@@ -153,7 +153,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                     <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm">
                       <SelectValue placeholder={translate(p.label)} />
                     </SelectTrigger>
-                    <SelectContent className="z-[1000]">
+                    <SelectContent className="z-[1010]">
                       {p.options?.map(opt => (
                         <SelectItem key={opt.id} value={opt.id.toString()}>
                           {opt.name}
