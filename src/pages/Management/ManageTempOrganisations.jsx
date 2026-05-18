@@ -80,8 +80,8 @@ export default function ManageTempOrganisations() {
     return (
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-gray-400">{icon}</span>
-          <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+          <span className="text-gray-400 dark:text-gray-500">{icon}</span>
+          <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
             {title}
           </span>
         </div>
@@ -98,9 +98,9 @@ export default function ManageTempOrganisations() {
 
   function Field({ label, value, valueClass = "" }) {
     return (
-      <div className="bg-gray-50 rounded-lg px-3 py-2.5">
-        <p className="text-[11px] text-gray-400 mb-0.5">{label}</p>
-        <p className={`text-sm font-medium text-gray-800 ${valueClass}`}>
+      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2.5">
+        <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">{label}</p>
+        <p className={`text-sm font-medium text-gray-800 dark:text-gray-100 ${valueClass}`}>
           {value != null && value !== "" ? value : "-"}
         </p>
       </div>
@@ -248,16 +248,16 @@ export default function ManageTempOrganisations() {
 
       <div className="flex items-center gap-2">
         <ShieldAlert className="w-6 h-6 text-violet-600" />
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {translate("Organisation Registrations")}
         </h1>
       </div>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder={translate("Search organisation name...")}
                 value={tempName}
@@ -297,25 +297,25 @@ export default function ManageTempOrganisations() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{translate("Name")}</TableHead>
-                <TableHead className="text-center">
+            <TableHeader className="bg-gray-50 dark:bg-gray-900">
+              <TableRow className="dark:border-gray-700">
+                <TableHead className="dark:text-gray-400">{translate("Name")}</TableHead>
+                <TableHead className="text-center dark:text-gray-400">
                   {translate("Type")}
                 </TableHead>
-                <TableHead className="text-center">
+                <TableHead className="text-center dark:text-gray-400">
                   {translate("State")}
                 </TableHead>
-                <TableHead className="text-center">
+                <TableHead className="text-center dark:text-gray-400">
                   {translate("Contact Email")}
                 </TableHead>
-                <TableHead className="text-center">
+                <TableHead className="text-center dark:text-gray-400">
                   {translate("Status")}
                 </TableHead>
-                <TableHead className="text-center">
+                <TableHead className="text-center dark:text-gray-400">
                   {translate("Actions")}
                 </TableHead>
               </TableRow>
@@ -327,18 +327,18 @@ export default function ManageTempOrganisations() {
                 <NoDataTableComponent colSpan={6} />
               ) : (
                 items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-center">
+                  <TableRow key={item.id} className="dark:border-gray-700 dark:hover:bg-gray-700/50">
+                    <TableCell className="font-medium dark:text-white">{item.name}</TableCell>
+                    <TableCell className="text-center dark:text-gray-300">
                       {item.organisationtype?.name || "-"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center dark:text-gray-300">
                       {(item.states || []).join(", ") || "-"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center dark:text-gray-300">
                       {item.contactemail || "-"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center dark:text-gray-300">
                       {item.approvalstatus}
                     </TableCell>
                     <TableCell className="text-center">
@@ -399,17 +399,17 @@ export default function ManageTempOrganisations() {
           setDetailsOpen(open);
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
-          <DialogHeader className="flex-row items-start gap-3 px-6 py-4 bg-gray-50 border-b border-gray-100 space-y-0">
-            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
-              <ShieldAlert className="w-[18px] h-[18px] text-violet-600" />
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 dark:bg-gray-800">
+          <DialogHeader className="flex-row items-start gap-3 px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-100 dark:border-gray-600 space-y-0">
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-[18px] h-[18px] text-violet-600 dark:text-violet-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-base font-medium leading-tight truncate">
+              <DialogTitle className="text-base font-medium leading-tight truncate dark:text-white">
                 {selectedItem?.name ??
                   translate("Organisation Registration Details")}
               </DialogTitle>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {translate("Organisation registration details")}
               </p>
             </div>
@@ -417,10 +417,10 @@ export default function ManageTempOrganisations() {
               <span
                 className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${
                   selectedItem.approvalstatus === "approved"
-                    ? "bg-emerald-50 text-emerald-800"
+                    ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
                     : selectedItem.approvalstatus === "rejected"
-                      ? "bg-red-50 text-red-800"
-                      : "bg-amber-50 text-amber-800"
+                      ? "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                      : "bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
                 }`}
               >
                 <span
@@ -565,19 +565,19 @@ export default function ManageTempOrganisations() {
                 >
                   {selectedItem.isgraveservices ? (
                     (selectedItem.serviceoffered || []).length > 0 ? (
-                      <div className="rounded-lg border border-gray-100 overflow-hidden">
+                      <div className="rounded-lg border border-gray-100 dark:border-gray-600 overflow-hidden">
                         {(selectedItem.serviceoffered || []).map(
                           (service, i) => (
                             <div
                               key={service}
                               className={`flex items-center justify-between px-3 py-2.5 text-sm ${
-                                i > 0 ? "border-t border-gray-100" : ""
+                                i > 0 ? "border-t border-gray-100 dark:border-gray-600" : ""
                               }`}
                             >
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-gray-700 dark:text-gray-200">
                                 {service}
                               </span>
-                              <span className="text-gray-500 font-mono text-xs">
+                              <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">
                                 RM{" "}
                                 {Number(
                                   selectedItem.serviceprice?.[service] ?? 0,
@@ -588,12 +588,12 @@ export default function ManageTempOrganisations() {
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-gray-400 dark:text-gray-500">
                         {translate("No services listed")}
                       </p>
                     )
                   ) : (
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
                       {translate("Not offering grave services")}
                     </p>
                   )}
@@ -623,14 +623,14 @@ export default function ManageTempOrganisations() {
                       ).map(([platformName, configs], idx) => (
                         <div
                           key={platformName + idx}
-                          className="rounded-lg border border-gray-100 overflow-hidden"
+                          className="rounded-lg border border-gray-100 dark:border-gray-600 overflow-hidden"
                         >
-                          <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
-                            <p className="text-xs font-medium text-gray-500">
+                          <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-100 dark:border-gray-600">
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
                               {translate("Platform")}: {platformName}
                             </p>
                           </div>
-                          <div className="divide-y divide-gray-100">
+                          <div className="divide-y divide-gray-100 dark:divide-gray-600">
                             {configs.map((config, i) => {
                               const field = paymentFieldById.get(
                                 config.paymentFieldId,
@@ -640,11 +640,11 @@ export default function ManageTempOrganisations() {
                                   key={i}
                                   className="flex items-center justify-between px-3 py-2.5 text-sm"
                                 >
-                                  <span className="text-gray-500">
+                                  <span className="text-gray-500 dark:text-gray-400">
                                     {field?.label ??
                                       `#${config.paymentFieldId}`}
                                   </span>
-                                  <span className="font-mono text-xs text-gray-700">
+                                  <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
                                     {config.value}
                                   </span>
                                 </div>
@@ -662,7 +662,7 @@ export default function ManageTempOrganisations() {
                     icon={<MessageSquare className="w-3.5 h-3.5" />}
                     title={translate("Review note")}
                   >
-                    <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2.5 border border-gray-100 dark:border-gray-600">
                       {selectedItem.reviewnote}
                     </p>
                   </Section>
@@ -671,7 +671,7 @@ export default function ManageTempOrganisations() {
             )}
           </div>
 
-          <DialogFooter className="px-6 py-4 border-t border-gray-100 bg-white flex-row justify-end gap-2">
+          <DialogFooter className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex-row justify-end gap-2">
             <Button
               variant="outline"
               size="sm"

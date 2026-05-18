@@ -59,7 +59,6 @@ function PermissionSheet({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
@@ -75,7 +74,6 @@ function PermissionSheet({
         </div>
       </div>
 
-      {/* Scrollable permissions */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28">
         {isLoading ? (
           <InlineLoadingComponent />
@@ -131,7 +129,6 @@ function PermissionSheet({
         )}
       </div>
 
-      {/* Fixed save bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={onSave}
@@ -243,18 +240,15 @@ export default function MobileManagePermissions() {
 
   const visibleCategories = Object.entries(PERMISSION_CATEGORIES).filter(
     ([key, category]) => {
-      if (category.isSuperAdminOnly) 
-        return isSuperAdmin;
+      if (category.isSuperAdminOnly) return isSuperAdmin;
 
-      if (category.isTahfizAdminOnly) 
-        return isTahfizAdmin;
+      if (category.isTahfizAdminOnly) return isTahfizAdmin;
 
-      if (category.isAllAdmin) 
-        return isOrganisationAdmin;
+      if (category.isAllAdmin) return isOrganisationAdmin;
 
       if (key === "donations" && !isOrgCanBeDonated && !isSuperAdmin)
         return false;
-      
+
       if (
         (key === "mosques" || key === "death_charity") &&
         !isOrgCanManageMosque &&

@@ -276,11 +276,10 @@ export default function MobileAdminDashboard() {
 
   return (
     <div
-      className="min-h-screen bg-white dark:bg-slate-900 pb-8"
+      className="min-h-screen pb-8"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 pt-5 pb-4">
+      <div className="border-b border-slate-200 dark:border-slate-700 px-4 pt-5 pb-4">
         <div className="flex justify-between items-start">
           <div>
             <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5 tracking-wider">

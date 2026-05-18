@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Search, UserX, UserSearch } from "lucide-react";
+import { Search, UserX, UserSearch, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { impersonateUser } from "@/utils/auth";
 import { useGetUserPaginated } from "@/hooks/useUserMutations";
@@ -26,6 +26,7 @@ export default function ImpersonateUser() {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
+  const [impersonatingId, setImpersonatingId] = useState(null);
 
   const {
     userList: users,
@@ -133,9 +134,21 @@ export default function ImpersonateUser() {
                         variant="ghost"
                         size="sm"
                         className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                        onClick={() => impersonateUser(user)}
+                        disabled={impersonatingId !== null}
+                        onClick={async () => {
+                          setImpersonatingId(user.id);
+                          try {
+                            await impersonateUser(user);
+                          } catch {
+                            setImpersonatingId(null);
+                          }
+                        }}
                       >
-                        <UserSearch className="w-4 h-4 mr-2" />
+                        {impersonatingId === user.id ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <UserSearch className="w-4 h-4 mr-2" />
+                        )}
                         {translate("Login As")}
                       </Button>
                     </TableCell>

@@ -301,7 +301,7 @@ export default function MobileFinancialReports() {
   const activeTabMeta = TABS.find((t) => t.key === activeTab) ?? TABS[0];
 
   return (
-    <div className="min-h-screen pb-10 dark:bg-slate-900">
+    <div className="min-h-screen pb-10">
       <BackNavigation title={translate("Financial Reports")} />
 
       <div className="px-3 space-y-3">

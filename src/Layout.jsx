@@ -143,7 +143,7 @@ function LayoutContent({ children, currentPageName }) {
     {
       name: translate("Manage Organisations"),
       icon: Building,
-      page: "ManageOrganisation",
+      page: "ManageOrganisations",
     },
     ...(isOrgCanManageGrave
       ? [
@@ -357,10 +357,10 @@ function LayoutContent({ children, currentPageName }) {
                   key={item.page}
                   to={createPageUrl(item.page)}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm ${
                     currentPageName === item.page
                       ? "bg-emerald-100 text-emerald-700"
-                      : "text-gray-600 hover:bg-gray-100"
+                      : "text-gray-600 hover:bg-gray-100 dark:text-white"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />

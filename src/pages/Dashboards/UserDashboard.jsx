@@ -4,17 +4,14 @@ import {
   QrCode,
   BookOpen,
   Heart,
-  FileText,
   MapPin,
   MoonStar,
   Globe,
   ChevronRight,
-  Sparkles,
-  AlertCircle,
   HelpCircle,
   Newspaper,
-  Text,
   Map,
+  BadgeCheck,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -343,22 +340,21 @@ export default function UserDashboard() {
               g: G.sunset,
             },
             {
-              icon: FileText,
-              label: translate("Tahlil Status"),
-              page: "CheckTahlilStatus",
+              icon: BadgeCheck,
+              label: translate("Status Check"),
+              page: "StatusCheck",
               g: G.crimson,
             },
             {
               icon: HelpCircle,
-              label: translate("Service Status"),
-              page: "CheckServiceStatus",
+              label: translate("Submit Suggestion"),
+              page: "SubmitSuggestion",
               g: G.teal,
             },
             {
               icon: Map,
               label: translate("Map"),
-              // page: "MapView",
-              page: "SubmitSuggestion",
+              page: "MapView",
               g: G.sapphire,
             },
           ].map(({ icon: Icon, label, page, g }) => (

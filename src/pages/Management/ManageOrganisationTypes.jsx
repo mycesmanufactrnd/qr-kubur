@@ -118,8 +118,8 @@ export default function ManageOrganisationTypes() {
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Tag className="w-6 h-6 text-purple-600" /> 
+        <h1 className="text-2xl font-bold flex items-center gap-2 dark:text-white">
+          <Tag className="w-6 h-6 text-purple-600" />
           {translate('Manage Organisation Types')}
         </h1>
         <Button onClick={openAddDialog} className="bg-purple-600">
@@ -128,11 +128,11 @@ export default function ManageOrganisationTypes() {
         </Button>
       </div>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder={translate('Search organization type name...')}
                 value={tempName}
@@ -151,15 +151,15 @@ export default function ManageOrganisationTypes() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{translate('Name')}</TableHead>
-                <TableHead className="text-center">{translate('Description')}</TableHead>
-                <TableHead className="text-center">{translate('Status')}</TableHead>
-                <TableHead className="text-center">{translate('Actions')}</TableHead>
+            <TableHeader className="bg-gray-50 dark:bg-gray-900">
+              <TableRow className="dark:border-gray-700">
+                <TableHead className="dark:text-gray-400">{translate('Name')}</TableHead>
+                <TableHead className="text-center dark:text-gray-400">{translate('Description')}</TableHead>
+                <TableHead className="text-center dark:text-gray-400">{translate('Status')}</TableHead>
+                <TableHead className="text-center dark:text-gray-400">{translate('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -169,9 +169,9 @@ export default function ManageOrganisationTypes() {
                 <NoDataTableComponent colSpan={4}/>
               ) : (
                 organisationTypeList.items.map(type => (
-                  <TableRow key={type.id}>
-                    <TableCell className="font-medium">{type.name}</TableCell>
-                    <TableCell className="text-center">{type.description || '-'}</TableCell>
+                  <TableRow key={type.id} className="dark:border-gray-700 dark:hover:bg-gray-700/50">
+                    <TableCell className="font-medium dark:text-white">{type.name}</TableCell>
+                    <TableCell className="text-center dark:text-gray-300">{type.description || '-'}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant={type.status === 'active' ? 'default' : 'secondary'}>
                         {type.status === 'active' ? translate('Active') : translate('Inactive')}
@@ -179,7 +179,7 @@ export default function ManageOrganisationTypes() {
                     </TableCell>
                     <TableCell className="text-center">
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(type)}>
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4 dark:text-gray-300" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => { setTypeToDelete(type); setDeleteDialogOpen(true); }}>
                         <Trash2 className="w-4 h-4 text-red-500" />

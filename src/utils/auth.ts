@@ -215,17 +215,39 @@ export function removeImpersonation() {
   location.href = createPageUrl("ImpersonateUser");
 }
 
-export function impersonateUser(user: any) {
+export async function impersonateUser(user: any) {
   if (!user || !user.id) return;
 
   const currentAuth = sessionStorage.getItem("appUserAuth");
   if (!currentAuth) return;
 
+  // Fetch full user record (includes organisation, tahfizcenter, states relations)
+  const fullUser = await trpcClient.users.getUserById.query({ id: Number(user.id) });
+  if (!fullUser) return;
+
+  // Fetch permissions for the impersonated user — same as normal login
+  const permissions = await trpcClient.permission.getByUser.query({ userId: Number(fullUser.id) });
+
+  // Preserve the superadmin session so they can return
   sessionStorage.setItem("superAdminAuth", currentAuth);
   sessionStorage.setItem("isImpersonating", "true");
-  sessionStorage.setItem("appUserAuth", JSON.stringify(user));
 
-  location.href = createPageUrl("AdminDashboard");
+  // Write the impersonated user exactly as normal login would
+  sessionStorage.setItem("appUserAuth", JSON.stringify(fullUser));
+  sessionStorage.setItem("permissions", JSON.stringify(permissions));
+
+  // Role-based redirect — mirrors handleLoginTRPC logic
+  if (fullUser.tahfizcenter) {
+    window.location.href = createPageUrl("TahfizDashboard");
+    return;
+  }
+
+  if (fullUser.role === "admin" || fullUser.role === "employee" || fullUser.organisation) {
+    window.location.href = createPageUrl("AdminDashboard");
+    return;
+  }
+
+  window.location.href = createPageUrl("AdminDashboard");
 }
 
 async function refreshAppUserAuth(cachedUser: any) {

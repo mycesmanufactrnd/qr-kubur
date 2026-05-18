@@ -186,7 +186,13 @@ function FinancialReportsDesktop() {
     if (TABS.length > 0 && !TABS.find((t) => t.key === activeTab)) {
       setActiveTab(TABS[0].key);
     }
-  }, [isTahfizAdmin, isOrganisationAdmin, isOrgCanBeDonated, isOrgCanManageMosque, isOrgGraveService]);
+  }, [
+    isTahfizAdmin,
+    isOrganisationAdmin,
+    isOrgCanBeDonated,
+    isOrgCanManageMosque,
+    isOrgGraveService,
+  ]);
 
   const { data, isLoading } = trpc.financialReport.getByReferenceNo.useQuery(
     {
