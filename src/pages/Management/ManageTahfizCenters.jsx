@@ -69,9 +69,9 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { showError, showSuccess } from "@/components/ToastrNotification";
-import TextInputForm from "@/components/forms/TextInputForm";
-import SelectForm from "@/components/forms/SelectForm";
-import FileUploadForm from "@/components/forms/FileUploadForm";
+import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import SelectForm from "@/components/Forms/SelectForm";
+import FileUploadForm from "@/components/Forms/FileUploadForm";
 
 const DEFAULT_USER_PASSWORD = "password";
 

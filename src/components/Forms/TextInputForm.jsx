@@ -2,7 +2,7 @@
 import { Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "../ui/textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { validateFields } from "@/utils/validations";
 
 export default function TextInputForm({

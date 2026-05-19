@@ -26,8 +26,8 @@ import {
 } from '@/hooks/useDeathCharityMemberMutations';
 import { defaultDeathCharityMemberField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
-import TextInputForm from '@/components/forms/TextInputForm';
-import SelectForm from '@/components/forms/SelectForm';
+import TextInputForm from '@/components/Forms/TextInputForm';
+import SelectForm from '@/components/Forms/SelectForm';
 import { Switch } from '@/components/ui/switch';
 import { ClaimStatus } from '@/utils/enums';
 import { createPageUrl } from '@/utils';

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { createPageUrl } from "../utils/index";
+import { createPageUrl } from "@/utils/index";
 import { ChevronRight, ArrowLeft } from "lucide-react";
 
 export default function Breadcrumb({ items }) {

@@ -1,6 +1,6 @@
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
-import NoDataCardComponent from '../NoDataCardComponent';
+import NoDataCardComponent from '@/components/NoDataCardComponent';
 
 export default function JoinLiveButton({ room }) {
     const navigate = useNavigate();

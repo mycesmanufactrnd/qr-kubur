@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "../utils/index";
+import { createPageUrl } from "@/utils/index";
 import { CheckCircle, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ImageTextCaptcha from "../components/ImageTextCaptcha";
-import { showError, showWarning } from "../components/ToastrNotification";
+import ImageTextCaptcha from "@/components/ImageTextCaptcha";
+import { showError, showWarning } from "@/components/ToastrNotification";
 import BackNavigation from "@/components/BackNavigation";
 import { Controller, useForm } from "react-hook-form";
 import { validateFields } from "@/utils/validations";
@@ -30,7 +30,7 @@ import { useLocationContext } from "@/providers/LocationProvider";
 import { ipAddressQueryOptions } from "@/utils/queryOptions";
 import { useAdminAccess, getStoredGoogleUser } from "@/utils/auth";
 import { translate } from "@/utils/translations";
-import TextInputForm from "@/components/forms/TextInputForm";
+import TextInputForm from "@/components/Forms/TextInputForm.jsx";
 
 const PHONE_STORAGE_KEY = "suggestion_phoneno";
 
