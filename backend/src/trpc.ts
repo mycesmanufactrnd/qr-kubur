@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { verifyToken } from "./auth.ts";
+import { verifyToken } from "./auth.js";
 
 // Every tRPC request passes through createContext
 // Extract the JWT from the Authorization header or httpOnly cookies
@@ -44,7 +44,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 });
 
 // not sure needed or not, strict role procedure?
-const roleGuard = (roles: Array<"superadmin"|"admin"|"employee">) =>
+const roleGuard = (roles: Array<"superadmin"|"admin"|"employee"|"google">) =>
   protectedProcedure.use(({ ctx, next }) => {
     if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
 

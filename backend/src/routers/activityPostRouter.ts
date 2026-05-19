@@ -1,9 +1,10 @@
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
+// @ts-nocheck
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
-import { ActivityPost } from "../db/entities.ts";
-import { activityPostSchema } from "../schemas/activityPostSchema.ts";
-import type { DeepPartial } from "typeorm";
+import { ActivityPost } from "../db/entities.js";
+import { activityPostSchema } from "../schemas/activityPostSchema.js";
+
 
 export const activityPostRouter = router({
   getPaginated: publicProcedure

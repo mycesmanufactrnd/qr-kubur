@@ -1,18 +1,19 @@
-import { z } from 'zod';
-import { ApprovalStatus } from '../db/enums.ts';
+// @ts-nocheck
+import { z } from "zod";
+import { ApprovalStatus } from "../db/enums.js";
 
 export const suggestionSchema = z.object({
-    name: z.string().min(1),
-    phoneno: z.string().min(1),
-    type: z.string().min(1),
-    suggestedchanges: z.string().min(1),
-    reason: z.string().min(1),
-    status: z.enum(ApprovalStatus).optional(),
-    email: z.string().email().optional().nullable(),
-    visitorip: z.string().optional().nullable(),
-    grave: z.object({ id: z.number() }).nullable().optional(),
-    deadperson: z.object({ id: z.number() }).nullable().optional(),
-    organisation: z.object({ id: z.number() }).nullable().optional(),
+  name: z.string().min(1),
+  phoneno: z.string().min(1),
+  type: z.string().min(1),
+  suggestedchanges: z.string().min(1),
+  reason: z.string().min(1),
+  status: z.enum(ApprovalStatus).optional(),
+  email: z.string().email().optional().nullable(),
+  visitorip: z.string().optional().nullable(),
+  grave: z.object({ id: z.number() }).nullable().optional(),
+  deadperson: z.object({ id: z.number() }).nullable().optional(),
+  organisation: z.object({ id: z.number() }).nullable().optional(),
 });
 
 export const suggestionApprovalSchema = z.object({

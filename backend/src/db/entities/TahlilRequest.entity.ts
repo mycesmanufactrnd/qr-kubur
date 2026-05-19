@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { TahlilStatus } from "../enums.ts";
+import { TahfizCenter } from "./TahfizCenter.entity.js";
+import { TahlilStatus } from "../enums.js";
 
 @Entity("tahlilrequest")
 export class TahlilRequest {

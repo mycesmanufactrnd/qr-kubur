@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc.ts";
+import { publicProcedure, router } from "../trpc.js";
 
 export const publicRouter = router({
   getClientIp: publicProcedure

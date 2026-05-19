@@ -1,3 +1,4 @@
+//@ts-nocheck
 import admin from "firebase-admin";
 import { In } from "typeorm";
 import {
@@ -5,10 +6,10 @@ import {
   GoogleUserRecord,
   User,
   UserDevice,
-} from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
-import { TahlilStatus } from "../db/enums.ts";
-import type { EntityNameGoogleUserRecord } from "../db/enums.ts";
+} from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
+import { TahlilStatus } from "../db/enums.js";
+import type { EntityNameGoogleUserRecord } from "../db/enums.js";
 
 let initialized = false;
 

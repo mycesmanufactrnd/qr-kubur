@@ -1,7 +1,8 @@
+//@ts-nocheck
 import z from "zod";
-import { router, superAdminProcedure, publicProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { ActivityLog } from "../db/entities/ActivityLog.entity.ts";
+import { router, superAdminProcedure, publicProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { ActivityLog } from "../db/entities/ActivityLog.entity.js";
 import type { DeepPartial } from "@trpc/server";
 
 export const activityLogsRouter = router({

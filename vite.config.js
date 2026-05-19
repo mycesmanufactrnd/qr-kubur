@@ -1,21 +1,20 @@
-import react from '@vitejs/plugin-react'
-import path from 'node:path';
-import { defineConfig } from 'vite'
+import react from "@vitejs/plugin-react";
+import path from "node:path";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   // logLevel: 'error',
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'), 
+      "@": path.resolve(__dirname, "src"),
+      src: path.resolve(__dirname, "src"),
     },
   },
-  base: '/',
-  envDir: './',
+  base: "/",
+  envDir: "./",
   server: {
-    host: '0.0.0.0',
+    host: "0.0.0.0",
     allowedHosts: true,
     port: 5173,
     watch: {
@@ -23,8 +22,8 @@ export default defineConfig({
       interval: 100,
     },
     proxy: {
-      '/api': 'http://backend:8083',
-      '/trpc': 'http://backend:8083',
-    }
+      "/api": "http://backend:8083",
+      "/trpc": "http://backend:8083",
+    },
   },
 });

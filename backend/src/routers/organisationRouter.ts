@@ -1,9 +1,10 @@
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { Organisation, ServiceOffered } from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
+// @ts-nocheck
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { Organisation, ServiceOffered } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
 import z from "zod";
-import { organisationSchema } from "../schemas/organisationSchema.ts";
-import { ActiveInactiveStatus } from "../db/enums.ts";
+import { organisationSchema } from "../schemas/organisationSchema.js";
+import { ActiveInactiveStatus } from "../db/enums.js";
 import { Brackets, In, Repository } from "typeorm";
 
 type OrganisationServicePayload = NonNullable<

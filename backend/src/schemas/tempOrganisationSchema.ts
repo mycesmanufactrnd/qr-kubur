@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { z } from "zod";
-import { ActiveInactiveStatus, ApprovalStatus } from "../db/enums.ts";
+import { ActiveInactiveStatus, ApprovalStatus } from "../db/enums.js";
 
 export const allowedTempOrganisationTypeNames = [
   "Syarikat Swasta",

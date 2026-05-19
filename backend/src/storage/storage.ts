@@ -1,6 +1,6 @@
 import path from "path";
-import { DiskStorage } from "./storageDisk.ts";
-import { S3Storage } from "./storageS3.ts";
+import { DiskStorage } from "./storageDisk.js";
+import { S3Storage } from "./storageS3.js";
 
 export type StorageDriver = "disk" | "s3";
 

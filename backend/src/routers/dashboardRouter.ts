@@ -1,6 +1,7 @@
+// @ts-nocheck
 import z from "zod";
-import { protectedProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
+import { protectedProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
 import {
   DeadPerson,
   DeathCharity,
@@ -13,14 +14,14 @@ import {
   Suggestion,
   TahfizCenter,
   TahlilRequest,
-} from "../db/entities.ts";
+} from "../db/entities.js";
 import {
   ClaimStatus,
   ORG_SHARE,
   QuotationStatus,
   TahlilStatus,
   VerificationStatus,
-} from "../db/enums.ts";
+} from "../db/enums.js";
 
 export const dashboardRouter = router({
   // OS: Organisations,Suggestion

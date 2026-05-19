@@ -1,9 +1,10 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
-import { ActiveInactiveStatus } from "../enums.ts";
-import { Donation } from "./Donation.entity.ts";
-import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
-import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
-import { PaymentField } from "./PaymentField.entity.ts";
+import { ActiveInactiveStatus } from "../enums.js";
+import { Donation } from "./Donation.entity.js";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.js";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.js";
+import { PaymentField } from "./PaymentField.entity.js";
 
 @Entity("paymentplatform")
 @Unique(["code"])

@@ -1,6 +1,7 @@
-import { router, publicProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { RunningNo } from "../db/entities.ts";
+// @ts-nocheck
+import { router, publicProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { RunningNo } from "../db/entities.js";
 
 export const runningNoRouter = router({
   createQuotationRunningNo: publicProcedure

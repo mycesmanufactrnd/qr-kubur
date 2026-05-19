@@ -22,10 +22,10 @@ import {
 } from "@/hooks/useOrganisationMutations";
 import { useUserMutations } from "@/hooks/useUserMutations";
 import { defaultOrganisationField } from "@/utils/defaultformfields";
-import TextInputForm from "@/components/forms/TextInputForm";
-import SelectForm from "@/components/forms/SelectForm";
-import CheckboxForm from "@/components/forms/CheckboxForm";
-import FileUploadForm from "@/components/forms/FileUploadForm";
+import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import SelectForm from "@/components/Forms/SelectForm";
+import CheckboxForm from "@/components/Forms/CheckboxForm";
+import FileUploadForm from "@/components/Forms/FileUploadForm";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";

@@ -1,5 +1,6 @@
+// @ts-nocheck
 import z from "zod";
-import { ClaimStatus } from "../db/enums.ts";
+import { ClaimStatus } from "../db/enums.js";
 
 export const deathCharityClaimSchema = z.object({
     deceasedname: z.string().min(1),

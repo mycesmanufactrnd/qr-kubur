@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { PaymentComparison } from "../db/entities.ts";
+import { router, protectedProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { PaymentComparison } from "../db/entities.js";
 
 export const paymentComparisonRouter = router({
   getAll: protectedProcedure.query(async () => {

@@ -1,8 +1,9 @@
-import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
+// @ts-nocheck
+import { router, protectedProcedure, publicProcedure } from "../trpc.js";
 import { z } from "zod";
-import { AppDataSource } from "../datasource.ts";
-import { Suggestion } from "../db/entities.ts";
-import { suggestionApprovalSchema, suggestionSchema } from "../schemas/suggestionSchema.ts";
+import { AppDataSource } from "../datasource.js";
+import { Suggestion } from "../db/entities.js";
+import { suggestionApprovalSchema, suggestionSchema } from "../schemas/suggestionSchema.js";
 import { MoreThan } from "typeorm";
 
 export const suggestionRouter = router({

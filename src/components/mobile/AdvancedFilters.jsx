@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { translate } from "@/utils/translations";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 /**
  * parameter example:

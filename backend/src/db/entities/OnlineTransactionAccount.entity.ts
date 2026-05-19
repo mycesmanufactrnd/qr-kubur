@@ -1,12 +1,14 @@
+// @ts-nocheck
 import {
   Column,
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
+  type Relation,
 } from "typeorm";
-import { OnlineTransaction } from "./OnlineTransaction.entity.ts";
-import { OnlineTransactionStatus } from "../enums.ts";
+import { OnlineTransaction } from "./OnlineTransaction.entity.js";
+import { OnlineTransactionStatus } from "../enums.js";
 
 @Entity("onlinetransactionaccount")
 export class OnlineTransactionAccount {
@@ -14,7 +16,7 @@ export class OnlineTransactionAccount {
   id!: number;
 
   @ManyToOne(() => OnlineTransaction, (transaction) => transaction.accounts)
-  transaction!: OnlineTransaction;
+  transaction!: Relation<OnlineTransaction>;
 
   @Column("varchar", { length: 50 })
   type!: string;

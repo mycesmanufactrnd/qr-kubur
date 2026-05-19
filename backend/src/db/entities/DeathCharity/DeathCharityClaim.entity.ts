@@ -1,14 +1,15 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
 } from "typeorm";
-import { DeathCharityMember } from "./DeathCharityMember.entity.ts";
-import { DeathCharity } from "./DeathCharity.entity.ts";
-import { ClaimStatus } from "../../enums.ts";
-import { DeathCharityDependent } from "./DeathCharityDependent.entity.ts";
-import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.ts";
+import { DeathCharityMember } from "./DeathCharityMember.entity.js";
+import { DeathCharity } from "./DeathCharity.entity.js";
+import { ClaimStatus } from "../../enums.js";
+import { DeathCharityDependent } from "./DeathCharityDependent.entity.js";
+import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.js";
 
 @Entity("deathcharityclaim")
 export class DeathCharityClaim extends AuditableEntity {

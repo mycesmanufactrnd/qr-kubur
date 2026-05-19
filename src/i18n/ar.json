@@ -758,5 +758,10 @@
   "Advanced Filter": "تصفية متقدمة",
   "Apply Filter": "تطبيق التصفية",
   "No data available": "لا توجد بيانات",
-  "There is nothing to display at the moment": "لا يوجد شيء لعرضه في الوقت الحالي"
+  "There is nothing to display at the moment": "لا يوجد شيء لعرضه في الوقت الحالي",
+  "You have reached the limit of 3 suggestions per hour": "لقد وصلت إلى حد 3 اقتراحات في الساعة",
+  "Captcha failed. Please refill the form.": "فشل التحقق. يرجى إعادة تعبئة النموذج.",
+  "Suggestion Submitted!": "تم إرسال الاقتراح!",
+  "Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.": "تم إرسال اقتراحك إلى المشرف للمراجعة. سنُبلغك بعد اكتمال المراجعة.",
+  "Back to Main": "العودة إلى الرئيسية"
 }

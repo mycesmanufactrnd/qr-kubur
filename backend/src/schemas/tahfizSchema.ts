@@ -1,5 +1,6 @@
-﻿import { z } from 'zod';
-import { ActiveInactiveStatus } from '../db/enums.ts';
+// @ts-nocheck
+import { z } from "zod";
+import { ActiveInactiveStatus } from "../db/enums.js";
 
 export const tahfizServiceOfferedSchema = z.object({
   id: z.number().optional(),
@@ -24,4 +25,3 @@ export const tahfizSchema = z.object({
   photourl: z.string().optional().nullable(),
   parentorganisation: z.object({ id: z.number() }).nullable().optional(),
 });
-

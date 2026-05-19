@@ -6,7 +6,7 @@ import { MapPin, Calendar, Users, ArrowRight, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { createPageUrl, resolveFileUrl } from "@/utils";
 import ProgressBar from "@/components/ProgressBar";
-import BannerImageWithFallback from "../BannerImageWithFallback";
+import BannerImageWithFallback from "@/components/BannerImageWithFallback";
 import { formatRM } from "@/utils/helpers";
 
 const CATEGORY_COLORS = {

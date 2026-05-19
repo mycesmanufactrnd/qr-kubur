@@ -1,14 +1,15 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:15-alpine
     container_name: postgres_db
-    env_file: .env
     restart: unless-stopped
+    env_file: .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
-    volumes:
-      - ./volumes/db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql
-      - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -22,38 +23,27 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ../dockerfiles/backend.dockerfile
+      dockerfile: ../dockerfiles/backend.prod.dockerfile
     container_name: backend
+    restart: unless-stopped
     env_file: .env
-    environment:
-      - DOCKER=true
-      - CHOKIDAR_USEPOLLING=true
-      - CHOKIDAR_INTERVAL=1000
     ports:
-      - "${BACKEND_PORT}:8083"
+      - "8083:8083"
     volumes:
-      - ./backend:/usr/src/app
-      - backend_node_modules:/usr/src/app/node_modules
       - ./storage_data:/usr/src/app/storage_data
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
   frontend:
     build:
       context: .
-      dockerfile: ./dockerfiles/frontend.dockerfile
+      dockerfile: ./dockerfiles/frontend.prod.dockerfile
     container_name: frontend
-    env_file: .env
+    restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT}:5173"
-    volumes:
-      - .:/usr/src/frontend
-      - frontend_node_modules:/usr/src/frontend/node_modules
+      - "5173:80"
     depends_on:
       - backend
 
 volumes:
   db_data:
-  frontend_node_modules:
-  backend_node_modules:

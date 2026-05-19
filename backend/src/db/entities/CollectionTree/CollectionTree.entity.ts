@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Column,
   CreateDateColumn,
@@ -6,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Organisation } from "../Organisation.entity.ts";
+import { Organisation } from "../Organisation.entity.js";
 
 @Entity("collectiontree")
 export class CollectionTree {

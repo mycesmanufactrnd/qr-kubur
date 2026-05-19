@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -5,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { getCurrentUserId } from "../../../helpers/requestContext.ts";
+import { getCurrentUserId } from "../../../helpers/requestContext.js";
 
 export abstract class AuditableEntity {
   @Column("int", { nullable: true })

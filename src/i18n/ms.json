@@ -770,5 +770,10 @@
   "Advanced Filter": "Penapis Lanjutan",
   "Apply Filter": "Guna Penapis",
   "No data available": "Tiada data tersedia",
-  "There is nothing to display at the moment": "Tiada sesuatu untuk dipaparkan buat masa ini"
+  "There is nothing to display at the moment": "Tiada sesuatu untuk dipaparkan buat masa ini",
+  "You have reached the limit of 3 suggestions per hour": "Anda telah mencapai had 3 cadangan sejam",
+  "Captcha failed. Please refill the form.": "Captcha gagal. Sila isi semula borang.",
+  "Suggestion Submitted!": "Cadangan Dihantar!",
+  "Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.": "Cadangan anda telah dihantar kepada admin untuk semakan. Kami akan memaklumkan anda selepas semakan selesai.",
+  "Back to Main": "Kembali ke Utama"
 }

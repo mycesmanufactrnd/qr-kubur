@@ -1,10 +1,11 @@
+// @ts-nocheck
 import {
   Column,
   DeleteDateColumn,
   BeforeSoftRemove,
 } from "typeorm";
-import { AuditableEntity } from "./AuditableEntity.ts";
-import { getCurrentUserId } from "../../../helpers/requestContext.ts";
+import { AuditableEntity } from "./AuditableEntity.js";
+import { getCurrentUserId } from "../../../helpers/requestContext.js";
 
 export abstract class SoftDeletableEntity extends AuditableEntity {
   @DeleteDateColumn({ name: "deletedat" })

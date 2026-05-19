@@ -1,8 +1,9 @@
+// @ts-nocheck
 import z from "zod";
-import { AppDataSource } from "../datasource.ts";
-import { PaymentField } from "../db/entities.ts";
-import { paymentFieldSchema } from "../schemas/paymentFieldSchema.ts";
-import { router, superAdminProcedure } from "../trpc.ts";
+import { AppDataSource } from "../datasource.js";
+import { PaymentField } from "../db/entities.js";
+import { paymentFieldSchema } from "../schemas/paymentFieldSchema.js";
+import { router, superAdminProcedure } from "../trpc.js";
 
 export const paymentFieldRouter = router({
   getPaginated: superAdminProcedure

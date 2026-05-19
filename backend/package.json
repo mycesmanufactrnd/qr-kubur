@@ -4,13 +4,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts --poll 1000",
-    "seed": "tsx src/db/seed.ts",
-    "seed:prod": "tsx src/db/seed.prod.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "seed": "tsx src/db/seed.js",
+    "seed:prod": "tsx src/db/seed.prod.js",
     "typeorm": "typeorm-ts-node-esm",
     "migration:create": "npm run typeorm -- migration:create",
-    "migration:generate": "npm run typeorm -- migration:generate --dataSource ./src/datasource.ts",
-    "migration:run": "npm run typeorm -- migration:run --dataSource src/datasource.ts",
-    "migration:revert": "npm run typeorm -- migration:revert --dataSource src/datasource.ts"
+    "migration:generate": "npm run typeorm -- migration:generate --dataSource ./src/datasource.js",
+    "migration:run": "npm run typeorm -- migration:run --dataSource src/datasource.js",
+    "migration:revert": "npm run typeorm -- migration:revert --dataSource src/datasource.js"
   },
   "dependencies": {
     "@fastify/cookie": "^10.0.1",

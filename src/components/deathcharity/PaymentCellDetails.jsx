@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { formatRM } from "../../utils/helpers";
+import { formatRM } from "@/utils/helpers";
 import { resolveFileUrl } from '@/utils';
-import NoDataTableComponent from "../NoDataTableComponent";
-import { useGetOnlineTransaction } from "../../hooks/usePaymentDistributionMutation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Badge } from "../ui/badge";
+import NoDataTableComponent from "@/components/NoDataTableComponent";
+import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle } from "lucide-react";
 
 export default function PaymentCellDetails({ payments = [], year }) {

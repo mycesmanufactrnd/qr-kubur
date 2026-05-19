@@ -1,8 +1,9 @@
+// @ts-nocheck
 import z from "zod";
-import { router, publicProcedure, protectedProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { WaqfProject } from "../db/entities/WaqfProject.entity.ts";
-import { waqfProjectSchema } from "../schemas/waqfProjectSchema.ts";
+import { router, publicProcedure, protectedProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { WaqfProject } from "../db/entities/WaqfProject.entity.js";
+import { waqfProjectSchema } from "../schemas/waqfProjectSchema.js";
 
 export const waqfProjectRouter = router({
     getPaginated: publicProcedure

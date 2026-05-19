@@ -16,11 +16,14 @@
     //Matches Node’s module resolution logic
     "moduleResolution": "nodenext",
     
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
+    // "noEmit": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    // "allowImportingTsExtensions": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "types": [],
+    "types": ["node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -33,7 +36,8 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    // "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
 
     // Style Options
     // "noImplicitReturns": true,

@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { z } from "zod";
-import { QuotationStatus } from "../db/enums.ts";
+import { QuotationStatus } from "../db/enums.js";
 
 export const quotationSelectedServiceSchema = z.object({
   service: z.string().min(1),

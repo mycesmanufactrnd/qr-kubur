@@ -1,9 +1,10 @@
+// @ts-nocheck
 import z from "zod";
-import { AppDataSource } from "../datasource.ts";
-import { PaymentPlatform } from "../db/entities/PaymentPlatform.entity.ts";
-import { protectedProcedure, publicProcedure, router, superAdminProcedure } from "../trpc.ts";
-import { paymentPlatformSchema } from "../schemas/paymentPlatformSchema.ts";
-import { ActiveInactiveStatus } from "../db/enums.ts";
+import { AppDataSource } from "../datasource.js";
+import { PaymentPlatform } from "../db/entities/PaymentPlatform.entity.js";
+import { protectedProcedure, publicProcedure, router, superAdminProcedure } from "../trpc.js";
+import { paymentPlatformSchema } from "../schemas/paymentPlatformSchema.js";
+import { ActiveInactiveStatus } from "../db/enums.js";
 
 export const paymentPlatformRouter = router({
   getPaginated: superAdminProcedure

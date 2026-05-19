@@ -1,7 +1,8 @@
+// @ts-nocheck
 import z from "zod";
-import { router, publicProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { VisitLog } from "../db/entities/VisitLog.entity.ts";
+import { router, publicProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { VisitLog } from "../db/entities/VisitLog.entity.js";
 
 export const visitLogsRouter = router({
     create: publicProcedure

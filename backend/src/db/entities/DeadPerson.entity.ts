@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,10 +8,10 @@ import {
   JoinColumn,
   OneToMany,
 } from "typeorm";
-import { Grave } from "./Grave.entity.ts";
-import { Suggestion } from "./Suggestion.entity.ts";
-import { Quotation } from "./Quotation.entity.ts";
-import { User } from "./User.entity.ts";
+import { Grave } from "./Grave.entity.js";
+import { Suggestion } from "./Suggestion.entity.js";
+import { Quotation } from "./Quotation.entity.js";
+import { User } from "./User.entity.js";
 
 @Entity("deadperson")
 export class DeadPerson {

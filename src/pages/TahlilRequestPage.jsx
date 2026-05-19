@@ -43,7 +43,7 @@ import {
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { trpc } from "@/utils/trpc";
 import { useSearchParams } from "react-router-dom";
-import TextInputForm from "@/components/forms/TextInputForm";
+import TextInputForm from "@/components/Forms/TextInputForm.jsx";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { userGoogleAccess } from "@/utils/auth";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -521,7 +521,11 @@ export default function TahlilRequestPage() {
 
       <div className="max-w-2xl mx-auto px-2 space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Section title={translate("Select Tahfiz Center")} icon={Building2} accent="emerald">
+          <Section
+            title={translate("Select Tahfiz Center")}
+            icon={Building2}
+            accent="emerald"
+          >
             <Select
               value={tahfizId}
               onValueChange={(v) => setValue("tahfizId", v)}
@@ -662,7 +666,11 @@ export default function TahlilRequestPage() {
             </div>
           </div>
 
-          <Section title={translate("Requester Information")} icon={Info} accent="blue">
+          <Section
+            title={translate("Requester Information")}
+            icon={Info}
+            accent="blue"
+          >
             <div className="space-y-3">
               <TextInputForm
                 name="requestorname"
@@ -688,13 +696,19 @@ export default function TahlilRequestPage() {
               <div className="flex gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
                 <span className="text-base leading-none mt-0.5">📩</span>
                 <span>
-                  {translate("Payment receipt will be sent to the provided email. Save reference number to watch the Tahlil live stream.")}
+                  {translate(
+                    "Payment receipt will be sent to the provided email. Save reference number to watch the Tahlil live stream.",
+                  )}
                 </span>
               </div>
             </div>
           </Section>
 
-          <Section title={translate("Donation Amount")} icon={null} accent="amber">
+          <Section
+            title={translate("Donation Amount")}
+            icon={null}
+            accent="amber"
+          >
             <div className="grid grid-cols-3 gap-2 mb-3">
               {DONATION_AMOUNTS.map((amt) => {
                 const isActive = amount === String(amt);
@@ -786,7 +800,10 @@ export default function TahlilRequestPage() {
                           className="max-w-[180px] rounded-lg border"
                         />
                       ) : (
-                        <p key={f.key} className="text-xs text-slate-600 dark:text-slate-400">
+                        <p
+                          key={f.key}
+                          className="text-xs text-slate-600 dark:text-slate-400"
+                        >
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {f.label}:
                           </span>{" "}
@@ -812,7 +829,9 @@ export default function TahlilRequestPage() {
                               key={type}
                               className="flex justify-between text-sm"
                             >
-                              <span className="text-slate-600 dark:text-slate-400">{type}</span>
+                              <span className="text-slate-600 dark:text-slate-400">
+                                {type}
+                              </span>
                               <span className="font-semibold text-slate-800 dark:text-slate-200">
                                 RM {selectedTahfizServicePrice[type]}
                               </span>
@@ -825,7 +844,9 @@ export default function TahlilRequestPage() {
 
                 {hasDonation && (
                   <div className="flex justify-between items-center p-3 bg-amber-50 dark:bg-amber-900/20 border-b border-slate-100 dark:border-slate-700 text-sm">
-                    <span className="text-amber-700 dark:text-amber-400 font-medium">{translate("Donation")}</span>
+                    <span className="text-amber-700 dark:text-amber-400 font-medium">
+                      {translate("Donation")}
+                    </span>
                     <span className="font-semibold text-amber-700 dark:text-amber-400">
                       RM {donationAmount.toFixed(2)}
                     </span>
@@ -834,7 +855,9 @@ export default function TahlilRequestPage() {
 
                 {platformFee > 0 && (
                   <div className="flex justify-between items-center p-3 border-b border-slate-100 dark:border-slate-700 text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">{translate("Platform Fee")}</span>
+                    <span className="text-slate-500 dark:text-slate-400">
+                      {translate("Platform Fee")}
+                    </span>
                     <span className="text-slate-600 dark:text-slate-400">
                       RM {platformFee.toFixed(2)}
                     </span>
@@ -874,7 +897,10 @@ export default function TahlilRequestPage() {
           }
         }}
         title={translate("Save Phone Number")}
-        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        description={translate("Save {phone} for future use?").replace(
+          "{phone}",
+          pendingPhone,
+        )}
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {

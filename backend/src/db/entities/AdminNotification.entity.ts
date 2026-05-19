@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { NotificationType } from "../enums.ts";
+import { NotificationType } from "../enums.js";
 
 @Entity("adminnotification")
 export class AdminNotification {

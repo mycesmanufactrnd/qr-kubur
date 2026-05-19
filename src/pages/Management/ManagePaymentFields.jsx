@@ -24,9 +24,9 @@ import { useGetPaymentPlatform } from '@/hooks/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
 import { translate } from '@/utils/translations';
 import { defaultPaymentField } from '@/utils/defaultformfields';
-import SelectForm from '@/components/forms/SelectForm';
-import TextInputForm from '@/components/forms/TextInputForm';
-import CheckboxForm from '@/components/forms/CheckboxForm';
+import SelectForm from '@/components/Forms/SelectForm';
+import TextInputForm from '@/components/Forms/TextInputForm';
+import CheckboxForm from '@/components/Forms/CheckboxForm';
 import { useForm } from 'react-hook-form';
 
 export default function ManagePaymentFields() {

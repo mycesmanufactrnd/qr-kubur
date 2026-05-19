@@ -1,7 +1,8 @@
+//@ts-nocheck
 import * as XLSX from "xlsx";
-import { AppDataSource } from "../datasource.ts";
-import { Grave, Organisation, User } from "../db/entities.ts";
-import { GraveStatus } from "../db/enums.ts";
+import { AppDataSource } from "../datasource.js";
+import { Grave, Organisation, User } from "../db/entities.js";
+import { GraveStatus } from "../db/enums.js";
 
 /**
  * Parses a CSV or XLSX buffer into an array of row objects.

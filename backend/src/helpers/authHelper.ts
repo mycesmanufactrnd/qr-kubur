@@ -1,4 +1,4 @@
-type UserRole = "superadmin" | "admin" | "employee";
+type UserRole = "superadmin" | "admin" | "employee" | "google";
 
 export function assertRole(role: string): asserts role is UserRole {
   if (!["superadmin", "admin", "employee"].includes(role)) {

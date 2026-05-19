@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { handleToyyibPayCallback } from "../services/toyyibpay.service.ts";
+import { handleToyyibPayCallback } from "../services/toyyibpay.service.js";
 
 export const registerPaymentRoutes = (app: FastifyInstance) => {
   app.post("/api/payment/callback", async (req, reply) => {

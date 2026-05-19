@@ -769,5 +769,10 @@
   "Advanced Filter": "Advanced Filter",
   "Apply Filter": "Apply Filter",
   "No data available": "No data available",
-  "There is nothing to display at the moment": "There is nothing to display at the moment"
+  "There is nothing to display at the moment": "There is nothing to display at the moment",
+  "You have reached the limit of 3 suggestions per hour": "You have reached the limit of 3 suggestions per hour",
+  "Captcha failed. Please refill the form.": "Captcha failed. Please refill the form.",
+  "Suggestion Submitted!": "Suggestion Submitted!",
+  "Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.": "Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.",
+  "Back to Main": "Back to Main"
 }

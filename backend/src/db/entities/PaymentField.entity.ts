@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
-import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
-import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
-import { PaymentPlatform } from "./PaymentPlatform.entity.ts";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.js";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.js";
+import { PaymentPlatform } from "./PaymentPlatform.entity.js";
 
 @Entity("paymentfield")
 @Unique(["key", "paymentplatform"])

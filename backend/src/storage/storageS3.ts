@@ -1,4 +1,4 @@
-import type { Storage, PutObjectInput, PutObjectResult, GetObjectResult } from "./storage.ts";
+import type { Storage, PutObjectInput, PutObjectResult, GetObjectResult } from "./storage.js";
 
 type S3ClientLike = any;
 

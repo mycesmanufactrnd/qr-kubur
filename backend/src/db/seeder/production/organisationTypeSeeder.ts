@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import type { DeepPartial } from "typeorm";
-import { OrganisationType } from "../../entities.ts";
-import { AppDataSource } from "../../../datasource.ts";
-import { ActiveInactiveStatus } from "../../enums.ts";
+import { OrganisationType } from "../../entities.js";
+import { AppDataSource } from "../../../datasource.js";
+import { ActiveInactiveStatus } from "../../enums.js";
 
 export async function runOrganisationTypeSeederProd() {
   console.log("🌱 Seeding expanded organisation types...");

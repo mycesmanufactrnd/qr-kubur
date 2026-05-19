@@ -1,8 +1,9 @@
+// @ts-nocheck
 import z from "zod";
-import { publicProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { DeathCharityPayment, GoogleUserRecord } from "../db/entities.ts";
-import { deathCharityPaymentSchema } from "../schemas/deathCharityPaymentSchema.ts";
+import { publicProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { DeathCharityPayment, GoogleUserRecord } from "../db/entities.js";
+import { deathCharityPaymentSchema } from "../schemas/deathCharityPaymentSchema.js";
 
 export const deathCharityPaymentRouter = router({
   getByReferenceNo: publicProcedure

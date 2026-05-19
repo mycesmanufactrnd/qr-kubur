@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import crypto from "crypto";
 import type { DeepPartial } from "typeorm";
-import { AppDataSource } from "../../../datasource.ts";
-import { User } from "../../entities.ts";
+import { AppDataSource } from "../../../datasource.js";
+import { User } from "../../entities.js";
 
 const STATES_MY = [
   "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",

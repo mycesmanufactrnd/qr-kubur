@@ -15,7 +15,7 @@ import {
   Download,
   FileText,
 } from "lucide-react";
-import SearchBar from "@/components/forms/SearchBar";
+import SearchBar from "@/components/Forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,8 +45,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Breadcrumb from "@/components/Breadcrumb";
-import TextInputForm from "@/components/forms/TextInputForm";
-import SelectForm from "@/components/forms/SelectForm";
+import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import SelectForm from "@/components/Forms/SelectForm";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 import { showSuccess, showError } from "@/components/ToastrNotification";
@@ -67,7 +67,7 @@ import { defaultGraveFilter } from "@/utils/defaultfilter";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useForm } from "react-hook-form";
-import FileUploadForm from "@/components/forms/FileUploadForm";
+import FileUploadForm from "@/components/Forms/FileUploadForm";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 export default function ManageGraves() {

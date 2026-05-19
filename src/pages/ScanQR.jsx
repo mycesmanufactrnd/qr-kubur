@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
-import { createPageUrl, resolveFileUrl } from "../utils/index";
+import { createPageUrl, resolveFileUrl } from "@/utils/index";
 import {
   Camera,
   X,

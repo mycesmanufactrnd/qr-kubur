@@ -1,7 +1,7 @@
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
-import type { Storage, PutObjectInput, PutObjectResult, GetObjectResult } from "./storage.ts";
+import type { Storage, PutObjectInput, PutObjectResult, GetObjectResult } from "./storage.js";
 
 const assertSafePath = (rootDir: string, targetPath: string) => {
   const resolvedRoot = path.resolve(rootDir);

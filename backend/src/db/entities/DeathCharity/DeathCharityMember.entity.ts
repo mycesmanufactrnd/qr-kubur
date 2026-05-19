@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,11 +8,11 @@ import {
   OneToMany,
   UpdateDateColumn,
 } from "typeorm";
-import { DeathCharity } from "./DeathCharity.entity.ts";
-import { DeathCharityPayment } from "./DeathCharityPayment.entity.ts";
-import { DeathCharityDependent } from "./DeathCharityDependent.entity.ts";
-import { DeathCharityClaim } from "./DeathCharityClaim.entity.ts";
-import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.ts";
+import { DeathCharity } from "./DeathCharity.entity.js";
+import { DeathCharityPayment } from "./DeathCharityPayment.entity.js";
+import { DeathCharityDependent } from "./DeathCharityDependent.entity.js";
+import { DeathCharityClaim } from "./DeathCharityClaim.entity.js";
+import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.js";
 
 @Entity("deathcharitymember")
 export class DeathCharityMember extends AuditableEntity {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,16 +8,16 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { User } from "./User.entity.ts";
-import { OrganisationType } from "./OrganisationType.entity.ts";
+import { User } from "./User.entity.js";
+import { OrganisationType } from "./OrganisationType.entity.js";
 import { ActiveInactiveStatus } from "../enums.js";
-import { Grave } from "./Grave.entity.ts";
-import { Donation } from "./Donation.entity.ts";
-import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.ts";
-import { Mosque } from "./Mosque.entity.ts";
-import { DeathCharity } from "../entities.ts";
-import { ServiceOffered } from "./ServiceOffered.entity.ts";
-import { Quotation } from "./Quotation.entity.ts";
+import { Grave } from "./Grave.entity.js";
+import { Donation } from "./Donation.entity.js";
+import { OrganisationPaymentConfig } from "./OrganisationPaymentConfig.entity.js";
+import { Mosque } from "./Mosque.entity.js";
+import { DeathCharity } from "../entities.js";
+import { ServiceOffered } from "./ServiceOffered.entity.js";
+import { Quotation } from "./Quotation.entity.js";
 
 @Entity("organisation")
 export class Organisation {

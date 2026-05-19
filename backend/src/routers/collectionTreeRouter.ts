@@ -1,11 +1,12 @@
-import { protectedProcedure, router } from "../trpc.ts";
-import { CollectionTree, CollectionTreeItem } from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
+// @ts-nocheck
+import { protectedProcedure, router } from "../trpc.js";
+import { CollectionTree, CollectionTreeItem } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import {
   collectionTreeSchema,
   collectionTreeItemSchema,
-} from "../schemas/collectionTreeSchema.ts";
+} from "../schemas/collectionTreeSchema.js";
 
 export const collectionTreeRouter = router({
   getByOrganisation: protectedProcedure

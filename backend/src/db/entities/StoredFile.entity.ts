@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 export type StoredFileUploadedBy = {

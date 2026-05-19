@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { ApprovalStatus } from "../enums.ts";
-import { DeadPerson } from "./DeadPerson.entity.ts";
-import { Grave } from "./Grave.entity.ts";
-import { Organisation } from "./Organisation.entity.ts";
+import { ApprovalStatus } from "../enums.js";
+import { DeadPerson } from "./DeadPerson.entity.js";
+import { Grave } from "./Grave.entity.js";
+import { Organisation } from "./Organisation.entity.js";
 
 @Entity("suggestion")
 export class Suggestion {

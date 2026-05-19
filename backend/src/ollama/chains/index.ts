@@ -1,6 +1,6 @@
-export { reasoningChain } from "./reasoningChain";
-export { codeChain } from "./codeChain";
-export { writingChain } from "./writingChain";
+export { reasoningChain } from "./reasoningChain.js";
+export { codeChain } from "./codeChain.js";
+export { writingChain } from "./writingChain.js";
 
 // | Category       | Model           |
 // | -------------- | --------------- |

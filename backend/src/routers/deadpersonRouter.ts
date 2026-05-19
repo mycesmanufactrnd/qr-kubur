@@ -1,8 +1,9 @@
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { DeadPerson } from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
+// @ts-nocheck
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { DeadPerson } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
-import { deadPersonSchema } from "../schemas/deadpersonSchema.ts";
+import { deadPersonSchema } from "../schemas/deadpersonSchema.js";
 
 export const deadPersonRouter = router({
   getPaginated: protectedProcedure

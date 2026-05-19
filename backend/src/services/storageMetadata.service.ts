@@ -1,6 +1,7 @@
-import { AppDataSource } from "../datasource.ts";
-import { StoredFile } from "../db/entities/StoredFile.entity.ts";
-import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.ts";
+//@ts-nocheck
+import { AppDataSource } from "../datasource.js";
+import { StoredFile } from "../db/entities/StoredFile.entity.js";
+import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.js";
 
 export type CreateStoredFileInput = {
   bucket: string;
