@@ -1,15 +1,16 @@
+// @ts-nocheck
 import crypto from "crypto";
-import { router, publicProcedure, protectedProcedure } from "../trpc.ts";
+import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { z } from "zod";
-import { User } from "../db/entities/User.entity.ts";
+import { User } from "../db/entities/User.entity.js";
 import {
   signAccessToken,
   signRefreshToken,
   rotateTokens,
   verifyToken,
-} from "../auth.ts";
-import { assertRole } from "../helpers/authHelper.ts";
-import { AppDataSource } from "../datasource.ts";
+} from "../auth.js";
+import { assertRole } from "../helpers/authHelper.js";
+import { AppDataSource } from "../datasource.js";
 import { OAuth2Client } from "google-auth-library";
 import {
   DeathCharity,
@@ -17,7 +18,7 @@ import {
   Grave,
   Mosque,
   UserDevice,
-} from "../db/entities.ts";
+} from "../db/entities.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 

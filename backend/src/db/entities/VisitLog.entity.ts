@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("visitlog")

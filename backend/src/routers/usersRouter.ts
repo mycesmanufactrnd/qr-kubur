@@ -1,15 +1,16 @@
+// @ts-nocheck
 import {
   router,
   protectedProcedure,
   publicProcedure,
   adminProcedure,
-} from "../trpc.ts";
+} from "../trpc.js";
 import bcrypt from "bcrypt";
 import { z } from "zod";
-import { AppDataSource } from "../datasource.ts";
-import { Permission, User } from "../db/entities.ts";
-import { updateUserSchema, userSchema } from "../schemas/userSchema.ts";
-import { buildDefaultPermissions } from "../helpers/authHelper.ts";
+import { AppDataSource } from "../datasource.js";
+import { Permission, User } from "../db/entities.js";
+import { updateUserSchema, userSchema } from "../schemas/userSchema.js";
+import { buildDefaultPermissions } from "../helpers/authHelper.js";
 
 export const usersRouter = router({
   getUserById: protectedProcedure

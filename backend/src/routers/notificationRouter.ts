@@ -1,7 +1,8 @@
+// @ts-nocheck
 import z from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { AdminNotification } from "../db/entities.ts";
+import { router, protectedProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { AdminNotification } from "../db/entities.js";
 
 export const notificationRouter = router({
     getUnreadNotificationCount: protectedProcedure

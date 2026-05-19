@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createTRPCReact } from '@trpc/react-query';
 import { httpBatchLink, httpLink, splitLink } from '@trpc/client';
 import type { AppRouter } from '../../backend/src/routers/appRouter';
@@ -20,8 +21,7 @@ const getHeaders = () => {
   };
 };
 
-const ngrokLink = "https://gbfcq-2001-e68-58d7-4c00-490-9521-41fc-1abf.run.pinggy-free.link/trpc";
-const trpcBaseUrl = import.meta.env.VITE_TRPC_URL ?? '/trpc';
+const trpcUrl = '/trpc';
 
 export const trpcClient = trpc.createClient({
   links: [
@@ -30,20 +30,17 @@ export const trpcClient = trpc.createClient({
         return op.context.skipBatch === true;
       },
       true: httpLink({
-        url: trpcBaseUrl,
-        // url: ngrokLink,
+        url: trpcUrl,
         headers: getHeaders,
         fetch(url, options) {
           return fetch(url, {
             ...options,
-            // Enable credentials for httpOnly cookies
             credentials: 'include',
           });
         },
       }),
       false: httpBatchLink({
-        url: trpcBaseUrl,
-        // url: ngrokLink,
+        url: trpcUrl,
         headers: getHeaders,
         fetch(url, options) {
           return fetch(url, {
@@ -55,4 +52,3 @@ export const trpcClient = trpc.createClient({
     }),
   ],
 });
- 

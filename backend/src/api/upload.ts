@@ -1,11 +1,11 @@
 import { randomUUID } from 'crypto';
 import type { FastifyInstance } from "fastify";
 import path from "path";
-import { verifyToken } from "../auth.ts";
-import { bulkImportGraves } from "../services/upload.service.ts";
-import { getStorage } from "../storage/storage.ts";
-import { createStoredFile, findStoredFile } from "../services/storageMetadata.service.ts";
-import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.ts";
+import { verifyToken } from "../auth.js";
+import { bulkImportGraves } from "../services/upload.service.js";
+import { getStorage } from "../storage/storage.js";
+import { createStoredFile, findStoredFile } from "../services/storageMetadata.service.js";
+import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.js";
 
 const parseUploadedBy = (raw: string | undefined): StoredFileUploadedBy | null => {
   if (!raw) return null;

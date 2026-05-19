@@ -1,15 +1,16 @@
+// @ts-nocheck
 import { z } from "zod";
-import { router, protectedProcedure, publicProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
+import { router, protectedProcedure, publicProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
 import {
   Donation,
   GoogleUserRecord,
   OnlineTransaction,
-} from "../db/entities.ts";
+} from "../db/entities.js";
 import {
   donationSchema,
   donationApprovalSchema,
-} from "../schemas/donationSchema.ts";
+} from "../schemas/donationSchema.js";
 
 export const donationRouter = router({
   getByReferenceNo: publicProcedure

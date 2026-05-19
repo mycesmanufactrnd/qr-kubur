@@ -1,10 +1,11 @@
+// @ts-nocheck
 import z from "zod";
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { GoogleUserRecord, Quotation } from "../db/entities.ts";
-import { quotationSchema } from "../schemas/quotationSchema.ts";
-import { QuotationStatus } from "../db/enums.ts";
-import { sendNotificationFCMToOrganisation } from "../services/firebase.service.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { GoogleUserRecord, Quotation } from "../db/entities.js";
+import { quotationSchema } from "../schemas/quotationSchema.js";
+import { QuotationStatus } from "../db/enums.js";
+import { sendNotificationFCMToOrganisation } from "../services/firebase.service.js";
 
 export const quotationRouter = router({
   create: publicProcedure

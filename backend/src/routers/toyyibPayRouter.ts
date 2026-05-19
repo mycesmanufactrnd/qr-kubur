@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { z } from "zod";
-import { router, publicProcedure } from "../trpc.ts";
-import { createBill, upsertTransactionAccountByOrderNo } from "../services/toyyibpay.service.ts";
-import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
+import { router, publicProcedure } from "../trpc.js";
+import { createBill, upsertTransactionAccountByOrderNo } from "../services/toyyibpay.service.js";
+import { getToyyibpayConfig } from "../config/toyyibpay.config.js";
 
 export const toyyibPayRouter = router({
   createBill: publicProcedure

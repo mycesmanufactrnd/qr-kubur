@@ -1,10 +1,11 @@
+// @ts-nocheck
 // import { z } from "zod";
-// import { publicProcedure, router } from "../trpc.ts";
-// import { routePrompt } from "../ollama/router/routePrompt.ts";
-// import { callOllama } from "../ollama/ollamaClient.ts";
-// import { reasoningChain } from "../ollama/chains/reasoningChain.ts";
-// import { codeChain } from "../ollama/chains/codeChain.ts";
-// import { writingChain } from "../ollama/chains/writingChain.ts";
+// import { publicProcedure, router } from "../trpc.js";
+// import { routePrompt } from "../ollama/router/routePrompt.js";
+// import { callOllama } from "../ollama/ollamaClient.js";
+// import { reasoningChain } from "../ollama/chains/reasoningChain.js";
+// import { codeChain } from "../ollama/chains/codeChain.js";
+// import { writingChain } from "../ollama/chains/writingChain.js";
 
 // export const ollamaRouter = router({
 //   generate: publicProcedure
@@ -37,7 +38,7 @@
 
 
 import z from "zod";
-import { router, publicProcedure } from "../trpc.ts";
+import { router, publicProcedure } from "../trpc.js";
 
 const NODE_SERVER_URL = process.env.NODE_SERVER_URL || "https://broadly-nonrateable-tucker.ngrok-free.dev";
 

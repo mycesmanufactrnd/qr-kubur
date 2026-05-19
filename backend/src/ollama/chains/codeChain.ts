@@ -1,5 +1,5 @@
-import { callOllama } from "../ollamaClient.ts";
-import { critiqueCodePrompt } from "../prompts/critique.ts";
+import { callOllama } from "../ollamaClient.js";
+import { critiqueCodePrompt } from "../prompts/critique.js";
 
 export async function codeChain(prompt: string) {
   const code = await callOllama(

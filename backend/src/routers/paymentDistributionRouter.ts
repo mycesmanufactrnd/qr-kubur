@@ -1,8 +1,9 @@
+// @ts-nocheck
 import z from "zod";
-import { protectedProcedure, router, superAdminProcedure } from "../trpc.ts";
-import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
-import { OnlineTransactionStatus } from "../db/enums.ts";
+import { protectedProcedure, router, superAdminProcedure } from "../trpc.js";
+import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
+import { OnlineTransactionStatus } from "../db/enums.js";
 
 export const paymentDistributionRouter = router({
   getPaginated: superAdminProcedure

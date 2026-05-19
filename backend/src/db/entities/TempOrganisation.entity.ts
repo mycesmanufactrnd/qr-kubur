@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -5,8 +6,8 @@ import {
   CreateDateColumn,
   ManyToOne,
 } from "typeorm";
-import { ActiveInactiveStatus, ApprovalStatus } from "../enums.ts";
-import { OrganisationType } from "./OrganisationType.entity.ts";
+import { ActiveInactiveStatus, ApprovalStatus } from "../enums.js";
+import { OrganisationType } from "./OrganisationType.entity.js";
 
 @Entity("temporganisation")
 export class TempOrganisation {

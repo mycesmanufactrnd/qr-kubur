@@ -1,7 +1,7 @@
 // seeders/billplzSeeder.ts
-import { AppDataSource } from "../../../datasource.ts";
-import { PaymentPlatform, PaymentField } from "../../../db/entities.ts";
-import { ActiveInactiveStatus } from "../../../db/enums.ts";
+import { AppDataSource } from "../../../datasource.js";
+import { PaymentPlatform, PaymentField } from "../../../db/entities.js";
+import { ActiveInactiveStatus } from "../../../db/enums.js";
 
 export async function runBillplzSeeder() {
   const platformRepo = AppDataSource.getRepository(PaymentPlatform);
@@ -20,34 +20,34 @@ export async function runBillplzSeeder() {
   const platform = platformRepo.create({
     code: "billplz_sandbox", // Unique identifier
     name: "Billplz Sandbox",
-    category: "gateway",      // Required field per entity
+    category: "gateway", // Required field per entity
     status: ActiveInactiveStatus.ACTIVE,
   });
   const savedPlatform = await platformRepo.save(platform);
 
   // 2. Add Credentials as PaymentFields with required keys
   const fields = [
-    { 
-      key: "API_KEY", 
-      label: "API Key", 
-      fieldtype: "text", 
-      required: true, 
-      paymentplatform: savedPlatform 
+    {
+      key: "API_KEY",
+      label: "API Key",
+      fieldtype: "text",
+      required: true,
+      paymentplatform: savedPlatform,
     },
-    { 
-      key: "COLLECTION_ID", 
-      label: "Collection ID", 
-      fieldtype: "text", 
-      required: true, 
-      paymentplatform: savedPlatform 
+    {
+      key: "COLLECTION_ID",
+      label: "Collection ID",
+      fieldtype: "text",
+      required: true,
+      paymentplatform: savedPlatform,
     },
-    { 
-      key: "X_SIGNATURE", 
-      label: "X-Signature Key", 
-      fieldtype: "password", 
-      required: true, 
-      paymentplatform: savedPlatform 
-    }
+    {
+      key: "X_SIGNATURE",
+      label: "X-Signature Key",
+      fieldtype: "password",
+      required: true,
+      paymentplatform: savedPlatform,
+    },
   ];
 
   await fieldRepo.save(fieldRepo.create(fields));

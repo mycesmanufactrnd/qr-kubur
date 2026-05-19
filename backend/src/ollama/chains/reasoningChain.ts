@@ -1,5 +1,5 @@
-import { callOllama } from "../ollamaClient.ts";
-import { rewritePrompt } from "../prompts/rewrite.ts";
+import { callOllama } from "../ollamaClient.js";
+import { rewritePrompt } from "../prompts/rewrite.js";
 
 export async function reasoningChain(prompt: string) {
   const rewritten = await callOllama(

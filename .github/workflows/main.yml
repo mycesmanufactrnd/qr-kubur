@@ -1,0 +1,42 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ "live" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
+        run: echo "${{ secrets.PROD_ENV_FILE }}" > .env
+
+      - name: Stop containers
+        run: docker compose down
+
+      - name: Build & Deploy
+        run: docker compose up -d --build
+
+      - name: Cleanup
+        run: docker image prune -f
+
+# nginx
+
+# events {}
+
+# http {
+#   server {
+#     listen 80;
+
+#     location / {
+#       proxy_pass http://frontend:80;
+#     }
+
+#     location /trpc {
+#       proxy_pass http://backend:8083/trpc;
+#     }
+#   }
+# }

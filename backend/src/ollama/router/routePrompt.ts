@@ -1,4 +1,4 @@
-import { detectCode, detectLong } from "./heuristics.ts";
+import { detectCode, detectLong } from "./heuristics.js";
 
 export function routePrompt(prompt: string) {
   if (detectCode(prompt)) return "code";

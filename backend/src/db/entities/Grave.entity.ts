@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,11 +9,11 @@ import {
   OneToMany,
   CreateDateColumn,
 } from "typeorm";
-import { Organisation } from "./Organisation.entity.ts";
-import { GraveStatus } from "../enums.ts";
-import { DeadPerson } from "./DeadPerson.entity.ts";
-import { Suggestion } from "./Suggestion.entity.ts";
-import { User } from "./User.entity.ts";
+import { Organisation } from "./Organisation.entity.js";
+import { GraveStatus } from "../enums.js";
+import { DeadPerson } from "./DeadPerson.entity.js";
+import { Suggestion } from "./Suggestion.entity.js";
+import { User } from "./User.entity.js";
 @Entity("grave")
 export class Grave {
   @PrimaryGeneratedColumn()

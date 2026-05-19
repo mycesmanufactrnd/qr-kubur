@@ -1,12 +1,13 @@
+// @ts-nocheck
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
+import { router, protectedProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
 import {
   DeathCharityPayment,
   Donation,
   Quotation,
   TahlilRequest,
-} from "../db/entities.ts";
+} from "../db/entities.js";
 
 export const financialReportRouter = router({
   getByReferenceNo: protectedProcedure

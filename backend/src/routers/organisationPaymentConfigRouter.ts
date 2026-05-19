@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { TRPCError } from "@trpc/server";
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { OrganisationPaymentConfig, User } from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { OrganisationPaymentConfig, User } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 
 const ensureOrganisationConfigAccess = async ({

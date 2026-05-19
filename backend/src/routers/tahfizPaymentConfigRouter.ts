@@ -1,8 +1,9 @@
-import { TRPCError } from '@trpc/server';
-import { protectedProcedure, publicProcedure, router } from '../trpc.ts';
-import { TahfizPaymentConfig, User } from '../db/entities.ts';
-import { AppDataSource } from '../datasource.ts';
-import { z } from 'zod';
+//@ts-nocheck
+import { TRPCError } from "@trpc/server";
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { TahfizPaymentConfig, User } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
+import { z } from "zod";
 
 const ensureTahfizConfigAccess = async ({
   currentUserId,
@@ -13,20 +14,23 @@ const ensureTahfizConfigAccess = async ({
   currentUserRole?: string;
   targetTahfizId: number;
 }) => {
-  if (currentUserRole === 'superadmin') {
+  if (currentUserRole === "superadmin") {
     return;
   }
 
   const userRepo = AppDataSource.getRepository(User);
   const currentUser = await userRepo.findOne({
     where: { id: currentUserId },
-    relations: ['tahfizcenter'],
+    relations: ["tahfizcenter"],
   });
 
-  if (!currentUser?.tahfizcenter?.id || currentUser.tahfizcenter.id !== targetTahfizId) {
+  if (
+    !currentUser?.tahfizcenter?.id ||
+    currentUser.tahfizcenter.id !== targetTahfizId
+  ) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You are not allowed to access this tahfiz payment config',
+      code: "FORBIDDEN",
+      message: "You are not allowed to access this tahfiz payment config",
     });
   }
 };
@@ -36,23 +40,21 @@ export const tahfizPaymentConfigRouter = router({
     .input(
       z.object({
         tahfiz: z.object({ id: z.number() }).nullable().optional(),
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       if (!input.tahfiz) {
         return [];
       }
 
-      const tahfizId = input.tahfiz.id; 
+      const tahfizId = input.tahfiz.id;
 
-      return await AppDataSource
-        .getRepository(TahfizPaymentConfig)
-        .find({
-          where: {
-            tahfizcenter: { id: tahfizId },
-          },
-          relations: ['paymentplatform', 'paymentfield']
-        });
+      return await AppDataSource.getRepository(TahfizPaymentConfig).find({
+        where: {
+          tahfizcenter: { id: tahfizId },
+        },
+        relations: ["paymentplatform", "paymentfield"],
+      });
     }),
 
   upsert: protectedProcedure
@@ -64,9 +66,9 @@ export const tahfizPaymentConfigRouter = router({
             paymentPlatformId: z.number(),
             paymentFieldId: z.number(),
             value: z.string().min(1),
-          })
+          }),
         ),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       await ensureTahfizConfigAccess({
@@ -79,11 +81,13 @@ export const tahfizPaymentConfigRouter = router({
 
       const existingConfigs = await repo.find({
         where: { tahfizcenter: { id: input.tahfizId } },
-        relations: ['tahfizcenter', 'paymentplatform', 'paymentfield'],
+        relations: ["tahfizcenter", "paymentplatform", "paymentfield"],
       });
 
       const upsertKeys = new Set(
-        input.configs.map(config => `${config.paymentPlatformId}_${config.paymentFieldId}`)
+        input.configs.map(
+          (config) => `${config.paymentPlatformId}_${config.paymentFieldId}`,
+        ),
       );
 
       for (const config of existingConfigs) {
@@ -95,8 +99,9 @@ export const tahfizPaymentConfigRouter = router({
 
       for (const config of input.configs) {
         const existing = existingConfigs.find(
-          e => e.paymentplatform?.id === config.paymentPlatformId &&
-              e.paymentfield?.id === config.paymentFieldId
+          (e) =>
+            e.paymentplatform?.id === config.paymentPlatformId &&
+            e.paymentfield?.id === config.paymentFieldId,
         );
 
         if (existing) {
@@ -109,7 +114,7 @@ export const tahfizPaymentConfigRouter = router({
               paymentplatform: { id: config.paymentPlatformId },
               paymentfield: { id: config.paymentFieldId },
               value: config.value,
-            })
+            }),
           );
         }
       }

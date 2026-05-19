@@ -23,26 +23,22 @@ const frontendNgrokUrl = process.env.FRONTEND_NGROK_URL;
 console.log("\n🌍 FRONTEND NGROK URL:");
 console.log(process.env.FRONTEND_NGROK_URL || "❌ Not set");
 
-const viteTRPCUrl = process.env.VITE_TRPC_URL;
-console.log("\n🌍 TRPC URL:");
-console.log(process.env.VITE_TRPC_URL || "❌ Not set");
-
-import { AppDataSource } from "./datasource.ts";
+import { AppDataSource } from "./datasource.js";
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
-import { createContext } from "./trpc.ts";
-import { appRouter } from "./routers/appRouter.ts";
+import { createContext } from "./trpc.js";
+import { appRouter } from "./routers/appRouter.js";
 import multipart from "@fastify/multipart";
 import formbody from "@fastify/formbody";
 import cookie from "@fastify/cookie"; //cookie support for secure httpOnly cookies
-import { getToyyibpayConfig } from "./config/toyyibpay.config.ts";
-import { registerAPIRoutes } from "./api/api.ts";
-import { getBucketConfig } from "./config/bucket.config.ts";
-import { getBillplzConfig } from "./config/billplz.config.ts";
-import { verifyToken } from "./auth.ts";
-import { asyncLocalStorage } from "./helpers/requestContext.ts";
-import { getStorage } from "./storage/storage.ts";
+import { getToyyibpayConfig } from "./config/toyyibpay.config.js";
+import { registerAPIRoutes } from "./api/api.js";
+import { getBucketConfig } from "./config/bucket.config.js";
+import { getBillplzConfig } from "./config/billplz.config.js";
+import { verifyToken } from "./auth.js";
+import { asyncLocalStorage } from "./helpers/requestContext.js";
+import { getStorage } from "./storage/storage.js";
 
 const app = Fastify({
   trustProxy: true,
@@ -70,6 +66,7 @@ await app.register(import("@fastify/cors"), {
       "localhost:5173",
       "localhost:3000",
       "https://qubur.mycesgroup.com",
+      "https://api.qubur.mycesgroup.com",
       frontendNgrokUrl,
       backendNgrokUrl,
       "pinggy-free.link",

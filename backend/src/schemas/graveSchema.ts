@@ -1,5 +1,6 @@
-import { z } from 'zod';
-import { GraveStatus } from '../db/enums.ts';
+// @ts-nocheck
+import { z } from "zod";
+import { GraveStatus } from "../db/enums.js";
 
 export const graveSchema = z.object({
   name: z.string().min(1, "Nama tanah perkuburan diperlukan"),

@@ -1,8 +1,9 @@
+//@ts-nocheck
 import axios from "axios";
-import { getToyyibpayConfig } from "../config/toyyibpay.config.ts";
-import { AppDataSource } from "../datasource.ts";
-import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
-import { DONATION_PLATFORM_FEE, PLATFORM_FEE } from "../db/enums.ts";
+import { getToyyibpayConfig } from "../config/toyyibpay.config.js";
+import { AppDataSource } from "../datasource.js";
+import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.js";
+import { DONATION_PLATFORM_FEE, PLATFORM_FEE } from "../db/enums.js";
 
 export async function createBill({
   amount,

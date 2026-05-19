@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import type { DeepPartial } from "typeorm";
-import { AppDataSource } from "../../../datasource.ts";
-import { PaymentField, PaymentPlatform } from "../../entities.ts";
-import { ActiveInactiveStatus } from "../../enums.ts";
+import { AppDataSource } from "../../../datasource.js";
+import { PaymentField, PaymentPlatform } from "../../entities.js";
+import { ActiveInactiveStatus } from "../../enums.js";
 
 export async function runpaymentConfigSeederProd() {
   console.log("🌱 Seeding payment config...");

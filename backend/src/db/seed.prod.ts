@@ -1,6 +1,6 @@
-import { runOrganisationTypeSeederProd } from "./seeder/production/organisationTypeSeeder.ts";
-import { runpaymentConfigSeederProd } from "./seeder/production/paymentConfigSeeder.ts";
-import { runUserSeederProd } from "./seeder/production/userSeeder.ts";
+import { runOrganisationTypeSeederProd } from "./seeder/production/organisationTypeSeeder.js";
+import { runpaymentConfigSeederProd } from "./seeder/production/paymentConfigSeeder.js";
+import { runUserSeederProd } from "./seeder/production/userSeeder.js";
 
 console.log("🌱 Starting database seed...");
 

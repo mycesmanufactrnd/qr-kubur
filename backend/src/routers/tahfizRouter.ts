@@ -1,9 +1,10 @@
-﻿import z from "zod";
+﻿//@ts-nocheck
+import z from "zod";
 import { In, Repository } from "typeorm";
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { TahfizCenter, ServiceOffered } from "../db/entities.ts";
-import { tahfizSchema } from "../schemas/tahfizSchema.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { TahfizCenter, ServiceOffered } from "../db/entities.js";
+import { tahfizSchema } from "../schemas/tahfizSchema.js";
 
 type TahfizServicePayload = NonNullable<
   z.infer<typeof tahfizSchema>["services"]

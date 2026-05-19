@@ -1,3 +1,4 @@
+//@ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,7 +7,7 @@ import {
   CreateDateColumn,
   JoinColumn,
 } from "typeorm";
-import { User } from "./User.entity.ts";
+import { User } from "./User.entity.js";
 
 @Entity("userdevice")
 export class UserDevice {

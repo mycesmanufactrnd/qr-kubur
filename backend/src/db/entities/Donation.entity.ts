@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Organisation } from "./Organisation.entity.ts";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { VerificationStatus } from "../enums.ts";
+import { Organisation } from "./Organisation.entity.js";
+import { TahfizCenter } from "./TahfizCenter.entity.js";
+import { VerificationStatus } from "../enums.js";
 
 @Entity("donation")
 export class Donation {

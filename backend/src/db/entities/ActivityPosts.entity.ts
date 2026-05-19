@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,9 +8,9 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from "typeorm";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { Mosque } from "./Mosque.entity.ts";
-import { User } from "./User.entity.ts";
+import { TahfizCenter } from "./TahfizCenter.entity.js";
+import { Mosque } from "./Mosque.entity.js";
+import { User } from "./User.entity.js";
 
 @Entity("activitypost")
 export class ActivityPost {

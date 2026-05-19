@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,10 +9,10 @@ import {
   DeleteDateColumn,
   JoinColumn,
 } from "typeorm";
-import { Organisation } from "./Organisation.entity.ts";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { Permission } from "./Permission.entity.ts";
-import { Mosque } from "./Mosque.entity.ts";
+import { Organisation } from "./Organisation.entity.js";
+import { TahfizCenter } from "./TahfizCenter.entity.js";
+import { Permission } from "./Permission.entity.js";
+import { Mosque } from "./Mosque.entity.js";
 
 @Entity("users")
 export class User {

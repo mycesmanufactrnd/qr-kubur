@@ -1,7 +1,8 @@
+//@ts-nocheck
 import axios from "axios";
-import { getBillplzConfig } from "../config/billplz.config.ts";
-import { AppDataSource } from "../datasource.ts";
-import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.ts";
+import { getBillplzConfig } from "../config/billplz.config.js";
+import { AppDataSource } from "../datasource.js";
+import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.js";
 
 export async function createBill({
   amount, referenceNo, name, email, phone

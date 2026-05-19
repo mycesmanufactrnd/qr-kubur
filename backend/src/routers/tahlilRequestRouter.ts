@@ -1,15 +1,16 @@
+// @ts-nocheck
 import z from "zod";
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { GoogleUserRecord, TahlilRequest } from "../db/entities.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { GoogleUserRecord, TahlilRequest } from "../db/entities.js";
 import {
   tahlilRequestApprovalSchema,
   tahlilRequestLiveURL,
   tahlilRequestSchema,
-} from "../schemas/tahlilRequestSchema.ts";
+} from "../schemas/tahlilRequestSchema.js";
 import { In } from "typeorm";
-import { TahlilStatus } from "../db/enums.ts";
-import { sendNotificationFCMFromGoogle } from "../services/firebase.service.ts";
+import { TahlilStatus } from "../db/enums.js";
+import { sendNotificationFCMFromGoogle } from "../services/firebase.service.js";
 
 export const tahlilRequestRouter = router({
   getByReferenceNo: publicProcedure

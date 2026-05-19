@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm";
-import * as entities from "./db/entities.ts";
+import * as entities from "./db/entities.js";
 
 console.log("\n🛢️ Checking Database URL:", process.env.DATABASE_URL ? "FOUND" : "MISSING");
 
@@ -12,6 +12,6 @@ export const AppDataSource = new DataSource({
   synchronize: process.env.DATABASE_SYNC === "true",
   logging: false,
   entities: Object.values(entities),
-  migrations: ["src/db/migrations/*.ts"],
+  migrations: ["src/db/migrations/*.js"],
   subscribers: [],
 });

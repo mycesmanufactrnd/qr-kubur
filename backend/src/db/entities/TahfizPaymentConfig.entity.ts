@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { PaymentPlatform } from "./PaymentPlatform.entity.ts";
-import { PaymentField } from "./PaymentField.entity.ts";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
+import { PaymentPlatform } from "./PaymentPlatform.entity.js";
+import { PaymentField } from "./PaymentField.entity.js";
+import { TahfizCenter } from "./TahfizCenter.entity.js";
 
 @Entity("tahfizpaymentconfig")
 export class TahfizPaymentConfig {

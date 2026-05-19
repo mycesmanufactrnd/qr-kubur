@@ -1,4 +1,4 @@
-import { callOllama } from "../ollamaClient.ts";
+import { callOllama } from "../ollamaClient.js";
 
 export async function writingChain(prompt: string) {
   const outline = await callOllama(

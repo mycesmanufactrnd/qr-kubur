@@ -4,8 +4,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   OneToMany,
+  type Relation,
 } from "typeorm";
-import { OnlineTransactionAccount } from "./OnlineTransactionAccount.entity.ts";
+import { OnlineTransactionAccount } from "./OnlineTransactionAccount.entity.js";
 
 @Entity("onlinetransaction")
 export class OnlineTransaction {
@@ -107,7 +108,7 @@ export class OnlineTransaction {
   // ToyyibPay: hash (SHA2560) for callback verification
 
   @OneToMany(() => OnlineTransactionAccount, (account) => account.transaction)
-  accounts?: OnlineTransactionAccount[];
+  accounts?: Relation<OnlineTransactionAccount[]>;
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

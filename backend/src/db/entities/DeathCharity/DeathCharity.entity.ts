@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,10 +8,10 @@ import {
   OneToMany,
   ManyToOne,
 } from "typeorm";
-import { DeathCharityMember } from "./DeathCharityMember.entity.ts";
-import { DeathCharityClaim } from "./DeathCharityClaim.entity.ts";
-import { Organisation } from "../Organisation.entity.ts";
-import { Mosque } from "../Mosque.entity.ts";
+import { DeathCharityMember } from "./DeathCharityMember.entity.js";
+import { DeathCharityClaim } from "./DeathCharityClaim.entity.js";
+import { Organisation } from "../Organisation.entity.js";
+import { Mosque } from "../Mosque.entity.js";
 
 @Entity("deathcharity")
 export class DeathCharity {

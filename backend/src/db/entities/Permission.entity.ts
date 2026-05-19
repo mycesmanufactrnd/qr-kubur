@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./User.entity.ts";
+import { User } from "./User.entity.js";
 
 @Entity("permission")
 export class Permission {

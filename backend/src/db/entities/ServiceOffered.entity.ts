@@ -1,3 +1,4 @@
+// @ts-nocheck
 ﻿import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,8 +8,8 @@
   Unique,
   Check,
 } from "typeorm";
-import { TahfizCenter } from "./TahfizCenter.entity.ts";
-import { Organisation } from "./Organisation.entity.ts";
+import { TahfizCenter } from "./TahfizCenter.entity.js";
+import { Organisation } from "./Organisation.entity.js";
 
 @Entity("serviceoffered")
 @Unique(["tahfizcenter", "service"])

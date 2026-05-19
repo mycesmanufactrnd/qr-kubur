@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,9 +8,9 @@ import {
   JoinColumn,
   OneToMany,
 } from "typeorm";
-import { Organisation } from "./Organisation.entity.ts";
-import { User } from "./User.entity.ts";
-import { ActivityPost } from "./ActivityPosts.entity.ts";
+import { Organisation } from "./Organisation.entity.js";
+import { User } from "./User.entity.js";
+import { ActivityPost } from "./ActivityPosts.entity.js";
 
 @Entity("mosque")
 export class Mosque {

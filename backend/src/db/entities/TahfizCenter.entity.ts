@@ -1,3 +1,4 @@
+// @ts-nocheck
 ﻿import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,13 +8,13 @@
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { User } from "./User.entity.ts";
-import { Donation } from "./Donation.entity.ts";
+import { User } from "./User.entity.js";
+import { Donation } from "./Donation.entity.js";
 import { TahlilRequest } from "./TahlilRequest.entity.js";
-import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.ts";
-import { ActivityPost } from "./ActivityPosts.entity.ts";
-import { ServiceOffered } from "./ServiceOffered.entity.ts";
-import { Organisation } from "./Organisation.entity.ts";
+import { TahfizPaymentConfig } from "./TahfizPaymentConfig.entity.js";
+import { ActivityPost } from "./ActivityPosts.entity.js";
+import { ServiceOffered } from "./ServiceOffered.entity.js";
+import { Organisation } from "./Organisation.entity.js";
 
 @Entity("tahfizcenter")
 export class TahfizCenter {

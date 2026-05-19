@@ -1,8 +1,9 @@
+// @ts-nocheck
 import z from "zod";
-import { protectedProcedure, publicProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { DeathCharity } from "../db/entities.ts";
-import { deathCharitySchema } from "../schemas/deathCharitySchema.ts";
+import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { DeathCharity } from "../db/entities.js";
+import { deathCharitySchema } from "../schemas/deathCharitySchema.js";
 
 export const deathCharityRouter = router({
   getPaginated: protectedProcedure

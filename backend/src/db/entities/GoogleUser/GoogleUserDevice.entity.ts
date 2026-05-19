@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -5,7 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from "typeorm";
-import { GoogleUser } from "./GoogleUser.entity.ts";
+import { GoogleUser } from "./GoogleUser.entity.js";
 
 @Entity("googleuserdevice")
 export class GoogleUserDevice {

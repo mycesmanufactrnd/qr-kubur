@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, router } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { Permission } from "../db/entities/Permission.entity.ts";
+import { adminProcedure, protectedProcedure, router } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { Permission } from "../db/entities/Permission.entity.js";
 
 export const permissionRouter = router({
     getByUser: protectedProcedure

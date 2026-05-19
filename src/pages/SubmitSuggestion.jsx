@@ -6,7 +6,6 @@ import { CheckCircle, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,6 +29,8 @@ import { defaultSuggestionField } from "@/utils/defaultformfields";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { ipAddressQueryOptions } from "@/utils/queryOptions";
 import { useAdminAccess, getStoredGoogleUser } from "@/utils/auth";
+import { translate } from "@/utils/translations";
+import TextInputForm from "@/components/forms/TextInputForm";
 
 const PHONE_STORAGE_KEY = "suggestion_phoneno";
 
@@ -52,11 +53,11 @@ export default function SubmitSuggestion() {
     reset: handleResetForm,
     setValue,
     watch,
+    formState: { errors },
   } = useForm({
     defaultValues: defaultSuggestionField,
   });
 
-  // Prefill from logged-in user or localStorage
   useEffect(() => {
     if (currentUser) {
       if (currentUser.fullname) setValue("name", currentUser.fullname);
@@ -118,7 +119,7 @@ export default function SubmitSuggestion() {
     if (!isValid) return;
 
     if (recentCount >= 3) {
-      showWarning("Anda telah mencapai had 3 cadangan sejam");
+      showWarning(translate("You have reached the limit of 3 suggestions per hour"));
       return;
     }
 
@@ -128,7 +129,7 @@ export default function SubmitSuggestion() {
       email,
       type,
       entityId,
-      watchSelectedGrave,
+      watchSelectedGrave: selectedGraveId,
       suggestedchanges,
       reason,
     } = formData;
@@ -144,10 +145,9 @@ export default function SubmitSuggestion() {
       visitorip: visitorIp ?? null,
     };
 
-    // Derive organisation from the selected grave
     const graveId =
       type === "person"
-        ? watchSelectedGrave
+        ? selectedGraveId
         : type === "grave"
           ? entityId
           : null;
@@ -159,7 +159,7 @@ export default function SubmitSuggestion() {
     }
 
     if (type === "person") {
-      suggestionData.grave = { id: Number(watchSelectedGrave) };
+      suggestionData.grave = { id: Number(selectedGraveId) };
       suggestionData.deadperson = { id: Number(entityId) };
     }
 
@@ -186,7 +186,7 @@ export default function SubmitSuggestion() {
   };
 
   const handleCaptchaFailed = () => {
-    showError("Captcha gagal. Sila isi semula borang.");
+    showError(translate("Captcha failed. Please refill the form."));
     handleResetForm();
     setPendingSubmission(null);
   };
@@ -200,15 +200,14 @@ export default function SubmitSuggestion() {
               <CheckCircle className="w-10 h-10 text-emerald-600 dark:text-emerald-300" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Cadangan Dihantar!
+              {translate("Suggestion Submitted!")}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Cadangan anda telah dihantar kepada admin untuk semakan. Kami akan
-              memaklumkan anda selepas semakan selesai.
+              {translate("Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.")}
             </p>
             <Link to={createPageUrl("UserDashboard")}>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
-                Kembali ke Utama
+                {translate("Back to Main")}
               </Button>
             </Link>
           </CardContent>
@@ -219,73 +218,43 @@ export default function SubmitSuggestion() {
 
   return (
     <div className="min-h-screen pb-10">
-      <BackNavigation title="Suggestion" />
+      <BackNavigation title={translate("Suggestion")} />
 
       <form onSubmit={handleFormSubmit(onSubmit)}>
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
-            <div>
-              <Label htmlFor="name" className="dark:text-gray-300">
-                Name <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                name="name"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    id="name"
-                    type="text"
-                    placeholder="Enter name"
-                    className="w-full border rounded px-3 py-1 mt-1"
-                  />
-                )}
-              />
-            </div>
 
-            <div>
-              <Label htmlFor="phoneno" className="dark:text-gray-300">
-                Phone No. <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                name="phoneno"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    id="phoneno"
-                    type="text"
-                    placeholder="Enter phone no."
-                    className="w-full border rounded px-3 py-1 mt-1"
-                  />
-                )}
-              />
-            </div>
+            <TextInputForm
+              name="name"
+              control={control}
+              label={translate("Name")}
+              placeholder={translate("Enter name")}
+              required
+              errors={errors}
+            />
 
-            <div>
-              <Label htmlFor="email" className="dark:text-gray-300">
-                Email
-              </Label>
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    id="email"
-                    type="email"
-                    placeholder="Enter email (optional)"
-                    className="w-full border rounded px-3 py-1 mt-1"
-                  />
-                )}
-              />
-            </div>
+            <TextInputForm
+              name="phoneno"
+              control={control}
+              label={translate("Phone No")}
+              placeholder={translate("Enter Phone No")}
+              isPhone
+              required
+              errors={errors}
+            />
 
-            <div>
-              <Label htmlFor="type" className="dark:text-gray-300">
-                Jenis Rekod <span className="text-red-500">*</span>
+            <TextInputForm
+              name="email"
+              control={control}
+              label={translate("Email")}
+              placeholder={translate("Enter email")}
+              isEmail
+              errors={errors}
+            />
+
+            <div className="space-y-2">
+              <Label className="dark:text-gray-300">
+                {translate("Record Type")} <span className="text-red-500">*</span>
               </Label>
               <Controller
                 name="type"
@@ -300,34 +269,33 @@ export default function SubmitSuggestion() {
                       setValue("entityId", "");
                     }}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih jenis rekod" />
+                    <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                      <SelectValue placeholder={translate("Select Record Type")} />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="person">Rekod Arwah</SelectItem>
-                      <SelectItem value="grave">Tanah Perkuburan</SelectItem>
+                    <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
+                      <SelectItem value="person">{translate("Record Person")}</SelectItem>
+                      <SelectItem value="grave">{translate("Record Grave")}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
               />
             </div>
 
-            {/* Grave Selection for Person */}
-            {watch("type") === "person" && (
-              <Controller
-                name="watchSelectedGrave"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <div>
-                    <Label className="dark:text-gray-300">
-                      Pilih Kubur <span className="text-red-500">*</span>
-                    </Label>
+            {watchType === "person" && (
+              <div className="space-y-2">
+                <Label className="dark:text-gray-300">
+                  {translate("Select Grave")} <span className="text-red-500">*</span>
+                </Label>
+                <Controller
+                  name="watchSelectedGrave"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kubur" />
+                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                        <SelectValue placeholder={translate("Select nearby grave")} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
                         {nearbyGraves.map((grave) => (
                           <SelectItem key={grave.id} value={String(grave.id)}>
                             <div className="flex items-center gap-2">
@@ -339,58 +307,57 @@ export default function SubmitSuggestion() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                )}
-              />
+                  )}
+                />
+              </div>
             )}
 
-            {watch("type") === "person" && watch("watchSelectedGrave") && (
-              <Controller
-                name="entityId"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <div>
-                    <Label className="dark:text-gray-300">
-                      Pilih Arwah <span className="text-red-500">*</span>
-                    </Label>
+            {watchType === "person" && watchSelectedGrave && (
+              <div className="space-y-2">
+                <Label className="dark:text-gray-300">
+                  {translate("Select Deceased")} <span className="text-red-500">*</span>
+                </Label>
+                <Controller
+                  name="entityId"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
                     <Select
                       value={String(field.value)}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Arwah" />
+                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                        <SelectValue placeholder={translate("Select Deceased")} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
                         {!isPersonLoading &&
-                          persons.map((p) => (
+                          persons?.map((p) => (
                             <SelectItem key={p.id} value={String(p.id)}>
                               {p.name}
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                )}
-              />
+                  )}
+                />
+              </div>
             )}
 
-            {/* Grave Selection */}
-            {watch("type") === "grave" && (
-              <Controller
-                name="entityId"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <div>
-                    <Label>
-                      Pilih Kubur <span className="text-red-500">*</span>
-                    </Label>
+            {watchType === "grave" && (
+              <div className="space-y-2">
+                <Label className="dark:text-gray-300">
+                  {translate("Select Grave")} <span className="text-red-500">*</span>
+                </Label>
+                <Controller
+                  name="entityId"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih kubur berdekatan" />
+                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
+                        <SelectValue placeholder={translate("Select nearby grave")} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
                         {nearbyGraves.slice(0, 20).map((grave) => (
                           <SelectItem key={grave.id} value={String(grave.id)}>
                             <div className="flex items-center gap-2">
@@ -402,45 +369,37 @@ export default function SubmitSuggestion() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                )}
-              />
+                  )}
+                />
+              </div>
             )}
 
             <div>
-              <Label htmlFor="suggestedchanges" className="dark:text-gray-300">
-                Cadangan Pembetulan <span className="text-red-500">*</span>
-              </Label>
-              <Controller
+              <TextInputForm
                 name="suggestedchanges"
                 control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <Textarea
-                    {...field}
-                    rows={5}
-                    placeholder="Nyatakan pembetulan..."
-                  />
-                )}
+                label={translate("Suggested Changes")}
+                placeholder={translate("Specify Correction...")}
+                isTextArea
+                rows={5}
+                required
+                errors={errors}
               />
-
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Contoh: "Nama sepatutnya Ahmad bin Abu, bukan Ahmad bin Bakar"
+                {translate("Example: 'The name should be Ahmad bin Abu, not Ahmad bin Bakar'")}
               </p>
             </div>
 
-            <div>
-              <Label htmlFor="reason" className="dark:text-gray-300">
-                Sebab / Justifikasi <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                name="reason"
-                control={control}
-                render={({ field }) => (
-                  <Textarea {...field} rows={3} placeholder="Sebab..." />
-                )}
-              />
-            </div>
+            <TextInputForm
+              name="reason"
+              control={control}
+              label={translate("Reason / Justification")}
+              placeholder={translate("Reason...")}
+              isTextArea
+              rows={3}
+              required
+              errors={errors}
+            />
 
             <div className="flex justify-end">
               <Button
@@ -451,7 +410,7 @@ export default function SubmitSuggestion() {
                   !watch("suggestedchanges")
                 }
               >
-                Hantar Cadangan
+                {translate("Submit Suggestion")}
               </Button>
             </div>
           </CardContent>

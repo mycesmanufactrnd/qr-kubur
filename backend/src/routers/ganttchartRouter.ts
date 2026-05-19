@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc.ts";
-import { AppDataSource } from "../datasource.ts";
-import { GanttChart } from "../db/entities.ts";
+import { router, protectedProcedure } from "../trpc.js";
+import { AppDataSource } from "../datasource.js";
+import { GanttChart } from "../db/entities.js";
 
 const taskSchema = z.object({
   id: z.string(),

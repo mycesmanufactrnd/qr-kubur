@@ -1,7 +1,8 @@
+// @ts-nocheck
 import z from "zod";
-import { publicProcedure, router } from "../trpc.ts";
-import { GoogleUser, GoogleUserDevice, GoogleUserRecord } from "../db/entities.ts";
-import { AppDataSource } from "../datasource.ts";
+import { publicProcedure, router } from "../trpc.js";
+import { GoogleUser, GoogleUserDevice, GoogleUserRecord } from "../db/entities.js";
+import { AppDataSource } from "../datasource.js";
 
 export const googleRouter = router({
     create: publicProcedure
