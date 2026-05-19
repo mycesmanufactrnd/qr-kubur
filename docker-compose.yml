@@ -29,6 +29,8 @@ services:
     env_file: .env
     ports:
       - "8083:8083"
+    volumes:
+      - ./storage_data:/usr/src/app/storage_data
     depends_on:
       - db
 
