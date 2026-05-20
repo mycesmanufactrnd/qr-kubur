@@ -58,6 +58,10 @@
   "Your Location": "موقعك",
   "Kaabah": "الكعبة",
   "Detecting location...": "تحديد الموقع...",
+  "No Records Found":"لم يتم العثور على نتائج",
+  "No results match your search":"لا توجد نتائج تطابق بحثك",
+  "Map View":"عرض الخريطة",
+  "markers":"علامات",
 
   "Notifications": "الإشعارات",
   "Unread": "غير مقروء",
@@ -318,6 +322,7 @@
   "Logging in":"جارٍ تسجيل الدخول",
 
   "Check Tahlil Application Status":"التحقق من حالة طلب التهليل",
+  "Check Service Status":"تحقق من حالة الخدمة",
 
   "years":"سنوات",
   

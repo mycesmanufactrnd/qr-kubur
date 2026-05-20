@@ -83,7 +83,7 @@ export default function SearchTahlil() {
   if (defaultFilter.isFavorited && favoritedTahfizIds.length === 0) {
     return (
       <div className="space-y-3 pb-6 px-3">
-        <BackNavigation title={translate('Mohon Tahlil')} />
+        <BackNavigation title={translate('Request Tahlil')} />
         <NoDataCardComponent isPage title={translate('No Favorited Tahfiz Found')} />
       </div>
     );
@@ -91,7 +91,7 @@ export default function SearchTahlil() {
 
   return (
     <div className="space-y-3 pb-8 px-3">
-      <BackNavigation title={translate('Mohon Tahlil')} />
+      <BackNavigation title={translate('Request Tahlil')} />
 
       <div className="flex items-center gap-2">
         <AdvancedFilters

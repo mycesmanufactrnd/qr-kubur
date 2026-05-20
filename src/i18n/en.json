@@ -59,6 +59,10 @@
   "Your Location": "Your Location",
   "Kaabah": "Kaabah",
   "Detecting location...": "Detecting location...",
+  "No Records Found":"No Records Found",
+  "No results match your search":"No results match your search",
+  "Map View":"Map View",
+  "markers":"markers",
 
   "Notifications": "Notifications",
   "Unread": "Unread",
@@ -319,6 +323,7 @@
   "Logging in":"Logging in",
 
   "Check Tahlil Application Status":"Check Tahlil Application Status",
+  "Check Service Status":"Check Service Status",
 
   "years":"years",
 

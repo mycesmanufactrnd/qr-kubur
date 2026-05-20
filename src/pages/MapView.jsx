@@ -93,7 +93,7 @@ export default function MapView() {
                 : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400"
             }`}
           >
-            Masjid ({visibleMosques.length})
+            {translate("Mosque")} ({visibleMosques.length})
           </button>
           <button
             onClick={() => toggleCategory("grave")}
@@ -103,7 +103,7 @@ export default function MapView() {
                 : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400"
             }`}
           >
-            Kubur ({visibleGraves.length})
+            {translate("Grave")} ({visibleGraves.length})
           </button>
           <button
             onClick={() => toggleCategory("tahfiz")}
@@ -113,7 +113,7 @@ export default function MapView() {
                 : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400"
             }`}
           >
-            Tahfiz ({visibleTahfiz.length})
+            {translate("Tahfiz")} ({visibleTahfiz.length})
           </button>
         </div>
 
@@ -137,7 +137,7 @@ export default function MapView() {
             <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
           )}
           <span className="text-xs text-muted-foreground">
-            {totalVisible} penanda
+            {totalVisible} {translate("markers")}
           </span>
         </div>
       </div>

@@ -459,7 +459,7 @@ export default function ScanQR() {
                   step: "01",
                   icon: Camera,
                   color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
-                  text: translate("Open camera to scan the QR code"),
+                  text: translate("Open camera or type the QR code manually"),
                 },
                 {
                   step: "02",

@@ -60,6 +60,10 @@
   "Kaabah": "Kaabah",
   "Detecting location...": "Mengesan lokasi...",
   "Found":"dijumpai",
+  "No Records Found":"Tiada Rekod Dijumpai",
+  "No results match your search":"Tiada rekod yang sepadan dengan carian anda",
+  "Map View":"Paparan Peta",
+  "markers":"penanda",
 
   "Notifications": "Notifikasi",
   "Unread": "Belum Dibaca",
@@ -323,6 +327,7 @@
   "Logging in":"Log masuk",
 
   "Check Tahlil Application Status":"Semak Status Permohonan Tahlil",
+  "Check Service Status":"Semak Status Perkhidmatan",
 
   "years":"tahun",
 
