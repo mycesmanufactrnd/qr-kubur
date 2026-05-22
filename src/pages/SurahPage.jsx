@@ -180,7 +180,7 @@ export default function SurahPage() {
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-                {translate("Doa")}
+                {translate("Doa Tahlil")}
               </p>
             </div>
             <iframe

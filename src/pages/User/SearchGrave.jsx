@@ -90,7 +90,7 @@ export default function SearchGrave() {
             />
           </div>
           <div className="px-1">
-            <FoundDataLength dataList={[]} data="Grave(s)" />
+            <FoundDataLength dataList={[]} data="graves" />
           </div>
           <NoDataCardComponent
             isPage
@@ -129,7 +129,7 @@ export default function SearchGrave() {
       <PullToRefresh onRefresh={handlePullRefresh}>
         {!isLoading && (
           <div className="px-1">
-            <FoundDataLength dataList={gravesList} data={`${translate('Grave')}`} />
+            <FoundDataLength dataList={gravesList} data={`${translate('graves')}`} />
           </div>
         )}
 

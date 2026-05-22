@@ -58,6 +58,7 @@
   "Your Location": "موقعك",
   "Kaabah": "الكعبة",
   "Detecting location...": "تحديد الموقع...",
+  "Found":"وجد",
   "No Records Found":"لم يتم العثور على نتائج",
   "No results match your search":"لا توجد نتائج تطابق بحثك",
   "Map View":"عرض الخريطة",
@@ -72,6 +73,7 @@
   "State": "الولاية",
   "Nearby": "قريب",
   "No graves found": "لم يتم العثور على قبور",
+  "No Favorited Graves Found":"لم يتم العثور على مقابر مفضلة",
   "Please try another search or change the filters.": "يرجى محاولة البحث مرة أخرى أو تغيير عوامل التصفية.",
   "Load More": "تحميل المزيد",
 
@@ -347,6 +349,7 @@
   "Manage Organisation Types":"إدارة أنواع المؤسسات",
 
   "Check Tahlil Status": "تحقّق من حالة التهليل",
+  "Funeral Prayer":"صلاة الجنازة",
   "Funeral Prayer Guide": "دليل صلاة الجنازة",
 
   "Time": "الوقت",
@@ -358,6 +361,8 @@
   "No log": "لا سجلات",
 
   "Tahlil": "تحليل",
+  "Doa Tahlil":"دعاء التهليل",
+  "Talqin":"تلقين",
   "Surah": "سورة",
   "Doa": "دعاء"   ,
   "Select Qari": "اختر القارئ",
@@ -375,7 +380,7 @@
   "Enter phone. no": "أدخل رقم الهاتف",
   "Enter Phone No": "أدخل رقم الهاتف",
   
-  "May the matters of the deceased be eased and their deeds be accepted": "نسأل الله أن يسهّل أمور المتوفّى وأن يتقبّل أعماله.",
+  "May the matters of the deceased be eased and their deeds be accepted.": "نسأل الله أن يسهّل أمور المتوفّى وأن يتقبّل أعماله.",
 
   "Malay": "اللغة الملايوية",
   "English": "اللغة الإنجليزية",
@@ -471,6 +476,8 @@
   "Service Status": "حالة الخدمة",
   "Status Check":"التحقق من الحالة",
 
+  "Jenazah Emergency":"تجهيز الجنائز الطارئ",
+  "Contact the nearest mosque for immediate funeral arrangements.":"يرجى الاتصال بأقرب مسجد لاتخاذ إجراءات الجنازة الفورية.",
 
   "Thank you! Your donation has been recorded.": "شكراً! تم تسجيل تبرعك.",
   "Payment successful!": "تمت عملية الدفع بنجاح!",
@@ -565,6 +572,7 @@
   "Organisation & Cemetery": "المنظمة والمقبرة",
   "Organisations": "المنظمات",
   "Graves": "القبور",
+  "graves":"قبور",
   "Registered deceased": "المتوفون المسجلون",
   "Pending review": "قيد المراجعة",
   "Monthly Graves & Deceased Added": "القبور والمتوفون المضافون شهريًا",
@@ -635,7 +643,10 @@
   "Image": "الصورة",
   "Content": "المحتوى",
   "Mosque": "المسجد",
+  "mosques": "مساجد",
   "Select Mosque": "اختر المسجد",
+  "No Mosque Found":"لم يتم العثور على مسجد",
+  "No Favorited Mosques Found":"لم يتم العثور على مساجد مفضلة",
   "No mosque registered": "لا يوجد مسجد مسجل",
   "No mosque is registered under your organisation. You can still publish this post without one.": "لا يوجد مسجد مسجل تحت مؤسستك. لا يزال بإمكانك نشر هذا المنشور بدونه.",
   "Add Activity Post": "إضافة منشور نشاط",

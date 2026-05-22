@@ -59,6 +59,7 @@
   "Your Location": "Your Location",
   "Kaabah": "Kaabah",
   "Detecting location...": "Detecting location...",
+  "Found":"found",
   "No Records Found":"No Records Found",
   "No results match your search":"No results match your search",
   "Map View":"Map View",
@@ -73,6 +74,7 @@
   "State": "State",
   "Nearby": "Nearby",
   "No graves found": "No graves found",
+  "No Favorited Graves Found":"No Favorited Graves Found",
   "Please try another search or change the filters.": "Please try another search or change the filters.",
   "Load More": "Load More",
 
@@ -349,6 +351,7 @@
   "Manage Organisation Types": "Manage Organisation Types",
 
   "Check Tahlil Status": "Check Tahlil Status",
+  "Funeral Prayer":"Funeral Prayer",
   "Funeral Prayer Guide": "Funeral Prayer Guide",
 
   "Time": "Time",
@@ -361,6 +364,8 @@
 
 
   "Tahlil": "Tahlil",
+  "Doa Tahlil":"Doa Tahlil",
+  "Talqin":"Talqin",
   "Surah": "Surah",
   "Doa": "Prayer",
   "Select Qari": "Select Qari",
@@ -377,7 +382,7 @@
   "Enter name": "Enter name",
   "Enter Phone No": "Enter Phone No.",
 
-  "May the matters of the deceased be eased and their deeds be accepted": "May the matters of the deceased be eased and their deeds be accepted.",
+  "May the matters of the deceased be eased and their deeds be accepted.": "May the matters of the deceased be eased and their deeds be accepted.",
 
   "Malay": "Malay",
   "English": "English",
@@ -481,6 +486,8 @@
   "Service Status": "Service Status",
   "Status Check":"Status Check ",
 
+  "Jenazah Emergency":"Emergency Funeral Care",
+  "Contact the nearest mosque for immediate funeral arrangements.":"Contact the nearest mosque for immediate funeral arrangements.",
 
   "Thank you! Your donation has been recorded.": "Thank you! Your donation has been recorded.",
   "Payment successful!": "Payment successful!",
@@ -576,6 +583,7 @@
   "Organisation & Cemetery": "Organisation & Cemetery",
   "Organisations": "Organisations",
   "Graves": "Graves",
+  "graves":"graves",
   "Registered deceased": "Registered deceased",
   "Pending review": "Pending review",
   "Monthly Graves & Deceased Added": "Monthly Graves & Deceased Added",
@@ -646,7 +654,10 @@
   "Image": "Image",
   "Content": "Content",
   "Mosque": "Mosque",
+  "mosques":"mosques",
   "Select Mosque": "Select Mosque",
+  "No Mosque Found":"No Mosque Found",
+  "No Favorited Mosques Found":"No Favorited Mosques Found",
   "No mosque registered": "No mosque registered",
   "No mosque is registered under your organisation. You can still publish this post without one.": "No mosque is registered under your organisation. You can still publish this post without one.",
   "Add Activity Post": "Add Activity Post",

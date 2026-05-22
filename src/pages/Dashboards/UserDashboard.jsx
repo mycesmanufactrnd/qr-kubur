@@ -422,7 +422,7 @@ export default function UserDashboard() {
               >
                 {translate("Immediate Guide")}
               </div>
-              <div className="db-row-title">{translate("Solat Jenazah")}</div>
+              <div className="db-row-title">{translate("Funeral Prayer")}</div>
               <div className="db-row-sub">
                 {translate("Procedure & complete guide")}
               </div>

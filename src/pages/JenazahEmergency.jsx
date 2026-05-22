@@ -84,7 +84,7 @@ export default function JenazahEmergency() {
       <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
         <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
         <p className="text-xs text-red-700 dark:text-red-400">
-          Contact the nearest mosque for immediate funeral arrangements.
+          {translate("Contact the nearest mosque for immediate funeral arrangements.")}
         </p>
       </div>
 

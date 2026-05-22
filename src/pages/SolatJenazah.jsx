@@ -22,7 +22,7 @@ export default function SolatJenazah() {
       </Card>
 
       <footer className="text-center text-gray-500 text-sm">
-        {translate("May the matters of the deceased be eased and their deeds be accepted")} 🤲
+        {translate("May the matters of the deceased be eased and their deeds be accepted.")} 🤲
       </footer>
     </div>
   );

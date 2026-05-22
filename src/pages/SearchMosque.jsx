@@ -81,7 +81,7 @@ export default function SearchMosque() {
             onApplyFilter={setFilters}
           />
         </div>
-        <FoundDataLength dataList={[]} data="Mosque(s)" />
+        <FoundDataLength dataList={[]} data="mosques" />
         <NoDataCardComponent isPage title={translate('No Favorited Mosques Found')} />
       </div>
     )
@@ -121,7 +121,7 @@ export default function SearchMosque() {
         />
       </div>
 
-      {!isLoading && <FoundDataLength dataList={mosques} data="Mosque(s)" />}
+      {!isLoading && <FoundDataLength dataList={mosques} data="mosques" />}
 
       {isLoading ? (
         <ListCardSkeletonComponent />

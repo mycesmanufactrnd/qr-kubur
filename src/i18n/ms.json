@@ -74,6 +74,7 @@
   "State": "Negeri",
   "Nearby": "Berdekatan",
   "No graves found": "Tiada kubur dijumpai",
+  "No Favorited Graves Found":"Tiada Kubur Kegemaran Ditemui",
   "Please try another search or change the filters.": "Sila cuba carian lain atau ubah penapis.",
   "Load More": "Muat Lagi",
   
@@ -353,6 +354,7 @@
   "Manage Organisation Types":"Urus Jenis Organisasi",
 
   "Check Tahlil Status": "Semak Status Tahlil",
+  "Funeral Prayer":"Solat Jenazah",
   "Funeral Prayer Guide": "Panduan Solat Jenazah",
 
   "Time": "Masa",
@@ -364,6 +366,8 @@
   "No log": "Tiada log",
 
   "Tahlil": "Tahlil",
+  "Doa Tahlil":"Doa Tahlil",
+  "Talqin":"Talqin",
   "Surah": "Surah",
   "Doa": "Doa",
   "Select Qari": "Pilih Qari",
@@ -380,7 +384,7 @@
   "Enter name": "Masukkan nama",
   "Enter Phone No": "Masukkan No. Telefon",
 
-  "May the matters of the deceased be eased and their deeds be accepted": "Semoga bacaan ini sampai pahalanya kepada arwah.",
+  "May the matters of the deceased be eased and their deeds be accepted.": "Semoga segala urusan allahyarham dipermudahkan dan segala amalannya diterima di sisi-Nya.",
 
   "Malay": "Bahasa Melayu",
   "English": "Bahasa Inggeris",
@@ -483,6 +487,9 @@
   "Service Status": "Status Perkhidmatan",
   "Status Check":"Semak Status",
 
+  "Jenazah Emergency":"Pengurusan Jenazah Kecemasan",
+  "Contact the nearest mosque for immediate funeral arrangements.":"Sila hubungi masjid terdekat untuk pengurusan jenazah segera.",
+
   "Thank you! Your donation has been recorded.": "Terima kasih! Derma anda telah direkodkan.",
   "Payment successful!": "Pembayaran berjaya!",
   "Payment is still being processed.": "Pembayaran masih dalam proses.",
@@ -577,6 +584,7 @@
   "Organisation & Cemetery": "Organisasi & Tanah Perkuburan",
   "Organisations": "Organisasi",
   "Graves": "Kubur",
+  "graves":"kubur",
   "Registered deceased": "Arwah Berdaftar",
   "Pending review": "Menunggu Semakan",
   "Monthly Graves & Deceased Added": "Kubur & Arwah Ditambah Bulanan",
@@ -647,7 +655,10 @@
   "Image": "Gambar",
   "Content": "Kandungan",
   "Mosque": "Masjid",
+  "mosques": "masjid",
   "Select Mosque": "Pilih Masjid",
+  "No Mosque Found":"Tiada Masjid Dijumpai",
+  "No Favorited Mosques Found":"Tiada Masjid Kegemaran Dijumpai",
   "No mosque registered": "Tiada masjid berdaftar",
   "No mosque is registered under your organisation. You can still publish this post without one.": "Tiada masjid berdaftar di bawah organisasi anda. Anda masih boleh menerbitkan siaran ini tanpa masjid.",
   "Add Activity Post": "Tambah Siaran Aktiviti",
