@@ -353,7 +353,7 @@ function ManageUsersDesktop() {
                           variant="secondary"
                           className="text-xs capitalize"
                         >
-                          {user.role}
+                          {translate(user.role)}
                         </Badge>
                       </div>
                     </div>

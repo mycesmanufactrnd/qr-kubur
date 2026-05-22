@@ -106,10 +106,10 @@ export const PERMISSION_CATEGORIES = {
   islamic_events: {
     label: "Islamic Events",
     permissions: [
-      { slug: PERMISSIONS.ISLAMIC_EVENTS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.ISLAMIC_EVENTS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_VIEW, label: "View" },
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_CREATE, label: "Create" },
       { slug: PERMISSIONS.ISLAMIC_EVENTS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.ISLAMIC_EVENTS_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.ISLAMIC_EVENTS_DELETE, label: "Delete" },
     ],
     isSuperAdminOnly: true,
   },
@@ -117,10 +117,10 @@ export const PERMISSION_CATEGORIES = {
   waqf: {
     label: "Waqf Project",
     permissions: [
-      { slug: PERMISSIONS.WAQF_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.WAQF_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.WAQF_VIEW, label: "View" },
+      { slug: PERMISSIONS.WAQF_CREATE, label: "Create" },
       { slug: PERMISSIONS.WAQF_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.WAQF_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.WAQF_DELETE, label: "Delete" },
     ],
     isSuperAdminOnly: true,
   },
@@ -128,10 +128,10 @@ export const PERMISSION_CATEGORIES = {
   heritages: {
     label: "Heritage Site",
     permissions: [
-      { slug: PERMISSIONS.HERITAGES_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.HERITAGES_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.HERITAGES_VIEW, label: "View" },
+      { slug: PERMISSIONS.HERITAGES_CREATE, label: "Create" },
       { slug: PERMISSIONS.HERITAGES_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.HERITAGES_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.HERITAGES_DELETE, label: "Delete" },
     ],
     isSuperAdminOnly: true,
   },
@@ -141,10 +141,10 @@ export const PERMISSION_CATEGORIES = {
   posts: {
     label: "Activity Post",
     permissions: [
-      { slug: PERMISSIONS.POSTS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.POSTS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.POSTS_VIEW, label: "View" },
+      { slug: PERMISSIONS.POSTS_CREATE, label: "Create" },
       { slug: PERMISSIONS.POSTS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.POSTS_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.POSTS_DELETE, label: "Delete" },
     ],
     isAllAdmin: true,
   },
@@ -152,9 +152,9 @@ export const PERMISSION_CATEGORIES = {
   suggestions: {
     label: 'Suggestion Records',
     permissions: [
-      { slug: PERMISSIONS.SUGGESTIONS_VIEW, label: 'Lihat' },
-      { slug: PERMISSIONS.SUGGESTIONS_APPROVE, label: 'Luluskan' },
-      { slug: PERMISSIONS.SUGGESTIONS_REJECT, label: 'Tolak' },
+      { slug: PERMISSIONS.SUGGESTIONS_VIEW, label: 'View' },
+      { slug: PERMISSIONS.SUGGESTIONS_APPROVE, label: 'Approve' },
+      { slug: PERMISSIONS.SUGGESTIONS_REJECT, label: 'Reject' },
     ],
     isAllAdmin: true,
   },
@@ -162,10 +162,10 @@ export const PERMISSION_CATEGORIES = {
   users: {
     label: "User Records",
     permissions: [
-      { slug: PERMISSIONS.USERS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.USERS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.USERS_VIEW, label: "View" },
+      { slug: PERMISSIONS.USERS_CREATE, label: "Create" },
       { slug: PERMISSIONS.USERS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.USERS_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.USERS_DELETE, label: "Delete" },
     ],
     isAllAdmin: true,
   },
@@ -173,7 +173,7 @@ export const PERMISSION_CATEGORIES = {
   permissions: {
     label: "Permissions",
     permissions: [
-      { slug: PERMISSIONS.PERMISSIONS_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.PERMISSIONS_VIEW, label: "View" },
       { slug: PERMISSIONS.PERMISSIONS_EDIT, label: "Edit" },
     ],
     isAllAdmin: true,
@@ -182,7 +182,7 @@ export const PERMISSION_CATEGORIES = {
   financial_reports: {
     label: "Financial Reports",
     permissions: [
-      { slug: PERMISSIONS.FINANCIAL_REPORTS_VIEW, label: "Lihat" },
+      { slug: PERMISSIONS.FINANCIAL_REPORTS_VIEW, label: "View" },
     ],
     isAllAdmin: true,
   },
@@ -192,10 +192,10 @@ export const PERMISSION_CATEGORIES = {
   tahfiz: {
     label: "Tahfiz Center",
     permissions: [
-      { slug: PERMISSIONS.TAHFIZ_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.TAHFIZ_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.TAHFIZ_VIEW, label: "View" },
+      { slug: PERMISSIONS.TAHFIZ_CREATE, label: "Create" },
       { slug: PERMISSIONS.TAHFIZ_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.TAHFIZ_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.TAHFIZ_DELETE, label: "Delete" },
     ],
     isTahfizAdminOnly: true,
   },
@@ -203,10 +203,10 @@ export const PERMISSION_CATEGORIES = {
   tahlil: {
     label: "Tahlil Requests",
     permissions: [
-      { slug: PERMISSIONS.TAHLIL_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.TAHLIL_ACCEPT, label: "Terima" },
-      { slug: PERMISSIONS.TAHLIL_REJECT, label: "Tolak" },
-      { slug: PERMISSIONS.TAHLIL_COMPLETE, label: "Selesai" },
+      { slug: PERMISSIONS.TAHLIL_VIEW, label: "View" },
+      { slug: PERMISSIONS.TAHLIL_ACCEPT, label: "Accept" },
+      { slug: PERMISSIONS.TAHLIL_REJECT, label: "Reject" },
+      { slug: PERMISSIONS.TAHLIL_COMPLETE, label: "Complete" },
     ],
     isTahfizAdminOnly: true,
   },
@@ -216,68 +216,68 @@ export const PERMISSION_CATEGORIES = {
   donations: {
     label: "Donation Records",
     permissions: [
-      { slug: PERMISSIONS.DONATIONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.DONATIONS_VERIFY, label: "Sahkan" },
-      { slug: PERMISSIONS.DONATIONS_REJECT, label: "Tolak" },
+      { slug: PERMISSIONS.DONATIONS_VIEW, label: "View" },
+      { slug: PERMISSIONS.DONATIONS_VERIFY, label: "Verify" },
+      { slug: PERMISSIONS.DONATIONS_REJECT, label: "Reject" },
     ],
   },
 
   mosques: {
     label: "Mosques",
     permissions: [
-      { slug: PERMISSIONS.MOSQUES_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.MOSQUES_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.MOSQUES_VIEW, label: "View" },
+      { slug: PERMISSIONS.MOSQUES_CREATE, label: "Create" },
       { slug: PERMISSIONS.MOSQUES_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.MOSQUES_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.MOSQUES_DELETE, label: "Delete" },
     ],
   },
 
   death_charity: {
     label: "Death Charity",
     permissions: [
-      { slug: PERMISSIONS.DEATH_CHARITY_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.DEATH_CHARITY_VIEW, label: "View" },
+      { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: "Create" },
       { slug: PERMISSIONS.DEATH_CHARITY_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: "Delete" },
     ],
   },
 
   graves: {
     label: "Graves",
     permissions: [
-      { slug: PERMISSIONS.GRAVES_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.GRAVES_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.GRAVES_VIEW, label: "View" },
+      { slug: PERMISSIONS.GRAVES_CREATE, label: "Create" },
       { slug: PERMISSIONS.GRAVES_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.GRAVES_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.GRAVES_DELETE, label: "Delete" },
     ],
   },
 
   dead_persons: {
     label: "Dead Person Records",
     permissions: [
-      { slug: PERMISSIONS.DEAD_PERSONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.DEAD_PERSONS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.DEAD_PERSONS_VIEW, label: "View" },
+      { slug: PERMISSIONS.DEAD_PERSONS_CREATE, label: "Create" },
       { slug: PERMISSIONS.DEAD_PERSONS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.DEAD_PERSONS_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.DEAD_PERSONS_DELETE, label: "Delete" },
     ],
   },
 
   organisations: {
     label: "Organisations",
     permissions: [
-      { slug: PERMISSIONS.ORGANISATIONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: "Tambah" },
+      { slug: PERMISSIONS.ORGANISATIONS_VIEW, label: "View" },
+      { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: "Create" },
       { slug: PERMISSIONS.ORGANISATIONS_EDIT, label: "Edit" },
-      { slug: PERMISSIONS.ORGANISATIONS_DELETE, label: "Padam" },
+      { slug: PERMISSIONS.ORGANISATIONS_DELETE, label: "Delete" },
     ],
   },
 
   quotations: {
-    label: "Quotations Records",
+    label: "Quotation Records",
     permissions: [
-      { slug: PERMISSIONS.QUOTATIONS_VIEW, label: "Lihat" },
-      { slug: PERMISSIONS.QUOTATIONS_VERIFY, label: "Sahkan" },
-      { slug: PERMISSIONS.QUOTATIONS_REJECT, label: "Tolak" },
+      { slug: PERMISSIONS.QUOTATIONS_VIEW, label: "View" },
+      { slug: PERMISSIONS.QUOTATIONS_VERIFY, label: "Verify" },
+      { slug: PERMISSIONS.QUOTATIONS_REJECT, label: "Reject" },
     ],
   },
 };

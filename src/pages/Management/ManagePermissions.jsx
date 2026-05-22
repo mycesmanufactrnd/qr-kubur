@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import Breadcrumb from "@/components/Breadcrumb";
-import { PERMISSION_CATEGORIES } from "@/components/Permissions";
+import { PERMISSION_CATEGORIES } from "@/components/permissions";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
@@ -256,7 +256,7 @@ function ManagePermissionsDesktop() {
                           {user.email}
                         </p>
                         <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300">
-                          {user.role}
+                          {translate(user.role)}
                         </span>
                       </button>
                     ))
@@ -346,7 +346,7 @@ function ManagePermissionsDesktop() {
                       <div key={key} className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold text-gray-900 dark:text-white">
-                            {category.label}
+                            {translate(category.label)}
                           </h4>
                           {canEdit && (
                             <button
@@ -358,7 +358,7 @@ function ManagePermissionsDesktop() {
                                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
                               }`}
                             >
-                              {allEnabled ? "Disable All" : "Enable All"}
+                              {allEnabled ? translate("Disable All") : translate("Enable All")}
                             </button>
                           )}
                         </div>
@@ -372,7 +372,7 @@ function ManagePermissionsDesktop() {
                                 className="text-sm cursor-pointer flex-1"
                                 htmlFor={perm.slug}
                               >
-                                {perm.label}
+                                {translate(perm.label)}
                               </Label>
                               {canEdit && (
                                 <Switch
