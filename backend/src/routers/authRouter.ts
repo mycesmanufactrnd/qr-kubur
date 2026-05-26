@@ -200,9 +200,12 @@ export const authRouter = router({
     .mutation(async ({ input }) => {
       const googleUserRepo = AppDataSource.getRepository(GoogleUser);
 
+      const audiences = [process.env.GOOGLE_CLIENT_ID!];
+      if (process.env.GOOGLE_ANDROID_CLIENT_ID) audiences.push(process.env.GOOGLE_ANDROID_CLIENT_ID);
+
       const ticket = await googleClient.verifyIdToken({
         idToken: input.credential,
-        audience: process.env.GOOGLE_CLIENT_ID!,
+        audience: audiences,
       });
 
       const payload = ticket.getPayload();
