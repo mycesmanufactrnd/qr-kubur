@@ -1,8 +1,10 @@
 import './App.css'
+import { useEffect } from 'react';
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { LocationProvider } from './providers/LocationProvider';
 import { useFCM } from './firebase/useFCM';
+import { useLoginGoogle } from './utils/auth';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -13,6 +15,17 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
+  const { login } = useLoginGoogle();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const credential = params.get('google_credential');
+    if (credential) {
+      window.history.replaceState({}, '', window.location.pathname);
+      login(credential);
+    }
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={
