@@ -75,7 +75,9 @@ export function LocationProvider({ children }) {
       setUserState(payload.state);
       setLocationDenied(false);
       return true;
-    } catch {
+    } catch (err) {
+      const e = /** @type {any} */ (err);
+      console.error('[GPS] getCurrentPosition failed:', e?.code, e?.message, e);
       setUserLocation(null);
       setUserState(null);
       setLocationDenied(true);

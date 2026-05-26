@@ -128,7 +128,8 @@ export default function SettingsPageMobile() {
   });
 
   const { login, loading, error } = useLoginGoogle();
-  const isWebView = /wv/i.test(navigator.userAgent);
+  const isWebView = /wv/i.test(navigator.userAgent) || !!window.Capacitor?.isNativePlatform?.();
+  const [nativeSignInError, setNativeSignInError] = useState('');
 
   const handleCredentialResponse = (response) => {
     login(response.credential);
@@ -299,13 +300,17 @@ export default function SettingsPageMobile() {
               <button
                 type="button"
                 onClick={async () => {
+                  setNativeSignInError('');
                   try {
                     const FirebaseAuth = window.Capacitor?.Plugins?.FirebaseAuthentication;
-                    if (!FirebaseAuth) throw new Error('Native sign-in not available');
+                    if (!FirebaseAuth) throw new Error('Plugin not available. Run: npx cap sync');
                     const result = await FirebaseAuth.signInWithGoogle();
                     const credential = result?.credential?.idToken;
                     if (credential) login(credential);
+                    else throw new Error('No ID token returned');
                   } catch (e) {
+                    const msg = e?.message || String(e);
+                    setNativeSignInError(msg);
                     console.error('Native Google sign-in failed:', e);
                   }
                 }}
@@ -319,7 +324,11 @@ export default function SettingsPageMobile() {
                 </svg>
                 {translate("Sign in with Google")}
               </button>
-            ) : (
+            ) : null}
+            {isWebView && nativeSignInError && (
+              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl p-2.5">{nativeSignInError}</p>
+            )}
+            {isWebView ? null : (
               <>
                 <div id="guest-google-signin" />
                 {loading && (
