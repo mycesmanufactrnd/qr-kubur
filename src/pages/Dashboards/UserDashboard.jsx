@@ -287,7 +287,7 @@ export default function UserDashboard() {
 
         <div className="db-toprow">
           <div>
-            <div className="db-greeting">{translate("Assalamualaikum")}</div>
+            <div className="db-greeting">{translate("Assalamualaikums")}</div>
             <div className="db-appname">QubuR</div>
             <div className="db-tagline">
               {translate("Funeral Guide & Management")}

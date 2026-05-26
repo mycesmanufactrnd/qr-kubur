@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import Breadcrumb from "@/components/Breadcrumb";
-import { PERMISSION_CATEGORIES } from "@/components/permissions";
+import { PERMISSION_CATEGORIES } from "@/components/Permissions";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
