@@ -130,6 +130,7 @@ export default function SettingsPageMobile() {
   const { login, loading, error } = useLoginGoogle();
   const isWebView = /wv/i.test(navigator.userAgent) || !!window.Capacitor?.isNativePlatform?.();
   const [nativeSignInError, setNativeSignInError] = useState('');
+  const [nativeSignInDebug, setNativeSignInDebug] = useState('');
 
   const handleCredentialResponse = (response) => {
     login(response.credential);
@@ -299,22 +300,24 @@ export default function SettingsPageMobile() {
             {isWebView ? (
               <button
                 type="button"
+                disabled={loading}
                 onClick={async () => {
                   setNativeSignInError('');
                   try {
                     const FirebaseAuth = window.Capacitor?.Plugins?.FirebaseAuthentication;
                     if (!FirebaseAuth) throw new Error('Plugin not available. Run: npx cap sync');
                     const result = await FirebaseAuth.signInWithGoogle();
+                    setNativeSignInDebug(JSON.stringify(result, null, 2));
                     const credential = result?.credential?.idToken;
                     if (credential) login(credential);
-                    else throw new Error('No ID token returned');
+                    else throw new Error(`No ID token. Keys: ${Object.keys(result || {}).join(', ')}`);
                   } catch (e) {
                     const msg = e?.message || String(e);
                     setNativeSignInError(msg);
                     console.error('Native Google sign-in failed:', e);
                   }
                 }}
-                className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 active:scale-95 transition-all text-sm font-medium text-slate-700 dark:text-slate-200"
+                className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 active:scale-95 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 disabled:opacity-50"
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -322,11 +325,14 @@ export default function SettingsPageMobile() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
-                {translate("Sign in with Google")}
+                {loading ? translate("Logging in") + '...' : translate("Sign in with Google")}
               </button>
             ) : null}
-            {isWebView && nativeSignInError && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl p-2.5">{nativeSignInError}</p>
+            {isWebView && (nativeSignInError || error) && (
+              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl p-2.5">{nativeSignInError || error}</p>
+            )}
+            {isWebView && nativeSignInDebug && (
+              <pre className="text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 overflow-auto max-h-40">{nativeSignInDebug}</pre>
             )}
             {isWebView ? null : (
               <>
