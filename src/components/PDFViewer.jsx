@@ -1,14 +1,13 @@
-import { Worker, Viewer } from '@react-pdf-viewer/core';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
-import TahlilPDF from '@/assets/TahlilPDF.pdf';
+const BASE = 'https://qubur.mycesgroup.com';
 
-export default function PdfViewer() {
+export default function PdfViewer({ path = '/Tahlil.pdf', height = '600px' }) {
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(BASE + path)}&embedded=true`;
   return (
-    <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.7.107/build/pdf.worker.min.js`}>
-      <div style={{ height: '600px' }}>
-        <Viewer fileUrl={TahlilPDF} />
-      </div>
-    </Worker>
+    <iframe
+      src={viewerUrl}
+      style={{ width: '100%', height }}
+      allow="autoplay"
+      title="PDF Viewer"
+    />
   );
 }

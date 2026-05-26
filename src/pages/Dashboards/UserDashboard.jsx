@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -6,6 +7,7 @@ import {
   Heart,
   MapPin,
   MoonStar,
+  Sun,
   Globe,
   ChevronRight,
   HelpCircle,
@@ -276,6 +278,18 @@ const G = {
 };
 
 export default function UserDashboard() {
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("theme", next);
+  };
+
   return (
     <div className="db">
       <style>{css}</style>
@@ -293,9 +307,12 @@ export default function UserDashboard() {
               {translate("Funeral Guide & Management")}
             </div>
           </div>
-          <div className="db-moonbtn">
-            <MoonStar style={{ width: 22, height: 22, color: "#fff" }} />
-          </div>
+          <button className="db-moonbtn" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === "dark"
+              ? <Sun style={{ width: 22, height: 22, color: "#fff" }} />
+              : <MoonStar style={{ width: 22, height: 22, color: "#fff" }} />
+            }
+          </button>
         </div>
 
         <div className="db-ayah-banner">

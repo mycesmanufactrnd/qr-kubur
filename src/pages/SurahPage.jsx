@@ -42,10 +42,14 @@ function Section({ title, accent = "emerald", children }) {
   );
 }
 
+const BASE = 'https://qubur.mycesgroup.com';
+const toViewer = (path) => `https://docs.google.com/viewer?url=${encodeURIComponent(BASE + path)}&embedded=true`;
+
+const TahlilViewer   = toViewer('/Tahlil.pdf');
+const TalqinViewer   = toViewer('/Talqin.pdf');
+const DoaTahlilViewer = toViewer('/DoaTahlil.pdf');
+
 export default function SurahPage() {
-  const TahlilPdf = "/Tahlil.pdf";
-  const TalqinPdf = "/Talqin.pdf";
-  const DoaTahlilPdf = "/DoaTahlil.pdf";
 
   const [activeTab, setActiveTab] = useState("tahlil");
   const [surahId, setSurahId] = useState(36);
@@ -184,9 +188,10 @@ export default function SurahPage() {
               </p>
             </div>
             <iframe
-              src={`${DoaTahlilPdf}#toolbar=0&navpanes=0`}
+              src={DoaTahlilViewer}
               className="w-full h-[78vh]"
               title="Doa Tahlil PDF"
+              allow="autoplay"
             />
           </div>
         )}
@@ -199,9 +204,10 @@ export default function SurahPage() {
               </p>
             </div>
             <iframe
-              src={`${TahlilPdf}#toolbar=0&navpanes=0`}
+              src={TahlilViewer}
               className="w-full h-[78vh]"
               title="Tahlil PDF"
+              allow="autoplay"
             />
           </div>
         )}
@@ -214,9 +220,10 @@ export default function SurahPage() {
               </p>
             </div>
             <iframe
-              src={`${TalqinPdf}#toolbar=0&navpanes=0`}
+              src={TalqinViewer}
               className="w-full h-[78vh]"
-              title="Tahlil PDF"
+              title="Talqin PDF"
+              allow="autoplay"
             />
           </div>
         )}
