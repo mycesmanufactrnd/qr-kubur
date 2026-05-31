@@ -47,7 +47,7 @@ export default function TahfizDetails() {
     return (
       <div>
         <BackNavigation title={translate('Tahfiz Details')} />
-        <NoDataCardComponent isPage={true} />
+        <NoDataCardComponent isPage />
       </div>
     );
   }
@@ -59,8 +59,10 @@ export default function TahfizDetails() {
 
       <div className="relative h-64 md:h-80 overflow-hidden">
         {tahfizDetails.photourl ? (
-          <img 
-            src={resolveFileUrl(tahfizDetails.photourl, 'tahfiz-center')} 
+          <img
+            src={resolveFileUrl(tahfizDetails.photourl, 'tahfiz-center')}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={tahfizDetails.name}
             className="w-full h-full object-cover"
           />

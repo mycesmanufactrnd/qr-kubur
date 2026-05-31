@@ -45,7 +45,7 @@ export default function MosqueDetailsPage() {
 
   if (isMosqueLoading) return <PageLoadingComponent />;
   if (isMosqueError || !mosque)
-    return <NoDataCardComponent isPage={true} description="Mosque Not Found" />;
+    return <NoDataCardComponent isPage description={translate("Mosque Not Found")} />;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -53,6 +53,8 @@ export default function MosqueDetailsPage() {
         {mosque.photourl ? (
           <img
             src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={mosque.name}
             className="w-full h-full object-cover"
           />

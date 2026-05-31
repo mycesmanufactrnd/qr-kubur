@@ -44,6 +44,8 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
       {mosque.photourl && (
         <img
           src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
           alt={mosque.name}
           className="w-full h-32 object-cover"
         />

@@ -133,7 +133,7 @@ export default function SearchTahfiz() {
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : locationDenied ? (
-        <NoDataCardComponent isNoGPS />
+        <NoDataCardComponent isNoGPS isPage/>
       ) : !tahfizList || tahfizList.length === 0 ? (
         <NoDataCardComponent isPage />
       ) : (

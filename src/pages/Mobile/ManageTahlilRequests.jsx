@@ -268,6 +268,8 @@ function DetailSheet({
                   <div key={`${url}-${idx}`} className="relative">
                     <img
                       src={resolveFileUrl(url, "bucket-tahfiz-tahlil")}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                       alt={`Tahlil ${idx + 1}`}
                       className="w-full h-48 rounded-xl object-cover border border-slate-200"
                     />
@@ -350,6 +352,8 @@ function DetailSheet({
               {transactionAccount.photourl ? (
                 <img
                   src={resolveFileUrl(transactionAccount.photourl, "online-transaction")}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
                   alt="Transaction proof"
                   className="mt-1 w-full h-36 rounded-xl object-cover border border-slate-200"
                 />
@@ -527,6 +531,8 @@ function UploadSheet({ uploadTargetIds, requests, tahlilPhotoUploading, onUpload
                   {photoUrl ? (
                     <img
                       src={resolveFileUrl(photoUrl, "bucket-tahfiz-tahlil")}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                       alt="current"
                       className="w-full h-28 rounded-xl object-cover border border-slate-200"
                     />

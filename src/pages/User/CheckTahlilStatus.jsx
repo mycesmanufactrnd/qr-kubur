@@ -298,6 +298,8 @@ export default function CheckTahlilStatus() {
                       <img
                         key={`${url}-${idx}`}
                         src={resolveFileUrl(url, 'bucket-tahfiz-tahlil')}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt={`Tahlil ${idx + 1}`}
                         className="h-24 w-full rounded-lg object-cover border border-slate-100 dark:border-slate-700"
                       />

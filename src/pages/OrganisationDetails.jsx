@@ -100,11 +100,11 @@ export default function OrganisationDetails() {
         body: fd,
       });
       if (!res.ok) {
-        showError("Failed to upload photo");
+        showError(translate("Failed to upload photo"));
         return null;
       }
       const data = await res.json();
-      showSuccess("Photo uploaded");
+      showSuccess(translate("Photo uploaded"));
       return data.file_url;
     } catch {
       showError("Failed to upload photo");
@@ -248,7 +248,7 @@ export default function OrganisationDetails() {
     };
     if (statusText === "Success") {
       setLoadingPayment(true);
-      showSuccess("Pembayaran berjaya!");
+      showSuccess(translate("Payment successful!"));
       const storedUser =
         localStorage.getItem("googleAuth") ||
         sessionStorage.getItem("googleAuth");
@@ -304,15 +304,15 @@ export default function OrganisationDetails() {
         )
         .finally(handleFinally);
     } else if (statusText === "Pending") {
-      showError("Pembayaran masih dalam proses.");
+      showError(translate("Payment is still being processed."));
     } else {
-      showError("Pembayaran gagal.");
+      showError(translate("Payment failed."));
     }
   }, [searchParams]);
 
   const onSubmit = async (formData) => {
     if (isFromGrave && !formData.servicephotourl) {
-      showError("Gambar Perkhidmatan diperlukan");
+      showError(translate("Service Photo Required"));
       return;
     }
     const isValid = validateFields(
@@ -363,7 +363,7 @@ export default function OrganisationDetails() {
   const proceedToPayment = async (payload) => {
     const resPayment = await handlePaymentConfig(payload);
     if (!resPayment) {
-      showError("Payment Failed");
+      showError(translate("Payment Failed"));
       setLoadingPayment(false);
     }
   };
@@ -395,7 +395,7 @@ export default function OrganisationDetails() {
         return true;
       } else {
         setLoadingPayment(false);
-        showError("No payment URL returned.");
+        showError(translate("No payment URL returned."));
       }
     } catch (err) {
       setLoadingPayment(false);
@@ -407,7 +407,7 @@ export default function OrganisationDetails() {
   if (status_id) return <PaymentSuccessfulComponent />;
   if (isError || !organisation)
     return (
-      <NoDataCardComponent isPage={true} description="Organisation Not Found" />
+      <NoDataCardComponent isPage={true} description={translate("Organisation Not Found")} />
     );
 
   const imageSrc = resolveFileUrl(organisation.photourl, "bucket-organisation");
@@ -418,6 +418,8 @@ export default function OrganisationDetails() {
         {imageSrc ? (
           <img
             src={imageSrc}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={organisation.name}
             className="w-full h-full object-cover"
           />
@@ -551,7 +553,7 @@ export default function OrganisationDetails() {
                           onClick={() => setIsQuotationDialogOpen(true)}
                           className="w-full mt-1 h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-500 text-white text-sm font-semibold shadow-lg shadow-violet-200 active:opacity-80 transition-all"
                         >
-                          Get Quotation ({selectedServices.length} selected)
+                          {translate("Get Quotation")} ({selectedServices.length} {translate("selected")})
                         </button>
                       )}
                     </div>
@@ -694,7 +696,7 @@ export default function OrganisationDetails() {
         <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
           <div className="px-5 pt-5 pb-2 border-b border-slate-100">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1">
-              Quotation
+              {translate("Quotation")}
             </DialogTitle>
             <p className="text-base font-bold text-slate-800">
               {organisation.name}
@@ -705,7 +707,7 @@ export default function OrganisationDetails() {
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-3">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-violet-600">
-                  Maklumat Pemohon
+                  {translate("Requester Information")}
                 </p>
                 <TextInputForm
                   name="payername"
@@ -734,11 +736,11 @@ export default function OrganisationDetails() {
 
               <div className="space-y-2">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-violet-600">
-                  Perkhidmatan
+                  {translate("Service")}
                 </p>
                 {deadPerson?.name && (
                   <p className="text-xs text-slate-400 mt-0.5">
-                    For:{" "}
+                    {translate("For")}:{" "}
                     <span className="font-semibold text-slate-600">
                       {deadPerson.name}
                     </span>
@@ -746,7 +748,7 @@ export default function OrganisationDetails() {
                 )}
                 {graveRecord?.name && (
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Kubur:{" "}
+                    {translate("Grave")}:{" "}
                     <span className="font-semibold text-slate-600">
                       {graveRecord.name}
                     </span>
@@ -767,14 +769,14 @@ export default function OrganisationDetails() {
                     </div>
                   ))}
                   <div className="flex items-center justify-between px-4 py-3 bg-white">
-                    <span className="text-xs text-slate-400">Subtotal</span>
+                    <span className="text-xs text-slate-400">{translate("Subtotal")}</span>
                     <span className="text-sm font-semibold text-slate-600">
                       RM {quotationSubtotal.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 bg-white">
                     <span className="text-xs text-slate-400">
-                      Maintenance Fee
+                      {translate("Maintenance Fee")}
                     </span>
                     <span className="text-sm font-semibold text-slate-600">
                       RM {PLATFORM_FEE.toFixed(2)}
@@ -782,7 +784,7 @@ export default function OrganisationDetails() {
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 bg-violet-50">
                     <span className="text-sm font-bold text-violet-700">
-                      Total
+                      {translate("Total")}
                     </span>
                     <span className="text-base font-bold text-violet-700">
                       RM {quotationTotal.toFixed(2)}
@@ -794,12 +796,12 @@ export default function OrganisationDetails() {
               {isFromGrave && (
                 <div className="space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-violet-600">
-                    Maklumat Perkhidmatan
+                    {translate("Service Information")}
                   </p>
                   <FileUploadForm
                     name="servicephotourl"
                     control={control}
-                    label="Gambar / Foto Lokasi"
+                    label={translate("Photo / Location Photo")}
                     required
                     errors={errors}
                     bucketName="bucket-grave-service-quotation"
@@ -810,7 +812,7 @@ export default function OrganisationDetails() {
                   />
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-700">
-                      Penerangan Ringkas
+                      {translate("Brief Description")}
                     </label>
                     <Controller
                       name="servicedescription"
@@ -819,7 +821,7 @@ export default function OrganisationDetails() {
                         <textarea
                           {...field}
                           rows={3}
-                          placeholder="Nyatakan keperluan atau penerangan ringkas..."
+                          placeholder={translate("Specify your needs or a brief description...")}
                           className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-300 resize-none"
                         />
                       )}
@@ -831,7 +833,7 @@ export default function OrganisationDetails() {
               {paymentPlatforms.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-violet-600">
-                    Kaedah Pembayaran
+                    {translate("Payment Method")}
                   </p>
                   <RadioGroup
                     value={paymentMethod}
@@ -895,7 +897,7 @@ export default function OrganisationDetails() {
 
               {paymentPlatforms.length === 0 && (
                 <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-                  Kaedah pembayaran belum dikonfigurasi untuk organisasi ini.
+                  {translate("Payment method is not configured for this organisation.")}
                 </p>
               )}
 
@@ -903,7 +905,7 @@ export default function OrganisationDetails() {
                 type="submit"
                 className="w-full h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-500 text-white text-sm font-semibold shadow-lg shadow-violet-200 active:opacity-80 transition-all"
               >
-                Bayar Sekarang
+                {translate("Pay Now")}
               </button>
             </form>
           </div>
@@ -922,10 +924,10 @@ export default function OrganisationDetails() {
             proceedToPayment(payload);
           }
         }}
-        title="Simpan No. Telefon"
-        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
-        confirmText="Simpan"
-        cancelText="Tidak"
+        title={translate("Save Phone Number")}
+        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        confirmText={translate("Save")}
+        cancelText={translate("No")}
         onConfirm={() => {
           localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
         }}

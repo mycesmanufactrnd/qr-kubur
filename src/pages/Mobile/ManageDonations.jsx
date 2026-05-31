@@ -230,6 +230,8 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
                   <p className="text-slate-500 dark:text-slate-400 mb-1.5 text-xs">{translate("Photo")}</p>
                   <img
                     src={resolveFileUrl(transactionAccount.photourl, "online-transaction")}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
                     alt={translate("Transaction proof")}
                     className="w-full h-40 rounded-xl object-cover border border-slate-100 dark:border-slate-700"
                   />

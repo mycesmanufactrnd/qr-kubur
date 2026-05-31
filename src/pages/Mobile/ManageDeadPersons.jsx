@@ -46,6 +46,8 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
         {person.photourl ? (
           <img
             src={resolveFileUrl(person.photourl, "dead-person")}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={person.name}
             className="w-16 h-16 object-cover rounded-xl shrink-0"
           />

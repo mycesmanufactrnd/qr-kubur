@@ -7,7 +7,7 @@ import { STATES_MY } from "@/utils/enums";
 import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { Button } from "@/components/ui/button";
-import BackNavigation from "@/components/BackNavigation";
+import BackKeyNavigation from "@/components/BackKeyNavigation";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters.jsx";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import FoundDataLength from "@/components/FoundDataLength";
@@ -70,7 +70,7 @@ export default function SearchGrave() {
     return (
       <PullToRefresh onRefresh={handlePullRefresh}>
         <div className="space-y-3 pb-6 px-1">
-          <BackNavigation title={translate("Search Grave")} />
+          <BackKeyNavigation title={translate("Search Grave")} />
           <div className="flex items-center gap-2 rounded-xl">
             <AdvancedFilters
               parameter={[
@@ -103,7 +103,8 @@ export default function SearchGrave() {
 
   return (
     <div className="space-y-3 pb-6 px-1">
-      <BackNavigation title={translate("Search Grave")} />
+      <BackKeyNavigation title={translate("Search Grave")} />
+
       {!defaultFilter.isFavorited && <ShowNearLocation />}
 
       <div className="flex items-center gap-2 rounded-xl">
@@ -129,20 +130,19 @@ export default function SearchGrave() {
       <PullToRefresh onRefresh={handlePullRefresh}>
         {!isLoading && (
           <div className="px-1">
-            <FoundDataLength dataList={gravesList} data={`${translate('graves')}`} />
+            <FoundDataLength
+              dataList={gravesList}
+              data={`${translate("graves")}`}
+            />
           </div>
         )}
 
         {isLoading ? (
           <ListCardSkeletonComponent />
         ) : locationDenied ? (
-          <NoDataCardComponent isNoGPS />
+          <NoDataCardComponent isNoGPS isPage />
         ) : gravesList.length === 0 ? (
-          <NoDataCardComponent
-            isPage
-            title={translate("No graves found")}
-            description={translate("Please try another search or change the filters.")}
-          />
+          <NoDataCardComponent isPage />
         ) : (
           <div className="space-y-4">
             {gravesList.slice(0, displayedCount).map((grave) => (

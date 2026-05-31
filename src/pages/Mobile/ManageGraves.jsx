@@ -39,13 +39,19 @@ import { defaultGraveField } from "@/utils/defaultformfields";
 
 function GraveStatusBadge({ status }) {
   const map = {
-    active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    active:
+      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
     full: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    maintenance: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    maintenance:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   };
   return (
-    <Badge className={`${map[status] ?? "bg-slate-100 text-slate-600"} border-0 text-xs capitalize`}>
-      {translate(status ? status.charAt(0).toUpperCase() + status.slice(1) : "-")}
+    <Badge
+      className={`${map[status] ?? "bg-slate-100 text-slate-600"} border-0 text-xs capitalize`}
+    >
+      {translate(
+        status ? status.charAt(0).toUpperCase() + status.slice(1) : "-",
+      )}
     </Badge>
   );
 }
@@ -57,7 +63,9 @@ function GraveCard({ grave, canEdit, canDelete, onEdit, onDelete, onQR }) {
         <img
           src={resolveFileUrl(grave.photourl, "bucket-grave")}
           alt={grave.name}
+          referrerPolicy="no-referrer"
           className="w-full h-32 object-cover"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
         />
       )}
       <div className="p-4 space-y-2">
@@ -82,12 +90,16 @@ function GraveCard({ grave, canEdit, canDelete, onEdit, onDelete, onQR }) {
             </span>
           )}
           {grave.totalgraves != null && (
-            <span>{grave.totalgraves} {translate("plots")}</span>
+            <span>
+              {grave.totalgraves} {translate("plots")}
+            </span>
           )}
         </div>
 
         {grave.organisation?.name && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{grave.organisation.name}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+            {grave.organisation.name}
+          </p>
         )}
 
         <div className="flex items-center gap-2 pt-1">
@@ -122,7 +134,16 @@ function GraveCard({ grave, canEdit, canDelete, onEdit, onDelete, onQR }) {
   );
 }
 
-function GraveFormSheet({ editing, onClose, onSubmit, orgOptions, stateOptions, isSubmitting, uploading, handleFileUpload }) {
+function GraveFormSheet({
+  editing,
+  onClose,
+  onSubmit,
+  orgOptions,
+  stateOptions,
+  isSubmitting,
+  uploading,
+  handleFileUpload,
+}) {
   const {
     control,
     handleSubmit,
@@ -172,7 +193,13 @@ function GraveFormSheet({ editing, onClose, onSubmit, orgOptions, stateOptions, 
 
       {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
-        <TextInputForm name="name" control={control} label={translate("Name")} required errors={errors} />
+        <TextInputForm
+          name="name"
+          control={control}
+          label={translate("Name")}
+          required
+          errors={errors}
+        />
         <SelectForm
           name="state"
           control={control}
@@ -183,13 +210,40 @@ function GraveFormSheet({ editing, onClose, onSubmit, orgOptions, stateOptions, 
           errors={errors}
         />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="block" control={control} label={translate("Block")} />
-          <TextInputForm name="lot" control={control} label={translate("Lot")} />
+          <TextInputForm
+            name="block"
+            control={control}
+            label={translate("Block")}
+          />
+          <TextInputForm
+            name="lot"
+            control={control}
+            label={translate("Lot")}
+          />
         </div>
-        <TextInputForm name="address" control={control} label={translate("Address")} isTextArea />
+        <TextInputForm
+          name="address"
+          control={control}
+          label={translate("Address")}
+          isTextArea
+        />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="latitude" control={control} label={translate("Latitude")} isNumber required errors={errors} />
-          <TextInputForm name="longitude" control={control} label={translate("Longitude")} isNumber required errors={errors} />
+          <TextInputForm
+            name="latitude"
+            control={control}
+            label={translate("Latitude")}
+            isNumber
+            required
+            errors={errors}
+          />
+          <TextInputForm
+            name="longitude"
+            control={control}
+            label={translate("Longitude")}
+            isNumber
+            required
+            errors={errors}
+          />
         </div>
         <button
           type="button"
@@ -198,7 +252,9 @@ function GraveFormSheet({ editing, onClose, onSubmit, orgOptions, stateOptions, 
           className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
         >
           <Navigation className="w-4 h-4" />
-          {isLocating ? translate("Getting location...") : translate("Get Current Location")}
+          {isLocating
+            ? translate("Getting location...")
+            : translate("Get Current Location")}
         </button>
         <SelectForm
           name="organisation"
@@ -208,11 +264,26 @@ function GraveFormSheet({ editing, onClose, onSubmit, orgOptions, stateOptions, 
           options={orgOptions}
         />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="picname" control={control} label={translate("PIC Name")} />
-          <TextInputForm name="picphoneno" control={control} label={translate("PIC Phone No.")} />
+          <TextInputForm
+            name="picname"
+            control={control}
+            label={translate("PIC Name")}
+          />
+          <TextInputForm
+            name="picphoneno"
+            control={control}
+            label={translate("PIC Phone No.")}
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="totalgraves" control={control} label={translate("Total Graves")} isNumber required errors={errors} />
+          <TextInputForm
+            name="totalgraves"
+            control={control}
+            label={translate("Total Graves")}
+            isNumber
+            required
+            errors={errors}
+          />
           <SelectForm
             name="status"
             control={control}
@@ -257,8 +328,20 @@ function GraveFormSheet({ editing, onClose, onSubmit, orgOptions, stateOptions, 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function MobileManageGraves() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions("graves");
+  const {
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
+    currentUserStates,
+  } = useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("graves");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -312,7 +395,10 @@ export default function MobileManageGraves() {
       const formData = new FormData();
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
-      const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: formData });
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: formData,
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         showError(err.error || translate("Failed to upload photo"));
@@ -345,12 +431,17 @@ export default function MobileManageGraves() {
       ...formData,
       latitude: formData.latitude ? parseFloat(formData.latitude) : "",
       longitude: formData.longitude ? parseFloat(formData.longitude) : "",
-      organisation: formData.organisation ? { id: Number(formData.organisation) } : null,
+      organisation: formData.organisation
+        ? { id: Number(formData.organisation) }
+        : null,
       totalgraves: Number(formData.totalgraves) || 0,
     };
     try {
       if (editingGrave) {
-        await updateGrave.mutateAsync({ id: editingGrave.id, data: submitData });
+        await updateGrave.mutateAsync({
+          id: editingGrave.id,
+          data: submitData,
+        });
       } else {
         await createGrave.mutateAsync(submitData);
       }
@@ -368,7 +459,10 @@ export default function MobileManageGraves() {
   };
 
   const stateOptions = isSuperAdmin ? STATES_MY : currentUserStates || [];
-  const orgOptions = organisationsList.items.map((o) => ({ value: o.id, label: o.name }));
+  const orgOptions = organisationsList.items.map((o) => ({
+    value: o.id,
+    label: o.name,
+  }));
 
   if (loadingUser || permissionsLoading) return <LoadingUser />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
@@ -383,9 +477,16 @@ export default function MobileManageGraves() {
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
               ]}
-              onApplyFilter={(f) => { setAppliedSearch(f.name || ""); setPage(1); }}
+              onApplyFilter={(f) => {
+                setAppliedSearch(f.name || "");
+                setPage(1);
+              }}
             />
             {canCreate && (
               <button
@@ -413,8 +514,14 @@ export default function MobileManageGraves() {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={openEdit}
-                  onDelete={(g) => { setGraveToDelete(g); setDeleteDialogOpen(true); }}
-                  onQR={(g) => { setQRGrave({ type: "grave", id: g.id }); setQRDialogOpen(true); }}
+                  onDelete={(g) => {
+                    setGraveToDelete(g);
+                    setDeleteDialogOpen(true);
+                  }}
+                  onQR={(g) => {
+                    setQRGrave({ type: "grave", id: g.id });
+                    setQRDialogOpen(true);
+                  }}
                 />
               ))}
             </div>

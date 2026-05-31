@@ -59,6 +59,8 @@ function TahfizCard({ item, canEdit, canDelete, onEdit, onDelete }) {
       {photoSrc && (
         <img
           src={photoSrc}
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
           alt={item.name}
           className="w-full h-28 object-cover"
         />
@@ -739,6 +741,8 @@ function TahfizFormSheet({
                           {previewSrc && (
                             <img
                               src={previewSrc}
+                              referrerPolicy="no-referrer"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
                               alt="Preview"
                               className="mt-2 h-16 rounded-lg border"
                             />

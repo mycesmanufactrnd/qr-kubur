@@ -640,6 +640,8 @@ function OrgCard({
       <div className="flex gap-3 p-4">
         <img
           src={resolveFileUrl(org.photourl, "bucket-organisation")}
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
           alt={org.name}
           className="w-16 h-16 object-cover rounded-xl shrink-0 bg-slate-100 dark:bg-slate-700"
         />

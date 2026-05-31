@@ -57,7 +57,7 @@ export default function SearchGrave() {
       {isLoading ? (
         <ListCardSkeletonComponent/>
       ) : locationDenied ? (
-        <NoDataCardComponent isNoGPS />
+        <NoDataCardComponent isNoGPS isPage />
       ) : heritageSiteList.length === 0 ? (
         <NoDataCardComponent isPage/>
       ) : (

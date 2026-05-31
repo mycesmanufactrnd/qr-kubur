@@ -122,7 +122,7 @@ export default function SearchTahlil() {
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : locationDenied ? (
-        <NoDataCardComponent isNoGPS />
+        <NoDataCardComponent isNoGPS isPage/>
       ) : !visibleList.length ? (
         <NoDataCardComponent isPage />
       ) : (

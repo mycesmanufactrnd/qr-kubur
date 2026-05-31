@@ -308,6 +308,8 @@ export default function CheckServiceStatus() {
                   </p>
                   <img
                     src={resolveFileUrl(quotation.photourl, "bucket-organisation-services-proof")}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
                     alt="Service completion"
                     className="h-48 w-full rounded-xl object-cover border border-slate-100 dark:border-slate-700"
                   />

@@ -44,6 +44,8 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
       {post.photourl && (
         <img
           src={resolveFileUrl(post.photourl, "activity-post")}
+          referrerPolicy="no-referrer"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
           alt={post.title}
           className="w-full h-32 object-cover"
         />

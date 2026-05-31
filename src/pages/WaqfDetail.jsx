@@ -133,6 +133,8 @@ export default function WaqfDetail() {
         {project.photourl ? (
           <img
             src={resolveFileUrl(project.photourl, "waqf-project")}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={project.waqfname}
             className="w-full h-full object-cover"
           />

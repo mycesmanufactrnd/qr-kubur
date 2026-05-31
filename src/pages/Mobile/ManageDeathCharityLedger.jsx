@@ -60,7 +60,6 @@ function PaymentSheet({ memberId, payments, onSubmit, onClose, selectedYear }) {
   );
 }
 
-/* ────────────────────────────── YearRow ───────────────────────────── */
 function YearRow({ year, periodPayments, onAdd }) {
   const totalAmount = periodPayments.reduce(
     (sum, p) => sum + (Number(p.amount) || 0),
@@ -71,7 +70,9 @@ function YearRow({ year, periodPayments, onAdd }) {
   return (
     <div
       className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden ${
-        hasPaid ? "border border-emerald-100 dark:border-emerald-800/50" : "border border-slate-100 dark:border-slate-700"
+        hasPaid
+          ? "border border-emerald-100 dark:border-emerald-800/50"
+          : "border border-slate-100 dark:border-slate-700"
       }`}
     >
       <div className="flex items-center gap-3 px-4 py-3">
@@ -99,7 +100,9 @@ function YearRow({ year, periodPayments, onAdd }) {
               </p>
             </>
           ) : (
-            <p className="text-sm text-slate-300 dark:text-slate-600">{translate("No payment")}</p>
+            <p className="text-sm text-slate-300 dark:text-slate-600">
+              {translate("No payment")}
+            </p>
           )}
         </div>
 
@@ -138,7 +141,6 @@ function YearRow({ year, periodPayments, onAdd }) {
   );
 }
 
-/* ───────────────────────────── Page ───────────────────────────────── */
 export default function MobileManageDeathCharityLedger() {
   const [searchParams] = useSearchParams();
   const urlMemberId = searchParams.get("member")
@@ -149,8 +151,11 @@ export default function MobileManageDeathCharityLedger() {
     : null;
 
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate } =
-    useCrudPermissions("death_charity");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+  } = useCrudPermissions("death_charity");
 
   const currentYear = new Date().getFullYear();
   const [selectedDeathCharity, setSelectedDeathCharity] = useState(null);
@@ -240,7 +245,6 @@ export default function MobileManageDeathCharityLedger() {
         <BackNavigation title={translate("Death Charity Ledger")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-2.5 pt-1">
-
           <div className="space-y-2">
             <Select
               value={selectedDeathCharity?.id?.toString() || ""}
@@ -289,7 +293,6 @@ export default function MobileManageDeathCharityLedger() {
 
           {selectedMember ? (
             <>
-              {/* ── Member card ── */}
               <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm px-4 py-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
                   <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
@@ -344,7 +347,6 @@ export default function MobileManageDeathCharityLedger() {
                 </div>
               </div>
 
-              {/* ── Add Payment CTA ── */}
               {canCreate && (
                 <button
                   onClick={() => {
@@ -386,7 +388,9 @@ export default function MobileManageDeathCharityLedger() {
                     </SelectContent>
                   </Select>
 
-                  <span className="text-slate-300 dark:text-slate-600 shrink-0">—</span>
+                  <span className="text-slate-300 dark:text-slate-600 shrink-0">
+                    —
+                  </span>
 
                   <Select
                     value={endYear.toString()}
@@ -409,7 +413,6 @@ export default function MobileManageDeathCharityLedger() {
                 </div>
               </div>
 
-              {/* ── Year list ── */}
               <div className="space-y-2">
                 {columns.map((year) => (
                   <YearRow

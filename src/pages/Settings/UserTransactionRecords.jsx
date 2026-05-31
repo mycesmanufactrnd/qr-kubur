@@ -228,6 +228,8 @@ export default function UserTransactionRecords() {
               </p>
               <img
                 src={resolveFileUrl(q.photourl, "bucket-organisation-services-proof")}
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
                 alt={translate("Service completion")}
                 className="h-48 w-full rounded-xl object-cover border border-slate-100 dark:border-slate-600"
               />
