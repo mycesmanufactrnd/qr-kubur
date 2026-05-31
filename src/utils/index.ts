@@ -4,7 +4,9 @@ export function createPageUrl(pageName: string) {
 
 export function resolveFileUrl(photourl: string | null | undefined, bucket: string) {
     if (!photourl) return undefined;
-    if (/^https?:\/\//i.test(photourl)) return photourl;
+    if (/^https:\/\//i.test(photourl)) {
+        return `/api/proxy-image?url=${encodeURIComponent(photourl)}`;
+    }
     return `/api/file/${bucket}/${encodeURIComponent(photourl)}`;
 }
 
