@@ -15,7 +15,23 @@ export function parseSpreadsheet(buffer: Buffer): Record<string, any>[] {
   return XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: "" });
 }
 
-function mapRowToGrave(row: Record<string, any>, createdbyId?: number | null, organisation?: Organisation | null) {
+function safeFloat(val: any): number | null {
+  if (val == null || val === "") return null;
+  const n = parseFloat(String(val).replace(/[^\d.\-]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function safeInt(val: any, fallback = 0): number {
+  if (val == null || val === "") return fallback;
+  const n = parseInt(String(val), 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function mapRowToGrave(
+  row: Record<string, any>,
+  createdbyId?: number | null,
+  organisation?: Organisation | null,
+) {
   const statusRaw = String(row.status || "")
     .trim()
     .toLowerCase();
@@ -27,12 +43,11 @@ function mapRowToGrave(row: Record<string, any>, createdbyId?: number | null, or
     block: row.block ? String(row.block).trim() : null,
     lot: row.lot ? String(row.lot).trim() : null,
     address: row.address ? String(row.address).trim() : null,
-    latitude: row.latitude !== "" ? parseFloat(row.latitude) : null,
-    longitude: row.longitude !== "" ? parseFloat(row.longitude) : null,
+    latitude: safeFloat(row.latitude),
+    longitude: safeFloat(row.longitude),
     picname: row.picname ? String(row.picname).trim() : null,
     picphoneno: row.picphoneno ? String(row.picphoneno).trim() : null,
-    totalgraves:
-      row.totalgraves !== "" ? parseInt(String(row.totalgraves), 10) : null,
+    totalgraves: safeInt(row.totalgraves, 0),
     photourl: row.photourl ? String(row.photourl).trim() : null,
     status: validStatuses.includes(statusRaw)
       ? (statusRaw as GraveStatus)

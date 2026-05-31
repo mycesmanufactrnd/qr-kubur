@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { LocationProvider } from './providers/LocationProvider';
 import { useFCM } from './firebase/useFCM';
 import { useLoginGoogle } from './utils/auth';
+import { useNativeBackButton } from './hooks/useNativeBackButton';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -16,6 +17,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const { login } = useLoginGoogle();
+  useNativeBackButton();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
