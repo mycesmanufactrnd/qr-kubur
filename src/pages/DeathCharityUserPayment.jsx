@@ -322,7 +322,7 @@ export default function DeathCharityUserPayment() {
 
     if (statusText === "Success") {
       setLoadingPayment(true);
-      showSuccess("Pembayaran berjaya!");
+      showSuccess(translate("Payment successful!"));
 
       const storedUser =
         localStorage.getItem("googleAuth") ||
@@ -435,10 +435,10 @@ export default function DeathCharityUserPayment() {
           handleFinally();
         });
     } else if (statusText === "Pending") {
-      showError("Pembayaran masih dalam proses.");
+      showError(translate("Payment is still being processed."));
       setLoadingPayment(false);
     } else {
-      showError("Pembayaran gagal.");
+      showError(translate("Payment failed."));
       setLoadingPayment(false);
     }
   }, [searchParams]);
@@ -482,7 +482,7 @@ export default function DeathCharityUserPayment() {
         videoRef.current.play();
       }
     } catch (err) {
-      setOcrError("Cannot access camera: " + err.message);
+      setOcrError(translate("Cannot access camera") + ": " + err.message);
     }
   };
 
@@ -561,10 +561,10 @@ export default function DeathCharityUserPayment() {
         setSearchKeyword(icNumber);
         setHasSearched(true);
       } else {
-        setOcrError("No IC number found. Try retaking with better lighting.");
+        setOcrError(translate("No IC number found. Try retaking with better lighting."));
       }
     } catch {
-      setOcrError("Failed to read the photo. Please try again.");
+      setOcrError(translate("Failed to read the photo. Please try again."));
     } finally {
       setIsProcessing(false);
     }
@@ -670,7 +670,7 @@ export default function DeathCharityUserPayment() {
     setSubmitError("");
 
     if (!paymentPlatforms.length) {
-      setSubmitError("Payment method is not configured for this organisation.");
+      setSubmitError(translate("Payment method is not configured for this organisation."));
       return;
     }
 
@@ -678,13 +678,13 @@ export default function DeathCharityUserPayment() {
       !paymentMethod ||
       !paymentPlatforms.some((platform) => platform.code === paymentMethod)
     ) {
-      setSubmitError("Please select a valid payment method.");
+      setSubmitError(translate("Please select a valid payment method."));
       return;
     }
 
     if (!selectedMember && !deathCharity?.isselfregister) {
       setSubmitError(
-        "Self registration is not allowed. Please contact mosque admin to register at the mosque.",
+        translate("Self registration is not allowed. Please contact mosque admin to register at the mosque."),
       );
       return;
     }
@@ -760,7 +760,7 @@ export default function DeathCharityUserPayment() {
   const proceedToPayment = async (payload) => {
     const resPayment = await handlePaymentConfig(payload);
     if (!resPayment) {
-      showError("Payment Failed");
+      showError(translate("Payment Failed"));
       setLoadingPayment(false);
     }
   };
@@ -774,16 +774,14 @@ export default function DeathCharityUserPayment() {
   }
 
   if (!mosqueId) {
-    return (
-      <NoDataCardComponent isPage description="Missing mosque ID in URL." />
-    );
+    return <NoDataCardComponent isPage />;
   }
 
   if (!deathCharity) {
     return (
       <NoDataCardComponent
         isPage
-        description="Death charity is not available for this mosque."
+        description={translate("Death charity is not available for this mosque.")}
       />
     );
   }
@@ -793,14 +791,14 @@ export default function DeathCharityUserPayment() {
       <Link to={backUrl} className="inline-flex">
         <Button variant="ghost" className="pl-0">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Mosque
+          {translate("Back to Mosque")}
         </Button>
       </Link>
 
       <Card className="border-0 shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">
-            Death Charity Registration & Payment
+            {translate("Death Charity Registration & Payment")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -842,7 +840,7 @@ export default function DeathCharityUserPayment() {
           </div> */}
 
           <div className="space-y-2">
-            <Label>Scan your MyKad IC</Label>
+            <Label>{translate("Scan your MyKad IC")}</Label>
 
             {!showCameraMode && (
               <Button
@@ -888,7 +886,7 @@ export default function DeathCharityUserPayment() {
                 {detectedIC && (
                   <div className="rounded-lg bg-emerald-50 p-3">
                     <p className="text-xs font-medium text-emerald-600">
-                      IC Number Detected
+                      {translate("IC Number Detected")}
                     </p>
                     <p className="mt-0.5 font-mono text-xl font-bold tracking-widest text-emerald-800">
                       {detectedIC}
@@ -899,7 +897,7 @@ export default function DeathCharityUserPayment() {
                 {isProcessing && (
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
-                    Reading IC number…
+                    {translate("Reading IC number…")}
                   </div>
                 )}
 
@@ -914,7 +912,7 @@ export default function DeathCharityUserPayment() {
                       onClick={capturePhoto}
                     >
                       <Camera className="mr-2 h-3.5 w-3.5" />
-                      Capture
+                      {translate("Capture")}
                     </Button>
                   )}
                   {capturedImage && (
@@ -925,7 +923,7 @@ export default function DeathCharityUserPayment() {
                       disabled={isProcessing}
                       onClick={retakePhoto}
                     >
-                      Retake
+                      {translate("Retake")}
                     </Button>
                   )}
                   <Button
@@ -948,7 +946,7 @@ export default function DeathCharityUserPayment() {
       {hasSearched && searchingMembers && (
         <Card className="border-0 shadow-md">
           <CardContent className="py-8 text-center text-sm text-slate-600">
-            Searching member...
+            {translate("Searching member...")}
           </CardContent>
         </Card>
       )}
@@ -956,7 +954,7 @@ export default function DeathCharityUserPayment() {
       {memberResults.length > 0 && !selectedMember && (
         <Card className="border-0 shadow-md">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Search Results</CardTitle>
+            <CardTitle className="text-base">{translate("Search Results")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {memberResults.map((member) => (
@@ -993,12 +991,11 @@ export default function DeathCharityUserPayment() {
       {showNoSelfRegisterMessage && (
         <Card className="border-0 shadow-md">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Member Not Found</CardTitle>
+            <CardTitle className="text-base">{translate("Member Not Found")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-red-600">
-              Self registration is disabled. Please contact mosque admin and
-              register at the mosque.
+              {translate("Self registration is disabled. Please contact mosque admin and register at the mosque.")}
             </p>
           </CardContent>
         </Card>
@@ -1008,12 +1005,12 @@ export default function DeathCharityUserPayment() {
         <Card className="border-0 shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
-              Member Not Found, Register Here
+              {translate("Member Not Found, Register Here")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
-              <Label>Full Name</Label>
+              <Label>{translate("Full Name")}</Label>
               <Input
                 value={registrationForm.fullname}
                 onChange={(event) =>
@@ -1022,7 +1019,7 @@ export default function DeathCharityUserPayment() {
                     fullname: event.target.value,
                   }))
                 }
-                placeholder="Enter full name"
+                placeholder={translate("Enter full name")}
               />
             </div>
             <div className="space-y-2">
@@ -1035,11 +1032,11 @@ export default function DeathCharityUserPayment() {
                     icnumber: event.target.value,
                   }))
                 }
-                placeholder="Enter IC number"
+                placeholder={translate("Enter IC number")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone Number</Label>
+              <Label>{translate("Phone Number")}</Label>
               <Input
                 value={registrationForm.phone}
                 onChange={(event) =>
@@ -1048,11 +1045,11 @@ export default function DeathCharityUserPayment() {
                     phone: event.target.value,
                   }))
                 }
-                placeholder="Optional"
+                placeholder={translate("Optional")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label>{translate("Email")}</Label>
               <Input
                 value={registrationForm.email}
                 onChange={(event) =>
@@ -1061,11 +1058,11 @@ export default function DeathCharityUserPayment() {
                     email: event.target.value,
                   }))
                 }
-                placeholder="Optional"
+                placeholder={translate("Optional")}
               />
             </div>
             <div className="space-y-2">
-              <Label>Address</Label>
+              <Label>{translate("Address")}</Label>
               <Input
                 value={registrationForm.address}
                 onChange={(event) =>
@@ -1074,7 +1071,7 @@ export default function DeathCharityUserPayment() {
                     address: event.target.value,
                   }))
                 }
-                placeholder="Optional"
+                placeholder={translate("Optional")}
               />
             </div>
           </CardContent>
@@ -1086,7 +1083,7 @@ export default function DeathCharityUserPayment() {
           {selectedMember && (
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Selected Member</CardTitle>
+                <CardTitle className="text-base">{translate("Selected Member")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="rounded-lg bg-emerald-50 p-3">
@@ -1113,12 +1110,12 @@ export default function DeathCharityUserPayment() {
 
                 {loadingPayments ? (
                   <p className="text-sm text-slate-600">
-                    Loading payment history...
+                    {translate("Loading payment history...")}
                   </p>
                 ) : (
                   <>
                     <div className="rounded-lg bg-blue-50 p-3">
-                      <p className="text-xs text-blue-700">Total Paid</p>
+                      <p className="text-xs text-blue-700">{translate("Total Paid")}</p>
                       <p className="text-lg font-bold text-blue-800">
                         {formatRM(
                           payments.reduce(
@@ -1176,19 +1173,19 @@ export default function DeathCharityUserPayment() {
 
           <Card className="border-0 shadow-md">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Make Payment</CardTitle>
+              <CardTitle className="text-base">{translate("Make Payment")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Payment Plan</Label>
+                <Label>{translate("Payment Plan")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {availablePlans.map((plan) => {
                     const planLabel =
                       plan === PAYMENT_PLAN.REGISTER_ONLY
-                        ? "Register Only"
+                        ? translate("Register Only")
                         : plan === PAYMENT_PLAN.REGISTER_AND_YEARLY
-                          ? "Register + Yearly"
-                          : "Yearly Only";
+                          ? translate("Register + Yearly")
+                          : translate("Yearly Only");
 
                     const isActive = paymentPlan === plan;
 
@@ -1209,7 +1206,7 @@ export default function DeathCharityUserPayment() {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Starting Year</Label>
+                  <Label>{translate("Start Year")}</Label>
                   <Select
                     value={String(startYear)}
                     onValueChange={(value) => setStartYear(Number(value))}
@@ -1229,7 +1226,7 @@ export default function DeathCharityUserPayment() {
 
                 {createYearlyPayment && (
                   <div className="space-y-2">
-                    <Label>How Many Years</Label>
+                    <Label>{translate("How Many Years")}</Label>
                     <Input
                       type="number"
                       min={1}
@@ -1250,7 +1247,7 @@ export default function DeathCharityUserPayment() {
 
               {paymentPlatforms.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <Label>Payment Method</Label>
+                  <Label>{translate("Payment Method")}</Label>
                   <div className="rounded-lg border p-3">
                     <RadioGroup
                       value={paymentMethod}
@@ -1294,27 +1291,27 @@ export default function DeathCharityUserPayment() {
 
               {paymentPlatforms.length === 0 && (
                 <p className="text-sm text-red-600">
-                  Payment method is not configured for this organisation.
+                  {translate("Payment method is not configured for this organisation.")}
                 </p>
               )}
 
               <div className="rounded-lg bg-slate-100 p-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-600">Subtotal</p>
+                    <p className="text-sm text-slate-600">{translate("Subtotal")}</p>
                     <p className="text-sm font-medium text-slate-800">
                       {formatRM(subtotalAmount)}
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-600">Maintenance Fee</p>
+                    <p className="text-sm text-slate-600">{translate("Maintenance Fee")}</p>
                     <p className="text-sm font-medium text-slate-800">
                       {formatRM(PLATFORM_FEE)}
                     </p>
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-sm font-semibold text-slate-700">
-                      Total Payment
+                      {translate("Total Payment")}
                     </p>
                     <p className="text-xl font-bold text-slate-900">
                       {formatRM(totalAmount)}
@@ -1323,7 +1320,7 @@ export default function DeathCharityUserPayment() {
                 </div>
                 {createYearlyPayment && (
                   <p className="mt-1 text-xs text-slate-600">
-                    Coverage year: {startYear} -{" "}
+                    {translate("Coverage year")}: {startYear} -{" "}
                     {startYear + Math.max(1, Number(yearsToPay) || 1) - 1}
                   </p>
                 )}
@@ -1345,7 +1342,7 @@ export default function DeathCharityUserPayment() {
                 }
               >
                 <CreditCard className="mr-2 h-4 w-4" />
-                Proceed to Payment
+                {translate("Proceed to Payment")}
               </Button>
             </CardContent>
           </Card>
@@ -1357,11 +1354,11 @@ export default function DeathCharityUserPayment() {
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
             <span className="inline-flex items-center gap-1">
               <CalendarDays className="h-3.5 w-3.5" />
-              Keep yearly payment active
+              {translate("Keep yearly payment active")}
             </span>
             <span className="inline-flex items-center gap-1">
               <Wallet className="h-3.5 w-3.5" />
-              Fees follow mosque death charity setup
+              {translate("Fees follow mosque death charity setup")}
             </span>
           </div>
         </CardContent>
@@ -1379,10 +1376,10 @@ export default function DeathCharityUserPayment() {
             proceedToPayment(payload);
           }
         }}
-        title="Simpan No. Telefon"
-        description={`Simpan ${pendingPhone} untuk kegunaan masa hadapan?`}
-        confirmText="Simpan"
-        cancelText="Tidak"
+        title={translate("Save Phone Number")}
+        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        confirmText={translate("Save")}
+        cancelText={translate("No")}
         onConfirm={() => {
           localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
         }}

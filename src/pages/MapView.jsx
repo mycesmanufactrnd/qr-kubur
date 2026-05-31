@@ -78,12 +78,11 @@ export default function MapView() {
   const toggleCategory = (cat) => setVisible((v) => ({ ...v, [cat]: !v[cat] }));
 
   if (isLocationLoading) return <PageLoadingComponent />;
-  if (locationDenied) return <NoDataCardComponent isPage isNoGPS />;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-background">
       <BackNavigation title={translate("Map View")} />
-      <div className="relative z-[1000] flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-border">
+      <div className="relative z-[1000] flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-border bg-background dark:bg-slate-900">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => toggleCategory("mosque")}
@@ -122,10 +121,11 @@ export default function MapView() {
             value={selectedState ?? activeState ?? "all"}
             onValueChange={(v) => setSelectedState(v === "all" ? null : v)}
           >
-            <SelectTrigger className="w-36 h-7 text-xs">
-              <SelectValue placeholder="Pilih Negeri" />
+            <SelectTrigger className="w-36 h-7 text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent className="z-[2000]">
+              <SelectItem value="all">{translate("All States")}</SelectItem>
               {STATES_MY.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
@@ -143,7 +143,9 @@ export default function MapView() {
       </div>
 
       <div style={{ height: "calc(100dvh - 230px)", overflow: "hidden" }}>
-        <MapContainer
+        {locationDenied ? (
+          <NoDataCardComponent isNoGPS isPage/>
+        ) : <MapContainer
           center={center}
           zoom={DEFAULT_ZOOM}
           style={{ height: "100%", width: "100%" }}
@@ -330,7 +332,7 @@ export default function MapView() {
                 ))}
             </MarkerClusterGroup>
           )}
-        </MapContainer>
+        </MapContainer>}
       </div>
     </div>
   );

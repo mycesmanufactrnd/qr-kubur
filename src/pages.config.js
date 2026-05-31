@@ -34,11 +34,11 @@ import TahlilRequestPage from '@/pages/TahlilRequestPage';
 import SearchTahlil from '@/pages/SearchTahlil';
 import CheckTahlilStatus from '@/pages/User/CheckTahlilStatus';
 
-import SurahPage from '@/pages/SurahPage';
+import SurahPage from '@/pages/User/SurahPage';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
 import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
-import DailyDua from '@/pages/DailyDua.jsx';
+import DailyDua from '@/pages/ExtraFeatures/DailyDua.jsx';
 import AsmaulHusna from '@/pages/ExtraFeatures/Asmaulhusna.jsx';
 import Tasbih from '@/pages/ExtraFeatures/Tasbih.jsx';
 import PrayerTimes from '@/pages/ExtraFeatures/PrayerTimes.jsx';
@@ -86,7 +86,7 @@ import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
 import PaymentComparison from '@/pages/Payment/PaymentComparison.jsx';
 
 import GanttChartScheduling from '@/pages/Settings/GanttChartScheduling';
-import ViewLogs from '@/pages/ViewLogs';
+import ViewLogs from '@/pages/Settings/ViewLogs';
 import IconLibrary from '@/pages/Settings/IconLibrary';
 import Ollama from '@/pages/Settings/Ollama.jsx';
 

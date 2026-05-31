@@ -3,6 +3,7 @@ import { JitsiMeeting } from "@jitsi/react-sdk";
 import { useAdminAccess } from "@/utils/auth";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import { useSearchParams } from "react-router-dom";
+import { translate } from "@/utils/translations";
 
 export default function JitsiRoom() {
   const [searchParams] = useSearchParams();
@@ -13,7 +14,7 @@ export default function JitsiRoom() {
     return (
       <NoDataCardComponent
         isPage={true}
-        description="Tiada Sesi Live Dijumpai"
+        description={translate("No Live Session Found")}
       />
     );
   }

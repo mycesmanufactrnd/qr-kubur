@@ -22,6 +22,7 @@ import {
   Home,
   ChevronRight,
   DollarSign,
+  Landmark,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,23 +34,53 @@ import { createPageUrl } from "@/utils";
 import { cn } from "@/lib/utils";
 
 const colorMap = {
-  red: { bg: "bg-red-50", icon: "text-red-700" },
-  amber: { bg: "bg-amber-50", icon: "text-amber-700" },
-  indigo: { bg: "bg-indigo-50", icon: "text-indigo-700" },
-  purple: { bg: "bg-violet-50", icon: "text-violet-700" },
-  emerald: { bg: "bg-emerald-50", icon: "text-emerald-700" },
-  blue: { bg: "bg-blue-50", icon: "text-blue-700" },
-  green: { bg: "bg-green-50", icon: "text-green-700" },
-  pink: { bg: "bg-pink-50", icon: "text-pink-700" },
-  yellow: { bg: "bg-yellow-50", icon: "text-yellow-700" },
-  teal: { bg: "bg-teal-50", icon: "text-teal-700" },
+  red: {
+    bg: "bg-red-50 dark:bg-red-900/30",
+    icon: "text-red-700 dark:text-red-400",
+  },
+  amber: {
+    bg: "bg-amber-50 dark:bg-amber-900/30",
+    icon: "text-amber-700 dark:text-amber-400",
+  },
+  indigo: {
+    bg: "bg-indigo-50 dark:bg-indigo-900/30",
+    icon: "text-indigo-700 dark:text-indigo-400",
+  },
+  purple: {
+    bg: "bg-violet-50 dark:bg-violet-900/30",
+    icon: "text-violet-700 dark:text-violet-400",
+  },
+  emerald: {
+    bg: "bg-emerald-50 dark:bg-emerald-900/30",
+    icon: "text-emerald-700 dark:text-emerald-400",
+  },
+  blue: {
+    bg: "bg-blue-50 dark:bg-blue-900/30",
+    icon: "text-blue-700 dark:text-blue-400",
+  },
+  green: {
+    bg: "bg-green-50 dark:bg-green-900/30",
+    icon: "text-green-700 dark:text-green-400",
+  },
+  pink: {
+    bg: "bg-pink-50 dark:bg-pink-900/30",
+    icon: "text-pink-700 dark:text-pink-400",
+  },
+  yellow: {
+    bg: "bg-yellow-50 dark:bg-yellow-900/30",
+    icon: "text-yellow-700 dark:text-yellow-400",
+  },
+  teal: {
+    bg: "bg-teal-50 dark:bg-teal-900/30",
+    icon: "text-teal-700 dark:text-teal-400",
+  },
 };
 
 function NavCard({ item }) {
   const colors = colorMap[item.color] ?? colorMap.indigo;
   return (
     <Link to={createPageUrl(item.page)}>
-      <div className="group flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3.5 hover:border-gray-200 hover:bg-gray-50/60 transition-all duration-150 cursor-pointer">
+      <div className="group flex items-center gap-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl px-4 py-3.5 hover:border-gray-200 dark:hover:border-slate-600 hover:bg-gray-50/60 dark:hover:bg-slate-700/60 transition-all duration-150 cursor-pointer">
         <div
           className={cn(
             "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
@@ -59,11 +90,11 @@ function NavCard({ item }) {
           <item.icon className={cn("w-4 h-4", colors.icon)} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-800 truncate">
+          <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">
             {item.name}
           </p>
         </div>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-400 shrink-0 transition-colors" />
+        <ChevronRight className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600 group-hover:text-gray-400 dark:group-hover:text-slate-400 shrink-0 transition-colors" />
       </div>
     </Link>
   );
@@ -72,7 +103,7 @@ function NavCard({ item }) {
 function Section({ title, items }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider px-1">
+      <p className="text-[11px] font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider px-1">
         {translate(title)}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -114,7 +145,7 @@ export default function SuperadminDashboard() {
     },
     {
       value: "organisation",
-      title: translate("Organisation"),
+      title: translate("Organisation & Others"),
       sections: [
         {
           title: "Organisation",
@@ -143,10 +174,22 @@ export default function SuperadminDashboard() {
           title: "Others",
           items: [
             {
+              name: translate("Manage Graves"),
+              page: "ManageGraves",
+              icon: Landmark,
+              color: "amber",
+            },
+            {
+              name: translate("Manage Dead Person"),
+              page: "ManageDeadPersons",
+              icon: Users,
+              color: "blue",
+            },
+            {
               name: translate("Manage Tahfiz Centers"),
               page: "ManageTahfizCenters",
               icon: BookOpen,
-              color: "amber",
+              color: "emerald",
             },
             {
               name: translate("Manage Mosques"),
@@ -290,20 +333,20 @@ export default function SuperadminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
             <Shield className="w-[18px] h-[18px] text-violet-600" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-slate-100 leading-tight">
               {translate("Super Admin Dashboard")}
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-slate-500">
               {translate("System management console")}
             </p>
           </div>
         </div>
         <Link to={createPageUrl("AdminDashboard")}>
-          <Badge className="flex items-center gap-1.5 w-fit bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors cursor-pointer px-3 py-1.5">
+          <Badge className="flex items-center gap-1.5 w-fit bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-700 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors cursor-pointer px-3 py-1.5">
             <Home className="w-3 h-3" />
             {translate("To Admin Dashboard")}
           </Badge>
@@ -312,12 +355,12 @@ export default function SuperadminDashboard() {
 
       {/* Tabs */}
       <Tabs defaultValue={superadminConfig[0].value}>
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 bg-gray-100/80 rounded-xl">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 bg-gray-100/80 dark:bg-slate-800 rounded-xl">
           {superadminConfig.map((tab) => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="rounded-lg text-xs font-medium py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500"
+              className="rounded-lg text-xs font-medium py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm data-[state=active]:text-gray-900 dark:data-[state=active]:text-slate-100 text-gray-500 dark:text-slate-400"
             >
               {tab.title}
             </TabsTrigger>

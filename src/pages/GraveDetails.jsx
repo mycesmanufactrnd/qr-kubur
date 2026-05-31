@@ -1,7 +1,13 @@
 // @ts-nocheck
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { createPageUrl, resolveFileUrl } from "@/utils/index";
+import { backNavigationMap } from "@/back-navigating-pages.config";
 import {
   MapPin,
   Search,
@@ -31,7 +37,15 @@ import DonationButton from "@/components/DonationButton";
 
 export default function GraveDetails() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
+
+  const handleBack = () => {
+    const matched = Object.entries(backNavigationMap).find(
+      ([pageName]) => createPageUrl(pageName) === location.pathname,
+    );
+    navigate(matched ? matched[1] : -1, { replace: true });
+  };
   const graveId = searchParams.get("id")
     ? Number(searchParams.get("id"))
     : null;
@@ -83,13 +97,7 @@ export default function GraveDetails() {
   if (graveLoading) return <PageLoadingComponent />;
 
   if (!grave || isGraveDetailsError) {
-    return (
-      <NoDataCardComponent
-        isPage
-        title={translate("No graves found")}
-        description={translate("No information found")}
-      />
-    );
+    return <NoDataCardComponent isPage />;
   }
 
   return (
@@ -98,6 +106,8 @@ export default function GraveDetails() {
         {grave.photourl ? (
           <img
             src={resolveFileUrl(grave.photourl, "bucket-grave")}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={grave.name}
             className="w-full h-full object-cover"
           />
@@ -107,7 +117,7 @@ export default function GraveDetails() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg z-20 hover:bg-white transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-stone-700" />

@@ -56,7 +56,7 @@ export default function HeritageDetails() {
   }
 
   if (isError || !site) {
-    return <NoDataCardComponent isPage description="Site Not Found" />;
+    return <NoDataCardComponent isPage />;
   }
 
   return (
@@ -65,6 +65,8 @@ export default function HeritageDetails() {
         {site.photourl ? (
           <img
             src={resolveFileUrl(site.photourl, "heritage-site")}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={site.name}
             className="w-full h-full object-cover"
           />

@@ -224,6 +224,8 @@ export default function DeadPersonDetails() {
                                   organisation.photourl,
                                   "bucket-organisation",
                                 )}
+                                referrerPolicy="no-referrer"
+                                onError={(e) => { e.currentTarget.style.display = "none"; }}
                                 alt={organisation.name}
                                 className="w-full h-full object-cover"
                               />
