@@ -734,6 +734,8 @@ function ManageQuotationsDesktop() {
                           selectedQuotation.deadperson?.photourl,
                           "bucket-organisation-services-proof",
                         )}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt={translate("Grave photo")}
                         className="h-40 w-full rounded object-cover border"
                       />
@@ -834,6 +836,8 @@ function ManageQuotationsDesktop() {
                         selectedQuotation.photourl,
                         "bucket-organisation-services-proof",
                       )}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                       alt={translate("Completion photo")}
                       className="h-40 w-full rounded object-cover border"
                     />
@@ -946,6 +950,8 @@ function ManageQuotationsDesktop() {
                             transactionAccount.photourl,
                             "online-transaction",
                           )}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { e.currentTarget.style.display = "none"; }}
                           alt={translate("Transaction proof")}
                           className="h-36 w-full rounded object-cover border"
                         />
@@ -1024,6 +1030,8 @@ function ManageQuotationsDesktop() {
                     uploadDialogQuotation.photourl,
                     "bucket-organisation-services-proof",
                   )}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
                   alt={translate("Current photo")}
                   className="h-40 w-full rounded object-cover border"
                 />

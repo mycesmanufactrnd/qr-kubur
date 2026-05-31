@@ -1041,6 +1041,8 @@ function ManageTahlilRequestsDesktop() {
                           <div key={`${url}-${idx}`} className="relative">
                             <img
                               src={resolveFileUrl(url, "bucket-tahfiz-tahlil")}
+                              referrerPolicy="no-referrer"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
                               alt={`Tahlil ${idx + 1}`}
                               className="h-40 w-full rounded object-cover border"
                             />
@@ -1176,6 +1178,8 @@ function ManageTahlilRequestsDesktop() {
                                 transactionAccount.photourl,
                                 "online-transaction",
                               )}
+                              referrerPolicy="no-referrer"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
                               alt={translate("Transaction proof")}
                               className="h-36 w-full rounded object-cover border"
                             />

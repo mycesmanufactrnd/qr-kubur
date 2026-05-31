@@ -558,6 +558,8 @@ function ManageDonationsDesktop() {
                                 transactionAccount.photourl,
                                 "online-transaction",
                               )}
+                              referrerPolicy="no-referrer"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
                               alt={translate("Transaction proof")}
                               className="h-36 w-full rounded object-cover border"
                             />

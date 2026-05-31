@@ -407,6 +407,8 @@ function ManageMosquesDesktop() {
                     <TableCell>
                       <img
                         src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt="photo"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />

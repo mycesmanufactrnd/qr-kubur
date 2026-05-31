@@ -133,7 +133,13 @@ export default function FileUploadForm({
                   <img
                     src={displaySrc}
                     alt={translate("Preview")}
+                    referrerPolicy={
+                      !displaySrc.startsWith("blob:") && !displaySrc.startsWith("data:") && !displaySrc.startsWith("/")
+                        ? "no-referrer"
+                        : undefined
+                    }
                     className="max-h-40 rounded border shadow-sm"
+                    onError={(e) => { e.currentTarget.style.opacity = "0.3"; }}
                   />
                 </div>
               )}

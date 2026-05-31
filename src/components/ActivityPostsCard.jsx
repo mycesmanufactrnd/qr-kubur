@@ -11,6 +11,8 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
         <div className="overflow-hidden">
           <img
             src={resolveFileUrl(post.photourl, 'activity-post')}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={post.title}
             className="w-full h-40 object-cover hover:scale-105 transition-transform duration-500"
           />

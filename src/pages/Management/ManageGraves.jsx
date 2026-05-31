@@ -532,11 +532,17 @@ function ManageGravesDesktop() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <img
-                        src={resolveFileUrl(grave.photourl, "bucket-grave")}
-                        alt="photo"
-                        className="w-12 h-10 object-cover rounded mx-auto"
-                      />
+                      {grave.photourl ? (
+                        <img
+                          src={resolveFileUrl(grave.photourl, "bucket-grave")}
+                          alt="photo"
+                          referrerPolicy="no-referrer"
+                          className="w-12 h-10 object-cover rounded mx-auto"
+                          onError={(e) => { e.currentTarget.style.opacity = "0.3"; }}
+                        />
+                      ) : (
+                        <div className="w-12 h-10 rounded mx-auto bg-slate-100 dark:bg-slate-700" />
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       {canEdit && (

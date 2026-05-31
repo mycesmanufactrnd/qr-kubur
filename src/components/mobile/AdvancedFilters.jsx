@@ -106,33 +106,33 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
           open ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="bg-white rounded-t-3xl shadow-2xl max-h-[80vh] flex flex-col">
+        <div className="bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[80vh] flex flex-col">
 
           <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            <div className="w-10 h-1 bg-slate-200 dark:bg-slate-700 rounded-full" />
           </div>
 
           <div className="flex items-center justify-between px-5 py-3 shrink-0">
             <div>
-              <h3 className="text-base font-bold text-slate-800">{translate("Advanced Filter")}</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">{translate("Advanced Filter")}</h3>
               {activeCount > 0 && (
-                <p className="text-xs text-emerald-600 font-medium mt-0.5">{activeCount} {translate("active filters")}</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{activeCount} {translate("active filters")}</p>
               )}
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="w-full h-px bg-slate-100 shrink-0" />
+          <div className="w-full h-px bg-slate-100 dark:bg-slate-700 shrink-0" />
 
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
             {parameter.map((p) => (
               <div key={p.searchColumn} className="space-y-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   {translate(p.label)}
                 </label>
 
@@ -141,7 +141,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                     placeholder={translate(p.label)}
                     value={filterValues[p.searchColumn]}
                     onChange={e => handleChange(p.searchColumn, e.target.value)}
-                    className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm"
+                    className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 )}
 
@@ -150,7 +150,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                     value={filterValues[p.searchColumn]}
                     onValueChange={value => handleChange(p.searchColumn, value)}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm dark:text-slate-200">
                       <SelectValue placeholder={translate(p.label)} />
                     </SelectTrigger>
                     <SelectContent className="z-[1010]">
@@ -168,7 +168,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                     type="date"
                     value={filterValues[p.searchColumn]}
                     onChange={e => handleChange(p.searchColumn, e.target.value)}
-                    className="h-11 rounded-xl border-slate-200 bg-slate-50 text-sm"
+                    className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm dark:text-slate-200"
                   />
                 )}
 
@@ -178,14 +178,14 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                     onClick={() => handleChange(p.searchColumn, !filterValues[p.searchColumn])}
                     className={`flex items-center gap-3 w-full p-3.5 rounded-xl border text-sm font-medium transition-all ${
                       filterValues[p.searchColumn]
-                        ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
-                        : 'border-slate-200 bg-slate-50 text-slate-600'
+                        ? 'border-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400'
+                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                     }`}
                   >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                       filterValues[p.searchColumn]
                         ? 'border-emerald-500 bg-emerald-500'
-                        : 'border-slate-300'
+                        : 'border-slate-300 dark:border-slate-600'
                     }`}>
                       {filterValues[p.searchColumn] && <Check className="w-3 h-3 text-white" />}
                     </div>
@@ -200,7 +200,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
             <Button
               type="button"
               onClick={handleClear}
-              className="flex items-center justify-center gap-2 h-12 px-5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 text-sm font-semibold active:opacity-75 transition-opacity"
+              className="flex items-center justify-center gap-2 h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-semibold active:opacity-75 transition-opacity"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               {translate("Clear")}
@@ -208,7 +208,7 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
             <Button
               type="button"
               onClick={handleApply}
-              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-200 active:opacity-80 transition-all"
+              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30 active:opacity-80 transition-all"
             >
               {translate("Apply Filter")}
             </Button>

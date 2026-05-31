@@ -307,6 +307,8 @@ export default function PaymentCellDetails({ payments = [], year }) {
                                                     {resolveFileUrl(transactionAccount.photourl, "online-transaction") && (
                                                         <img
                                                             src={resolveFileUrl(transactionAccount.photourl, "online-transaction")}
+                                                            referrerPolicy="no-referrer"
+                                                            onError={(e) => { e.currentTarget.style.display = "none"; }}
                                                             alt="Transaction proof"
                                                             className="h-36 w-full rounded object-cover border"
                                                         />

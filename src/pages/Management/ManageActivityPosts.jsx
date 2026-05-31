@@ -356,6 +356,8 @@ function ManageActivityPostsDesktop() {
                     <TableCell>
                       <img
                         src={resolveFileUrl(post.photourl, "activity-post")}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt="photo"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />

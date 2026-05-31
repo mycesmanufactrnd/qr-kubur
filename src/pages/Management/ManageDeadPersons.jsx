@@ -489,6 +489,8 @@ function ManageDeadPersonsDesktop() {
                     <TableCell>
                       <img
                         src={resolveFileUrl(person.photourl, "dead-person")}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt="photo"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />
