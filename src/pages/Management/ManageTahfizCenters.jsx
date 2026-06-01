@@ -930,17 +930,17 @@ function ManageTahfizCentersDesktop() {
         )}
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <Input
                 placeholder={translate("Name")}
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
+                className="pl-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
               />
             </div>
             <Button onClick={handleSearch} className="bg-amber-600 px-6">
@@ -951,7 +951,7 @@ function ManageTahfizCentersDesktop() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {isSuperAdmin && (
               <Select value={tempState} onValueChange={setTempState}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
                   <SelectValue placeholder={translate("All States")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -971,7 +971,7 @@ function ManageTahfizCentersDesktop() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -996,7 +996,7 @@ function ManageTahfizCentersDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={4} />
+                <InlineLoadingComponent isTable colSpan={4} />
               ) : tahfizCenterList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={4} />
               ) : (
@@ -1026,7 +1026,9 @@ function ManageTahfizCentersDesktop() {
                       <img
                         src={resolveFileUrl(center.photourl, "tahfiz-center")}
                         referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                         alt="photo"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />
@@ -1101,7 +1103,7 @@ function ManageTahfizCentersDesktop() {
               }
             >
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 py-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-slate-600 py-2">
                   {translate("Tahfiz Details")}
                 </h3>
                 <TextInputForm
@@ -1292,7 +1294,7 @@ function ManageTahfizCentersDesktop() {
                 />
               </div>
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 py-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-slate-600 py-2">
                   {translate("Payment Config")}
                 </h3>
                 <div>
@@ -1360,7 +1362,7 @@ function ManageTahfizCentersDesktop() {
               </div>
               {canAddTahfizUsers && (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 py-2">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 border-b dark:border-slate-600 py-2">
                     {translate("Add User")}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -1434,7 +1436,9 @@ function ManageTahfizCentersDesktop() {
                             <TableRow
                               key={entry.id}
                               className={
-                                editingUserIndex === index ? "bg-amber-50 dark:bg-amber-900/20" : ""
+                                editingUserIndex === index
+                                  ? "bg-amber-50 dark:bg-amber-900/20"
+                                  : ""
                               }
                             >
                               <TableCell className="font-medium">

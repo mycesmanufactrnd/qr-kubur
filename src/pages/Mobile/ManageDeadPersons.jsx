@@ -16,8 +16,7 @@ import {
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
-import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import QRCodeDialog from "@/components/QRCodeDialog";
@@ -47,7 +46,9 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
           <img
             src={resolveFileUrl(person.photourl, "dead-person")}
             referrerPolicy="no-referrer"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
             alt={person.name}
             className="w-16 h-16 object-cover rounded-xl shrink-0"
           />
@@ -57,14 +58,19 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
           </div>
         )}
         <div className="flex-1 min-w-0 space-y-1">
-          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">{person.name}</p>
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
+            {person.name}
+          </p>
           {person.icnumber && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 font-mono">{person.icnumber}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+              {person.icnumber}
+            </p>
           )}
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
             {person.dateofdeath && (
               <span>
-                {translate("Died")}: {new Date(person.dateofdeath).toLocaleDateString("ms-MY")}
+                {translate("Died")}:{" "}
+                {new Date(person.dateofdeath).toLocaleDateString("ms-MY")}
               </span>
             )}
             {person.grave?.name && (
@@ -109,7 +115,15 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
 
 // ─── Form sheet ────────────────────────────────────────────────────────────────
 
-function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmitting, uploading, handleFileUpload }) {
+function PersonFormSheet({
+  editing,
+  onClose,
+  onSubmit,
+  graveOptions,
+  isSubmitting,
+  uploading,
+  handleFileUpload,
+}) {
   const {
     control,
     handleSubmit,
@@ -151,13 +165,43 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
-        <TextInputForm name="name" control={control} label={translate("Name")} required errors={errors} />
-        <TextInputForm name="icnumber" control={control} label={translate("IC No.")} required errors={errors} />
+        <TextInputForm
+          name="name"
+          control={control}
+          label={translate("Name")}
+          required
+          errors={errors}
+        />
+        <TextInputForm
+          name="icnumber"
+          control={control}
+          label={translate("IC No.")}
+          required
+          errors={errors}
+        />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="dateofbirth" control={control} label={translate("Date of Birth")} isDate required errors={errors} />
-          <TextInputForm name="dateofdeath" control={control} label={translate("Date of Death")} isDate required errors={errors} />
+          <TextInputForm
+            name="dateofbirth"
+            control={control}
+            label={translate("Date of Birth")}
+            isDate
+            required
+            errors={errors}
+          />
+          <TextInputForm
+            name="dateofdeath"
+            control={control}
+            label={translate("Date of Death")}
+            isDate
+            required
+            errors={errors}
+          />
         </div>
-        <TextInputForm name="causeofdeath" control={control} label={translate("Cause of Death")} />
+        <TextInputForm
+          name="causeofdeath"
+          control={control}
+          label={translate("Cause of Death")}
+        />
         <SelectForm
           name="grave"
           control={control}
@@ -168,8 +212,22 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
           errors={errors}
         />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="latitude" control={control} label={translate("Latitude")} isNumber required errors={errors} />
-          <TextInputForm name="longitude" control={control} label={translate("Longitude")} isNumber required errors={errors} />
+          <TextInputForm
+            name="latitude"
+            control={control}
+            label={translate("Latitude")}
+            isNumber
+            required
+            errors={errors}
+          />
+          <TextInputForm
+            name="longitude"
+            control={control}
+            label={translate("Longitude")}
+            isNumber
+            required
+            errors={errors}
+          />
         </div>
         <button
           type="button"
@@ -178,12 +236,29 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
           className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
         >
           <Navigation className="w-4 h-4" />
-          {isLocating ? translate("Getting location...") : translate("Get Current Location")}
+          {isLocating
+            ? translate("Getting location...")
+            : translate("Get Current Location")}
         </button>
-        <TextInputForm name="biography" control={control} label={translate("Biography")} isTextArea />
+        <TextInputForm
+          name="biography"
+          control={control}
+          label={translate("Biography")}
+          isTextArea
+        />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="heirname" control={control} label={translate("Nama Waris")} errors={errors} />
-          <TextInputForm name="heirphoneno" control={control} label={translate("No. Tel. Waris")} errors={errors} />
+          <TextInputForm
+            name="heirname"
+            control={control}
+            label={translate("Nama Waris")}
+            errors={errors}
+          />
+          <TextInputForm
+            name="heirphoneno"
+            control={control}
+            label={translate("No. Tel. Waris")}
+            errors={errors}
+          />
         </div>
         <FileUploadForm
           name="photourl"
@@ -213,8 +288,15 @@ function PersonFormSheet({ editing, onClose, onSubmit, graveOptions, isSubmittin
 }
 
 export default function MobileManageDeadPersons() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } = useCrudPermissions("dead_persons");
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
+    useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("dead_persons");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -248,8 +330,11 @@ export default function MobileManageDeadPersons() {
     organisationIds: accessibleOrgIds,
   });
 
-  const { gravesList } = useGetGravePaginated({ organisationIds: accessibleOrgIds });
-  const { createDeadPerson, updateDeadPerson, deleteDeadPerson } = useDeadPersonMutations();
+  const { gravesList } = useGetGravePaginated({
+    organisationIds: accessibleOrgIds,
+  });
+  const { createDeadPerson, updateDeadPerson, deleteDeadPerson } =
+    useDeadPersonMutations();
 
   useEffect(() => {
     const open = formOpen || qrDialogOpen || deleteDialogOpen;
@@ -267,7 +352,10 @@ export default function MobileManageDeadPersons() {
       const formData = new FormData();
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
-      const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: formData });
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: formData,
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         showError(err.error || translate("Failed to upload photo"));
@@ -294,7 +382,10 @@ export default function MobileManageDeadPersons() {
     };
     try {
       if (editingPerson) {
-        await updateDeadPerson.mutateAsync({ id: editingPerson.id, data: submitData });
+        await updateDeadPerson.mutateAsync({
+          id: editingPerson.id,
+          data: submitData,
+        });
       } else {
         await createDeadPerson.mutateAsync(submitData);
       }
@@ -311,9 +402,12 @@ export default function MobileManageDeadPersons() {
     });
   };
 
-  const graveOptions = gravesList.items.map((g) => ({ value: g.id, label: g.name }));
+  const graveOptions = gravesList.items.map((g) => ({
+    value: g.id,
+    label: g.name,
+  }));
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -326,13 +420,23 @@ export default function MobileManageDeadPersons() {
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
               ]}
-              onApplyFilter={(f) => { setAppliedSearch(f.name || ""); setPage(1); }}
+              onApplyFilter={(f) => {
+                setAppliedSearch(f.name || "");
+                setPage(1);
+              }}
             />
             {canCreate && (
               <button
-                onClick={() => { setEditingPerson(null); setFormOpen(true); }}
+                onClick={() => {
+                  setEditingPerson(null);
+                  setFormOpen(true);
+                }}
                 className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600 text-white active:opacity-80 shrink-0"
               >
                 <Plus className="w-5 h-5" />
@@ -340,9 +444,8 @@ export default function MobileManageDeadPersons() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : deadPersonsList.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Users className="w-12 h-12 mb-2" />
@@ -356,9 +459,18 @@ export default function MobileManageDeadPersons() {
                   person={person}
                   canEdit={canEdit}
                   canDelete={canDelete}
-                  onEdit={(p) => { setEditingPerson(p); setFormOpen(true); }}
-                  onDelete={(p) => { setPersonToDelete(p); setDeleteDialogOpen(true); }}
-                  onQR={(p) => { setQRPerson({ type: "deadperson", id: p.id }); setQRDialogOpen(true); }}
+                  onEdit={(p) => {
+                    setEditingPerson(p);
+                    setFormOpen(true);
+                  }}
+                  onDelete={(p) => {
+                    setPersonToDelete(p);
+                    setDeleteDialogOpen(true);
+                  }}
+                  onQR={(p) => {
+                    setQRPerson({ type: "deadperson", id: p.id });
+                    setQRDialogOpen(true);
+                  }}
                 />
               ))}
             </div>

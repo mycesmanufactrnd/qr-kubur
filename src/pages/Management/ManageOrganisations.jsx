@@ -1066,7 +1066,7 @@ function ManageOrganisationsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={tableColSpan} />
+                <InlineLoadingComponent isTable colSpan={tableColSpan} />
               ) : organisationsList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={tableColSpan} />
               ) : (

@@ -11,13 +11,14 @@ import {
   Save,
   DiamondPlus,
   CreditCard,
+  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import TextInputForm from "@/components/Forms/TextInputForm.jsx";
@@ -35,6 +36,7 @@ import {
 import { useGetDeathCharityByOrganisation } from "@/hooks/useDeathCharityMutations";
 import { useDeathCharityClaimMutations } from "@/hooks/useDeathCharityClaimMutations";
 import { defaultDeathCharityMemberField } from "@/utils/defaultformfields";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 function MemberCard({
   item,
@@ -85,7 +87,9 @@ function MemberCard({
         </div>
 
         {item.deathcharity?.name && (
-          <p className="text-xs text-slate-400 dark:text-slate-500">{item.deathcharity.name}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            {item.deathcharity.name}
+          </p>
         )}
 
         <div className="flex items-center gap-2 flex-wrap pt-1">
@@ -331,7 +335,9 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
           <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
             {translate("Manage Coverage")}
           </h2>
-          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{member?.fullname}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+            {member?.fullname}
+          </p>
         </div>
       </div>
 
@@ -849,7 +855,7 @@ export default function ManageDeathCharityMember() {
     }
   };
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
   if (!canView) return <AccessDeniedComponent />;
 
@@ -885,11 +891,9 @@ export default function ManageDeathCharityMember() {
         </div>
 
         {isLoading ? (
-          <InlineLoadingComponent />
+          <InlineLoadingComponent isPage />
         ) : items.length === 0 ? (
-          <div className="text-center text-slate-400 dark:text-slate-600 text-sm py-12">
-            {translate("No members found")}
-          </div>
+          <MobileEmptyList icon={Users} title={translate("No records")} />
         ) : (
           <div className="space-y-3">
             {items.map((member) => (

@@ -7,7 +7,7 @@ import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { PERMISSION_CATEGORIES } from "@/components/Permissions";
 import { translate } from "@/utils/translations";
@@ -76,7 +76,7 @@ function PermissionSheet({
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28">
         {isLoading ? (
-          <InlineLoadingComponent />
+          <InlineLoadingComponent isPage/>
         ) : (
           visibleCategories.map(([key, category]) => {
             const categorySlugs = category.permissions.map((p) => p.slug);
@@ -270,7 +270,7 @@ export default function MobileManagePermissions() {
     },
   );
 
-  if (loadingUser) return <LoadingUser />;
+  if (loadingUser) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (

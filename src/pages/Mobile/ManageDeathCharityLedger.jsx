@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { BookOpen, Plus, X, User, SlidersHorizontal } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PaymentForm from "@/components/deathcharity/PaymentForm";
 import { translate } from "@/utils/translations";
@@ -236,7 +236,7 @@ export default function MobileManageDeathCharityLedger() {
     }
   };
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (

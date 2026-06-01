@@ -71,7 +71,6 @@ import { defaultMosqueField } from "@/utils/defaultformfields";
 import { useForm } from "react-hook-form";
 import CheckboxForm from "@/components/Forms/CheckboxForm";
 
-
 export default function ManageMosques() {
   const isNarrow = useIsNarrow();
   if (isNarrow) return <MobileManageMosques />;
@@ -156,7 +155,8 @@ function ManageMosquesDesktop() {
   const { data: mosquesByOrganisation = [], isLoading: loadingOrgMosques } =
     useGetMosquesByOrganisationId(isOrgScoped ? currentOrganisationId : null);
 
-  const { organisationsList, isLoading: orgLoading } = useGetOrganisationPaginated({});
+  const { organisationsList, isLoading: orgLoading } =
+    useGetOrganisationPaginated({});
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
@@ -355,7 +355,7 @@ function ManageMosquesDesktop() {
         buttonClassName="bg-stone-600 hover:bg-stone-700"
       >
         <Select value={tempState} onValueChange={setTempState}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
             <SelectValue placeholder={translate("State")} />
           </SelectTrigger>
           <SelectContent>
@@ -408,7 +408,9 @@ function ManageMosquesDesktop() {
                       <img
                         src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
                         referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                         alt="photo"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />

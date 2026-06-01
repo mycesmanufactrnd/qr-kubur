@@ -1,20 +1,13 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  List,
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  Save,
-} from "lucide-react";
+import { List, Plus, Edit, Trash2, X, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import TextInputForm from "@/components/Forms/TextInputForm.jsx";
@@ -33,6 +26,7 @@ import {
 } from "@/hooks/useActivityPostMutations";
 import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
 import { defaultActivityPost } from "@/utils/defaultformfields";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 // ─── Post card ────────────────────────────────────────────────────────────────
 
@@ -45,7 +39,9 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
         <img
           src={resolveFileUrl(post.photourl, "activity-post")}
           referrerPolicy="no-referrer"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           alt={post.title}
           className="w-full h-32 object-cover"
         />
@@ -67,7 +63,9 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
         </div>
 
         {publisher && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{publisher}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+            {publisher}
+          </p>
         )}
 
         <div className="flex items-center gap-2 pt-1">
@@ -161,7 +159,9 @@ function PostFormSheet({
             />
             {!isMosquesLoading && mosqueOptions.length === 0 && (
               <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">
-                {translate("No mosque is registered under your organisation. You can still publish this post without one.")}
+                {translate(
+                  "No mosque is registered under your organisation. You can still publish this post without one.",
+                )}
               </p>
             )}
           </>
@@ -222,8 +222,13 @@ export default function MobileManageActivityPosts() {
     isTahfizAdmin,
     isOrganisationAdmin,
   } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("posts");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("posts");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -268,7 +273,10 @@ export default function MobileManageActivityPosts() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: fd });
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: fd,
+      });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         showError(d.error || translate("Failed to upload photo"));
@@ -322,7 +330,10 @@ export default function MobileManageActivityPosts() {
 
     try {
       if (editingPost?.id) {
-        await updatePost.mutateAsync({ id: Number(editingPost.id), data: submitData });
+        await updatePost.mutateAsync({
+          id: Number(editingPost.id),
+          data: submitData,
+        });
       } else {
         await createPost.mutateAsync(submitData);
       }
@@ -345,9 +356,12 @@ export default function MobileManageActivityPosts() {
     }
   };
 
-  const mosqueOptions = organisationMosques.map((m) => ({ value: m.id, label: m.name }));
+  const mosqueOptions = organisationMosques.map((m) => ({
+    value: m.id,
+    label: m.name,
+  }));
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -360,9 +374,16 @@ export default function MobileManageActivityPosts() {
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Title"), type: "text", searchColumn: "title" },
+                {
+                  label: translate("Title"),
+                  type: "text",
+                  searchColumn: "title",
+                },
               ]}
-              onApplyFilter={(f) => { setAppliedTitle(f.title || ""); setPage(1); }}
+              onApplyFilter={(f) => {
+                setAppliedTitle(f.title || "");
+                setPage(1);
+              }}
             />
             {canCreate && (
               <button
@@ -374,14 +395,10 @@ export default function MobileManageActivityPosts() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : activityPostsList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <List className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={List} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {activityPostsList.items.map((post) => (
@@ -391,7 +408,10 @@ export default function MobileManageActivityPosts() {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={openEdit}
-                  onDelete={(p) => { setPostToDelete(p); setDeleteDialogOpen(true); }}
+                  onDelete={(p) => {
+                    setPostToDelete(p);
+                    setDeleteDialogOpen(true);
+                  }}
                 />
               ))}
             </div>

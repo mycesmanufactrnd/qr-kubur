@@ -596,13 +596,13 @@ function ManageTahlilRequestsDesktop() {
     return (
       <div className="relative mt-2 h-28 w-full">
         {loading && !error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded border dark:border-gray-700">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-slate-800 rounded border dark:border-slate-700">
             <span className="text-xs text-gray-400">Loading...</span>
           </div>
         )}
 
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded border dark:border-gray-700">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-slate-800 rounded border dark:border-slate-700">
             <span className="text-xs text-red-400">Failed to load image</span>
           </div>
         )}
@@ -679,17 +679,17 @@ function ManageTahlilRequestsDesktop() {
         </div>
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-slate-800 dark:border-slate-700">
         <CardContent className="p-4 space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <Input
                 placeholder={translate("Reference No.")}
                 value={tempReference}
                 onChange={(e) => setTempReference(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
+                className="pl-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
               />
             </div>
             <Button
@@ -702,7 +702,7 @@ function ManageTahlilRequestsDesktop() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <Select value={tempStatus} onValueChange={setTempStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
                 <SelectValue placeholder={translate("All Status")} />
               </SelectTrigger>
               <SelectContent>
@@ -715,7 +715,7 @@ function ManageTahlilRequestsDesktop() {
             </Select>
 
             <Select value={tempService} onValueChange={setTempService}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
                 <SelectValue placeholder={translate("Service Type")} />
               </SelectTrigger>
               <SelectContent>
@@ -733,7 +733,7 @@ function ManageTahlilRequestsDesktop() {
               onValueChange={setTempTahfiz}
               disabled={!isSuperAdmin}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
                 <SelectValue placeholder={translate("Pusat Tahfiz")} />
               </SelectTrigger>
               <SelectContent>
@@ -755,7 +755,7 @@ function ManageTahlilRequestsDesktop() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <Card className="border-0 shadow-md dark:bg-slate-800 dark:border-slate-700">
         <CardContent className="p-0">
           <div className="p-2">
             <div className="flex flex-wrap gap-2">
@@ -812,7 +812,7 @@ function ManageTahlilRequestsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={7} />
+                <InlineLoadingComponent isTable colSpan={7} />
               ) : tahlilRequestList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={7} />
               ) : (
@@ -821,7 +821,7 @@ function ManageTahlilRequestsDesktop() {
                     key={request.id}
                     className={
                       selectedIds.includes(request.id)
-                        ? "bg-blue-50 dark:bg-gray-700"
+                        ? "bg-blue-50 dark:bg-slate-700"
                         : ""
                     }
                   >
@@ -927,7 +927,7 @@ function ManageTahlilRequestsDesktop() {
           setIsDialogOpen(open);
         }}
       >
-        <DialogContent className="max-w-[65vw] max-h-[85vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="max-w-[65vw] max-h-[85vh] overflow-y-auto dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
               {translate("Tahlil Details")}
@@ -949,7 +949,7 @@ function ManageTahlilRequestsDesktop() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {translate("Reference No.")}
                     </p>
-                    <p className="font-mono text-sm break-all bg-gray-50 dark:bg-gray-700 p-1.5 rounded">
+                    <p className="font-mono text-sm break-all bg-gray-50 dark:bg-slate-700 p-1.5 rounded">
                       {selectedRequest.referenceno || "-"}
                     </p>
                   </div>
@@ -1265,7 +1265,7 @@ function ManageTahlilRequestsDesktop() {
               .map((request) => (
                 <div
                   key={request.id}
-                  className="px-4 py-3 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  className="px-4 py-3 rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors"
                 >
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     Requestor: {request.requestorname}
@@ -1303,7 +1303,7 @@ function ManageTahlilRequestsDesktop() {
           setUploadDialogOpen(open);
         }}
       >
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1368,7 +1368,7 @@ function ManageTahlilRequestsDesktop() {
                     return (
                       <div
                         key={request.id}
-                        className="rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+                        className="rounded-lg border border-gray-200 p-3 dark:border-slate-700"
                       >
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {request.requestorname}

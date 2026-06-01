@@ -183,7 +183,7 @@ export default function ManageSuggestions() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={8}/>
+                <InlineLoadingComponent isTable colSpan={8}/>
               ) : suggestions.items.length === 0 ? (
                 <NoDataTableComponent colSpan={8}/>
               ) : (

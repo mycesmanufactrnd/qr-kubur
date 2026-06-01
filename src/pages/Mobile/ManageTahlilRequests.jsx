@@ -9,6 +9,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Receipt,
 } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
@@ -28,6 +29,7 @@ import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation"
 import JitsiController from "@/components/jitsi/JitsiController";
 import { useNavigate } from "react-router-dom";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
+import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 
 function StatusBadge({ status }) {
   const base = "inline-flex items-center gap-1 text-xs font-medium rounded-lg px-2 py-0.5";
@@ -907,15 +909,10 @@ export default function ManageTahlilRequests() {
             </div>
           )}
 
-          {/* List */}
           {isLoading ? (
-            <div className="py-12 flex justify-center">
-              <div className="w-6 h-6 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
-            </div>
+            <InlineLoadingComponent isPage/>
           ) : tahlilRequestList.items.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-2 text-slate-400">
-              <p className="text-sm">{translate("No requests found")}</p>
-            </div>
+            <MobileEmptyList icon={Receipt} title={translate("No records")} />
           ) : (
             tahlilRequestList.items.map((request) => (
               <RequestCard

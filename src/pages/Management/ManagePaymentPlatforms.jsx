@@ -98,11 +98,11 @@ export default function ManagePaymentPlatforms() {
 
   const getStatusBadge = (status) => (
     status === 'active' 
-      ? <Badge className="bg-green-100 text-green-700">
+      ? <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0">
           <CheckCircle className="w-3 h-3 mr-1" />
           {translate('Active')}
-        </Badge> 
-      : <Badge className="bg-gray-100 text-gray-700">
+        </Badge>
+      : <Badge className="bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 border-0">
           <XCircle className="w-3 h-3 mr-1" />
           {translate('Inactive')}
         </Badge>
@@ -128,8 +128,8 @@ export default function ManagePaymentPlatforms() {
       ]} />
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <CreditCard className="w-6 h-6 text-blue-600" />
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
+          <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           {translate('Payment Platforms')}
         </h1>
         <Button onClick={openAddDialog} className="bg-blue-600">
@@ -138,12 +138,12 @@ export default function ManagePaymentPlatforms() {
         </Button>
       </div>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder={translate('Search for Code or Name')} value={tempCodeName} onChange={(e) => setTempCodeName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="pl-10" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
+              <Input placeholder={translate('Search for Code or Name')} value={tempCodeName} onChange={(e) => setTempCodeName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="pl-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500" />
             </div>
             <Button onClick={handleSearch} className="bg-blue-600 px-6">{translate('Search')}</Button>
             <Button variant="outline" onClick={handleReset}><X className="w-4 h-4 mr-2" />{translate('Reset')}</Button>
@@ -151,7 +151,7 @@ export default function ManagePaymentPlatforms() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -211,7 +211,7 @@ export default function ManagePaymentPlatforms() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-gray-800">
+        <DialogContent className="max-w-lg dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingPlatform ? translate('Edit Platform') : translate('Add Platform')}

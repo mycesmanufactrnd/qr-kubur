@@ -14,7 +14,7 @@ import {
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import TextInputForm from "@/components/Forms/TextInputForm.jsx";
@@ -36,8 +36,6 @@ import {
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { defaultMosqueField } from "@/utils/defaultformfields";
 
-// ─── Mosque card ──────────────────────────────────────────────────────────────
-
 function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -45,7 +43,9 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
         <img
           src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
           referrerPolicy="no-referrer"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           alt={mosque.name}
           className="w-full h-32 object-cover"
         />
@@ -69,9 +69,7 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
               {mosque.picname}
             </span>
           )}
-          {mosque.picphoneno && (
-            <span>{mosque.picphoneno}</span>
-          )}
+          {mosque.picphoneno && <span>{mosque.picphoneno}</span>}
         </div>
 
         {(mosque.canarrangefuneral || mosque.hasdeathcharity) && (
@@ -113,8 +111,6 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
     </div>
   );
 }
-
-// ─── Form sheet ───────────────────────────────────────────────────────────────
 
 function MosqueFormSheet({
   editing,
@@ -198,8 +194,17 @@ function MosqueFormSheet({
           isTextArea
         />
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm name="email" control={control} label={translate("Email")} isEmail />
-          <TextInputForm name="url" control={control} label={translate("Website / URL")} />
+          <TextInputForm
+            name="email"
+            control={control}
+            label={translate("Email")}
+            isEmail
+          />
+          <TextInputForm
+            name="url"
+            control={control}
+            label={translate("Website / URL")}
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <TextInputForm
@@ -226,7 +231,9 @@ function MosqueFormSheet({
           className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
         >
           <Navigation className="w-4 h-4" />
-          {isLocating ? translate("Getting location...") : translate("Get Current Location")}
+          {isLocating
+            ? translate("Getting location...")
+            : translate("Get Current Location")}
         </button>
         <SelectForm
           name="organisation"
@@ -252,8 +259,16 @@ function MosqueFormSheet({
           />
         </div>
         <div className="space-y-2">
-          <CheckboxForm name="canarrangefuneral" control={control} label={translate("Can Arrange Funeral")} />
-          <CheckboxForm name="hasdeathcharity" control={control} label={translate("Has Death Charity")} />
+          <CheckboxForm
+            name="canarrangefuneral"
+            control={control}
+            label={translate("Can Arrange Funeral")}
+          />
+          <CheckboxForm
+            name="hasdeathcharity"
+            control={control}
+            label={translate("Has Death Charity")}
+          />
         </div>
         <FileUploadForm
           name="photourl"
@@ -281,8 +296,6 @@ function MosqueFormSheet({
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
-
 export default function MobileManageMosques() {
   const {
     currentUser,
@@ -291,8 +304,13 @@ export default function MobileManageMosques() {
     isSuperAdmin,
     currentUserStates,
   } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("mosques");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("mosques");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -320,18 +338,19 @@ export default function MobileManageMosques() {
   const { data: mosquesByOrganisation = [], isLoading: loadingOrgMosques } =
     useGetMosquesByOrganisationId(isOrgScoped ? currentOrganisationId : null);
 
-  const { organisationsList, isLoading: orgLoading } = useGetOrganisationPaginated({});
+  const { organisationsList, isLoading: orgLoading } =
+    useGetOrganisationPaginated({});
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
-  // Client-side filter + pagination for org-scoped users
   const normalizedSearch = appliedName.trim().toLowerCase();
   const filteredOrgMosques = isOrgScoped
     ? (mosquesByOrganisation || []).filter((m) => {
         const matchesName = normalizedSearch
           ? (m?.name || "").toLowerCase().includes(normalizedSearch)
           : true;
-        const matchesState = appliedState === "all" ? true : m?.state === appliedState;
+        const matchesState =
+          appliedState === "all" ? true : m?.state === appliedState;
         return matchesName && matchesState;
       })
     : [];
@@ -340,7 +359,9 @@ export default function MobileManageMosques() {
     ? Math.max(1, Math.ceil(filteredOrgMosques.length / itemsPerPage))
     : totalPages;
 
-  const effectiveTotalItems = isOrgScoped ? filteredOrgMosques.length : mosquesList.total;
+  const effectiveTotalItems = isOrgScoped
+    ? filteredOrgMosques.length
+    : mosquesList.total;
 
   const pagedOrgMosques = isOrgScoped
     ? filteredOrgMosques.slice((page - 1) * itemsPerPage, page * itemsPerPage)
@@ -365,7 +386,10 @@ export default function MobileManageMosques() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, { method: "POST", body: fd });
+      const res = await fetch(`/api/upload/${bucketName}`, {
+        method: "POST",
+        body: fd,
+      });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         showError(d.error || translate("Failed to upload photo"));
@@ -428,7 +452,8 @@ export default function MobileManageMosques() {
     label: o.name,
   }));
 
-  if (loadingUser || permissionsLoading || orgLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading || orgLoading)
+    return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -437,12 +462,24 @@ export default function MobileManageMosques() {
         <BackNavigation title={translate("Manage Mosques")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter + Add */}
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
-                ...(isSuperAdmin ? [{ label: translate("State"), type: "select", searchColumn: "state", options: STATES_MY.map(s => ({ id: s, name: s })) }] : []),
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
+                ...(isSuperAdmin
+                  ? [
+                      {
+                        label: translate("State"),
+                        type: "select",
+                        searchColumn: "state",
+                        options: STATES_MY.map((s) => ({ id: s, name: s })),
+                      },
+                    ]
+                  : []),
               ]}
               onApplyFilter={(f) => {
                 setAppliedName(f.name || "");
@@ -460,9 +497,8 @@ export default function MobileManageMosques() {
             )}
           </div>
 
-          {/* Card list */}
           {listLoading ? (
-            <InlineLoadingComponent />
+            <PageLoadingComponent />
           ) : listItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Landmark className="w-12 h-12 mb-2" />
@@ -477,7 +513,10 @@ export default function MobileManageMosques() {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={openEdit}
-                  onDelete={(m) => { setMosqueToDelete(m); setDeleteDialogOpen(true); }}
+                  onDelete={(m) => {
+                    setMosqueToDelete(m);
+                    setDeleteDialogOpen(true);
+                  }}
                 />
               ))}
             </div>

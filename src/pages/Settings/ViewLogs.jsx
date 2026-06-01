@@ -166,7 +166,7 @@ export default function ViewLogs() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={6} />
+                <InlineLoadingComponent isTable colSpan={6} />
               ) : logs.items.length === 0 ? (
                 <NoDataTableComponent colSpan={6} />
               ) : (

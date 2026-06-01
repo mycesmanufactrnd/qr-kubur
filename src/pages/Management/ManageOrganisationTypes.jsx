@@ -164,7 +164,7 @@ export default function ManageOrganisationTypes() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={4}/>
+                <InlineLoadingComponent isTable colSpan={4}/>
               ) : organisationTypeList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={4}/>
               ) : (

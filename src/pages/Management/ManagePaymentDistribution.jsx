@@ -199,7 +199,7 @@ export default function ManagePaymentDistribution() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={9} />
+                <InlineLoadingComponent isTable colSpan={9} />
               ) : paymentDistributionList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={9} />
               ) : (

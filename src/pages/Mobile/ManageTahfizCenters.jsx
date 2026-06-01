@@ -1,20 +1,12 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  BookOpen,
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  Save,
-  MapPin,
-} from "lucide-react";
+import { BookOpen, Plus, Edit, Trash2, X, Save, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import TextInputForm from "@/components/Forms/TextInputForm.jsx";
@@ -40,6 +32,7 @@ import {
   useUpsertConfigByEntity,
 } from "@/hooks/usePaymentConfigMutations";
 import { defaultTahfizField } from "@/utils/defaultformfields";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 const DEFAULT_USER_PASSWORD = "password";
 
@@ -60,7 +53,9 @@ function TahfizCard({ item, canEdit, canDelete, onEdit, onDelete }) {
         <img
           src={photoSrc}
           referrerPolicy="no-referrer"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           alt={item.name}
           className="w-full h-28 object-cover"
         />
@@ -77,9 +72,7 @@ function TahfizCard({ item, canEdit, canDelete, onEdit, onDelete }) {
           )}
         </div>
 
-        {item.phone && (
-          <p className="text-xs text-slate-500">{item.phone}</p>
-        )}
+        {item.phone && <p className="text-xs text-slate-500">{item.phone}</p>}
 
         {item.serviceoffered?.length > 0 && (
           <div className="flex flex-wrap gap-1">
@@ -155,8 +148,7 @@ function TahfizFormSheet({
           ...editing,
           latitude: editing.latitude?.toString() || "",
           longitude: editing.longitude?.toString() || "",
-          parentorganisation:
-            editing.parentorganisation?.id?.toString() || "",
+          parentorganisation: editing.parentorganisation?.id?.toString() || "",
           user_fullname: "",
           user_username: "",
           user_phoneno: "",
@@ -251,7 +243,10 @@ function TahfizFormSheet({
           values[`${platformCode}_${fieldKey}`] = configValue;
           if (fieldType === "image") {
             try {
-              const fileUrl = resolveFileUrl(configValue, "bucket-tahfiz-config");
+              const fileUrl = resolveFileUrl(
+                configValue,
+                "bucket-tahfiz-config",
+              );
               if (fileUrl) previews[`${platformCode}_${fieldKey}`] = fileUrl;
             } catch {}
           }
@@ -286,20 +281,32 @@ function TahfizFormSheet({
       seen.add(service.toLowerCase());
       normalized.push({
         service,
-        price: entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
       });
     }
-    setValue("serviceoffered", normalized.map((i) => i.service));
+    setValue(
+      "serviceoffered",
+      normalized.map((i) => i.service),
+    );
     setValue(
       "serviceprice",
-      Object.fromEntries(normalized.map((i) => [i.service, Number(i.price) || 0])),
+      Object.fromEntries(
+        normalized.map((i) => [i.service, Number(i.price) || 0]),
+      ),
     );
   };
 
   const addServiceEntry = () => {
     const next = [
       ...serviceEntries,
-      { id: `${Date.now()}-${Math.random()}`, service: "", price: "", isactive: true, isDefault: false },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        service: "",
+        price: "",
+        isactive: true,
+        isDefault: false,
+      },
     ];
     setServiceEntries(next);
     syncServiceDraftToForm(next);
@@ -345,7 +352,9 @@ function TahfizFormSheet({
     if (editingUserIndex !== null) {
       setUserEntries((prev) =>
         prev.map((e, i) =>
-          i === editingUserIndex ? { ...e, fullname, username, phoneno, role } : e,
+          i === editingUserIndex
+            ? { ...e, fullname, username, phoneno, role }
+            : e,
         ),
       );
       resetUserFields();
@@ -354,7 +363,13 @@ function TahfizFormSheet({
 
     setUserEntries((prev) => [
       ...prev,
-      { id: `${Date.now()}-${Math.random()}`, fullname, username, phoneno, role },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        fullname,
+        username,
+        phoneno,
+        role,
+      },
     ]);
     resetUserFields();
   };
@@ -382,7 +397,10 @@ function TahfizFormSheet({
         return;
       }
       const data = await res.json();
-      setPaymentConfigValues((prev) => ({ ...prev, [uploadKey]: data.file_url }));
+      setPaymentConfigValues((prev) => ({
+        ...prev,
+        [uploadKey]: data.file_url,
+      }));
       setPaymentPreviewUrls((prev) => ({
         ...prev,
         [uploadKey]: URL.createObjectURL(file),
@@ -430,8 +448,11 @@ function TahfizFormSheet({
         const value = paymentConfigValues[`${platformCode}_${field.key}`];
         if (!value || value.trim() === "") {
           const platformName =
-            paymentPlatforms.find((p) => p?.code === platformCode)?.name || "platform";
-          showError(`${field.label || field.key} is required for ${platformName}`);
+            paymentPlatforms.find((p) => p?.code === platformCode)?.name ||
+            "platform";
+          showError(
+            `${field.label || field.key} is required for ${platformName}`,
+          );
           return false;
         }
       }
@@ -678,7 +699,10 @@ function TahfizFormSheet({
                       {platform.name}
                     </span>
                     {platform.category && (
-                      <Badge variant="secondary" className="text-xs capitalize ml-auto">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs capitalize ml-auto"
+                      >
                         {platform.category}
                       </Badge>
                     )}
@@ -742,7 +766,9 @@ function TahfizFormSheet({
                             <img
                               src={previewSrc}
                               referrerPolicy="no-referrer"
-                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
                               alt="Preview"
                               className="mt-2 h-16 rounded-lg border"
                             />
@@ -760,7 +786,9 @@ function TahfizFormSheet({
                           )}
                         </label>
                         <input
-                          type={field.fieldtype === "password" ? "password" : "text"}
+                          type={
+                            field.fieldtype === "password" ? "password" : "text"
+                          }
                           className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 bg-white dark:bg-slate-800 dark:text-slate-200"
                           value={value}
                           placeholder={field.placeholder}
@@ -951,7 +979,13 @@ export default function ManageTahfizCenters() {
 
   const handleFormSubmit = async (
     formData,
-    { serviceEntries, userEntries, selectedPaymentPlatforms, paymentConfigValues, paymentFields },
+    {
+      serviceEntries,
+      userEntries,
+      selectedPaymentPlatforms,
+      paymentConfigValues,
+      paymentFields,
+    },
   ) => {
     const normalizedServices = [];
     const seen = new Set();
@@ -961,7 +995,8 @@ export default function ManageTahfizCenters() {
       seen.add(service.toLowerCase());
       normalizedServices.push({
         service,
-        price: entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
+        price:
+          entry.price === "" ? 0 : parseFloat(Number(entry.price).toFixed(2)),
         isactive: entry.isactive !== false,
       });
     }
@@ -1005,8 +1040,7 @@ export default function ManageTahfizCenters() {
 
       const shouldUpsertPaymentConfig =
         tahfizCenterId &&
-        (isSuperAdmin ||
-          currentUser?.tahfizcenter?.id === tahfizCenterId) &&
+        (isSuperAdmin || currentUser?.tahfizcenter?.id === tahfizCenterId) &&
         selectedPaymentPlatforms.length > 0;
 
       if (shouldUpsertPaymentConfig) {
@@ -1016,8 +1050,7 @@ export default function ManageTahfizCenters() {
           );
           return fields
             .map((field) => {
-              const value =
-                paymentConfigValues[`${platformCode}_${field.key}`];
+              const value = paymentConfigValues[`${platformCode}_${field.key}`];
               if (value)
                 return {
                   paymentPlatformId: field.platformId,
@@ -1092,7 +1125,7 @@ export default function ManageTahfizCenters() {
     }
   };
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!isTahfizAdmin && !isSuperAdmin) return <AccessDeniedComponent />;
   if (!canView) return <AccessDeniedComponent />;
 
@@ -1108,8 +1141,21 @@ export default function ManageTahfizCenters() {
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
-                ...(isSuperAdmin ? [{ label: translate("State"), type: "select", searchColumn: "state", options: STATES_MY.map(s => ({ id: s, name: s })) }] : []),
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
+                ...(isSuperAdmin
+                  ? [
+                      {
+                        label: translate("State"),
+                        type: "select",
+                        searchColumn: "state",
+                        options: STATES_MY.map((s) => ({ id: s, name: s })),
+                      },
+                    ]
+                  : []),
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.name || "");
@@ -1127,14 +1173,10 @@ export default function ManageTahfizCenters() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <BookOpen className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={BookOpen} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {items.map((center) => (

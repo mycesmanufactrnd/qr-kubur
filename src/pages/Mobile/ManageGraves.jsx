@@ -15,8 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
-import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import QRCodeDialog from "@/components/QRCodeDialog";
@@ -36,6 +35,7 @@ import {
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { trpc } from "@/utils/trpc";
 import { defaultGraveField } from "@/utils/defaultformfields";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 function GraveStatusBadge({ status }) {
   const map = {
@@ -65,7 +65,9 @@ function GraveCard({ grave, canEdit, canDelete, onEdit, onDelete, onQR }) {
           alt={grave.name}
           referrerPolicy="no-referrer"
           className="w-full h-32 object-cover"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
         />
       )}
       <div className="p-4 space-y-2">
@@ -464,7 +466,7 @@ export default function MobileManageGraves() {
     label: o.name,
   }));
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -473,7 +475,6 @@ export default function MobileManageGraves() {
         <BackNavigation title={translate("Manage Graves")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter + Add */}
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
@@ -499,12 +500,9 @@ export default function MobileManageGraves() {
           </div>
 
           {isLoading ? (
-            <InlineLoadingComponent />
+            <PageLoadingComponent />
           ) : gravesList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <MapPin className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={MapPin} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {gravesList.items.map((grave) => (

@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { translate } from "@/utils/translations";
@@ -223,7 +223,7 @@ function ManageDonationsDesktop() {
   };
 
   if (loadingUser || permissionsLoading) {
-    return <LoadingUser />;
+    return <PageLoadingComponent />;
   }
 
   if (!hasAdminAccess) {
@@ -343,7 +343,7 @@ function ManageDonationsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable={true} colSpan={6} />
+                <InlineLoadingComponent isTable colSpan={6} />
               ) : donationList.items.length === 0 ? (
                 <NoDataTableComponent colSpan={6} />
               ) : (

@@ -42,7 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SearchBar from "@/components/Forms/SearchBar";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { translate } from "@/utils/translations";
@@ -397,7 +397,7 @@ function ManageQuotationsDesktop() {
     }
   };
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   if (!canView) {

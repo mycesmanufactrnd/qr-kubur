@@ -257,7 +257,7 @@ export default function OrganisationQuickRegister() {
         const previewSrc = paymentPreviewUrls[fieldId] || value;
         return (
           <div>
-            <Label>
+            <Label className="dark:text-slate-200">
               {field.label || field.key}{" "}
               {field.required && <span className="text-red-500">*</span>}
             </Label>
@@ -276,6 +276,7 @@ export default function OrganisationQuickRegister() {
                   );
                 }}
                 disabled={isUploading}
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200"
               />
               {isUploading && (
                 <span className="text-sm text-gray-500 dark:text-slate-400">
@@ -287,7 +288,7 @@ export default function OrganisationQuickRegister() {
               <img
                 src={previewSrc}
                 alt="Preview"
-                className="mt-2 h-20 rounded border"
+                className="mt-2 h-20 rounded border dark:border-slate-600"
               />
             )}
           </div>
@@ -296,7 +297,7 @@ export default function OrganisationQuickRegister() {
       case "textarea":
         return (
           <div>
-            <Label htmlFor={fieldId}>
+            <Label htmlFor={fieldId} className="dark:text-slate-200">
               {field.label || field.key}{" "}
               {field.required && <span className="text-red-500">*</span>}
             </Label>
@@ -310,6 +311,7 @@ export default function OrganisationQuickRegister() {
                 }))
               }
               placeholder={field.placeholder}
+              className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:placeholder:text-slate-500"
             />
           </div>
         );
@@ -319,7 +321,7 @@ export default function OrganisationQuickRegister() {
       default:
         return (
           <div>
-            <Label htmlFor={fieldId}>
+            <Label htmlFor={fieldId} className="dark:text-slate-200">
               {field.label || field.key}{" "}
               {field.required && <span className="text-red-500">*</span>}
             </Label>
@@ -334,6 +336,7 @@ export default function OrganisationQuickRegister() {
                 }))
               }
               placeholder={field.placeholder}
+              className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:placeholder:text-slate-500"
             />
           </div>
         );
@@ -394,11 +397,11 @@ export default function OrganisationQuickRegister() {
   };
 
   return (
-    <div className="min-h-screen pb-10 bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen pb-10">
       <BackNavigation title={translate("Organisation Register")} />
 
       <div className="px-2 max-w-3xl mx-auto space-y-4">
-        <Card className="border-0 shadow-md m-0">
+        <Card className="border-0 shadow-md m-0 dark:bg-slate-800">
           <CardContent className="p-4 space-y-1">
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {translate(
@@ -429,7 +432,7 @@ export default function OrganisationQuickRegister() {
           </Card>
         )}
 
-        <Card className="border-0 shadow-none">
+        <Card className="border-0 shadow-none dark:bg-slate-800">
           <CardContent className="p-4">
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <TextInputForm
@@ -577,6 +580,7 @@ export default function OrganisationQuickRegister() {
                                 e.target.value,
                               )
                             }
+                            className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:placeholder:text-slate-500"
                           />
                         </div>
 
@@ -596,6 +600,7 @@ export default function OrganisationQuickRegister() {
                                 e.target.value,
                               )
                             }
+                            className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:placeholder:text-slate-500"
                           />
                         </div>
 
@@ -621,7 +626,7 @@ export default function OrganisationQuickRegister() {
                   {translate("Payment Config")}
                 </h3>
                 <div>
-                  <Label className="text-base font-semibold mb-3 block">
+                  <Label className="text-base font-semibold mb-3 block dark:text-slate-200">
                     {translate("Select Payment Platforms")}
                   </Label>
                   <div className="grid gap-3">
@@ -669,7 +674,7 @@ export default function OrganisationQuickRegister() {
                       key={platformCode}
                       className="border dark:border-slate-700 rounded-lg p-4 bg-gray-50 dark:bg-slate-800"
                     >
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
+                      <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-slate-200">
                         {platform.name} {translate("config")}
                       </h3>
                       <div className="space-y-4">
@@ -745,7 +750,7 @@ export default function OrganisationQuickRegister() {
           open={agreementOpen}
           onOpenChange={(open) => (!open ? handleAgreementClose() : null)}
         >
-          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[80vh] overflow-y-auto dark:bg-slate-800">
             <DialogHeader>
               <DialogTitle>{translate("Service Agreement")}</DialogTitle>
             </DialogHeader>
@@ -794,6 +799,7 @@ function ControllerInput({ name, control, placeholder }) {
           value={field.value ?? ""}
           onChange={(e) => field.onChange(e.target.value)}
           placeholder={placeholder}
+          className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:placeholder:text-slate-500"
         />
       )}
     />

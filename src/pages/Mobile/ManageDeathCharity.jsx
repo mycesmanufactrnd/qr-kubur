@@ -1,19 +1,12 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Heart,
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  Save,
-} from "lucide-react";
+import { Heart, Plus, Edit, Trash2, X, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import TextInputForm from "@/components/Forms/TextInputForm.jsx";
@@ -32,6 +25,7 @@ import {
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
 import { defaultDeathCharityField } from "@/utils/defaultformfields";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
   return (
@@ -64,15 +58,28 @@ function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
         </div>
 
         {item.contactperson && (
-          <p className="text-xs text-slate-400 dark:text-slate-500">{item.contactperson} {item.contactphone ? `· ${item.contactphone}` : ""}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            {item.contactperson}{" "}
+            {item.contactphone ? `· ${item.contactphone}` : ""}
+          </p>
         )}
 
         <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
           {item.registrationfee != null && (
-            <span>{translate("Reg Fee")}: <span className="font-medium text-slate-700 dark:text-slate-300">{formatRM(Number(item.registrationfee))}</span></span>
+            <span>
+              {translate("Reg Fee")}:{" "}
+              <span className="font-medium text-slate-700 dark:text-slate-300">
+                {formatRM(Number(item.registrationfee))}
+              </span>
+            </span>
           )}
           {item.deathbenefitamount != null && (
-            <span>{translate("Benefit")}: <span className="font-medium text-emerald-700 dark:text-emerald-400">{formatRM(Number(item.deathbenefitamount))}</span></span>
+            <span>
+              {translate("Benefit")}:{" "}
+              <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                {formatRM(Number(item.deathbenefitamount))}
+              </span>
+            </span>
           )}
         </div>
 
@@ -100,7 +107,6 @@ function DeathCharityCard({ item, canEdit, canDelete, onEdit, onDelete }) {
     </div>
   );
 }
-
 
 function FormSection({ title, children }) {
   return (
@@ -157,7 +163,9 @@ function DeathCharityFormSheet({
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          {editing ? translate("Edit Death Charity") : translate("Add Death Charity")}
+          {editing
+            ? translate("Edit Death Charity")
+            : translate("Add Death Charity")}
         </h2>
       </div>
 
@@ -259,8 +267,16 @@ function DeathCharityFormSheet({
 
         <FormSection title={translate("Coverage Details")}>
           <div className="grid grid-cols-2 gap-3">
-            <CheckboxForm name="coversspouse" control={control} label={translate("Covers Spouse")} />
-            <CheckboxForm name="coverschildren" control={control} label={translate("Covers Children")} />
+            <CheckboxForm
+              name="coversspouse"
+              control={control}
+              label={translate("Covers Spouse")}
+            />
+            <CheckboxForm
+              name="coverschildren"
+              control={control}
+              label={translate("Covers Children")}
+            />
           </div>
           <TextInputForm
             name="maxdependents"
@@ -278,7 +294,11 @@ function DeathCharityFormSheet({
         </FormSection>
 
         <FormSection title={translate("Status")}>
-          <CheckboxForm name="isactive" control={control} label={translate("Active")} />
+          <CheckboxForm
+            name="isactive"
+            control={control}
+            label={translate("Active")}
+          />
         </FormSection>
       </div>
 
@@ -302,8 +322,13 @@ function DeathCharityFormSheet({
 export default function MobileManageDeathCharity() {
   const { loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } =
     useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("death_charity");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("death_charity");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -317,12 +342,13 @@ export default function MobileManageDeathCharity() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  const { deathCharityList, totalPages, isLoading } = useGetDeathCharityPaginated({
-    page,
-    pageSize: itemsPerPage,
-    filterName: appliedName,
-    filterState: appliedState === "all" ? undefined : appliedState,
-  });
+  const { deathCharityList, totalPages, isLoading } =
+    useGetDeathCharityPaginated({
+      page,
+      pageSize: itemsPerPage,
+      filterName: appliedName,
+      filterState: appliedState === "all" ? undefined : appliedState,
+    });
 
   const { organisationsList } = useGetOrganisationPaginated({});
   const { createDeathCharity, updateDeathCharity, deleteDeathCharity } =
@@ -363,7 +389,10 @@ export default function MobileManageDeathCharity() {
     };
     try {
       if (editingItem) {
-        await updateDeathCharity.mutateAsync({ id: editingItem.id, data: submitData });
+        await updateDeathCharity.mutateAsync({
+          id: editingItem.id,
+          data: submitData,
+        });
       } else {
         await createDeathCharity.mutateAsync(submitData);
       }
@@ -391,7 +420,7 @@ export default function MobileManageDeathCharity() {
     label: o.name,
   }));
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -404,8 +433,21 @@ export default function MobileManageDeathCharity() {
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Name"), type: "text", searchColumn: "name" },
-                ...(isSuperAdmin ? [{ label: translate("State"), type: "select", searchColumn: "state", options: STATES_MY.map(s => ({ id: s, name: s })) }] : []),
+                {
+                  label: translate("Name"),
+                  type: "text",
+                  searchColumn: "name",
+                },
+                ...(isSuperAdmin
+                  ? [
+                      {
+                        label: translate("State"),
+                        type: "select",
+                        searchColumn: "state",
+                        options: STATES_MY.map((s) => ({ id: s, name: s })),
+                      },
+                    ]
+                  : []),
               ]}
               onApplyFilter={(f) => {
                 setAppliedName(f.name || "");
@@ -423,14 +465,10 @@ export default function MobileManageDeathCharity() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : deathCharityList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <Heart className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={Heart} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {deathCharityList.items.map((item) => (
@@ -440,7 +478,10 @@ export default function MobileManageDeathCharity() {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={openEdit}
-                  onDelete={(i) => { setItemToDelete(i); setDeleteDialogOpen(true); }}
+                  onDelete={(i) => {
+                    setItemToDelete(i);
+                    setDeleteDialogOpen(true);
+                  }}
                 />
               ))}
             </div>

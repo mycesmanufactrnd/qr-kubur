@@ -13,16 +13,20 @@ import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { translate } from "@/utils/translations";
 import { resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
-import { useGetDonationPaginated, useUpdateDonation } from "@/hooks/useDonationMutations";
+import {
+  useGetDonationPaginated,
+  useUpdateDonation,
+} from "@/hooks/useDonationMutations";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
 import { VerificationStatus } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 function StatusBadge({ status }) {
   switch (status) {
@@ -48,22 +52,32 @@ function StatusBadge({ status }) {
         </Badge>
       );
     default:
-      return <Badge variant="secondary" className="text-xs">{status}</Badge>;
+      return (
+        <Badge variant="secondary" className="text-xs">
+          {status}
+        </Badge>
+      );
   }
 }
 
 function TransactionStatusBadge({ status }) {
   const map = {
-    Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+    Pending:
+      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
     Paid: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
     Held: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    "Transfer Pending": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    Transferred: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    "Transfer Pending":
+      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    Transferred:
+      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
     Failed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    Refunded: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
+    Refunded:
+      "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
   };
   return (
-    <Badge className={`${map[status] ?? "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400"} border-0 text-xs`}>
+    <Badge
+      className={`${map[status] ?? "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400"} border-0 text-xs`}
+    >
       {translate(status || "-")}
     </Badge>
   );
@@ -121,7 +135,9 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
     let isActive = true;
     if (!donation?.referenceno) {
       setTransactionAccount(null);
-      return () => { isActive = false; };
+      return () => {
+        isActive = false;
+      };
     }
     refetchOnlineTransaction().then((res) => {
       if (!isActive) return;
@@ -136,7 +152,9 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
       });
       setTransactionAccount(accounts[0] ?? null);
     });
-    return () => { isActive = false; };
+    return () => {
+      isActive = false;
+    };
   }, [donation, refetchOnlineTransaction, onlineTransaction]);
 
   if (!donation) return null;
@@ -180,12 +198,19 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-32">
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2 text-sm">
           <div className="flex justify-between gap-2 items-center">
-            <span className="text-slate-500 dark:text-slate-400 shrink-0">{translate("Amount")}</span>
+            <span className="text-slate-500 dark:text-slate-400 shrink-0">
+              {translate("Amount")}
+            </span>
             <span className="font-bold text-emerald-700 dark:text-emerald-400 text-base">
               {formatRM(Number(donation.amount) || 0)}
             </span>
           </div>
-          <Row label={translate("Recipient")} value={donation.organisation?.name ?? donation.tahfizcenter?.name ?? "-"} />
+          <Row
+            label={translate("Recipient")}
+            value={
+              donation.organisation?.name ?? donation.tahfizcenter?.name ?? "-"
+            }
+          />
           {donation.donoremail && (
             <Row label={translate("Email")} value={donation.donoremail} />
           )}
@@ -200,8 +225,12 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
           )}
           {donation.referenceno && (
             <div className="flex justify-between gap-2">
-              <span className="text-slate-500 dark:text-slate-400 shrink-0">{translate("Reference No.")}</span>
-              <span className="text-slate-800 dark:text-slate-200 text-right break-all font-mono text-xs">{donation.referenceno}</span>
+              <span className="text-slate-500 dark:text-slate-400 shrink-0">
+                {translate("Reference No.")}
+              </span>
+              <span className="text-slate-800 dark:text-slate-200 text-right break-all font-mono text-xs">
+                {donation.referenceno}
+              </span>
             </div>
           )}
         </div>
@@ -211,32 +240,58 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
             {translate("Platform Transfer Status")}
           </p>
           {onlineTransactionLoading ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500">{translate("Loading...")}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {translate("Loading...")}
+            </p>
           ) : !transactionAccount ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500">{translate("No online transaction account found")}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {translate("No online transaction account found")}
+            </p>
           ) : (
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2.5 text-sm">
               <div className="flex justify-between gap-2 items-center">
-                <span className="text-slate-500 dark:text-slate-400">{translate("Status")}</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {translate("Status")}
+                </span>
                 <TransactionStatusBadge status={transactionAccount.status} />
               </div>
-              <Row label={translate("Bank Name")} value={transactionAccount.bankname || "-"} />
-              <Row label={translate("Account No")} value={transactionAccount.accountno || "-"} />
+              <Row
+                label={translate("Bank Name")}
+                value={transactionAccount.bankname || "-"}
+              />
+              <Row
+                label={translate("Account No")}
+                value={transactionAccount.accountno || "-"}
+              />
               {transactionAccount.referencetransferno && (
-                <Row label={translate("Reference Transfer No")} value={transactionAccount.referencetransferno} />
+                <Row
+                  label={translate("Reference Transfer No")}
+                  value={transactionAccount.referencetransferno}
+                />
               )}
-              {transactionAccount.photourl && resolveFileUrl(transactionAccount.photourl, "online-transaction") && (
-                <div className="pt-1">
-                  <p className="text-slate-500 dark:text-slate-400 mb-1.5 text-xs">{translate("Photo")}</p>
-                  <img
-                    src={resolveFileUrl(transactionAccount.photourl, "online-transaction")}
-                    referrerPolicy="no-referrer"
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
-                    alt={translate("Transaction proof")}
-                    className="w-full h-40 rounded-xl object-cover border border-slate-100 dark:border-slate-700"
-                  />
-                </div>
-              )}
+              {transactionAccount.photourl &&
+                resolveFileUrl(
+                  transactionAccount.photourl,
+                  "online-transaction",
+                ) && (
+                  <div className="pt-1">
+                    <p className="text-slate-500 dark:text-slate-400 mb-1.5 text-xs">
+                      {translate("Photo")}
+                    </p>
+                    <img
+                      src={resolveFileUrl(
+                        transactionAccount.photourl,
+                        "online-transaction",
+                      )}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                      alt={translate("Transaction proof")}
+                      className="w-full h-40 rounded-xl object-cover border border-slate-100 dark:border-slate-700"
+                    />
+                  </div>
+                )}
             </div>
           )}
         </div>
@@ -274,15 +329,24 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
 function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
-      <span className="text-slate-800 dark:text-slate-200 text-right break-all">{value}</span>
+      <span className="text-slate-500 dark:text-slate-400 shrink-0">
+        {label}
+      </span>
+      <span className="text-slate-800 dark:text-slate-200 text-right break-all">
+        {value}
+      </span>
     </div>
   );
 }
 
 export default function MobileManageDonations() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canVerify, canReject } = useCrudPermissions("donations");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canVerify,
+    canReject,
+  } = useCrudPermissions("donations");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -314,7 +378,7 @@ export default function MobileManageDonations() {
     };
   }, [selected]);
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -326,13 +390,26 @@ export default function MobileManageDonations() {
           <div className="flex items-center">
             <AdvancedFilters
               parameter={[
-                { label: translate("Status"), type: "select", searchColumn: "status", options: [
-                  { id: "pending", name: translate("Pending") },
-                  { id: "verified", name: translate("Verified") },
-                  { id: "rejected", name: translate("Rejected") },
-                ]},
-                { label: translate("Date From"), type: "date", searchColumn: "dateFrom" },
-                { label: translate("Date To"), type: "date", searchColumn: "dateTo" },
+                {
+                  label: translate("Status"),
+                  type: "select",
+                  searchColumn: "status",
+                  options: [
+                    { id: "pending", name: translate("Pending") },
+                    { id: "verified", name: translate("Verified") },
+                    { id: "rejected", name: translate("Rejected") },
+                  ],
+                },
+                {
+                  label: translate("Date From"),
+                  type: "date",
+                  searchColumn: "dateFrom",
+                },
+                {
+                  label: translate("Date To"),
+                  type: "date",
+                  searchColumn: "dateTo",
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedStatus(f.status || "");
@@ -344,12 +421,9 @@ export default function MobileManageDonations() {
           </div>
 
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : donationList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <Heart className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={Heart} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {donationList.items.map((d) => (

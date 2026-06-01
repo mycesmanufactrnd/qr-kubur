@@ -345,7 +345,6 @@ export default function MobileFinancialReports() {
           </button>
         </div>
 
-        {/* Grand total */}
         <div
           style={{
             background:
@@ -384,7 +383,8 @@ export default function MobileFinancialReports() {
               marginTop: 6,
             }}
           >
-            {summaryCards.reduce((s, c) => s + c.count, 0)} {translate("total transactions")}
+            {summaryCards.reduce((s, c) => s + c.count, 0)}{" "}
+            {translate("total transactions")}
           </p>
         </div>
 
@@ -417,7 +417,6 @@ export default function MobileFinancialReports() {
           ))}
         </div>
 
-        {/* Tab bar */}
         <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-webkit-scrollbar:hidden]">
           {TABS.map(({ key, label, color, bg, text }) => (
             <button
@@ -443,9 +442,8 @@ export default function MobileFinancialReports() {
           ))}
         </div>
 
-        {/* Transaction list */}
         {isLoading ? (
-          <InlineLoadingComponent />
+          <InlineLoadingComponent isPage />
         ) : (
           <>
             {activeTab === "donations" &&
@@ -509,8 +507,12 @@ export default function MobileFinancialReports() {
                       </div>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex gap-2 text-xs text-slate-400">
-                          <span>{translate("Svc")}: {formatRM(r.serviceamount)}</span>
-                          <span>{translate("Fee")}: {formatRM(r.platformfeeamount)}</span>
+                          <span>
+                            {translate("Svc")}: {formatRM(r.serviceamount)}
+                          </span>
+                          <span>
+                            {translate("Fee")}: {formatRM(r.platformfeeamount)}
+                          </span>
                         </div>
                         <span className="text-xs text-slate-400">
                           {formatDate(r.createdat)}

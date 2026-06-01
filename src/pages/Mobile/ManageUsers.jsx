@@ -1,21 +1,13 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  Save,
-  ShieldCheck,
-} from "lucide-react";
+import { Users, Plus, Edit, Trash2, X, Save, ShieldCheck } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import LoadingUser from "@/components/PageLoadingComponent";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { createPageUrl } from "@/utils/index";
@@ -24,27 +16,36 @@ import { hashPassword } from "@/utils/helpers";
 import { validateFields } from "@/utils/validations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { useGetUserPaginated, useUserMutations } from "@/hooks/useUserMutations";
+import {
+  useGetUserPaginated,
+  useUserMutations,
+} from "@/hooks/useUserMutations";
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
-
-// ─── Role badge ───────────────────────────────────────────────────────────────
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 const roleColors = {
-  superadmin: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  superadmin:
+    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
   admin: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   employee: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400",
 };
 
 const avatarColors = {
-  superadmin: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  superadmin:
+    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
   admin: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   employee: "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400",
 };
 
-// ─── User card ────────────────────────────────────────────────────────────────
-
-function UserCard({ user, canEdit, canDelete, onEdit, onDelete, onManagePermissions }) {
+function UserCard({
+  user,
+  canEdit,
+  canDelete,
+  onEdit,
+  onDelete,
+  onManagePermissions,
+}) {
   const initial = (user.fullname?.[0] ?? user.email?.[0] ?? "?").toUpperCase();
   const affiliation = user.organisation?.name ?? user.tahfizcenter?.name ?? "";
 
@@ -70,7 +71,9 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete, onManagePermissi
               {user.role}
             </Badge>
             {affiliation && (
-              <span className="text-xs text-slate-400 truncate">{affiliation}</span>
+              <span className="text-xs text-slate-400 truncate">
+                {affiliation}
+              </span>
             )}
           </div>
         </div>
@@ -106,8 +109,6 @@ function UserCard({ user, canEdit, canDelete, onEdit, onDelete, onManagePermissi
   );
 }
 
-// ─── Field wrapper ────────────────────────────────────────────────────────────
-
 function Field({ label, required, children }) {
   return (
     <div className="space-y-1">
@@ -122,8 +123,6 @@ function Field({ label, required, children }) {
 
 const inputCls =
   "w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white dark:bg-slate-800 dark:text-slate-200 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-700";
-
-// ─── Form sheet ───────────────────────────────────────────────────────────────
 
 function UserFormSheet({
   editing,
@@ -161,24 +160,29 @@ function UserFormSheet({
           phoneno: "",
           password: "",
           role: "employee",
-          organisation: isAdmin && !isSuperAdmin
-            ? String(currentUser?.organisation?.id ?? "")
-            : "",
-          tahfizcenter: isAdmin && !isSuperAdmin
-            ? String(currentUser?.tahfizcenter?.id ?? "")
-            : "",
+          organisation:
+            isAdmin && !isSuperAdmin
+              ? String(currentUser?.organisation?.id ?? "")
+              : "",
+          tahfizcenter:
+            isAdmin && !isSuperAdmin
+              ? String(currentUser?.tahfizcenter?.id ?? "")
+              : "",
           states: isAdmin && !isSuperAdmin ? currentUserStates : [],
         },
   );
 
-  const set = (field, value) => setLocal((prev) => ({ ...prev, [field]: value }));
+  const set = (field, value) =>
+    setLocal((prev) => ({ ...prev, [field]: value }));
 
   const handleStateToggle = (state) => {
     if (isAdmin && !isSuperAdmin) return;
     const current = local.states || [];
     set(
       "states",
-      current.includes(state) ? current.filter((s) => s !== state) : [...current, state],
+      current.includes(state)
+        ? current.filter((s) => s !== state)
+        : [...current, state],
     );
   };
 
@@ -204,7 +208,6 @@ function UserFormSheet({
         </h2>
       </div>
 
-      {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
         <Field label={translate("Full Name")} required>
           <input
@@ -233,10 +236,7 @@ function UserFormSheet({
           />
         </Field>
 
-        <Field
-          label={translate("Password")}
-          required={isAddMode}
-        >
+        <Field label={translate("Password")} required={isAddMode}>
           <input
             className={inputCls}
             type="password"
@@ -363,8 +363,13 @@ export default function MobileManageUsers() {
     currentUserStates,
     isTahfizAdmin,
   } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("users");
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("users");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -379,7 +384,11 @@ export default function MobileManageUsers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const { userList: appUsers, totalPages, isLoading } = useGetUserPaginated({
+  const {
+    userList: appUsers,
+    totalPages,
+    isLoading,
+  } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
     search: appliedSearch,
@@ -423,7 +432,13 @@ export default function MobileManageUsers() {
       { field: "email", label: "Username", type: "text" },
       { field: "phoneno", label: "Phone No.", type: "phone", required: false },
       { field: "states", label: "State", type: "array" },
-      { field: "password", label: "Password", type: "password", minLength: 6, onlyIfExists: true },
+      {
+        field: "password",
+        label: "Password",
+        type: "password",
+        minLength: 6,
+        onlyIfExists: true,
+      },
     ]);
     if (!isValid) return;
 
@@ -448,7 +463,10 @@ export default function MobileManageUsers() {
         const res = await createUser.mutateAsync(submitData);
         if (res) setFormOpen(false);
       } else if (userData.isAppUser) {
-        const res = await updateUser.mutateAsync({ id: userData.id, data: submitData });
+        const res = await updateUser.mutateAsync({
+          id: userData.id,
+          data: submitData,
+        });
         if (res) setFormOpen(false);
       }
     } catch (error) {
@@ -466,7 +484,7 @@ export default function MobileManageUsers() {
     setUserToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <LoadingUser />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -479,8 +497,24 @@ export default function MobileManageUsers() {
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
-                { label: translate("Search"), type: "text", searchColumn: "search" },
-                ...(isSuperAdmin ? [{ label: translate("Organisation"), type: "select", searchColumn: "orgId", options: (organisations?.items || []).map((o) => ({ id: String(o.id), name: o.name })) }] : []),
+                {
+                  label: translate("Search"),
+                  type: "text",
+                  searchColumn: "search",
+                },
+                ...(isSuperAdmin
+                  ? [
+                      {
+                        label: translate("Organisation"),
+                        type: "select",
+                        searchColumn: "orgId",
+                        options: (organisations?.items || []).map((o) => ({
+                          id: String(o.id),
+                          name: o.name,
+                        })),
+                      },
+                    ]
+                  : []),
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.search || "");
@@ -498,14 +532,10 @@ export default function MobileManageUsers() {
             )}
           </div>
 
-          {/* Card list */}
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : appUsers.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <Users className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={Users} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {appUsers.items.map((user) => (
@@ -515,8 +545,15 @@ export default function MobileManageUsers() {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   onEdit={openEdit}
-                  onDelete={(u) => { setUserToDelete(u); setDeleteDialogOpen(true); }}
-                  onManagePermissions={(u) => navigate(createPageUrl("ManagePermissions"), { state: { incomingUser: u } })}
+                  onDelete={(u) => {
+                    setUserToDelete(u);
+                    setDeleteDialogOpen(true);
+                  }}
+                  onManagePermissions={(u) =>
+                    navigate(createPageUrl("ManagePermissions"), {
+                      state: { incomingUser: u },
+                    })
+                  }
                 />
               ))}
             </div>

@@ -273,7 +273,7 @@ function ManageActivityPostsDesktop() {
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
           <MapPin className="w-6 h-6 text-emerald-600" />
           {translate("Manage Activity Posts")}
         </h1>
@@ -290,17 +290,17 @@ function ManageActivityPostsDesktop() {
         </div>
       </div>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-4 space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <Input
                 placeholder={translate("Title")}
                 value={tempTitle}
                 onChange={(e) => setTempTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10"
+                className="pl-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
               />
             </div>
             <Button
@@ -318,7 +318,7 @@ function ManageActivityPostsDesktop() {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -354,13 +354,17 @@ function ManageActivityPostsDesktop() {
                       {post.ispublished ? translate("Yes") : translate("No")}
                     </TableCell>
                     <TableCell>
-                      <img
-                        src={resolveFileUrl(post.photourl, "activity-post")}
-                        referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
-                        alt="photo"
-                        className="w-12 h-10 object-cover rounded mx-auto"
-                      />
+                      {post.photourl ? (
+                        <img
+                          src={resolveFileUrl(post.photourl, "activity-post")}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { e.currentTarget.style.opacity = "0.3"; }}
+                          alt="photo"
+                          className="w-12 h-10 object-cover rounded mx-auto"
+                        />
+                      ) : (
+                        <div className="w-12 h-10 rounded mx-auto bg-slate-100 dark:bg-slate-700" />
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
@@ -424,7 +428,7 @@ function ManageActivityPostsDesktop() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingPost

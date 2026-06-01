@@ -7,7 +7,6 @@ import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import BackNavigation from "@/components/BackNavigation";
-import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
@@ -29,6 +28,7 @@ import FileUploadForm from "@/components/Forms/FileUploadForm";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 const DEFAULT_USER_PASSWORD = "password";
 
@@ -526,12 +526,9 @@ export default function MobileManageOrganisation() {
           </div>
 
           {isLoading ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage />
           ) : organisationsList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <Building2 className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={Building2} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {organisationsList.items.map((org) => (
@@ -641,7 +638,9 @@ function OrgCard({
         <img
           src={resolveFileUrl(org.photourl, "bucket-organisation")}
           referrerPolicy="no-referrer"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           alt={org.name}
           className="w-16 h-16 object-cover rounded-xl shrink-0 bg-slate-100 dark:bg-slate-700"
         />
