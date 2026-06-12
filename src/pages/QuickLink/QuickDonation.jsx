@@ -214,9 +214,9 @@ export default function QuickDonation() {
 
   if (!mosqueId || !mosque) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="text-center space-y-3">
-          <p className="text-slate-500">{translate("Mosque not found")}</p>
+          <p className="text-slate-500 dark:text-slate-400">{translate("Mosque not found")}</p>
           <Link to={createPageUrl("UserDashboard")} className="text-emerald-600 underline text-sm">
             {translate("Go to Home")}
           </Link>

@@ -307,7 +307,7 @@ export default function QuickTahlil() {
       <PaymentSuccessfulComponent
         shouldRedirect={false}
         extraContent={
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             {translate("Tahlil application for the deceased")}{" "}
             <span className="font-bold text-emerald-600">
               {submittedDeceasedNames.filter((n) => n).join(", ")}
@@ -328,9 +328,9 @@ export default function QuickTahlil() {
 
   if (!tahfizId || !tahfiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="text-center space-y-3">
-          <p className="text-slate-500">{translate("Tahfiz center not found")}</p>
+          <p className="text-slate-500 dark:text-slate-400">{translate("Tahfiz center not found")}</p>
           <Link to={createPageUrl("UserDashboard")} className="text-emerald-600 underline text-sm">
             {translate("Go to Home")}
           </Link>
