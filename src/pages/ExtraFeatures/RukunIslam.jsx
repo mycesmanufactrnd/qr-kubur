@@ -177,7 +177,7 @@ function PillarCard({ pillar, index, accent = "emerald" }) {
   const a = accents[accent] || accents.emerald;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <button
         className="w-full text-left p-4 flex items-center gap-3"
         onClick={() => setExpanded(!expanded)}

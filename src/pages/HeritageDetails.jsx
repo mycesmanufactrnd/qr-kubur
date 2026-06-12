@@ -80,7 +80,7 @@ export default function HeritageDetails() {
 
         <Button
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
+          className="absolute top-4 left-4 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full shadow-lg"
         >
           <ArrowLeft className="w-5 h-5 text-stone-700" />
         </Button>
@@ -94,7 +94,7 @@ export default function HeritageDetails() {
               url: window.location.href,
             });
           }}
-          className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
+          className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full shadow-lg"
         >
           <Share2 className="w-5 h-5 text-stone-700" />
         </Button>
@@ -112,7 +112,7 @@ export default function HeritageDetails() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative -mt-8 bg-white rounded-t-3xl min-h-[60vh]"
+        className="relative -mt-8 bg-white dark:bg-slate-900 rounded-t-3xl min-h-[60vh]"
       >
         <div className="max-w-2xl mx-auto px-6 py-8">
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-stone-800 mb-3">

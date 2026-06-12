@@ -79,20 +79,20 @@ export default function QuotationOverdueAlert() {
       </div>
 
       {!collapsed && (
-        <div className="bg-white max-h-64 overflow-y-auto">
-          <p className="px-4 pt-3 pb-1 text-xs text-gray-500">
+        <div className="bg-white dark:bg-slate-800 max-h-64 overflow-y-auto">
+          <p className="px-4 pt-3 pb-1 text-xs text-gray-500 dark:text-gray-400">
             {translate("Pending quotations older than")} {QUOTATION_OVERDUE_DAYS} {translate("days — action required")}
           </p>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {overdueItems.map((q) => (
               <Link
                 key={q.id}
                 to={createPageUrl("ManageQuotations")}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-amber-50 transition-colors"
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
               >
                 <FileText className="w-4 h-4 text-amber-500 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                     {q.payername || translate("No Name")}
                   </p>
                   <p className="text-xs text-gray-400">

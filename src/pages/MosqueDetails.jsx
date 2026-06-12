@@ -203,8 +203,8 @@ export default function MosqueDetailsPage() {
             </div>
 
             {mosque.latitude != null && mosque.longitude != null && (
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                   <MapPin className="w-4 h-4 text-emerald-600" />
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
                     {translate("Location")}
@@ -223,8 +223,8 @@ export default function MosqueDetailsPage() {
 
           {mosquePosts?.length > 0 && (
             <div className="space-y-4">
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                   <Clock className="w-4 h-4 text-emerald-600" />
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
                     {translate("Latest Updates")}

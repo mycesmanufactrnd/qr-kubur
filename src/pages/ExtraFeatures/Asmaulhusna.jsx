@@ -34,8 +34,8 @@ export default function AsmaUlHusna() {
 
       <div className="max-w-2xl mx-auto px-4 space-y-4">
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
               {translate('Listen & Memorize')}
             </p>
@@ -54,7 +54,7 @@ export default function AsmaUlHusna() {
 
         {!loading && (
           <div className="flex items-center justify-between px-1">
-            <p className="text-sm font-bold text-slate-700">Nama-nama Allah</p>
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Nama-nama Allah</p>
             <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
               {namesOfAllah.length} nama
             </span>
@@ -68,7 +68,7 @@ export default function AsmaUlHusna() {
               {namesOfAllah.map((name, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col"
+                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col"
                 >
                   <div className="flex justify-end px-2.5 pt-2.5">
                     <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
@@ -76,14 +76,14 @@ export default function AsmaUlHusna() {
                     </span>
                   </div>
 
-                  <p className="text-2xl font-bold text-center text-slate-800 px-2 pt-1 pb-1 leading-relaxed">
+                  <p className="text-2xl font-bold text-center text-slate-800 dark:text-white px-2 pt-1 pb-1 leading-relaxed">
                     {name.arabic}
                   </p>
 
-                  <div className="mx-4 h-px bg-slate-100" />
+                  <div className="mx-4 h-px bg-slate-100 dark:bg-slate-700" />
 
                   <div className="px-3 pt-2 pb-3 text-center">
-                    <p className="text-xs font-semibold text-slate-700 mb-0.5">{name.transliteration}</p>
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">{name.transliteration}</p>
                     <p className="text-[11px] text-slate-400 leading-snug">
                       {name.meaning[language] || name.meaning['en']}
                     </p>

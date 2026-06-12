@@ -33,7 +33,7 @@ export default function RichTextEditorForm({
             theme="snow"
             value={field.value ?? ""}
             onChange={field.onChange}
-            className="bg-white"
+            className="bg-white dark:bg-slate-800"
           />
         )}
       />

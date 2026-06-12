@@ -136,7 +136,7 @@ function ManagePaymentConfigDesktop() {
                   return (
                     <div
                       key={config.id}
-                      className="rounded-lg border border-slate-100 p-3 bg-white"
+                      className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800"
                     >
                       <p className="text-xs text-slate-500 mb-1 flex items-center gap-1">
                         <KeyRound className="w-3 h-3" />

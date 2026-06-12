@@ -14,7 +14,7 @@ export default function HeritageCardList({ site, distance, index = 0, nextPageUr
       transition={{ delay: index * 0.1, duration: 0.4 }}
     >
       <Link to={createPageUrl(nextPageUrl) + `?id=${site.id}`}>
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 hover:shadow-lg transition-all duration-300 group">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-slate-700 hover:shadow-lg transition-all duration-300 group">
           <div className="relative h-48 bg-gradient-to-br from-green-500 via-blue-500 to-emerald-600 overflow-hidden">
             <BannerImageWithFallback
               src={resolveFileUrl(site.photourl, 'heritage-site')}
@@ -33,7 +33,7 @@ export default function HeritageCardList({ site, distance, index = 0, nextPageUr
             
             {distance !== null && distance !== undefined && (
               <div className="absolute bottom-3 right-3">
-                <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-stone-700 border-0">
+                <Badge variant="secondary" className="bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm text-stone-700 dark:text-stone-200 border-0">
                   <Navigation className="w-3 h-3 mr-1" />
                   {showEarthDistance(distance)}
                 </Badge>
@@ -42,12 +42,12 @@ export default function HeritageCardList({ site, distance, index = 0, nextPageUr
           </div>
           
           <div className="p-4">
-            <h3 className="font-serif text-lg font-semibold text-stone-800 mb-1 line-clamp-1">
+            <h3 className="font-serif text-lg font-semibold text-stone-800 dark:text-white mb-1 line-clamp-1">
               {site.name}
             </h3>
             
             {site.era && (
-              <div className="flex items-center text-stone-500 text-sm mb-2">
+              <div className="flex items-center text-stone-500 dark:text-stone-400 text-sm mb-2">
                 <Clock className="w-3.5 h-3.5 mr-1.5" />
                 <span>{site.era}</span>
               </div>

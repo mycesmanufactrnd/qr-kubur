@@ -473,7 +473,7 @@ function ManageDonationsDesktop() {
                     <p className="text-sm text-gray-500 mb-1">
                       {translate("Reference No.")}
                     </p>
-                    <p className="font-mono font-semibold text-sm break-all bg-gray-50 p-2 rounded">
+                    <p className="font-mono font-semibold text-sm break-all bg-gray-50 dark:bg-slate-700 dark:text-slate-200 p-2 rounded">
                       {selectedDonation.referenceno}
                     </p>
                   </div>

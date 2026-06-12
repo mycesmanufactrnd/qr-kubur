@@ -115,18 +115,18 @@ export default function Tasbih() {
       </div>
 
       <div className="max-w-md mx-auto px-4 space-y-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Today's Count")}
             </p>
-            <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
+            <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-full">
               {dailyCount} {translate("zikir")}
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-1.5 flex gap-1">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-1.5 flex gap-1">
           {["free", "guided"].map((m) => (
             <button
               key={m}
@@ -134,7 +134,7 @@ export default function Tasbih() {
               className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                 mode === m
                   ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
               }`}
             >
               {m === "free" ? translate("Free") : translate("Guided")}
@@ -142,12 +142,12 @@ export default function Tasbih() {
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
           <div className="flex items-center justify-center gap-4">
             {mode === "guided" && (
               <button
                 onClick={() => goToStage(-1)}
-                className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-all"
+                className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center text-slate-400 active:scale-90 transition-all"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -199,7 +199,7 @@ export default function Tasbih() {
             {mode === "guided" && (
               <button
                 onClick={() => goToStage(1)}
-                className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-all"
+                className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center text-slate-400 active:scale-90 transition-all"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -207,8 +207,8 @@ export default function Tasbih() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Controls")}
             </p>
@@ -216,7 +216,7 @@ export default function Tasbih() {
           <div className="p-4 space-y-3">
             <button
               onClick={handleReset}
-              className="w-full h-12 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 text-sm font-semibold flex items-center justify-center gap-2 active:opacity-70 transition-opacity"
+              className="w-full h-12 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm font-semibold flex items-center justify-center gap-2 active:opacity-70 transition-opacity"
             >
               <RotateCcw className="w-4 h-4 text-slate-400" />
               {translate("Reset")}
@@ -231,7 +231,7 @@ export default function Tasbih() {
                       setShowGoalMenu((p) => !p);
                       setShowZikirMenu(false);
                     }}
-                    className="w-full h-12 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center active:opacity-70 transition-opacity"
+                    className="w-full h-12 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex flex-col items-center justify-center active:opacity-70 transition-opacity"
                   >
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                       {translate("Goal")}
@@ -241,7 +241,7 @@ export default function Tasbih() {
                     </span>
                   </button>
                   {showGoalMenu && (
-                    <div className="absolute bottom-full mb-2 left-0 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 overflow-hidden min-w-[80px]">
+                    <div className="absolute bottom-full mb-2 left-0 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden min-w-[80px]">
                       {GOAL_OPTIONS.map((num) => (
                         <button
                           key={num}
@@ -249,10 +249,10 @@ export default function Tasbih() {
                             setTargetGoal(num);
                             setShowGoalMenu(false);
                           }}
-                          className={`block w-full px-4 py-2.5 text-xs font-bold border-b border-slate-100 last:border-none ${
+                          className={`block w-full px-4 py-2.5 text-xs font-bold border-b border-slate-100 dark:border-slate-700 last:border-none ${
                             targetGoal === num
                               ? "bg-emerald-600 text-white"
-                              : "text-slate-700 hover:bg-slate-50"
+                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                           }`}
                         >
                           {num}
@@ -268,7 +268,7 @@ export default function Tasbih() {
                       setShowZikirMenu((p) => !p);
                       setShowGoalMenu(false);
                     }}
-                    className="w-full h-12 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center px-3 overflow-hidden active:opacity-70 transition-opacity"
+                    className="w-full h-12 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex flex-col items-center justify-center px-3 overflow-hidden active:opacity-70 transition-opacity"
                   >
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                       {translate("Zikir")}
@@ -278,7 +278,7 @@ export default function Tasbih() {
                     </span>
                   </button>
                   {showZikirMenu && (
-                    <div className="absolute bottom-full mb-2 right-0 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 overflow-hidden min-w-[160px]">
+                    <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden min-w-[160px]">
                       {GUIDED_STAGES.map((stage, i) => (
                         <button
                           key={stage.id}
@@ -287,10 +287,10 @@ export default function Tasbih() {
                             setGuidedCount(0);
                             setShowZikirMenu(false);
                           }}
-                          className={`block w-full px-4 py-2.5 text-left text-xs font-bold border-b border-slate-100 last:border-none ${
+                          className={`block w-full px-4 py-2.5 text-left text-xs font-bold border-b border-slate-100 dark:border-slate-700 last:border-none ${
                             stageIndex === i
                               ? "bg-emerald-600 text-white"
-                              : "text-slate-700 hover:bg-slate-50"
+                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                           }`}
                         >
                           {stage.transliteration}
@@ -302,7 +302,7 @@ export default function Tasbih() {
 
                 <button
                   onClick={speakZikir}
-                  className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center active:opacity-70 transition-opacity"
+                  className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center active:opacity-70 transition-opacity"
                 >
                   <Volume2 className="w-4 h-4 text-slate-500" />
                 </button>

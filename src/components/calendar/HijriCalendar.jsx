@@ -127,10 +127,10 @@ export default function HijriCalendar({ events = [], onDateClick, selectedDate }
   };
   
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-slate-800">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white">
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h3>
           <p className="text-sm text-emerald-600 flex items-center gap-2 mt-1">

@@ -6,7 +6,7 @@ import { resolveFileUrl } from '@/utils';
 
 export default function ActivityPostsCard({ post, poster, showPoster = false }) {
   return (
-    <Card className="overflow-hidden bg-white border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-2xl">
+    <Card className="overflow-hidden bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-2xl">
       {post.photourl && (
         <div className="overflow-hidden">
           <img
@@ -34,12 +34,12 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
           </div>
         )}
 
-        <h3 className="font-semibold text-slate-800 text-sm leading-snug line-clamp-2">
+        <h3 className="font-semibold text-slate-800 dark:text-white text-sm leading-snug line-clamp-2">
           {post.title}
         </h3>
 
         <div
-          className="prose prose-xs prose-slate max-w-none text-slate-500 text-xs leading-relaxed line-clamp-3"
+          className="prose prose-xs prose-slate dark:prose-invert max-w-none text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-3"
           dangerouslySetInnerHTML={{ __html: post.content || '' }}
         />
 

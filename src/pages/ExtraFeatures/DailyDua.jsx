@@ -61,7 +61,7 @@ export default function DailyDua() {
       <BackNavigation title={translate(`Daily Du'a & Dhikr`)} />
 
       <div className="relative mb-4 px-4">
-        <div className="bg-white rounded-2xl border border-slate-100 p-3 shadow-lg overflow-x-auto scrollbar-hide">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-3 shadow-lg overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 w-max min-w-full">
             {CATEGORIES.map((c) => {
               const isActive = selectedCategory === c.id;
@@ -72,7 +72,7 @@ export default function DailyDua() {
                   className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all active:scale-95 ${
                     isActive
                       ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                   }`}
                 >
                   <span>{c.emoji}</span>
@@ -90,13 +90,13 @@ export default function DailyDua() {
             className={`grid gap-3 ${showMorning && showEvening ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}
           >
             {showMorning && (
-              <div className="rounded-2xl overflow-hidden border border-amber-100 bg-white shadow-sm">
-                <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border-b border-amber-100">
+              <div className="rounded-2xl overflow-hidden border border-amber-100 dark:border-amber-900/30 bg-white dark:bg-slate-800 shadow-sm">
+                <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900/30">
                   <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
                     <Sun className="w-4 h-4 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-800 leading-tight">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white leading-tight">
                       Morning Zikir
                     </p>
                     <p className="text-[10px] text-slate-400">
@@ -120,13 +120,13 @@ export default function DailyDua() {
             )}
 
             {showEvening && (
-              <div className="rounded-2xl overflow-hidden border border-indigo-100 bg-white shadow-sm">
-                <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+              <div className="rounded-2xl overflow-hidden border border-indigo-100 dark:border-indigo-900/30 bg-white dark:bg-slate-800 shadow-sm">
+                <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-900/30">
                   <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
                     <Moon className="w-4 h-4 text-indigo-500" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-800 leading-tight">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white leading-tight">
                       Evening Zikir
                     </p>
                     <p className="text-[10px] text-slate-400">
@@ -166,14 +166,14 @@ export default function DailyDua() {
         )}
 
         {loading && (
-          <div className="bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center py-16 gap-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center py-16 gap-4">
             <div className="w-8 h-8 border-[3px] border-emerald-500 border-t-transparent rounded-full animate-spin" />
             <p className="text-xs text-slate-400">Loading du'a...</p>
           </div>
         )}
 
         {!loading && filteredDoa.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center py-16 gap-3">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center py-16 gap-3">
             <Book className="w-10 h-10 text-slate-200" />
             <p className="text-sm text-slate-400">
               No du'a found in this category

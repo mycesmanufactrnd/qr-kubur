@@ -88,7 +88,7 @@ const getDetailUrl = (item) => {
 
 function CollectionCard({ col, onOpen, onEdit, onDelete, isDeleting }) {
   return (
-    <div className="group relative bg-white rounded-2xl border border-slate-100 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+    <div className="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
       <div className="h-1 w-full bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-400" />
 
       <div className="p-5">
@@ -98,7 +98,7 @@ function CollectionCard({ col, onOpen, onEdit, onDelete, isDeleting }) {
               <Layers className="w-4.5 h-4.5 text-white" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-sm text-slate-800 truncate leading-tight">
+              <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate leading-tight">
                 {col.name}
               </h3>
               {col.description && (
@@ -508,12 +508,12 @@ export default function ManageCollectionTree() {
                   setAddSelected(null);
                 }}
                 placeholder="Search by name…"
-                className="w-full h-9 pl-9 pr-4 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+                className="w-full h-9 pl-9 pr-4 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
               />
             </div>
 
             {/* Results */}
-            <div className="rounded-xl border border-slate-100 overflow-hidden max-h-56 overflow-y-auto">
+            <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden max-h-56 overflow-y-auto">
               {isAddLoading ? (
                 <div className="flex items-center justify-center py-10">
                   <Loader2 className="w-5 h-5 animate-spin text-teal-500" />
@@ -532,14 +532,14 @@ export default function ManageCollectionTree() {
                       key={rec.id}
                       onClick={() => !alreadyAdded && setAddSelected(rec)}
                       disabled={alreadyAdded}
-                      className={`w-full text-left flex items-center justify-between px-4 py-2.5 text-sm border-b last:border-b-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                      className={`w-full text-left flex items-center justify-between px-4 py-2.5 text-sm border-b dark:border-slate-700 last:border-b-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                         isSelected
-                          ? "bg-teal-50 border-teal-100"
-                          : "hover:bg-slate-50"
+                          ? "bg-teal-50 dark:bg-teal-900/20 border-teal-100 dark:border-teal-800"
+                          : "hover:bg-slate-50 dark:hover:bg-slate-700"
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-medium text-slate-700 truncate">
+                        <span className="font-medium text-slate-700 dark:text-slate-200 truncate">
                           {rec.name}
                         </span>
                         {(rec.state ?? rec.states?.[0]) && (
@@ -595,7 +595,7 @@ export default function ManageCollectionTree() {
                 onChange={(e) => setEditName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleEdit()}
                 placeholder="e.g. Mosques in Selangor"
-                className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+                className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
               />
             </Field>
             <Field label="Description (optional)">
@@ -604,7 +604,7 @@ export default function ManageCollectionTree() {
                 onChange={(e) => setEditDesc(e.target.value)}
                 placeholder="What is this collection about?"
                 rows={3}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
               />
             </Field>
             <div className="flex gap-2 pt-1">
@@ -676,7 +676,7 @@ export default function ManageCollectionTree() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-36 bg-white rounded-2xl border border-slate-100 animate-pulse"
+                className="h-36 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 animate-pulse"
               />
             ))}
           </div>
@@ -732,7 +732,7 @@ export default function ManageCollectionTree() {
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               placeholder="e.g. Mosques in Selangor"
               autoFocus
-              className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+              className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
             />
           </Field>
           <Field label="Description (optional)">
@@ -741,7 +741,7 @@ export default function ManageCollectionTree() {
               onChange={(e) => setCreateDesc(e.target.value)}
               placeholder="What is this collection about?"
               rows={3}
-              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
+              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
             />
           </Field>
           <div className="flex gap-2 pt-1">
@@ -777,7 +777,7 @@ export default function ManageCollectionTree() {
               onChange={(e) => setEditName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleEdit()}
               placeholder="e.g. Mosques in Selangor"
-              className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+              className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
             />
           </Field>
           <Field label="Description (optional)">
@@ -786,7 +786,7 @@ export default function ManageCollectionTree() {
               onChange={(e) => setEditDesc(e.target.value)}
               placeholder="What is this collection about?"
               rows={3}
-              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
+              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all resize-none"
             />
           </Field>
           <div className="flex gap-2 pt-1">

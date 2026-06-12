@@ -74,7 +74,7 @@ export default function IslamicCalendar() {
 
       <div className="max-w-7xl mx-auto px-4 space-y-4">
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-1.5 flex gap-1 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-1.5 flex gap-1 shadow-sm">
           {TABS.map(({ value, label, icon: Icon }) => {
             const isActive = viewMode === value;
             return (
@@ -84,7 +84,7 @@ export default function IslamicCalendar() {
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
                   isActive
                     ? 'bg-emerald-500 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -116,8 +116,8 @@ export default function IslamicCalendar() {
               />
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                 <Star className="w-4 h-4 text-amber-500" />
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">Upcoming Events</p>
               </div>
@@ -140,8 +140,8 @@ export default function IslamicCalendar() {
 
         ) : viewMode === 'upcoming' ? (
           upcomingEvents.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center py-16 gap-3">
-              <Info className="w-10 h-10 text-slate-200" />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center py-16 gap-3">
+              <Info className="w-10 h-10 text-slate-200 dark:text-slate-600" />
               <p className="text-sm text-slate-400">No upcoming events in the next 3 months</p>
             </div>
           ) : (
@@ -154,12 +154,12 @@ export default function IslamicCalendar() {
 
         ) : (
           filteredEvents.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-100 flex flex-col items-center justify-center py-16 gap-3">
-              <Info className="w-10 h-10 text-slate-200" />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center py-16 gap-3">
+              <Info className="w-10 h-10 text-slate-200 dark:text-slate-600" />
               <p className="text-sm text-slate-400 mb-1">No events found with current filters</p>
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold active:opacity-75 transition-opacity"
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold active:opacity-75 transition-opacity"
               >
                 Clear Filters
               </button>
@@ -177,8 +177,8 @@ export default function IslamicCalendar() {
       </div>
 
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white">
-          <div className="px-5 pt-5 pb-4 border-b border-slate-100">
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white dark:bg-slate-800">
+          <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-700">
             <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-2">
               Events
             </DialogTitle>

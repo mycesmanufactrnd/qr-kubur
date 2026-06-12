@@ -47,9 +47,9 @@ const STATUS_CONFIG = {
 
 function SectionCard({ icon: Icon, title, children }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       {title && (
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
           {Icon && <Icon className="w-4 h-4 text-emerald-600" />}
           <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
             {title}

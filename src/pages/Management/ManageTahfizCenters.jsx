@@ -1307,7 +1307,7 @@ function ManageTahfizCentersDesktop() {
                       .map((platform) => (
                         <Label
                           key={platform.code}
-                          className="flex items-center gap-3 p-3 rounded border cursor-pointer hover:bg-gray-50"
+                          className="flex items-center gap-3 p-3 rounded border dark:border-slate-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700"
                         >
                           <Checkbox
                             checked={selectedPaymentPlatforms.includes(

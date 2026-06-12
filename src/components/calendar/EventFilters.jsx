@@ -41,9 +41,9 @@ export default function EventFilters({ selectedCategories, onToggleCategory, onC
   const hasFilters = selectedCategories.length > 0 && selectedCategories.length < CATEGORIES.length;
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-slate-100 p-4">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-100 dark:border-slate-700 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-700">Filter Events</h3>
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Filter Events</h3>
         {hasFilters && (
           <Button
             variant="ghost"

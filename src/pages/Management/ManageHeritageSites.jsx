@@ -469,7 +469,7 @@ export default function ManageHeritageSites() {
                     theme="snow"
                     value={field.value}
                     onChange={field.onChange}
-                    className="bg-white"
+                    className="bg-white dark:bg-slate-800"
                   />
                 </div>
               )}

@@ -118,7 +118,7 @@ export default function GraveDetails() {
 
         <button
           onClick={handleBack}
-          className="absolute top-4 left-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg z-20 hover:bg-white transition-colors"
+          className="absolute top-4 left-4 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full shadow-lg z-20 hover:bg-white dark:hover:bg-slate-800 transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-stone-700" />
         </button>
@@ -132,7 +132,7 @@ export default function GraveDetails() {
               url: window.location.href,
             });
           }}
-          className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg"
+          className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full shadow-lg"
         >
           <Share2 className="w-5 h-5 text-stone-700" />
         </button>

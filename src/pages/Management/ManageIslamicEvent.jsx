@@ -423,7 +423,7 @@ export default function ManageIslamicEvent() {
                   {formData.recommendedamal.map((amal, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 p-2 bg-slate-50 rounded"
+                      className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-700 rounded"
                     >
                       <span className="flex-1 text-sm">{amal}</span>
                       <Button

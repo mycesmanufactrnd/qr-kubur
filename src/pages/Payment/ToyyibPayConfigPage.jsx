@@ -89,7 +89,7 @@ export default function ToyyibPayStatusPage() {
           {paymentInfo.statusText}
         </span>
       </div>
-      <div className="bg-white rounded-lg shadow-md p-4 space-y-2">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 space-y-2">
         {paymentInfo.billcode && <p><span className="font-medium">Bill Code:</span> {paymentInfo.billcode}</p>}
         {paymentInfo.order_id && <p><span className="font-medium">Order ID:</span> {paymentInfo.order_id}</p>}
         {paymentInfo.msg && <p><span className="font-medium">Message:</span> {paymentInfo.msg}</p>}

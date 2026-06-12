@@ -436,11 +436,11 @@ function ManageDeathCharityLedgerDesktop() {
                       className="w-full border border-slate-200 border-collapse mb-4 shadow-sm"
                     >
                       <thead>
-                        <tr className="bg-slate-50 border-b">
+                        <tr className="bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600">
                           {yearRow.map((year, idx) => (
                             <th
                               key={idx}
-                              className="px-4 py-2 text-center text-xs font-semibold text-slate-700 border-l"
+                              className="px-4 py-2 text-center text-xs font-semibold text-slate-700 dark:text-slate-300 border-l dark:border-slate-600"
                             >
                               {year}
                             </th>
@@ -459,7 +459,7 @@ function ManageDeathCharityLedgerDesktop() {
                             return (
                               <td
                                 key={idx}
-                                className="px-4 py-3 border-l cursor-pointer hover:bg-slate-50 transition-colors"
+                                className="px-4 py-3 border-l dark:border-slate-600 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                                 onClick={() => handleCellClick(year)}
                               >
                                 {periodPayments.length > 0 ? (
