@@ -55,7 +55,9 @@ export default function MobileManagePaymentConfig() {
   }, [existingConfigs]);
 
   if (loadingUser || isLoading) return <PageLoadingComponent />;
-  if (!hasAdminAccess) return <AccessDeniedComponent />;
+
+  if (!hasAdminAccess) return <AccessDeniedComponent isPage/>;
+
   if (!entity.entityId || !entity.entityType)
     return <NoDataCardComponent isPage />;
 

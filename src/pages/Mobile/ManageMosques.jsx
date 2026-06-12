@@ -35,6 +35,7 @@ import {
 } from "@/hooks/useMosqueMutations";
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { defaultMosqueField } from "@/utils/defaultformfields";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
   return (
@@ -169,7 +170,6 @@ function MosqueFormSheet({
         </h2>
       </div>
 
-      {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
         <TextInputForm
           name="name"
@@ -454,6 +454,7 @@ export default function MobileManageMosques() {
 
   if (loadingUser || permissionsLoading || orgLoading)
     return <PageLoadingComponent />;
+
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
   return (
@@ -500,10 +501,7 @@ export default function MobileManageMosques() {
           {listLoading ? (
             <PageLoadingComponent />
           ) : listItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <Landmark className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={Landmark} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {listItems.map((mosque) => (

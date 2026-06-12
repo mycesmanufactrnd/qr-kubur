@@ -53,7 +53,7 @@ function TahfizDashboardDesktop() {
   const donationVerified = DDVStats?.donationVerified ?? 0;
 
   if (loadingUser) return <PageLoadingComponent />;
-  if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent isPage/>;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">

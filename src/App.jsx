@@ -2,6 +2,8 @@ import './App.css'
 import { useEffect } from 'react';
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import QuickDonation from '@/pages/QuickLink/QuickDonation';
+import QuickTahlil from '@/pages/QuickLink/QuickTahlil';
 import { LocationProvider } from './providers/LocationProvider';
 import { useFCM } from './firebase/useFCM';
 import { useLoginGoogle } from './utils/auth';
@@ -35,6 +37,8 @@ const AuthenticatedApp = () => {
           <MainPage />
         </LayoutWrapper>
       } />
+      <Route path="/QuickDonation" element={<QuickDonation />} />
+      <Route path="/QuickTahlil" element={<QuickTahlil />} />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}

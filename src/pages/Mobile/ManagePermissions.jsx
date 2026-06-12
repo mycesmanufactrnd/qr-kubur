@@ -74,11 +74,11 @@ function PermissionSheet({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28">
         {isLoading ? (
           <InlineLoadingComponent isPage/>
         ) : (
-          visibleCategories.map(([key, category]) => {
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28">
+            {visibleCategories.map(([key, category]) => {
             const categorySlugs = category.permissions.map((p) => p.slug);
             const allEnabled = categorySlugs.every((s) => !!userPermissions[s]);
             return (
@@ -125,9 +125,9 @@ function PermissionSheet({
                 </div>
               </div>
             );
-          })
+            })}
+          </div>
         )}
-      </div>
 
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button

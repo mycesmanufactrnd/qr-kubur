@@ -1,0 +1,24 @@
+{
+  "appId": "com.myces.qubur",
+  "appName": "QubuR",
+  "webDir": "dist",
+  "server": {
+    "url": "https://qubur.mycesgroup.com/",
+    "cleartext": true,
+    "allowNavigation": ["qubur.mycesgroup.com"]
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "681335807437-041lj62hn8k2f2hvrkpvr3g1c5587opd.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    },
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com"]
+    }
+  }
+}

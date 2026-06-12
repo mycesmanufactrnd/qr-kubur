@@ -78,7 +78,7 @@ function ManagePaymentConfigDesktop() {
   }
 
   if (!hasAdminAccess) {
-    return <AccessDeniedComponent />;
+    return <AccessDeniedComponent isPage />;
   }
 
   if (!entity.entityId || !entity.entityType) {

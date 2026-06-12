@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "681335807437",
+    "project_id": "myces-qr-kubur",
+    "storage_bucket": "myces-qr-kubur.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681335807437:android:43c658b499decae006f884",
+        "android_client_info": {
+          "package_name": "com.myces.qubur"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "681335807437-3qa7lqau6tlc7ek95oau1kcc5fvasmkt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.myces.qubur",
+            "certificate_hash": "9b78c52f8f1e7c4614bd9243ce21018d2ee31260"
+          }
+        },
+        {
+          "client_id": "681335807437-hhalgfijqjkhgmh5ed2pc5iva7dtenol.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.myces.qubur",
+            "certificate_hash": "c5520bf0d345407276d1c0185f521f8971d217f7"
+          }
+        },
+        {
+          "client_id": "681335807437-041lj62hn8k2f2hvrkpvr3g1c5587opd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBo2xehLO5v3DJIAy7j-RFfXmJM7uQDeNc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "681335807437-041lj62hn8k2f2hvrkpvr3g1c5587opd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

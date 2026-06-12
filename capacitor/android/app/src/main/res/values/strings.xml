@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">QubuR</string>
+    <string name="title_activity_main">QubuR</string>
+    <string name="package_name">com.myces.qubur</string>
+    <string name="custom_url_scheme">com.myces.qubur</string>
+</resources>

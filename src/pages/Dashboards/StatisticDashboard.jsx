@@ -425,7 +425,7 @@ export default function StatisticDashboard() {
     });
 
   if (loadingUser) return <PageLoadingComponent />;
-  if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent isPage/>;
 
   const orgCount = OSStats?.organisationCount ?? 0;
   const suggestionCount = OSStats?.suggestionCount ?? 0;

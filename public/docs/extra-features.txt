@@ -26,7 +26,7 @@
 ✅ 23. live tahlil ---- setup di server
 ✅ 24. dashboard connection masjid ngn kubur
 ✅ 24.5 dashboard statistic
-25. derma & tahlil, ada web page yg direct untuk derma dan tahlil
+✅ 25. derma & tahlil, ada web page yg direct untuk derma dan tahlil
 ✅ 26. semua Si mati -> arwah
 ❓ 27. melayukan semua & night mode
 ✅ 28. letak nama waris ngn no fon kat maklumat jenazah

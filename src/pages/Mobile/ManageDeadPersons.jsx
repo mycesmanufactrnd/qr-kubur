@@ -35,8 +35,8 @@ import {
 import { useGetGravePaginated } from "@/hooks/useGraveMutations";
 import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
-
-// ─── Person card ───────────────────────────────────────────────────────────────
+import InlineLoadingComponent from "@/components/InlineLoadingComponent";
+import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
   return (
@@ -112,8 +112,6 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
     </div>
   );
 }
-
-// ─── Form sheet ────────────────────────────────────────────────────────────────
 
 function PersonFormSheet({
   editing,
@@ -447,10 +445,7 @@ export default function MobileManageDeadPersons() {
           {isLoading ? (
             <InlineLoadingComponent isPage />
           ) : deadPersonsList.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
-              <Users className="w-12 h-12 mb-2" />
-              <p className="text-sm">{translate("No records")}</p>
-            </div>
+            <MobileEmptyList icon={Users} title={translate("No records")} />
           ) : (
             <div className="space-y-3">
               {deadPersonsList.items.map((person) => (

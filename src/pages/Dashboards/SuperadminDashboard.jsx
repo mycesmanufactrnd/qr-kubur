@@ -326,7 +326,7 @@ export default function SuperadminDashboard() {
   ];
 
   if (loadingUser) return <PageLoadingComponent />;
-  if (!isSuperAdmin) return <AccessDeniedComponent />;
+  if (!isSuperAdmin) return <AccessDeniedComponent isPage/>;
 
   return (
     <div className="space-y-6">

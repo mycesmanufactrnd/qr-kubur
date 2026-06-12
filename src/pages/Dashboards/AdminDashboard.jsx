@@ -264,7 +264,7 @@ function AdminDashboardDesktop() {
   }
 
   if (!hasAdminAccess || isTahfizAdmin) {
-    return <AccessDeniedComponent />;
+    return <AccessDeniedComponent isPage/>;
   }
 
   return (
