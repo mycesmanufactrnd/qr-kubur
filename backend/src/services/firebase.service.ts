@@ -1,5 +1,6 @@
 //@ts-nocheck
 import admin from "firebase-admin";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { In } from "typeorm";
 import {
   GoogleUserDevice,
@@ -78,6 +79,13 @@ const STALE_TOKEN_CODES = new Set([
  * Sends push notifications and returns the list of tokens that are stale
  * (expired/unregistered) so the caller can remove them from the DB.
  */
+export const verifyFirebaseIdToken = async (idToken: string): Promise<DecodedIdToken> => {
+  if (!initialized || admin.apps.length === 0) {
+    throw new Error("Firebase not initialized");
+  }
+  return admin.auth().verifyIdToken(idToken);
+};
+
 export const sendPushNotifications = async (
   tokens: string[],
   notification: { title: string; body: string },

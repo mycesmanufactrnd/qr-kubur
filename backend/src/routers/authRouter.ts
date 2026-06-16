@@ -11,7 +11,6 @@ import {
 } from "../auth.js";
 import { assertRole } from "../helpers/authHelper.js";
 import { AppDataSource } from "../datasource.js";
-import { OAuth2Client } from "google-auth-library";
 import {
   DeathCharity,
   GoogleUser,
@@ -19,8 +18,7 @@ import {
   Mosque,
   UserDevice,
 } from "../db/entities.js";
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { verifyFirebaseIdToken } from "../services/firebase.service.js";
 
 /**
  * Helper function to set secure httpOnly cookies
@@ -200,21 +198,13 @@ export const authRouter = router({
     .mutation(async ({ input }) => {
       const googleUserRepo = AppDataSource.getRepository(GoogleUser);
 
-      const audiences = [process.env.GOOGLE_CLIENT_ID!];
-      if (process.env.GOOGLE_ANDROID_CLIENT_ID) audiences.push(process.env.GOOGLE_ANDROID_CLIENT_ID);
+      const decoded = await verifyFirebaseIdToken(input.credential);
 
-      const ticket = await googleClient.verifyIdToken({
-        idToken: input.credential,
-        audience: audiences,
-      });
-
-      const payload = ticket.getPayload();
-
-      if (!payload?.email) {
+      if (!decoded?.email) {
         throw new Error("Invalid Google token");
       }
 
-      const { email, name, picture } = payload;
+      const { email, name, picture } = decoded;
 
       let user = await googleUserRepo.findOne({
         where: { email },

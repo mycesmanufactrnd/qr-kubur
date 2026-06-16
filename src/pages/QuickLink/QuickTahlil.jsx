@@ -14,11 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { showError, showSuccess } from "@/components/ToastrNotification";
-import {
-  DONATION_AMOUNTS,
-  PLATFORM_FEE,
-  TahlilStatus,
-} from "@/utils/enums";
+import { DONATION_AMOUNTS, PLATFORM_FEE, TahlilStatus } from "@/utils/enums";
 import { useGetTahfizById } from "@/hooks/useTahfizMutations";
 import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
 import { useForm } from "react-hook-form";
@@ -50,7 +46,9 @@ function Section({ title, icon: Icon, accent = "emerald", children }) {
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
         {Icon && <Icon className={`w-4 h-4 ${colors[accent]}`} />}
-        <p className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}>
+        <p
+          className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}
+        >
           {title}
         </p>
       </div>
@@ -62,7 +60,9 @@ function Section({ title, icon: Icon, accent = "emerald", children }) {
 export default function QuickTahlil() {
   const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
-  const tahfizId = searchParams.get("tahfizId") ? Number(searchParams.get("tahfizId")) : null;
+  const tahfizId = searchParams.get("tahfizId")
+    ? Number(searchParams.get("tahfizId"))
+    : null;
 
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -71,10 +71,12 @@ export default function QuickTahlil() {
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
 
-  const { data: tahfiz, isLoading: isTahfizLoading } = useGetTahfizById(tahfizId);
+  const { data: tahfiz, isLoading: isTahfizLoading } =
+    useGetTahfizById(tahfizId);
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
-  const createTahlilRunningNoMutation = trpc.runningNo.createTahlilRunningNo.useMutation();
+  const createTahlilRunningNoMutation =
+    trpc.runningNo.createTahlilRunningNo.useMutation();
 
   const {
     control,
@@ -105,7 +107,8 @@ export default function QuickTahlil() {
 
   useEffect(() => {
     const saved = localStorage.getItem(SAVED_PHONE_KEY);
-    if (saved && !watch("requestorphoneno")) setValue("requestorphoneno", saved);
+    if (saved && !watch("requestorphoneno"))
+      setValue("requestorphoneno", saved);
   }, []);
 
   const selectedTahfizServices = useMemo(
@@ -128,7 +131,8 @@ export default function QuickTahlil() {
   );
 
   const hasTahfizService = (v) => selectedTahfizServicePrice[v] !== undefined;
-  const hasTahfizServicePrice = (v) => Number(selectedTahfizServicePrice[v] || 0) > 0;
+  const hasTahfizServicePrice = (v) =>
+    Number(selectedTahfizServicePrice[v] || 0) > 0;
 
   const selectableTahfizServices = useMemo(
     () =>
@@ -143,15 +147,23 @@ export default function QuickTahlil() {
     [selectedservices, selectedTahfizServicePrice],
   );
 
-  const hasService = (selectedservices || []).some((t) => t && hasTahfizServicePrice(t));
+  const hasService = (selectedservices || []).some(
+    (t) => t && hasTahfizServicePrice(t),
+  );
 
   const serviceAmount = useMemo(
     () =>
-      validServiceTypes.reduce((sum, t) => sum + Number(selectedTahfizServicePrice[t] || 0), 0),
+      validServiceTypes.reduce(
+        (sum, t) => sum + Number(selectedTahfizServicePrice[t] || 0),
+        0,
+      ),
     [validServiceTypes, selectedTahfizServicePrice],
   );
 
-  const donationAmount = useMemo(() => Number(customAmount || amount) || 0, [amount, customAmount]);
+  const donationAmount = useMemo(
+    () => Number(customAmount || amount) || 0,
+    [amount, customAmount],
+  );
   const hasDonation = donationAmount > 0;
   const finalAmountWithoutFee = useMemo(
     () => donationAmount + serviceAmount,
@@ -172,7 +184,8 @@ export default function QuickTahlil() {
     paymentConfigs.forEach((c) => {
       if (!c.paymentplatform) return;
       const code = c.paymentplatform.code;
-      if (!map[code]) map[code] = { code, name: c.paymentplatform.name, fields: [] };
+      if (!map[code])
+        map[code] = { code, name: c.paymentplatform.name, fields: [] };
       if (c.paymentfield)
         map[code].fields.push({
           key: c.paymentfield.key,
@@ -184,13 +197,17 @@ export default function QuickTahlil() {
     return Object.values(map);
   }, [paymentConfigs]);
 
-  const selectedPlatform = paymentPlatforms.find((p) => p.code === paymentMethod);
+  const selectedPlatform = paymentPlatforms.find(
+    (p) => p.code === paymentMethod,
+  );
   const selectedAccount = useMemo(() => {
-    if (!selectedPlatform?.fields?.length) return { bankname: "", accountno: "" };
+    if (!selectedPlatform?.fields?.length)
+      return { bankname: "", accountno: "" };
     const fields = selectedPlatform.fields;
     return {
       bankname: fields.find((f) => f.key === "bank_name")?.value?.trim() || "",
-      accountno: fields.find((f) => f.key === "account_no")?.value?.trim() || "",
+      accountno:
+        fields.find((f) => f.key === "account_no")?.value?.trim() || "",
     };
   }, [selectedPlatform]);
 
@@ -207,14 +224,19 @@ export default function QuickTahlil() {
       "selectedservices",
       isSelected ? current.filter((v) => v !== value) : [...current, value],
     );
-    if (value === CUSTOM_SERVICE_KEY && isSelected) setValue("customservice", "");
+    if (value === CUSTOM_SERVICE_KEY && isSelected)
+      setValue("customservice", "");
   };
 
   const handleAddDeceased = () =>
     setValue("deceasednames", [...watch("deceasednames"), ""]);
   const handleRemoveDeceased = (i) => {
     const names = watch("deceasednames");
-    if (names.length > 1) setValue("deceasednames", names.filter((_, idx) => idx !== i));
+    if (names.length > 1)
+      setValue(
+        "deceasednames",
+        names.filter((_, idx) => idx !== i),
+      );
   };
   const handleDeceasedChange = (i, value) => {
     const names = [...watch("deceasednames")];
@@ -225,7 +247,10 @@ export default function QuickTahlil() {
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
     setLoadingPayment(true);
-    sessionStorage.setItem("tahlilRequestPending", JSON.stringify({ formData, selectedAccount }));
+    sessionStorage.setItem(
+      "tahlilRequestPending",
+      JSON.stringify({ formData, selectedAccount }),
+    );
     const nextRunningNo = await createTahlilRunningNoMutation.mutateAsync();
     const year = new Date().getFullYear();
     const runningNo = `THL-${year}-${String(nextRunningNo).padStart(4, "0")}`;
@@ -263,7 +288,11 @@ export default function QuickTahlil() {
     formData.selectedservices = trimEmptyArray(formData.selectedservices);
     formData.deceasednames = trimEmptyArray(formData.deceasednames);
     const isValid = validateFields(formData, [
-      { field: "requestorphoneno", label: "Requestor Phone No.", type: "phone" },
+      {
+        field: "requestorphoneno",
+        label: "Requestor Phone No.",
+        type: "phone",
+      },
       { field: "requestoremail", label: "Requestor Email", type: "email" },
       { field: "selectedservices", label: "Service Type", type: "array" },
       { field: "deceasednames", label: "Deceased Names", type: "array" },
@@ -277,7 +306,8 @@ export default function QuickTahlil() {
       showError(translate("Please specify the special service."));
       return;
     }
-    if (!formData.selectedservices?.includes(CUSTOM_SERVICE_KEY)) formData.customservice = "";
+    if (!formData.selectedservices?.includes(CUSTOM_SERVICE_KEY))
+      formData.customservice = "";
     const tahlilRequest = {
       tahfizcenter: { id: Number(tahfizId) },
       selectedservices: formData.selectedservices,
@@ -316,7 +346,10 @@ export default function QuickTahlil() {
           </p>
         }
         actionButton={
-          <Button onClick={() => setSubmitted(false)} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button
+            onClick={() => setSubmitted(false)}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
             {translate("Submit Another Application")}
           </Button>
         }
@@ -330,8 +363,13 @@ export default function QuickTahlil() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="text-center space-y-3">
-          <p className="text-slate-500 dark:text-slate-400">{translate("Tahfiz center not found")}</p>
-          <Link to={createPageUrl("UserDashboard")} className="text-emerald-600 underline text-sm">
+          <p className="text-slate-500 dark:text-slate-400">
+            {translate("Tahfiz center not found")}
+          </p>
+          <Link
+            to={createPageUrl("UserDashboard")}
+            className="text-emerald-600 underline text-sm"
+          >
             {translate("Go to Home")}
           </Link>
         </div>
@@ -355,7 +393,9 @@ export default function QuickTahlil() {
             {tahfiz.name}
           </p>
           {tahfiz.state && (
-            <p className="text-[11px] text-slate-400 truncate">{tahfiz.state}</p>
+            <p className="text-[11px] text-slate-400 truncate">
+              {tahfiz.state}
+            </p>
           )}
         </div>
         <Link to={createPageUrl("UserDashboard")}>
@@ -366,10 +406,16 @@ export default function QuickTahlil() {
       <div className="max-w-2xl mx-auto px-3 pt-4 space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {tahfiz && (
-            <Section title={translate("Service Type")} icon={CheckCircle2} accent="violet">
+            <Section
+              title={translate("Service Type")}
+              icon={CheckCircle2}
+              accent="violet"
+            >
               <div className="space-y-2">
                 {selectableTahfizServices.map((serviceValue) => {
-                  const isSelected = (selectedservices || []).includes(serviceValue);
+                  const isSelected = (selectedservices || []).includes(
+                    serviceValue,
+                  );
                   const serviceLabel =
                     serviceValue === CUSTOM_SERVICE_KEY
                       ? translate("Special Service (Note)")
@@ -393,26 +439,29 @@ export default function QuickTahlil() {
                             : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
-                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                        {isSelected && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
                       </div>
                       <span
                         className={`flex-1 text-sm font-medium ${isSelected ? "text-violet-800 dark:text-violet-300" : "text-slate-700 dark:text-slate-300"}`}
                       >
                         {serviceLabel}
                       </span>
-                      {hasTahfizService(serviceValue) && price !== undefined && (
-                        <span
-                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                            price > 0
-                              ? isSelected
-                                ? "bg-violet-200 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
-                                : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
-                              : "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
-                          }`}
-                        >
-                          {price > 0 ? `RM ${price}` : ""}
-                        </span>
-                      )}
+                      {hasTahfizService(serviceValue) &&
+                        price !== undefined && (
+                          <span
+                            className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                              price > 0
+                                ? isSelected
+                                  ? "bg-violet-200 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
+                                  : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                                : "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
+                            }`}
+                          >
+                            {price > 0 ? `RM ${price}` : ""}
+                          </span>
+                        )}
                     </label>
                   );
                 })}
@@ -451,7 +500,9 @@ export default function QuickTahlil() {
                 deceasedNames.map((name, i) => (
                   <div key={i} className="flex gap-2 items-center">
                     <div className="w-6 h-6 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-bold text-rose-400">{i + 1}</span>
+                      <span className="text-[10px] font-bold text-rose-400">
+                        {i + 1}
+                      </span>
                     </div>
                     <Input
                       placeholder={`${translate("Deceased Name")}${deceasedNames.length > 1 ? ` ${i + 1}` : ""}`}
@@ -474,7 +525,11 @@ export default function QuickTahlil() {
             </div>
           </div>
 
-          <Section title={translate("Requester Information")} icon={Info} accent="blue">
+          <Section
+            title={translate("Requester Information")}
+            icon={Info}
+            accent="blue"
+          >
             <div className="space-y-3">
               <TextInputForm
                 name="requestorname"
@@ -575,7 +630,9 @@ export default function QuickTahlil() {
                             : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
-                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                        {isSelected && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
                       </div>
                       <CreditCard className="w-4 h-4 text-slate-400" />
                       <span
@@ -597,7 +654,10 @@ export default function QuickTahlil() {
                           className="max-w-[180px] rounded-lg border"
                         />
                       ) : (
-                        <p key={f.key} className="text-xs text-slate-600 dark:text-slate-400">
+                        <p
+                          key={f.key}
+                          className="text-xs text-slate-600 dark:text-slate-400"
+                        >
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {f.label}:
                           </span>{" "}
@@ -619,8 +679,13 @@ export default function QuickTahlil() {
                       {validServiceTypes.map(
                         (type) =>
                           hasTahfizServicePrice(type) && (
-                            <div key={type} className="flex justify-between text-sm">
-                              <span className="text-slate-600 dark:text-slate-400">{type}</span>
+                            <div
+                              key={type}
+                              className="flex justify-between text-sm"
+                            >
+                              <span className="text-slate-600 dark:text-slate-400">
+                                {type}
+                              </span>
                               <span className="font-semibold text-slate-800 dark:text-slate-200">
                                 RM {selectedTahfizServicePrice[type]}
                               </span>
@@ -684,7 +749,10 @@ export default function QuickTahlil() {
           }
         }}
         title={translate("Save Phone Number")}
-        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        description={translate("Save {phone} for future use?").replace(
+          "{phone}",
+          pendingPhone,
+        )}
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {

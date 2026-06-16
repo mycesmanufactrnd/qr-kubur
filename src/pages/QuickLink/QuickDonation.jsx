@@ -21,7 +21,13 @@ import { createPageUrl } from "@/utils";
 
 const SAVED_PHONE_KEY = "userphoneno";
 
-function Section({ title, icon: Icon, accent = "emerald", headerAction, children }) {
+function Section({
+  title,
+  icon: Icon,
+  accent = "emerald",
+  headerAction,
+  children,
+}) {
   const colors = {
     emerald: "text-emerald-600",
     amber: "text-amber-500",
@@ -32,7 +38,9 @@ function Section({ title, icon: Icon, accent = "emerald", headerAction, children
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
         <div className="flex items-center gap-2">
           {Icon && <Icon className={`w-4 h-4 ${colors[accent]}`} />}
-          <p className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}>
+          <p
+            className={`text-[11px] font-semibold uppercase tracking-widest ${colors[accent]}`}
+          >
             {title}
           </p>
         </div>
@@ -46,14 +54,17 @@ function Section({ title, icon: Icon, accent = "emerald", headerAction, children
 export default function QuickDonation() {
   const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
-  const mosqueId = searchParams.get("mosqueId") ? Number(searchParams.get("mosqueId")) : null;
+  const mosqueId = searchParams.get("mosqueId")
+    ? Number(searchParams.get("mosqueId"))
+    : null;
 
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
 
-  const { data: mosque, isLoading: isMosqueLoading } = useGetMosqueById(mosqueId);
+  const { data: mosque, isLoading: isMosqueLoading } =
+    useGetMosqueById(mosqueId);
   const organisationId = mosque?.organisation?.id ?? null;
 
   const { watch, setValue, handleSubmit } = useForm({
@@ -67,10 +78,13 @@ export default function QuickDonation() {
   const donorphoneno = watch("donorphoneno");
   const donoremail = watch("donoremail");
   const notes = watch("notes");
-  const hasDonorInfo = Boolean(donorname || donoremail || donorphoneno || notes);
+  const hasDonorInfo = Boolean(
+    donorname || donoremail || donorphoneno || notes,
+  );
 
   const createBillMutation = trpc.toyyibPay.createBill.useMutation();
-  const createDonationRunningNoMutation = trpc.runningNo.createDonationRunningNo.useMutation();
+  const createDonationRunningNoMutation =
+    trpc.runningNo.createDonationRunningNo.useMutation();
 
   useEffect(() => {
     if (googleUser) {
@@ -84,9 +98,13 @@ export default function QuickDonation() {
     if (saved && !watch("donorphoneno")) setValue("donorphoneno", saved);
   }, []);
 
-  const baseAmount = useMemo(() => Number(customAmount || amount) || 0, [amount, customAmount]);
+  const baseAmount = useMemo(
+    () => Number(customAmount || amount) || 0,
+    [amount, customAmount],
+  );
   const payableAmount = useMemo(
-    () => (baseAmount > 0 ? baseAmount + Number(PLATFORM_DONATION_FEE || 0) : 0),
+    () =>
+      baseAmount > 0 ? baseAmount + Number(PLATFORM_DONATION_FEE || 0) : 0,
     [baseAmount],
   );
 
@@ -101,7 +119,8 @@ export default function QuickDonation() {
     paymentConfigs.forEach((config) => {
       if (!config.paymentplatform) return;
       const code = config.paymentplatform.code;
-      if (!map[code]) map[code] = { code, name: config.paymentplatform.name, fields: [] };
+      if (!map[code])
+        map[code] = { code, name: config.paymentplatform.name, fields: [] };
       if (config.paymentfield)
         map[code].fields.push({
           key: config.paymentfield.key,
@@ -113,13 +132,17 @@ export default function QuickDonation() {
     return Object.values(map);
   }, [paymentConfigs]);
 
-  const selectedPlatform = paymentPlatforms.find((p) => p.code === paymentMethod);
+  const selectedPlatform = paymentPlatforms.find(
+    (p) => p.code === paymentMethod,
+  );
   const selectedAccount = useMemo(() => {
-    if (!selectedPlatform?.fields?.length) return { bankname: "", accountno: "" };
+    if (!selectedPlatform?.fields?.length)
+      return { bankname: "", accountno: "" };
     const fields = selectedPlatform.fields;
     return {
       bankname: fields.find((f) => f.key === "bank_name")?.value?.trim() || "",
-      accountno: fields.find((f) => f.key === "account_no")?.value?.trim() || "",
+      accountno:
+        fields.find((f) => f.key === "account_no")?.value?.trim() || "",
     };
   }, [selectedPlatform]);
 
@@ -216,8 +239,13 @@ export default function QuickDonation() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="text-center space-y-3">
-          <p className="text-slate-500 dark:text-slate-400">{translate("Mosque not found")}</p>
-          <Link to={createPageUrl("UserDashboard")} className="text-emerald-600 underline text-sm">
+          <p className="text-slate-500 dark:text-slate-400">
+            {translate("Mosque not found")}
+          </p>
+          <Link
+            to={createPageUrl("UserDashboard")}
+            className="text-emerald-600 underline text-sm"
+          >
             {translate("Go to Home")}
           </Link>
         </div>
@@ -316,7 +344,11 @@ export default function QuickDonation() {
           </Section>
 
           {paymentPlatforms.length > 0 && (
-            <Section title={translate("Payment Method")} icon={CreditCard} accent="emerald">
+            <Section
+              title={translate("Payment Method")}
+              icon={CreditCard}
+              accent="emerald"
+            >
               <div className="space-y-2">
                 {paymentPlatforms.map((p) => {
                   const isSelected = paymentMethod === p.code;
@@ -337,7 +369,9 @@ export default function QuickDonation() {
                             : "border-slate-300 dark:border-slate-600"
                         }`}
                       >
-                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                        {isSelected && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
                       </div>
                       <CreditCard className="w-4 h-4 text-slate-400" />
                       <span
@@ -359,7 +393,10 @@ export default function QuickDonation() {
                           className="max-w-[180px] rounded-lg border"
                         />
                       ) : (
-                        <p key={f.key} className="text-xs text-slate-600 dark:text-slate-400">
+                        <p
+                          key={f.key}
+                          className="text-xs text-slate-600 dark:text-slate-400"
+                        >
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {f.label}:
                           </span>{" "}
@@ -452,7 +489,10 @@ export default function QuickDonation() {
           }
         }}
         title={translate("Save Phone Number")}
-        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        description={translate("Save {phone} for future use?").replace(
+          "{phone}",
+          pendingPhone,
+        )}
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {

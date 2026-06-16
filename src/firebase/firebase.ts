@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken } from "firebase/messaging";
+import { getAuth } from "firebase/auth";
 
 export { getToken };
 
@@ -15,6 +16,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
+export const auth = getAuth(app);
 
 /**
  * Requests notification permission, registers the service worker,
