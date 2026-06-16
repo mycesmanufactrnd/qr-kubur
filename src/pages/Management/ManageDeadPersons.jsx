@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useEffect, useState } from "react";
 import MobileManageDeadPersons from "@/pages/Mobile/ManageDeadPersons";
@@ -488,7 +488,7 @@ function ManageDeadPersonsDesktop() {
                     </TableCell>
                     <TableCell>
                       <img
-                        src={resolveFileUrl(person.photourl, "dead-person")}
+                        src={resolveFileUrl(person.photourl, "bucket-dead-person")}
                         referrerPolicy="no-referrer"
                         onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt="photo"
@@ -801,7 +801,7 @@ function ManageDeadPersonsDesktop() {
               label={translate("Photo")}
               required
               errors={errors}
-              bucketName="dead-person"
+              bucketName="bucket-dead-person"
               uploading={uploading}
               handleFileUpload={handleFileUpload}
               translate={translate}

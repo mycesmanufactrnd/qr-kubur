@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -948,7 +948,7 @@ function ManageQuotationsDesktop() {
                         <img
                           src={resolveFileUrl(
                             transactionAccount.photourl,
-                            "online-transaction",
+                            "bucket-online-transaction",
                           )}
                           referrerPolicy="no-referrer"
                           onError={(e) => { e.currentTarget.style.display = "none"; }}

@@ -791,7 +791,7 @@ function ManageGravesDesktop() {
             <Button
               type="button"
               variant="outline"
-              className="w-full bg-emerald-600 text:white"
+              className="w-full bg-emerald-600 text-white"
               onClick={() => {
                 if (!navigator.geolocation) return;
                 setIsLocating(true);

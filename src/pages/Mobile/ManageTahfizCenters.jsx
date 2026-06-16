@@ -45,7 +45,7 @@ const DEFAULT_TAHLIL_ENTRY = {
 };
 
 function TahfizCard({ item, canEdit, canDelete, onEdit, onDelete }) {
-  const photoSrc = resolveFileUrl(item.photourl, "tahfiz-center");
+  const photoSrc = resolveFileUrl(item.photourl, "bucket-tahfiz-center");
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -671,7 +671,7 @@ function TahfizFormSheet({
             name="photourl"
             control={control}
             label={translate("Photo")}
-            bucketName="tahfiz-center"
+            bucketName="bucket-tahfiz-center"
             uploading={uploading}
             handleFileUpload={handleFileUpload}
             translate={translate}

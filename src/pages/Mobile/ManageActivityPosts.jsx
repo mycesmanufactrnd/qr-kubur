@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { List, Plus, Edit, Trash2, X, Save } from "lucide-react";
@@ -37,7 +37,7 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       {post.photourl && (
         <img
-          src={resolveFileUrl(post.photourl, "activity-post")}
+          src={resolveFileUrl(post.photourl, "bucket-activity-storage")}
           referrerPolicy="no-referrer"
           onError={(e) => {
             e.currentTarget.style.display = "none";
@@ -190,7 +190,7 @@ function PostFormSheet({
           name="photourl"
           control={control}
           label={translate("Photo")}
-          bucketName="activity-post"
+          bucketName="bucket-activity-storage"
           uploading={uploading}
           handleFileUpload={handleFileUpload}
           translate={translate}

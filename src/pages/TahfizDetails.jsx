@@ -60,7 +60,7 @@ export default function TahfizDetails() {
       <div className="relative h-64 md:h-80 overflow-hidden">
         {tahfizDetails.photourl ? (
           <img
-            src={resolveFileUrl(tahfizDetails.photourl, 'tahfiz-center')}
+            src={resolveFileUrl(tahfizDetails.photourl, 'bucket-tahfiz-center')}
             referrerPolicy="no-referrer"
             onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={tahfizDetails.name}

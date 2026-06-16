@@ -266,7 +266,7 @@ export const PERMISSION_CATEGORIES = {
     label: "Organisations",
     permissions: [
       { slug: PERMISSIONS.ORGANISATIONS_VIEW, label: "View" },
-      { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: "Create" },
+      { slug: PERMISSIONS.ORGANISATIONS_CREATE, label: "Create", superAdminOnly: true },
       { slug: PERMISSIONS.ORGANISATIONS_EDIT, label: "Edit" },
       { slug: PERMISSIONS.ORGANISATIONS_DELETE, label: "Delete" },
     ],

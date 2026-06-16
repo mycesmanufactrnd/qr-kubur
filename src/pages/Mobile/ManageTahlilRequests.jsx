@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import {
   Eye,
@@ -269,7 +269,7 @@ function DetailSheet({
                 {tahlilPhotoUrls.map((url, idx) => (
                   <div key={`${url}-${idx}`} className="relative">
                     <img
-                      src={resolveFileUrl(url, "bucket-tahfiz-tahlil")}
+                      src={resolveFileUrl(url, "bucket-tahlil-request")}
                       referrerPolicy="no-referrer"
                       onError={(e) => { e.currentTarget.style.display = "none"; }}
                       alt={`Tahlil ${idx + 1}`}
@@ -353,7 +353,7 @@ function DetailSheet({
               <p className="text-xs text-slate-500">{translate("Photo")}</p>
               {transactionAccount.photourl ? (
                 <img
-                  src={resolveFileUrl(transactionAccount.photourl, "online-transaction")}
+                  src={resolveFileUrl(transactionAccount.photourl, "bucket-online-transaction")}
                   referrerPolicy="no-referrer"
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                   alt="Transaction proof"
@@ -532,7 +532,7 @@ function UploadSheet({ uploadTargetIds, requests, tahlilPhotoUploading, onUpload
                   <p className="text-xs text-slate-500">{request.referenceno || "-"}</p>
                   {photoUrl ? (
                     <img
-                      src={resolveFileUrl(photoUrl, "bucket-tahfiz-tahlil")}
+                      src={resolveFileUrl(photoUrl, "bucket-tahlil-request")}
                       referrerPolicy="no-referrer"
                       onError={(e) => { e.currentTarget.style.display = "none"; }}
                       alt="current"
@@ -689,7 +689,7 @@ export default function ManageTahlilRequests() {
       const formData = new FormData();
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
-      const res = await fetch("/api/upload/bucket-tahfiz-tahlil", {
+      const res = await fetch("/api/upload/bucket-tahlil-request", {
         method: "POST",
         body: formData,
       });

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import ManageTahlilRequestsMobile from "@/pages/Mobile/ManageTahlilRequests";
 import { useEffect, useMemo, useState } from "react";
@@ -273,7 +273,7 @@ function ManageTahlilRequestsDesktop() {
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
 
-      const res = await fetch("/api/upload/bucket-tahfiz-tahlil", {
+      const res = await fetch("/api/upload/bucket-tahlil-request", {
         method: "POST",
         body: formData,
       });
@@ -1040,7 +1040,7 @@ function ManageTahlilRequestsDesktop() {
                         {tahlilPhotoUrls.map((url, idx) => (
                           <div key={`${url}-${idx}`} className="relative">
                             <img
-                              src={resolveFileUrl(url, "bucket-tahfiz-tahlil")}
+                              src={resolveFileUrl(url, "bucket-tahlil-request")}
                               referrerPolicy="no-referrer"
                               onError={(e) => { e.currentTarget.style.display = "none"; }}
                               alt={`Tahlil ${idx + 1}`}
@@ -1171,12 +1171,12 @@ function ManageTahlilRequestsDesktop() {
                         <div className="space-y-2">
                           {resolveFileUrl(
                             transactionAccount.photourl,
-                            "online-transaction",
+                            "bucket-online-transaction",
                           ) && (
                             <img
                               src={resolveFileUrl(
                                 transactionAccount.photourl,
-                                "online-transaction",
+                                "bucket-online-transaction",
                               )}
                               referrerPolicy="no-referrer"
                               onError={(e) => { e.currentTarget.style.display = "none"; }}
@@ -1362,7 +1362,7 @@ function ManageTahlilRequestsDesktop() {
 
                     const imageSrc = resolveFileUrl(
                       photoUrl,
-                      "bucket-tahfiz-tahlil",
+                      "bucket-tahlil-request",
                     );
 
                     return (

@@ -551,12 +551,12 @@ function ManageDonationsDesktop() {
                         <div className="space-y-2">
                           {resolveFileUrl(
                             transactionAccount.photourl,
-                            "online-transaction",
+                            "bucket-online-transaction",
                           ) && (
                             <img
                               src={resolveFileUrl(
                                 transactionAccount.photourl,
-                                "online-transaction",
+                                "bucket-online-transaction",
                               )}
                               referrerPolicy="no-referrer"
                               onError={(e) => { e.currentTarget.style.display = "none"; }}

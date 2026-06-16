@@ -56,6 +56,7 @@ function PermissionSheet({
   isLoading,
   visibleCategories,
   isNarrow,
+  isSuperAdmin,
 }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
@@ -79,7 +80,10 @@ function PermissionSheet({
         ) : (
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28">
             {visibleCategories.map(([key, category]) => {
-            const categorySlugs = category.permissions.map((p) => p.slug);
+            const visiblePerms = category.permissions.filter(
+              (p) => !p.superAdminOnly || isSuperAdmin,
+            );
+            const categorySlugs = visiblePerms.map((p) => p.slug);
             const allEnabled = categorySlugs.every((s) => !!userPermissions[s]);
             return (
               <div key={key} className="space-y-2">
@@ -104,7 +108,7 @@ function PermissionSheet({
                 <div
                   className={`grid gap-2 ${isNarrow ? "grid-cols-1" : "grid-cols-2"}`}
                 >
-                  {category.permissions.map((perm) => (
+                  {visiblePerms.map((perm) => (
                     <div
                       key={perm.slug}
                       className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl"
@@ -227,12 +231,13 @@ export default function MobileManagePermissions() {
 
   const saveAllPermissions = async () => {
     if (!selectedUser?.id) return;
+    const payload = Object.entries(userPermissions).map(([slug, enabled]) => ({
+      slug,
+      enabled: slug === "organisations_create" && !isSuperAdmin ? false : enabled,
+    }));
     await upsertPermission.mutateAsync({
       userId: selectedUser.id,
-      permissions: Object.entries(userPermissions).map(([slug, enabled]) => ({
-        slug,
-        enabled,
-      })),
+      permissions: payload,
     });
     const refreshedUser = await refreshUser?.();
     if (refreshedUser) window.location.reload();
@@ -341,6 +346,7 @@ export default function MobileManagePermissions() {
           isLoading={loadingPermissions}
           visibleCategories={visibleCategories}
           isNarrow={isNarrow}
+          isSuperAdmin={isSuperAdmin}
         />
       )}
     </>

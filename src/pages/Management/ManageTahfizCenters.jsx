@@ -1024,7 +1024,7 @@ function ManageTahfizCentersDesktop() {
                     </TableCell>
                     <TableCell>
                       <img
-                        src={resolveFileUrl(center.photourl, "tahfiz-center")}
+                        src={resolveFileUrl(center.photourl, "bucket-tahfiz-center")}
                         referrerPolicy="no-referrer"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
@@ -1287,7 +1287,7 @@ function ManageTahfizCentersDesktop() {
                   name="photourl"
                   control={control}
                   label={translate("Photo")}
-                  bucketName="tahfiz-center"
+                  bucketName="bucket-tahfiz-center"
                   uploading={uploading}
                   handleFileUpload={handleFileUpload}
                   translate={translate}

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default function WaqfCard({ project, onEditProject, isView = false }) {
 
       <div className="-mt-2 relative h-48 bg-gradient-to-br from-yellow-500 via-orange-500 to-gold-600 overflow-hidden">
         <BannerImageWithFallback
-          src={resolveFileUrl(project.photourl, "waqf-project")}
+          src={resolveFileUrl(project.photourl, "bucket-waqf-project")}
           alt={project.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

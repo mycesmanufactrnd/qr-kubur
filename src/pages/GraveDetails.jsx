@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useState } from "react";
 import {
   Link,
@@ -303,7 +303,7 @@ export default function GraveDetails() {
                             <InitialAvatarImage
                               src={resolveFileUrl(
                                 person.photourl,
-                                "dead-person",
+                                "bucket-dead-person",
                               )}
                               name={person.name}
                               className="w-10 h-10"

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
@@ -159,7 +159,7 @@ export default function ManageHeritageSites() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch("/api/upload/heritage-site", {
+      const res = await fetch("/api/upload/bucket-heritage-site", {
         method: "POST",
         body: formDataUpload,
       });
@@ -365,7 +365,7 @@ export default function ManageHeritageSites() {
                     </TableCell>
                     <TableCell>
                       <img
-                        src={resolveFileUrl(site.photourl, "heritage-site")}
+                        src={resolveFileUrl(site.photourl, "bucket-heritage-site")}
                         referrerPolicy="no-referrer"
                         onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt="photo"
@@ -588,7 +588,7 @@ export default function ManageHeritageSites() {
                   src={
                     photoUrlInput
                       ? photoUrlInput
-                      : resolveFileUrl(photourl, "heritage-site")
+                      : resolveFileUrl(photourl, "bucket-heritage-site")
                   }
                   alt={translate("Preview")}
                 />

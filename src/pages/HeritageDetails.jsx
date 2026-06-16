@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -64,7 +64,7 @@ export default function HeritageDetails() {
       <div className="relative h-72 md:h-96">
         {site.photourl ? (
           <img
-            src={resolveFileUrl(site.photourl, "heritage-site")}
+            src={resolveFileUrl(site.photourl, "bucket-heritage-site")}
             referrerPolicy="no-referrer"
             onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={site.name}

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -356,7 +356,7 @@ function ManageActivityPostsDesktop() {
                     <TableCell>
                       {post.photourl ? (
                         <img
-                          src={resolveFileUrl(post.photourl, "activity-post")}
+                          src={resolveFileUrl(post.photourl, "bucket-activity-storage")}
                           referrerPolicy="no-referrer"
                           onError={(e) => { e.currentTarget.style.opacity = "0.3"; }}
                           alt="photo"
@@ -489,7 +489,7 @@ function ManageActivityPostsDesktop() {
               name="photourl"
               control={control}
               label={translate("Photo")}
-              bucketName="activity-post"
+              bucketName="bucket-activity-storage"
               uploading={uploading}
               handleFileUpload={handleFileUpload}
               translate={translate}

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect, useState, useRef } from 'react';
 import { Search, BookOpen, Clock, CheckCircle, XCircle, MapPin, User, Calendar } from 'lucide-react';
 import { formatRM } from '@/utils/helpers';
@@ -297,7 +297,7 @@ export default function CheckTahlilStatus() {
                     {request.photourls.map((url, idx) => (
                       <img
                         key={`${url}-${idx}`}
-                        src={resolveFileUrl(url, 'bucket-tahfiz-tahlil')}
+                        src={resolveFileUrl(url, 'bucket-tahlil-request')}
                         referrerPolicy="no-referrer"
                         onError={(e) => { e.currentTarget.style.display = "none"; }}
                         alt={`Tahlil ${idx + 1}`}

@@ -96,12 +96,13 @@ function ManagePermissionsDesktop() {
 
   const saveAllPermissions = async () => {
     if (selectedUser?.id) {
+      const payload = Object.entries(userPermissions).map(([slug, enabled]) => ({
+        slug,
+        enabled: slug === "organisations_create" && !isSuperAdmin ? false : enabled,
+      }));
       await upsertPermission.mutateAsync({
         userId: selectedUser.id,
-        permissions: Object.entries(userPermissions).map(([slug, enabled]) => ({
-          slug,
-          enabled,
-        })),
+        permissions: payload,
       });
 
       const refreshedUser = await refreshUser?.();
@@ -340,7 +341,10 @@ function ManagePermissionsDesktop() {
                       return true;
                     })
                     .map(([key, category]) => {
-                      const categorySlugs = category.permissions.map((p) => p.slug);
+                      const visiblePerms = category.permissions.filter(
+                        (p) => !p.superAdminOnly || isSuperAdmin,
+                      );
+                      const categorySlugs = visiblePerms.map((p) => p.slug);
                       const allEnabled = categorySlugs.every((s) => !!userPermissions[s]);
                       return (
                       <div key={key} className="space-y-3">
@@ -363,7 +367,7 @@ function ManagePermissionsDesktop() {
                           )}
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {category.permissions.map((perm) => (
+                          {visiblePerms.map((perm) => (
                             <div
                               key={perm.slug}
                               className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"

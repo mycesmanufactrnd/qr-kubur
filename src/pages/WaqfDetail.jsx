@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import {
   MapPin,
   Calendar,
@@ -132,7 +132,7 @@ export default function WaqfDetail() {
       <div className="relative h-64 md:h-96 overflow-hidden">
         {project.photourl ? (
           <img
-            src={resolveFileUrl(project.photourl, "waqf-project")}
+            src={resolveFileUrl(project.photourl, "bucket-waqf-project")}
             referrerPolicy="no-referrer"
             onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={project.waqfname}

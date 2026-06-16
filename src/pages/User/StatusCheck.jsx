@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect, useRef, useState } from "react";
 import {
   Search,
@@ -524,7 +524,7 @@ export default function StatusCheck() {
                   {tahlilRequest.photourls.map((url, idx) => (
                     <img
                       key={`${url}-${idx}`}
-                      src={resolveFileUrl(url, "bucket-tahfiz-tahlil")}
+                      src={resolveFileUrl(url, "bucket-tahlil-request")}
                       referrerPolicy="no-referrer"
                       onError={(e) => { e.currentTarget.style.display = "none"; }}
                       alt={`Tahlil ${idx + 1}`}

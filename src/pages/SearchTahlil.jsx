@@ -157,7 +157,7 @@ function TahlilQuickCard({ tahfiz, onRequest }) {
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="relative h-28 bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 overflow-hidden">
         <BannerImageWithFallback
-          src={resolveFileUrl(tahfiz.photourl, 'tahfiz-center')}
+          src={resolveFileUrl(tahfiz.photourl, 'bucket-tahfiz-center')}
           alt={tahfiz.name}
           className="w-full h-full object-cover"
         />

@@ -272,7 +272,7 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
               {transactionAccount.photourl &&
                 resolveFileUrl(
                   transactionAccount.photourl,
-                  "online-transaction",
+                  "bucket-online-transaction",
                 ) && (
                   <div className="pt-1">
                     <p className="text-slate-500 dark:text-slate-400 mb-1.5 text-xs">
@@ -281,7 +281,7 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
                     <img
                       src={resolveFileUrl(
                         transactionAccount.photourl,
-                        "online-transaction",
+                        "bucket-online-transaction",
                       )}
                       referrerPolicy="no-referrer"
                       onError={(e) => {

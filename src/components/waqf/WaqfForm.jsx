@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +58,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
             formDataUpload.append('file', file);
             appendCurrentUserToFormData(formDataUpload);
         
-            const res = await fetch('/api/upload/waqf-project', { method: 'POST', body: formDataUpload });
+            const res = await fetch('/api/upload/bucket-waqf-project', { method: 'POST', body: formDataUpload });
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
                 showError(errorData.error || 'Failed to upload photo');
@@ -305,7 +305,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
             src={
               photoUrlInput
                 ? photoUrlInput
-                : resolveFileUrl(photourl, 'waqf-project')
+                : resolveFileUrl(photourl, 'bucket-waqf-project')
             }
             alt={translate('Preview')}
           />

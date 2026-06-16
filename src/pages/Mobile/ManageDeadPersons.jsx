@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -44,7 +44,7 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
       <div className="flex gap-3 p-4">
         {person.photourl ? (
           <img
-            src={resolveFileUrl(person.photourl, "dead-person")}
+            src={resolveFileUrl(person.photourl, "bucket-dead-person")}
             referrerPolicy="no-referrer"
             onError={(e) => {
               e.currentTarget.style.display = "none";
@@ -264,7 +264,7 @@ function PersonFormSheet({
           label={translate("Photo")}
           required
           errors={errors}
-          bucketName="dead-person"
+          bucketName="bucket-dead-person"
           uploading={uploading}
           handleFileUpload={handleFileUpload}
           translate={translate}

@@ -304,9 +304,9 @@ export default function PaymentCellDetails({ payments = [], year }) {
                                             <p className="text-sm text-gray-500">Photo</p>
                                             {transactionAccount.photourl ? (
                                                 <div className="space-y-2">
-                                                    {resolveFileUrl(transactionAccount.photourl, "online-transaction") && (
+                                                    {resolveFileUrl(transactionAccount.photourl, "bucket-online-transaction") && (
                                                         <img
-                                                            src={resolveFileUrl(transactionAccount.photourl, "online-transaction")}
+                                                            src={resolveFileUrl(transactionAccount.photourl, "bucket-online-transaction")}
                                                             referrerPolicy="no-referrer"
                                                             onError={(e) => { e.currentTarget.style.display = "none"; }}
                                                             alt="Transaction proof"

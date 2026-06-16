@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+﻿import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Building2 } from 'lucide-react';
 import moment from 'moment';
@@ -10,7 +10,7 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
       {post.photourl && (
         <div className="overflow-hidden">
           <img
-            src={resolveFileUrl(post.photourl, 'activity-post')}
+            src={resolveFileUrl(post.photourl, 'bucket-activity-storage')}
             referrerPolicy="no-referrer"
             onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={post.title}

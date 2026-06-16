@@ -78,7 +78,7 @@ export function buildDefaultPermissions({
   else if (organisation?.id) {
     permissions.push(
       { slug: "organisations_view", enabled: true, user },
-      { slug: "organisations_create", enabled: true, user },
+      // { slug: "organisations_create", enabled: true, user },
       { slug: "organisations_edit", enabled: true, user },
       { slug: "organisations_delete", enabled: true, user },
     );

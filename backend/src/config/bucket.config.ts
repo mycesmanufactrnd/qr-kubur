@@ -1,7 +1,11 @@
+// /api/upload/
+// resolveFileUrl
+
 export const getBucketConfig = () => ({
   // Payment configs
   tahfizPaymentConfBucketId: process.env.TAHFIZ_PAYMENT_CONFIG_STORAGE_ID!,
   organisationPaymentConfBucketId: process.env.ORGANISATION_PAYMENT_CONFIG_STORAGE_ID!,
+  onlineTransactionBucketId: process.env.ONLINE_TRANSACTION_STORAGE_ID!,
 
   // Graves
   graveBucketId: process.env.GRAVE_STORAGE_ID!,

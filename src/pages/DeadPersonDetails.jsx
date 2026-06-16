@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import { Link, useSearchParams } from "react-router-dom";
 import { trpc } from "@/utils/trpc";
 import { Building2, ChevronRight, MapPin } from "lucide-react";
@@ -67,7 +67,7 @@ export default function DeadPersonDetails() {
         <CardContent className="p-4 space-y-4">
           <div className="flex justify-center">
             <InitialAvatarImage
-              src={resolveFileUrl(deadPersonDetails.photourl, "dead-person")}
+              src={resolveFileUrl(deadPersonDetails.photourl, "bucket-dead-person")}
               name={deadPersonDetails.name}
               className="w-32 h-32"
             />
