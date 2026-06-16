@@ -136,10 +136,11 @@ export default function SettingsPageMobile() {
       try {
         const FirebaseAuth = window.Capacitor?.Plugins?.FirebaseAuthentication;
         if (!FirebaseAuth) throw new Error('Plugin not available. Run: npx cap sync');
-        const result = await FirebaseAuth.signInWithGoogle();
-        const credential = result?.credential?.idToken;
-        if (credential) login(credential);
-        else throw new Error(`No ID token. Keys: ${Object.keys(result || {}).join(', ')}`);
+        await FirebaseAuth.signInWithGoogle();
+        const tokenResult = await FirebaseAuth.getIdToken();
+        const firebaseIdToken = tokenResult?.token;
+        if (firebaseIdToken) login(firebaseIdToken);
+        else throw new Error('No Firebase ID token from getIdToken()');
       } catch (e) {
         setSignInError(e?.message || String(e));
       }

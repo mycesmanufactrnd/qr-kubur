@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "681335807437-3qspphi2jdmrpsabsr9lflpm1kihn2br.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.myces.qubur",
+            "certificate_hash": "13a95ed6d938c9f4bbdfbbac257cb1ac1622a986"
+          }
+        },
+        {
           "client_id": "681335807437-hhalgfijqjkhgmh5ed2pc5iva7dtenol.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
