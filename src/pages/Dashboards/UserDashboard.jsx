@@ -301,10 +301,10 @@ export default function UserDashboard() {
 
         <div className="db-toprow">
           <div>
-            <div className="db-greeting">{translate("Assalamualaikum")},</div>
+            <div className="db-greeting">{translate("Assalamualaikum")}</div>
             <div className="db-appname">QubuR</div>
             <div className="db-tagline">
-              {translate("Funeral Guide & Management")}
+              - {translate("Funeral Guide & Management")} -
             </div>
           </div>
           <button className="db-moonbtn" onClick={toggleTheme} aria-label="Toggle theme">
