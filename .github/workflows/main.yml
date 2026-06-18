@@ -12,7 +12,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create .env
-        run: echo "${{ secrets.PROD_ENV_FILE }}" > .env
+        run: |
+          $Utf8NoBom = New-Object System.Text.UTF8Encoding $False
+          [System.IO.File]::WriteAllText(".env", "${{ secrets.PROD_ENV_FILE }}", $Utf8NoBom)
 
       - name: Build & Deploy
         run: docker compose up -d --build --remove-orphans

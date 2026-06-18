@@ -1,3 +1,6 @@
+# Actions runner (self-hosted — never commit)
+actions-runner/
+
 #env
 .env
 .env.dev
