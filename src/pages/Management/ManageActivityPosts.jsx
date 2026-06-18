@@ -40,11 +40,11 @@ import {
 } from "@/hooks/useActivityPostMutations";
 import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
 import { defaultActivityPost } from "@/utils/defaultformfields";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
-import SelectForm from "@/components/Forms/SelectForm";
-import CheckboxForm from "@/components/Forms/CheckboxForm";
-import FileUploadForm from "@/components/Forms/FileUploadForm";
-import RichTextEditorForm from "@/components/Forms/RichTextEditorForm";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm";
+import CheckboxForm from "@/components/forms/CheckboxForm";
+import FileUploadForm from "@/components/forms/FileUploadForm";
+import RichTextEditorForm from "@/components/forms/RichTextEditorForm";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 

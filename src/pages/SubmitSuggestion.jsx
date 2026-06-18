@@ -30,7 +30,7 @@ import { useLocationContext } from "@/providers/LocationProvider";
 import { ipAddressQueryOptions } from "@/utils/queryOptions";
 import { useAdminAccess, getStoredGoogleUser } from "@/utils/auth";
 import { translate } from "@/utils/translations";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
 
 const PHONE_STORAGE_KEY = "suggestion_phoneno";
 

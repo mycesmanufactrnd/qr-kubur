@@ -43,7 +43,7 @@ import {
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { trpc } from "@/utils/trpc";
 import { useSearchParams } from "react-router-dom";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { userGoogleAccess } from "@/utils/auth";
 import ConfirmDialog from "@/components/ConfirmDialog";

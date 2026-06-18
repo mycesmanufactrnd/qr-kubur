@@ -23,8 +23,8 @@ import NoDataTableComponent from '@/components/NoDataTableComponent';
 import { useDeathCharityClaimMutations, useGetDeathCharityClaimPaginated } from '@/hooks/useDeathCharityClaimMutations';
 import { defaultDeathCharityClaimField } from '@/utils/defaultformfields';
 import { validateFields } from '@/utils/validations';
-import TextInputForm from '@/components/Forms/TextInputForm';
-import SelectForm from '@/components/Forms/SelectForm';
+import TextInputForm from '@/components/forms/TextInputForm';
+import SelectForm from '@/components/forms/SelectForm';
 import { useGetDependentsByMember, useGetMemberByDeathCharity } from '@/hooks/useDeathCharityMemberMutations';
 import { useGetDeathCharityByOrganisation } from '@/hooks/useDeathCharityMutations';
 

@@ -41,7 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import SearchBar from "@/components/Forms/SearchBar";
+import SearchBar from "@/components/forms/SearchBar";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";

@@ -50,9 +50,9 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
-import SelectForm from "@/components/Forms/SelectForm";
-import SearchBar from "@/components/Forms/SearchBar";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm";
+import SearchBar from "@/components/forms/SearchBar";
 
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -69,7 +69,7 @@ import {
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { defaultMosqueField } from "@/utils/defaultformfields";
 import { useForm } from "react-hook-form";
-import CheckboxForm from "@/components/Forms/CheckboxForm";
+import CheckboxForm from "@/components/forms/CheckboxForm";
 
 export default function ManageMosques() {
   const isNarrow = useIsNarrow();

@@ -21,8 +21,8 @@ import { translate } from '@/utils/translations';
 import { ActiveInactiveStatus } from '@/utils/enums';
 import { defaultOrganisationTypeField } from '@/utils/defaultformfields';
 import { useForm } from 'react-hook-form';
-import TextInputForm from '@/components/Forms/TextInputForm.jsx';
-import SelectForm from '@/components/Forms/SelectForm';
+import TextInputForm from '@/components/forms/TextInputForm.jsx';
+import SelectForm from '@/components/forms/SelectForm';
 
 export default function ManageOrganisationTypes() {
   const { loadingUser, isSuperAdmin, hasAdminAccess } = useAdminAccess();

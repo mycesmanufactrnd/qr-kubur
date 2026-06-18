@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import FileUploadForm from "@/components/Forms/FileUploadForm.jsx";
+import FileUploadForm from "@/components/forms/FileUploadForm.jsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -32,7 +32,7 @@ import { activityLogError, shareLink } from "@/utils/helpers";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
 import { showError, showSuccess } from "@/components/ToastrNotification";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { userGoogleAccess } from "@/utils/auth";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import ConfirmDialog from "@/components/ConfirmDialog";

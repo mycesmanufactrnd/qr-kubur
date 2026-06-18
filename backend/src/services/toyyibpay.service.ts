@@ -98,6 +98,9 @@ export async function createBill({
       `;
     }
 
+    console.log('Return URL: ', returnUrl);
+    console.log('Base URL: ', toyyibpayConfig.baseUrl);
+
     // 100 cent to RM1
     const userPayAmount = amount; // RM12 (TOTAL)
     const totalAmount = userPayAmount - PLATFORM_FEE; // RM10
@@ -121,11 +124,11 @@ export async function createBill({
       billContentEmail: billContentEmail,
       billChargeToCustomer: 1, //Set 0 to charge FPX to customer.
       // for split payment
-      billSplitPayment: 1,
-      billSplitPaymentArgs: JSON.stringify([
-        { id: "nazzy007", amount: String(Math.round(totalAmount * 100)) },
-      ]),
+      billSplitPayment: 0,
     };
+    // billSplitPaymentArgs: JSON.stringify([
+    //   { id: "nazzy007", amount: String(Math.round(totalAmount * 100)) },
+    // ]),
 
     const res = await axios.post(
       `${toyyibpayConfig.baseUrl}/index.php/api/createBill`,

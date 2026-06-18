@@ -16,7 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import SearchBar from "@/components/Forms/SearchBar";
+import SearchBar from "@/components/forms/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QRCodeDialog from "@/components/QRCodeDialog";
@@ -62,10 +62,10 @@ import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { useForm } from "react-hook-form";
-import SelectForm from "@/components/Forms/SelectForm";
-import FileUploadForm from "@/components/Forms/FileUploadForm";
+import SelectForm from "@/components/forms/SelectForm";
+import FileUploadForm from "@/components/forms/FileUploadForm";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
 export default function ManageDeadPersons() {

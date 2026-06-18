@@ -18,9 +18,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
-import SelectForm from "@/components/Forms/SelectForm";
-import CheckboxForm from "@/components/Forms/CheckboxForm";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm";
+import CheckboxForm from "@/components/forms/CheckboxForm";
 import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
 import { STATES_MY } from "@/utils/enums";

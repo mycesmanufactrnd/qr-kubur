@@ -47,9 +47,9 @@ import {
   useDeathCharityMutations,
 } from "@/hooks/useDeathCharityMutations";
 import { defaultDeathCharityField } from "@/utils/defaultformfields";
-import TextInputForm from "@/components/Forms/TextInputForm.jsx";
-import SelectForm from "@/components/Forms/SelectForm";
-import CheckboxForm from "@/components/Forms/CheckboxForm";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm";
+import CheckboxForm from "@/components/forms/CheckboxForm";
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { Switch } from "@/components/ui/switch";
 import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
