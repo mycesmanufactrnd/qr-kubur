@@ -76,7 +76,9 @@ function PermissionSheet({
       </div>
 
         {isLoading ? (
-          <InlineLoadingComponent isPage/>
+          <div className="flex-1 flex items-center justify-center">
+            <InlineLoadingComponent isPage/>
+          </div>
         ) : (
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-28">
             {visibleCategories.map(([key, category]) => {
@@ -280,11 +282,10 @@ export default function MobileManagePermissions() {
 
   return (
     <>
-      <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Permissions")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Header row */}
           <div className="flex items-center gap-2 px-1">
             <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -292,7 +293,6 @@ export default function MobileManagePermissions() {
             </p>
           </div>
 
-          {/* Search */}
           <AdvancedFilters
             parameter={[
               { label: translate("Name"), type: "text", searchColumn: "name" },
@@ -303,9 +303,8 @@ export default function MobileManagePermissions() {
             }}
           />
 
-          {/* User list */}
           {loadingUsers ? (
-            <InlineLoadingComponent />
+            <InlineLoadingComponent isPage/>
           ) : users.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600">
               <Shield className="w-12 h-12 mb-2" />

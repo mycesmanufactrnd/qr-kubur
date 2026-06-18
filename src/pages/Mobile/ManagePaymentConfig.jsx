@@ -62,7 +62,7 @@ export default function MobileManagePaymentConfig() {
     return <NoDataCardComponent isPage />;
 
   return (
-    <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
       <BackNavigation title={translate("Payment Config")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-4">

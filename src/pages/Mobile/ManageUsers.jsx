@@ -489,11 +489,10 @@ export default function MobileManageUsers() {
 
   return (
     <>
-      <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Users")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter + Add */}
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[

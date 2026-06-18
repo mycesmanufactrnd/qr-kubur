@@ -1,19 +1,21 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:15-alpine
     container_name: postgres_db
     restart: unless-stopped
-    env_file: .env
+    env_file: .env.dev
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "${LIVE_POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT}:5432"
     environment:
-      POSTGRES_PASSWORD: ${LIVE_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${LIVE_POSTGRES_DB}
-      POSTGRES_USER: ${LIVE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${LIVE_POSTGRES_USER} -d ${LIVE_POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -21,39 +23,36 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ../dockerfiles/backend.dockerfile
+      dockerfile: ../dockerfiles/backend.dev.dockerfile
     container_name: backend
     restart: unless-stopped
-    env_file: .env
+    env_file: .env.dev
     environment:
-      - DOCKER=true
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
     ports:
-      - "${BACKEND_PORT}:8083"
+      - "8083:${BACKEND_PORT}"
     volumes:
       - ./backend:/usr/src/app
-      - backend_node_modules:/usr/src/app/node_modules
+      - /usr/src/app/node_modules
       - ./storage_data:/usr/src/app/storage_data
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
   frontend:
     build:
       context: .
-      dockerfile: ./dockerfiles/frontend.dockerfile
+      dockerfile: ./dockerfiles/frontend.dev.dockerfile
     container_name: frontend
-    env_file: .env
+    restart: unless-stopped
+    env_file: .env.dev
     ports:
-      - "${FRONTEND_PORT}:5173"
+      - "5173:${FRONTEND_PORT}"
     volumes:
       - .:/usr/src/frontend
-      - frontend_node_modules:/usr/src/frontend/node_modules
+      - /usr/src/frontend/node_modules
     depends_on:
       - backend
 
 volumes:
   db_data:
-  frontend_node_modules:
-  backend_node_modules:

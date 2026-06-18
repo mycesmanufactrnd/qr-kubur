@@ -716,6 +716,7 @@
   "Benefit": "Faedah",
 
   "Manage Death Charity Member": "Urus Ahli Khairat Kematian",
+  "Manage Death Charity Members": "Urus Ahli Khairat Kematian",
   "Add Death Charity Member": "Tambah Ahli Khairat Kematian",
   "Edit Death Charity Member": "Sunting Ahli Khairat Kematian",
   "Delete Death Charity Member": "Padam Ahli Khairat Kematian",
@@ -876,5 +877,19 @@
   "Specify your needs or a brief description...": "Nyatakan keperluan atau penerangan ringkas...",
   "Pay Now": "Bayar Sekarang",
   "Get Quotation": "Dapatkan Sebut Harga",
-  "selected": "dipilih"
+  "selected": "dipilih",
+
+  "No details found": "Tiada butiran dijumpai",
+  "Google account not found": "Akaun Google tidak dijumpai",
+  "Failed to load transaction records": "Gagal memuatkan rekod transaksi",
+  "Please sign in with Google to view your transaction records": "Sila log masuk dengan Google untuk melihat rekod transaksi anda",
+  "No transaction record found": "Tiada rekod transaksi dijumpai",
+  "Deceased Names": "Nama-nama Arwah",
+  "Payment Type": "Jenis Pembayaran",
+  "Year Covered": "Tahun Diliputi",
+  "Payment Date": "Tarikh Bayaran",
+  "Payment Amount": "Jumlah Bayaran",
+  "Member": "Ahli",
+  "Service completion": "Gambar penyiapan perkhidmatan",
+  "Suggested Date": "Tarikh Cadangan"
 }

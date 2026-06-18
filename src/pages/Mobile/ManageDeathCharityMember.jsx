@@ -862,7 +862,7 @@ export default function ManageDeathCharityMember() {
   const items = deathCharityMemberList?.items ?? [];
 
   return (
-    <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
       <BackNavigation title={translate("Death Charity Member")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-3">

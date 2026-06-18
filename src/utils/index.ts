@@ -16,7 +16,7 @@ export function resolveFileUrl(
 ) {
   if (!photourl) return undefined;
 
-  if (/^https?:\/\//i.test(photourl)) {
+  if (/^https?:\/\//i.test(photourl) || /^data:/i.test(photourl)) {
     return photourl;
   }
 

@@ -704,6 +704,7 @@
   "Benefit": "التعويض",
 
   "Manage Death Charity Member": "إدارة أعضاء صندوق الوفاة",
+  "Manage Death Charity Members": "إدارة أعضاء صندوق الوفاة",
   "Add Death Charity Member": "إضافة عضو صندوق الوفاة",
   "Edit Death Charity Member": "تعديل عضو صندوق الوفاة",
   "Delete Death Charity Member": "حذف عضو صندوق الوفاة",
@@ -865,5 +866,19 @@
   "Specify your needs or a brief description...": "حدد احتياجاتك أو وصفاً موجزاً...",
   "Pay Now": "ادفع الآن",
   "Get Quotation": "احصل على عرض السعر",
-  "selected": "محدد"
+  "selected": "محدد",
+
+  "No details found": "لم يتم العثور على تفاصيل",
+  "Google account not found": "لم يتم العثور على حساب Google",
+  "Failed to load transaction records": "فشل تحميل سجلات المعاملات",
+  "Please sign in with Google to view your transaction records": "يرجى تسجيل الدخول عبر Google لعرض سجلات معاملاتك",
+  "No transaction record found": "لم يتم العثور على سجل معاملات",
+  "Deceased Names": "أسماء المتوفين",
+  "Payment Type": "نوع الدفع",
+  "Year Covered": "السنة المغطاة",
+  "Payment Date": "تاريخ الدفع",
+  "Payment Amount": "مبلغ الدفع",
+  "Member": "العضو",
+  "Service completion": "صورة اكتمال الخدمة",
+  "Suggested Date": "التاريخ المقترح"
 }

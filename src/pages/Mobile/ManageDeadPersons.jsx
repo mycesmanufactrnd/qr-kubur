@@ -149,7 +149,7 @@ function PersonFormSheet({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
@@ -410,7 +410,7 @@ export default function MobileManageDeadPersons() {
 
   return (
     <>
-      <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Deceased")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">

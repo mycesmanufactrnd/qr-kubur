@@ -174,8 +174,22 @@ export default function UserTransactionRecords() {
   const renderDetail = () => {
     if (isDetailLoading) {
       return (
-        <div className="py-6 text-sm text-slate-400 dark:text-slate-500 text-center">
-          {translate("Loading")}...
+        <div className="space-y-4 animate-pulse">
+          <div className="flex justify-center pb-1">
+            <div className="h-9 w-32 bg-slate-100 dark:bg-slate-700 rounded-full" />
+          </div>
+          <div className="rounded-xl overflow-hidden border border-slate-100 dark:border-slate-600 divide-y divide-slate-100 dark:divide-slate-600">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex justify-between items-center px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded bg-slate-100 dark:bg-slate-700" />
+                  <div className="h-2.5 w-16 bg-slate-100 dark:bg-slate-700 rounded-full" />
+                </div>
+                <div className="h-2.5 w-24 bg-slate-100 dark:bg-slate-700 rounded-full" />
+              </div>
+            ))}
+          </div>
+          <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded-xl" />
         </div>
       );
     }
@@ -349,8 +363,13 @@ export default function UserTransactionRecords() {
     }
 
     return (
-      <div className="py-6 text-sm text-slate-400 dark:text-slate-500 text-center">
-        {translate("No details found")}
+      <div className="py-8 flex flex-col items-center gap-3 text-center">
+        <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 flex items-center justify-center">
+          <FileText className="w-5 h-5 text-slate-300 dark:text-slate-500" />
+        </div>
+        <p className="text-sm text-slate-400 dark:text-slate-500">
+          {translate("No details found")}
+        </p>
       </div>
     );
   };
@@ -384,26 +403,57 @@ export default function UserTransactionRecords() {
           </div>
 
           {isLoading && (
-            <div className="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">
-              {translate("Loading")}...
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="px-4 py-3 flex items-center gap-3 animate-pulse">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-700" />
+                      <div className="h-3.5 bg-slate-100 dark:bg-slate-700 rounded-full w-36" />
+                    </div>
+                    <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded-full w-20" />
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-slate-100 dark:bg-slate-700" />
+                      <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full w-16" />
+                    </div>
+                  </div>
+                  <div className="w-4 h-4 rounded bg-slate-100 dark:bg-slate-700" />
+                </div>
+              ))}
             </div>
           )}
 
           {!isLoading && error && (
-            <div className="px-4 py-6 text-sm text-red-500 dark:text-red-400">
-              {translate("Failed to load transaction records")}
+            <div className="px-4 py-10 flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-red-400 dark:text-red-500" />
+              </div>
+              <p className="text-sm font-medium text-red-500 dark:text-red-400">
+                {translate("Failed to load transaction records")}
+              </p>
             </div>
           )}
 
           {!isLoading && !error && !email && (
-            <div className="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">
-              {translate("Please sign in with Google to view your transaction records")}
+            <div className="px-4 py-10 flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center">
+                <User className="w-6 h-6 text-slate-300 dark:text-slate-500" />
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[260px] leading-relaxed">
+                {translate("Please sign in with Google to view your transaction records")}
+              </p>
             </div>
           )}
 
           {!isLoading && !error && !!email && records.length === 0 && (
-            <div className="px-4 py-6 text-sm text-slate-500 dark:text-slate-400">
-              {translate("No transaction record found")}
+            <div className="px-4 py-10 flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-slate-300 dark:text-slate-500" />
+              </div>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                {translate("No transaction record found")}
+              </p>
             </div>
           )}
 

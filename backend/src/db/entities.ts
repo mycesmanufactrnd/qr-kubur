@@ -27,17 +27,13 @@ export * from "./entities/GanttChart.entity.js";
 export * from "./entities/PaymentComparison.entity.js";
 export * from "./entities/CollectionTree/CollectionTree.entity.js";
 export * from "./entities/CollectionTree/CollectionTreeItem.entity.js";
-// Tahfiz
 export * from "./entities/TahfizPaymentConfig.entity.js";
-// Guest Users
 export * from "./entities/GoogleUser/GoogleUser.entity.js";
 export * from "./entities/GoogleUser/GoogleUserRecord.entity.js";
 export * from "./entities/GoogleUser/GoogleUserDevice.entity.js";
-// Admin / Staff Devices
 export * from "./entities/UserDevice.entity.js";
 export * from "./entities/TempOrganisation.entity.js";
 export * from "./entities/VisitLog.entity.js";
-//Death Charity
 export * from "./entities/DeathCharity/DeathCharity.entity.js";
 export * from "./entities/DeathCharity/DeathCharityClaim.entity.js";
 export * from "./entities/DeathCharity/DeathCharityMember.entity.js";

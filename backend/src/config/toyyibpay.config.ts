@@ -1,9 +1,7 @@
-const prefix = process.env.NODE_ENV === 'production' ? 'LIVE' : 'DEV';
-
 const get = (key: string) => {
-  const value = process.env[`${prefix}_${key}`];
+  const value = process.env[key];
   if (!value) {
-    throw new Error(`Missing env: ${prefix}_${key}`);
+    throw new Error(`Missing env: ${key}`);
   }
   return value;
 };

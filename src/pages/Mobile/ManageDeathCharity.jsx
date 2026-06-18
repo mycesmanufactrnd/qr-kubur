@@ -154,7 +154,6 @@ function DeathCharityFormSheet({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
@@ -301,8 +300,6 @@ function DeathCharityFormSheet({
           />
         </FormSection>
       </div>
-
-      {/* Fixed save bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}
@@ -316,8 +313,6 @@ function DeathCharityFormSheet({
     </div>
   );
 }
-
-// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MobileManageDeathCharity() {
   const { loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } =
@@ -425,7 +420,7 @@ export default function MobileManageDeathCharity() {
 
   return (
     <>
-      <div className="min-h-screen pb-6 dark:bg-slate-900">
+      <div className="min-h-screen pb-6">
         <BackNavigation title={translate("Manage Death Charity")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
