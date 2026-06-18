@@ -36,6 +36,8 @@ services:
     build:
       context: .
       dockerfile: ./dockerfiles/frontend.prod.dockerfile
+      args:
+        - VITE_FIREBASE_VAPID_KEY=${VITE_FIREBASE_VAPID_KEY}
     container_name: frontend
     restart: unless-stopped
     ports:
