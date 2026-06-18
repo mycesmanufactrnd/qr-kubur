@@ -14,11 +14,8 @@ jobs:
       - name: Create .env
         run: echo "${{ secrets.PROD_ENV_FILE }}" > .env
 
-      - name: Stop containers
-        run: docker compose down
-
       - name: Build & Deploy
-        run: docker compose up -d --build
+        run: docker compose up -d --build --remove-orphans
 
       - name: Cleanup
         run: docker image prune -f
