@@ -19,7 +19,7 @@ jobs:
           [System.IO.File]::WriteAllText(".env", $env:PROD_ENV_FILE, $Utf8NoBom)
 
       - name: Build & Deploy
-        run: docker compose up -d --build --remove-orphans
+        run: docker compose up -d --build --remove-orphans && npm run build
 
       - name: Cleanup
         run: docker image prune -f
