@@ -119,6 +119,95 @@ function ManageMosquesDesktop() {
   const [isLocating, setIsLocating] = useState(false);
   const [photoUrlInput, setPhotoUrlInput] = useState("");
   const [photoFileKey, setPhotoFileKey] = useState(0);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadDragOver, setUploadDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const MOSQUE_TEMPLATE_HEADERS = [
+    "name",
+    "state",
+    "address",
+    "email",
+    "url",
+    "latitude",
+    "longitude",
+    "picname",
+    "picphoneno",
+    "photourl",
+    "canarrangefuneral",
+    "hasdeathcharity",
+  ];
+
+  const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
+
+  const downloadMosqueTemplate = () => {
+    const csv = MOSQUE_TEMPLATE_HEADERS.join(",") + "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "mosques_template.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUploadFileDrop = (e) => {
+    e.preventDefault();
+    setUploadDragOver(false);
+    const file = e.dataTransfer?.files?.[0] ?? e.target?.files?.[0];
+    if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "xlsx", "xls"].includes(ext)) {
+      showError(translate("Only CSV and Excel files are accepted"));
+      return;
+    }
+    setUploadFile(file);
+  };
+
+  const handleSaveUpload = async () => {
+    if (!uploadFile) return;
+    setIsUploading(true);
+    try {
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        localStorage.getItem("accessToken");
+
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const res = await fetch("/api/upload/mosques/bulk", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showError(data.error || translate("Import failed"));
+        return;
+      }
+
+      const { count, errors } = data;
+      if (errors?.length > 0) {
+        showError(
+          `${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`,
+        );
+      } else {
+        showSuccess(`${count} ${translate("mosques imported successfully")}`);
+      }
+
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      refetchMosques();
+    } catch (err) {
+      console.error(err);
+      showError(translate("Import failed"));
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const {
     control,
@@ -340,13 +429,25 @@ function ManageMosquesDesktop() {
           {translate("Manage Mosques")}
         </h1>
         {canCreate && (
-          <Button
-            onClick={openAddDialog}
-            className="bg-stone-600 hover:bg-stone-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {translate("Add Mosque")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                setUploadFile(null);
+                setUploadDialogOpen(true);
+              }}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {translate("Upload Mosque")}
+            </Button>
+            <Button
+              onClick={openAddDialog}
+              className="bg-stone-600 hover:bg-stone-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {translate("Add Mosque")}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -472,6 +573,128 @@ function ManageMosquesDesktop() {
           />
         )}
       </Card>
+
+      <Dialog
+        open={uploadDialogOpen}
+        onOpenChange={(open) => {
+          setUploadDialogOpen(open);
+          if (!open) setUploadFile(null);
+        }}
+      >
+        <DialogContent className="max-w-md dark:bg-slate-800">
+          <DialogHeader>
+            <DialogTitle>
+              {translate("Upload Mosques via CSV / Excel")}
+            </DialogTitle>
+            <DialogDescription>
+              {translate(
+                "Download the template, fill in the data, then upload the file.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-stone-300 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800/50">
+              <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
+                <FileText className="w-4 h-4 text-stone-400" />
+                <span className="font-medium">{translate("CSV Template")}</span>
+                <span className="text-xs text-stone-400 dark:text-stone-500">
+                  ({MOSQUE_TEMPLATE_HEADERS.length} {translate("columns")})
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={downloadMosqueTemplate}
+                className="gap-1.5 text-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {translate("Download")}
+              </Button>
+            </div>
+
+            <label
+              htmlFor="mosque-file-upload"
+              onDragOver={(e) => {
+                e.preventDefault();
+                setUploadDragOver(true);
+              }}
+              onDragLeave={() => setUploadDragOver(false)}
+              onDrop={handleUploadFileDrop}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 ${
+                uploadDragOver
+                  ? "border-amber-400 bg-amber-50 dark:border-amber-500 dark:bg-amber-900/20"
+                  : uploadFile
+                    ? "border-stone-400 bg-stone-50 dark:border-stone-500 dark:bg-stone-900/20"
+                    : "border-stone-200 bg-stone-50 hover:border-stone-300 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800/50 dark:hover:border-stone-600 dark:hover:bg-stone-800"
+              }`}
+            >
+              <input
+                id="mosque-file-upload"
+                type="file"
+                accept={ACCEPTED_UPLOAD_TYPES}
+                className="hidden"
+                onChange={handleUploadFileDrop}
+              />
+              {uploadFile ? (
+                <>
+                  <FileText className="w-8 h-8 text-stone-500" />
+                  <p className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                    {uploadFile.name}
+                  </p>
+                  <p className="text-xs text-stone-500">
+                    {(uploadFile.size / 1024).toFixed(1)} KB
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setUploadFile(null);
+                    }}
+                    className="text-xs text-stone-400 hover:text-stone-600 underline mt-1 dark:text-stone-500 dark:hover:text-stone-300"
+                  >
+                    {translate("Remove")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 text-stone-300" />
+                  <p className="text-sm font-medium text-stone-500 dark:text-stone-400">
+                    {translate("Click or drag & drop your file here")}
+                  </p>
+                  <p className="text-xs text-stone-400 dark:text-stone-500">
+                    .csv, .xlsx, .xls
+                  </p>
+                </>
+              )}
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isUploading}
+              onClick={() => {
+                setUploadDialogOpen(false);
+                setUploadFile(null);
+              }}
+            >
+              {translate("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              disabled={!uploadFile || isUploading}
+              onClick={handleSaveUpload}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isUploading ? translate("Importing...") : translate("Import")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
