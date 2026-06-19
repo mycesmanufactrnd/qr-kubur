@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import type { FastifyInstance } from "fastify";
 import path from "path";
 import { verifyToken } from "../auth.js";
-import { bulkImportGraves } from "../services/upload.service.js";
+import { bulkImportGraves, bulkImportMosques } from "../services/upload.service.js";
 import { getStorage } from "../storage/storage.js";
 import { createStoredFile, findStoredFile } from "../services/storageMetadata.service.js";
 import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.js";
@@ -139,6 +139,31 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
       return reply.send(result);
     } catch (err: any) {
       console.error('Bulk grave import failed:', err);
+      return reply.status(500).send({ error: err.message || 'Import failed' });
+    }
+  });
+
+  app.post('/api/upload/mosques/bulk', async (request, reply) => {
+    try {
+      const token = request.headers.authorization?.replace('Bearer ', '');
+      const user = token ? verifyToken(token) : null;
+      if (!user) return reply.status(401).send({ error: 'Unauthorized' });
+
+      const file = await request.file();
+      if (!file) return reply.status(400).send({ error: 'No file uploaded' });
+
+      const allowed = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+      if (!allowed.includes(file.mimetype) && !file.filename.match(/\.(csv|xlsx|xls)$/i)) {
+        return reply.status(400).send({ error: 'Only CSV and Excel files are accepted' });
+      }
+
+      const chunks: Buffer[] = [];
+      for await (const chunk of file.file) chunks.push(chunk);
+      const buffer = Buffer.concat(chunks);
+      const result = await bulkImportMosques(buffer, Number(user.id));
+      return reply.send(result);
+    } catch (err: any) {
+      console.error('Bulk mosque import failed:', err);
       return reply.status(500).send({ error: err.message || 'Import failed' });
     }
   });

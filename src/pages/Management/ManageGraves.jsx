@@ -44,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import Breadcrumb from "@/components/Breadcrumb";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
@@ -257,7 +258,38 @@ function ManageGravesDesktop() {
 
   const { organisationsList } = useGetOrganisationPaginated({});
 
-  const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
+  const { createGrave, updateGrave, deleteGrave, bulkDeleteGraves } = useGraveMutations();
+
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+
+  const allPageIds = gravesList.items.map((g) => g.id);
+  const allSelected =
+    allPageIds.length > 0 && allPageIds.every((id) => selectedIds.includes(id));
+  const someSelected = allPageIds.some((id) => selectedIds.includes(id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !allPageIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => [...new Set([...prev, ...allPageIds])]);
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const confirmBulkDelete = async () => {
+    await bulkDeleteGraves.mutateAsync(selectedIds, {
+      onSuccess: () => {
+        setSelectedIds([]);
+        setBulkDeleteDialogOpen(false);
+      },
+    });
+  };
 
   const handleFileUpload = async (file, bucketName) => {
     setUploading(true);
@@ -394,27 +426,38 @@ function ManageGravesDesktop() {
           <MapPin className="w-6 h-6 text-emerald-600" />
           {translate("Manage Graves")}
         </h1>
-        {canCreate && (
-          <div>
+        <div className="flex items-center gap-2">
+          {canDelete && selectedIds.length > 0 && (
             <Button
-              onClick={() => {
-                setUploadFile(null);
-                setUploadDialogOpen(true);
-              }}
-              className="bg-amber-600 hover:bg-amber-700 mr-2 text-white"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              {translate("Upload Grave")}
+              <Trash2 className="w-4 h-4 mr-2" />
+              {translate("Delete")} ({selectedIds.length})
             </Button>
-            <Button
-              onClick={openAddDialog}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {translate("Add Grave")}
-            </Button>
-          </div>
-        )}
+          )}
+          {canCreate && (
+            <>
+              <Button
+                onClick={() => {
+                  setUploadFile(null);
+                  setUploadDialogOpen(true);
+                }}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {translate("Upload Grave")}
+              </Button>
+              <Button
+                onClick={openAddDialog}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {translate("Add Grave")}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <SearchBar
@@ -428,7 +471,7 @@ function ManageGravesDesktop() {
       >
         {isSuperAdmin && (
           <Select value={tempState} onValueChange={setTempState}>
-            <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
+            <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
               <SelectValue placeholder="Negeri" />
             </SelectTrigger>
             <SelectContent>
@@ -480,6 +523,14 @@ function ManageGravesDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
+                {canDelete && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                )}
                 <TableHead>{translate("Cemetery name")}</TableHead>
                 <TableHead className="text-center">
                   {translate("Total Graves")}
@@ -509,6 +560,14 @@ function ManageGravesDesktop() {
               ) : (
                 gravesList.items.map((grave) => (
                   <TableRow key={grave.id}>
+                    {canDelete && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(grave.id)}
+                          onCheckedChange={() => toggleSelectOne(grave.id)}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">{grave.name}</TableCell>
                     <TableCell className="text-center">
                       {grave.totalgraves}
@@ -538,7 +597,9 @@ function ManageGravesDesktop() {
                           alt="photo"
                           referrerPolicy="no-referrer"
                           className="w-12 h-10 object-cover rounded mx-auto"
-                          onError={(e) => { e.currentTarget.style.opacity = "0.3"; }}
+                          onError={(e) => {
+                            e.currentTarget.style.opacity = "0.3";
+                          }}
                         />
                       ) : (
                         <div className="w-12 h-10 rounded mx-auto bg-slate-100 dark:bg-slate-700" />
@@ -901,6 +962,14 @@ function ManageGravesDesktop() {
         onConfirm={confirmDelete}
         title={translate("Delete Grave")}
         description={`${translate("Delete")} "${graveToDelete?.name}"?`}
+        variant="destructive"
+      />
+      <ConfirmDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        onConfirm={confirmBulkDelete}
+        title={translate("Delete Graves")}
+        description={`${translate("Delete")} ${selectedIds.length} ${translate("selected graves")}?`}
         variant="destructive"
       />
       <QRCodeDialog

@@ -112,6 +112,13 @@ export const graveRouter = router({
     return await graveRepo.delete(input);
   }),
 
+  bulkDelete: protectedProcedure
+    .input(z.array(z.number()).min(1))
+    .mutation(async ({ input }) => {
+      const graveRepo = AppDataSource.getRepository(Grave);
+      return await graveRepo.delete(input);
+    }),
+
   bulkCreate: protectedProcedure
     .input(z.array(graveSchema))
     .mutation(async ({ input, ctx }) => {

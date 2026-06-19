@@ -72,7 +72,15 @@ export function useGraveMutations() {
     onError: (err) => showApiError(err),
   });
 
-  return { createGrave, updateGrave, deleteGrave };
+  const bulkDeleteGraves = trpc.grave.bulkDelete.useMutation({
+    onSuccess: () => {
+      showSuccess(titleMessage, 'delete');
+      invalidateAll();
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createGrave, updateGrave, deleteGrave, bulkDeleteGraves };
 }
 
 export function useBulkCreateGraves() {

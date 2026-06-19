@@ -12,6 +12,9 @@ import {
   Save,
   ImageIcon,
   MapPin,
+  Upload,
+  Download,
+  FileText,
 } from "lucide-react";
 
 import Breadcrumb from "@/components/Breadcrumb";
@@ -39,6 +42,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -142,7 +146,7 @@ function ManageMosquesDesktop() {
     }
   }, [photourl, photoUrlInput]);
 
-  const { mosquesList, totalPages, isLoading } = useGetMosquePaginated({
+  const { mosquesList, totalPages, isLoading, refetch: refetchMosques } = useGetMosquePaginated({
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName,

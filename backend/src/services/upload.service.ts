@@ -1,7 +1,7 @@
 //@ts-nocheck
 import * as XLSX from "xlsx";
 import { AppDataSource } from "../datasource.js";
-import { Grave, Organisation, User } from "../db/entities.js";
+import { Grave, Mosque, Organisation, User } from "../db/entities.js";
 import { GraveStatus } from "../db/enums.js";
 
 /**
@@ -108,4 +108,73 @@ export async function bulkImportGraves(
   }
 
   return { count: graves.length, errors };
+}
+
+function mapRowToMosque(
+  row: Record<string, any>,
+  createdbyId?: number | null,
+  organisation?: Organisation | null,
+) {
+  const parseBool = (val: any) => {
+    if (typeof val === "boolean") return val;
+    const s = String(val).trim().toLowerCase();
+    return s === "true" || s === "1" || s === "yes";
+  };
+
+  return {
+    name: String(row.name || "").trim() || null,
+    state: String(row.state || "").trim() || null,
+    address: row.address ? String(row.address).trim() : null,
+    email: row.email ? String(row.email).trim() : null,
+    url: row.url ? String(row.url).trim() : null,
+    latitude: safeFloat(row.latitude),
+    longitude: safeFloat(row.longitude),
+    picname: row.picname ? String(row.picname).trim() : null,
+    picphoneno: row.picphoneno ? String(row.picphoneno).trim() : null,
+    photourl: row.photourl ? String(row.photourl).trim() : null,
+    canarrangefuneral: parseBool(row.canarrangefuneral),
+    hasdeathcharity: parseBool(row.hasdeathcharity),
+    createdbyId: createdbyId ?? null,
+    organisation: organisation ?? null,
+  };
+}
+
+export async function bulkImportMosques(
+  buffer: Buffer,
+  createdbyId?: number | null,
+): Promise<BulkImportResult> {
+  const rows = parseSpreadsheet(buffer);
+  const mosqueRepo = AppDataSource.getRepository(Mosque);
+
+  const user = await AppDataSource.getRepository(User)
+    .createQueryBuilder("user")
+    .leftJoin("user.organisation", "organisation")
+    .addSelect(["organisation.id"])
+    .where("user.id = :id", { id: Number(createdbyId) })
+    .getOne();
+
+  const errors: string[] = [];
+  const mosques: Partial<Mosque>[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNum = i + 2;
+
+    if (!row.name || String(row.name).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "name"`);
+      continue;
+    }
+    if (!row.state || String(row.state).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "state"`);
+      continue;
+    }
+
+    mosques.push(mapRowToMosque(row, createdbyId, user?.organisation));
+  }
+
+  if (mosques.length > 0) {
+    await mosqueRepo.save(mosques as Mosque[]);
+  }
+
+  return { count: mosques.length, errors };
 }
