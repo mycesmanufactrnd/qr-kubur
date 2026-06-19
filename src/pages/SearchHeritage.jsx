@@ -1,6 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useRef } from 'react';
 import { showWarning } from '@/components/ToastrNotification.jsx';
 import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import { translate } from '@/utils/translations';
@@ -34,6 +33,20 @@ export default function SearchGrave() {
     filters
   );
 
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setDisplayedCount((prev) => prev + 10);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayedCount, heritageSiteList.length]);
+
   return (
     <div className="space-y-3 pb-2">
       <BackNavigation title="Search Heritage Site" />
@@ -62,10 +75,10 @@ export default function SearchGrave() {
         <NoDataCardComponent isPage/>
       ) : (
         <div className="space-y-3">
-          {heritageSiteList.map((heritage, index) => (
-            <HeritageCardList 
+          {heritageSiteList.slice(0, displayedCount).map((heritage, index) => (
+            <HeritageCardList
               key={heritage.id}
-              site={heritage} 
+              site={heritage}
               distance={heritage.distance}
               index={index}
               nextPageUrl={'HeritageDetails'}
@@ -73,10 +86,8 @@ export default function SearchGrave() {
           ))}
 
           {displayedCount < heritageSiteList.length && (
-            <div className="text-center py-2">
-              <Button variant="outline" size="sm" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                {translate('Load More')}
-              </Button>
+            <div ref={sentinelRef} className="flex justify-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
             </div>
           )}
         </div>

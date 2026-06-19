@@ -1,19 +1,18 @@
 // @ts-nocheck
-import { useEffect, useMemo, useState } from 'react';
-import { useGetMosqueCoordinates } from '@/hooks/useMosqueMutations';
-import { Button } from "@/components/ui/button";
-import { translate } from '@/utils/translations';
-import BackNavigation from '@/components/BackNavigation';
-import { STATES_MY } from '@/utils/enums';
-import { useLocationContext } from '@/providers/LocationProvider';
-import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
-import NoDataCardComponent from '@/components/NoDataCardComponent';
-import MosqueCardList from '@/components/MosqueCardList';
-import AdvancedFilters from '@/components/mobile/AdvancedFilters';
-import FoundDataLength from '@/components/FoundDataLength';
-import { useLocation } from 'react-router-dom';
-import ShowNearLocation from '@/components/ShowNearLocation';
-import { showWarning } from '@/components/ToastrNotification';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useGetMosqueCoordinates } from "@/hooks/useMosqueMutations";
+import { translate } from "@/utils/translations";
+import BackNavigation from "@/components/BackNavigation";
+import { STATES_MY } from "@/utils/enums";
+import { useLocationContext } from "@/providers/LocationProvider";
+import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
+import NoDataCardComponent from "@/components/NoDataCardComponent";
+import MosqueCardList from "@/components/MosqueCardList";
+import AdvancedFilters from "@/components/mobile/AdvancedFilters";
+import FoundDataLength from "@/components/FoundDataLength";
+import { useLocation } from "react-router-dom";
+import ShowNearLocation from "@/components/ShowNearLocation";
+import { showWarning } from "@/components/ToastrNotification";
 
 export default function SearchMosque() {
   const location = useLocation();
@@ -22,15 +21,15 @@ export default function SearchMosque() {
   const { userLocation, userState, locationDenied } = useLocationContext();
 
   const [favoriteVersion, setFavoriteVersion] = useState(0);
-  
+
   useEffect(() => {
     if (locationDenied) {
-      showWarning(translate('Location not available'));
+      showWarning(translate("Location not available"));
     }
   }, [locationDenied]);
 
   const favoritedMosqueIds = useMemo(() => {
-    return JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
+    return JSON.parse(localStorage.getItem("favoritedmosque") || "[]");
   }, [favoriteVersion]);
 
   useEffect(() => {
@@ -38,24 +37,40 @@ export default function SearchMosque() {
       setFilters({ ids: favoritedMosqueIds });
     }
   }, [favoriteVersion, favoritedMosqueIds]);
-  
+
   const [filters, setFilters] = useState(() => {
     if (defaultFilter.isFavorited && favoritedMosqueIds.length > 0) {
       return { ids: favoritedMosqueIds };
     }
-    
+
     return { state: userState };
   });
-  
+
   const { data: mosques = [], isLoading } = useGetMosqueCoordinates(
-    userLocation ? { latitude: userLocation.lat, longitude: userLocation.lng } : null,
-    filters
+    userLocation
+      ? { latitude: userLocation.lat, longitude: userLocation.lng }
+      : null,
+    filters,
   );
+
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setDisplayedCount((prev) => prev + 10);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayedCount, mosques.length]);
 
   if (defaultFilter.isFavorited && favoritedMosqueIds.length === 0) {
     return (
       <div className="space-y-3 pb-2">
-        <BackNavigation title={translate('Search Mosque') || "Cari Masjid"} />
+        <BackNavigation title={translate("Search Mosque") || "Cari Masjid"} />
         <ShowNearLocation />
         <div className="flex items-center gap-2 rounded-xl">
           <AdvancedFilters
@@ -82,14 +97,17 @@ export default function SearchMosque() {
           />
         </div>
         <FoundDataLength dataList={[]} data="mosques" />
-        <NoDataCardComponent isPage title={translate('No Favorited Mosques Found')} />
+        <NoDataCardComponent
+          isPage
+          title={translate("No Favorited Mosques Found")}
+        />
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-3 pb-2">
-      <BackNavigation title={translate('Search Mosque') || "Cari Masjid"} />
+      <BackNavigation title={translate("Search Mosque") || "Cari Masjid"} />
       <ShowNearLocation />
       <div className="flex items-center gap-2 rounded-xl">
         <AdvancedFilters
@@ -113,9 +131,9 @@ export default function SearchMosque() {
             },
           ]}
           onApplyFilter={(newFilters) => {
-            setFilters(prev => ({
+            setFilters((prev) => ({
               ...newFilters,
-              ...(defaultFilter.isFavorited ? { ids: favoritedMosqueIds } : {})
+              ...(defaultFilter.isFavorited ? { ids: favoritedMosqueIds } : {}),
             }));
           }}
         />
@@ -126,24 +144,22 @@ export default function SearchMosque() {
       {isLoading ? (
         <ListCardSkeletonComponent />
       ) : locationDenied ? (
-        <NoDataCardComponent isNoGPS isPage/>
+        <NoDataCardComponent isNoGPS isPage />
       ) : mosques.length === 0 ? (
-        <NoDataCardComponent isPage title={translate('No Mosque Found')} />
+        <NoDataCardComponent isPage title={translate("No Mosque Found")} />
       ) : (
         <div className="space-y-4 px-1">
-          {mosques.slice(0, displayedCount).map(item => (
-            <MosqueCardList 
-              key={item.id} 
+          {mosques.slice(0, displayedCount).map((item) => (
+            <MosqueCardList
+              key={item.id}
               mosque={item}
-              onFavoriteChange={() => setFavoriteVersion(prev => prev + 1)}
+              onFavoriteChange={() => setFavoriteVersion((prev) => prev + 1)}
             />
           ))}
 
           {displayedCount < mosques.length && (
-            <div className="text-center py-4">
-              <Button variant="ghost" onClick={() => setDisplayedCount(prev => prev + 10)}>
-                {translate('loadMore')}
-              </Button>
+            <div ref={sentinelRef} className="flex justify-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-400 border-t-transparent" />
             </div>
           )}
         </div>

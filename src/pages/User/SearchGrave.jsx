@@ -1,12 +1,11 @@
 // @ts-nocheck
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import { showWarning } from "@/components/ToastrNotification.jsx";
 import { STATES_MY } from "@/utils/enums";
 import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { Button } from "@/components/ui/button";
 import BackKeyNavigation from "@/components/BackKeyNavigation";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters.jsx";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
@@ -58,6 +57,20 @@ export default function SearchGrave() {
       : null,
     filters,
   );
+
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setDisplayedCount((prev) => prev + 10);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayedCount, gravesList.length]);
 
   const handlePullRefresh = async () => {
     if (requestLocation) {
@@ -154,14 +167,8 @@ export default function SearchGrave() {
             ))}
 
             {displayedCount < gravesList.length && (
-              <div className="flex justify-center pt-4">
-                <Button
-                  variant="outline"
-                  className="rounded-full px-10 border-teal-200 text-teal-700 hover:bg-teal-50 shadow-sm"
-                  onClick={() => setDisplayedCount((prev) => prev + 10)}
-                >
-                  {translate("Load More")}
-                </Button>
+              <div ref={sentinelRef} className="flex justify-center py-6">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-400 border-t-transparent" />
               </div>
             )}
           </div>

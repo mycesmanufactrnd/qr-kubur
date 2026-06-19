@@ -1,7 +1,5 @@
 // @ts-nocheck
-import { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useRef } from 'react';
 import AdvancedFilters from '@/components/mobile/AdvancedFilters.jsx';
 import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
@@ -20,6 +18,22 @@ export default function SearchWaqf() {
     const { data, isLoading, refetch } = useGetWaqfProject(page, pageSize, filters);
 
     const waqfList = data?.items ?? [];
+    const hasMore = (data?.total ?? 0) > page * pageSize;
+
+    const sentinelRef = useRef(null);
+    useEffect(() => {
+      const el = sentinelRef.current;
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasMore && !isLoading)
+            setPage((prev) => prev + 1);
+        },
+        { threshold: 0.1 },
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, [hasMore, isLoading]);
 
     return (
         <div className="space-y-3 pb-2">
@@ -55,17 +69,10 @@ export default function SearchWaqf() {
                 <WaqfCard key={waqf.id} project={waqf} isView={true}/>
             ))}
 
-            {pageSize < waqfList.length && (
-                <div className="text-center py-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(prev => prev + 1)}
-                        >
-                        {translate('Load more')}
-                    </Button>
-
-                </div>
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center py-6">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+              </div>
             )}
             </div>
         )}

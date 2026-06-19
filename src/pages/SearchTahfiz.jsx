@@ -1,11 +1,10 @@
 // @ts-nocheck
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { translate } from "@/utils/translations";
 import { showWarning } from "@/components/ToastrNotification.jsx";
 import { STATES_MY } from "@/utils/enums";
 import { useGetTahfizCoordinates } from "@/hooks/useTahfizMutations";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { Button } from "@/components/ui/button";
 import BackNavigation from "@/components/BackNavigation";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters.jsx";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
@@ -78,6 +77,20 @@ export default function SearchTahfiz() {
     filterAddress: filters?.ids ? null : filterAddress,
   });
 
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setDisplayedCount((prev) => prev + 10);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayedCount, tahfizList?.length]);
+
   if (defaultFilter.isFavorited && favoritedTahfizIds.length === 0) {
     return (
       <div className="space-y-3 pb-6 px-1">
@@ -146,13 +159,8 @@ export default function SearchTahfiz() {
             />
           ))}
           {displayedCount < tahfizList.length && (
-            <div className="flex justify-center pt-4">
-              <button
-                className="rounded-full px-10 py-2 border border-teal-200 dark:border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 shadow-sm text-sm font-medium transition-colors"
-                onClick={() => setDisplayedCount((prev) => prev + 10)}
-              >
-                {translate("Load more")}
-              </button>
+            <div ref={sentinelRef} className="flex justify-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-400 border-t-transparent" />
             </div>
           )}
         </div>

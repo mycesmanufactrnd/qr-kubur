@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGetMosqueCoordinates } from "@/hooks/useMosqueMutations";
 import { Button } from "@/components/ui/button";
 import { translate } from "@/utils/translations";
@@ -65,6 +65,7 @@ const EmergencyMosqueCard = ({ mosque }) => {
 
 export default function JenazahEmergency() {
   const [displayedCount, setDisplayedCount] = useState(10);
+  const sentinelRef = useRef(null);
   const { userLocation, userState } = useLocationContext();
   const [filters] = useState({ state: userState, canarrangefuneral: true });
 
@@ -74,6 +75,19 @@ export default function JenazahEmergency() {
       : null,
     { ...filters, limit: 5 },
   );
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setDisplayedCount((prev) => prev + 10);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayedCount, mosques.length]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 space-y-3 pb-2">
@@ -100,14 +114,8 @@ export default function JenazahEmergency() {
             <EmergencyMosqueCard key={m.id} mosque={m} />
           ))}
           {displayedCount < mosques.length && (
-            <div className="text-center pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDisplayedCount((prev) => prev + 10)}
-              >
-                {translate("Load More")}
-              </Button>
+            <div ref={sentinelRef} className="flex justify-center py-4">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
             </div>
           )}
         </div>
