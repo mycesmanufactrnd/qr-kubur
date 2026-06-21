@@ -137,6 +137,8 @@ export async function createBill({
     );
 
     if (!Array.isArray(res.data)) {
+      console.log('Error:', res.data);
+
       const rawMessage = res.data?.msg || "ToyyibPay Error";
 
       let friendlyMessage = rawMessage;
