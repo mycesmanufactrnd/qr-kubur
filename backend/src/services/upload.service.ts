@@ -1,7 +1,7 @@
 //@ts-nocheck
 import * as XLSX from "xlsx";
 import { AppDataSource } from "../datasource.js";
-import { Grave, Mosque, Organisation, User } from "../db/entities.js";
+import { Grave, Mosque, Organisation, TahfizCenter, User } from "../db/entities.js";
 import { GraveStatus } from "../db/enums.js";
 
 /**
@@ -177,4 +177,64 @@ export async function bulkImportMosques(
   }
 
   return { count: mosques.length, errors };
+}
+
+function mapRowToTahfiz(
+  row: Record<string, any>,
+  createdbyId?: number | null,
+  parentorganisation?: Organisation | null,
+) {
+  return {
+    name: String(row.name || "").trim() || null,
+    state: String(row.state || "").trim() || null,
+    address: row.address ? String(row.address).trim() : null,
+    phone: row.phone ? String(row.phone).trim() : null,
+    email: row.email ? String(row.email).trim() : null,
+    url: row.url ? String(row.url).trim() : null,
+    latitude: safeFloat(row.latitude),
+    longitude: safeFloat(row.longitude),
+    photourl: row.photourl ? String(row.photourl).trim() : null,
+    createdbyId: createdbyId ?? null,
+    parentorganisation: parentorganisation ?? null,
+  };
+}
+
+export async function bulkImportTahfiz(
+  buffer: Buffer,
+  createdbyId?: number | null,
+): Promise<BulkImportResult> {
+  const rows = parseSpreadsheet(buffer);
+  const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
+
+  const user = await AppDataSource.getRepository(User)
+    .createQueryBuilder("user")
+    .leftJoin("user.tahfizcenter", "tahfizcenter")
+    .addSelect(["tahfizcenter.id"])
+    .where("user.id = :id", { id: Number(createdbyId) })
+    .getOne();
+
+  const errors: string[] = [];
+  const centers: Partial<TahfizCenter>[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNum = i + 2;
+
+    if (!row.name || String(row.name).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "name"`);
+      continue;
+    }
+    if (!row.state || String(row.state).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "state"`);
+      continue;
+    }
+
+    centers.push(mapRowToTahfiz(row, createdbyId, null));
+  }
+
+  if (centers.length > 0) {
+    await tahfizRepo.save(centers as TahfizCenter[]);
+  }
+
+  return { count: centers.length, errors };
 }

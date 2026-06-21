@@ -12,6 +12,9 @@ import {
   X,
   Save,
   MapPin,
+  Upload,
+  Download,
+  FileText,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -118,6 +122,92 @@ function ManageTahfizCentersDesktop() {
   const [paymentConfigValues, setPaymentConfigValues] = useState({});
   const [paymentUploadingFiles, setPaymentUploadingFiles] = useState({});
   const [paymentPreviewUrls, setPaymentPreviewUrls] = useState({});
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadDragOver, setUploadDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const TAHFIZ_TEMPLATE_HEADERS = [
+    "name",
+    "state",
+    "address",
+    "phone",
+    "email",
+    "url",
+    "latitude",
+    "longitude",
+    "photourl",
+  ];
+
+  const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
+
+  const downloadTahfizTemplate = () => {
+    const csv = TAHFIZ_TEMPLATE_HEADERS.join(",") + "\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tahfiz_template.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUploadFileDrop = (e) => {
+    e.preventDefault();
+    setUploadDragOver(false);
+    const file = e.dataTransfer?.files?.[0] ?? e.target?.files?.[0];
+    if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["csv", "xlsx", "xls"].includes(ext)) {
+      showError(translate("Only CSV and Excel files are accepted"));
+      return;
+    }
+    setUploadFile(file);
+  };
+
+  const handleSaveUpload = async () => {
+    if (!uploadFile) return;
+    setIsUploading(true);
+    try {
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        localStorage.getItem("accessToken");
+
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const res = await fetch("/api/upload/tahfiz/bulk", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showError(data.error || translate("Import failed"));
+        return;
+      }
+
+      const { count, errors } = data;
+      if (errors?.length > 0) {
+        showError(
+          `${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`,
+        );
+      } else {
+        showSuccess(`${count} ${translate("tahfiz centers imported successfully")}`);
+      }
+
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      refetchTahfiz();
+    } catch (err) {
+      console.error(err);
+      showError(translate("Import failed"));
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const {
     loading: permissionsLoading,
@@ -127,7 +217,7 @@ function ManageTahfizCentersDesktop() {
     canDelete,
   } = useCrudPermissions("tahfiz");
 
-  const { tahfizCenterList, totalPages, isLoading } = useGetTahfizPaginated({
+  const { tahfizCenterList, totalPages, isLoading, refetch: refetchTahfiz } = useGetTahfizPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName,
@@ -920,13 +1010,25 @@ function ManageTahfizCentersDesktop() {
           {translate("Manage Tahfiz Centers")}
         </h1>
         {canCreate && (
-          <Button
-            onClick={openAddDialog}
-            className="bg-amber-600 hover:bg-amber-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {translate("Add New")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                setUploadFile(null);
+                setUploadDialogOpen(true);
+              }}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {translate("Upload Tahfiz")}
+            </Button>
+            <Button
+              onClick={openAddDialog}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {translate("Add New")}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -1086,6 +1188,128 @@ function ManageTahfizCentersDesktop() {
           />
         )}
       </Card>
+
+      <Dialog
+        open={uploadDialogOpen}
+        onOpenChange={(open) => {
+          setUploadDialogOpen(open);
+          if (!open) setUploadFile(null);
+        }}
+      >
+        <DialogContent className="max-w-md dark:bg-slate-800">
+          <DialogHeader>
+            <DialogTitle>
+              {translate("Upload Tahfiz Centers via CSV / Excel")}
+            </DialogTitle>
+            <DialogDescription>
+              {translate(
+                "Download the template, fill in the data, then upload the file.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-800/20">
+              <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+                <FileText className="w-4 h-4 text-amber-500" />
+                <span className="font-medium">{translate("CSV Template")}</span>
+                <span className="text-xs text-amber-500 dark:text-amber-600">
+                  ({TAHFIZ_TEMPLATE_HEADERS.length} {translate("columns")})
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={downloadTahfizTemplate}
+                className="gap-1.5 text-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {translate("Download")}
+              </Button>
+            </div>
+
+            <label
+              htmlFor="tahfiz-file-upload"
+              onDragOver={(e) => {
+                e.preventDefault();
+                setUploadDragOver(true);
+              }}
+              onDragLeave={() => setUploadDragOver(false)}
+              onDrop={handleUploadFileDrop}
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors p-8 ${
+                uploadDragOver
+                  ? "border-amber-400 bg-amber-50 dark:border-amber-500 dark:bg-amber-900/20"
+                  : uploadFile
+                    ? "border-amber-400 bg-amber-50 dark:border-amber-500 dark:bg-amber-900/20"
+                    : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+              }`}
+            >
+              <input
+                id="tahfiz-file-upload"
+                type="file"
+                accept={ACCEPTED_UPLOAD_TYPES}
+                className="hidden"
+                onChange={handleUploadFileDrop}
+              />
+              {uploadFile ? (
+                <>
+                  <FileText className="w-8 h-8 text-amber-500" />
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                    {uploadFile.name}
+                  </p>
+                  <p className="text-xs text-amber-500">
+                    {(uploadFile.size / 1024).toFixed(1)} KB
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setUploadFile(null);
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline mt-1 dark:text-slate-500 dark:hover:text-slate-300"
+                  >
+                    {translate("Remove")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 text-slate-300" />
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {translate("Click or drag & drop your file here")}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    .csv, .xlsx, .xls
+                  </p>
+                </>
+              )}
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isUploading}
+              onClick={() => {
+                setUploadDialogOpen(false);
+                setUploadFile(null);
+              }}
+            >
+              {translate("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              disabled={!uploadFile || isUploading}
+              onClick={handleSaveUpload}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isUploading ? translate("Importing...") : translate("Import")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-auto">
