@@ -1098,9 +1098,9 @@ function ManageTahfizCentersDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={4} />
+                <InlineLoadingComponent isTable colSpan={5} />
               ) : tahfizCenterList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={4} />
+                <NoDataTableComponent colSpan={5} />
               ) : (
                 tahfizCenterList.items.map((center) => (
                   <TableRow key={center.id}>
