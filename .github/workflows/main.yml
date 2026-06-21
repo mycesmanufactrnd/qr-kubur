@@ -24,6 +24,9 @@ jobs:
       - name: Build Frontend
         run: npm run build
 
+      - name: Deploy Frontend to nginx root
+        run: robocopy dist C:\Website\qr-kubur\dist /E /PURGE; if ($LASTEXITCODE -le 7) { exit 0 }
+
       - name: Cleanup
         run: docker image prune -f
 
