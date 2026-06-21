@@ -21,28 +21,28 @@ export class TahfizCenter {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column("varchar", { length: 255 })
+  @Column("varchar")
   name!: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", { nullable: true })
   description?: string;
 
-  @Column("varchar", { length: 255 })
+  @Column("varchar")
   state!: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", { nullable: true })
   address?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", { nullable: true })
   phone?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", { nullable: true })
   email?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", { nullable: true })
   url?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", { nullable: true })
   photourl?: string;
 
   @Column("double precision", { nullable: true })
