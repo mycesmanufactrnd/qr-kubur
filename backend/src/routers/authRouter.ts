@@ -235,13 +235,25 @@ export const authRouter = router({
 
       const deviceRepo = AppDataSource.getRepository(UserDevice);
 
-      const existing = await deviceRepo.findOne({
+      // If this exact token already exists, ensure it's linked to this user
+      const existingByToken = await deviceRepo.findOne({
         where: { fcmToken: input.fcmToken },
       });
 
-      if (existing) {
-        existing.user = { id: ctx.user.id } as any;
-        await deviceRepo.save(existing);
+      if (existingByToken) {
+        existingByToken.user = { id: ctx.user.id } as any;
+        await deviceRepo.save(existingByToken);
+        return { success: true };
+      }
+
+      // Token is new — update the user's existing device row instead of creating a duplicate
+      const existingByUser = await deviceRepo.findOne({
+        where: { user: { id: ctx.user.id } },
+      });
+
+      if (existingByUser) {
+        existingByUser.fcmToken = input.fcmToken;
+        await deviceRepo.save(existingByUser);
       } else {
         const device = deviceRepo.create({
           fcmToken: input.fcmToken,

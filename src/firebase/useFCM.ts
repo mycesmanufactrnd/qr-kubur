@@ -1,8 +1,10 @@
 /// <reference types="vite/client" />
 import { useEffect } from "react";
+import { onMessage } from "firebase/messaging";
+import { Capacitor } from "@capacitor/core";
 import { getStoredGoogleUser } from "../utils/auth";
 import { trpcClient } from "../utils/trpc";
-import { initFCM } from "./firebase";
+import { initFCM, messaging } from "./firebase";
 
 export const useFCM = () => {
   useEffect(() => {
@@ -25,5 +27,19 @@ export const useFCM = () => {
           .catch((e) => console.error("[FCM] saveUserDeviceToken failed:", e));
       }
     });
+
+    // Foreground message handler — fires when the tab is open and visible.
+    // The service worker onBackgroundMessage only fires when the tab is closed/hidden.
+    if (Capacitor.isNativePlatform()) return;
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+      const title = payload.notification?.title ?? "Notifikasi Baru";
+      const body = payload.notification?.body ?? "";
+      if (Notification.permission === "granted") {
+        new Notification(title, { body, icon: "/favicon.ico" });
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 };

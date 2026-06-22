@@ -123,7 +123,6 @@ export default function PaymentSuccessfulComponent({
             and a receipt is on its way to you.
           </p>
 
-          {/* ✅ NEW EXTRA CONTENT SECTION */}
           {extraContent && (
             <div style={{ marginBottom: "2rem" }}>
               {extraContent}
@@ -131,7 +130,6 @@ export default function PaymentSuccessfulComponent({
           )}
         </div>
 
-        {/* Divider */}
         <div style={{
           height: "1px",
           background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)",
@@ -140,7 +138,6 @@ export default function PaymentSuccessfulComponent({
           transition: "opacity 0.5s ease 0.7s",
         }} />
 
-        {/* Countdown */}
         {shouldRedirect && (
           <div style={{
             display: "flex",
@@ -195,7 +192,6 @@ export default function PaymentSuccessfulComponent({
           </div>
         )}
 
-        {/* Button */}
         {actionButton && (
           <div style={{ marginTop: "2rem" }}>
             {actionButton}

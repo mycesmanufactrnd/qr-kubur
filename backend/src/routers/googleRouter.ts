@@ -31,10 +31,22 @@ export const googleRouter = router({
             const googleUser = await googleUserRepo.findOneBy({ id: input.googleUserId });
             if (!googleUser) throw new Error("Google user not found");
 
-            const existing = await deviceRepo.findOneBy({ fcmToken: input.fcmToken });
-            if (existing) {
-                existing.googleuser = googleUser;
-                await deviceRepo.save(existing);
+            // If this exact token already exists, ensure it's linked to this user
+            const existingByToken = await deviceRepo.findOneBy({ fcmToken: input.fcmToken });
+            if (existingByToken) {
+                existingByToken.googleuser = googleUser;
+                await deviceRepo.save(existingByToken);
+                return { success: true };
+            }
+
+            // Token is new — update the user's existing device row instead of creating a duplicate
+            const existingByUser = await deviceRepo.findOne({
+                where: { googleuser: { id: input.googleUserId } },
+            });
+
+            if (existingByUser) {
+                existingByUser.fcmToken = input.fcmToken;
+                await deviceRepo.save(existingByUser);
             } else {
                 const device = deviceRepo.create({ fcmToken: input.fcmToken, googleuser: googleUser });
                 await deviceRepo.save(device);
