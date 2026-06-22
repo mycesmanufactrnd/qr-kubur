@@ -6,40 +6,59 @@ import { getStoredGoogleUser } from "../utils/auth";
 import { trpcClient } from "../utils/trpc";
 import { initFCM, messaging } from "./firebase";
 
+const saveToken = (token: string) => {
+  const googleUser = getStoredGoogleUser();
+  if (googleUser?.id) {
+    trpcClient.google.saveDeviceToken
+      .mutate({ googleUserId: googleUser.id, fcmToken: token })
+      .catch((e) => console.error("[FCM] saveDeviceToken (google) failed:", e));
+  }
+
+  const appUserAuth = sessionStorage.getItem("appUserAuth");
+  if (appUserAuth) {
+    trpcClient.auth.saveUserDeviceToken
+      .mutate({ fcmToken: token })
+      .catch((e) => console.error("[FCM] saveUserDeviceToken failed:", e));
+  }
+};
+
 export const useFCM = () => {
   useEffect(() => {
-    initFCM().then((token) => {
-      if (!token) return;
+    // Register token on mount
+    initFCM().then((token) => { if (token) saveToken(token); });
 
-      // Register for public Google users
-      const googleUser = getStoredGoogleUser();
-      if (googleUser?.id) {
-        trpcClient.google.saveDeviceToken
-          .mutate({ googleUserId: googleUser.id, fcmToken: token })
-          .catch((e) => console.error("[FCM] saveDeviceToken (google) failed:", e));
+    // Re-register on visibility — Firebase silently rotates tokens on mobile.
+    // Each time the user opens the tab/app we sync the latest token to the DB.
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        initFCM().then((token) => { if (token) saveToken(token); });
       }
-
-      // Register for admin/employee users
-      const appUserAuth = sessionStorage.getItem("appUserAuth");
-      if (appUserAuth) {
-        trpcClient.auth.saveUserDeviceToken
-          .mutate({ fcmToken: token })
-          .catch((e) => console.error("[FCM] saveUserDeviceToken failed:", e));
-      }
-    });
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
 
     // Foreground message handler — fires when the tab is open and visible.
-    // The service worker onBackgroundMessage only fires when the tab is closed/hidden.
-    if (Capacitor.isNativePlatform()) return;
+    // Uses SW registration.showNotification() so the notificationclick handler
+    // (tap-to-navigate) works the same as background notifications.
+    if (Capacitor.isNativePlatform()) {
+      return () => document.removeEventListener("visibilitychange", handleVisibility);
+    }
 
-    const unsubscribe = onMessage(messaging, (payload) => {
+    const unsubscribe = onMessage(messaging, async (payload) => {
+      if (Notification.permission !== "granted") return;
       const title = payload.notification?.title ?? "Notifikasi Baru";
       const body = payload.notification?.body ?? "";
-      if (Notification.permission === "granted") {
+      const data = payload.data ?? {};
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        registration.showNotification(title, { body, icon: "/favicon.ico", data });
+      } catch {
         new Notification(title, { body, icon: "/favicon.ico" });
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      unsubscribe();
+    };
   }, []);
 };
