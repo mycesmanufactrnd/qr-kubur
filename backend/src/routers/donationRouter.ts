@@ -110,7 +110,7 @@ export const donationRouter = router({
       return { items, total };
     }),
 
-  create: protectedProcedure
+  create: publicProcedure
     .input(
       donationSchema.extend({
         googleuserId: z.number().optional().nullable(),
