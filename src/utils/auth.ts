@@ -426,11 +426,8 @@ export function useLoginGoogle() {
       setLoading(false);
       setStoredGoogleAuth(data.user);
       try {
-        let fcmToken: string | null = localStorage.getItem("fcmToken");
-        if (!fcmToken) {
-          const { initFCM } = await import("@/firebase/firebase");
-          fcmToken = await initFCM();
-        }
+        const { initFCM } = await import("@/firebase/firebase");
+        const fcmToken = await initFCM();
         if (fcmToken && data.user?.id) {
           trpcClient.google.saveDeviceToken
             .mutate({ googleUserId: Number(data.user.id), fcmToken })
