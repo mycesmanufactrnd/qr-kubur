@@ -141,12 +141,19 @@ export const sendNotificationFCMFromGoogle = async ({
     const recordRepo = AppDataSource.getRepository(GoogleUserRecord);
     const deviceRepo = AppDataSource.getRepository(GoogleUserDevice);
 
+    console.log(`[FCM→Google] Looking up record: entityname=${entityname}, entityid=${entityid}`);
+
     const record = await recordRepo.findOne({
       where: { entityname: entityname, entityid: Number(entityid) },
       relations: ["googleuser"],
     });
 
-    if (!record?.googleuser?.id) return;
+    if (!record?.googleuser?.id) {
+      console.warn(`[FCM→Google] No GoogleUserRecord found for ${entityname}#${entityid}`);
+      return;
+    }
+
+    console.log(`[FCM→Google] Found GoogleUser id=${record.googleuser.id}`);
 
     const referenceno = record.referenceno ?? "";
 
@@ -155,6 +162,7 @@ export const sendNotificationFCMFromGoogle = async ({
     });
 
     const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    console.log(`[FCM→Google] Found ${tokens.length} device token(s) for googleUser#${record.googleuser.id}`);
     if (tokens.length === 0) return;
 
     let staleTokens: string[] = [];
