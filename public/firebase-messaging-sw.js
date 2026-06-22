@@ -12,11 +12,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background push notifications (app not in foreground)
+// Handle background push notifications (app not in foreground).
+// Reads from payload.data because we send data-only messages to avoid
+// Firebase showing a duplicate automatic notification from the notification field.
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || "Notifikasi Baru";
+  const title = payload.data?.title || "Notifikasi Baru";
   const options = {
-    body: payload.notification?.body || "",
+    body: payload.data?.body || "",
     icon: "/favicon.ico",
     data: payload.data || {},
   };

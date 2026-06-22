@@ -96,10 +96,18 @@ export const sendPushNotifications = async (
   const staleTokens: string[] = [];
 
   try {
+    // Send as data-only — no top-level `notification` field.
+    // With a `notification` field, FCM shows it automatically AND onBackgroundMessage
+    // also fires, causing duplicate notifications. Data-only lets the SW be the
+    // single display controller for both foreground and background.
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
-      notification,
-      data,
+      data: {
+        title: notification.title,
+        body: notification.body,
+        ...data,
+      },
+      webpush: { fcmOptions: {} },
     });
 
     response.responses.forEach((r, i) => {

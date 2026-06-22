@@ -45,8 +45,8 @@ export const useFCM = () => {
 
     const unsubscribe = onMessage(messaging, async (payload) => {
       if (Notification.permission !== "granted") return;
-      const title = payload.notification?.title ?? "Notifikasi Baru";
-      const body = payload.notification?.body ?? "";
+      const title = payload.data?.title ?? "Notifikasi Baru";
+      const body = payload.data?.body ?? "";
       const data = payload.data ?? {};
       try {
         const registration = await navigator.serviceWorker.ready;
