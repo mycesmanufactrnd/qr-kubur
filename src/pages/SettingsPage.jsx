@@ -17,6 +17,8 @@ import {
   XCircle,
   Building2,
   Settings as SettingsIcon,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,6 +38,7 @@ import {
   handleLogout,
   useLoginGoogle,
 } from "@/utils/auth";
+import { trpcClient } from "@/utils/trpc";
 import { usePermissions } from "@/components/PermissionsContext";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { showSuccess } from "@/components/ToastrNotification";
@@ -79,6 +82,35 @@ function SettingsPageDesktop() {
 
   const { login, loading, error } = useLoginGoogle();
   const [signInError, setSignInError] = useState('');
+
+  const [notifPermission, setNotifPermission] = useState(() =>
+    "Notification" in window ? Notification.permission : "default"
+  );
+  const [notifRefreshing, setNotifRefreshing] = useState(false);
+
+  const handleNotificationRefresh = async () => {
+    setNotifRefreshing(true);
+    try {
+      const { initFCM } = await import("@/firebase/firebase");
+      const token = await initFCM();
+      setNotifPermission("Notification" in window ? Notification.permission : "default");
+      if (token) {
+        const googleUser = getStoredGoogleUser();
+        if (googleUser?.id) {
+          await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmToken: token });
+        }
+        const appUserAuth = sessionStorage.getItem("appUserAuth");
+        if (appUserAuth) {
+          await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+        }
+        showSuccess(translate("Notifications"), "enabled");
+      }
+    } catch (e) {
+      console.error("[FCM] Notification refresh failed:", e);
+    } finally {
+      setNotifRefreshing(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setSignInError('');
@@ -352,6 +384,60 @@ function SettingsPageDesktop() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card className="dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
+              {translate("Notifications")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${
+                notifPermission === "granted"
+                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
+                  : notifPermission === "denied"
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800"
+                  : "bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600"
+              }`}>
+                {notifPermission === "denied"
+                  ? <BellOff className="w-4 h-4 text-red-500" />
+                  : <Bell className={`w-4 h-4 ${notifPermission === "granted" ? "text-emerald-500" : "text-slate-400 dark:text-slate-500"}`} />
+                }
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  {notifPermission === "granted"
+                    ? translate("Notifications Enabled")
+                    : notifPermission === "denied"
+                    ? translate("Notifications Blocked")
+                    : translate("Notifications Not Enabled")}
+                </p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {notifPermission === "denied"
+                    ? translate("Allow notifications in your browser or system settings")
+                    : translate("Receive updates on your requests")}
+                </p>
+              </div>
+            </div>
+            {notifPermission !== "denied" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleNotificationRefresh}
+                disabled={notifRefreshing}
+              >
+                {notifRefreshing
+                  ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  : <Bell className="w-4 h-4 mr-2" />
+                }
+                {notifPermission === "granted" ? translate("Refresh Notifications") : translate("Enable Notifications")}
+              </Button>
+            )}
           </CardContent>
         </Card>
 
