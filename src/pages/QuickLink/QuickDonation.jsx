@@ -156,7 +156,7 @@ export default function QuickDonation() {
   const handlePaymentConfig = async (formData) => {
     if (!formData || !organisationId) return false;
     setLoadingPayment(true);
-    sessionStorage.setItem(
+    localStorage.setItem(
       "donationPending",
       JSON.stringify({
         formData: {

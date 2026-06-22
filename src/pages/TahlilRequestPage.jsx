@@ -244,7 +244,7 @@ export default function TahlilRequestPage() {
       : "Unknown";
     if (!status_id) return;
 
-    const pendingTahlil = sessionStorage.getItem("tahlilRequestPending");
+    const pendingTahlil = localStorage.getItem("tahlilRequestPending");
     if (!pendingTahlil) return;
 
     const { formData, selectedAccount } = JSON.parse(pendingTahlil);
@@ -301,7 +301,7 @@ export default function TahlilRequestPage() {
                 });
               }
             }
-            sessionStorage.removeItem("tahlilRequestPending");
+            localStorage.removeItem("tahlilRequestPending");
             clearQueryParams();
           }
         })
@@ -314,7 +314,7 @@ export default function TahlilRequestPage() {
             summary: activityLogError(error),
             extramessage: pendingTahlil,
           });
-          sessionStorage.removeItem("tahlilRequestPending");
+          localStorage.removeItem("tahlilRequestPending");
           clearQueryParams();
         });
     } else if (statusText === "Pending") {
@@ -399,7 +399,7 @@ export default function TahlilRequestPage() {
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
     setLoadingPayment(true);
-    sessionStorage.setItem(
+    localStorage.setItem(
       "tahlilRequestPending",
       JSON.stringify({ formData, selectedAccount }),
     );

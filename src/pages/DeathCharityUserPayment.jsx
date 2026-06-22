@@ -299,7 +299,7 @@ export default function DeathCharityUserPayment() {
 
     if (!status_id) return;
 
-    const pendingPaymentRaw = sessionStorage.getItem("charityPaymentPending");
+    const pendingPaymentRaw = localStorage.getItem("charityPaymentPending");
     if (!pendingPaymentRaw) return;
 
     const pendingPayment = JSON.parse(pendingPaymentRaw);
@@ -315,7 +315,7 @@ export default function DeathCharityUserPayment() {
         url.searchParams.set("mosque", String(pendingPayment.mosqueid));
       }
 
-      sessionStorage.removeItem("charityPaymentPending");
+      localStorage.removeItem("charityPaymentPending");
       setLoadingPayment(false);
 
       window.location.href = url.toString();
@@ -624,7 +624,7 @@ export default function DeathCharityUserPayment() {
       selectedAccount,
     };
 
-    sessionStorage.setItem(
+    localStorage.setItem(
       "charityPaymentPending",
       JSON.stringify(payloadWithReferenceNo),
     );

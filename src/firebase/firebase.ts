@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken } from "firebase/messaging";
 import { getAuth } from "firebase/auth";
+import { Capacitor } from "@capacitor/core";
 
 export { getToken };
 
@@ -19,48 +20,89 @@ export const messaging = getMessaging(app);
 export const auth = getAuth(app);
 
 /**
- * Requests notification permission, registers the service worker,
- * and returns the FCM token. Works on both localhost and production (HTTPS).
- * Returns null if permission denied, SW not supported, or VAPID key missing.
+ * Requests push notification permission and returns the device/FCM token.
+ * - Native (Capacitor): uses @capacitor/push-notifications (no service worker needed).
+ * - Web: uses Firebase Web SDK + service worker.
+ * Returns null if permission denied or any step fails.
  */
 export const initFCM = async (): Promise<string | null> => {
   try {
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-    if (!vapidKey) {
-      console.warn("[FCM] VITE_FIREBASE_VAPID_KEY is not set");
-      return null;
+    if (Capacitor.isNativePlatform()) {
+      return await initFCMNative();
     }
-
-    if (!("serviceWorker" in navigator) || !("Notification" in window)) {
-      console.warn("[FCM] Service workers or Notifications not supported");
-      return null;
-    }
-
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      console.log("[FCM] Notification permission:", permission);
-      return null;
-    }
-
-    // Register the SW, then wait for it to be active before calling getToken.
-    // navigator.serviceWorker.ready resolves only once a SW is fully active.
-    await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
-    const registration = await navigator.serviceWorker.ready;
-
-    const token = await getToken(messaging, {
-      vapidKey,
-      serviceWorkerRegistration: registration,
-    });
-
-    if (token) {
-      localStorage.setItem("fcmToken", token);
-      return token;
-    }
-
-    console.warn("[FCM] No token returned — check VAPID key and Firebase Console settings");
-    return null;
+    return await initFCMWeb();
   } catch (e) {
     console.error("[FCM] initFCM error:", e);
     return null;
   }
 };
+
+async function initFCMNative(): Promise<string | null> {
+  const { PushNotifications } = await import("@capacitor/push-notifications");
+
+  const permResult = await PushNotifications.requestPermissions();
+  if (permResult.receive !== "granted") {
+    console.log("[FCM] Native push permission not granted:", permResult.receive);
+    return null;
+  }
+
+  await PushNotifications.register();
+
+  return new Promise<string | null>((resolve) => {
+    // Timeout so we don't hang forever if the OS never fires the event
+    const timer = setTimeout(() => {
+      PushNotifications.removeAllListeners();
+      console.warn("[FCM] Native registration timed out");
+      resolve(null);
+    }, 10_000);
+
+    PushNotifications.addListener("registration", (token) => {
+      clearTimeout(timer);
+      PushNotifications.removeAllListeners();
+      localStorage.setItem("fcmToken", token.value);
+      resolve(token.value);
+    });
+
+    PushNotifications.addListener("registrationError", (err) => {
+      clearTimeout(timer);
+      PushNotifications.removeAllListeners();
+      console.error("[FCM] Native registration error:", err);
+      resolve(null);
+    });
+  });
+}
+
+async function initFCMWeb(): Promise<string | null> {
+  const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+  if (!vapidKey) {
+    console.warn("[FCM] VITE_FIREBASE_VAPID_KEY is not set");
+    return null;
+  }
+
+  if (!("serviceWorker" in navigator) || !("Notification" in window)) {
+    console.warn("[FCM] Service workers or Notifications not supported");
+    return null;
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    console.log("[FCM] Notification permission:", permission);
+    return null;
+  }
+
+  await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+  const registration = await navigator.serviceWorker.ready;
+
+  const token = await getToken(messaging, {
+    vapidKey,
+    serviceWorkerRegistration: registration,
+  });
+
+  if (token) {
+    localStorage.setItem("fcmToken", token);
+    return token;
+  }
+
+  console.warn("[FCM] No token returned — check VAPID key and Firebase Console settings");
+  return null;
+}

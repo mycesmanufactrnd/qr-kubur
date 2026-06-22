@@ -33,6 +33,7 @@
     "@capacitor/app": "^8.1.0",
     "@capacitor/browser": "^8.0.3",
     "@capacitor/core": "^8.3.4",
+    "@capacitor/push-notifications": "^8.1.1",
     "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",
     "@hello-pangea/dnd": "^17.0.0",

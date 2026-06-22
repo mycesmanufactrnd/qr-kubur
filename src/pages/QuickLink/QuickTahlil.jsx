@@ -248,7 +248,7 @@ export default function QuickTahlil() {
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
     setLoadingPayment(true);
-    sessionStorage.setItem(
+    localStorage.setItem(
       "tahlilRequestPending",
       JSON.stringify({ formData, selectedAccount }),
     );

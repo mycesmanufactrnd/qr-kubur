@@ -211,7 +211,7 @@ export default function DonationPage() {
       : "Unknown";
     if (!status_id) return;
 
-    const pendingDonation = sessionStorage.getItem("donationPending");
+    const pendingDonation = localStorage.getItem("donationPending");
     if (!pendingDonation) return;
 
     const { formData, baseAmount, payableAmount, selectedAccount } =
@@ -220,7 +220,7 @@ export default function DonationPage() {
     const handleFinally = () => {
       const cleanUrl = clearQueryParams();
       if (cleanUrl) window.location.href = cleanUrl;
-      sessionStorage.removeItem("donationPending");
+      localStorage.removeItem("donationPending");
       setLoadingPayment(false);
     };
 
@@ -424,7 +424,7 @@ export default function DonationPage() {
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
     setLoadingPayment(true);
-    sessionStorage.setItem(
+    localStorage.setItem(
       "donationPending",
       JSON.stringify({ formData, baseAmount, payableAmount, selectedAccount }),
     );

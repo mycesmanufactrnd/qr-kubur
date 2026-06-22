@@ -116,7 +116,7 @@ export default function OrganisationDetails() {
   };
 
   const pendingQuotationRaw =
-    sessionStorage.getItem("quotationPending") || "{}";
+    localStorage.getItem("quotationPending") || "{}";
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
 
@@ -242,7 +242,7 @@ export default function OrganisationDetails() {
     if (formData?.grave?.id) url.searchParams.set("graveId", formData.grave.id);
     const handleFinally = () => {
       window.location.href = url.toString();
-      sessionStorage.removeItem("quotationPending");
+      localStorage.removeItem("quotationPending");
       setSelectedServices([]);
       setIsQuotationDialogOpen(false);
       setLoadingPayment(false);
@@ -374,7 +374,7 @@ export default function OrganisationDetails() {
     setLoadingPayment(true);
     const nextRunningNo = await createQuoteRunningNoMutation.mutateAsync();
     const runningNo = `QUO-${new Date().getFullYear()}-${String(nextRunningNo).padStart(4, "0")}`;
-    sessionStorage.setItem(
+    localStorage.setItem(
       "quotationPending",
       JSON.stringify({
         ...quotationDetails,
