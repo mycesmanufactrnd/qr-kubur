@@ -351,6 +351,7 @@ export const organisationRouter = router({
         userState: z.string().optional().nullable(),
         filterName: z.string().optional().nullable(),
         filterCanBeDonated: z.boolean().default(false),
+        filterHasPaymentConfig: z.boolean().default(false),
       }),
     )
     .query(async ({ input }) => {
@@ -380,6 +381,13 @@ export const organisationRouter = router({
         query.andWhere("organisation.canbedonated = :canBeDonated", {
           canBeDonated: true,
         });
+      }
+
+      if (input.filterHasPaymentConfig) {
+        query.innerJoin(
+          "organisation.organisationpaymentconfigs",
+          "paymentconfig",
+        );
       }
 
       query

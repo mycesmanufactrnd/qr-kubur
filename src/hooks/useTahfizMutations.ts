@@ -17,6 +17,7 @@ type UseGetTahfizCoordinatesParams = {
   filterState?: string;
   filterName?: string;
   filterAddress?: string;
+  filterHasPaymentConfig?: boolean;
 };
 
 const TITLE_MESSAGE = 'Tahfiz Center';
@@ -62,6 +63,7 @@ export function useGetTahfizCoordinates({
   filterState,
   filterName,
   filterAddress,
+  filterHasPaymentConfig,
 }: UseGetTahfizCoordinatesParams) {
   return trpc.tahfiz.getTahfizByCoordinates.useQuery(
     {
@@ -70,6 +72,7 @@ export function useGetTahfizCoordinates({
       filterState,
       filterName,
       filterAddress,
+      filterHasPaymentConfig,
     },
     {
       enabled: !!coordinates,

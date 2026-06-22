@@ -318,6 +318,7 @@ export default function DonationPage() {
     selectedState === "nearby" ? userState : selectedState,
     filterName,
     true,
+    true,
   );
 
   const { data: tahfizCenters = [], isLoading: isTahfizLoading } = useGetTahfizCoordinates({
@@ -328,6 +329,7 @@ export default function DonationPage() {
     filterState: selectedState === "nearby" ? userState : selectedState,
     isTahlilServiceOnly: false,
     filterName,
+    filterHasPaymentConfig: true,
   });
 
   useEffect(() => {

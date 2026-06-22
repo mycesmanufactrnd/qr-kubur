@@ -71,17 +71,19 @@ export function useOrganisationMutations() {
 }
 
 export function useGetOrganisationCoordinates(
-  coordinates?: { latitude: number; longitude: number } | null, 
+  coordinates?: { latitude: number; longitude: number } | null,
   userState?: string,
   filterName?: string,
   filterCanBeDonated?: boolean,
+  filterHasPaymentConfig?: boolean,
 ) {
   const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
-    { 
+    {
       coordinates: coordinates ?? null,
       userState,
       filterName,
-      filterCanBeDonated
+      filterCanBeDonated,
+      filterHasPaymentConfig,
     },
     {
       enabled: !!coordinates,

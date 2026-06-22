@@ -183,6 +183,7 @@ export const tahfizRouter = router({
         filterState: z.string().optional().nullable(),
         filterName: z.string().optional().nullable(),
         filterAddress: z.string().optional().nullable(),
+        filterHasPaymentConfig: z.boolean().default(false),
       }),
     )
     .query(async ({ input }) => {
@@ -216,6 +217,10 @@ export const tahfizRouter = router({
         query.andWhere("tahfiz.address ILIKE :address", {
           address: `%${input.filterAddress}%`,
         });
+      }
+
+      if (input.filterHasPaymentConfig) {
+        query.innerJoin("tahfiz.tahfizpaymentconfigs", "paymentconfig");
       }
 
       query
