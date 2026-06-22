@@ -209,6 +209,57 @@ export const sendNotificationFCMFromGoogle = async ({
   }
 };
 
+export const sendNotificationFCMToTahfiz = async ({
+  tahfizId,
+  event,
+  inputData,
+}: {
+  tahfizId: number;
+  event: string;
+  inputData: Record<string, any>;
+}): Promise<void> => {
+  try {
+    const userRepo = AppDataSource.getRepository(User);
+    const deviceRepo = AppDataSource.getRepository(UserDevice);
+
+    const tahfizUsers = await userRepo.find({
+      where: { tahfizcenter: { id: tahfizId } },
+      select: ["id"],
+    });
+    if (tahfizUsers.length === 0) return;
+
+    const devices = await deviceRepo.find({
+      where: { user: { id: In(tahfizUsers.map((u) => u.id)) } },
+    });
+
+    const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    if (tokens.length === 0) return;
+
+    let title = "";
+    let body = "";
+
+    if (event === "tahlilrequest_created") {
+      const requestor = inputData.requestorname ?? "Seseorang";
+      title = "Permohonan Tahlil Baru";
+      body = `${requestor} telah membuat permohonan tahlil baru. Sila semak dan luluskan.`;
+    }
+
+    if (!title) return;
+
+    const staleTokens = await sendPushNotifications(tokens, { title, body }, {
+      tahfizId: String(tahfizId),
+      event,
+    });
+
+    if (staleTokens.length > 0) {
+      await deviceRepo.delete(staleTokens.map((t) => ({ fcmToken: t })) as any);
+      console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
+    }
+  } catch (error) {
+    console.error("[FCM] Failed to notify tahfiz admin:", error);
+  }
+};
+
 export const sendNotificationFCMToOrganisation = async ({
   organisationId,
   event,

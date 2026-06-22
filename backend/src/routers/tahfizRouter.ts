@@ -112,13 +112,11 @@ export const tahfizRouter = router({
           query.andWhere("parentorganisation.id = :parentId", {
             parentId: isFromParentOrg.parentOrganisationId,
           });
-        }
-        else if (currentUserTahfizCenterId) {
+        } else if (currentUserTahfizCenterId) {
           query.andWhere("tahfiz.id = :id", {
             id: currentUserTahfizCenterId,
           });
-        }
-        else {
+        } else {
           return { items: [], total: 0 };
         }
       }

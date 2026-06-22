@@ -10,7 +10,7 @@ import {
 } from "../schemas/tahlilRequestSchema.js";
 import { In } from "typeorm";
 import { TahlilStatus } from "../db/enums.js";
-import { sendNotificationFCMFromGoogle } from "../services/firebase.service.js";
+import { sendNotificationFCMFromGoogle, sendNotificationFCMToTahfiz } from "../services/firebase.service.js";
 
 export const tahlilRequestRouter = router({
   getByReferenceNo: publicProcedure
@@ -135,6 +135,18 @@ export const tahlilRequestRouter = router({
         });
 
         await userRecordRepo.save(record);
+      }
+
+      const tahfizId = (input.tahfizcenter as any)?.id;
+      if (tahfizId) {
+        sendNotificationFCMToTahfiz({
+          tahfizId: Number(tahfizId),
+          event: "tahlilrequest_created",
+          inputData: {
+            requestorname: savedTahlilRequest.requestorname,
+            referenceno: savedTahlilRequest.referenceno,
+          },
+        }).catch(() => {});
       }
 
       return savedTahlilRequest;

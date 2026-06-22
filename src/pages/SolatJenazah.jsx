@@ -1,10 +1,39 @@
 // @ts-nocheck
+import { useState, useEffect, useRef } from "react";
 import BackNavigation from "@/components/BackNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { translate } from '@/utils/translations';
 
 const PDF_URL = 'https://qubur.mycesgroup.com/PanduanSolatJenazah.pdf';
 const VIEWER_URL = `https://docs.google.com/viewer?url=${encodeURIComponent(PDF_URL)}&embedded=true`;
+
+function IframeWithLoader({ src, title }) {
+  const [loaded, setLoaded] = useState(false);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-[80vh]">
+      {!loaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-800 z-10">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+          <p className="text-xs text-slate-400 dark:text-slate-500">{translate("Loading...")}</p>
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={src}
+        className="w-full h-full"
+        title={title}
+        allow="autoplay"
+        onLoad={() => setLoaded(true)}
+      />
+    </div>
+  );
+}
 
 export default function SolatJenazah() {
   return (
@@ -13,12 +42,7 @@ export default function SolatJenazah() {
 
       <Card>
         <CardContent className="p-0">
-          <iframe
-            src={VIEWER_URL}
-            className="w-full h-[80vh]"
-            title={translate('Funeral Prayer Guide')}
-            allow="autoplay"
-          />
+          <IframeWithLoader src={VIEWER_URL} title={translate('Funeral Prayer Guide')} />
         </CardContent>
       </Card>
 
