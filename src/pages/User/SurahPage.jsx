@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { trpc } from "@/utils/trpc";
 import { getCurrentLanguage, translate } from "@/utils/translations";
 import { SURAH_DATA, SURAH_LIST, RECITERS } from "@/utils/enums";
@@ -38,6 +38,34 @@ function Section({ title, accent = "emerald", children }) {
         </div>
       )}
       <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+function IframeWithLoader({ src, title }) {
+  const [loaded, setLoaded] = useState(false);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-[78vh]">
+      {!loaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-800 z-10">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+          <p className="text-xs text-slate-400 dark:text-slate-500">{translate("Loading...")} </p>
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={src}
+        className="w-full h-full"
+        title={title}
+        allow="autoplay"
+        onLoad={() => setLoaded(true)}
+      />
     </div>
   );
 }
@@ -187,12 +215,7 @@ export default function SurahPage() {
                 {translate("Doa Tahlil")}
               </p>
             </div>
-            <iframe
-              src={DoaTahlilViewer}
-              className="w-full h-[78vh]"
-              title="Doa Tahlil PDF"
-              allow="autoplay"
-            />
+            <IframeWithLoader src={DoaTahlilViewer} title="Doa Tahlil PDF" />
           </div>
         )}
 
@@ -203,12 +226,7 @@ export default function SurahPage() {
                 {translate("Tahlil")}
               </p>
             </div>
-            <iframe
-              src={TahlilViewer}
-              className="w-full h-[78vh]"
-              title="Tahlil PDF"
-              allow="autoplay"
-            />
+            <IframeWithLoader src={TahlilViewer} title="Tahlil PDF" />
           </div>
         )}
 
@@ -219,12 +237,7 @@ export default function SurahPage() {
                 {translate("Talqin")}
               </p>
             </div>
-            <iframe
-              src={TalqinViewer}
-              className="w-full h-[78vh]"
-              title="Talqin PDF"
-              allow="autoplay"
-            />
+            <IframeWithLoader src={TalqinViewer} title="Talqin PDF" />
           </div>
         )}
 

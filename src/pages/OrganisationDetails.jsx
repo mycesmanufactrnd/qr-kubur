@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { openPaymentUrl } from "@/utils/payment";
 import FileUploadForm from "@/components/forms/FileUploadForm.jsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -391,7 +392,8 @@ export default function OrganisationDetails() {
         returnTo: "organisation",
       });
       if (quotation?.paymentUrl) {
-        window.location.href = quotation.paymentUrl;
+        openPaymentUrl(quotation.paymentUrl);
+        setLoadingPayment(false);
         return true;
       } else {
         setLoadingPayment(false);

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { openPaymentUrl } from "@/utils/payment";
 import {
   Building2,
   CreditCard,
@@ -415,7 +416,8 @@ export default function TahlilRequestPage() {
         returnTo: "tahfiz",
       });
       if (bill?.paymentUrl) {
-        window.location.href = bill.paymentUrl;
+        openPaymentUrl(bill.paymentUrl);
+        setLoadingPayment(false);
         return true;
       } else {
         setLoadingPayment(false);

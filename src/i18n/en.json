@@ -1147,5 +1147,8 @@
   "noUserFound": "No user found",
   "uploading...": "Uploading...",
   "Total Grave": "Total Grave",
-  "All": "All"
+  "All": "All",
+
+  "Cemetery": "Cemetery",
+  "Download the template, fill in the data, then upload the file.": "Download the template, fill in the data, then upload the file."
 }

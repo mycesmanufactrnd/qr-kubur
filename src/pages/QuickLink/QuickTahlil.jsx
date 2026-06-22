@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
+import { openPaymentUrl } from "@/utils/payment";
 import {
   Building2,
   CreditCard,
@@ -264,7 +265,8 @@ export default function QuickTahlil() {
         returnTo: "tahfiz",
       });
       if (bill?.paymentUrl) {
-        window.location.href = bill.paymentUrl;
+        openPaymentUrl(bill.paymentUrl);
+        setLoadingPayment(false);
         return true;
       }
       setLoadingPayment(false);

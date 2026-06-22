@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { createWorker } from "tesseract.js";
+import { openPaymentUrl } from "@/utils/payment";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -639,7 +640,8 @@ export default function DeathCharityUserPayment() {
       });
 
       if (bill?.paymentUrl) {
-        window.location.href = bill.paymentUrl;
+        openPaymentUrl(bill.paymentUrl);
+        setLoadingPayment(false);
         return true;
       }
 

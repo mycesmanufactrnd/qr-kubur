@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo, useRef } from "react";
+import { openPaymentUrl } from "@/utils/payment";
 import {
   Heart,
   Building2,
@@ -440,7 +441,8 @@ export default function DonationPage() {
         returnTo: "donation",
       });
       if (bill?.paymentUrl) {
-        window.location.href = bill.paymentUrl;
+        openPaymentUrl(bill.paymentUrl);
+        setLoadingPayment(false);
         return true;
       } else {
         setLoadingPayment(false);

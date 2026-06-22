@@ -174,7 +174,6 @@ function PersonFormSheet({
           name="icnumber"
           control={control}
           label={translate("IC No.")}
-          required
           errors={errors}
         />
         <div className="grid grid-cols-2 gap-3">

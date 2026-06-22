@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
 import { Building2, CreditCard, User, XCircle, Home } from "lucide-react";
+import { openPaymentUrl } from "@/utils/payment";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -181,7 +182,8 @@ export default function QuickDonation() {
         returnTo: "donation",
       });
       if (bill?.paymentUrl) {
-        window.location.href = bill.paymentUrl;
+        openPaymentUrl(bill.paymentUrl);
+        setLoadingPayment(false);
         return true;
       }
       setLoadingPayment(false);

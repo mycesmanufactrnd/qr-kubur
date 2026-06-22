@@ -426,16 +426,18 @@ export function useLoginGoogle() {
       setLoading(false);
       setStoredGoogleAuth(data.user);
       try {
-        const { initFCM } = await import("@/firebase/firebase");
-        const { trpcClient } = await import("@/utils/trpc");
-        const token = await initFCM();
-        if (token && data.user?.id) {
+        let fcmToken: string | null = localStorage.getItem("fcmToken");
+        if (!fcmToken) {
+          const { initFCM } = await import("@/firebase/firebase");
+          fcmToken = await initFCM();
+        }
+        if (fcmToken && data.user?.id) {
           trpcClient.google.saveDeviceToken
-            .mutate({ googleUserId: data.user.id, fcmToken: token })
+            .mutate({ googleUserId: Number(data.user.id), fcmToken })
             .catch((e) => console.error("[FCM] saveDeviceToken after login failed:", e));
         }
       } catch (e) {
-        console.error("[FCM] initFCM after login failed:", e);
+        console.error("[FCM] FCM registration after login failed:", e);
       }
       navigate(createPageUrl("UserDashboard"));
     },

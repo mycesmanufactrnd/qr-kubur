@@ -891,5 +891,23 @@
   "Payment Amount": "Jumlah Bayaran",
   "Member": "Ahli",
   "Service completion": "Gambar penyiapan perkhidmatan",
-  "Suggested Date": "Tarikh Cadangan"
+  "Suggested Date": "Tarikh Cadangan",
+
+  "IC No.": "No. IC",
+  "Upload New": "Muat Naik Baru",
+  "Cemetery": "Tanah Perkuburan",
+  "Upload Deceased via CSV": "Muat Naik Arwah melalui CSV",
+  "Download the template, fill in the data, then upload the file.": "Muat turun templat, isi data, kemudian muat naik fail tersebut.",
+  "CSV Template": "Templat CSV",
+  "columns": "lajur",
+  "Click or drag & drop your CSV file here": "Klik atau seret & lepas fail CSV anda di sini",
+  "files only": "fail sahaja",
+  "edit": "sunting",
+  "Nama Waris": "Nama Waris",
+  "No. Tel. Waris": "No. Tel. Waris",
+  "delete": "padam",
+  "Waris": "Waris",
+  "Died": "Wafat",
+  "Edit Deceased": "Sunting Arwah",
+  "Add Deceased": "Tambah Arwah"
 }

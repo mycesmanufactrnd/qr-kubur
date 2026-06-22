@@ -880,5 +880,23 @@
   "Payment Amount": "مبلغ الدفع",
   "Member": "العضو",
   "Service completion": "صورة اكتمال الخدمة",
-  "Suggested Date": "التاريخ المقترح"
+  "Suggested Date": "التاريخ المقترح",
+
+  "IC No.": "رقم الهوية",
+  "Upload New": "رفع جديد",
+  "Cemetery": "المقبرة",
+  "Upload Deceased via CSV": "رفع المتوفين عبر CSV",
+  "Download the template, fill in the data, then upload the file.": "قم بتنزيل القالب، أدخل البيانات، ثم ارفع الملف.",
+  "CSV Template": "قالب CSV",
+  "columns": "أعمدة",
+  "Click or drag & drop your CSV file here": "انقر أو اسحب وأفلت ملف CSV هنا",
+  "files only": "ملفات فقط",
+  "edit": "تعديل",
+  "Nama Waris": "اسم الوارث",
+  "No. Tel. Waris": "رقم هاتف الوارث",
+  "delete": "حذف",
+  "Waris": "الوارث",
+  "Died": "توفي",
+  "Edit Deceased": "تعديل المتوفى",
+  "Add Deceased": "إضافة متوفى"
 }
