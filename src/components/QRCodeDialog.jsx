@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Dialog,
   DialogContent,
@@ -12,10 +13,8 @@ import { translate } from '@/utils/translations';
 export default function QRCodeDialog({ open, onOpenChange, data }) {
   if (!data) return null;
 
-  const qrValue = JSON.stringify({
-    type: data.type,
-    id: data.id,
-  });
+  const baseUrl = import.meta.env.VITE_APP_URL || "https://qubur.mycesgroup.com";
+  const qrValue = `${baseUrl}/scanqr?type=${data.type}&id=${data.id}`;
 
   const downloadQR = () => {
     const canvas = document.getElementById("qr-canvas");

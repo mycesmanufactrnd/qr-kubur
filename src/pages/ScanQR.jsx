@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { createPageUrl, resolveFileUrl } from "@/utils/index";
 import {
   Camera,
@@ -57,6 +58,7 @@ export default function ScanQR() {
     ...ipAddressQueryOptions,
   });
 
+  const [searchParams] = useSearchParams();
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,6 +105,15 @@ export default function ScanQR() {
     },
   );
 
+  // Handle deep-link from native camera: /scanqr?type=grave&id=123
+  useEffect(() => {
+    const type = searchParams.get("type");
+    const id = Number(searchParams.get("id"));
+    if (!type || !id || isNaN(id)) return;
+    if (type === "grave") setScannedGraveId(id);
+    else if (type === "deadperson") setScannedDeadPersonId(id);
+  }, []);
+
   useEffect(() => {
     if (selectedGrave)
       showSuccess(`${translate("Record Found")}: ${selectedGrave.name}`);
@@ -132,8 +143,16 @@ export default function ScanQR() {
       setScanning(false);
       const qrCode = data.text || data;
       try {
-        const parsed = JSON.parse(qrCode);
-        const { type, id } = parsed;
+        let type, id;
+        if (/^https?:\/\//i.test(qrCode)) {
+          const url = new URL(qrCode);
+          type = url.searchParams.get("type");
+          id = url.searchParams.get("id");
+        } else {
+          const parsed = JSON.parse(qrCode);
+          type = parsed.type;
+          id = parsed.id;
+        }
         const numericId = Number(id);
         if (isNaN(numericId) || !type || !id) {
           setError(translate("Invalid QR code"));
