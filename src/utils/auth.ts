@@ -422,10 +422,21 @@ export function useLoginGoogle() {
   const [error, setError] = useState("");
 
   const loginGoogleMutation = trpc.auth.loginGoogle.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setLoading(false);
       setStoredGoogleAuth(data.user);
-      // FCM token registration is handled by useFCM() in App.jsx on every mount.
+      try {
+        const { initFCM } = await import("@/firebase/firebase");
+        const { trpcClient } = await import("@/utils/trpc");
+        const token = await initFCM();
+        if (token && data.user?.id) {
+          trpcClient.google.saveDeviceToken
+            .mutate({ googleUserId: data.user.id, fcmToken: token })
+            .catch((e) => console.error("[FCM] saveDeviceToken after login failed:", e));
+        }
+      } catch (e) {
+        console.error("[FCM] initFCM after login failed:", e);
+      }
       navigate(createPageUrl("UserDashboard"));
     },
     onError: (err) => {

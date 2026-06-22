@@ -212,8 +212,11 @@ export const authRouter = router({
 
       if (!user) {
         user = googleUserRepo.create({ email, name, picture });
-        await googleUserRepo.save(user);
+      } else {
+        user.name = name ?? user.name;
+        user.picture = picture ?? user.picture;
       }
+      await googleUserRepo.save(user);
 
       /**
        * No tokens returned for public Google users
