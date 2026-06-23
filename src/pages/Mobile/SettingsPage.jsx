@@ -178,6 +178,7 @@ export default function SettingsPageMobile() {
       }
       return;
     }
+    
     try {
       const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
       const { auth } = await import("@/firebase/firebase");
