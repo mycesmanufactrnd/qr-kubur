@@ -37,6 +37,8 @@ export const paymentDistributionRouter = router({
       z.object({
         id: z.number(),
         status: z.nativeEnum(OnlineTransactionStatus),
+        referencetransferno: z.string().nullable().optional(),
+        photourl: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -50,6 +52,12 @@ export const paymentDistributionRouter = router({
       }
 
       account.status = input.status;
+      if (input.referencetransferno !== undefined) {
+        account.referencetransferno = input.referencetransferno;
+      }
+      if (input.photourl !== undefined) {
+        account.photourl = input.photourl;
+      }
       return accountRepo.save(account);
     }),
 

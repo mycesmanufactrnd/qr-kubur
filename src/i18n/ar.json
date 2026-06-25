@@ -898,5 +898,20 @@
   "Waris": "الوارث",
   "Died": "توفي",
   "Edit Deceased": "تعديل المتوفى",
-  "Add Deceased": "إضافة متوفى"
+  "Add Deceased": "إضافة متوفى",
+
+  "Payment Distribution": "توزيع المدفوعات",
+  "Update Status": "تحديث الحالة",
+  "Paid": "مدفوع",
+  "Held": "محتجز",
+  "Transfer Pending": "تحويل معلق",
+  "Transferred": "تم التحويل",
+  "Failed": "فشل",
+  "Refunded": "مُسترد",
+  "Organisation Amount": "مبلغ المنظمة",
+  "Order No.": "رقم الطلب",
+  "Original Amount": "المبلغ الأصلي",
+  "Account No.": "رقم الحساب",
+  "Reference Transfer No": "رقم مرجع التحويل",
+  "Transaction proof": "إثبات المعاملة"
 }

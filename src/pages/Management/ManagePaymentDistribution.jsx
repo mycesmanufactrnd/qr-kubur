@@ -1,9 +1,10 @@
 // @ts-nocheck
 import { useState } from "react";
-import { DollarSign, Clock, CheckCircle, XCircle, Pencil } from "lucide-react";
+import { DollarSign, Clock, CheckCircle, XCircle, Pencil, Image as ImageIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -28,6 +29,8 @@ import {
 } from "@/components/ui/select";
 import Breadcrumb from "@/components/Breadcrumb";
 import { translate } from "@/utils/translations";
+import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { showError } from "@/components/ToastrNotification";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -73,6 +76,12 @@ export default function ManagePaymentDistribution() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [statusValue, setStatusValue] = useState("Pending");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [referenceTransferNo, setReferenceTransferNo] = useState("");
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [pastedPhotoUrl, setPastedPhotoUrl] = useState("");
+  const [photoFileKey, setPhotoFileKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const { paymentDistributionList, totalPages, isLoading } =
     useGetPaymentDistributionPaginated({
@@ -85,23 +94,66 @@ export default function ManagePaymentDistribution() {
   const openStatusDialog = (account) => {
     setSelectedAccount(account);
     setStatusValue(account?.status || "Pending");
+    setReferenceTransferNo(account?.referencetransferno || "");
+    setPastedPhotoUrl("");
+    setPhotoFile(null);
+    setPhotoPreview("");
+    setPhotoFileKey((k) => k + 1);
     setIsDialogOpen(true);
   };
 
-  const handleUpdateStatus = () => {
+  const handleUpdateStatus = async () => {
     if (!selectedAccount?.id) return;
 
-    updateMutation
-      .mutateAsync({
-        id: selectedAccount.id,
-        status: statusValue,
-      })
-      .then((res) => {
-        if (res) {
-          setIsDialogOpen(false);
-          setSelectedAccount(null);
+    if (statusValue === "Paid") {
+      if (!referenceTransferNo.trim()) {
+        showError(`${translate("Please complete the field")} ${translate("Reference Transfer No")}`);
+        return;
+      }
+      const hasPhoto = photoFile || pastedPhotoUrl || selectedAccount?.photourl;
+      if (!hasPhoto) {
+        showError(`${translate("Please complete the field")} ${translate("Transaction proof")}`);
+        return;
+      }
+    }
+
+    let finalPhotoUrl = pastedPhotoUrl || selectedAccount?.photourl || null;
+
+    if (photoFile) {
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        appendCurrentUserToFormData(formData);
+        const res = await fetch("/api/upload/bucket-online-transaction", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          showError(translate("Failed to upload photo"));
+          setUploading(false);
+          return;
         }
-      });
+        const data = await res.json();
+        finalPhotoUrl = data.file_url;
+      } catch {
+        showError(translate("Failed to upload photo"));
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    const res = await updateMutation.mutateAsync({
+      id: selectedAccount.id,
+      status: statusValue,
+      referencetransferno: referenceTransferNo || null,
+      photourl: finalPhotoUrl,
+    });
+    if (res) {
+      setIsDialogOpen(false);
+      setSelectedAccount(null);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -377,6 +429,75 @@ export default function ManagePaymentDistribution() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                  {translate("Reference Transfer No")}
+                  {statusValue === "Paid" && <span className="text-red-500 ml-1">*</span>}
+                </p>
+                <Input
+                  value={referenceTransferNo}
+                  onChange={(e) => setReferenceTransferNo(e.target.value)}
+                  placeholder={translate("Reference Transfer No")}
+                  className="dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                  {translate("Transaction proof")}
+                  {statusValue === "Paid" && <span className="text-red-500 ml-1">*</span>}
+                </p>
+                {selectedAccount?.photourl && !photoPreview && (
+                  <img
+                    src={resolveFileUrl(selectedAccount.photourl, "bucket-online-transaction")}
+                    referrerPolicy="no-referrer"
+                    className="h-32 w-full rounded object-cover border mb-2"
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
+                )}
+                <input
+                  key={photoFileKey}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setPhotoFile(file);
+                    setPhotoPreview(URL.createObjectURL(file));
+                    setPastedPhotoUrl("");
+                  }}
+                  disabled={uploading}
+                  className="block w-full text-sm file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-100 dark:file:bg-gray-600 dark:file:text-white"
+                />
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt={translate("Preview")}
+                    className="h-32 w-full rounded object-cover border mt-2"
+                  />
+                ) : (
+                  !selectedAccount?.photourl && (
+                    <div className="flex items-center justify-center h-32 border-2 border-dashed rounded text-gray-300 dark:border-gray-600 mt-1">
+                      <ImageIcon className="w-8 h-8" />
+                    </div>
+                  )
+                )}
+                <p className="text-xs text-gray-400 my-2">{translate("Or paste image URL")}</p>
+                <Input
+                  value={pastedPhotoUrl}
+                  onChange={(e) => {
+                    setPastedPhotoUrl(e.target.value);
+                    if (e.target.value) {
+                      setPhotoFile(null);
+                      setPhotoPreview("");
+                      setPhotoFileKey((k) => k + 1);
+                    }
+                  }}
+                  placeholder="https://..."
+                  className="dark:bg-gray-700 dark:text-white text-sm"
+                />
+              </div>
             </div>
           )}
 
@@ -386,10 +507,10 @@ export default function ManagePaymentDistribution() {
             </Button>
             <Button
               onClick={handleUpdateStatus}
-              disabled={updateMutation.isPending}
+              disabled={updateMutation.isPending || uploading}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
-              {translate("Update")}
+              {uploading ? translate("Uploading...") : translate("Update")}
             </Button>
           </DialogFooter>
         </DialogContent>

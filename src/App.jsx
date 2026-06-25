@@ -1,13 +1,19 @@
 import './App.css'
 import { useEffect } from 'react';
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import QuickDonation from '@/pages/QuickLink/QuickDonation';
 import QuickTahlil from '@/pages/QuickLink/QuickTahlil';
 import { LocationProvider } from './providers/LocationProvider';
 import { useFCM } from './firebase/useFCM';
 import { useLoginGoogle } from './utils/auth';
 import { useNativeBackButton } from './hooks/useNativeBackButton';
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+};
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -65,6 +71,7 @@ function App() {
   return (
     <LocationProvider>
       <Router>
+        <ScrollToTop />
         <AuthenticatedApp />
       </Router>
     </LocationProvider>

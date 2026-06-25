@@ -909,5 +909,20 @@
   "Waris": "Waris",
   "Died": "Wafat",
   "Edit Deceased": "Sunting Arwah",
-  "Add Deceased": "Tambah Arwah"
+  "Add Deceased": "Tambah Arwah",
+
+  "Payment Distribution": "Pengedaran Pembayaran",
+  "Update Status": "Kemaskini Status",
+  "Paid": "Dibayar",
+  "Held": "Ditahan",
+  "Transfer Pending": "Pindahan Menunggu",
+  "Transferred": "Dipindahkan",
+  "Failed": "Gagal",
+  "Refunded": "Dikembalikan",
+  "Organisation Amount": "Jumlah Organisasi",
+  "Order No.": "No. Pesanan",
+  "Original Amount": "Jumlah Asal",
+  "Account No.": "No. Akaun",
+  "Reference Transfer No": "No. Rujukan Pindahan",
+  "Transaction proof": "Bukti Transaksi"
 }
