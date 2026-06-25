@@ -31,7 +31,6 @@ export enum TahlilStatus {
   PENDING = "pending",
   COMPLETED = "completed",
   ACCEPTED = "accepted",
-  REJECTED = "rejected",
 }
 
 export enum QuotationStatus {

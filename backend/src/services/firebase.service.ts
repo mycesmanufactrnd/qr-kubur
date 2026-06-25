@@ -79,7 +79,9 @@ const STALE_TOKEN_CODES = new Set([
  * Sends push notifications and returns the list of tokens that are stale
  * (expired/unregistered) so the caller can remove them from the DB.
  */
-export const verifyFirebaseIdToken = async (idToken: string): Promise<DecodedIdToken> => {
+export const verifyFirebaseIdToken = async (
+  idToken: string,
+): Promise<DecodedIdToken> => {
   if (!initialized || admin.apps.length === 0) {
     throw new Error("Firebase not initialized");
   }
@@ -149,7 +151,9 @@ export const sendNotificationFCMFromGoogle = async ({
     const recordRepo = AppDataSource.getRepository(GoogleUserRecord);
     const deviceRepo = AppDataSource.getRepository(GoogleUserDevice);
 
-    console.log(`[FCM→Google] Looking up record: entityname=${entityname}, entityid=${entityid}`);
+    console.log(
+      `[FCM→Google] Looking up record: entityname=${entityname}, entityid=${entityid}`,
+    );
 
     const record = await recordRepo.findOne({
       where: { entityname: entityname, entityid: Number(entityid) },
@@ -157,7 +161,9 @@ export const sendNotificationFCMFromGoogle = async ({
     });
 
     if (!record?.googleuser?.id) {
-      console.warn(`[FCM→Google] No GoogleUserRecord found for ${entityname}#${entityid}`);
+      console.warn(
+        `[FCM→Google] No GoogleUserRecord found for ${entityname}#${entityid}`,
+      );
       return;
     }
 
@@ -170,7 +176,9 @@ export const sendNotificationFCMFromGoogle = async ({
     });
 
     const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
-    console.log(`[FCM→Google] Found ${tokens.length} device token(s) for googleUser#${record.googleuser.id}`);
+    console.log(
+      `[FCM→Google] Found ${tokens.length} device token(s) for googleUser#${record.googleuser.id}`,
+    );
     if (tokens.length === 0) return;
 
     let staleTokens: string[] = [];
@@ -194,14 +202,9 @@ export const sendNotificationFCMFromGoogle = async ({
       if (event === "tahlilrequest") {
         const status = inputData.data?.status;
 
-        if (status === TahlilStatus.REJECTED) {
-          title = "Permintaan Tahlil Ditolak";
-          body = "Maaf, permintaan tahlil anda telah ditolak.";
-        } else {
+        if (status === TahlilStatus.ACCEPTED) {
           const dateStr = inputData.data?.suggesteddate
-            ? new Date(inputData.data.suggesteddate).toLocaleDateString(
-                "ms-MY",
-              )
+            ? new Date(inputData.data.suggesteddate).toLocaleDateString("ms-MY")
             : "-";
           title = `Permintaan Tahlil Diterima${referenceno ? ` - ${referenceno}` : ""}`;
           body = `Permintaan tahlil anda telah diterima. Tarikh yang dicadangkan: ${dateStr}`;
@@ -262,10 +265,14 @@ export const sendNotificationFCMToTahfiz = async ({
 
     if (!title) return;
 
-    const staleTokens = await sendPushNotifications(tokens, { title, body }, {
-      tahfizId: String(tahfizId),
-      event,
-    });
+    const staleTokens = await sendPushNotifications(
+      tokens,
+      { title, body },
+      {
+        tahfizId: String(tahfizId),
+        event,
+      },
+    );
 
     if (staleTokens.length > 0) {
       await deviceRepo.delete(staleTokens.map((t) => ({ fcmToken: t })) as any);
@@ -319,15 +326,17 @@ export const sendNotificationFCMToOrganisation = async ({
 
     if (!title) return;
 
-    const staleTokens = await sendPushNotifications(tokens, { title, body }, {
-      organisationId: String(organisationId),
-      event,
-    });
+    const staleTokens = await sendPushNotifications(
+      tokens,
+      { title, body },
+      {
+        organisationId: String(organisationId),
+        event,
+      },
+    );
 
     if (staleTokens.length > 0) {
-      await deviceRepo.delete(
-        staleTokens.map((t) => ({ fcmToken: t })) as any,
-      );
+      await deviceRepo.delete(staleTokens.map((t) => ({ fcmToken: t })) as any);
       console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
     }
   } catch (error) {

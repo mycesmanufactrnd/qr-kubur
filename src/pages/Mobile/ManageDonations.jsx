@@ -118,7 +118,7 @@ function DonationCard({ donation, onClick }) {
   );
 }
 
-function DetailSheet({ donation, onClose, canVerify, canReject }) {
+function DetailSheet({ donation, onClose, canVerify }) {
   const updateMutation = useUpdateDonation();
   const [transactionAccount, setTransactionAccount] = useState(null);
 
@@ -310,7 +310,7 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
               {translate("Verify")}
             </button>
           )}
-          {canReject && (
+          {/* {canVerify && (
             <button
               onClick={handleReject}
               disabled={updateMutation.isPending}
@@ -319,7 +319,7 @@ function DetailSheet({ donation, onClose, canVerify, canReject }) {
               <XCircle className="w-4 h-4" />
               {translate("Reject")}
             </button>
-          )}
+          )} */}
         </div>
       )}
     </div>
@@ -345,7 +345,6 @@ export default function MobileManageDonations() {
     loading: permissionsLoading,
     canView,
     canVerify,
-    canReject,
   } = useCrudPermissions("donations");
 
   const [page, setPage] = useState(1);
@@ -452,7 +451,6 @@ export default function MobileManageDonations() {
           donation={selected}
           onClose={() => setSelected(null)}
           canVerify={canVerify}
-          canReject={canReject}
         />
       )}
     </>

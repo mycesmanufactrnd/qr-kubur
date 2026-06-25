@@ -57,12 +57,10 @@ export const PERMISSIONS = {
   // Donations
   DONATIONS_VIEW: "donations_view",
   DONATIONS_VERIFY: "donations_verify",
-  DONATIONS_REJECT: "donations_reject",
 
   // Tahlil Requests
   TAHLIL_VIEW: "tahlil_view",
   TAHLIL_ACCEPT: "tahlil_accept",
-  TAHLIL_REJECT: "tahlil_reject",
   TAHLIL_COMPLETE: "tahlil_complete",
 
   // Waqf
@@ -205,7 +203,6 @@ export const PERMISSION_CATEGORIES = {
     permissions: [
       { slug: PERMISSIONS.TAHLIL_VIEW, label: "View" },
       { slug: PERMISSIONS.TAHLIL_ACCEPT, label: "Accept" },
-      { slug: PERMISSIONS.TAHLIL_REJECT, label: "Reject" },
       { slug: PERMISSIONS.TAHLIL_COMPLETE, label: "Complete" },
     ],
     isTahfizAdminOnly: true,
@@ -218,7 +215,6 @@ export const PERMISSION_CATEGORIES = {
     permissions: [
       { slug: PERMISSIONS.DONATIONS_VIEW, label: "View" },
       { slug: PERMISSIONS.DONATIONS_VERIFY, label: "Verify" },
-      { slug: PERMISSIONS.DONATIONS_REJECT, label: "Reject" },
     ],
   },
 

@@ -10,7 +10,10 @@ import {
 } from "../schemas/tahlilRequestSchema.js";
 import { In } from "typeorm";
 import { TahlilStatus } from "../db/enums.js";
-import { sendNotificationFCMFromGoogle, sendNotificationFCMToTahfiz } from "../services/firebase.service.js";
+import {
+  sendNotificationFCMFromGoogle,
+  sendNotificationFCMToTahfiz,
+} from "../services/firebase.service.js";
 
 export const tahlilRequestRouter = router({
   getByReferenceNo: publicProcedure
@@ -164,10 +167,7 @@ export const tahlilRequestRouter = router({
 
       const savedTahlilRequests = await tahlilRequestRepo.save(tahlilRequests);
 
-      if (
-        input.data.status === TahlilStatus.ACCEPTED ||
-        input.data.status === TahlilStatus.REJECTED
-      ) {
+      if (input.data.status === TahlilStatus.ACCEPTED) {
         await sendNotificationFCMFromGoogle({
           entityname: "tahlilrequest",
           entityid: input.id,

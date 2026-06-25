@@ -54,14 +54,6 @@ const TAHLIL_STATUS = {
     text: "text-emerald-700 dark:text-emerald-400",
     iconColor: "text-emerald-500 dark:text-emerald-400",
   },
-  [TahlilStatus.REJECTED]: {
-    label: "Rejected",
-    Icon: XCircle,
-    bg: "bg-red-50 dark:bg-red-900/20",
-    border: "border-red-200 dark:border-red-800",
-    text: "text-red-700 dark:text-red-400",
-    iconColor: "text-red-500 dark:text-red-400",
-  },
 };
 
 const SERVICE_STATUS = {

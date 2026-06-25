@@ -57,7 +57,6 @@ function ManageDonationsDesktop() {
     loading: permissionsLoading,
     canView,
     canVerify,
-    canReject,
   } = useCrudPermissions("donations");
 
   const { donationList, totalPages, isLoading } = useGetDonationPaginated({
@@ -580,7 +579,7 @@ function ManageDonationsDesktop() {
             </Button>
             {selectedDonation?.status === "pending" && (
               <>
-                {canReject && (
+                {/* {canVerify && (
                   <Button
                     variant="destructive"
                     onClick={() => handleSubmission("reject")}
@@ -589,7 +588,7 @@ function ManageDonationsDesktop() {
                     <XCircle className="w-4 h-4 mr-2" />
                     {translate("Reject")}
                   </Button>
-                )}
+                )} */}
 
                 {canVerify && (
                   <Button

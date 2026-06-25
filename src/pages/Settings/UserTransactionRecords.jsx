@@ -52,7 +52,6 @@ const TAHLIL_STATUS_CONFIG = {
   [TahlilStatus.PENDING]: { label: "Pending", Icon: Clock, bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-400", iconColor: "text-amber-500 dark:text-amber-400" },
   [TahlilStatus.ACCEPTED]: { label: "Accepted", Icon: BadgeCheck, bg: "bg-blue-50 dark:bg-blue-900/20", border: "border-blue-200 dark:border-blue-800", text: "text-blue-700 dark:text-blue-400", iconColor: "text-blue-500 dark:text-blue-400" },
   [TahlilStatus.COMPLETED]: { label: "Completed", Icon: CheckCircle, bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-400", iconColor: "text-emerald-500 dark:text-emerald-400" },
-  [TahlilStatus.REJECTED]: { label: "Rejected", Icon: XCircle, bg: "bg-red-50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-400", iconColor: "text-red-500 dark:text-red-400" },
 };
 
 function StatusBadge({ status, configMap }) {

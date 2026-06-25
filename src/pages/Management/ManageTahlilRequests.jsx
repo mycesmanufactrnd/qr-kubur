@@ -55,7 +55,11 @@ import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import JitsiController from "@/components/jitsi/JitsiController";
-import { appendCurrentUserToFormData, createPageUrl, resolveFileUrl } from "@/utils";
+import {
+  appendCurrentUserToFormData,
+  createPageUrl,
+  resolveFileUrl,
+} from "@/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { showError } from "@/components/ToastrNotification";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
@@ -154,7 +158,6 @@ function ManageTahlilRequestsDesktop() {
     { value: TahlilStatus.PENDING, label: translate("Pending") },
     { value: TahlilStatus.ACCEPTED, label: translate("Accepted") },
     { value: TahlilStatus.COMPLETED, label: translate("Completed") },
-    { value: TahlilStatus.REJECTED, label: translate("Rejected") },
   ];
 
   const serviceOptions = useMemo(() => {
@@ -494,30 +497,32 @@ function ManageTahlilRequestsDesktop() {
     switch (status) {
       case TahlilStatus.PENDING:
         return (
-          <Badge variant="default" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+          <Badge
+            variant="default"
+            className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+          >
             <Clock className="w-3 h-3 mr-1" />
             {translate("Pending")}
           </Badge>
         );
       case TahlilStatus.ACCEPTED:
         return (
-          <Badge variant="default" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+          <Badge
+            variant="default"
+            className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+          >
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Accepted")}
           </Badge>
         );
       case TahlilStatus.COMPLETED:
         return (
-          <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+          <Badge
+            variant="default"
+            className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+          >
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Completed")}
-          </Badge>
-        );
-      case TahlilStatus.REJECTED:
-        return (
-          <Badge variant="default" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-            <XCircle className="w-3 h-3 mr-1" />
-            {translate("Rejected")}
           </Badge>
         );
       default:
@@ -533,49 +538,70 @@ function ManageTahlilRequestsDesktop() {
     switch (status) {
       case "Pending":
         return (
-          <Badge variant="default" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+          <Badge
+            variant="default"
+            className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+          >
             <Clock className="w-3 h-3 mr-1" />
             {translate("Pending")}
           </Badge>
         );
       case "Paid":
         return (
-          <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <Badge
+            variant="default"
+            className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+          >
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Paid")}
           </Badge>
         );
       case "Held":
         return (
-          <Badge variant="default" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+          <Badge
+            variant="default"
+            className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+          >
             <Clock className="w-3 h-3 mr-1" />
             {translate("Held")}
           </Badge>
         );
       case "Transfer Pending":
         return (
-          <Badge variant="default" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+          <Badge
+            variant="default"
+            className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+          >
             <Clock className="w-3 h-3 mr-1" />
             {translate("Transfer Pending")}
           </Badge>
         );
       case "Transferred":
         return (
-          <Badge variant="default" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+          <Badge
+            variant="default"
+            className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+          >
             <CheckCircle className="w-3 h-3 mr-1" />
             {translate("Transferred")}
           </Badge>
         );
       case "Failed":
         return (
-          <Badge variant="default" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+          <Badge
+            variant="default"
+            className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+          >
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Failed")}
           </Badge>
         );
       case "Refunded":
         return (
-          <Badge variant="default" className="bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+          <Badge
+            variant="default"
+            className="bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+          >
             <XCircle className="w-3 h-3 mr-1" />
             {translate("Refunded")}
           </Badge>
@@ -1042,7 +1068,9 @@ function ManageTahlilRequestsDesktop() {
                             <img
                               src={resolveFileUrl(url, "bucket-tahlil-request")}
                               referrerPolicy="no-referrer"
-                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
                               alt={`Tahlil ${idx + 1}`}
                               className="h-40 w-full rounded object-cover border"
                             />
@@ -1179,14 +1207,18 @@ function ManageTahlilRequestsDesktop() {
                                 "bucket-online-transaction",
                               )}
                               referrerPolicy="no-referrer"
-                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
                               alt={translate("Transaction proof")}
                               className="h-36 w-full rounded object-cover border"
                             />
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-400 dark:text-gray-500">-</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">
+                          -
+                        </p>
                       )}
                     </div>
                   </div>
@@ -1205,24 +1237,14 @@ function ManageTahlilRequestsDesktop() {
               {translate("Close")}
             </Button>
             {selectedRequest?.status === TahlilStatus.PENDING && (
-              <>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleStatusChange(TahlilStatus.REJECTED)}
-                  disabled={updateMutation.isPending}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  {translate("Reject")}
-                </Button>
-                <Button
-                  onClick={() => handleStatusChange(TahlilStatus.ACCEPTED)}
-                  disabled={updateMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {translate("Approve")}
-                </Button>
-              </>
+              <Button
+                onClick={() => handleStatusChange(TahlilStatus.ACCEPTED)}
+                disabled={updateMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {translate("Approve")}
+              </Button>
             )}
             {selectedRequest?.status === TahlilStatus.ACCEPTED && (
               <>

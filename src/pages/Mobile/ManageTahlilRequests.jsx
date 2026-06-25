@@ -40,8 +40,6 @@ function StatusBadge({ status }) {
       return <span className={`${base} bg-blue-100 text-blue-700`}><CheckCircle className="w-3 h-3" />{translate("Accepted")}</span>;
     case TahlilStatus.COMPLETED:
       return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-3 h-3" />{translate("Completed")}</span>;
-    case TahlilStatus.REJECTED:
-      return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-3 h-3" />{translate("Rejected")}</span>;
     default:
       return <span className={`${base} bg-slate-100 text-slate-700`}>{status || "-"}</span>;
   }
@@ -370,14 +368,6 @@ function DetailSheet({
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 space-y-2">
         {isPending && (
           <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => onStatusChange(TahlilStatus.REJECTED)}
-              disabled={updateIsPending}
-              className="h-12 rounded-xl border border-red-200 text-red-600 font-semibold text-sm active:opacity-80 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <XCircle className="w-4 h-4" />
-              {translate("Reject")}
-            </button>
             <button
               onClick={() => onStatusChange(TahlilStatus.ACCEPTED)}
               disabled={updateIsPending}
@@ -855,7 +845,6 @@ export default function ManageTahlilRequests() {
                   { id: TahlilStatus.PENDING, name: translate("Pending") },
                   { id: TahlilStatus.ACCEPTED, name: translate("Accepted") },
                   { id: TahlilStatus.COMPLETED, name: translate("Completed") },
-                  { id: TahlilStatus.REJECTED, name: translate("Rejected") },
                 ]},
                 { label: translate("Service Type"), type: "select", searchColumn: "service", options: serviceOptions.map(s => ({ id: s, name: s })) },
                 ...(isSuperAdmin ? [{ label: translate("Tahfiz Center"), type: "select", searchColumn: "tahfiz", options: tahfizOptions.map(o => ({ id: o.value, name: o.label })) }] : []),

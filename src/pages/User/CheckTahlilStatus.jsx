@@ -43,15 +43,6 @@ const STATUS_CONFIG = {
     iconColor: 'text-emerald-500 dark:text-emerald-400',
     dot: 'bg-emerald-400',
   },
-  [TahlilStatus.REJECTED]: {
-    label: translate('Rejected'),
-    icon: XCircle,
-    bg: 'bg-red-50 dark:bg-red-900/20',
-    border: 'border-red-200 dark:border-red-800',
-    text: 'text-red-700 dark:text-red-400',
-    iconColor: 'text-red-500 dark:text-red-400',
-    dot: 'bg-red-400',
-  },
 };
 
 function StatusBadge({ status }) {

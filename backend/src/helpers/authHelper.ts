@@ -58,7 +58,6 @@ export function buildDefaultPermissions({
     permissions.push(
       { slug: "donations_view", enabled: true, user },
       { slug: "donations_verify", enabled: true, user },
-      { slug: "donations_reject", enabled: true, user },
     );
 
     permissions.push(
@@ -71,7 +70,6 @@ export function buildDefaultPermissions({
     permissions.push(
       { slug: "tahlil_view", enabled: true, user },
       { slug: "tahlil_accept", enabled: true, user },
-      { slug: "tahlil_reject", enabled: true, user },
       { slug: "tahlil_complete", enabled: true, user },
     );
   } 
@@ -87,7 +85,6 @@ export function buildDefaultPermissions({
       permissions.push(
         { slug: "donations_view", enabled: true, user },
         { slug: "donations_verify", enabled: true, user },
-        { slug: "donations_reject", enabled: true, user },
       );
     }
 

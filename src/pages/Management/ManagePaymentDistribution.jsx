@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
-import { DollarSign, Clock, CheckCircle, XCircle, Pencil, Image as ImageIcon } from "lucide-react";
+import { DollarSign, Clock, CheckCircle, XCircle, Pencil, Image as ImageIcon, Eye, Heart, BookOpen, Building2, Banknote, HelpCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,26 @@ const statusStyles = {
   Refunded: { className: "bg-slate-100 text-slate-700", Icon: XCircle },
 };
 
+const sourceConfig = {
+  Donation: { label: "Donation", className: "bg-rose-100 text-rose-700", Icon: Heart },
+  Tahlil: { label: "Tahlil", className: "bg-purple-100 text-purple-700", Icon: BookOpen },
+  Organisation: { label: "Organisation", className: "bg-blue-100 text-blue-700", Icon: Building2 },
+  "Death Charity": { label: "Death Charity", className: "bg-orange-100 text-orange-700", Icon: Banknote },
+  "QR Kubur": { label: "QR Kubur", className: "bg-gray-100 text-gray-600", Icon: DollarSign },
+  "QR Kubur (Billplz)": { label: "Billplz", className: "bg-gray-100 text-gray-600", Icon: DollarSign },
+};
+
+const getSourceBadge = (type) => {
+  const cfg = sourceConfig[type] || { label: type || "Other", className: "bg-gray-100 text-gray-600", Icon: HelpCircle };
+  const Icon = cfg.Icon;
+  return (
+    <Badge className={cfg.className}>
+      <Icon className="w-3 h-3 mr-1" />
+      {translate(cfg.label)}
+    </Badge>
+  );
+};
+
 const formatDate = (value) => {
   if (!value) return "-";
   return new Date(value).toLocaleDateString("ms-MY");
@@ -82,6 +102,8 @@ export default function ManagePaymentDistribution() {
   const [pastedPhotoUrl, setPastedPhotoUrl] = useState("");
   const [photoFileKey, setPhotoFileKey] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailAccount, setDetailAccount] = useState(null);
 
   const { paymentDistributionList, totalPages, isLoading } =
     useGetPaymentDistributionPaginated({
@@ -100,6 +122,11 @@ export default function ManagePaymentDistribution() {
     setPhotoPreview("");
     setPhotoFileKey((k) => k + 1);
     setIsDialogOpen(true);
+  };
+
+  const openDetailDialog = (account) => {
+    setDetailAccount(account);
+    setIsDetailOpen(true);
   };
 
   const handleUpdateStatus = async () => {
@@ -224,6 +251,9 @@ export default function ManagePaymentDistribution() {
               <TableRow>
                 <TableHead>{translate("Reference No.")}</TableHead>
                 <TableHead className="text-center">
+                  {translate("Source")}
+                </TableHead>
+                <TableHead className="text-center">
                   {translate("Order No.")}
                 </TableHead>
                 <TableHead className="text-center">
@@ -251,14 +281,17 @@ export default function ManagePaymentDistribution() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={9} />
+                <InlineLoadingComponent isTable colSpan={10} />
               ) : paymentDistributionList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={9} />
+                <NoDataTableComponent colSpan={10} />
               ) : (
                 paymentDistributionList.items.map((account) => (
                   <TableRow key={account.id}>
                     <TableCell className="font-medium">
                       {account.transaction?.referenceno || "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {getSourceBadge(account.type)}
                     </TableCell>
                     <TableCell className="text-center">
                       {account.transaction?.orderno || "-"}
@@ -284,13 +317,24 @@ export default function ManagePaymentDistribution() {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openStatusDialog(account)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDetailDialog(account)}
+                          title={translate("View Details")}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openStatusDialog(account)}
+                          title={translate("Update Status")}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -314,6 +358,92 @@ export default function ManagePaymentDistribution() {
         </CardContent>
       </Card>
 
+      {/* Detail (read-only) Dialog */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="dark:text-white">
+              {translate("Payment Details")}
+            </DialogTitle>
+          </DialogHeader>
+
+          {detailAccount && (
+            <div className="space-y-4 text-sm">
+              <div className="flex items-center gap-2">
+                {getSourceBadge(detailAccount.type)}
+                {getStatusBadge(detailAccount.status)}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 border rounded-lg p-3 bg-gray-50 dark:bg-gray-700">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Reference No.")}</p>
+                  <p className="font-semibold dark:text-white break-all">{detailAccount.transaction?.referenceno || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Order No.")}</p>
+                  <p className="font-semibold dark:text-white break-all">{detailAccount.transaction?.orderno || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Original Amount")}</p>
+                  <p className="font-semibold text-emerald-600">{formatRM(detailAccount.transaction?.originalamount)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Maintenance Fee")}</p>
+                  <p className="font-semibold text-amber-600">{formatRM(detailAccount.transaction?.maintenancefee)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Bank Name")}</p>
+                  <p className="font-semibold dark:text-white">{detailAccount.bankname || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Account No.")}</p>
+                  <p className="font-semibold dark:text-white">{detailAccount.accountno || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Date")}</p>
+                  <p className="font-semibold dark:text-white">{formatDate(detailAccount.transaction?.createdat || detailAccount.createdat)}</p>
+                </div>
+                {detailAccount.referencetransferno && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{translate("Reference Transfer No")}</p>
+                    <p className="font-semibold dark:text-white break-all">{detailAccount.referencetransferno}</p>
+                  </div>
+                )}
+              </div>
+
+              {detailAccount.photourl && (
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{translate("Transaction proof")}</p>
+                  <img
+                    src={resolveFileUrl(detailAccount.photourl, "bucket-online-transaction")}
+                    referrerPolicy="no-referrer"
+                    className="h-48 w-full rounded-lg object-cover border"
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+              {translate("Close")}
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => {
+                setIsDetailOpen(false);
+                openStatusDialog(detailAccount);
+              }}
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              {translate("Edit")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Status Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
