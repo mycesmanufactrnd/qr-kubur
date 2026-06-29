@@ -145,10 +145,10 @@ export function handleLoginTRPC() {
     },
   });
 
-  const login = (email: string, password: string) => {
+  const login = (username: string, password: string) => {
     setError("");
     setLoading(true);
-    loginMutation.mutate({ email, password });
+    loginMutation.mutate({ username, password });
   };
 
   return { login, loading, error, setError };

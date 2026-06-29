@@ -60,14 +60,14 @@ export const authRouter = router({
   }),
 
   login: publicProcedure
-    .input(z.object({ email: z.string(), password: z.string() }))
+    .input(z.object({ username: z.string(), password: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const userRepo = AppDataSource.getRepository(User);
 
       let clientIp = ctx.req.ip;
 
       let user = await userRepo.findOne({
-        where: { email: input.email },
+        where: { username: input.username },
         relations: [
           "organisation",
           "tahfizcenter",

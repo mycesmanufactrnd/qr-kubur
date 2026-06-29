@@ -102,7 +102,7 @@ function ManageMosquesDesktop() {
   const urlName = searchParams.get("name") || "";
   const urlState = searchParams.get("state") || "all";
 
-  const [setName, setTempName] = useState(urlName);
+  const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
 
   useEffect(() => {
@@ -314,7 +314,7 @@ function ManageMosquesDesktop() {
 
   const handleSearch = () => {
     const params = { page: "1" };
-    if (setName) params.search = setName;
+    if (tempName) params.name = tempName;
     if (tempState !== "all") params.state = tempState;
     setSearchParams(params);
   };
@@ -452,15 +452,15 @@ function ManageMosquesDesktop() {
       </div>
 
       <SearchBar
-        value={setName}
+        value={tempName}
         onChange={setTempName}
         onSearch={handleSearch}
         onReset={handleReset}
         placeholder={translate("Name")}
-        buttonClassName="bg-stone-600 hover:bg-stone-700"
+        buttonClassName="bg-stone-600 hover:bg-stone-700 text-white"
       >
         <Select value={tempState} onValueChange={setTempState}>
-          <SelectTrigger className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
+          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("State")} />
           </SelectTrigger>
           <SelectContent>
@@ -581,7 +581,7 @@ function ManageMosquesDesktop() {
           if (!open) setUploadFile(null);
         }}
       >
-        <DialogContent className="max-w-md dark:bg-slate-800">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {translate("Upload Mosques via CSV / Excel")}

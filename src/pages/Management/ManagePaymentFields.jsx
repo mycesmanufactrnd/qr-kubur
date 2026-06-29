@@ -229,7 +229,7 @@ export default function ManagePaymentFields() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-gray-800">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>
               {editingField ? translate('Edit Field') : translate('Add Field')}

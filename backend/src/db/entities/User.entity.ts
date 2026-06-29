@@ -23,7 +23,10 @@ export class User {
   fullname!: string;
 
   @Column("varchar", { unique: true, nullable: true })
-  email!: string;
+  username!: string;
+
+  @Column("varchar", { nullable: true })
+  email?: string;
 
   @Column("varchar", { nullable: true })
   phoneno?: string;

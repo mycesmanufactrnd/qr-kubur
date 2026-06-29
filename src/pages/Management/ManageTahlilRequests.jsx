@@ -1271,7 +1271,7 @@ function ManageTahlilRequestsDesktop() {
       </Dialog>
 
       <Dialog open={isLiveDialogOpen} onOpenChange={setIsLiveDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">
               Live Tahlil

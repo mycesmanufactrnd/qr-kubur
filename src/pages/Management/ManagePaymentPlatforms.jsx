@@ -211,7 +211,7 @@ export default function ManagePaymentPlatforms() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-slate-800">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingPlatform ? translate('Edit Platform') : translate('Add Platform')}

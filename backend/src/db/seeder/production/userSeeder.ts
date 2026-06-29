@@ -20,8 +20,8 @@ export async function runUserSeederProd() {
 
     const existingUser = await userRepo.findOne({
       where: [
-        { email: "superadmin@qrkubur.com" },
-        { email: "admin@qrkubur.com" },
+        { username: "superadmin@qrkubur.com" },
+        { username: "admin@qrkubur.com" },
       ],
     });
 
@@ -38,6 +38,7 @@ export async function runUserSeederProd() {
     const users: DeepPartial<User>[] = [
       {
         fullname: "Super Admin",
+        username: "superadmin@qrkubur.com",
         email: "superadmin@qrkubur.com",
         password: hashedPassword,
         role: "superadmin",
@@ -47,6 +48,7 @@ export async function runUserSeederProd() {
       },
       {
         fullname: "Admin",
+        username: "admin@qrkubur.com",
         email: "admin@qrkubur.com",
         password: hashedPassword,
         role: "admin",

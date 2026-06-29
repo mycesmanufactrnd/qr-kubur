@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield,
@@ -117,6 +118,16 @@ function Section({ title, items }) {
 
 export default function SuperadminDashboard() {
   const { loadingUser, isSuperAdmin } = useAdminAccess();
+
+  const SESSION_KEY = "superadmin_dashboard_tab";
+  const [activeTab, setActiveTab] = useState(
+    () => sessionStorage.getItem(SESSION_KEY) ?? "users"
+  );
+
+  function handleTabChange(value) {
+    setActiveTab(value);
+    sessionStorage.setItem(SESSION_KEY, value);
+  }
 
   const superadminConfig = [
     {
@@ -354,7 +365,7 @@ export default function SuperadminDashboard() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue={superadminConfig[0].value}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 bg-gray-100/80 dark:bg-slate-800 rounded-xl">
           {superadminConfig.map((tab) => (
             <TabsTrigger

@@ -1,7 +1,15 @@
 // @ts-nocheck
 import z from "zod";
 import { protectedProcedure, router, superAdminProcedure } from "../trpc.js";
-import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.js";
+import {
+  OnlineTransaction,
+  OnlineTransactionAccount,
+  Donation,
+  TahlilRequest,
+  Quotation,
+  Organisation,
+  TahfizCenter,
+} from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { OnlineTransactionStatus } from "../db/enums.js";
 
@@ -17,17 +25,102 @@ export const paymentDistributionRouter = router({
       const { page = 1, pageSize = 10 } = input;
 
       const accountRepo = AppDataSource.getRepository(OnlineTransactionAccount);
-      const query = accountRepo
+
+      const qb = accountRepo
         .createQueryBuilder("account")
-        .leftJoinAndSelect("account.transaction", "transaction");
+        .leftJoinAndSelect("account.transaction", "transaction")
+        // Donation join
+        .leftJoin(
+          Donation,
+          "donation",
+          "donation.referenceno = transaction.orderno AND account.type = 'Donation'",
+        )
+        .leftJoin(Organisation, "donOrg", "donOrg.id = donation.organisationId")
+        .leftJoin(TahfizCenter, "donTc", "donTc.id = donation.tahfizcenterId")
+        // Tahlil join
+        .leftJoin(
+          TahlilRequest,
+          "tahlil",
+          "tahlil.referenceno = transaction.orderno AND account.type = 'Tahlil'",
+        )
+        .leftJoin(TahfizCenter, "tahlilTc", "tahlilTc.id = tahlil.tahfizcenterId")
+        // Organisation / Quotation join
+        .leftJoin(
+          Quotation,
+          "quotation",
+          "quotation.referenceno = transaction.orderno AND account.type = 'Organisation'",
+        )
+        .leftJoin(Organisation, "quotOrg", "quotOrg.id = quotation.organisationId")
+        // Select entity fields
+        .addSelect([
+          "donation.status",
+          "donation.donorname",
+          "donation.donoremail",
+          "donation.donorphoneno",
+          "donation.amount",
+        ])
+        .addSelect(["donOrg.name"])
+        .addSelect(["donTc.name"])
+        .addSelect([
+          "tahlil.status",
+          "tahlil.requestorname",
+          "tahlil.requestoremail",
+          "tahlil.requestorphoneno",
+          "tahlil.serviceamount",
+        ])
+        .addSelect(["tahlilTc.name"])
+        .addSelect([
+          "quotation.status",
+          "quotation.payername",
+          "quotation.payeremail",
+          "quotation.payerphone",
+          "quotation.totalamount",
+        ])
+        .addSelect(["quotOrg.name"]);
 
-      if (page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize);
-      }
+      const total = await qb.getCount();
 
-      const [items, total] = await query
+      const { raw: rawItems, entities } = await qb
         .orderBy("account.createdat", "DESC")
-        .getManyAndCount();
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
+        .getRawAndEntities();
+
+      const items = entities.map((entity, i) => {
+        const r = rawItems[i];
+        return {
+          ...entity,
+          entityStatus:
+            r.donation_status ?? r.tahlil_status ?? r.quotation_status ?? null,
+          tiedToName:
+            r.donOrg_name ??
+            r.donTc_name ??
+            r.tahlilTc_name ??
+            r.quotOrg_name ??
+            null,
+          payerName:
+            r.donation_donorname ??
+            r.tahlil_requestorname ??
+            r.quotation_payername ??
+            null,
+          payerEmail:
+            r.donation_donoremail ??
+            r.tahlil_requestoremail ??
+            r.quotation_payeremail ??
+            null,
+          payerPhone:
+            r.donation_donorphoneno ??
+            r.tahlil_requestorphoneno ??
+            r.quotation_payerphone ??
+            null,
+          entityAmount:
+            r.donation_amount != null
+              ? r.donation_amount
+              : r.tahlil_serviceamount != null
+                ? r.tahlil_serviceamount
+                : r.quotation_totalamount ?? null,
+        };
+      });
 
       return { items, total };
     }),

@@ -57,6 +57,7 @@ import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { trpc } from "@/utils/trpc";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
@@ -71,6 +72,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { showError, showSuccess } from "@/components/ToastrNotification";
+import { validateFields } from "@/utils/validations";
 import {
   useGetConfigByEntity,
   useUpsertConfigByEntity,
@@ -121,6 +123,7 @@ function ManageOrganisationsDesktop() {
   const [serviceEntries, setServiceEntries] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [selectedPaymentPlatforms, setSelectedPaymentPlatforms] = useState([]);
   const [paymentConfigValues, setPaymentConfigValues] = useState({});
   const [paymentUploadingFiles, setPaymentUploadingFiles] = useState({});
@@ -403,6 +406,7 @@ function ManageOrganisationsDesktop() {
   const resetUserFields = () => {
     setValue("user_fullname", "");
     setValue("user_username", "");
+    setValue("user_email", "");
     setValue("user_phoneno", "");
     setValue("user_role", "admin");
     setEditingUserIndex(null);
@@ -411,12 +415,14 @@ function ManageOrganisationsDesktop() {
   const getUserFormValues = () => ({
     fullname: (getValues("user_fullname") || "").trim(),
     username: (getValues("user_username") || "").trim(),
+    email: (getValues("user_email") || "").trim(),
     phoneno: (getValues("user_phoneno") || "").trim(),
     role: getValues("user_role") || "admin",
   });
 
   const handleAddOrUpdateUser = () => {
-    const { fullname, username, phoneno, role } = getUserFormValues();
+    const { fullname, username, email, phoneno, role } = getUserFormValues();
+    
     const hasInput = fullname || username || phoneno;
 
     if (!hasInput) {
@@ -429,10 +435,15 @@ function ManageOrganisationsDesktop() {
       return;
     }
 
+    if (!validateFields({ email, phoneno }, [
+      { field: "email", label: translate("Email"), type: "email", onlyIfExists: true },
+      { field: "phoneno", label: translate("Phone No."), type: "phone", onlyIfExists: true },
+    ])) return;
+
     if (editingUserIndex !== null) {
       const nextEntries = userEntries.map((entry, index) =>
         index === editingUserIndex
-          ? { ...entry, fullname, username, phoneno, role }
+          ? { ...entry, fullname, username, email, phoneno, role }
           : entry,
       );
       setUserEntries(nextEntries);
@@ -444,6 +455,7 @@ function ManageOrganisationsDesktop() {
       id: `${Date.now()}-${Math.random()}`,
       fullname,
       username,
+      email,
       phoneno,
       role,
     };
@@ -457,6 +469,7 @@ function ManageOrganisationsDesktop() {
     if (!entry) return;
     setValue("user_fullname", entry.fullname || "");
     setValue("user_username", entry.username || "");
+    setValue("user_email", entry.email || "");
     setValue("user_phoneno", entry.phoneno || "");
     setValue("user_role", entry.role || "admin");
     setEditingUserIndex(index);
@@ -474,6 +487,7 @@ function ManageOrganisationsDesktop() {
   const buildUserPayload = async ({
     fullname,
     username,
+    email,
     phoneno,
     role,
     states,
@@ -481,6 +495,7 @@ function ManageOrganisationsDesktop() {
   }) => {
     const trimmedFullname = (fullname || "").trim();
     const trimmedUsername = (username || "").trim();
+    const trimmedEmail = (email || "").trim() || undefined;
     const trimmedPhone = (phoneno || "").trim();
     const hasUserInput = trimmedFullname || trimmedUsername || trimmedPhone;
 
@@ -502,7 +517,8 @@ function ManageOrganisationsDesktop() {
 
     return {
       fullname: trimmedFullname,
-      email: trimmedUsername,
+      username: trimmedUsername,
+      email: trimmedEmail,
       phoneno: trimmedPhone,
       role: role || "admin",
       organisation: { id: Number(organisationId) },
@@ -736,6 +752,7 @@ function ManageOrganisationsDesktop() {
     setUserEntries([]);
     resetUserFields();
     resetPaymentConfig();
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -768,6 +785,7 @@ function ManageOrganisationsDesktop() {
       status: org.status || ActiveInactiveStatus.ACTIVE,
       user_fullname: "",
       user_username: "",
+      user_email: "",
       user_phoneno: "",
       user_role: "admin",
     });
@@ -793,6 +811,7 @@ function ManageOrganisationsDesktop() {
     setServiceEntries(nextEntries);
     setUserEntries([]);
     resetUserFields();
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -823,6 +842,7 @@ function ManageOrganisationsDesktop() {
       serviceprice: _serviceprice,
       user_fullname,
       user_username,
+      user_email,
       user_phoneno,
       user_role,
       ...restFormData
@@ -879,6 +899,7 @@ function ManageOrganisationsDesktop() {
         const pendingEntry = {
           fullname: (user_fullname || "").trim(),
           username: (user_username || "").trim(),
+          email: (user_email || "").trim(),
           phoneno: (user_phoneno || "").trim(),
           role: user_role || "admin",
         };
@@ -904,6 +925,7 @@ function ManageOrganisationsDesktop() {
           const userPayload = await buildUserPayload({
             fullname: entry.fullname,
             username: entry.username,
+            email: entry.email,
             phoneno: entry.phoneno,
             role: entry.role,
             states: formData.states,
@@ -1008,7 +1030,7 @@ function ManageOrganisationsDesktop() {
         filtersClassName="grid grid-cols-1 sm:grid-cols-3 gap-3"
       >
         <Select value={String(tempType)} onValueChange={setTempType}>
-          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
+          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("Organisation Type")} />
           </SelectTrigger>
           <SelectContent>
@@ -1022,7 +1044,7 @@ function ManageOrganisationsDesktop() {
         </Select>
 
         <Select value={tempState} onValueChange={setTempState}>
-          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
+          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("State")} />
           </SelectTrigger>
           <SelectContent>
@@ -1283,32 +1305,54 @@ function ManageOrganisationsDesktop() {
                     errors={errors}
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white"
-                  onClick={() => {
-                    if (!navigator.geolocation) return;
-                    setIsLocating(true);
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => {
-                        setValue("latitude", pos.coords.latitude.toFixed(16));
-                        setValue("longitude", pos.coords.longitude.toFixed(16));
-                        setIsLocating(false);
-                      },
-                      () => {
-                        setIsLocating(false);
-                      },
-                    );
-                  }}
-                  disabled={isLocating}
-                >
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {isLocating
-                    ? translate("Getting location...")
-                    : translate("Get Current Location")}
-                </Button>
-                
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+                    onClick={() => {
+                      if (!navigator.geolocation) return;
+                      setIsLocating(true);
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setValue("latitude", pos.coords.latitude.toFixed(6));
+                          setValue("longitude", pos.coords.longitude.toFixed(6));
+                          setIsLocating(false);
+                        },
+                        () => {
+                          setIsLocating(false);
+                        },
+                      );
+                    }}
+                    disabled={isLocating}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {isLocating
+                      ? translate("Getting location...")
+                      : translate("Get Current Location")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowMap((v) => !v)}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {showMap ? translate("Hide Map") : translate("Pick on Map")}
+                  </Button>
+                </div>
+                {showMap && (
+                  <MapLocationPicker
+                    lat={watch("latitude")}
+                    lng={watch("longitude")}
+                    onChange={(lat, lng) => {
+                      setValue("latitude", lat.toFixed(6));
+                      setValue("longitude", lng.toFixed(6));
+                    }}
+                    placeholder={translate("Search location...")}
+                  />
+                )}
+
                 {isSuperAdmin && (
                   <>
                     <CheckboxForm
@@ -1514,19 +1558,25 @@ function ManageOrganisationsDesktop() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <TextInputForm
+                      name="user_email"
+                      control={control}
+                      label={translate("Email")}
+                      isEmail
+                    />
+                    <TextInputForm
                       name="user_phoneno"
                       control={control}
                       label={translate("Phone No.")}
                       isPhone
                     />
-                    <SelectForm
-                      name="user_role"
-                      control={control}
-                      label={translate("Role")}
-                      options={userRoleOptions}
-                      placeholder="Select role"
-                    />
                   </div>
+                  <SelectForm
+                    name="user_role"
+                    control={control}
+                    label={translate("Role")}
+                    options={userRoleOptions}
+                    placeholder="Select role"
+                  />
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -1552,6 +1602,7 @@ function ManageOrganisationsDesktop() {
                         <TableRow>
                           <TableHead>Full Name</TableHead>
                           <TableHead>Username</TableHead>
+                          <TableHead>Email</TableHead>
                           <TableHead>Phone</TableHead>
                           <TableHead>Role</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -1561,7 +1612,7 @@ function ManageOrganisationsDesktop() {
                         {userEntries.length === 0 ? (
                           <TableRow>
                             <TableCell
-                              colSpan={5}
+                              colSpan={6}
                               className="text-center text-xs text-gray-500 dark:text-slate-400"
                             >
                               No users added yet.
@@ -1579,6 +1630,7 @@ function ManageOrganisationsDesktop() {
                                 {entry.fullname}
                               </TableCell>
                               <TableCell>{entry.username}</TableCell>
+                              <TableCell>{entry.email || "-"}</TableCell>
                               <TableCell>{entry.phoneno || "-"}</TableCell>
                               <TableCell className="capitalize">
                                 {entry.role}

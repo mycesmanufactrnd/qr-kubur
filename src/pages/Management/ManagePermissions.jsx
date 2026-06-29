@@ -229,7 +229,7 @@ function ManagePermissionsDesktop() {
                       placeholder={translate("Name")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 border-gray-300 dark:border-white dark:text-white"
+                      className="pl-10 border-gray-300 dark:border-slate-600 dark:text-white"
                     />
                   </div>
                 </div>

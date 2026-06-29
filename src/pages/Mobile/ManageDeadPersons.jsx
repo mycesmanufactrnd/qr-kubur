@@ -25,6 +25,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -126,6 +127,7 @@ function PersonFormSheet({
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: editing
@@ -134,14 +136,15 @@ function PersonFormSheet({
   });
 
   const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const getLocation = () => {
     if (!navigator.geolocation) return;
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setValue("latitude", pos.coords.latitude.toFixed(16));
-        setValue("longitude", pos.coords.longitude.toFixed(16));
+        setValue("latitude", pos.coords.latitude.toFixed(6));
+        setValue("longitude", pos.coords.longitude.toFixed(6));
         setIsLocating(false);
       },
       () => setIsLocating(false),
@@ -226,17 +229,38 @@ function PersonFormSheet({
             errors={errors}
           />
         </div>
-        <button
-          type="button"
-          onClick={getLocation}
-          disabled={isLocating}
-          className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
-        >
-          <Navigation className="w-4 h-4" />
-          {isLocating
-            ? translate("Getting location...")
-            : translate("Get Current Location")}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={getLocation}
+            disabled={isLocating}
+            className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+          >
+            <Navigation className="w-4 h-4" />
+            {isLocating
+              ? translate("Getting location...")
+              : translate("Get Current Location")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowMap((v) => !v)}
+            className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-400 active:opacity-70"
+          >
+            <MapPin className="w-4 h-4" />
+            {showMap ? translate("Hide Map") : translate("Pick on Map")}
+          </button>
+        </div>
+        {showMap && (
+          <MapLocationPicker
+            lat={watch("latitude")}
+            lng={watch("longitude")}
+            onChange={(lat, lng) => {
+              setValue("latitude", lat.toFixed(6));
+              setValue("longitude", lng.toFixed(6));
+            }}
+            placeholder={translate("Search location...")}
+          />
+        )}
         <TextInputForm
           name="biography"
           control={control}

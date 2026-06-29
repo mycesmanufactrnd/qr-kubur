@@ -240,7 +240,7 @@ function ManageDeathCharityLedgerDesktop() {
       </div>
 
       <div className="pb-10">
-        <Card className="mb-6 border-0 shadow-lg">
+        <Card className="mb-6 border-0 shadow-lg dark:bg-slate-800">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
@@ -357,7 +357,7 @@ function ManageDeathCharityLedgerDesktop() {
 
         {selectedMember && (
           <>
-            <Card className="mb-6 border-0 shadow-lg">
+            <Card className="mb-6 border-0 shadow-lg dark:bg-slate-800">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="text-sm font-medium text-slate-700">
@@ -418,7 +418,7 @@ function ManageDeathCharityLedgerDesktop() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg overflow-hidden">
+            <Card className="border-0 shadow-lg overflow-hidden dark:bg-slate-800">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>{translate("Payment Ledger")}</span>
@@ -502,7 +502,7 @@ function ManageDeathCharityLedgerDesktop() {
         )}
 
         {!selectedMember && !loadingMembers && (
-          <Card className="text-center py-16">
+          <Card className="text-center py-16 dark:bg-slate-800">
             <User className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <h3 className="text-lg font-semibold text-slate-700 mb-2">
               {translate("Select a Member")}

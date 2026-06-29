@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
 import { translate } from "@/utils/translations";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Building2, Plus, Edit, Trash2, Save, MapPin, X } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { getLabelFromId, hashPassword } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
@@ -26,6 +27,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { showError, showSuccess } from "@/components/ToastrNotification";
+import { validateFields } from "@/utils/validations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
@@ -194,6 +196,7 @@ export default function MobileManageOrganisation() {
   const resetUserFields = () => {
     setValue("user_fullname", "");
     setValue("user_username", "");
+    setValue("user_email", "");
     setValue("user_phoneno", "");
     setValue("user_role", "admin");
     setEditingUserIndex(null);
@@ -202,6 +205,7 @@ export default function MobileManageOrganisation() {
   const handleAddOrUpdateUser = () => {
     const fullname = (getValues("user_fullname") || "").trim();
     const username = (getValues("user_username") || "").trim();
+    const email = (getValues("user_email") || "").trim();
     const phoneno = (getValues("user_phoneno") || "").trim();
     const role = getValues("user_role") || "admin";
     if (!fullname && !username && !phoneno) {
@@ -212,11 +216,15 @@ export default function MobileManageOrganisation() {
       showError("Full Name and Username are required.");
       return;
     }
+    if (!validateFields({ email, phoneno }, [
+      { field: "email", label: translate("Email"), type: "email", onlyIfExists: true },
+      { field: "phoneno", label: translate("Phone No."), type: "phone", onlyIfExists: true },
+    ])) return;
     if (editingUserIndex !== null) {
       setUserEntries((prev) =>
         prev.map((e, i) =>
           i === editingUserIndex
-            ? { ...e, fullname, username, phoneno, role }
+            ? { ...e, fullname, username, email, phoneno, role }
             : e,
         ),
       );
@@ -229,6 +237,7 @@ export default function MobileManageOrganisation() {
         id: `${Date.now()}-${Math.random()}`,
         fullname,
         username,
+        email,
         phoneno,
         role,
       },
@@ -239,6 +248,7 @@ export default function MobileManageOrganisation() {
   const buildUserPayload = async ({
     fullname,
     username,
+    email,
     phoneno,
     role,
     states,
@@ -246,6 +256,7 @@ export default function MobileManageOrganisation() {
   }) => {
     const f = (fullname || "").trim();
     const u = (username || "").trim();
+    const e = (email || "").trim() || undefined;
     if (!f || !u) {
       showError("Full Name and Username are required.");
       return null;
@@ -256,7 +267,8 @@ export default function MobileManageOrganisation() {
     }
     return {
       fullname: f,
-      email: u,
+      username: u,
+      email: e,
       phoneno: (phoneno || "").trim(),
       role: role || "admin",
       organisation: { id: Number(organisationId) },
@@ -337,6 +349,7 @@ export default function MobileManageOrganisation() {
       status: org.status || ActiveInactiveStatus.ACTIVE,
       user_fullname: "",
       user_username: "",
+      user_email: "",
       user_phoneno: "",
       user_role: "admin",
     });
@@ -392,6 +405,7 @@ export default function MobileManageOrganisation() {
       serviceprice: _p,
       user_fullname,
       user_username,
+      user_email,
       user_phoneno,
       user_role,
       ...restFormData
@@ -433,6 +447,7 @@ export default function MobileManageOrganisation() {
         const pendingEntry = {
           fullname: (user_fullname || "").trim(),
           username: (user_username || "").trim(),
+          email: (user_email || "").trim(),
           phoneno: (user_phoneno || "").trim(),
           role: user_role || "admin",
         };
@@ -452,6 +467,7 @@ export default function MobileManageOrganisation() {
           const payload = await buildUserPayload({
             fullname: entry.fullname,
             username: entry.username,
+            email: entry.email,
             phoneno: entry.phoneno,
             role: entry.role,
             states: formData.states,
@@ -739,6 +755,9 @@ function OrgFormSheet({
   createOrganisation,
   updateOrganisation,
 }) {
+  const latValue = useWatch({ control, name: "latitude" });
+  const lngValue = useWatch({ control, name: "longitude" });
+  const [showMap, setShowMap] = useState(false);
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
@@ -855,29 +874,51 @@ function OrgFormSheet({
               errors={errors}
             />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => {
-              if (!navigator.geolocation) return;
-              setIsLocating(true);
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  setValue("latitude", pos.coords.latitude.toFixed(16));
-                  setValue("longitude", pos.coords.longitude.toFixed(16));
-                  setIsLocating(false);
-                },
-                () => setIsLocating(false),
-              );
-            }}
-            disabled={isLocating}
-          >
-            <MapPin className="w-4 h-4 mr-2" />
-            {isLocating
-              ? translate("Getting location...")
-              : translate("Get Current Location")}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                if (!navigator.geolocation) return;
+                setIsLocating(true);
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    setValue("latitude", pos.coords.latitude.toFixed(6));
+                    setValue("longitude", pos.coords.longitude.toFixed(6));
+                    setIsLocating(false);
+                  },
+                  () => setIsLocating(false),
+                );
+              }}
+              disabled={isLocating}
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              {isLocating
+                ? translate("Getting location...")
+                : translate("Get Current Location")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowMap((v) => !v)}
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              {showMap ? translate("Hide Map") : translate("Pick on Map")}
+            </Button>
+          </div>
+          {showMap && (
+            <MapLocationPicker
+              lat={latValue}
+              lng={lngValue}
+              onChange={(lat, lng) => {
+                setValue("latitude", lat.toFixed(6));
+                setValue("longitude", lng.toFixed(6));
+              }}
+              placeholder={translate("Search location...")}
+            />
+          )}
 
           {isSuperAdmin && (
             <div className="space-y-2 pt-1">
@@ -992,19 +1033,25 @@ function OrgFormSheet({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <TextInputForm
+                name="user_email"
+                control={control}
+                label={translate("Email")}
+                isEmail
+              />
+              <TextInputForm
                 name="user_phoneno"
                 control={control}
                 label={translate("Phone No.")}
                 isPhone
               />
-              <SelectForm
-                name="user_role"
-                control={control}
-                label={translate("Role")}
-                options={userRoleOptions}
-                placeholder="Select role"
-              />
             </div>
+            <SelectForm
+              name="user_role"
+              control={control}
+              label={translate("Role")}
+              options={userRoleOptions}
+              placeholder="Select role"
+            />
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -1044,12 +1091,16 @@ function OrgFormSheet({
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {entry.username} • {entry.role}
                       </p>
+                      {entry.email && (
+                        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{entry.email}</p>
+                      )}
                     </div>
                     <button
                       type="button"
                       onClick={() => {
                         setValue("user_fullname", entry.fullname || "");
                         setValue("user_username", entry.username || "");
+                        setValue("user_email", entry.email || "");
                         setValue("user_phoneno", entry.phoneno || "");
                         setValue("user_role", entry.role || "admin");
                         setEditingUserIndex(idx);

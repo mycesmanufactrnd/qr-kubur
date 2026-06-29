@@ -30,7 +30,8 @@ export const tempOrganisationRegisterSchema = z.object({
     value: z.string().min(1),
   })).optional(),
   contactname: z.string().min(1),
-  contactemail: z.string(),
+  contactemail: z.string().optional().nullable(),
+  contactusername: z.string().min(1),
   contactphoneno: z.string().optional().nullable(),
   status: z.enum(ActiveInactiveStatus).default(ActiveInactiveStatus.ACTIVE),
 });

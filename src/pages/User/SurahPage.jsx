@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import BackNavigation from "@/components/BackNavigation";
+import { useOfflineFile } from "@/hooks/useOfflineFile";
+import { OfflineDownloadBanner } from "@/components/OfflineDownloadBanner";
 
 const TABS = [
   { value: "tahlil", label: "Tahlil" },
@@ -88,6 +90,10 @@ export default function SurahPage() {
 
   let lang = getCurrentLanguage() === "ms" ? "en" : getCurrentLanguage();
   const surahQuery = trpc.surah.getSurah.useQuery({ surahId, lang });
+
+  const tahlilFile = useOfflineFile("/Tahlil.pdf");
+  const doaFile = useOfflineFile("/DoaTahlil.pdf");
+  const talqinFile = useOfflineFile("/Talqin.pdf");
 
   useEffect(() => {
     if (!SURAH_DATA[surahId]?.audio?.[reciterId]) setReciterId(1);
@@ -209,35 +215,44 @@ export default function SurahPage() {
         )}
 
         {activeTab === "doa" && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-                {translate("Doa Tahlil")}
-              </p>
+          <div className="space-y-2">
+            <OfflineDownloadBanner status={doaFile.status} progress={doaFile.progress} onDownload={doaFile.download} />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                  {translate("Doa Tahlil")}
+                </p>
+              </div>
+              <IframeWithLoader src={doaFile.objectUrl ?? DoaTahlilViewer} title="Doa Tahlil PDF" />
             </div>
-            <IframeWithLoader src={DoaTahlilViewer} title="Doa Tahlil PDF" />
           </div>
         )}
 
         {activeTab === "tahlil" && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-                {translate("Tahlil")}
-              </p>
+          <div className="space-y-2">
+            <OfflineDownloadBanner status={tahlilFile.status} progress={tahlilFile.progress} onDownload={tahlilFile.download} />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                  {translate("Tahlil")}
+                </p>
+              </div>
+              <IframeWithLoader src={tahlilFile.objectUrl ?? TahlilViewer} title="Tahlil PDF" />
             </div>
-            <IframeWithLoader src={TahlilViewer} title="Tahlil PDF" />
           </div>
         )}
 
         {activeTab === "talqin" && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
-                {translate("Talqin")}
-              </p>
+          <div className="space-y-2">
+            <OfflineDownloadBanner status={talqinFile.status} progress={talqinFile.progress} onDownload={talqinFile.download} />
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                  {translate("Talqin")}
+                </p>
+              </div>
+              <IframeWithLoader src={talqinFile.objectUrl ?? TalqinViewer} title="Talqin PDF" />
             </div>
-            <IframeWithLoader src={TalqinViewer} title="Talqin PDF" />
           </div>
         )}
 

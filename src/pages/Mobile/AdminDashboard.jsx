@@ -369,7 +369,7 @@ export default function MobileAdminDashboard() {
                 to={createPageUrl("ManageDonations")}
                 className="block no-underline"
               >
-                <div className="rounded-2xl p-3.5 bg-rose-50 dark:bg-rose-900/20 border border-slate-100 dark:border-white/5 h-full">
+                <div className="rounded-2xl p-3.5 bg-rose-50 dark:bg-rose-900/20 border border-slate-100 dark:border-slate-600/5 h-full">
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 bg-rose-100 dark:bg-rose-800/60 shrink-0">
                     <Heart
                       size={14}
@@ -390,7 +390,7 @@ export default function MobileAdminDashboard() {
                   </p>
                 </div>
               </Link>
-              <div className="rounded-2xl p-3.5 bg-green-50 dark:bg-green-900/20 border border-slate-100 dark:border-white/5">
+              <div className="rounded-2xl p-3.5 bg-green-50 dark:bg-green-900/20 border border-slate-100 dark:border-slate-600/5">
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 bg-green-100 dark:bg-green-800/60 shrink-0">
                   <TrendingUp
                     size={14}
@@ -479,7 +479,7 @@ function StatCard({
       className={`block no-underline ${wide ? "col-span-2" : ""}`}
     >
       <div
-        className={`rounded-2xl h-full border border-slate-100 dark:border-white/5 ${c.card} ${wide ? "flex items-center gap-3 px-3.5 py-3" : "p-3.5"}`}
+        className={`rounded-2xl h-full border border-slate-100 dark:border-slate-600/5 ${c.card} ${wide ? "flex items-center gap-3 px-3.5 py-3" : "p-3.5"}`}
       >
         <div
           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${c.icon} ${wide ? "" : "mb-2.5"}`}

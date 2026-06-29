@@ -478,13 +478,13 @@ function ManageQuotationsDesktop() {
           type="date"
           value={tempDateFrom}
           onChange={(e) => setTempDateFrom(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
         <Input
           type="date"
           value={tempDateTo}
           onChange={(e) => setTempDateTo(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
       </SearchBar>
 

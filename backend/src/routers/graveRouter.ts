@@ -17,6 +17,8 @@ export const graveRouter = router({
         filterBlock: z.string().optional(),
         filterLot: z.string().optional(),
         organisationIds: z.array(z.number()).optional(),
+        sortField: z.string().optional(),
+        sortOrder: z.enum(["ASC", "DESC"]).optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -29,6 +31,8 @@ export const graveRouter = router({
         filterBlock,
         filterLot,
         organisationIds,
+        sortField,
+        sortOrder,
       } = input;
       const graveRepo = AppDataSource.getRepository(Grave);
 

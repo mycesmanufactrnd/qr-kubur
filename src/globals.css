@@ -33,6 +33,44 @@ input, textarea, select {
   color: rgb(243 244 246) !important;
 }
 
+/* Styled scrollbar for desktop */
+@media (min-width: 1025px) {
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* slate-300 */
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8; /* slate-400 */
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background-color: #475569; /* slate-600 */
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background-color: #64748b; /* slate-500 */
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .dark * {
+    scrollbar-color: #475569 transparent;
+  }
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 @media (max-width: 1024px) {
   *::-webkit-scrollbar {

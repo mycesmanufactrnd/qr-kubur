@@ -6,5 +6,5 @@ RUN npm install
 RUN npm install -g vite
 
 # Source code mounted as volume, no need to COPY in dev
-EXPOSE 5173
+EXPOSE 5174
 CMD ["npm", "run", "dev"]

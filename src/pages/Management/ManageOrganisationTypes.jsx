@@ -208,7 +208,7 @@ export default function ManageOrganisationTypes() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-gray-800">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>
               {editingType ? translate('Edit Organization Type') : translate('Add New Organization Type')}

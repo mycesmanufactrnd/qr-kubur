@@ -46,7 +46,7 @@ function UserCard({
   onDelete,
   onManagePermissions,
 }) {
-  const initial = (user.fullname?.[0] ?? user.email?.[0] ?? "?").toUpperCase();
+  const initial = (user.fullname?.[0] ?? user.username?.[0] ?? user.email?.[0] ?? "?").toUpperCase();
   const affiliation = user.organisation?.name ?? user.tahfizcenter?.name ?? "";
 
   return (
@@ -61,9 +61,9 @@ function UserCard({
         </div>
         <div className="flex-1 min-w-0 space-y-1">
           <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
-            {user.fullname || user.email}
+            {user.fullname || user.username}
           </p>
-          <p className="text-xs text-slate-400 truncate">{user.email}</p>
+          <p className="text-xs text-slate-400 truncate">{user.username}</p>
           <div className="flex flex-wrap gap-1.5 items-center">
             <Badge
               className={`border-0 text-xs capitalize ${roleColors[user.role] ?? roleColors.employee}`}
@@ -156,6 +156,7 @@ function UserFormSheet({
         }
       : {
           fullname: "",
+          username: "",
           email: "",
           phoneno: "",
           password: "",
@@ -221,9 +222,18 @@ function UserFormSheet({
         <Field label={translate("Username")} required>
           <input
             className={inputCls}
-            value={local.email}
-            onChange={(e) => set("email", e.target.value)}
+            value={local.username ?? ""}
+            onChange={(e) => set("username", e.target.value)}
             placeholder={translate("Enter Username")}
+          />
+        </Field>
+
+        <Field label={`${translate("Email")} (${translate("Notification email")})`}>
+          <input
+            className={inputCls}
+            value={local.email ?? ""}
+            onChange={(e) => set("email", e.target.value)}
+            placeholder={translate("Enter Email")}
           />
         </Field>
 
@@ -429,7 +439,7 @@ export default function MobileManageUsers() {
   const handleSave = async (userData) => {
     const isValid = validateFields(userData, [
       { field: "fullname", label: "Full Name", type: "text" },
-      { field: "email", label: "Username", type: "text" },
+      { field: "username", label: "Username", type: "text" },
       { field: "phoneno", label: "Phone No.", type: "phone", required: false },
       { field: "states", label: "State", type: "array" },
       {
@@ -594,7 +604,7 @@ export default function MobileManageUsers() {
         onOpenChange={setDeleteDialogOpen}
         title={translate("Delete User")}
         isDelete={true}
-        itemToDelete={userToDelete?.fullname || userToDelete?.email}
+        itemToDelete={userToDelete?.fullname || userToDelete?.username}
         onConfirm={confirmDelete}
       />
     </>

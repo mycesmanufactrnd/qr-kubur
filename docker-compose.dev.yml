@@ -26,6 +26,7 @@ services:
     restart: unless-stopped
     env_file: .env.dev
     environment:
+      - DOCKER=true
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
     ports:
@@ -45,7 +46,7 @@ services:
     restart: unless-stopped
     env_file: .env.dev
     ports:
-      - "5173:${FRONTEND_PORT}"
+      - "5174:5174"
     volumes:
       - .:/usr/src/frontend
       - /usr/src/frontend/node_modules

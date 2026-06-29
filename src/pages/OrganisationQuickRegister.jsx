@@ -364,7 +364,8 @@ export default function OrganisationQuickRegister() {
       serviceoffered: formData.isgraveservices ? serviceoffered : [],
       serviceprice: formData.isgraveservices ? serviceprice : {},
       contactname: formData.contactname,
-      contactemail: formData.contactemail,
+      contactemail: formData.contactemail || null,
+      contactusername: formData.contactusername,
       contactphoneno: formData.contactphoneno || null,
       paymentconfigdraft,
     };
@@ -464,29 +465,25 @@ export default function OrganisationQuickRegister() {
                   errors={errors}
                 />
               </div>
-
               <TextInputForm
                 name="address"
                 control={control}
                 label={translate("Address")}
                 isTextArea
               />
-
-              <div className="grid grid-cols-2 gap-4">
-                <TextInputForm
-                  name="phone"
-                  control={control}
-                  label={translate("Organisation Phone")}
-                  isPhone
-                />
-                <TextInputForm
-                  name="email"
-                  control={control}
-                  label={translate("Organisation Email")}
-                  isEmail
-                />
-              </div>
-
+              <TextInputForm
+                name="phone"
+                control={control}
+                label={translate("Organisation Phone")}
+                isPhone
+              />
+              <TextInputForm
+                name="email"
+                control={control}
+                label={translate("Organisation Email")}
+                isEmail
+                errors={errors}
+              />
               <TextInputForm
                 name="url"
                 control={control}
@@ -515,7 +512,7 @@ export default function OrganisationQuickRegister() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full bg-purple-600 text-white"
                 onClick={() => {
                   if (!navigator.geolocation) return;
                   setIsLocating(true);
@@ -694,15 +691,14 @@ export default function OrganisationQuickRegister() {
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {translate("Contact Person (Temporary Admin)")}
               </p>
-
+              <TextInputForm
+                name="contactname"
+                control={control}
+                label={translate("Full Name")}
+                required
+                errors={errors}
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <TextInputForm
-                  name="contactname"
-                  control={control}
-                  label={translate("Full Name")}
-                  required
-                  errors={errors}
-                />
                 <TextInputForm
                   name="contactphoneno"
                   control={control}
@@ -711,17 +707,22 @@ export default function OrganisationQuickRegister() {
                   required
                   errors={errors}
                 />
-              </div>
-
-              <div className="space-y-1">
                 <TextInputForm
                   name="contactemail"
                   control={control}
-                  label={`${translate("Username")} / ${translate("Email")}`}
+                  label={translate("Email")}
+                  isEmail
+                  errors={errors}
+                />
+              </div>
+              <div className="space-y-1">
+                <TextInputForm
+                  name="contactusername"
+                  control={control}
+                  label={translate("Username")}
                   required
                   errors={errors}
                 />
-
                 <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
                   {translate(
                     "This username will be used to log in. You can use your email address.",
@@ -731,7 +732,7 @@ export default function OrganisationQuickRegister() {
 
               <Button
                 type="submit"
-                className="w-full bg-violet-600 hover:bg-violet-700"
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white"
                 disabled={
                   registerMutation.isPending ||
                   isSubmitting ||

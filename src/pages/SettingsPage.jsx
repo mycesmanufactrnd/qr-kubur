@@ -19,6 +19,7 @@ import {
   Settings as SettingsIcon,
   Bell,
   BellOff,
+  BookOpen,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import {
   getStoredGoogleUser,
   handleLogout,
   useLoginGoogle,
+  useAdminAccess,
 } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
 import { usePermissions } from "@/components/PermissionsContext";
@@ -56,6 +58,8 @@ export default function SettingsPage() {
 function SettingsPageDesktop() {
   const navigate = useNavigate();
   const { clearPermissions } = usePermissions();
+  const { isSuperAdmin, isTahfizAdmin, currentUser } = useAdminAccess();
+  const isTahfizContext = !!currentUser?.tahfizcenter?.id;
   const {
     userLocation,
     userState,
@@ -81,10 +85,10 @@ function SettingsPageDesktop() {
   });
 
   const { login, loading, error } = useLoginGoogle();
-  const [signInError, setSignInError] = useState('');
+  const [signInError, setSignInError] = useState("");
 
   const [notifPermission, setNotifPermission] = useState(() =>
-    "Notification" in window ? Notification.permission : "default"
+    "Notification" in window ? Notification.permission : "default",
   );
   const [notifRefreshing, setNotifRefreshing] = useState(false);
 
@@ -93,11 +97,16 @@ function SettingsPageDesktop() {
     try {
       const { initFCM } = await import("@/firebase/firebase");
       const token = await initFCM();
-      setNotifPermission("Notification" in window ? Notification.permission : "default");
+      setNotifPermission(
+        "Notification" in window ? Notification.permission : "default",
+      );
       if (token) {
         const googleUser = getStoredGoogleUser();
         if (googleUser?.id) {
-          await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmToken: token });
+          await trpcClient.google.saveDeviceToken.mutate({
+            googleUserId: Number(googleUser.id),
+            fcmToken: token,
+          });
         }
         const appUserAuth = sessionStorage.getItem("appUserAuth");
         if (appUserAuth) {
@@ -113,9 +122,10 @@ function SettingsPageDesktop() {
   };
 
   const handleGoogleSignIn = async () => {
-    setSignInError('');
+    setSignInError("");
     try {
-      const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+      const { signInWithPopup, GoogleAuthProvider } =
+        await import("firebase/auth");
       const { auth } = await import("@/firebase/firebase");
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
@@ -249,8 +259,8 @@ function SettingsPageDesktop() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Auth — guest */}
         {authMode === "guest" && (
-          <Card className="dark:bg-gray-800">
-            <CardHeader>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
                 {translate("Sign In")}
               </CardTitle>
@@ -265,16 +275,36 @@ function SettingsPageDesktop() {
                 onClick={handleGoogleSignIn}
                 className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 active:scale-95 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 disabled:opacity-50"
               >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-4 h-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    fill="#EA4335"
+                  />
                 </svg>
-                {loading ? translate("Logging in") + '...' : translate("Sign in with Google")}
+                {loading
+                  ? translate("Logging in") + "..."
+                  : translate("Sign in with Google")}
               </button>
               {(signInError || error) && (
-                <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl p-2.5">{signInError || error}</p>
+                <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl p-2.5">
+                  {signInError || error}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -282,8 +312,8 @@ function SettingsPageDesktop() {
 
         {/* Auth — google */}
         {authMode === "google" && googleUser && (
-          <Card className="dark:bg-gray-800">
-            <CardHeader>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
                 {translate("Account")}
               </CardTitle>
@@ -294,10 +324,10 @@ function SettingsPageDesktop() {
                   <img
                     src={googleUser.picture}
                     alt={googleUser.name}
-                    className="w-10 h-10 rounded-full border border-slate-200"
+                    className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-sm">
                     {googleUser.name?.[0] ?? "G"}
                   </div>
                 )}
@@ -316,12 +346,20 @@ function SettingsPageDesktop() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate(createPageUrl("UserTransactionRecords"))}
+                  className="dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                  onClick={() =>
+                    navigate(createPageUrl("UserTransactionRecords"))
+                  }
                 >
                   <FileText className="w-4 h-4 mr-2" />
                   {translate("Transaction Record")}
                 </Button>
-                <Button variant="outline" size="sm" onClick={onLogoutClick}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                  onClick={onLogoutClick}
+                >
                   {translate("Sign out of Google")}
                 </Button>
               </div>
@@ -330,7 +368,7 @@ function SettingsPageDesktop() {
         )}
 
         {/* Display */}
-        <Card className="dark:bg-gray-800">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Display")}
@@ -343,7 +381,7 @@ function SettingsPageDesktop() {
                 {translate("Font Size")}
               </Label>
               <Select value={fontSize} onValueChange={handleFontSizeChange}>
-                <SelectTrigger>
+                <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -359,7 +397,7 @@ function SettingsPageDesktop() {
                 {translate("Language")}
               </Label>
               <Select value={language} onValueChange={handleLanguageChange}>
-                <SelectTrigger>
+                <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -375,7 +413,7 @@ function SettingsPageDesktop() {
                 {translate("Theme")}
               </Label>
               <Select value={theme} onValueChange={handleThemeChange}>
-                <SelectTrigger>
+                <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -388,7 +426,7 @@ function SettingsPageDesktop() {
         </Card>
 
         {/* Notifications */}
-        <Card className="dark:bg-gray-800">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Notifications")}
@@ -396,29 +434,36 @@ function SettingsPageDesktop() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${
-                notifPermission === "granted"
-                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
-                  : notifPermission === "denied"
-                  ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800"
-                  : "bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600"
-              }`}>
-                {notifPermission === "denied"
-                  ? <BellOff className="w-4 h-4 text-red-500" />
-                  : <Bell className={`w-4 h-4 ${notifPermission === "granted" ? "text-emerald-500" : "text-slate-400 dark:text-slate-500"}`} />
-                }
+              <div
+                className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${
+                  notifPermission === "granted"
+                    ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
+                    : notifPermission === "denied"
+                      ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800"
+                      : "bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600"
+                }`}
+              >
+                {notifPermission === "denied" ? (
+                  <BellOff className="w-4 h-4 text-red-500" />
+                ) : (
+                  <Bell
+                    className={`w-4 h-4 ${notifPermission === "granted" ? "text-emerald-500" : "text-slate-400 dark:text-slate-500"}`}
+                  />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                   {notifPermission === "granted"
                     ? translate("Notifications Enabled")
                     : notifPermission === "denied"
-                    ? translate("Notifications Blocked")
-                    : translate("Notifications Not Enabled")}
+                      ? translate("Notifications Blocked")
+                      : translate("Notifications Not Enabled")}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {notifPermission === "denied"
-                    ? translate("Allow notifications in your browser or system settings")
+                    ? translate(
+                        "Allow notifications in your browser or system settings",
+                      )
                     : translate("Receive updates on your requests")}
                 </p>
               </div>
@@ -427,22 +472,25 @@ function SettingsPageDesktop() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                 onClick={handleNotificationRefresh}
                 disabled={notifRefreshing}
               >
-                {notifRefreshing
-                  ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  : <Bell className="w-4 h-4 mr-2" />
-                }
-                {notifPermission === "granted" ? translate("Refresh Notifications") : translate("Enable Notifications")}
+                {notifRefreshing ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Bell className="w-4 h-4 mr-2" />
+                )}
+                {notifPermission === "granted"
+                  ? translate("Refresh Notifications")
+                  : translate("Enable Notifications")}
               </Button>
             )}
           </CardContent>
         </Card>
 
         {/* Location */}
-        <Card className="dark:bg-gray-800">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Location")}
@@ -480,7 +528,7 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               onClick={onRequestGpsClick}
               disabled={showGpsLoading}
             >
@@ -502,7 +550,7 @@ function SettingsPageDesktop() {
         </Card>
 
         {/* Phone Number */}
-        <Card className="dark:bg-gray-800">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Phone Number")}
@@ -517,11 +565,11 @@ function SettingsPageDesktop() {
                 placeholder="0123456789"
                 value={phoneDraft}
                 onChange={(e) => setPhoneDraft(e.target.value)}
-                className="h-9 flex-1"
+                className="h-9 flex-1 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
               />
               <Button
                 size="sm"
-                className="bg-emerald-500 hover:bg-emerald-600"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white"
                 onClick={() => {
                   const trimmed = phoneDraft.trim();
                   if (trimmed) {
@@ -541,7 +589,7 @@ function SettingsPageDesktop() {
         </Card>
 
         {/* Support */}
-        <Card className="dark:bg-gray-800">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Support")}
@@ -551,7 +599,7 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2"
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               onClick={() => navigate(createPageUrl("FAQ"))}
             >
               <HelpCircle className="w-4 h-4 text-slate-400" />
@@ -560,7 +608,7 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2"
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               onClick={() =>
                 (window.location.href =
                   "mailto:support@qrkubur.com?subject=Maklum Balas QubuR")
@@ -572,7 +620,7 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2"
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               onClick={() =>
                 (window.location.href =
                   "mailto:support@qrkubur.com?subject=Laporan Pepijat")
@@ -585,7 +633,7 @@ function SettingsPageDesktop() {
         </Card>
 
         {/* Information */}
-        <Card className="dark:bg-gray-800">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Information")}
@@ -595,8 +643,10 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2"
-              onClick={() => navigate(createPageUrl("OrganisationQuickRegister"))}
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+              onClick={() =>
+                navigate(createPageUrl("OrganisationQuickRegister"))
+              }
             >
               <Building2 className="w-4 h-4 text-slate-400" />
               {translate("Organisation Register")}
@@ -604,7 +654,7 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2"
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               onClick={() => navigate(createPageUrl("TermsAndConditions"))}
             >
               <FileText className="w-4 h-4 text-slate-400" />
@@ -613,7 +663,7 @@ function SettingsPageDesktop() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-start gap-2"
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
               onClick={() => navigate(createPageUrl("PrivacyPolicy"))}
             >
               <Shield className="w-4 h-4 text-slate-400" />
@@ -623,7 +673,7 @@ function SettingsPageDesktop() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
+                className="w-full justify-start gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 dark:bg-red-900/10"
                 onClick={onLogoutClick}
               >
                 <LogOut className="w-4 h-4" />
@@ -634,11 +684,55 @@ function SettingsPageDesktop() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start gap-2"
+                className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                 onClick={() => navigate(createPageUrl("AppUserLogin"))}
               >
                 <LogIn className="w-4 h-4 text-slate-400" />
                 {translate("Admin Login")}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Guides */}
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
+              {translate("Guides")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(authMode === "guest" || authMode === "google" || isSuperAdmin) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                onClick={() => navigate(createPageUrl("UserManual"))}
+              >
+                <BookOpen className="w-4 h-4 text-slate-400" />
+                {translate("User Guide")}
+              </Button>
+            )}
+            {(isSuperAdmin || (authMode === "admin" && !isTahfizContext)) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                onClick={() => navigate(createPageUrl("AdminOrganisationManual"))}
+              >
+                <BookOpen className="w-4 h-4 text-slate-400" />
+                {translate("Organisation Admin Guide")}
+              </Button>
+            )}
+            {(isSuperAdmin || isTahfizContext) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                onClick={() => navigate(createPageUrl("AdminTahfizManual"))}
+              >
+                <BookOpen className="w-4 h-4 text-slate-400" />
+                {translate("Tahfiz Admin Guide")}
               </Button>
             )}
           </CardContent>

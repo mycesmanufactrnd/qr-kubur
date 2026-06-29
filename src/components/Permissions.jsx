@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Permission definitions
 export const PERMISSIONS = {
   // Posts

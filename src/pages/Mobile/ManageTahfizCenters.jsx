@@ -14,9 +14,11 @@ import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { hashPassword } from "@/utils/helpers";
 import { showError, showSuccess } from "@/components/ToastrNotification";
+import { validateFields } from "@/utils/validations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { STATES_MY } from "@/utils/enums";
@@ -140,6 +142,7 @@ function TahfizFormSheet({
     handleSubmit,
     reset,
     setValue,
+    watch,
     getValues,
     formState: { errors },
   } = useForm({
@@ -208,6 +211,7 @@ function TahfizFormSheet({
   const [paymentUploadingFiles, setPaymentUploadingFiles] = useState({});
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const paymentFields = paymentPlatforms.flatMap((platform) =>
     (platform.paymentfields ?? []).map((field) => ({
@@ -329,6 +333,7 @@ function TahfizFormSheet({
   const resetUserFields = () => {
     setValue("user_fullname", "");
     setValue("user_username", "");
+    setValue("user_email", "");
     setValue("user_phoneno", "");
     setValue("user_role", "admin");
     setEditingUserIndex(null);
@@ -337,6 +342,7 @@ function TahfizFormSheet({
   const handleAddOrUpdateUser = () => {
     const fullname = (getValues("user_fullname") || "").trim();
     const username = (getValues("user_username") || "").trim();
+    const email = (getValues("user_email") || "").trim();
     const phoneno = (getValues("user_phoneno") || "").trim();
     const role = getValues("user_role") || "admin";
 
@@ -349,11 +355,16 @@ function TahfizFormSheet({
       return;
     }
 
+    if (!validateFields({ email, phoneno }, [
+      { field: "email", label: translate("Email"), type: "email", onlyIfExists: true },
+      { field: "phoneno", label: translate("Phone No."), type: "phone", onlyIfExists: true },
+    ])) return;
+
     if (editingUserIndex !== null) {
       setUserEntries((prev) =>
         prev.map((e, i) =>
           i === editingUserIndex
-            ? { ...e, fullname, username, phoneno, role }
+            ? { ...e, fullname, username, email, phoneno, role }
             : e,
         ),
       );
@@ -367,6 +378,7 @@ function TahfizFormSheet({
         id: `${Date.now()}-${Math.random()}`,
         fullname,
         username,
+        email,
         phoneno,
         role,
       },
@@ -641,28 +653,49 @@ function TahfizFormSheet({
               errors={errors}
             />
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              if (!navigator.geolocation) return;
-              setIsLocating(true);
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  setValue("latitude", pos.coords.latitude.toFixed(16));
-                  setValue("longitude", pos.coords.longitude.toFixed(16));
-                  setIsLocating(false);
-                },
-                () => setIsLocating(false),
-              );
-            }}
-            disabled={isLocating}
-            className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm flex items-center justify-center gap-2 active:opacity-70 disabled:opacity-50"
-          >
-            <MapPin className="w-4 h-4" />
-            {isLocating
-              ? translate("Getting location...")
-              : translate("Get Current Location")}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (!navigator.geolocation) return;
+                setIsLocating(true);
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    setValue("latitude", pos.coords.latitude.toFixed(6));
+                    setValue("longitude", pos.coords.longitude.toFixed(6));
+                    setIsLocating(false);
+                  },
+                  () => setIsLocating(false),
+                );
+              }}
+              disabled={isLocating}
+              className="flex-1 h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm flex items-center justify-center gap-2 active:opacity-70 disabled:opacity-50"
+            >
+              <MapPin className="w-4 h-4" />
+              {isLocating
+                ? translate("Getting location...")
+                : translate("Get Current Location")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowMap((v) => !v)}
+              className="flex-1 h-11 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm flex items-center justify-center gap-2 active:opacity-70"
+            >
+              <MapPin className="w-4 h-4" />
+              {showMap ? translate("Hide Map") : translate("Pick on Map")}
+            </button>
+          </div>
+          {showMap && (
+            <MapLocationPicker
+              lat={watch("latitude")}
+              lng={watch("longitude")}
+              onChange={(lat, lng) => {
+                setValue("latitude", lat.toFixed(6));
+                setValue("longitude", lng.toFixed(6));
+              }}
+              placeholder={translate("Search location...")}
+            />
+          )}
         </FormSection>
 
         {/* ── Photo ── */}
@@ -678,7 +711,6 @@ function TahfizFormSheet({
           />
         </FormSection>
 
-        {/* ── Payment Config ── */}
         {paymentPlatforms.filter((p) => p?.code).length > 0 && (
           <FormSection title={translate("Payment Config")}>
             <div className="space-y-2">
@@ -825,18 +857,24 @@ function TahfizFormSheet({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <TextInputForm
+                name="user_email"
+                control={control}
+                label={translate("Email")}
+                isEmail
+              />
+              <TextInputForm
                 name="user_phoneno"
                 control={control}
                 label={translate("Phone No.")}
               />
-              <SelectForm
-                name="user_role"
-                control={control}
-                label={translate("Role")}
-                options={userRoleOptions}
-                placeholder="Select role"
-              />
             </div>
+            <SelectForm
+              name="user_role"
+              control={control}
+              label={translate("Role")}
+              options={userRoleOptions}
+              placeholder="Select role"
+            />
             <div className="flex gap-2">
               <button
                 type="button"
@@ -877,12 +915,16 @@ function TahfizFormSheet({
                       <p className="text-xs text-slate-400 truncate">
                         {entry.username} · {entry.role}
                       </p>
+                      {entry.email && (
+                        <p className="text-xs text-slate-400 truncate">{entry.email}</p>
+                      )}
                     </div>
                     <button
                       type="button"
                       onClick={() => {
                         setValue("user_fullname", entry.fullname || "");
                         setValue("user_username", entry.username || "");
+                        setValue("user_email", entry.email || "");
                         setValue("user_phoneno", entry.phoneno || "");
                         setValue("user_role", entry.role || "admin");
                         setEditingUserIndex(index);
@@ -1096,7 +1138,8 @@ export default function ManageTahfizCenters() {
           if (!entry.fullname || !entry.username) continue;
           const userPayload = {
             fullname: entry.fullname,
-            email: entry.username,
+            username: entry.username,
+            email: entry.email || undefined,
             phoneno: entry.phoneno,
             role: entry.role || "admin",
             organisation: null,
@@ -1137,7 +1180,6 @@ export default function ManageTahfizCenters() {
         <BackNavigation title={translate("Manage Tahfiz Centers")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          {/* Filter + Add */}
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[

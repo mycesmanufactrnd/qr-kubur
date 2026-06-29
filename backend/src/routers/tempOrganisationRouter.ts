@@ -116,7 +116,8 @@ export const tempOrganisationRouter = router({
           : {},
         paymentconfigdraft: input.paymentconfigdraft ?? undefined,
         contactname: input.contactname.trim(),
-        contactemail: input.contactemail.trim().toLowerCase(),
+        contactemail: input.contactemail?.trim().toLowerCase() || undefined,
+        contactusername: input.contactusername.trim().toLowerCase(),
         contactphoneno: input.contactphoneno?.trim() || undefined,
         status: input.status ?? ActiveInactiveStatus.ACTIVE,
         approvalstatus: ApprovalStatus.PENDING,
@@ -265,24 +266,25 @@ export const tempOrganisationRouter = router({
           });
         }
 
-        const adminEmail = (tempOrganisation.contactemail ?? "")
+        const adminUsername = (tempOrganisation.contactusername ?? "")
           .trim()
           .toLowerCase();
-        if (!adminEmail) {
+
+        if (!adminUsername) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Missing contact email for temporary admin account",
+            message: "Missing username for temporary admin account",
           });
         }
 
         const existingUser = await userRepo.findOne({
-          where: { email: adminEmail },
+          where: { username: adminUsername },
         });
-        
+
         if (existingUser) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "A user with this contact email already exists",
+            message: "A user with this username already exists",
           });
         }
 
@@ -292,7 +294,7 @@ export const tempOrganisationRouter = router({
           states: tempOrganisation.states ?? [],
           address: tempOrganisation.address ?? undefined,
           phone: tempOrganisation.phone ?? undefined,
-          email: tempOrganisation.email ?? adminEmail,
+          email: tempOrganisation.email ?? undefined,
           url: tempOrganisation.url ?? undefined,
           latitude: tempOrganisation.latitude ?? undefined,
           longitude: tempOrganisation.longitude ?? undefined,
@@ -346,9 +348,9 @@ export const tempOrganisationRouter = router({
 
         const defaultPassword = "password";
         const temporaryAdminUser = userRepo.create({
-          fullname:
-            tempOrganisation.contactname || `${tempOrganisation.name} Admin`,
-          email: adminEmail,
+          fullname: tempOrganisation.contactname || `${tempOrganisation.name} Admin`,
+          username: adminUsername,
+          email: tempOrganisation.contactemail?.trim().toLowerCase() || undefined,
           phoneno: tempOrganisation.contactphoneno?.trim() || undefined,
           password: hashPassword(defaultPassword),
           role: "admin",

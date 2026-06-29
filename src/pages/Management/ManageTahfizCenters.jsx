@@ -63,6 +63,7 @@ import { STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
 import { hashPassword } from "@/utils/helpers";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 import { trpc } from "@/utils/trpc";
 import {
   useGetConfigByEntity,
@@ -73,6 +74,7 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { showError, showSuccess } from "@/components/ToastrNotification";
+import { validateFields } from "@/utils/validations";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
@@ -115,6 +117,7 @@ function ManageTahfizCentersDesktop() {
   const [centerToDelete, setCenterToDelete] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [serviceEntries, setServiceEntries] = useState([]);
   const [userEntries, setUserEntries] = useState([]);
   const [editingUserIndex, setEditingUserIndex] = useState(null);
@@ -235,6 +238,7 @@ function ManageTahfizCentersDesktop() {
     handleSubmit: handleFormSubmit,
     reset,
     setValue,
+    watch,
     getValues,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -272,6 +276,7 @@ function ManageTahfizCentersDesktop() {
   const resetUserFields = () => {
     setValue("user_fullname", "");
     setValue("user_username", "");
+    setValue("user_email", "");
     setValue("user_phoneno", "");
     setValue("user_role", "admin");
     setEditingUserIndex(null);
@@ -280,12 +285,13 @@ function ManageTahfizCentersDesktop() {
   const getUserFormValues = () => ({
     fullname: (getValues("user_fullname") || "").trim(),
     username: (getValues("user_username") || "").trim(),
+    email: (getValues("user_email") || "").trim(),
     phoneno: (getValues("user_phoneno") || "").trim(),
     role: getValues("user_role") || "admin",
   });
 
   const handleAddOrUpdateUser = () => {
-    const { fullname, username, phoneno, role } = getUserFormValues();
+    const { fullname, username, email, phoneno, role } = getUserFormValues();
     const hasInput = fullname || username || phoneno;
 
     if (!hasInput) {
@@ -298,10 +304,15 @@ function ManageTahfizCentersDesktop() {
       return;
     }
 
+    if (!validateFields({ email, phoneno }, [
+      { field: "email", label: translate("Email"), type: "email", onlyIfExists: true },
+      { field: "phoneno", label: translate("Phone No."), type: "phone", onlyIfExists: true },
+    ])) return;
+
     if (editingUserIndex !== null) {
       const nextEntries = userEntries.map((entry, index) =>
         index === editingUserIndex
-          ? { ...entry, fullname, username, phoneno, role }
+          ? { ...entry, fullname, username, email, phoneno, role }
           : entry,
       );
       setUserEntries(nextEntries);
@@ -313,6 +324,7 @@ function ManageTahfizCentersDesktop() {
       id: `${Date.now()}-${Math.random()}`,
       fullname,
       username,
+      email,
       phoneno,
       role,
     };
@@ -326,6 +338,7 @@ function ManageTahfizCentersDesktop() {
     if (!entry) return;
     setValue("user_fullname", entry.fullname || "");
     setValue("user_username", entry.username || "");
+    setValue("user_email", entry.email || "");
     setValue("user_phoneno", entry.phoneno || "");
     setValue("user_role", entry.role || "admin");
     setEditingUserIndex(index);
@@ -343,6 +356,7 @@ function ManageTahfizCentersDesktop() {
   const buildUserPayload = async ({
     fullname,
     username,
+    email,
     phoneno,
     role,
     state,
@@ -350,6 +364,7 @@ function ManageTahfizCentersDesktop() {
   }) => {
     const trimmedFullname = (fullname || "").trim();
     const trimmedUsername = (username || "").trim();
+    const trimmedEmail = (email || "").trim() || undefined;
     const trimmedPhone = (phoneno || "").trim();
     const hasUserInput = trimmedFullname || trimmedUsername || trimmedPhone;
 
@@ -367,7 +382,8 @@ function ManageTahfizCentersDesktop() {
 
     return {
       fullname: trimmedFullname,
-      email: trimmedUsername,
+      username: trimmedUsername,
+      email: trimmedEmail,
       phoneno: trimmedPhone,
       role: role || "admin",
       organisation: null,
@@ -726,6 +742,7 @@ function ManageTahfizCentersDesktop() {
     setUserEntries([]);
     resetUserFields();
     resetPaymentConfig();
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -778,6 +795,7 @@ function ManageTahfizCentersDesktop() {
     setServiceEntries(nextEntries);
     setUserEntries([]);
     resetUserFields();
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -808,6 +826,7 @@ function ManageTahfizCentersDesktop() {
       serviceprice: _serviceprice,
       user_fullname,
       user_username,
+      user_email,
       user_phoneno,
       user_role,
       ...restFormData
@@ -865,6 +884,7 @@ function ManageTahfizCentersDesktop() {
         const pendingEntry = {
           fullname: (user_fullname || "").trim(),
           username: (user_username || "").trim(),
+          email: (user_email || "").trim(),
           phoneno: (user_phoneno || "").trim(),
           role: user_role || "admin",
         };
@@ -890,6 +910,7 @@ function ManageTahfizCentersDesktop() {
           const userPayload = await buildUserPayload({
             fullname: entry.fullname,
             username: entry.username,
+            email: entry.email,
             phoneno: entry.phoneno,
             role: entry.role,
             state: formData.state,
@@ -1196,7 +1217,7 @@ function ManageTahfizCentersDesktop() {
           if (!open) setUploadFile(null);
         }}
       >
-        <DialogContent className="max-w-md dark:bg-slate-800">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {translate("Upload Tahfiz Centers via CSV / Excel")}
@@ -1482,31 +1503,53 @@ function ManageTahfizCentersDesktop() {
                     errors={errors}
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    if (!navigator.geolocation) return;
-                    setIsLocating(true);
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => {
-                        setValue("latitude", pos.coords.latitude.toFixed(16));
-                        setValue("longitude", pos.coords.longitude.toFixed(16));
-                        setIsLocating(false);
-                      },
-                      () => {
-                        setIsLocating(false);
-                      },
-                    );
-                  }}
-                  disabled={isLocating}
-                >
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {isLocating
-                    ? translate("Getting location...")
-                    : translate("Get Current Location")}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      if (!navigator.geolocation) return;
+                      setIsLocating(true);
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setValue("latitude", pos.coords.latitude.toFixed(6));
+                          setValue("longitude", pos.coords.longitude.toFixed(6));
+                          setIsLocating(false);
+                        },
+                        () => {
+                          setIsLocating(false);
+                        },
+                      );
+                    }}
+                    disabled={isLocating}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {isLocating
+                      ? translate("Getting location...")
+                      : translate("Get Current Location")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowMap((v) => !v)}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {showMap ? translate("Hide Map") : translate("Pick on Map")}
+                  </Button>
+                </div>
+                {showMap && (
+                  <MapLocationPicker
+                    lat={watch("latitude")}
+                    lng={watch("longitude")}
+                    onChange={(lat, lng) => {
+                      setValue("latitude", lat.toFixed(6));
+                      setValue("longitude", lng.toFixed(6));
+                    }}
+                    placeholder={translate("Search location...")}
+                  />
+                )}
                 <FileUploadForm
                   name="photourl"
                   control={control}
@@ -1603,19 +1646,25 @@ function ManageTahfizCentersDesktop() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <TextInputForm
+                      name="user_email"
+                      control={control}
+                      label={translate("Email")}
+                      isEmail
+                    />
+                    <TextInputForm
                       name="user_phoneno"
                       control={control}
                       label={translate("Phone No.")}
                       isPhone
                     />
-                    <SelectForm
-                      name="user_role"
-                      control={control}
-                      label={translate("Role")}
-                      options={userRoleOptions}
-                      placeholder="Select role"
-                    />
                   </div>
+                  <SelectForm
+                    name="user_role"
+                    control={control}
+                    label={translate("Role")}
+                    options={userRoleOptions}
+                    placeholder="Select role"
+                  />
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -1640,6 +1689,7 @@ function ManageTahfizCentersDesktop() {
                         <TableRow>
                           <TableHead>Full Name</TableHead>
                           <TableHead>Username</TableHead>
+                          <TableHead>Email</TableHead>
                           <TableHead>Phone</TableHead>
                           <TableHead>Role</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -1669,6 +1719,7 @@ function ManageTahfizCentersDesktop() {
                                 {entry.fullname}
                               </TableCell>
                               <TableCell>{entry.username}</TableCell>
+                              <TableCell>{entry.email || "-"}</TableCell>
                               <TableCell>{entry.phoneno || "-"}</TableCell>
                               <TableCell className="capitalize">
                                 {entry.role}

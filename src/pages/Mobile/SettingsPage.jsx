@@ -19,6 +19,7 @@ import {
   Building2,
   Bell,
   BellOff,
+  BookOpen,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +36,7 @@ import {
   getStoredGoogleUser,
   handleLogout,
   useLoginGoogle,
+  useAdminAccess,
 } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
 import { usePermissions } from "@/components/PermissionsContext";
@@ -105,6 +107,8 @@ const NavRow = ({ icon: Icon, label, action, danger = false }) => (
 export default function SettingsPageMobile() {
   const navigate = useNavigate();
   const { clearPermissions } = usePermissions();
+  const { isSuperAdmin, currentUser } = useAdminAccess();
+  const isTahfizContext = !!currentUser?.tahfizcenter?.id;
   const {
     userLocation,
     userState,
@@ -626,6 +630,30 @@ export default function SettingsPageMobile() {
               icon={LogIn}
               label={translate("Admin Login")}
               action={() => navigate(createPageUrl("AppUserLogin"))}
+            />
+          )}
+        </SectionCard>
+
+        <SectionCard title={translate("Guides")}>
+          {(authMode === "guest" || authMode === "google" || isSuperAdmin) && (
+            <NavRow
+              icon={BookOpen}
+              label={translate("User Guide")}
+              action={() => navigate(createPageUrl("UserManual"))}
+            />
+          )}
+          {(isSuperAdmin || (authMode === "admin" && !isTahfizContext)) && (
+            <NavRow
+              icon={BookOpen}
+              label={translate("Organisation Admin Guide")}
+              action={() => navigate(createPageUrl("AdminOrganisationManual"))}
+            />
+          )}
+          {(isSuperAdmin || isTahfizContext) && (
+            <NavRow
+              icon={BookOpen}
+              label={translate("Tahfiz Admin Guide")}
+              action={() => navigate(createPageUrl("AdminTahfizManual"))}
             />
           )}
         </SectionCard>

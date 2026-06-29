@@ -9,6 +9,9 @@ import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import { Phone, MapPin, Navigation, AlertCircle, User } from "lucide-react";
 import { openDirections, showEarthDistance } from "@/utils/helpers";
+import { OfflineDownloadBanner } from "@/components/OfflineDownloadBanner";
+
+const OFFLINE_KEY = "qubur-offline-mosques";
 
 const EmergencyMosqueCard = ({ mosque }) => {
   if (!mosque) return null;
@@ -76,6 +79,26 @@ export default function JenazahEmergency() {
     { ...filters, limit: 5 },
   );
 
+  const [savedEntry, setSavedEntry] = useState(() => {
+    try {
+      const raw = localStorage.getItem(OFFLINE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+
+  const savedMosques = savedEntry?.mosques ?? [];
+  const offlineStatus = savedEntry ? "cached" : "idle";
+  const isFallback = !isLoading && mosques.length === 0 && savedMosques.length > 0;
+  const displayMosques = mosques.length > 0 ? mosques : savedMosques;
+
+  function saveOffline() {
+    try {
+      const entry = { mosques, savedAt: new Date().toISOString() };
+      localStorage.setItem(OFFLINE_KEY, JSON.stringify(entry));
+      setSavedEntry(entry);
+    } catch {}
+  }
+
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -87,7 +110,7 @@ export default function JenazahEmergency() {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [displayedCount, mosques.length]);
+  }, [displayedCount, displayMosques.length]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 space-y-3 pb-2">
@@ -104,19 +127,35 @@ export default function JenazahEmergency() {
         </p>
       </div>
 
+      {isFallback && (
+        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+          <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            {translate("Showing saved offline data")}
+          </p>
+        </div>
+      )}
+
       {isLoading ? (
         <ListCardSkeletonComponent />
-      ) : mosques.length === 0 ? (
+      ) : displayMosques.length === 0 ? (
         <NoDataCardComponent isPage title={translate("No Mosque Found")} />
       ) : (
         <div className="space-y-2">
-          {mosques.slice(0, displayedCount).map((m) => (
+          {displayMosques.slice(0, displayedCount).map((m) => (
             <EmergencyMosqueCard key={m.id} mosque={m} />
           ))}
-          {displayedCount < mosques.length && (
+          {displayedCount < displayMosques.length && (
             <div ref={sentinelRef} className="flex justify-center py-4">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
             </div>
+          )}
+          {!isLoading && mosques.length > 0 && (
+            <OfflineDownloadBanner
+              status={offlineStatus}
+              onDownload={saveOffline}
+              idleLabel={translate("Save mosque list for offline use?")}
+            />
           )}
         </div>
       )}

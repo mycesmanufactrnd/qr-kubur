@@ -89,6 +89,9 @@ import GanttChartScheduling from '@/pages/Settings/GanttChartScheduling';
 import ViewLogs from '@/pages/Settings/ViewLogs';
 import IconLibrary from '@/pages/Settings/IconLibrary';
 import Ollama from '@/pages/Settings/Ollama.jsx';
+import UserManual from '@/pages/Settings/Manuals/UserManual.jsx';
+import AdminOrganisationManual from '@/pages/Settings/Manuals/AdminOrganisationManual.jsx';
+import AdminTahfizManual from '@/pages/Settings/Manuals/AdminTahfizManual.jsx';
 
 
 export const PAGES = {
@@ -182,6 +185,9 @@ export const PAGES = {
     "ViewLogs": ViewLogs,
     "IconLibrary": IconLibrary,
     "Ollama": Ollama,
+    "UserManual": UserManual,
+    "AdminOrganisationManual": AdminOrganisationManual,
+    "AdminTahfizManual": AdminTahfizManual,
 
 }
 

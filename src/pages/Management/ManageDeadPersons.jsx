@@ -67,6 +67,7 @@ import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
@@ -111,6 +112,7 @@ function ManageDeadPersonsDesktop() {
 
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
@@ -234,6 +236,7 @@ function ManageDeadPersonsDesktop() {
   const openAddDialog = () => {
     setEditingPerson(null);
     reset(defaultDeadPersonField);
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -243,6 +246,7 @@ function ManageDeadPersonsDesktop() {
       ...person,
       grave: person.grave?.id.toString() || "",
     });
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -404,11 +408,11 @@ function ManageDeadPersonsDesktop() {
           placeholder={translate("IC No")}
           value={tempIC}
           onChange={(e) => setTempIC(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
 
         <Select value={tempGrave} onValueChange={setTempGrave}>
-          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
+          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("Cemetery")} />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-700 text-white">
@@ -431,13 +435,13 @@ function ManageDeadPersonsDesktop() {
           type="date"
           value={tempDateFrom}
           onChange={(e) => setTempDateFrom(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
         <Input
           type="date"
           value={tempDateTo}
           onChange={(e) => setTempDateTo(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
       </SearchBar>
 
@@ -564,7 +568,7 @@ function ManageDeadPersonsDesktop() {
           if (!open) setUploadFile(null);
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{translate("Upload Deceased via CSV")}</DialogTitle>
             <DialogDescription>
@@ -750,31 +754,53 @@ function ManageDeadPersonsDesktop() {
                 errors={errors}
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full bg-blue-600 text-white"
-              onClick={() => {
-                if (!navigator.geolocation) return;
-                setIsLocating(true);
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => {
-                    setValue("latitude", pos.coords.latitude.toFixed(16));
-                    setValue("longitude", pos.coords.longitude.toFixed(16));
-                    setIsLocating(false);
-                  },
-                  () => {
-                    setIsLocating(false);
-                  },
-                );
-              }}
-              disabled={isLocating}
-            >
-              <MapPin className="w-4 h-4 mr-2" />{" "}
-              {isLocating
-                ? translate("Getting location...")
-                : translate("Get Current Location")}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 bg-blue-600 text-white"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  setIsLocating(true);
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setValue("latitude", pos.coords.latitude.toFixed(6));
+                      setValue("longitude", pos.coords.longitude.toFixed(6));
+                      setIsLocating(false);
+                    },
+                    () => {
+                      setIsLocating(false);
+                    },
+                  );
+                }}
+                disabled={isLocating}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                {isLocating
+                  ? translate("Getting location...")
+                  : translate("Get Current Location")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowMap((v) => !v)}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                {showMap ? translate("Hide Map") : translate("Pick on Map")}
+              </Button>
+            </div>
+            {showMap && (
+              <MapLocationPicker
+                lat={watch("latitude")}
+                lng={watch("longitude")}
+                onChange={(lat, lng) => {
+                  setValue("latitude", lat.toFixed(6));
+                  setValue("longitude", lng.toFixed(6));
+                }}
+                placeholder={translate("Search location...")}
+              />
+            )}
             <TextInputForm
               name="biography"
               control={control}

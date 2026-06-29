@@ -63,6 +63,9 @@ export class TempOrganisation {
   contactemail!: string;
 
   @Column("varchar", { length: 255, nullable: true })
+  contactusername?: string;
+
+  @Column("varchar", { length: 255, nullable: true })
   contactphoneno?: string;
 
   @Column({

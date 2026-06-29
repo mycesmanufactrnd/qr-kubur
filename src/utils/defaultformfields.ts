@@ -129,6 +129,7 @@ export const defaultQuickRegisterForm = {
   isgraveservices: false,
   contactname: "",
   contactemail: "",
+  contactusername: "",
   contactphoneno: "",
 };
 

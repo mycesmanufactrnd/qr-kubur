@@ -32,7 +32,7 @@
 ✅ 28. letak nama waris ngn no fon kat maklumat jenazah
 29. frequent backup data
 30. organisationList ---> jagn list all, adakan filter sikit
-31. Back Navigation kene ubah, tak boleh pakai back, kene pakai directory list 
+✅ 31. Back Navigation kene ubah, tak boleh pakai back, kene pakai directory list 
 
 ***** disabled={!isSuperAdmin} ******
 search tu, supaya boleh masukkn permission jgak

@@ -251,7 +251,7 @@ export default function ManageSuggestions() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="dark:text-white">{translate('Details')}</DialogTitle>
           </DialogHeader>

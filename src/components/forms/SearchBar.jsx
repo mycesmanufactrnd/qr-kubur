@@ -28,7 +28,7 @@ export default function SearchBar({
   onSearch,
   onReset,
   placeholder = "Search...",
-  buttonClassName = "bg-emerald-600 hover:bg-emerald-700",
+  buttonClassName = "bg-emerald-600 hover:bg-emerald-700 text-white",
   filtersClassName = "grid grid-cols-2 sm:grid-cols-4 gap-3",
   children,
 }) {
@@ -43,7 +43,7 @@ export default function SearchBar({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
-              className="pl-10 dark:border-white"
+              className="pl-10 dark:border-slate-600"
             />
           </div>
           <Button onClick={onSearch} className={`px-6 ${buttonClassName}`}>
@@ -51,18 +51,14 @@ export default function SearchBar({
           </Button>
         </div>
 
-        {children && (
+        {(children || onReset) && (
           <div className={filtersClassName}>
             {children}
             {onReset && (
               <Button
                 variant="outline"
                 onClick={onReset}
-                className="w-full 
-                  bg-transparent 
-                  border-slate-400/40 
-                  text-inherit 
-                  hover:bg-white/10"
+                className="w-full bg-transparent border-slate-400/40 text-inherit hover:bg-white/10"
               >
                 <X className="w-4 h-4 mr-2" />
                 {translate("Reset")}

@@ -47,10 +47,13 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 5173,
+  },
   server: {
     host: "0.0.0.0",
     allowedHosts: true,
-    port: 5173,
+    port: 5174,
     watch: {
       usePolling: true,
       interval: 100,
@@ -58,6 +61,10 @@ export default defineConfig({
     proxy: {
       "/api": "http://backend:8083",
       "/trpc": "http://backend:8083",
+      "^/.+\\.pdf$": {
+        target: "https://qubur.mycesgroup.com",
+        changeOrigin: true,
+      },
     },
   },
 });

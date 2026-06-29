@@ -64,6 +64,7 @@ await app.register(import("@fastify/cors"), {
 
     const allowed = [
       "localhost:5173",
+      "localhost:5174",
       "localhost:3000",
       "https://qubur.mycesgroup.com",
       "https://api.qubur.mycesgroup.com",

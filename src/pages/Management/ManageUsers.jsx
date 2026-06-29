@@ -107,6 +107,7 @@ function ManageUsersDesktop() {
 
     setEditUser({
       fullname: "",
+      username: "",
       email: "",
       phoneno: "",
       password: "",
@@ -139,7 +140,7 @@ function ManageUsersDesktop() {
 
     const isValid = validateFields(editUser, [
       { field: "fullname", label: "Full Name", type: "text" },
-      { field: "email", label: "Username", type: "text" },
+      { field: "username", label: "Username", type: "text" },
       { field: "phoneno", label: "Phone No.", type: "phone", required: false },
       { field: "states", label: "State", type: "array" },
       {
@@ -273,7 +274,7 @@ function ManageUsersDesktop() {
         {canCreate && (
           <Button
             onClick={handleAddUser}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add User")}
@@ -290,7 +291,7 @@ function ManageUsersDesktop() {
                 placeholder={translate("Search User")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-10"
+                className="pl-10 h-10 dark:border-slate-600"
               />
             </div>
             {isSuperAdmin && (
@@ -302,7 +303,7 @@ function ManageUsersDesktop() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-10 dark:border-slate-600">
                     <SelectValue placeholder={translate("Organisation")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -382,7 +383,11 @@ function ManageUsersDesktop() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigate(createPageUrl("ManagePermissions"), { state: { incomingUser: user } })}
+                      onClick={() =>
+                        navigate(createPageUrl("ManagePermissions"), {
+                          state: { incomingUser: user },
+                        })
+                      }
                       className="flex-shrink-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
                     >
                       <ShieldCheck className="w-4 h-4" />
@@ -434,6 +439,7 @@ function ManageUsersDesktop() {
                     setEditUser({ ...editUser, fullname: e.target.value })
                   }
                   placeholder={translate("Enter Name")}
+                  className="dark:border-slate-600"
                 />
               </div>
 
@@ -443,11 +449,29 @@ function ManageUsersDesktop() {
                   <span className="text-red-500">*</span>
                 </label>
                 <Input
-                  value={editUser.email}
+                  value={editUser.username ?? ""}
+                  onChange={(e) =>
+                    setEditUser({ ...editUser, username: e.target.value })
+                  }
+                  placeholder={translate("Enter Username")}
+                  className="dark:border-slate-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
+                  {translate("Email")}
+                  <span className="text-xs text-slate-400 ml-1">
+                    ({translate("Notification email")})
+                  </span>
+                </label>
+                <Input
+                  value={editUser.email ?? ""}
                   onChange={(e) =>
                     setEditUser({ ...editUser, email: e.target.value })
                   }
-                  placeholder={translate("Enter Username")}
+                  placeholder={translate("Enter Email")}
+                  className="dark:border-slate-600"
                 />
               </div>
 
@@ -461,6 +485,7 @@ function ManageUsersDesktop() {
                     setEditUser({ ...editUser, phoneno: e.target.value })
                   }
                   placeholder={translate("Enter Phone No")}
+                  className="dark:border-slate-600"
                 />
               </div>
 
@@ -477,6 +502,7 @@ function ManageUsersDesktop() {
                     placeholder={translate(
                       "Password (leave blank if not changing)",
                     )}
+                    className="dark:border-slate-600"
                   />
                 </div>
               ) : (
@@ -491,6 +517,7 @@ function ManageUsersDesktop() {
                       setEditUser({ ...editUser, password: e.target.value })
                     }
                     placeholder={translate("Enter Password")}
+                    className="dark:border-slate-600"
                   />
                 </div>
               )}
@@ -503,7 +530,7 @@ function ManageUsersDesktop() {
                   value={editUser.role || "employee"}
                   onValueChange={(v) => setEditUser({ ...editUser, role: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:border-slate-600">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -538,7 +565,7 @@ function ManageUsersDesktop() {
                       isAdmin && !isSuperAdmin && currentUser.organisation
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="dark:border-slate-600">
                       <SelectValue
                         placeholder={translate("Select Organisation")}
                       />
@@ -573,7 +600,7 @@ function ManageUsersDesktop() {
                       currentUser.organisation
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="dark:border-slate-600">
                       <SelectValue
                         placeholder={translate("Select Tahfiz Center")}
                       />

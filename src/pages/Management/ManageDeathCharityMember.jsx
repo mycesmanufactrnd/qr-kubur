@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { translate } from '@/utils/translations';
-import { MapPin, Plus, Edit, Trash2, Search, X, Save, UserPlus, Diamond, DiamondPlus, CreditCard } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Save, UserPlus, Diamond, DiamondPlus, CreditCard } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import SearchBar from "@/components/forms/SearchBar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Breadcrumb from '@/components/Breadcrumb';
@@ -380,7 +381,7 @@ function ManageDeathCharityMemberDesktop() {
         </h1>
         <div className="flex gap-2">
           {canCreate && (
-            <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700">
+            <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
               {translate('Add Death Charity Member')}
             </Button>
@@ -388,32 +389,14 @@ function ManageDeathCharityMemberDesktop() {
         </div>
       </div>
 
-      <Card className="border-0 shadow-md">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                value={tempFullName}
-                onChange={(e) => setTempFullName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="pl-10"
-              />
-            </div>
-            <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700 px-6">
-              {translate('Search')}
-            </Button>
-          </div>
+      <SearchBar
+        value={tempFullName}
+        onChange={setTempFullName}
+        onSearch={handleSearch}
+        onReset={handleReset}
+      />
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            <Button variant="outline" onClick={handleReset} className="w-full">
-              <X className="w-4 h-4 mr-2" /> {translate('Reset')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-0 shadow-md">
+      <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -606,7 +589,7 @@ function ManageDeathCharityMemberDesktop() {
       </Dialog>
 
       <Dialog open={coverageDialogOpen} onOpenChange={setCoverageDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {translate('Manage Coverage')} – {coverageMember?.fullname}
@@ -784,7 +767,7 @@ function ManageDeathCharityMemberDesktop() {
       </Dialog>
 
       <Dialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {translate("Claim List")}

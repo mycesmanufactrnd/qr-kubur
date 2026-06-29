@@ -70,6 +70,7 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import MapLocationPicker from "@/components/MapLocationPicker";
 
 export default function ManageGraves() {
   const isNarrow = useIsNarrow();
@@ -112,6 +113,7 @@ function ManageGravesDesktop() {
   const [editingGrave, setEditingGrave] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const {
     control,
@@ -258,7 +260,8 @@ function ManageGravesDesktop() {
 
   const { organisationsList } = useGetOrganisationPaginated({});
 
-  const { createGrave, updateGrave, deleteGrave, bulkDeleteGraves } = useGraveMutations();
+  const { createGrave, updateGrave, deleteGrave, bulkDeleteGraves } =
+    useGraveMutations();
 
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
@@ -343,6 +346,7 @@ function ManageGravesDesktop() {
       ...defaultGraveField,
       organisation: defaultOrgId ? String(defaultOrgId) : "",
     });
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -355,6 +359,7 @@ function ManageGravesDesktop() {
       totalgraves: grave.totalgraves ?? 0,
       photourl: grave.photourl ?? "",
     });
+    setShowMap(false);
     setIsDialogOpen(true);
   };
 
@@ -446,7 +451,7 @@ function ManageGravesDesktop() {
                 className="bg-amber-600 hover:bg-amber-700 text-white"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {translate("Upload Grave")}
+                {translate("Upload New")}
               </Button>
               <Button
                 onClick={openAddDialog}
@@ -471,7 +476,7 @@ function ManageGravesDesktop() {
       >
         {isSuperAdmin && (
           <Select value={tempState} onValueChange={setTempState}>
-            <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
+            <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
               <SelectValue placeholder="Negeri" />
             </SelectTrigger>
             <SelectContent>
@@ -485,7 +490,7 @@ function ManageGravesDesktop() {
           </Select>
         )}
         <Select value={tempStatus} onValueChange={setTempStatus}>
-          <SelectTrigger className="bg-transparent dark:border-white dark:text-white dark:hover:bg-white/10 focus:ring-0">
+          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
 
@@ -508,13 +513,13 @@ function ManageGravesDesktop() {
           placeholder={translate("Block")}
           value={tempBlock}
           onChange={(e) => setTempBlock(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
         <Input
           placeholder={translate("Lot")}
           value={tempLot}
           onChange={(e) => setTempLot(e.target.value)}
-          className="dark:border-white"
+          className="dark:border-slate-600"
         />
       </SearchBar>
 
@@ -526,7 +531,13 @@ function ManageGravesDesktop() {
                 {canDelete && (
                   <TableHead className="w-10">
                     <Checkbox
-                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      checked={
+                        allSelected
+                          ? true
+                          : someSelected
+                            ? "indeterminate"
+                            : false
+                      }
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
@@ -674,7 +685,7 @@ function ManageGravesDesktop() {
           if (!open) setUploadFile(null);
         }}
       >
-        <DialogContent className="max-w-md dark:bg-slate-800">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {translate("Upload Graves via CSV / Excel")}
@@ -849,31 +860,53 @@ function ManageGravesDesktop() {
                 errors={errors}
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full bg-emerald-600 text-white"
-              onClick={() => {
-                if (!navigator.geolocation) return;
-                setIsLocating(true);
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => {
-                    setValue("latitude", pos.coords.latitude.toFixed(16));
-                    setValue("longitude", pos.coords.longitude.toFixed(16));
-                    setIsLocating(false);
-                  },
-                  () => {
-                    setIsLocating(false);
-                  },
-                );
-              }}
-              disabled={isLocating}
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              {isLocating
-                ? translate("Getting location...")
-                : translate("Get Current Location")}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 bg-emerald-600 text-white"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  setIsLocating(true);
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setValue("latitude", pos.coords.latitude.toFixed(6));
+                      setValue("longitude", pos.coords.longitude.toFixed(6));
+                      setIsLocating(false);
+                    },
+                    () => {
+                      setIsLocating(false);
+                    },
+                  );
+                }}
+                disabled={isLocating}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                {isLocating
+                  ? translate("Getting location...")
+                  : translate("Get Current Location")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowMap((v) => !v)}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                {showMap ? translate("Hide Map") : translate("Pick on Map")}
+              </Button>
+            </div>
+            {showMap && (
+              <MapLocationPicker
+                lat={watch("latitude")}
+                lng={watch("longitude")}
+                onChange={(lat, lng) => {
+                  setValue("latitude", lat.toFixed(6));
+                  setValue("longitude", lng.toFixed(6));
+                }}
+                placeholder={translate("Search location...")}
+              />
+            )}
             <SelectForm
               name="organisation"
               control={control}
