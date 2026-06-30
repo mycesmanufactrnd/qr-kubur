@@ -11,9 +11,11 @@ export const deathCharityClaimRouter = router({
             page: z.number().min(1).default(1),
             pageSize: z.number().min(1).default(10),
             filterDeceasedName: z.string().optional(),
+            sortField: z.string().optional(),
+            sortOrder: z.enum(["ASC", "DESC"]).optional(),
         }))
         .query(async ({ input }) => {
-            const { page, pageSize, filterDeceasedName } = input;
+            const { page, pageSize, filterDeceasedName, sortField, sortOrder } = input;
 
             const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityClaim);
 
@@ -30,8 +32,16 @@ export const deathCharityClaimRouter = router({
                 query.skip((page - 1) * pageSize).take(pageSize)
             }
 
+            const allowedSortFields: Record<string, string> = {
+                deceasedname: 'claim.deceasedname',
+                payoutamount: 'claim.payoutamount',
+                createdat: 'claim.createdat',
+            };
+            const orderCol = (sortField && allowedSortFields[sortField]) || 'claim.createdat';
+            const orderDir = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+
             const [items, total] = await query
-                .orderBy('claim.createdat', 'DESC')
+                .orderBy(orderCol, orderDir)
                 .getManyAndCount();
 
             return { items, total };

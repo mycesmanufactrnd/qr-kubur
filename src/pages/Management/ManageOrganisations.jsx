@@ -13,6 +13,9 @@ import {
   Save,
   CreditCard,
   MapPin,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from "lucide-react";
 import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -102,6 +105,8 @@ function ManageOrganisationsDesktop() {
   const urlName = searchParams.get("search") || "";
   const urlType = searchParams.get("type") || "all";
   const urlState = searchParams.get("state") || "all";
+  const urlSortField = searchParams.get("sortField") || "";
+  const urlSortOrder = searchParams.get("sortOrder") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempType, setTempType] = useState(urlType);
@@ -536,6 +541,8 @@ function ManageOrganisationsDesktop() {
       filterName: urlName,
       filterType: urlType === "all" ? undefined : Number(urlType),
       filterState: urlState === "all" ? undefined : urlState,
+      sortField: urlSortField || undefined,
+      sortOrder: urlSortOrder === "ASC" || urlSortOrder === "DESC" ? urlSortOrder : undefined,
     });
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
@@ -703,6 +710,27 @@ function ManageOrganisationsDesktop() {
 
   const handleReset = () => {
     setSearchParams({});
+  };
+
+  const handleSort = (field) => {
+    const newOrder =
+      urlSortField === field && urlSortOrder === "ASC" ? "DESC" : "ASC";
+    setSearchParams({
+      ...Object.fromEntries(searchParams),
+      page: "1",
+      sortField: field,
+      sortOrder: newOrder,
+    });
+  };
+
+  const SortIcon = ({ field }) => {
+    if (urlSortField !== field)
+      return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-400" />;
+    return urlSortOrder === "ASC" ? (
+      <ChevronUp className="w-3 h-3 ml-1 text-violet-500" />
+    ) : (
+      <ChevronDown className="w-3 h-3 ml-1 text-violet-500" />
+    );
   };
 
   const handleFileUpload = async (file, bucketName) => {
@@ -1066,7 +1094,15 @@ function ManageOrganisationsDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate("Name")}</TableHead>
+                <TableHead
+                  className="cursor-pointer select-none"
+                  onClick={() => handleSort("name")}
+                >
+                  <span className="flex items-center">
+                    {translate("Name")}
+                    <SortIcon field="name" />
+                  </span>
+                </TableHead>
                 <TableHead className="text-center">
                   {translate("Organisation Type")}
                 </TableHead>

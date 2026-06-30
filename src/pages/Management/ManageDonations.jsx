@@ -594,7 +594,7 @@ function ManageDonationsDesktop() {
                   <Button
                     onClick={() => handleSubmission("approve")}
                     disabled={updateMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     {translate("Verify")}

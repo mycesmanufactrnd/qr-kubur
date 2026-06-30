@@ -85,6 +85,8 @@ export const organisationRouter = router({
         filterState: z.string().optional(),
         organisationId: z.number().optional().nullable(),
         isSuperAdmin: z.boolean().default(false),
+        sortField: z.string().optional(),
+        sortOrder: z.enum(["ASC", "DESC"]).optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -96,6 +98,8 @@ export const organisationRouter = router({
         filterState,
         organisationId,
         isSuperAdmin,
+        sortField,
+        sortOrder,
       } = input;
 
       const organisationRepo = AppDataSource.getRepository(Organisation);
@@ -140,8 +144,15 @@ export const organisationRouter = router({
         query.skip((page - 1) * pageSize).take(pageSize);
       }
 
+      const allowedSortFields: Record<string, string> = {
+        name: "organisation.name",
+        createdat: "organisation.createdat",
+      };
+      const orderCol = (sortField && allowedSortFields[sortField]) || "organisation.createdat";
+      const orderDir = sortOrder === "ASC" ? "ASC" : "DESC";
+
       const [items, total] = await query
-        .orderBy("organisation.createdat", "DESC")
+        .orderBy(orderCol, orderDir)
         .getManyAndCount();
 
       const serviceMap = await loadOrganisationServicesMap(

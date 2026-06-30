@@ -72,8 +72,20 @@ export const graveRouter = router({
         query.skip((page - 1) * pageSize).take(pageSize);
       }
 
+      const ALLOWED_SORT_FIELDS: Record<string, string> = {
+        name: "grave.name",
+        totalgraves: "grave.totalgraves",
+        state: "grave.state",
+        status: "grave.status",
+        block: "grave.block",
+        lot: "grave.lot",
+        id: "grave.id",
+      };
+      const orderCol = ALLOWED_SORT_FIELDS[sortField ?? "id"] ?? "grave.id";
+      const orderDir = sortOrder ?? "DESC";
+
       const [items, total] = await query
-        .orderBy("grave.id", "DESC")
+        .orderBy(orderCol, orderDir)
         .getManyAndCount();
 
       return { items, total };

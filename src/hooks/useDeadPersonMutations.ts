@@ -11,6 +11,8 @@ type useGetDeadPersonPaginatedParams = {
   dateFrom?: string;
   dateTo?: string;
   organisationIds?: number[];
+  sortField?: string;
+  sortOrder?: string;
 };
 
 const titleMessage = 'Deceased Record';
@@ -25,6 +27,8 @@ export function useGetDeadPersonPaginated({
   dateFrom,
   dateTo,
   organisationIds,
+  sortField,
+  sortOrder,
 } : useGetDeadPersonPaginatedParams) {
   const { data, isLoading, refetch, error } = trpc.deadperson.getPaginated.useQuery(
     {
@@ -37,6 +41,8 @@ export function useGetDeadPersonPaginated({
       dateFrom,
       dateTo,
       organisationIds,
+      sortField,
+      sortOrder: sortOrder === "ASC" || sortOrder === "DESC" ? sortOrder : undefined,
     },
   );
 

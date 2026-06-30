@@ -18,6 +18,8 @@ export const deadPersonRouter = router({
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
         organisationIds: z.array(z.number()).optional(),
+        sortField: z.string().optional(),
+        sortOrder: z.enum(["ASC", "DESC"]).optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -31,6 +33,8 @@ export const deadPersonRouter = router({
         dateFrom,
         dateTo,
         organisationIds,
+        sortField,
+        sortOrder,
       } = input;
 
       const repo = AppDataSource.getRepository(DeadPerson);
@@ -82,8 +86,16 @@ export const deadPersonRouter = router({
         query.skip((page - 1) * pageSize).take(pageSize);
       }
 
+      const allowedSortFields: Record<string, string> = {
+        name: "deadperson.name",
+        dateofdeath: "deadperson.dateofdeath",
+        icnumber: "deadperson.icnumber",
+      };
+      const orderCol = (sortField && allowedSortFields[sortField]) || "deadperson.id";
+      const orderDir = sortOrder === "ASC" ? "ASC" : "DESC";
+
       const [items, total] = await query
-        .orderBy("deadperson.id", "DESC")
+        .orderBy(orderCol, orderDir)
         .getManyAndCount();
 
       return { items, total };

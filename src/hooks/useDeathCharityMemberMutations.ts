@@ -6,6 +6,8 @@ type useGetDeathCharityMemberPaginatedParams = {
   page?: number;
   pageSize?: number;
   filterFullName?: string;
+  sortField?: string;
+  sortOrder?: string;
 };
 
 const titleMessage = 'Death Charity Member';
@@ -14,12 +16,18 @@ export function useGetDeathCharityMemberPaginated({
   page,
   pageSize,
   filterFullName,
+  sortField,
+  sortOrder,
 }: useGetDeathCharityMemberPaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =
     trpc.deathCharityMember.getPaginated.useQuery(
-      { page, pageSize, filterFullName },
+      {
+        page, pageSize, filterFullName,
+        sortField,
+        sortOrder: sortOrder === 'ASC' || sortOrder === 'DESC' ? sortOrder : undefined,
+      },
       { enabled: hasAdminAccess }
     );
 

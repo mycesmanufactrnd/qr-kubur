@@ -57,6 +57,20 @@ export default defineConfig({
     watch: {
       usePolling: true,
       interval: 100,
+      ignored: [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/backend/**",
+        "**/capacitor/**",
+        "**/supabase/**",
+        "**/storage_data/**",
+        "**/flow/**",
+        "**/base44/**",
+        "**/public/surah/**",
+        "**/public/dua-dhikr/**",
+        "**/public/docs/**",
+      ],
     },
     proxy: {
       "/api": "http://backend:8083",

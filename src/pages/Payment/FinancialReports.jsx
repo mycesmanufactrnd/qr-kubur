@@ -542,10 +542,10 @@ function FinancialReportsDesktop() {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1
+            className="text-[#1c1917] dark:text-white"
             style={{
               fontSize: 22,
               fontWeight: 700,
-              color: "#1c1917",
               display: "flex",
               alignItems: "center",
               gap: 10,
@@ -553,17 +553,17 @@ function FinancialReportsDesktop() {
             }}
           >
             <span
+              className="bg-[#f5f5f4] dark:bg-slate-700"
               style={{
                 width: 36,
                 height: 36,
                 borderRadius: 10,
-                background: "#f5f5f4",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Landmark style={{ width: 18, height: 18, color: "#78716c" }} />
+              <Landmark className="text-[#78716c] dark:text-slate-300" style={{ width: 18, height: 18 }} />
             </span>
             {translate("Financial Reports")}
           </h1>

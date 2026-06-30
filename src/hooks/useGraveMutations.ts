@@ -13,6 +13,8 @@ type useGetGravePaginatedParams = {
   filterBlock?: string;
   filterLot?: string;
   organisationIds?: number[];
+  sortField?: string;
+  sortOrder?: 'ASC' | 'DESC';
 };
 
 const titleMessage = 'Grave';
@@ -26,12 +28,14 @@ export function useGetGravePaginated({
   filterBlock,
   filterLot,
   organisationIds,
+  sortField,
+  sortOrder,
 }: useGetGravePaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =
     trpc.grave.getPaginated.useQuery(
-      { page, pageSize, filterName, filterState, filterStatus, filterBlock, filterLot, organisationIds },
+      { page, pageSize, filterName, filterState, filterStatus, filterBlock, filterLot, organisationIds, sortField, sortOrder },
       { enabled: hasAdminAccess }
     );
 

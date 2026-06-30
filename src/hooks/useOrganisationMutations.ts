@@ -9,6 +9,8 @@ type useGetOrganisationPaginatedParams = {
   filterName?: string;
   filterType?: number;
   filterState?: string;
+  sortField?: string;
+  sortOrder?: string;
 };
 
 const titleMessage = 'Organisation';
@@ -19,6 +21,8 @@ export function useGetOrganisationPaginated({
   filterName,
   filterType,
   filterState,
+  sortField,
+  sortOrder,
 }: useGetOrganisationPaginatedParams) {
   const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
@@ -32,6 +36,8 @@ export function useGetOrganisationPaginated({
         filterState,
         organisationId: currentUser?.organisation ? Number(currentUser.organisation.id) : null,
         isSuperAdmin,
+        sortField,
+        sortOrder: sortOrder === "ASC" || sortOrder === "DESC" ? sortOrder : undefined,
       },
       { 
         enabled: !!hasAdminAccess && !!currentUser, 

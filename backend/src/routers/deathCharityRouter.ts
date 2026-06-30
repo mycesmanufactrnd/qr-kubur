@@ -14,9 +14,11 @@ export const deathCharityRouter = router({
       filterState: z.string().optional(),
       organisationId: z.number().optional().nullable(),
       isSuperAdmin: z.boolean().default(false),
+      sortField: z.string().optional(),
+      sortOrder: z.enum(["ASC", "DESC"]).optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, filterName, filterState, organisationId, isSuperAdmin } = input;
+      const { page, pageSize, filterName, filterState, organisationId, isSuperAdmin, sortField, sortOrder } = input;
 
       const deathCharityRepo = AppDataSource.getRepository(DeathCharity);
 
@@ -45,8 +47,15 @@ export const deathCharityRouter = router({
         query.skip((page - 1) * pageSize).take(pageSize)
       }
 
+      const allowedSortFields: Record<string, string> = {
+        name: 'deathcharity.name',
+        state: 'deathcharity.state',
+      };
+      const orderCol = (sortField && allowedSortFields[sortField]) || 'deathcharity.id';
+      const orderDir = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+
       const [items, total] = await query
-        .orderBy('deathcharity.id', 'DESC')
+        .orderBy(orderCol, orderDir)
         .getManyAndCount();
 
       return { items, total };

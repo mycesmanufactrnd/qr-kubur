@@ -5,7 +5,16 @@ import { useSearchParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import MobileManageDeathCharity from "@/pages/Mobile/ManageDeathCharity";
 import { translate } from "@/utils/translations";
-import { MapPin, Plus, Edit, Trash2, Save } from "lucide-react";
+import {
+  MapPin,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -73,6 +82,8 @@ function ManageDeathCharityDesktop() {
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("name") || "";
   const urlState = searchParams.get("state") || "all";
+  const urlSortField = searchParams.get("sortField") || "";
+  const urlSortOrder = searchParams.get("sortOrder") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
@@ -96,6 +107,11 @@ function ManageDeathCharityDesktop() {
       pageSize: itemsPerPage,
       filterName: urlName,
       filterState: urlState === "all" ? undefined : urlState,
+      sortField: urlSortField || undefined,
+      sortOrder:
+        urlSortOrder === "ASC" || urlSortOrder === "DESC"
+          ? urlSortOrder
+          : undefined,
     });
 
   const { createDeathCharity, updateDeathCharity, deleteDeathCharity } =
@@ -134,6 +150,27 @@ function ManageDeathCharityDesktop() {
   };
 
   const handleReset = () => setSearchParams({});
+
+  const handleSort = (field) => {
+    const newOrder =
+      urlSortField === field && urlSortOrder === "ASC" ? "DESC" : "ASC";
+    setSearchParams({
+      ...Object.fromEntries(searchParams),
+      page: "1",
+      sortField: field,
+      sortOrder: newOrder,
+    });
+  };
+
+  const SortIcon = ({ field }) => {
+    if (urlSortField !== field)
+      return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-400" />;
+    return urlSortOrder === "ASC" ? (
+      <ChevronUp className="w-3 h-3 ml-1 text-emerald-500" />
+    ) : (
+      <ChevronDown className="w-3 h-3 ml-1 text-emerald-500" />
+    );
+  };
 
   const openAddDialog = () => {
     setEditingDeathCharity(null);
@@ -275,9 +312,23 @@ function ManageDeathCharityDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate("Death Charity")}</TableHead>
-                <TableHead className="text-center">
-                  {translate("State")}
+                <TableHead
+                  className="cursor-pointer select-none"
+                  onClick={() => handleSort("name")}
+                >
+                  <span className="flex items-center">
+                    {translate("Death Charity")}
+                    <SortIcon field="name" />
+                  </span>
+                </TableHead>
+                <TableHead
+                  className="text-center cursor-pointer select-none"
+                  onClick={() => handleSort("state")}
+                >
+                  <span className="flex items-center justify-center">
+                    {translate("State")}
+                    <SortIcon field="state" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-center">
                   {translate("Contact Person")}
@@ -314,7 +365,9 @@ function ManageDeathCharityDesktop() {
                       {deathCharity.organisation?.name ?? ""}
                     </TableCell>
                     <TableCell className="text-center">
-                      {deathCharity.isactive ? translate("Yes") : translate("No")}
+                      {deathCharity.isactive
+                        ? translate("Yes")
+                        : translate("No")}
                     </TableCell>
                     <TableCell className="text-center">
                       {canEdit && (
@@ -370,7 +423,7 @@ function ManageDeathCharityDesktop() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingDeathCharity
@@ -380,7 +433,7 @@ function ManageDeathCharityDesktop() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                 {translate("Organisation Details")}
               </h3>
               <div className="grid grid-cols-1 gap-4">
@@ -413,7 +466,7 @@ function ManageDeathCharityDesktop() {
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                 {translate("Basic Information")}
               </h3>
               <TextInputForm
@@ -440,7 +493,7 @@ function ManageDeathCharityDesktop() {
               />
             </div>
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                 {translate("Contact Information")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -461,7 +514,7 @@ function ManageDeathCharityDesktop() {
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                 {translate("Fee Information")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -492,7 +545,7 @@ function ManageDeathCharityDesktop() {
               />
             </div>
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                 {translate("Coverage Details")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -522,7 +575,7 @@ function ManageDeathCharityDesktop() {
               />
             </div>
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2">
+              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                 {translate("Status")}
               </h3>
               <div className="flex items-center gap-2">

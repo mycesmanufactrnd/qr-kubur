@@ -12,9 +12,11 @@ export const deathCharityMemberRouter = router({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).default(10),
       filterFullName: z.string().optional(),
+      sortField: z.string().optional(),
+      sortOrder: z.enum(["ASC", "DESC"]).optional(),
     }))
     .query(async ({ input }) => {
-      const { page, pageSize, filterFullName } = input;
+      const { page, pageSize, filterFullName, sortField, sortOrder } = input;
 
       const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
 
@@ -32,8 +34,15 @@ export const deathCharityMemberRouter = router({
         query.skip((page - 1) * pageSize).take(pageSize)
       }
 
+      const allowedSortFields: Record<string, string> = {
+        fullname: 'member.fullname',
+        createdat: 'member.createdat',
+      };
+      const orderCol = (sortField && allowedSortFields[sortField]) || 'member.createdat';
+      const orderDir = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+
       const [items, total] = await query
-        .orderBy('member.createdat', 'DESC')
+        .orderBy(orderCol, orderDir)
         .getManyAndCount();
 
       return { items, total };

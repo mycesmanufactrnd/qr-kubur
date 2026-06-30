@@ -14,6 +14,9 @@ import {
   Upload,
   Download,
   FileText,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
 } from "lucide-react";
 import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -93,6 +96,8 @@ function ManageGravesDesktop() {
   const urlLot = searchParams.get("lot") || "";
   const urlState = searchParams.get("state") || "all";
   const urlStatus = searchParams.get("status") || "all";
+  const urlSortField = searchParams.get("sortField") || "";
+  const urlSortOrder = searchParams.get("sortOrder") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempBlock, setTempBlock] = useState(urlBlock);
@@ -256,7 +261,27 @@ function ManageGravesDesktop() {
     filterBlock: urlBlock || undefined,
     filterLot: urlLot || undefined,
     organisationIds: accessibleOrgIds,
+    sortField: urlSortField || undefined,
+    sortOrder: urlSortOrder === "ASC" || urlSortOrder === "DESC" ? urlSortOrder : undefined,
   });
+
+  const handleSort = (field) => {
+    const newOrder =
+      urlSortField === field && urlSortOrder === "ASC" ? "DESC" : "ASC";
+    setSearchParams({
+      ...Object.fromEntries(searchParams),
+      page: "1",
+      sortField: field,
+      sortOrder: newOrder,
+    });
+  };
+
+  const SortIcon = ({ field }) => {
+    if (urlSortField !== field) return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-400" />;
+    return urlSortOrder === "ASC"
+      ? <ChevronUp className="w-3 h-3 ml-1 text-emerald-500" />
+      : <ChevronDown className="w-3 h-3 ml-1 text-emerald-500" />;
+  };
 
   const { organisationsList } = useGetOrganisationPaginated({});
 
@@ -542,18 +567,44 @@ function ManageGravesDesktop() {
                     />
                   </TableHead>
                 )}
-                <TableHead>{translate("Cemetery name")}</TableHead>
-                <TableHead className="text-center">
-                  {translate("Total Graves")}
+                <TableHead
+                  className="cursor-pointer select-none"
+                  onClick={() => handleSort("name")}
+                >
+                  <span className="flex items-center">
+                    {translate("Cemetery name")}
+                    <SortIcon field="name" />
+                  </span>
                 </TableHead>
-                <TableHead className="text-center">
-                  {translate("State")}
+                <TableHead
+                  className="text-center cursor-pointer select-none"
+                  onClick={() => handleSort("totalgraves")}
+                >
+                  <span className="flex items-center justify-center">
+                    {translate("Total Graves")}
+                    <SortIcon field="totalgraves" />
+                  </span>
+                </TableHead>
+                <TableHead
+                  className="text-center cursor-pointer select-none"
+                  onClick={() => handleSort("state")}
+                >
+                  <span className="flex items-center justify-center">
+                    {translate("State")}
+                    <SortIcon field="state" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-center">
                   {translate("Block")}/{translate("Lot")}
                 </TableHead>
-                <TableHead className="text-center">
-                  {translate("Status")}
+                <TableHead
+                  className="text-center cursor-pointer select-none"
+                  onClick={() => handleSort("status")}
+                >
+                  <span className="flex items-center justify-center">
+                    {translate("Status")}
+                    <SortIcon field="status" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-center">
                   {translate("Image")}
