@@ -7,12 +7,14 @@ import {
   CreateDateColumn,
   OneToMany,
   UpdateDateColumn,
+  JoinColumn,
 } from "typeorm";
 import { DeathCharity } from "./DeathCharity.entity.js";
 import { DeathCharityPayment } from "./DeathCharityPayment.entity.js";
 import { DeathCharityDependent } from "./DeathCharityDependent.entity.js";
 import { DeathCharityClaim } from "./DeathCharityClaim.entity.js";
 import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.js";
+import { Mosque } from "../Mosque.entity.js";
 
 @Entity("deathcharitymember")
 export class DeathCharityMember extends AuditableEntity {
@@ -51,4 +53,11 @@ export class DeathCharityMember extends AuditableEntity {
 
   @Column("boolean", { default: true })
   isactive!: boolean;
+
+  @Column("integer", { nullable: true })
+  mosqueId?: number | null;
+
+  @ManyToOne(() => Mosque, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "mosqueId" })
+  mosque?: Mosque | null;
 }

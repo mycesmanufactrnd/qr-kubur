@@ -2,7 +2,7 @@
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
-import { DeathCharity, DeathCharityClaim, DeathCharityDependent, DeathCharityMember } from "../db/entities.js";
+import { DeathCharity, DeathCharityClaim, DeathCharityDependent, DeathCharityMember, Mosque } from "../db/entities.js";
 import { deathCharityMemberSchema } from "../schemas/deathCharityMemberSchema.js";
 import { claimFromMemberSchema } from "../schemas/deathCharityClaimSchema.js";
 
@@ -119,6 +119,80 @@ export const deathCharityMemberRouter = router({
         .orderBy("member.fullname", "ASC")
         .take(limit)
         .getMany();
+    }),
+
+  getQariahPaginated: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).default(20),
+        filterFullName: z.string().optional().nullable(),
+        filterMosqueId: z.number().optional().nullable(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { page, pageSize, filterFullName, filterMosqueId } = input;
+      const repo = AppDataSource.getRepository(DeathCharityMember);
+      const query = repo
+        .createQueryBuilder("m")
+        .leftJoinAndSelect("m.mosque", "mosque")
+        .where("m.mosqueId IS NOT NULL");
+
+      if (filterFullName?.trim()) {
+        query.andWhere("m.fullname ILIKE :name", { name: `%${filterFullName.trim()}%` });
+      }
+      if (filterMosqueId) {
+        query.andWhere("m.mosqueId = :mosqueId", { mosqueId: filterMosqueId });
+      }
+
+      query.orderBy("m.createdat", "DESC").skip((page - 1) * pageSize).take(pageSize);
+      const [items, total] = await query.getManyAndCount();
+      return { items, total };
+    }),
+
+  getMosquesByState: publicProcedure
+    .input(z.object({ state: z.string().optional().nullable() }))
+    .query(async ({ input }) => {
+      const repo = AppDataSource.getRepository(Mosque);
+      const query = repo.createQueryBuilder("mosque");
+      if (input.state) {
+        query.where("mosque.state = :state", { state: input.state });
+      }
+      return query
+        .select(["mosque.id", "mosque.name", "mosque.state", "mosque.address"])
+        .orderBy("mosque.name", "ASC")
+        .getMany();
+    }),
+
+  registerQariah: publicProcedure
+    .input(z.object({
+      fullname: z.string().min(1),
+      icnumber: z.string().min(1),
+      phone: z.string().optional().nullable(),
+      email: z.string().optional().nullable(),
+      address: z.string().optional().nullable(),
+      mosque: z.object({ id: z.number() }).optional().nullable(),
+    }))
+    .mutation(async ({ input }) => {
+      const memberRepo = AppDataSource.getRepository(DeathCharityMember);
+
+      const existing = await memberRepo.findOne({
+        where: { icnumber: input.icnumber.trim() },
+      });
+      if (existing) {
+        throw new Error("IC number is already registered.");
+      }
+
+      const member = memberRepo.create({
+        fullname: input.fullname,
+        icnumber: input.icnumber.trim(),
+        phone: input.phone ?? null,
+        email: input.email ?? null,
+        address: input.address ?? null,
+        mosque: input.mosque ?? null,
+        isactive: true,
+      });
+      return await memberRepo.save(member);
     }),
 
   createPublic: publicProcedure

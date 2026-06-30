@@ -1,6 +1,6 @@
 import { trpc } from "@/utils/trpc";
 
-type StatsType = "OS" | "GD" | "TTR" | "DDV" | "CMC" | "QUO";
+type StatsType = "OS" | "GD" | "TTR" | "DDV" | "QM" | "CMC" | "QUO";
 
 interface UseStatisticChartOptions {
   year: number;
@@ -131,7 +131,8 @@ export function useGetAdminDashboardStats({
       { currentUserTahfiz: tahfizId, isSuperAdmin },
       {
         enabled:
-          enabled && needs("TTR") &&
+          enabled &&
+          needs("TTR") &&
           (!needs("OS") || !!OSStats) &&
           (!needs("GD") || !!GDStats),
       },
@@ -139,14 +140,25 @@ export function useGetAdminDashboardStats({
 
   const { data: DDVStats, isLoading: isDDVLoading } =
     trpc.dashboard.getDDVAdminStates.useQuery(
-      { currentUserTahfiz: tahfizId, currentUserOrganisation: orgId, isSuperAdmin },
+      {
+        currentUserTahfiz: tahfizId,
+        currentUserOrganisation: orgId,
+        isSuperAdmin,
+      },
       {
         enabled:
-          enabled && needs("DDV") &&
+          enabled &&
+          needs("DDV") &&
           (!needs("OS") || !!OSStats) &&
           (!needs("GD") || !!GDStats) &&
           (!needs("TTR") || !!TTRStats),
       },
+    );
+
+  const { data: QMStats, isLoading: isQMLoading } =
+    trpc.dashboard.getQMAdminStates.useQuery(
+      { currentUserOrganisation: orgId, isSuperAdmin },
+      { enabled: enabled && needs("QM") },
     );
 
   const { data: CMCStats, isLoading: isCMCLoading } =
@@ -154,7 +166,8 @@ export function useGetAdminDashboardStats({
       { currentUserOrganisation: orgId, isSuperAdmin },
       {
         enabled:
-          enabled && needs("CMC") &&
+          enabled &&
+          needs("CMC") &&
           (!needs("OS") || !!OSStats) &&
           (!needs("GD") || !!GDStats) &&
           (!needs("TTR") || !!TTRStats) &&
@@ -173,12 +186,14 @@ export function useGetAdminDashboardStats({
     GDStats,
     TTRStats,
     DDVStats,
+    QMStats,
     CMCStats,
     QUOStats,
     isOSLoading,
     isGDLoading,
     isTTRLoading,
     isDDVLoading,
+    isQMLoading,
     isCMCLoading,
     isQUOLoading,
   };

@@ -9,4 +9,5 @@ export const deathCharityMemberSchema = z.object({
     address: z.string().optional().nullable(),
     isactive: z.boolean().default(true),
     deathcharity: z.object({ id: z.number() }).nullable().optional(),
+    mosque: z.object({ id: z.number() }).nullable().optional(),
 });

@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   XCircle,
   Building2,
+  Users,
   Bell,
   BellOff,
   BookOpen,
@@ -616,6 +617,11 @@ export default function SettingsPageMobile() {
             icon={Building2}
             label={translate("Organisation Register")}
             action={() => navigate(createPageUrl("OrganisationQuickRegister"))}
+          />
+          <NavRow
+            icon={Users}
+            label={translate("Qariah Registration")}
+            action={() => navigate(createPageUrl("UserQariahRegistration"))}
           />
           <NavRow
             icon={FileText}

@@ -282,6 +282,23 @@ export const dashboardRouter = router({
       };
     }),
 
+  // QM: Qariah Member
+  getQMAdminStates: protectedProcedure
+    .input(
+      z.object({
+        currentUserOrganisation: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().optional().default(false),
+      }),
+    )
+    .query(async ({ input }) => {
+      const memberRepo = AppDataSource.getRepository(DeathCharityMember);
+      const count = await memberRepo
+        .createQueryBuilder("member")
+        .where("member.mosqueId IS NOT NULL")
+        .getCount();
+      return { qariahMemberCount: count };
+    }),
+
   // CMC: Charity, Member, Claim
   getCMCAdminStates: protectedProcedure
     .input(

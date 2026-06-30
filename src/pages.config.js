@@ -10,6 +10,7 @@ import ImpersonateUser from '@/pages/ImpersonateUser';
 
 import ScanQR from '@/pages/ScanQR';
 import SearchGrave from '@/pages/User/SearchGrave';
+import UserQariahRegistration from '@/pages/User/UserQariahRegistration';
 import GraveDetails from '@/pages/GraveDetails';
 import DeadPersonDetails from '@/pages/DeadPersonDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
@@ -73,6 +74,7 @@ import ManageWaqfProject from '@/pages/Management/ManageWaqfProject';
 import ManageMosques from '@/pages/Management/ManageMosques.jsx';
 import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
 import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
+import ManageQariahMember from '@/pages/Management/ManageQariahMember.jsx';
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
@@ -106,6 +108,7 @@ export const PAGES = {
 
     "ScanQR": ScanQR,
     "SearchGrave": SearchGrave,
+    "UserQariahRegistration": UserQariahRegistration,
     "GraveDetails": GraveDetails,
     "DeadPersonDetails": DeadPersonDetails,
     "SearchTahfiz": SearchTahfiz,
@@ -169,6 +172,7 @@ export const PAGES = {
     "ManageMosques": ManageMosques,
     "ManageDeathCharity": ManageDeathCharity,
     "ManageDeathCharityMember": ManageDeathCharityMember,
+    "ManageQariahMember": ManageQariahMember,
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ManageQuotations": ManageQuotations,

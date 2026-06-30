@@ -65,7 +65,7 @@ function AdminDashboardDesktop() {
 
     if (isOrgCanManageGrave) arr.push("GD");
     if (isOrgCanBeDonated) arr.push("DDV");
-    if (isOrgCanManageMosque) arr.push("CMC");
+    if (isOrgCanManageMosque) arr.push("CMC", "QM");
     if (isOrgGraveService) arr.push("QUO");
 
     return arr;
@@ -77,11 +77,13 @@ function AdminDashboardDesktop() {
     OSStats,
     GDStats,
     DDVStats,
+    QMStats,
     CMCStats,
     QUOStats,
     isOSLoading,
     isGDLoading,
     isDDVLoading,
+    isQMLoading,
     isCMCLoading,
     isQUOLoading,
   } = useGetAdminDashboardStats({
@@ -97,6 +99,7 @@ function AdminDashboardDesktop() {
   const deadPersonCount = GDStats?.deadPersonCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
+  const qariahMemberCount = QMStats?.qariahMemberCount ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
   const deathCharityTotalPayout = CMCStats?.deathCharityTotalPayout ?? 0;
@@ -356,6 +359,40 @@ function AdminDashboardDesktop() {
             </Link>
           ))}
         </div>
+
+        {/* Qariah Members Section */}
+        {isOrgCanManageMosque && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full" />
+              <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                {translate("Qariah")}
+              </h2>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Link to={createPageUrl("ManageQariahMember")} className="block group">
+                <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 hover:scale-105">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between">
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                        <Users className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-1 text-emerald-700 dark:text-emerald-400">
+                          {translate("Total Ahli Qariah")}
+                        </p>
+                        <p className="text-right text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                          {isQMLoading ? "—" : qariahMemberCount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Death Charity Section */}
         {isOrgCanManageMosque && (

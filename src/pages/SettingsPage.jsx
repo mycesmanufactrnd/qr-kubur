@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   Building2,
+  Users,
   Settings as SettingsIcon,
   Bell,
   BellOff,
@@ -659,6 +660,15 @@ function SettingsPageDesktop() {
             >
               <Building2 className="w-4 h-4 text-slate-400" />
               {translate("Organisation Register")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start gap-2 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+              onClick={() => navigate(createPageUrl("UserQariahRegistration"))}
+            >
+              <Users className="w-4 h-4 text-slate-400" />
+              {translate("Qariah Registration")}
             </Button>
             <Button
               variant="outline"
