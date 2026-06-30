@@ -417,7 +417,7 @@ export default function SettingsPageMobile() {
           </div>
         )}
 
-        <SectionCard title={translate("Notifications")}>
+        {/* <SectionCard title={translate("Notifications")}>
           <div className="px-4 py-3 space-y-3">
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${
@@ -462,7 +462,7 @@ export default function SettingsPageMobile() {
               </button>
             )}
           </div>
-        </SectionCard>
+        </SectionCard> */}
 
         <SectionCard title={translate("Location")}>
           <div className="px-4 py-3 space-y-3">

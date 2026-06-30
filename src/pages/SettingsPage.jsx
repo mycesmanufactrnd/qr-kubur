@@ -435,7 +435,7 @@ function SettingsPageDesktop() {
         </Card>
 
         {/* Notifications */}
-        <Card className="dark:bg-slate-800 dark:border-slate-700">
+        {/* <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
               {translate("Notifications")}
@@ -496,7 +496,7 @@ function SettingsPageDesktop() {
               </Button>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Location */}
         <Card className="dark:bg-slate-800 dark:border-slate-700">
