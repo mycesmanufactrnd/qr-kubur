@@ -98,22 +98,26 @@ function SettingsPageDesktop() {
     try {
       const { initFCM } = await import("@/firebase/firebase");
       const token = await initFCM();
-      setNotifPermission(
-        "Notification" in window ? Notification.permission : "default",
-      );
       if (token) {
-        const googleUser = getStoredGoogleUser();
-        if (googleUser?.id) {
-          await trpcClient.google.saveDeviceToken.mutate({
-            googleUserId: Number(googleUser.id),
-            fcmToken: token,
-          });
-        }
-        const appUserAuth = sessionStorage.getItem("appUserAuth");
-        if (appUserAuth) {
-          await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+        setNotifPermission("granted");
+        try {
+          const googleUser = getStoredGoogleUser();
+          if (googleUser?.id) {
+            await trpcClient.google.saveDeviceToken.mutate({
+              googleUserId: Number(googleUser.id),
+              fcmToken: token,
+            });
+          }
+          const appUserAuth = sessionStorage.getItem("appUserAuth");
+          if (appUserAuth) {
+            await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+          }
+        } catch (saveErr) {
+          console.error("[FCM] saveDeviceToken failed:", saveErr);
         }
         showSuccess(translate("Notifications"), "enabled");
+      } else {
+        setNotifPermission("Notification" in window ? Notification.permission : "denied");
       }
     } catch (e) {
       console.error("[FCM] Notification refresh failed:", e);

@@ -14,11 +14,13 @@ import {
   Newspaper,
   Map,
   BadgeCheck,
+  Loader2,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton";
 import doaBanners from "./DailyDoaBanner";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const todayDoa =
   doaBanners[Math.floor(Date.now() / 86400000) % doaBanners.length];
@@ -279,6 +281,7 @@ const G = {
 
 export default function UserDashboard() {
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const { pullY, refreshing, threshold } = usePullToRefresh();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -293,6 +296,28 @@ export default function UserDashboard() {
   return (
     <div className="db">
       <style>{css}</style>
+
+      {(pullY > 0 || refreshing) && (
+        <div
+          className="fixed left-1/2 z-[9999] -translate-x-1/2 w-9 h-9 bg-white dark:bg-slate-700 rounded-full shadow-lg flex items-center justify-center"
+          style={{
+            top: refreshing ? 16 : Math.max(pullY - 44, -44),
+            transition: refreshing ? "top 0.2s ease" : undefined,
+          }}
+        >
+          {refreshing ? (
+            <Loader2 style={{ width: 18, height: 18, color: "#10b981" }} className="animate-spin" />
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+              style={{ width: 18, height: 18, transform: `rotate(${Math.min(pullY / threshold, 1) * 360}deg)` }}>
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M8 16H3v5" />
+            </svg>
+          )}
+        </div>
+      )}
 
       <div className="db-hero">
         <div className="db-geo" />

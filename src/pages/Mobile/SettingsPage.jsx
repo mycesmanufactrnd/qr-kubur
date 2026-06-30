@@ -42,6 +42,7 @@ import { trpcClient } from "@/utils/trpc";
 import { usePermissions } from "@/components/PermissionsContext";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { showSuccess } from "@/components/ToastrNotification";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const SAVED_PHONE_KEY = "userphoneno";
 
@@ -137,6 +138,7 @@ export default function SettingsPageMobile() {
   const isWebView = /wv/i.test(navigator.userAgent) || !!window.Capacitor?.isNativePlatform?.();
   const [signInError, setSignInError] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const { pullY, refreshing: pullRefreshing, threshold } = usePullToRefresh();
 
   const [notifPermission, setNotifPermission] = useState(() =>
     "Notification" in window ? Notification.permission : "default"
@@ -148,17 +150,25 @@ export default function SettingsPageMobile() {
     try {
       const { initFCM } = await import("@/firebase/firebase");
       const token = await initFCM();
-      setNotifPermission("Notification" in window ? Notification.permission : "default");
       if (token) {
-        const googleUser = getStoredGoogleUser();
-        if (googleUser?.id) {
-          await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmToken: token });
-        }
-        const appUserAuth = sessionStorage.getItem("appUserAuth");
-        if (appUserAuth) {
-          await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+        // Native Capacitor push token — set granted directly (Notification API won't reflect it)
+        setNotifPermission("granted");
+        // Save token to backend; don't block success toast on network failures
+        try {
+          const googleUser = getStoredGoogleUser();
+          if (googleUser?.id) {
+            await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmToken: token });
+          }
+          const appUserAuth = sessionStorage.getItem("appUserAuth");
+          if (appUserAuth) {
+            await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+          }
+        } catch (saveErr) {
+          console.error("[FCM] saveDeviceToken failed:", saveErr);
         }
         showSuccess(translate("Notifications"), "enabled");
+      } else {
+        setNotifPermission("Notification" in window ? Notification.permission : "denied");
       }
     } catch (e) {
       console.error("[FCM] Notification refresh failed:", e);
@@ -662,6 +672,28 @@ export default function SettingsPageMobile() {
           {translate("Version")}
         </p>
       </div>
+
+      {(pullY > 0 || pullRefreshing) && (
+        <div
+          className="fixed left-1/2 z-[9999] -translate-x-1/2 w-9 h-9 bg-white dark:bg-slate-700 rounded-full shadow-lg flex items-center justify-center"
+          style={{
+            top: pullRefreshing ? 16 : Math.max(pullY - 44, -44),
+            transition: pullRefreshing ? "top 0.2s ease" : undefined,
+          }}
+        >
+          {pullRefreshing ? (
+            <Loader2 style={{ width: 18, height: 18, color: "#10b981" }} className="animate-spin" />
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+              style={{ width: 18, height: 18, transform: `rotate(${Math.min(pullY / threshold, 1) * 360}deg)` }}>
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M8 16H3v5" />
+            </svg>
+          )}
+        </div>
+      )}
 
       {(isSigningIn || loading) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
