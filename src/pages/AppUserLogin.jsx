@@ -71,13 +71,12 @@ export default function AppUserLogin() {
               </label>
               <div className="relative">
                 <Input
-                  className="dark:border-slate-600"
+                  className="dark:border-slate-600 pr-10"
                   type={showPassword ? "text" : "password"}
                   placeholder={translate("Enter your password")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pr-10"
                 />
                 <button
                   type="button"
