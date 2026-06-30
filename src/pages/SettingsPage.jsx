@@ -86,6 +86,7 @@ function SettingsPageDesktop() {
 
   const { login, loading, error } = useLoginGoogle();
   const [signInError, setSignInError] = useState("");
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [notifPermission, setNotifPermission] = useState(() =>
     "Notification" in window ? Notification.permission : "default",
@@ -123,6 +124,7 @@ function SettingsPageDesktop() {
 
   const handleGoogleSignIn = async () => {
     setSignInError("");
+    setIsSigningIn(true);
     try {
       const { signInWithPopup, GoogleAuthProvider } =
         await import("firebase/auth");
@@ -132,7 +134,10 @@ function SettingsPageDesktop() {
       const firebaseIdToken = await result.user.getIdToken();
       login(firebaseIdToken);
     } catch (e) {
-      setSignInError(e?.message || String(e));
+      const cancelled = e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request';
+      if (!cancelled) setSignInError(e?.message || String(e));
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -742,6 +747,17 @@ function SettingsPageDesktop() {
       <p className="text-center text-xs text-slate-300 dark:text-slate-600 pt-2">
         {translate("Version")}
       </p>
+
+      {(isSigningIn || loading) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {translate("Signing in...")}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -136,6 +136,7 @@ export default function SettingsPageMobile() {
   const { login, loading, error } = useLoginGoogle();
   const isWebView = /wv/i.test(navigator.userAgent) || !!window.Capacitor?.isNativePlatform?.();
   const [signInError, setSignInError] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [notifPermission, setNotifPermission] = useState(() =>
     "Notification" in window ? Notification.permission : "default"
@@ -168,30 +169,29 @@ export default function SettingsPageMobile() {
 
   const handleGoogleSignIn = async () => {
     setSignInError('');
-    if (isWebView) {
-      try {
+    setIsSigningIn(true);
+    try {
+      let firebaseIdToken;
+      if (isWebView) {
         const FirebaseAuth = window.Capacitor?.Plugins?.FirebaseAuthentication;
         if (!FirebaseAuth) throw new Error('Plugin not available. Run: npx cap sync');
         await FirebaseAuth.signInWithGoogle();
         const tokenResult = await FirebaseAuth.getIdToken();
-        const firebaseIdToken = tokenResult?.token;
-        if (firebaseIdToken) login(firebaseIdToken);
-        else throw new Error('No Firebase ID token from getIdToken()');
-      } catch (e) {
-        setSignInError(e?.message || String(e));
+        firebaseIdToken = tokenResult?.token;
+        if (!firebaseIdToken) throw new Error('No Firebase ID token from getIdToken()');
+      } else {
+        const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+        const { auth } = await import("@/firebase/firebase");
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        firebaseIdToken = await result.user.getIdToken();
       }
-      return;
-    }
-    
-    try {
-      const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
-      const { auth } = await import("@/firebase/firebase");
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const firebaseIdToken = await result.user.getIdToken();
       login(firebaseIdToken);
     } catch (e) {
-      setSignInError(e?.message || String(e));
+      const cancelled = e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request';
+      if (!cancelled) setSignInError(e?.message || String(e));
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -662,6 +662,17 @@ export default function SettingsPageMobile() {
           {translate("Version")}
         </p>
       </div>
+
+      {(isSigningIn || loading) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {translate("Signing in...")}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
