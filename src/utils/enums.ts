@@ -330,3 +330,10 @@ export enum QuotationStatus {
 }
 
 export const QUOTATION_OVERDUE_DAYS = 7;
+
+export const ROLE_TYPE = {
+  mosque: {
+    PenggaliKubur: "Penggali Kubur",
+    Petugas: "Petugas Pengurusan Jenazah",
+  }
+}

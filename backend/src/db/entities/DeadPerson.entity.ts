@@ -40,7 +40,13 @@ export class DeadPerson {
   grave?: Grave | null;
 
   @Column("varchar", { length: 255, nullable: true })
+  gravelot!: string | null;
+
+  @Column("varchar", { length: 255, nullable: true })
   biography?: string | null;
+
+  @Column("varchar", { length: 255, nullable: true })
+  deathcertificatephotourl?: string | null;
 
   @Column("varchar", { length: 255, nullable: true })
   photourl?: string | null;

@@ -113,7 +113,7 @@ export default function JenazahEmergency() {
   }, [displayedCount, displayMosques.length]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 space-y-3 pb-2">
+    <div className="min-h-screen space-y-3 pb-2">
       <BackNavigation
         title={translate("Jenazah Emergency") || "Kecemasan Jenazah"}
       />

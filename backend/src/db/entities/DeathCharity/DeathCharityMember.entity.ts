@@ -15,6 +15,7 @@ import { DeathCharityDependent } from "./DeathCharityDependent.entity.js";
 import { DeathCharityClaim } from "./DeathCharityClaim.entity.js";
 import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.js";
 import { Mosque } from "../Mosque.entity.js";
+import { Organisation } from "../Organisation.entity.js";
 
 @Entity("deathcharitymember")
 export class DeathCharityMember extends AuditableEntity {
@@ -51,6 +52,9 @@ export class DeathCharityMember extends AuditableEntity {
   @Column("text", { nullable: true })
   address?: string;
 
+  @Column("boolean", { default: false })
+  isdeceased!: boolean;
+
   @Column("boolean", { default: true })
   isactive!: boolean;
 
@@ -60,4 +64,7 @@ export class DeathCharityMember extends AuditableEntity {
   @ManyToOne(() => Mosque, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "mosqueId" })
   mosque?: Mosque | null;
+
+  @ManyToOne(() => Organisation, { nullable: true, onDelete: "SET NULL" })
+  organisation?: Organisation | null;
 }
