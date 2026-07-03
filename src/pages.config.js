@@ -78,6 +78,15 @@ import ManageQariahMember from '@/pages/Management/ManageQariahMember.jsx';
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
+import InventoryDashboard from '@/pages/Management/InventoryDashboard.jsx';
+import ManageInventoryItems from '@/pages/Management/ManageInventoryItems.jsx';
+import ManageInventoryPackages from '@/pages/Management/ManageInventoryPackages.jsx';
+import InventoryStockIn from '@/pages/Management/InventoryStockIn.jsx';
+import InventoryStockOut from '@/pages/Management/InventoryStockOut.jsx';
+import ManageInventoryAssets from '@/pages/Management/ManageInventoryAssets.jsx';
+import InventoryHistory from '@/pages/Management/InventoryHistory.jsx';
+import InventoryAudit from '@/pages/Management/InventoryAudit.jsx';
+import InventoryReports from '@/pages/Management/InventoryReports.jsx';
 
 import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
@@ -176,6 +185,15 @@ export const PAGES = {
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ManageQuotations": ManageQuotations,
+    "InventoryDashboard": InventoryDashboard,
+    "ManageInventoryItems": ManageInventoryItems,
+    "ManageInventoryPackages": ManageInventoryPackages,
+    "InventoryStockIn": InventoryStockIn,
+    "InventoryStockOut": InventoryStockOut,
+    "ManageInventoryAssets": ManageInventoryAssets,
+    "InventoryHistory": InventoryHistory,
+    "InventoryAudit": InventoryAudit,
+    "InventoryReports": InventoryReports,
 
     "ManagePaymentDistribution": ManagePaymentDistribution,
     "ManagePaymentFields": ManagePaymentFields,

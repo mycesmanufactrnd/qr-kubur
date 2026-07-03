@@ -85,3 +85,95 @@ export enum OnlineTransactionStatus {
 
 export type EntityNameGoogleUserRecord = "tahlilrequest" | "donation" | "quotation" | "deathcharity"
 
+// ─── Inventory Module ────────────────────────────────────────────────────────
+
+export enum InventoryItemCategory {
+  KAFAN = "Kafan",
+  MEDICAL = "Medical",
+  CLEANING = "Cleaning",
+  EQUIPMENT = "Equipment",
+  CONSUMABLE = "Consumable",
+  OTHER = "Other",
+}
+
+export enum InventoryItemType {
+  ONE_TIME = "CONSUMABLE",
+  REUSABLE = "REUSABLE",
+}
+
+export enum InventoryUnitType {
+  PCS = "pcs",
+  SET = "set",
+  BOX = "box",
+  UNIT = "unit",
+}
+
+export enum InventoryItemStatus {
+  AVAILABLE = "AVAILABLE",
+  LOW_STOCK = "LOW_STOCK",
+  OUT_OF_STOCK = "OUT_OF_STOCK",
+}
+
+export enum InventoryPackageGenderType {
+  MALE = "MALE",
+  FEMALE = "FEMALE",
+  ANY = "ANY",
+}
+
+export enum InventoryPackageAgeGroup {
+  BABY = "BABY",
+  CHILD = "CHILD",
+  ADULT = "ADULT",
+}
+
+export enum InventoryPackageHealthCondition {
+  NORMAL = "NORMAL",
+  INFECTIOUS = "INFECTIOUS",
+  SPECIAL = "SPECIAL",
+}
+
+export enum InventoryPackageBodySize {
+  SMALL = "SMALL",
+  MEDIUM = "MEDIUM",
+  LARGE = "LARGE",
+}
+
+export enum InventoryAssetStatus {
+  AVAILABLE = "AVAILABLE",
+  IN_USE = "IN_USE",
+  MAINTENANCE = "MAINTENANCE",
+  MISSING = "MISSING",
+}
+
+export enum InventoryAssetCondition {
+  GOOD = "GOOD",
+  DAMAGED = "DAMAGED",
+  MAINTENANCE = "MAINTENANCE",
+  MISSING = "MISSING",
+}
+
+export enum InventoryTransactionType {
+  STOCK_IN = "STOCK_IN",
+  STOCK_OUT = "STOCK_OUT",
+  RETURN = "RETURN",
+  ADJUSTMENT = "ADJUSTMENT",
+}
+
+export enum InventoryTransactionSource {
+  MANUAL = "MANUAL",
+  JENAZAH_MODULE = "JENAZAH_MODULE",
+  RETURN = "RETURN",
+  SYSTEM = "SYSTEM",
+}
+
+export enum CheckSessionStatus {
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+}
+
+export enum CheckDetailResult {
+  MATCH = "MATCH",
+  MISSING = "MISSING",
+  OVER_COUNT = "OVER_COUNT",
+}
+

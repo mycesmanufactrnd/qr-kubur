@@ -32,6 +32,15 @@ import {
   LayoutDashboard,
   CreditCard,
   Building,
+  BarChart3,
+  Package,
+  Boxes,
+  TrendingUp,
+  TrendingDown,
+  Wrench,
+  History,
+  ClipboardCheck,
+  FileBarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,6 +165,51 @@ function LayoutContent({ children, currentPageName }) {
             name: translate("Manage Dead Person"),
             icon: UserCheck,
             page: "ManageDeadPersons",
+          },
+          {
+            name: translate("Inventory"),
+            icon: BarChart3,
+            page: "InventoryDashboard",
+          },
+          {
+            name: translate("Inventory Items"),
+            icon: Package,
+            page: "ManageInventoryItems",
+          },
+          {
+            name: translate("Inventory Packages"),
+            icon: Boxes,
+            page: "ManageInventoryPackages",
+          },
+          {
+            name: translate("Stock In"),
+            icon: TrendingUp,
+            page: "InventoryStockIn",
+          },
+          {
+            name: translate("Stock Out"),
+            icon: TrendingDown,
+            page: "InventoryStockOut",
+          },
+          {
+            name: translate("Assets"),
+            icon: Wrench,
+            page: "ManageInventoryAssets",
+          },
+          {
+            name: translate("Tx History"),
+            icon: History,
+            page: "InventoryHistory",
+          },
+          {
+            name: translate("Stock Audit"),
+            icon: ClipboardCheck,
+            page: "InventoryAudit",
+          },
+          {
+            name: translate("Inv. Reports"),
+            icon: FileBarChart2,
+            page: "InventoryReports",
           },
         ]
       : []),

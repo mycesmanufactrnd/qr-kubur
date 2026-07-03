@@ -41,6 +41,11 @@ import { ganttchartRouter } from "./ganttchartRouter.js";
 import { paymentComparisonRouter } from "./paymentComparisonRouter.js";
 import { financialReportRouter } from "./financialReportRouter.js";
 import { collectionTreeRouter } from "./collectionTreeRouter.js";
+import { inventoryItemRouter } from "./inventoryItemRouter.js";
+import { inventoryPackageRouter } from "./inventoryPackageRouter.js";
+import { inventoryTransactionRouter } from "./inventoryTransactionRouter.js";
+import { inventoryAssetRouter } from "./inventoryAssetRouter.js";
+import { inventoryAuditRouter } from "./inventoryAuditRouter.js";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -84,6 +89,11 @@ export const appRouter = trpcRouter({
   paymentComparison: paymentComparisonRouter,
   financialReport: financialReportRouter,
   collectionTree: collectionTreeRouter,
+  inventoryItem: inventoryItemRouter,
+  inventoryPackage: inventoryPackageRouter,
+  inventoryTransaction: inventoryTransactionRouter,
+  inventoryAsset: inventoryAssetRouter,
+  inventoryAudit: inventoryAuditRouter,
 });
 
 export type AppRouter = typeof appRouter;
