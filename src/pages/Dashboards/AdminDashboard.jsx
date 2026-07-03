@@ -25,6 +25,7 @@ import {
   ClipboardList,
   BarChart,
   Menu,
+  Package,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -320,6 +321,15 @@ function AdminDashboardDesktop() {
                     >
                       <BarChart className="w-4 h-4" />
                       {translate("Statistics")}
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl("InventoryDashboard")}>
+                    <Button
+                      variant="outline"
+                      className="gap-2 border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"
+                    >
+                      <Package className="w-4 h-4" />
+                      {translate("Inventory")}
                     </Button>
                   </Link>
                   <Link to={createPageUrl("FinancialReports")}>
