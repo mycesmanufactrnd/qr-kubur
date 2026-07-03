@@ -117,7 +117,7 @@ export const inventoryItemRouter = router({
 
       const status = computeItemStatus(
         input.current_quantity ?? 0,
-        input.minimum_stock_level ?? 0,
+        input.minimum_level ?? 0,
       );
 
       const item = repo.create({
@@ -143,7 +143,7 @@ export const inventoryItemRouter = router({
       const newQty =
         cleanedInput.current_quantity ?? item.current_quantity;
       const newMin =
-        cleanedInput.minimum_stock_level ?? item.minimum_stock_level;
+        cleanedInput.minimum_level ?? item.minimum_level;
       cleanedInput.status = computeItemStatus(newQty, newMin);
 
       repo.merge(item, cleanedInput);

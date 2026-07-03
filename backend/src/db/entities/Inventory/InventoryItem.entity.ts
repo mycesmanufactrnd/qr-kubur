@@ -25,8 +25,8 @@ export class InventoryItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column("varchar", { length: 50, unique: true })
-  item_code!: string;
+  @Column("varchar", { length: 50, unique: true, nullable: true })
+  item_code?: string | null;
 
   @Column("varchar", { length: 255 })
   item_name!: string;
@@ -55,13 +55,13 @@ export class InventoryItem {
   current_quantity!: number;
 
   @Column("int", { default: 0 })
-  minimum_stock_level!: number;
+  minimum_level!: number;
 
-  @Column("int", { default: 0 })
-  maximum_stock_level!: number;
+  @Column("int", { nullable: true })
+  maximum_level?: number | null;
 
-  @Column("varchar", { length: 255, nullable: true })
-  storage_location?: string | null;
+  @Column("decimal", { precision: 10, scale: 2, nullable: true })
+  unit_cost?: number | null;
 
   @Index()
   @Column({
@@ -70,6 +70,9 @@ export class InventoryItem {
     default: InventoryItemStatus.AVAILABLE,
   })
   status!: InventoryItemStatus;
+
+  @Column("varchar", { length: 255, nullable: true })
+  location?: string | null;
 
   @Column("text", { nullable: true })
   description?: string | null;

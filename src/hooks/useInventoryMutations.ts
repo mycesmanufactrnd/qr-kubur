@@ -249,6 +249,7 @@ type GetInventoryAssetsPaginatedParams = {
   pageSize?: number;
   filterItemId?: number;
   filterStatus?: string;
+  filterCondition?: string;
   filterAssetNumber?: string;
   sortField?: string;
   sortOrder?: 'ASC' | 'DESC';
@@ -259,6 +260,7 @@ export function useGetInventoryAssetsPaginated({
   pageSize,
   filterItemId,
   filterStatus,
+  filterCondition,
   filterAssetNumber,
   sortField,
   sortOrder,
@@ -266,7 +268,7 @@ export function useGetInventoryAssetsPaginated({
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } = trpc.inventoryAsset.getPaginated.useQuery(
-    { page, pageSize, filterItemId, filterStatus, filterAssetNumber, sortField, sortOrder },
+    { page, pageSize, filterItemId, filterStatus, filterCondition, filterAssetNumber, sortField, sortOrder },
     { enabled: hasAdminAccess },
   );
 

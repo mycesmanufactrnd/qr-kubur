@@ -20,8 +20,8 @@ export class InventoryAsset {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column("varchar", { length: 100, unique: true })
-  asset_number!: string;
+  @Column("varchar", { length: 100, unique: true, nullable: true })
+  asset_number?: string | null;
 
   @Index()
   @Column("integer")
@@ -59,6 +59,9 @@ export class InventoryAsset {
     default: InventoryAssetCondition.GOOD,
   })
   condition!: InventoryAssetCondition;
+
+  @Column("varchar", { length: 255, nullable: true })
+  assigned_to?: string | null;
 
   @Column("text", { nullable: true })
   notes?: string | null;

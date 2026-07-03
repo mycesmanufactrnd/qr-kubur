@@ -23,10 +23,18 @@ import {
   XCircle,
   Wrench,
   ArrowRight,
+  ArrowUpRight,
   TrendingDown,
   TrendingUp,
   RotateCcw,
   SlidersHorizontal,
+  Boxes,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  History,
+  ClipboardCheck,
+  BarChart3,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -169,7 +177,46 @@ export default function InventoryDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Quick Actions */}
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+            <CardTitle className="text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              {translate("Quick Actions")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              {[
+                { label: translate("Manage Items"),    page: "ManageInventoryItems",    icon: Package,         color: "blue" },
+                { label: translate("Manage Assets"),   page: "ManageInventoryAssets",   icon: Wrench,          color: "purple" },
+                { label: translate("Manage Packages"), page: "ManageInventoryPackages", icon: Boxes,           color: "indigo" },
+                { label: translate("Stock In"),        page: "InventoryStockIn",        icon: ArrowDownToLine, color: "green" },
+                { label: translate("Stock Out"),       page: "InventoryStockOut",       icon: ArrowUpFromLine, color: "red" },
+                { label: translate("History"),         page: "InventoryHistory",        icon: History,         color: "orange" },
+                { label: translate("Audit"),           page: "InventoryAudit",          icon: ClipboardCheck,  color: "teal" },
+                { label: translate("Reports"),         page: "InventoryReports",        icon: BarChart3,       color: "pink" },
+              ].map((action, i) => (
+                <Link key={i} to={createPageUrl(action.page)}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
+                  >
+                    <action.icon className={`w-4 h-4 mr-3 text-${action.color}-600 group-hover:scale-110 transition-transform`} />
+                    <span className="text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
+                      {action.label}
+                    </span>
+                    <ArrowUpRight className="w-4 h-4 ml-auto text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Button>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Recent Transactions */}
         <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-3">

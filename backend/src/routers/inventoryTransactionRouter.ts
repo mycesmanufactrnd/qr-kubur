@@ -118,7 +118,7 @@ export const inventoryTransactionRouter = router({
 
         const beforeQty = item.current_quantity;
         const afterQty = beforeQty + quantity;
-        const newStatus = computeItemStatus(afterQty, item.minimum_stock_level);
+        const newStatus = computeItemStatus(afterQty, item.minimum_level);
 
         await manager.update(InventoryItem, itemId, {
           current_quantity: afterQty,
@@ -161,7 +161,7 @@ export const inventoryTransactionRouter = router({
 
         const beforeQty = item.current_quantity;
         const afterQty = beforeQty - quantity;
-        const newStatus = computeItemStatus(afterQty, item.minimum_stock_level);
+        const newStatus = computeItemStatus(afterQty, item.minimum_level);
 
         await manager.update(InventoryItem, itemId, {
           current_quantity: afterQty,
@@ -200,7 +200,7 @@ export const inventoryTransactionRouter = router({
 
         const beforeQty = item.current_quantity;
         const diff = new_quantity - beforeQty;
-        const newStatus = computeItemStatus(new_quantity, item.minimum_stock_level);
+        const newStatus = computeItemStatus(new_quantity, item.minimum_level);
 
         await manager.update(InventoryItem, itemId, {
           current_quantity: new_quantity,
@@ -266,7 +266,7 @@ export const inventoryTransactionRouter = router({
 
               const beforeQty = item.current_quantity;
               const afterQty = beforeQty - pi.quantity_required;
-              const newStatus = computeItemStatus(afterQty, item.minimum_stock_level);
+              const newStatus = computeItemStatus(afterQty, item.minimum_level);
 
               await manager.update(InventoryItem, pi.itemId, {
                 current_quantity: afterQty,

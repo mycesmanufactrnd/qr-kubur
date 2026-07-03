@@ -46,7 +46,6 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
-import { useCrudPermissions } from "@/components/PermissionsContext";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -276,8 +275,6 @@ function PackageItemsForm({ control, errors, allItems }) {
 
 function ManageInventoryPackagesDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("inventory-packages");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage      = parseInt(searchParams.get("page") || "1");
@@ -399,18 +396,8 @@ function ManageInventoryPackagesDesktop() {
     setPackageToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (loadingUser) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
-  if (!canView) return (
-    <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: translate("Inventory Dashboard"), page: "InventoryDashboard" },
-        { label: translate("Packages"), page: "ManageInventoryPackages" },
-      ]} />
-      <AccessDeniedComponent />
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -425,7 +412,7 @@ function ManageInventoryPackagesDesktop() {
           <Boxes className="w-6 h-6 text-indigo-600" />
           {translate("Inventory Packages")}
         </h1>
-        {canCreate && (
+        {hasAdminAccess && (
           <Button onClick={openAddDialog} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add Package")}
@@ -517,12 +504,12 @@ function ManageInventoryPackagesDesktop() {
                     </TableCell>
                     <TableCell className="text-center">{statusBadge(pkg.status)}</TableCell>
                     <TableCell className="text-center">
-                      {canEdit && (
+                      {hasAdminAccess && (
                         <Button variant="ghost" size="sm" onClick={() => openEditDialog(pkg)}>
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
-                      {canDelete && (
+                      {hasAdminAccess && (
                         <Button variant="ghost" size="sm" onClick={() => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}>
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
@@ -607,8 +594,6 @@ function ManageInventoryPackagesDesktop() {
 
 function MobileManageInventoryPackages() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("inventory-packages");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
@@ -668,8 +653,8 @@ function MobileManageInventoryPackages() {
     setPackageToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
+  if (loadingUser) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 p-4">
@@ -683,7 +668,7 @@ function MobileManageInventoryPackages() {
           <Boxes className="w-5 h-5 text-indigo-600" />
           {translate("Packages")}
         </h1>
-        {canCreate && (
+        {hasAdminAccess && (
           <Button size="sm" onClick={openAddDialog} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Plus className="w-4 h-4" />
           </Button>
@@ -715,12 +700,12 @@ function MobileManageInventoryPackages() {
                     </div>
                   </div>
                   <div className="flex gap-1 ml-2">
-                    {canEdit && (
+                    {hasAdminAccess && (
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(pkg)}>
                         <Edit className="w-4 h-4" />
                       </Button>
                     )}
-                    {canDelete && (
+                    {hasAdminAccess && (
                       <Button variant="ghost" size="sm" onClick={() => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}>
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>

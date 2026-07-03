@@ -12,7 +12,6 @@ import {
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
-import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +42,6 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
-import { useCrudPermissions } from "@/components/PermissionsContext";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -79,10 +77,11 @@ const statusOptions = [
 ];
 
 const defaultAssetField = {
-  asset_number: "",
   itemId: "",
   current_status: InventoryAssetStatus.AVAILABLE,
   condition: InventoryAssetCondition.GOOD,
+  assigned_to: "",
+  last_used_date: "",
   notes: "",
 };
 
@@ -131,6 +130,78 @@ function SortIcon({ field, current, order }) {
   return order === "ASC" ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />;
 }
 
+// ── Shared Asset Form ─────────────────────────────────────────────────────────
+
+function AssetForm({ control, handleSubmit, onSubmit, errors, isSubmitting, reusableItems, editingAsset, watch, onCancel }) {
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+      {/* Item dropdown — shows "CODE — Name" */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">
+          {translate("Item")} <span className="text-red-500">*</span>
+        </label>
+        <Controller
+          name="itemId"
+          control={control}
+          rules={{ required: translate("Item diperlukan") }}
+          render={({ field }) => (
+            <Select
+              value={String(field.value || "")}
+              onValueChange={(val) => field.onChange(Number(val))}
+              disabled={!!editingAsset}
+            >
+              <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                <SelectValue placeholder={translate("Select reusable item")} />
+              </SelectTrigger>
+              <SelectContent>
+                {reusableItems.map((item) => (
+                  <SelectItem key={item.id} value={String(item.id)}>
+                    {item.item_code ? `${item.item_code} — ${item.item_name}` : item.item_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {errors.itemId && <p className="text-xs text-red-500">{errors.itemId.message}</p>}
+        {editingAsset && <p className="text-xs text-gray-400">{translate("Item cannot be changed after creation")}</p>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <SelectForm name="current_status" control={control} label={translate("Status")} options={statusOptions} required errors={errors} />
+        <SelectForm name="condition" control={control} label={translate("Condition")} options={conditionOptions} required errors={errors} />
+      </div>
+
+      <TextInputForm name="assigned_to" control={control} label={translate("Assigned To")} placeholder={translate("Person or department")} errors={errors} />
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">{translate("Last Used Date")}</label>
+        <Controller
+          name="last_used_date"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              type="date"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            />
+          )}
+        />
+      </div>
+
+      <TextInputForm name="notes" control={control} label={translate("Notes")} placeholder={translate("Optional")} errors={errors} />
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>{translate("Cancel")}</Button>
+        <Button type="submit" disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700 text-white">
+          {isSubmitting ? translate("Saving...") : editingAsset ? translate("Update") : translate("Create")}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
 export default function ManageInventoryAssets() {
   const isNarrow = useIsNarrow();
   return isNarrow ? <MobileManageInventoryAssets /> : <ManageInventoryAssetsDesktop />;
@@ -140,27 +211,25 @@ export default function ManageInventoryAssets() {
 
 function ManageInventoryAssetsDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("inventory-assets");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage        = parseInt(searchParams.get("page") || "1");
-  const urlAssetNum    = searchParams.get("assetNum") || "";
   const urlStatus      = searchParams.get("status") || "all";
+  const urlCondition   = searchParams.get("condition") || "all";
   const urlItemId      = searchParams.get("itemId") || "all";
   const urlSortField   = searchParams.get("sortField") || "";
   const urlSortOrder   = searchParams.get("sortOrder") || "";
 
-  const [tempAssetNum, setTempAssetNum] = useState(urlAssetNum);
-  const [tempStatus, setTempStatus]     = useState(urlStatus);
-  const [tempItemId, setTempItemId]     = useState(urlItemId);
+  const [tempStatus, setTempStatus]       = useState(urlStatus);
+  const [tempCondition, setTempCondition] = useState(urlCondition);
+  const [tempItemId, setTempItemId]       = useState(urlItemId);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
-    setTempAssetNum(urlAssetNum);
     setTempStatus(urlStatus);
+    setTempCondition(urlCondition);
     setTempItemId(urlItemId);
-  }, [urlAssetNum, urlStatus, urlItemId]);
+  }, [urlStatus, urlCondition, urlItemId]);
 
   const [isDialogOpen, setIsDialogOpen]         = useState(false);
   const [editingAsset, setEditingAsset]         = useState(null);
@@ -177,8 +246,8 @@ function ManageInventoryAssetsDesktop() {
   const { assetsList, total, totalPages, isLoading } = useGetInventoryAssetsPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    filterAssetNumber: urlAssetNum || undefined,
     filterStatus: urlStatus !== "all" ? urlStatus : undefined,
+    filterCondition: urlCondition !== "all" ? urlCondition : undefined,
     filterItemId: urlItemId !== "all" ? Number(urlItemId) : undefined,
     sortField: urlSortField || undefined,
     sortOrder: urlSortOrder || undefined,
@@ -190,16 +259,16 @@ function ManageInventoryAssetsDesktop() {
     setSearchParams((p) => {
       const np = new URLSearchParams(p);
       np.set("page", "1");
-      tempAssetNum ? np.set("assetNum", tempAssetNum) : np.delete("assetNum");
       tempStatus !== "all" ? np.set("status", tempStatus) : np.delete("status");
+      tempCondition !== "all" ? np.set("condition", tempCondition) : np.delete("condition");
       tempItemId !== "all" ? np.set("itemId", tempItemId) : np.delete("itemId");
       return np;
     });
   };
 
   const handleReset = () => {
-    setTempAssetNum(""); setTempStatus("all"); setTempItemId("all");
-    setSearchParams((p) => { const np = new URLSearchParams(p); ["assetNum","status","itemId","page"].forEach((k) => np.delete(k)); return np; });
+    setTempStatus("all"); setTempCondition("all"); setTempItemId("all");
+    setSearchParams((p) => { const np = new URLSearchParams(p); ["status","condition","itemId","page"].forEach((k) => np.delete(k)); return np; });
   };
 
   const handleSort = (field) => {
@@ -215,17 +284,24 @@ function ManageInventoryAssetsDesktop() {
   const openEditDialog = (asset) => {
     setEditingAsset(asset);
     reset({
-      asset_number: asset.asset_number,
       itemId: asset.itemId,
       current_status: asset.current_status,
       condition: asset.condition,
+      assigned_to: asset.assigned_to ?? "",
+      last_used_date: asset.last_used_date ? asset.last_used_date.slice(0, 10) : "",
       notes: asset.notes ?? "",
     });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
-    const payload = { ...data, itemId: Number(data.itemId), notes: data.notes || undefined };
+    const payload = {
+      ...data,
+      itemId: Number(data.itemId),
+      assigned_to: data.assigned_to || null,
+      last_used_date: data.last_used_date || null,
+      notes: data.notes || undefined,
+    };
     if (editingAsset) {
       await updateAsset.mutateAsync({ id: editingAsset.id, data: payload }, { onSuccess: () => setIsDialogOpen(false) });
     } else {
@@ -244,18 +320,8 @@ function ManageInventoryAssetsDesktop() {
     }
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (loadingUser) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
-  if (!canView) return (
-    <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: translate("Inventory Dashboard"), page: "InventoryDashboard" },
-        { label: translate("Assets"), page: "ManageInventoryAssets" },
-      ]} />
-      <AccessDeniedComponent />
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -270,7 +336,7 @@ function ManageInventoryAssetsDesktop() {
           <Wrench className="w-6 h-6 text-purple-600" />
           {translate("Reusable Assets")}
         </h1>
-        {canCreate && (
+        {hasAdminAccess && (
           <Button onClick={openAddDialog} className="bg-purple-600 hover:bg-purple-700 text-white">
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add Asset")}
@@ -278,51 +344,51 @@ function ManageInventoryAssetsDesktop() {
         )}
       </div>
 
-      <SearchBar
-        value={tempAssetNum}
-        onChange={setTempAssetNum}
-        onSearch={handleSearch}
-        onReset={handleReset}
-        placeholder={translate("Asset number")}
-        buttonClassName="bg-purple-600 text-white"
-        filtersClassName="grid grid-cols-2 sm:grid-cols-2 gap-3"
-      >
-        {/* Item filter */}
-        <Select value={tempItemId} onValueChange={setTempItemId}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("All Items")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translate("All Items")}</SelectItem>
-            {reusableItems.map((i) => (
-              <SelectItem key={i.id} value={String(i.id)}>{i.item_name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Status filter */}
-        <Select value={tempStatus} onValueChange={setTempStatus}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("Status")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translate("All Status")}</SelectItem>
-            {statusOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </SearchBar>
+      <Card className="border-0 shadow-md dark:bg-slate-800">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Select value={tempItemId} onValueChange={setTempItemId}>
+              <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
+                <SelectValue placeholder={translate("All Items")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translate("All Items")}</SelectItem>
+                {reusableItems.map((i) => (
+                  <SelectItem key={i.id} value={String(i.id)}>{i.item_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={tempStatus} onValueChange={setTempStatus}>
+              <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
+                <SelectValue placeholder={translate("Status")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translate("All Status")}</SelectItem>
+                {statusOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={tempCondition} onValueChange={setTempCondition}>
+              <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
+                <SelectValue placeholder={translate("Condition")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translate("All Conditions")}</SelectItem>
+                {conditionOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button onClick={handleSearch} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">{translate("Search")}</Button>
+              <Button variant="outline" onClick={handleReset} className="flex-1">{translate("Reset")}</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("asset_number")}>
-                  <span className="flex items-center">
-                    {translate("Asset No.")}
-                    <SortIcon field="asset_number" current={urlSortField} order={urlSortOrder} />
-                  </span>
-                </TableHead>
                 <TableHead>{translate("Item")}</TableHead>
                 <TableHead className="text-center cursor-pointer select-none" onClick={() => handleSort("current_status")}>
                   <span className="flex items-center justify-center">
@@ -343,13 +409,12 @@ function ManageInventoryAssetsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={7} />
+                <InlineLoadingComponent isTable colSpan={6} />
               ) : assetsList.length === 0 ? (
-                <NoDataTableComponent colSpan={7} />
+                <NoDataTableComponent colSpan={6} />
               ) : (
                 assetsList.map((asset) => (
                   <TableRow key={asset.id}>
-                    <TableCell className="font-medium font-mono">{asset.asset_number}</TableCell>
                     <TableCell>{asset.item?.item_name ?? "—"}</TableCell>
                     <TableCell className="text-center">{statusBadge(asset.current_status)}</TableCell>
                     <TableCell className="text-center">{conditionBadge(asset.condition)}</TableCell>
@@ -362,12 +427,12 @@ function ManageInventoryAssetsDesktop() {
                       {asset.notes || "—"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {canEdit && (
+                      {hasAdminAccess && (
                         <Button variant="ghost" size="sm" onClick={() => openEditDialog(asset)}>
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
-                      {canDelete && (
+                      {hasAdminAccess && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -406,59 +471,16 @@ function ManageInventoryAssetsDesktop() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm name="asset_number" control={control} label={translate("Asset Number")} required errors={errors} />
-
-            {/* Item select */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                {translate("Item")} <span className="text-red-500">*</span>
-              </label>
-              <Controller
-                name="itemId"
-                control={control}
-                rules={{ required: translate("Item diperlukan") }}
-                render={({ field }) => (
-                  <Select
-                    value={String(field.value || "")}
-                    onValueChange={(val) => field.onChange(Number(val))}
-                    disabled={!!editingAsset}
-                  >
-                    <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700">
-                      <SelectValue placeholder={translate("Select reusable item")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {reusableItems.map((item) => (
-                        <SelectItem key={item.id} value={String(item.id)}>
-                          {item.item_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.itemId && <p className="text-xs text-red-500">{errors.itemId.message}</p>}
-              {editingAsset && (
-                <p className="text-xs text-gray-400">{translate("Item cannot be changed after creation")}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <SelectForm name="current_status" control={control} label={translate("Status")} options={statusOptions} required errors={errors} />
-              <SelectForm name="condition" control={control} label={translate("Condition")} options={conditionOptions} required errors={errors} />
-            </div>
-
-            <TextInputForm name="notes" control={control} label={translate("Notes")} placeholder={translate("Optional")} errors={errors} />
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                {translate("Cancel")}
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700 text-white">
-                {isSubmitting ? translate("Saving...") : editingAsset ? translate("Update") : translate("Create")}
-              </Button>
-            </DialogFooter>
-          </form>
+          <AssetForm
+            control={control}
+            handleSubmit={handleSubmit}
+            onSubmit={onSubmit}
+            errors={errors}
+            isSubmitting={isSubmitting}
+            reusableItems={reusableItems}
+            editingAsset={editingAsset}
+            onCancel={() => setIsDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -481,8 +503,6 @@ function ManageInventoryAssetsDesktop() {
 
 function MobileManageInventoryAssets() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("inventory-assets");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage    = parseInt(searchParams.get("page") || "1");
@@ -521,12 +541,25 @@ function MobileManageInventoryAssets() {
   const openAddDialog = () => { setEditingAsset(null); reset(defaultAssetField); setIsDialogOpen(true); };
   const openEditDialog = (asset) => {
     setEditingAsset(asset);
-    reset({ asset_number: asset.asset_number, itemId: asset.itemId, current_status: asset.current_status, condition: asset.condition, notes: asset.notes ?? "" });
+    reset({
+      itemId: asset.itemId,
+      current_status: asset.current_status,
+      condition: asset.condition,
+      assigned_to: asset.assigned_to ?? "",
+      last_used_date: asset.last_used_date ? asset.last_used_date.slice(0, 10) : "",
+      notes: asset.notes ?? "",
+    });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
-    const payload = { ...data, itemId: Number(data.itemId), notes: data.notes || undefined };
+    const payload = {
+      ...data,
+      itemId: Number(data.itemId),
+      assigned_to: data.assigned_to || null,
+      last_used_date: data.last_used_date || null,
+      notes: data.notes || undefined,
+    };
     if (editingAsset) {
       await updateAsset.mutateAsync({ id: editingAsset.id, data: payload }, { onSuccess: () => setIsDialogOpen(false) });
     } else {
@@ -541,8 +574,8 @@ function MobileManageInventoryAssets() {
     setAssetToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
+  if (loadingUser) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 p-4">
@@ -556,7 +589,7 @@ function MobileManageInventoryAssets() {
           <Wrench className="w-5 h-5 text-purple-600" />
           {translate("Assets")}
         </h1>
-        {canCreate && (
+        {hasAdminAccess && (
           <Button size="sm" onClick={openAddDialog} className="bg-purple-600 hover:bg-purple-700 text-white">
             <Plus className="w-4 h-4" />
           </Button>
@@ -589,12 +622,12 @@ function MobileManageInventoryAssets() {
                     )}
                   </div>
                   <div className="flex gap-1 ml-2">
-                    {canEdit && (
+                    {hasAdminAccess && (
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(asset)}>
                         <Edit className="w-4 h-4" />
                       </Button>
                     )}
-                    {canDelete && (
+                    {hasAdminAccess && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -619,39 +652,16 @@ function MobileManageInventoryAssets() {
           <DialogHeader>
             <DialogTitle>{editingAsset ? translate("Edit Asset") : translate("Add Asset")}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm name="asset_number" control={control} label={translate("Asset Number")} required errors={errors} />
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">{translate("Item")} <span className="text-red-500">*</span></label>
-              <Controller
-                name="itemId"
-                control={control}
-                rules={{ required: translate("Item diperlukan") }}
-                render={({ field }) => (
-                  <Select value={String(field.value || "")} onValueChange={(val) => field.onChange(Number(val))} disabled={!!editingAsset}>
-                    <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700">
-                      <SelectValue placeholder={translate("Select reusable item")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {reusableItems.map((item) => (
-                        <SelectItem key={item.id} value={String(item.id)}>{item.item_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.itemId && <p className="text-xs text-red-500">{errors.itemId.message}</p>}
-            </div>
-            <SelectForm name="current_status" control={control} label={translate("Status")} options={statusOptions} required errors={errors} />
-            <SelectForm name="condition" control={control} label={translate("Condition")} options={conditionOptions} required errors={errors} />
-            <TextInputForm name="notes" control={control} label={translate("Notes")} placeholder={translate("Optional")} errors={errors} />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate("Cancel")}</Button>
-              <Button type="submit" disabled={isSubmitting} className="bg-purple-600 hover:bg-purple-700 text-white">
-                {isSubmitting ? translate("Saving...") : editingAsset ? translate("Update") : translate("Create")}
-              </Button>
-            </DialogFooter>
-          </form>
+          <AssetForm
+            control={control}
+            handleSubmit={handleSubmit}
+            onSubmit={onSubmit}
+            errors={errors}
+            isSubmitting={isSubmitting}
+            reusableItems={reusableItems}
+            editingAsset={editingAsset}
+            onCancel={() => setIsDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
 

@@ -88,12 +88,9 @@ export type EntityNameGoogleUserRecord = "tahlilrequest" | "donation" | "quotati
 // ─── Inventory Module ────────────────────────────────────────────────────────
 
 export enum InventoryItemCategory {
-  KAFAN = "Kafan",
-  MEDICAL = "Medical",
-  CLEANING = "Cleaning",
-  EQUIPMENT = "Equipment",
-  CONSUMABLE = "Consumable",
-  OTHER = "Other",
+  PERSEDIAAN_JENAZAH = "Persediaan Jenazah",
+  PEMBERSIHAN = "Pembersihan",
+  MEDICAL_ASET = "Medical & Aset",
 }
 
 export enum InventoryItemType {

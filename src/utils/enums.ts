@@ -334,12 +334,9 @@ export const QUOTATION_OVERDUE_DAYS = 7;
 // ─── Inventory Module ─────────────────────────────────────────────────────────
 
 export enum InventoryItemCategory {
-  KAFAN = "Kafan",
-  MEDICAL = "Medical",
-  CLEANING = "Cleaning",
-  EQUIPMENT = "Equipment",
-  CONSUMABLE = "Consumable",
-  OTHER = "Other",
+  PERSEDIAAN_JENAZAH = "Persediaan Jenazah",
+  PEMBERSIHAN = "Pembersihan",
+  MEDICAL_ASET = "Medical & Aset",
 }
 
 export enum InventoryItemType {

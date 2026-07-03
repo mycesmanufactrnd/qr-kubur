@@ -43,7 +43,6 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
-import { useCrudPermissions } from "@/components/PermissionsContext";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -64,21 +63,22 @@ import {
 const defaultItemField = {
   item_code: "",
   item_name: "",
-  category: InventoryItemCategory.KAFAN,
+  category: InventoryItemCategory.PERSEDIAAN_JENAZAH,
   item_type: InventoryItemType.ONE_TIME,
   unit_type: InventoryUnitType.PCS,
-  description: "",
   current_quantity: 0,
   minimum_level: 0,
-  maximum_level: null,
-  unit_cost: null,
+  location: "",
+  description: "",
 };
 
 const categoryOptions = Object.values(InventoryItemCategory).map((v) => ({ value: v, label: v }));
+
 const itemTypeOptions = [
-  { value: InventoryItemType.ONE_TIME,  label: translate("Consumable") },
-  { value: InventoryItemType.REUSABLE,  label: translate("Reusable")   },
+  { value: InventoryItemType.ONE_TIME, label: translate("Item Habis Guna") },
+  { value: InventoryItemType.REUSABLE, label: translate("Item Boleh Guna Semula") },
 ];
+
 const unitTypeOptions = Object.values(InventoryUnitType).map((v) => ({ value: v, label: v.toUpperCase() }));
 
 function statusBadge(status) {
@@ -92,6 +92,18 @@ function statusBadge(status) {
     default:
       return <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">{status}</span>;
   }
+}
+
+function typeBadge(item_type) {
+  return item_type === InventoryItemType.REUSABLE ? (
+    <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+      {translate("Item Boleh Guna Semula")}
+    </span>
+  ) : (
+    <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+      {translate("Item Habis Guna")}
+    </span>
+  );
 }
 
 function SortIcon({ field, current, order }) {
@@ -110,17 +122,15 @@ export default function ManageInventoryItems() {
 
 function ManageInventoryItemsDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("inventory-items");
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlPage       = parseInt(searchParams.get("page") || "1");
-  const urlName       = searchParams.get("name") || "";
-  const urlCategory   = searchParams.get("category") || "all";
-  const urlType       = searchParams.get("type") || "all";
-  const urlStatus     = searchParams.get("status") || "all";
-  const urlSortField  = searchParams.get("sortField") || "";
-  const urlSortOrder  = searchParams.get("sortOrder") || "";
+  const urlPage      = parseInt(searchParams.get("page") || "1");
+  const urlName      = searchParams.get("name") || "";
+  const urlCategory  = searchParams.get("category") || "all";
+  const urlType      = searchParams.get("type") || "all";
+  const urlStatus    = searchParams.get("status") || "all";
+  const urlSortField = searchParams.get("sortField") || "";
+  const urlSortOrder = searchParams.get("sortOrder") || "";
 
   const [tempName, setTempName]         = useState(urlName);
   const [tempCategory, setTempCategory] = useState(urlCategory);
@@ -135,10 +145,10 @@ function ManageInventoryItemsDesktop() {
     setTempStatus(urlStatus);
   }, [urlName, urlCategory, urlType, urlStatus]);
 
-  const [isDialogOpen, setIsDialogOpen]       = useState(false);
-  const [editingItem, setEditingItem]         = useState(null);
+  const [isDialogOpen, setIsDialogOpen]         = useState(false);
+  const [editingItem, setEditingItem]           = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete]       = useState(null);
+  const [itemToDelete, setItemToDelete]         = useState(null);
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultItemField,
@@ -161,10 +171,10 @@ function ManageInventoryItemsDesktop() {
     setSearchParams((p) => {
       const np = new URLSearchParams(p);
       np.set("page", "1");
-      tempName     ? np.set("name", tempName)         : np.delete("name");
+      tempName ? np.set("name", tempName) : np.delete("name");
       tempCategory !== "all" ? np.set("category", tempCategory) : np.delete("category");
-      tempType     !== "all" ? np.set("type", tempType)         : np.delete("type");
-      tempStatus   !== "all" ? np.set("status", tempStatus)     : np.delete("status");
+      tempType !== "all" ? np.set("type", tempType) : np.delete("type");
+      tempStatus !== "all" ? np.set("status", tempStatus) : np.delete("status");
       return np;
     });
   };
@@ -173,7 +183,7 @@ function ManageInventoryItemsDesktop() {
     setTempName(""); setTempCategory("all"); setTempType("all"); setTempStatus("all");
     setSearchParams((p) => {
       const np = new URLSearchParams(p);
-      ["name","category","type","status","page"].forEach((k) => np.delete(k));
+      ["name", "category", "type", "status", "page"].forEach((k) => np.delete(k));
       return np;
     });
   };
@@ -207,23 +217,24 @@ function ManageInventoryItemsDesktop() {
       category: item.category,
       item_type: item.item_type,
       unit_type: item.unit_type,
-      description: item.description ?? "",
       current_quantity: item.current_quantity,
       minimum_level: item.minimum_level,
-      maximum_level: item.maximum_level ?? null,
-      unit_cost: item.unit_cost ?? null,
+      location: item.location ?? "",
+      description: item.description ?? "",
     });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
     const payload = {
-      ...data,
+      item_code: data.item_code || undefined,
+      item_name: data.item_name,
+      category: data.category,
+      item_type: data.item_type,
+      unit_type: data.unit_type,
       current_quantity: Number(data.current_quantity),
       minimum_level: Number(data.minimum_level),
-      maximum_level: data.maximum_level !== null && data.maximum_level !== "" ? Number(data.maximum_level) : null,
-      unit_cost: data.unit_cost !== null && data.unit_cost !== "" ? Number(data.unit_cost) : null,
-      item_code: data.item_code || undefined,
+      location: data.location || undefined,
       description: data.description || undefined,
     };
 
@@ -244,18 +255,8 @@ function ManageInventoryItemsDesktop() {
     setItemToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  if (loadingUser) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
-  if (!canView) return (
-    <div className="space-y-6">
-      <Breadcrumb items={[
-        { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: translate("Inventory Dashboard"), page: "InventoryDashboard" },
-        { label: translate("Inventory Items"), page: "ManageInventoryItems" },
-      ]} />
-      <AccessDeniedComponent />
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -270,7 +271,7 @@ function ManageInventoryItemsDesktop() {
           <Package className="w-6 h-6 text-blue-600" />
           {translate("Inventory Items")}
         </h1>
-        {canCreate && (
+        {hasAdminAccess && (
           <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add Item")}
@@ -325,17 +326,17 @@ function ManageInventoryItemsDesktop() {
       </SearchBar>
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>{translate("Code")}</TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("item_name")}>
                   <span className="flex items-center">
                     {translate("Item Name")}
                     <SortIcon field="item_name" current={urlSortField} order={urlSortOrder} />
                   </span>
                 </TableHead>
-                <TableHead>{translate("Code")}</TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("category")}>
                   <span className="flex items-center">
                     {translate("Category")}
@@ -350,45 +351,43 @@ function ManageInventoryItemsDesktop() {
                   </span>
                 </TableHead>
                 <TableHead className="text-right">{translate("Min")}</TableHead>
+                <TableHead>{translate("Unit")}</TableHead>
                 <TableHead className="text-center cursor-pointer select-none" onClick={() => handleSort("status")}>
                   <span className="flex items-center justify-center">
                     {translate("Status")}
                     <SortIcon field="status" current={urlSortField} order={urlSortOrder} />
                   </span>
                 </TableHead>
+                <TableHead>{translate("Location")}</TableHead>
+                <TableHead>{translate("Description")}</TableHead>
                 <TableHead className="text-center">{translate("Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={8} />
+                <InlineLoadingComponent isTable colSpan={11} />
               ) : itemsList.length === 0 ? (
-                <NoDataTableComponent colSpan={8} />
+                <NoDataTableComponent colSpan={11} />
               ) : (
                 itemsList.map((item) => (
                   <TableRow key={item.id}>
+                    <TableCell className="text-gray-500 text-sm font-mono">{item.item_code || "—"}</TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
-                    <TableCell className="text-gray-500 text-sm">{item.item_code || "—"}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        item.item_type === InventoryItemType.REUSABLE
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-                      }`}>
-                        {item.item_type === InventoryItemType.REUSABLE ? translate("Reusable") : translate("Consumable")}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{item.current_quantity} {item.unit_type}</TableCell>
+                    <TableCell className="text-sm">{item.category}</TableCell>
+                    <TableCell>{typeBadge(item.item_type)}</TableCell>
+                    <TableCell className="text-right font-mono">{item.current_quantity}</TableCell>
                     <TableCell className="text-right font-mono text-gray-500">{item.minimum_level}</TableCell>
+                    <TableCell className="text-sm uppercase font-mono">{item.unit_type}</TableCell>
                     <TableCell className="text-center">{statusBadge(item.status)}</TableCell>
+                    <TableCell className="text-sm text-gray-600 dark:text-gray-400 max-w-[120px] truncate">{item.location || "—"}</TableCell>
+                    <TableCell className="text-sm text-gray-600 dark:text-gray-400 max-w-[160px] truncate">{item.description || "—"}</TableCell>
                     <TableCell className="text-center">
-                      {canEdit && (
+                      {hasAdminAccess && (
                         <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
-                      {canDelete && (
+                      {hasAdminAccess && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -472,7 +471,7 @@ function ManageInventoryItemsDesktop() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextInputForm
                 name="current_quantity"
                 control={control}
@@ -489,33 +488,23 @@ function ManageInventoryItemsDesktop() {
                 required
                 errors={errors}
               />
-              <TextInputForm
-                name="maximum_level"
-                control={control}
-                label={translate("Maximum Level")}
-                isNumber
-                placeholder={translate("Optional")}
-                errors={errors}
-              />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextInputForm
-                name="unit_cost"
-                control={control}
-                label={translate("Unit Cost (RM)")}
-                isNumber
-                placeholder={translate("Optional")}
-                errors={errors}
-              />
-              <TextInputForm
-                name="description"
-                control={control}
-                label={translate("Description")}
-                placeholder={translate("Optional")}
-                errors={errors}
-              />
-            </div>
+            <TextInputForm
+              name="location"
+              control={control}
+              label={translate("Location")}
+              placeholder={translate("Optional")}
+              errors={errors}
+            />
+
+            <TextInputForm
+              name="description"
+              control={control}
+              label={translate("Description")}
+              placeholder={translate("Optional")}
+              errors={errors}
+            />
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -549,12 +538,10 @@ function ManageInventoryItemsDesktop() {
 
 function MobileManageInventoryItems() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
-  const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("inventory-items");
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlPage  = parseInt(searchParams.get("page") || "1");
-  const urlName  = searchParams.get("name") || "";
+  const urlPage = parseInt(searchParams.get("page") || "1");
+  const urlName = searchParams.get("name") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [itemsPerPage] = useState(10);
@@ -577,23 +564,44 @@ function MobileManageInventoryItems() {
   const { createItem, updateItem, deleteItem } = useInventoryItemMutations();
 
   const handleSearch = () => {
-    setSearchParams((p) => { const n = new URLSearchParams(p); n.set("page","1"); tempName ? n.set("name", tempName) : n.delete("name"); return n; });
+    setSearchParams((p) => { const n = new URLSearchParams(p); n.set("page", "1"); tempName ? n.set("name", tempName) : n.delete("name"); return n; });
   };
 
   const handleReset = () => {
     setTempName("");
-    setSearchParams((p) => { const n = new URLSearchParams(p); ["name","page"].forEach((k) => n.delete(k)); return n; });
+    setSearchParams((p) => { const n = new URLSearchParams(p); ["name", "page"].forEach((k) => n.delete(k)); return n; });
   };
 
   const openAddDialog = () => { setEditingItem(null); reset(defaultItemField); setIsDialogOpen(true); };
+
   const openEditDialog = (item) => {
     setEditingItem(item);
-    reset({ item_code: item.item_code ?? "", item_name: item.item_name, category: item.category, item_type: item.item_type, unit_type: item.unit_type, description: item.description ?? "", current_quantity: item.current_quantity, minimum_level: item.minimum_level, maximum_level: item.maximum_level ?? null, unit_cost: item.unit_cost ?? null });
+    reset({
+      item_code: item.item_code ?? "",
+      item_name: item.item_name,
+      category: item.category,
+      item_type: item.item_type,
+      unit_type: item.unit_type,
+      current_quantity: item.current_quantity,
+      minimum_level: item.minimum_level,
+      location: item.location ?? "",
+      description: item.description ?? "",
+    });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
-    const payload = { ...data, current_quantity: Number(data.current_quantity), minimum_level: Number(data.minimum_level), maximum_level: data.maximum_level !== null && data.maximum_level !== "" ? Number(data.maximum_level) : null, unit_cost: data.unit_cost !== null && data.unit_cost !== "" ? Number(data.unit_cost) : null, item_code: data.item_code || undefined, description: data.description || undefined };
+    const payload = {
+      item_code: data.item_code || undefined,
+      item_name: data.item_name,
+      category: data.category,
+      item_type: data.item_type,
+      unit_type: data.unit_type,
+      current_quantity: Number(data.current_quantity),
+      minimum_level: Number(data.minimum_level),
+      location: data.location || undefined,
+      description: data.description || undefined,
+    };
     if (editingItem) {
       await updateItem.mutateAsync({ id: editingItem.id, data: payload }, { onSuccess: () => setIsDialogOpen(false) });
     } else {
@@ -608,8 +616,8 @@ function MobileManageInventoryItems() {
     setItemToDelete(null);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
-  if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
+  if (loadingUser) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 p-4">
@@ -623,7 +631,7 @@ function MobileManageInventoryItems() {
           <Package className="w-5 h-5 text-blue-600" />
           {translate("Inventory Items")}
         </h1>
-        {canCreate && (
+        {hasAdminAccess && (
           <Button size="sm" onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="w-4 h-4" />
           </Button>
@@ -645,18 +653,20 @@ function MobileManageInventoryItems() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 dark:text-white truncate">{item.item_name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{item.category} · {item.item_code || "—"}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{item.item_type === InventoryItemType.REUSABLE ? translate("Item Boleh Guna Semula") : translate("Item Habis Guna")}</p>
+                    {item.location && <p className="text-xs text-gray-500 mt-0.5">{item.location}</p>}
                     <div className="flex items-center gap-2 mt-2">
                       {statusBadge(item.status)}
                       <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">{item.current_quantity} {item.unit_type}</span>
                     </div>
                   </div>
                   <div className="flex gap-1 ml-2">
-                    {canEdit && (
+                    {hasAdminAccess && (
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}>
                         <Edit className="w-4 h-4" />
                       </Button>
                     )}
-                    {canDelete && (
+                    {hasAdminAccess && (
                       <Button variant="ghost" size="sm" onClick={() => { setItemToDelete(item); setDeleteDialogOpen(true); }}>
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
@@ -691,6 +701,7 @@ function MobileManageInventoryItems() {
             <SelectForm name="unit_type" control={control} label={translate("Unit")} options={unitTypeOptions} required errors={errors} />
             <TextInputForm name="current_quantity" control={control} label={translate("Current Quantity")} isNumber required errors={errors} />
             <TextInputForm name="minimum_level" control={control} label={translate("Minimum Level")} isNumber required errors={errors} />
+            <TextInputForm name="location" control={control} label={translate("Location")} placeholder={translate("Optional")} errors={errors} />
             <TextInputForm name="description" control={control} label={translate("Description")} placeholder={translate("Optional")} errors={errors} />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>{translate("Cancel")}</Button>

@@ -4,7 +4,7 @@ import { InventoryAsset } from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { inventoryAssetSchema } from "../schemas/inventoryAssetSchema.js";
-import { InventoryAssetStatus } from "../db/enums.js";
+import { InventoryAssetCondition, InventoryAssetStatus } from "../db/enums.js";
 import { TRPCError } from "@trpc/server";
 
 const ALLOWED_SORT_FIELDS: Record<string, string> = {
@@ -24,6 +24,7 @@ export const inventoryAssetRouter = router({
         pageSize: z.number().min(1).default(10),
         filterItemId: z.number().int().positive().optional(),
         filterStatus: z.nativeEnum(InventoryAssetStatus).optional(),
+        filterCondition: z.nativeEnum(InventoryAssetCondition).optional(),
         filterAssetNumber: z.string().optional(),
         sortField: z.string().optional(),
         sortOrder: z.enum(["ASC", "DESC"]).optional(),
@@ -35,6 +36,7 @@ export const inventoryAssetRouter = router({
         pageSize,
         filterItemId,
         filterStatus,
+        filterCondition,
         filterAssetNumber,
         sortField,
         sortOrder,
@@ -54,6 +56,10 @@ export const inventoryAssetRouter = router({
         query.andWhere("asset.current_status = :status", {
           status: filterStatus,
         });
+      }
+
+      if (filterCondition) {
+        query.andWhere("asset.condition = :condition", { condition: filterCondition });
       }
 
       if (filterAssetNumber) {
