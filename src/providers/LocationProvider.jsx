@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { booleanPointInPolygon } from '@turf/turf';
 import { getMalaysiaGeo } from '@/utils/helpers';

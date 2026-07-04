@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import MobileManageQariahMember from "@/pages/Mobile/ManageQariahMember";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -92,6 +94,11 @@ const DEFAULT_FORM = {
 };
 
 export default function ManageQariahMember() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? <MobileManageQariahMember /> : <ManageQariahMemberDesktop />;
+}
+
+function ManageQariahMemberDesktop() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
   const {

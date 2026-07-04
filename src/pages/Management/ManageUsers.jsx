@@ -2,12 +2,16 @@
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import ManageUsersMobile from "@/pages/Mobile/ManageUsers";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Users, Plus, Edit, Trash2, Search, ShieldCheck } from "lucide-react";
+import { Users, Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm";
+import SearchBar from "@/components/forms/SearchBar";
 import {
   Select,
   SelectContent,
@@ -21,6 +25,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
@@ -28,6 +40,8 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import InlineLoadingComponent from "@/components/InlineLoadingComponent";
+import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useAdminAccess } from "@/utils/auth";
 import { validateFields } from "@/utils/validations";
 import { ROLE_TYPE } from "@/utils/enums";
@@ -39,9 +53,20 @@ import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
 import { hashPassword } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
-import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
-import NoDataCardComponent from "@/components/NoDataCardComponent";
 import { createPageUrl } from "@/utils";
+
+const DEFAULT_USER_FORM = {
+  fullname: "",
+  username: "",
+  email: "",
+  phoneno: "",
+  password: "",
+  role: "employee",
+  roletype: "",
+  organisation: "",
+  tahfizcenter: "",
+  states: [],
+};
 
 export default function ManageUsers() {
   const isNarrow = useIsNarrow();
@@ -62,12 +87,27 @@ function ManageUsersDesktop() {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [search, setSearch] = useState("");
+  const [filterEmail, setFilterEmail] = useState("");
+  const [filterUsername, setFilterUsername] = useState("");
   const [filterOrganisationId, setFilterOrganisationId] = useState("all");
-  const [editUser, setEditUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm({ defaultValues: DEFAULT_USER_FORM });
+
+  const formOrganisation = watch("organisation");
+  const formRole = watch("role");
+  const formStates = watch("states");
 
   const {
     loading: permissionsLoading,
@@ -85,6 +125,8 @@ function ManageUsersDesktop() {
     page,
     pageSize: itemsPerPage,
     search: search,
+    email: filterEmail,
+    username: filterUsername,
     organisationId:
       isSuperAdmin && filterOrganisationId !== "all"
         ? Number(filterOrganisationId)
@@ -100,18 +142,18 @@ function ManageUsersDesktop() {
 
   const isCurrentUserOrgParent = Boolean(
     currentUser?.organisation?.id &&
-      (currentUser.organisation.parentorganisation == null ||
-        currentUser.organisation.parentorganisation?.id == null ||
-        currentUser.organisation.parentorganisationId == null),
+    (currentUser.organisation.parentorganisation == null ||
+      currentUser.organisation.parentorganisation?.id == null ||
+      currentUser.organisation.parentorganisationId == null),
   );
 
   const selectedOrganisation = organisations.items.find(
-    (org) => String(org.id) === String(editUser?.organisation),
+    (org) => String(org.id) === String(formOrganisation),
   );
   const showRoleTypeSelect = Boolean(
-    editUser?.organisation &&
-      editUser?.role === "employee" &&
-      !!selectedOrganisation?.canmanagemosque,
+    formOrganisation &&
+    formRole === "employee" &&
+    !!selectedOrganisation?.canmanagemosque,
   );
 
   const handleAddUser = () => {
@@ -122,42 +164,40 @@ function ManageUsersDesktop() {
     const defaultTahfizId =
       isAdmin && !isSuperAdmin ? currentUser.tahfizcenter?.id : null;
 
-    setEditUser({
-      fullname: "",
-      username: "",
-      email: "",
-      phoneno: "",
-      password: "",
-      role: "employee",
-      roletype: "",
-      organisation: defaultOrgId || null,
-      tahfizcenter: defaultTahfizId || null,
+    reset({
+      ...DEFAULT_USER_FORM,
+      organisation: defaultOrgId ? String(defaultOrgId) : "",
+      tahfizcenter: defaultTahfizId ? String(defaultTahfizId) : "",
       states: defaultState,
     });
-
+    setEditingUser({});
     setDialogOpen(true);
   };
 
   const handleEditUser = (user) => {
     setIsAddMode(false);
 
-    setEditUser({
-      ...user,
+    reset({
+      fullname: user.fullname || "",
+      username: user.username || "",
+      email: user.email || "",
+      phoneno: user.phoneno || "",
       password: "",
+      role: user.role || "employee",
       roletype: user.roletype || "",
-      organisation: user.organisation?.id ?? null,
-      tahfizcenter: user.tahfizcenter?.id ?? null,
-      isAppUser: appUsers.items.some((u) => u.id === user.id),
+      organisation: user.organisation?.id ? String(user.organisation.id) : "",
+      tahfizcenter: user.tahfizcenter?.id ? String(user.tahfizcenter.id) : "",
       states: user.states || [],
     });
-
+    setEditingUser({
+      id: user.id,
+      isAppUser: appUsers.items.some((u) => u.id === user.id),
+    });
     setDialogOpen(true);
   };
 
-  const handleSaveUser = async () => {
-    if (!editUser) return;
-
-    const isValid = validateFields(editUser, [
+  const handleSaveUser = async (data) => {
+    const isValid = validateFields(data, [
       { field: "fullname", label: "Full Name", type: "text" },
       { field: "username", label: "Username", type: "text" },
       { field: "phoneno", label: "Phone No.", type: "phone", required: false },
@@ -174,16 +214,14 @@ function ManageUsersDesktop() {
     if (!isValid) return;
 
     const submitData = {
-      ...editUser,
-      organisation: editUser.organisation
-        ? { id: Number(editUser.organisation) }
+      ...data,
+      organisation: data.organisation
+        ? { id: Number(data.organisation) }
         : null,
-      tahfizcenter: editUser.tahfizcenter
-        ? { id: Number(editUser.tahfizcenter) }
+      tahfizcenter: data.tahfizcenter
+        ? { id: Number(data.tahfizcenter) }
         : null,
-      ...(editUser.password
-        ? { password: await hashPassword(editUser.password) }
-        : {}),
+      ...(data.password ? { password: await hashPassword(data.password) } : {}),
     };
 
     if (!isAddMode && !submitData.password) {
@@ -194,70 +232,75 @@ function ManageUsersDesktop() {
       createUser.mutateAsync(submitData).then((res) => {
         if (res) {
           setDialogOpen(false);
-          setEditUser(null);
+          setEditingUser(null);
           setIsAddMode(false);
         }
       });
-    } else {
-      if (editUser.isAppUser) {
-        updateUser
-          .mutateAsync({ id: editUser.id, data: submitData })
-          .then((res) => {
-            if (res) {
-              setDialogOpen(false);
-              setEditUser(null);
-              setIsAddMode(false);
-            }
-          });
-      }
+    } else if (editingUser?.isAppUser) {
+      updateUser
+        .mutateAsync({ id: editingUser.id, data: submitData })
+        .then((res) => {
+          if (res) {
+            setDialogOpen(false);
+            setEditingUser(null);
+            setIsAddMode(false);
+          }
+        });
     }
   };
 
   const handleRoleChange = (value) => {
-    if (!editUser) return;
-
     const nextOrganisation = organisations.items.find(
-      (org) => String(org.id) === String(editUser.organisation),
+      (org) => String(org.id) === String(formOrganisation),
     );
 
-    setEditUser({
-      ...editUser,
-      role: value,
-      roletype:
-        value === "employee" && nextOrganisation?.canmanagemosque
-          ? editUser.roletype || ""
-          : "",
-    });
+    setValue(
+      "roletype",
+      value === "employee" && nextOrganisation?.canmanagemosque
+        ? watch("roletype") || ""
+        : "",
+    );
   };
 
   const handleOrganisationChange = (value) => {
-    if (!editUser) return;
-
     const nextOrganisation = organisations.items.find(
       (org) => String(org.id) === String(value),
     );
 
-    setEditUser({
-      ...editUser,
-      organisation: value,
-      tahfizcenter: null,
-      roletype:
-        editUser.role === "employee" && nextOrganisation?.canmanagemosque
-          ? editUser.roletype || ""
-          : "",
-    });
+    setValue("tahfizcenter", "");
+    setValue(
+      "roletype",
+      formRole === "employee" && nextOrganisation?.canmanagemosque
+        ? watch("roletype") || ""
+        : "",
+    );
+  };
+
+  const handleTahfizChange = () => {
+    setValue("organisation", "");
   };
 
   const handleStateToggle = (states) => {
-    if (!editUser) return;
     // For state admin, don't allow deselecting their own states
     if (isAdmin && !isSuperAdmin) return;
 
-    const currentStates = editUser.states || [];
+    const currentStates = formStates || [];
     const newStates = currentStates.includes(states)
       ? currentStates.filter((s) => s !== states)
       : [...currentStates, states];
-    setEditUser({ ...editUser, states: newStates });
+    setValue("states", newStates);
+  };
+
+  const handleSearch = () => {
+    setPage(1);
+  };
+
+  const handleReset = () => {
+    setSearch("");
+    setFilterEmail("");
+    setFilterUsername("");
+    setFilterOrganisationId("all");
+    setPage(1);
   };
 
   const handleDeleteUser = (user) => {
@@ -336,137 +379,164 @@ function ManageUsersDesktop() {
         )}
       </div>
 
-      <Card className="border-0 shadow-sm dark:bg-slate-800">
-        <CardContent className="p-3 lg:p-4">
-          <div className="flex gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
-              <Input
-                placeholder={translate("Search User")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-10 dark:border-slate-600"
-              />
-            </div>
-            {isSuperAdmin && (
-              <div className="min-w-[220px]">
-                <Select
-                  value={filterOrganisationId}
-                  onValueChange={(value) => {
-                    setFilterOrganisationId(value);
-                    setPage(1);
-                  }}
-                >
-                  <SelectTrigger className="h-10 dark:border-slate-600">
-                    <SelectValue placeholder={translate("Organisation")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      {translate("All Organisations")}
-                    </SelectItem>
-                    {organisations.items.map((org) => (
-                      <SelectItem key={org.id} value={String(org.id)}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-2">
-        {appUsersLoading ? (
-          <ListCardSkeletonComponent />
-        ) : appUsers.items.length === 0 ? (
-          <NoDataCardComponent isPage />
-        ) : (
-          appUsers.items.map((user) => (
-            <Card
-              key={user.id}
-              className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-800"
-            >
-              <CardContent className="p-3 lg:p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                        {user.fullname?.[0] || user.email?.[0]?.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-slate-100 truncate">
-                        {user.fullname || user.email}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
-                        {user.email}
-                      </p>
-                      <div className="flex gap-2 mt-1 flex-wrap">
-                        <Badge
-                          variant="secondary"
-                          className="text-xs capitalize"
-                        >
-                          {translate(user.role)}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {canEdit && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditUser(user)}
-                        className="flex-shrink-0"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {canEdit && canDelete && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteUser(user)}
-                        className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        navigate(createPageUrl("ManagePermissions"), {
-                          state: { incomingUser: user },
-                        })
-                      }
-                      className="flex-shrink-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {appUsers.total > 0 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          itemsPerPage={itemsPerPage}
-          onItemsPerPageChange={(value) => {
-            setItemsPerPage(value);
-            setPage(1);
-          }}
-          totalItems={appUsers.total}
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        placeholder={translate("Search User")}
+        buttonClassName="bg-emerald-600 hover:bg-emerald-700 text-white"
+        filtersClassName="grid grid-cols-1 sm:grid-cols-3 gap-3"
+      >
+        <Input
+          placeholder={translate("Search Email")}
+          value={filterEmail}
+          onChange={(e) => setFilterEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          className="dark:border-slate-600"
         />
-      )}
+        <Input
+          placeholder={translate("Search Username")}
+          value={filterUsername}
+          onChange={(e) => setFilterUsername(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          className="dark:border-slate-600"
+        />
+        {isSuperAdmin && (
+          <Select
+            value={filterOrganisationId}
+            onValueChange={(value) => {
+              setFilterOrganisationId(value);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="dark:border-slate-600">
+              <SelectValue placeholder={translate("Organisation")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {translate("All Organisations")}
+              </SelectItem>
+              {organisations.items.map((org) => (
+                <SelectItem key={org.id} value={String(org.id)}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </SearchBar>
+
+      <Card className="border-0 shadow-md dark:bg-slate-800">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{translate("Full Name")}</TableHead>
+                <TableHead>{translate("Username")}</TableHead>
+                <TableHead>{translate("Email")}</TableHead>
+                <TableHead className="text-center">
+                  {translate("Role")}
+                </TableHead>
+                <TableHead>{translate("Organisation")}</TableHead>
+                <TableHead className="text-center">
+                  {translate("Actions")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {appUsersLoading ? (
+                <InlineLoadingComponent isTable colSpan={5} />
+              ) : appUsers.items.length === 0 ? (
+                <NoDataTableComponent colSpan={5} />
+              ) : (
+                appUsers.items.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                            {user.fullname?.[0] ||
+                              user.email?.[0]?.toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="truncate">{user.fullname || "—"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-600 dark:text-slate-300">
+                      {user.username || "—"}
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-600 dark:text-slate-300">
+                      {user.email || "—"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary" className="text-xs capitalize">
+                        {translate(user.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {user.organisation?.name || (
+                        <span className="text-slate-400 italic">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {canEdit && canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            navigate(createPageUrl("ManagePermissions"), {
+                              state: { incomingUser: user },
+                            })
+                          }
+                          className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+        {appUsers.total > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setPage(1);
+            }}
+            totalItems={appUsers.total}
+          />
+        )}
+      </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
@@ -480,217 +550,127 @@ function ManageUsersDesktop() {
             </DialogTitle>
           </DialogHeader>
 
-          {editUser && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                  {translate("Full Name")}{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={editUser.fullname}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, fullname: e.target.value })
-                  }
+          {editingUser && (
+            <form onSubmit={handleSubmit(handleSaveUser)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <TextInputForm
+                  name="fullname"
+                  control={control}
+                  label={translate("Full Name")}
                   placeholder={translate("Enter Name")}
-                  className="dark:border-slate-600"
+                  required
+                  errors={errors}
                 />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                  {translate("Username")}{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  value={editUser.username ?? ""}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, username: e.target.value })
-                  }
+                <TextInputForm
+                  name="username"
+                  control={control}
+                  label={translate("Username")}
                   placeholder={translate("Enter Username")}
-                  className="dark:border-slate-600"
+                  required
+                  errors={errors}
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                  {translate("Email")}
-                  <span className="text-xs text-slate-400 ml-1">
-                    ({translate("Notification email")})
-                  </span>
-                </label>
-                <Input
-                  value={editUser.email ?? ""}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, email: e.target.value })
-                  }
+              <div className="grid grid-cols-2 gap-4">
+                <TextInputForm
+                  name="email"
+                  control={control}
+                  label={`${translate("Email")} (${translate("Notification email")})`}
                   placeholder={translate("Enter Email")}
-                  className="dark:border-slate-600"
+                  isEmail
+                  errors={errors}
                 />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                  {translate("Phone No")}{" "}
-                </label>
-                <Input
-                  value={editUser.phoneno}
-                  onChange={(e) =>
-                    setEditUser({ ...editUser, phoneno: e.target.value })
-                  }
+                <TextInputForm
+                  name="phoneno"
+                  control={control}
+                  label={translate("Phone No")}
                   placeholder={translate("Enter Phone No")}
-                  className="dark:border-slate-600"
+                  isPhone
+                  errors={errors}
                 />
               </div>
 
-              {!isAddMode ? (
-                <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                    {translate("Password")}
-                  </label>
-                  <Input
-                    value={editUser.password}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, password: e.target.value })
-                    }
-                    placeholder={translate(
-                      "Password (leave blank if not changing)",
-                    )}
-                    className="dark:border-slate-600"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                    {translate("Password")}{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={editUser.password}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, password: e.target.value })
-                    }
-                    placeholder={translate("Enter Password")}
-                    className="dark:border-slate-600"
-                  />
-                </div>
-              )}
+              <TextInputForm
+                name="password"
+                control={control}
+                label={translate("Password")}
+                placeholder={
+                  isAddMode
+                    ? translate("Enter Password")
+                    : translate("Password (leave blank if not changing)")
+                }
+                required={isAddMode}
+                errors={errors}
+              />
 
-               {(isSuperAdmin || currentUser?.organisation?.id) && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                    {translate("Organisation")}
-                  </label>
-                  <Select
-                    value={editUser.organisation || ""}
-                    onValueChange={handleOrganisationChange}
-                    disabled={
-                      isAdmin &&
-                      !isSuperAdmin &&
-                      currentUser.organisation &&
-                      !isCurrentUserOrgParent
-                    }
-                  >
-                    <SelectTrigger className="dark:border-slate-600">
-                      <SelectValue
-                        placeholder={translate("Select Organisation")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {organisations.items.map((org) => (
-                        <SelectItem key={org.id} value={org.id}>
-                          {org.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {(isSuperAdmin || currentUser?.organisation?.id) && (
+                <SelectForm
+                  name="organisation"
+                  control={control}
+                  label={translate("Organisation")}
+                  placeholder={translate("Select Organisation")}
+                  options={organisations.items.map((org) => ({
+                    value: String(org.id),
+                    label: org.name,
+                  }))}
+                  onValueChange={handleOrganisationChange}
+                  disabled={
+                    isAdmin &&
+                    !isSuperAdmin &&
+                    currentUser.organisation &&
+                    !isCurrentUserOrgParent
+                  }
+                />
               )}
 
               {(isSuperAdmin || currentUser?.tahfizcenter?.id) && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                    {translate("Tahfiz Center")}
-                  </label>
-                  <Select
-                    value={editUser.tahfizcenter || ""}
-                    onValueChange={(v) =>
-                      setEditUser({
-                        ...editUser,
-                        tahfizcenter: v,
-                        organisation: "",
-                      })
-                    }
-                    disabled={
-                      (isAdmin && !isSuperAdmin && currentUser.tahfizcenter) ||
-                      currentUser.organisation
-                    }
-                  >
-                    <SelectTrigger className="dark:border-slate-600">
-                      <SelectValue
-                        placeholder={translate("Select Tahfiz Center")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tahfizCenters.items.map((center) => (
-                        <SelectItem key={center.id} value={center.id}>
-                          {center.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <SelectForm
+                  name="tahfizcenter"
+                  control={control}
+                  label={translate("Tahfiz Center")}
+                  placeholder={translate("Select Tahfiz Center")}
+                  options={tahfizCenters.items.map((center) => ({
+                    value: String(center.id),
+                    label: center.name,
+                  }))}
+                  onValueChange={handleTahfizChange}
+                  disabled={
+                    (isAdmin && !isSuperAdmin && currentUser.tahfizcenter) ||
+                    currentUser.organisation
+                  }
+                />
               )}
 
-              <div>
-                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                  {translate("Role")}
-                </label>
-                <Select
-                  value={editUser.role || "employee"}
-                  onValueChange={handleRoleChange}
-                >
-                  <SelectTrigger className="dark:border-slate-600">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isSuperAdmin && (
-                      <SelectItem value="superadmin">
-                        {translate("Super Admin")}
-                      </SelectItem>
-                    )}
-                    <SelectItem value="admin">{translate("Admin")}</SelectItem>
-                    <SelectItem value="employee">
-                      {translate("Employee")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectForm
+                name="role"
+                control={control}
+                label={translate("Role")}
+                options={[
+                  ...(isSuperAdmin
+                    ? [
+                        {
+                          value: "superadmin",
+                          label: translate("Super Admin"),
+                        },
+                      ]
+                    : []),
+                  { value: "admin", label: translate("Admin") },
+                  { value: "employee", label: translate("Employee") },
+                ]}
+                onValueChange={handleRoleChange}
+              />
 
               {showRoleTypeSelect && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                    {translate("Role Type")}
-                  </label>
-                  <Select
-                    value={editUser.roletype || ""}
-                    onValueChange={(v) =>
-                      setEditUser({ ...editUser, roletype: v })
-                    }
-                  >
-                    <SelectTrigger className="dark:border-slate-600">
-                      <SelectValue placeholder={translate("Select Role Type")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(ROLE_TYPE.mosque).map(([key, value]) => (
-                        <SelectItem key={key} value={key}>
-                          {value}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}             
+                <SelectForm
+                  name="roletype"
+                  control={control}
+                  label={translate("Role Type")}
+                  placeholder={translate("Select Role Type")}
+                  options={Object.entries(ROLE_TYPE.mosque).map(
+                    ([key, value]) => ({ value: key, label: value }),
+                  )}
+                />
+              )}
 
               <div>
                 <label className="text-sm font-medium mb-2 block dark:text-slate-300">
@@ -701,7 +681,7 @@ function ManageUsersDesktop() {
                     <div key={states} className="flex items-center space-x-2">
                       <Checkbox
                         id={states}
-                        checked={editUser.states?.includes(states)}
+                        checked={formStates?.includes(states)}
                         onCheckedChange={() => handleStateToggle(states)}
                         disabled={isAdmin && !isSuperAdmin}
                       />
@@ -714,17 +694,21 @@ function ManageUsersDesktop() {
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
                   {translate("Cancel")}
                 </Button>
                 <Button
-                  onClick={handleSaveUser}
+                  type="submit"
                   className="bg-emerald-600 hover:bg-emerald-700"
                 >
                   {translate("Save")}
                 </Button>
               </div>
-            </div>
+            </form>
           )}
         </DialogContent>
       </Dialog>

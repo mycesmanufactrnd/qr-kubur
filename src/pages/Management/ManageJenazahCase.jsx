@@ -1,13 +1,13 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
+import MobileManageJenazahCase from "@/pages/Mobile/ManageJenazahCase";
 import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { useAdminAccess } from "@/utils/auth";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchBar from "@/components/forms/SearchBar";
-import BackNavigation from "@/components/BackNavigation";
 import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
@@ -52,12 +52,8 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
-import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
-import NoDataCardComponent from "@/components/NoDataCardComponent";
 import {
-  Building2,
   MapPinned,
-  Calendar,
   CheckCircle2,
   XCircle,
   Clock,
@@ -72,15 +68,7 @@ import {
   UserPlus,
   MapPin,
 } from "lucide-react";
-
-const CARE_SCENARIOS = [
-  { value: "home_home", label: "Di Rumah — Mandi & Solat di Rumah" },
-  { value: "home_mosque", label: "Di Rumah — Mandi & Solat di Masjid" },
-  { value: "hospital_hospital", label: "Di Hospital — Mandi & Solat di Hospital" },
-  { value: "hospital_mosque", label: "Di Hospital — Mandi & Solat di Masjid" },
-  { value: "hospital_home", label: "Di Hospital — Mandi & Solat di Rumah" },
-  { value: "other", label: "Lain-lain (Nyatakan Sendiri)" },
-];
+import { CARE_SCENARIOS } from "@/utils/enums";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
@@ -1166,275 +1154,6 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   );
 }
 
-function ManageJenazahCaseMobile() {
-  const { hasAdminAccess, loadingUser } = useAdminAccess();
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const [page, setPage] = useState(1);
-  const [selectedCase, setSelectedCase] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-  const [addToQariahId, setAddToQariahId] = useState(null);
-  const pageSize = 10;
-
-  const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
-    { page, pageSize, status: statusFilter || undefined },
-    { enabled: !loadingUser && hasAdminAccess },
-  );
-
-  const updateStatus = trpc.jenazahCase.updateStatus.useMutation({
-    onSuccess: () => {
-      showSuccess("Status kes dikemaskini.");
-      setSelectedCase(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const createMutation = trpc.jenazahCase.create.useMutation({
-    onSuccess: () => {
-      showSuccess("Kes jenazah berjaya ditambah.");
-      setFormOpen(false);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const deleteMutation = trpc.jenazahCase.delete.useMutation({
-    onSuccess: () => {
-      showSuccess("Kes jenazah berjaya dipadam.");
-      setDeleteId(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const addToQariahMutation = trpc.jenazahCase.addToQariah.useMutation({
-    onSuccess: () => {
-      showSuccess("Ahli berjaya didaftarkan ke Qariah.");
-      setSelectedCase(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const handleFormSubmit = async ({
-    mosqueId,
-    details,
-    adminremarks,
-    deathconfirmationphotourl,
-    policereportphotourl,
-    supportingphotourl,
-  }) => {
-    await createMutation.mutateAsync({
-      mosqueId,
-      details,
-      adminremarks,
-      deathconfirmationphotourl,
-      policereportphotourl,
-      supportingphotourl,
-      autoApprove: true,
-    });
-  };
-
-  const STATUS_TABS = [
-    { label: "Semua", value: "" },
-    { label: "Tertunda", value: "pending" },
-    { label: "Diluluskan", value: "approved" },
-    { label: "Ditolak", value: "rejected" },
-  ];
-
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / pageSize);
-
-  return (
-    <div className="min-h-screen space-y-3 pb-6">
-      <BackNavigation title="Pengurusan Kes Jenazah" />
-
-      <Button
-        onClick={() => setFormOpen(true)}
-        size="sm"
-        className="bg-rose-600 hover:bg-rose-700 text-white w-full"
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Tambah Kes Jenazah
-      </Button>
-
-      <div className="flex gap-1 overflow-x-auto pb-0.5">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => {
-              setStatusFilter(tab.value);
-              setPage(1);
-            }}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-              statusFilter === tab.value
-                ? "bg-emerald-600 text-white"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {!isLoading && (
-        <p className="text-xs text-slate-400 px-0.5">{total} kes dijumpai</p>
-      )}
-
-      {isLoading ? (
-        <ListCardSkeletonComponent />
-      ) : items.length === 0 ? (
-        <NoDataCardComponent isPage title="Tiada Kes Dijumpai" />
-      ) : (
-        <div className="space-y-2">
-          {items.map((c) => {
-            const d = c.details ?? {};
-            return (
-              <div
-                key={c.id}
-                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2 cursor-pointer hover:shadow-sm transition-all"
-                onClick={() => setSelectedCase(c)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">
-                      {d.deceasedFullname || "—"}
-                    </p>
-                    {d.deceasedIcnumber && (
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {d.deceasedIcnumber}
-                      </p>
-                    )}
-                  </div>
-                  <StatusBadge status={c.status} />
-                </div>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                  {c.mosque && (
-                    <span className="flex items-center gap-1">
-                      <Building2 className="w-3 h-3" />
-                      {c.mosque.name}
-                    </span>
-                  )}
-                  {d.isQariahMember && (
-                    <span className="flex items-center gap-1 text-emerald-600">
-                      <BadgeCheck className="w-3 h-3" /> Ahli Qariah
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {c.createdat
-                      ? new Date(c.createdat).toLocaleDateString("ms-MY", {
-                          dateStyle: "medium",
-                        })
-                      : "—"}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {c.isapproved && !c.qariahmemberid && !c.addedtoqariah && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAddToQariahId(c.id);
-                        }}
-                        className="text-emerald-500 hover:text-emerald-700 transition-colors p-1"
-                        title="Tambah ke Qariah"
-                      >
-                        <UserPlus className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteId(c.id);
-                      }}
-                      className="text-red-400 hover:text-red-600 transition-colors p-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                    <p className="text-xs text-blue-600 font-medium">Lihat →</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="h-8 px-3 text-xs"
-          >
-            Sebelum
-          </Button>
-          <p className="text-xs text-slate-500">
-            {page} / {totalPages}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="h-8 px-3 text-xs"
-          >
-            Seterus
-          </Button>
-        </div>
-      )}
-
-      {selectedCase && (
-        <CaseDetailDialog
-          caseItem={selectedCase}
-          onClose={() => setSelectedCase(null)}
-          onStatusChange={(id, status, adminremarks) =>
-            updateStatus.mutate({
-              id,
-              status,
-              adminremarks: adminremarks || null,
-            })
-          }
-          isUpdating={updateStatus.isPending}
-          onAddToQariah={(id) => setAddToQariahId(id)}
-          isAddingToQariah={addToQariahMutation.isPending}
-        />
-      )}
-
-      <CaseFormDialog
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        isSubmitting={createMutation.isPending}
-      />
-
-      <DeleteConfirmDialog
-        open={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        onConfirm={() => deleteMutation.mutate({ id: deleteId })}
-        isDeleting={deleteMutation.isPending}
-      />
-
-      <ConfirmDialog
-        open={!!addToQariahId}
-        onOpenChange={(v) => {
-          if (!v) setAddToQariahId(null);
-        }}
-        title="Tambah ke Qariah"
-        description="Adakah anda pasti untuk mendaftarkan arwah ini sebagai ahli Qariah? Rekod akan dicipta dalam senarai ahli."
-        confirmText="Ya, Tambah"
-        onConfirm={() => addToQariahMutation.mutate({ id: addToQariahId })}
-        isMobile
-      />
-    </div>
-  );
-}
-
 // ─── Desktop view ─────────────────────────────────────────────────────────
 
 function ManageJenazahCaseDesktop() {
@@ -1760,5 +1479,5 @@ function ManageJenazahCaseDesktop() {
 
 export default function ManageJenazahCase() {
   const isNarrow = useIsNarrow();
-  return isNarrow ? <ManageJenazahCaseMobile /> : <ManageJenazahCaseDesktop />;
+  return isNarrow ? <MobileManageJenazahCase /> : <ManageJenazahCaseDesktop />;
 }

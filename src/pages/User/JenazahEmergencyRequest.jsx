@@ -27,15 +27,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-
-const CARE_SCENARIOS = [
-  { value: "home_home", label: "Di Rumah — Mandi & Solat di Rumah" },
-  { value: "home_mosque", label: "Di Rumah — Mandi & Solat di Masjid" },
-  { value: "hospital_hospital", label: "Di Hospital — Mandi & Solat di Hospital" },
-  { value: "hospital_mosque", label: "Di Hospital — Mandi & Solat di Masjid" },
-  { value: "hospital_home", label: "Di Hospital — Mandi & Solat di Rumah" },
-  { value: "other", label: "Lain-lain (Nyatakan Sendiri)" },
-];
+import { CARE_SCENARIOS } from "@/utils/enums";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
@@ -387,7 +379,7 @@ export default function JenazahEmergencyRequest() {
                       <SelectValue placeholder="Pilih pengurusan jenazah" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CARE_SCENARIOS.map((s) => (
+                      {CARE_SCENARIOSNARIOS.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
                         </SelectItem>

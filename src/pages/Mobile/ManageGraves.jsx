@@ -192,12 +192,15 @@ function GraveFormSheet({
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          {editing ? translate("Edit Grave") : translate("Add Grave")}
+          {editing ? translate("Edit Cemetery") : translate("Add Cemetery")}
         </h2>
       </div>
 
       {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
+        <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+          {translate("Cemetery Details")}
+        </h3>
         <TextInputForm
           name="name"
           control={control}
@@ -302,14 +305,18 @@ function GraveFormSheet({
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <TextInputForm
-            name="totalgraves"
-            control={control}
-            label={translate("Total Graves")}
-            isNumber
-            required
-            errors={errors}
-          />
+          <div>
+            <TextInputForm
+              name="totalgraves"
+              control={control}
+              label={translate("Total Graves")}
+              isNumber
+              errors={errors}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {translate("Number of graves in this cemetery")}
+            </p>
+          </div>
           <SelectForm
             name="status"
             control={control}
@@ -327,7 +334,6 @@ function GraveFormSheet({
           name="photourl"
           control={control}
           label={translate("Photo")}
-          required
           errors={errors}
           bucketName="bucket-grave"
           uploading={uploading}
@@ -496,14 +502,14 @@ export default function MobileManageGraves() {
   return (
     <>
       <div className="min-h-screen pb-6">
-        <BackNavigation title={translate("Manage Graves")} />
+        <BackNavigation title={translate("Manage Cemetery")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
           <div className="flex items-center justify-between">
             <AdvancedFilters
               parameter={[
                 {
-                  label: translate("Name"),
+                  label: translate("Cemetery Name"),
                   type: "text",
                   searchColumn: "name",
                 },

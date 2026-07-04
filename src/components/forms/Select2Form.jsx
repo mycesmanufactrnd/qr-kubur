@@ -31,6 +31,7 @@ export default function Select2Form({
   searchPlaceholder,
   emptyMessage = "No results found",
   noSelectionMessage,
+  onValueChange,
 }) {
   const errorMessage = errors?.[name]?.message;
 
@@ -95,6 +96,7 @@ export default function Select2Form({
                           value={o.label}
                           onSelect={() => {
                             field.onChange(o.value);
+                            onValueChange?.(o.value);
                             setOpen(false);
                           }}
                         >

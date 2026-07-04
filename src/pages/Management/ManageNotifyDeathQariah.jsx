@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import MobileManageNotifyDeathQariah from "@/pages/Mobile/ManageNotifyDeathQariah";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
@@ -41,6 +43,15 @@ function buildPreview(template, name, address) {
 }
 
 export default function ManageNotifyDeathQariah() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? (
+    <MobileManageNotifyDeathQariah />
+  ) : (
+    <ManageNotifyDeathQariahDesktop />
+  );
+}
+
+function ManageNotifyDeathQariahDesktop() {
   const { loadingUser, hasAdminAccess, currentUser, isSuperAdmin } = useAdminAccess();
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
     useCrudPermissions("death_charity");
@@ -53,7 +64,8 @@ export default function ManageNotifyDeathQariah() {
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
   const [notifyMessage, setNotifyMessage] = useState("");
 
-  // Template editor
+  // Template editor dialog
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [templateText, setTemplateText] = useState("");
 
   const { control, watch, setValue } = useForm({
@@ -219,6 +231,12 @@ export default function ManageNotifyDeathQariah() {
     setNotifyDialogOpen(true);
   };
 
+  const openTemplateDialog = () => {
+    setValue("templateOrgId", null);
+    setTemplateText("");
+    setTemplateDialogOpen(true);
+  };
+
   const handleSendNotification = async () => {
     if (!selectedMember) return;
     await notifyMutation.mutateAsync({
@@ -267,102 +285,32 @@ export default function ManageNotifyDeathQariah() {
           <Bell className="w-6 h-6 text-emerald-600" />
           Notifikasi Kematian Ahli Qariah
         </h1>
-        {canCreate && (
-          <Button
-            onClick={openNotifyDialog}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Hantar Notifikasi Kematian
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <Button
+              variant="outline"
+              onClick={openTemplateDialog}
+            >
+              <BookTemplate className="w-4 h-4 mr-2 text-amber-500" />
+              Templat Mesej Organisasi
+            </Button>
+          )}
+          {canCreate && (
+            <Button
+              onClick={openNotifyDialog}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Hantar Notifikasi Kematian
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <BookTemplate className="w-4 h-4 text-amber-500" />
-            Templat Mesej Notifikasi Organisasi
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Select2Form
-                name="templateOrgId"
-                control={control}
-                label="Pilih Organisasi"
-                placeholder="Pilih organisasi..."
-                searchPlaceholder="Cari organisasi..."
-                emptyMessage="Tiada organisasi dijumpai."
-                options={allOrganisations.map((o) => ({
-                  value: o.id,
-                  label:
-                    o.states?.length > 0
-                      ? `${o.name} (${o.states.slice(0, 2).join(", ")})`
-                      : o.name,
-                }))}
-              />
-            </div>
-          </div>
-
-          {templateOrgId && (
-            <>
-              <div className="space-y-1">
-                <Label>Templat Mesej</Label>
-                <Textarea
-                  rows={4}
-                  placeholder={DEFAULT_TEMPLATE}
-                  value={templateText}
-                  onChange={(e) => setTemplateText(e.target.value)}
-                  className="dark:bg-slate-700 dark:border-slate-600"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Pemboleh ubah: <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{name}"}</code> untuk nama ahli wafat,{" "}
-                  <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{address}"}</code> untuk alamat.
-                  Kosongkan untuk gunakan templat lalai.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
-                <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">Pratonton mesej:</p>
-                <p className="leading-relaxed">
-                  {buildPreview(
-                    templateText || DEFAULT_TEMPLATE,
-                    "Ahmad bin Abu Bakar",
-                    "No. 12, Jalan Mawar 3, Selangor",
-                  )}
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleSaveTemplate}
-                  disabled={saveTemplateMutation.isPending}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Simpan Templat
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleResetTemplate}
-                  title="Padam templat — akan guna templat lalai"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Guna Lalai
-                </Button>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="border-0 shadow-md dark:bg-slate-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center justify-between">
+          <CardTitle className="text-base flex items-center">
             <span>Sejarah Notifikasi</span>
-            <span className="text-sm font-normal text-slate-500">{total} rekod</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -585,6 +533,95 @@ export default function ManageNotifyDeathQariah() {
             >
               <Send className="w-4 h-4 mr-2" />
               {notifyMutation.isPending ? "Menghantar..." : "Hantar Notifikasi"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="max-w-xl dark:bg-slate-800">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookTemplate className="w-5 h-5 text-amber-500" />
+              Templat Mesej Notifikasi Organisasi
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Select2Form
+                name="templateOrgId"
+                control={control}
+                label="Pilih Organisasi"
+                placeholder="Pilih organisasi..."
+                searchPlaceholder="Cari organisasi..."
+                emptyMessage="Tiada organisasi dijumpai."
+                options={allOrganisations.map((o) => ({
+                  value: o.id,
+                  label:
+                    o.states?.length > 0
+                      ? `${o.name} (${o.states.slice(0, 2).join(", ")})`
+                      : o.name,
+                }))}
+              />
+            </div>
+
+            {templateOrgId && (
+              <>
+                <div className="space-y-1">
+                  <Label>Templat Mesej</Label>
+                  <Textarea
+                    rows={4}
+                    placeholder={DEFAULT_TEMPLATE}
+                    value={templateText}
+                    onChange={(e) => setTemplateText(e.target.value)}
+                    className="dark:bg-slate-700 dark:border-slate-600"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Pemboleh ubah: <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{name}"}</code> untuk nama ahli wafat,{" "}
+                    <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{address}"}</code> untuk alamat.
+                    Kosongkan untuk gunakan templat lalai.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">Pratonton mesej:</p>
+                  <p className="leading-relaxed">
+                    {buildPreview(
+                      templateText || DEFAULT_TEMPLATE,
+                      "Ahmad bin Abu Bakar",
+                      "No. 12, Jalan Mawar 3, Selangor",
+                    )}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setTemplateDialogOpen(false)}
+            >
+              Tutup
+            </Button>
+            {templateOrgId && (
+              <Button
+                variant="outline"
+                onClick={handleResetTemplate}
+                title="Padam templat — akan guna templat lalai"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Guna Lalai
+              </Button>
+            )}
+            <Button
+              onClick={handleSaveTemplate}
+              disabled={!templateOrgId || saveTemplateMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {saveTemplateMutation.isPending ? "Menyimpan..." : "Simpan Templat"}
             </Button>
           </DialogFooter>
         </DialogContent>

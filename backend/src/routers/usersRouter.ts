@@ -96,6 +96,8 @@ export const usersRouter = router({
         page: z.number().min(1).optional(),
         pageSize: z.number().min(1).optional(),
         search: z.string().optional(),
+        email: z.string().optional(),
+        username: z.string().optional(),
         organisationId: z.number().optional().nullable(),
         currentUser: z.object({
           id: z.number(),
@@ -113,8 +115,16 @@ export const usersRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, search, organisationId, currentUser, checkRole } =
-        input;
+      const {
+        page,
+        pageSize,
+        search,
+        email,
+        username,
+        organisationId,
+        currentUser,
+        checkRole,
+      } = input;
 
       const userRepo = AppDataSource.getRepository(User);
 
@@ -152,6 +162,18 @@ export const usersRouter = router({
       if (search) {
         query.andWhere("user.fullname ILIKE :search", {
           search: `%${search}%`,
+        });
+      }
+
+      if (email) {
+        query.andWhere("user.email ILIKE :email", {
+          email: `%${email}%`,
+        });
+      }
+
+      if (username) {
+        query.andWhere("user.username ILIKE :username", {
+          username: `%${username}%`,
         });
       }
 
