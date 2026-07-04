@@ -73,6 +73,12 @@ export enum ClaimStatus {
   PAID = "Paid",
 }
 
+export enum JenazahCaseStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
 export enum OnlineTransactionStatus {
   PENDING = "Pending", // User initiated payment, waiting confirmation
   PAID = "Paid", // Payment successful, money received by platform

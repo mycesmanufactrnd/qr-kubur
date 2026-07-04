@@ -90,7 +90,15 @@ await app.register(import("@fastify/cors"), {
 // Register cookie plugin to support secure httpOnly cookies
 await app.register(cookie);
 
-await app.register(multipart);
+await app.register(multipart, {
+  limits: {
+    fileSize: 10 * 1024 * 1024,  // 10 MB per file
+    files: 1,
+    fieldSize: 1 * 1024 * 1024,  // 1 MB for non-file fields
+  },
+});
+
+
 await app.register(formbody);
 
 registerAPIRoutes(app);
