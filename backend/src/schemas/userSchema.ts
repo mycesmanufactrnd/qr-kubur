@@ -8,6 +8,7 @@ export const userSchema = z.object({
     phoneno: z.string().optional(),
     password: z.string().min(1),
     role: z.string().min(1),
+    roletype: z.string().optional(),
     states: z.array(z.string()).optional(),
     organisation: z.object({ id: z.number() }).nullable().optional(),
     tahfizcenter: z.object({ id: z.number() }).nullable().optional(),
