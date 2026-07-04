@@ -29,6 +29,7 @@ export function usePullToRefresh() {
       setPullY((y) => {
         if (y >= THRESHOLD) {
           setRefreshing(true);
+          sessionStorage.removeItem('user_location');
           setTimeout(() => window.location.reload(), 650);
         }
         return 0;
