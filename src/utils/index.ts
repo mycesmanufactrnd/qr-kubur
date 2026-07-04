@@ -1,5 +1,5 @@
 export function createPageUrl(pageName: string) {
-    return '/' + pageName.toLowerCase().replace(/ /g, '-');
+  return "/" + pageName.toLowerCase().replace(/ /g, "-");
 }
 
 // export function resolveFileUrl(photourl: string | null | undefined, bucket: string) {
@@ -12,13 +12,19 @@ export function createPageUrl(pageName: string) {
 
 export function resolveFileUrl(
   photourl: string | null | undefined,
-  bucket: string
+  bucket: string,
 ) {
   if (!photourl) return undefined;
 
-  if (/^https?:\/\//i.test(photourl) || /^data:/i.test(photourl)) {
+  if (
+    /^https?:\/\//i.test(photourl) ||
+    /^data:/i.test(photourl) ||
+    /^blob:/i.test(photourl)
+  ) {
     return photourl;
   }
+
+  if (!bucket) return undefined;
 
   return `/api/file/${bucket}/${encodeURIComponent(photourl)}`;
 }
@@ -35,8 +41,12 @@ export function appendCurrentUserToFormData(formData: FormData) {
     const meta = {
       id,
       fullname: typeof user?.fullname === "string" ? user.fullname : null,
-      organisationId: user?.organisation?.id ? Number(user.organisation.id) : null,
-      tahfizcenterId: user?.tahfizcenter?.id ? Number(user.tahfizcenter.id) : null,
+      organisationId: user?.organisation?.id
+        ? Number(user.organisation.id)
+        : null,
+      tahfizcenterId: user?.tahfizcenter?.id
+        ? Number(user.tahfizcenter.id)
+        : null,
     };
 
     formData.append("currentUser", JSON.stringify(meta));
@@ -44,4 +54,3 @@ export function appendCurrentUserToFormData(formData: FormData) {
     // ignore
   }
 }
-

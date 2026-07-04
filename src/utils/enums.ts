@@ -329,6 +329,12 @@ export enum QuotationStatus {
   REJECTED = "rejected",
 }
 
+export enum JenazahCaseStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
 export const QUOTATION_OVERDUE_DAYS = 7;
 
 export const ROLE_TYPE = {
