@@ -13,6 +13,7 @@ import DirectionButton from "@/components/DirectionButton";
 import { translate } from "@/utils/translations";
 import { createPageUrl, resolveFileUrl } from "@/utils";
 import InitialAvatarImage from "@/components/InitialAvatarImage";
+import { ImageViewer } from "@/components/ImageViewer";
 
 export default function DeadPersonDetails() {
   const [searchParams] = useSearchParams();
@@ -168,6 +169,11 @@ export default function DeadPersonDetails() {
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {graveDetails.state}
                 </p>
+                {deadPersonDetails.gravelot && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                    {translate("Grave Lot")}: {deadPersonDetails.gravelot}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -219,14 +225,9 @@ export default function DeadPersonDetails() {
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-lg overflow-hidden bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0">
                             {organisation.photourl ? (
-                              <img
-                                src={resolveFileUrl(
-                                  organisation.photourl,
-                                  "bucket-organisation",
-                                )}
-                                referrerPolicy="no-referrer"
-                                onError={(e) => { e.currentTarget.style.display = "none"; }}
-                                alt={organisation.name}
+                              <ImageViewer
+                                src={organisation.photourl}
+                                bucket="bucket-organisation"
                                 className="w-full h-full object-cover"
                               />
                             ) : (

@@ -39,7 +39,6 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
 import { formatRM } from "@/utils/helpers";
 
-
 export default function ManageDonations() {
   const isNarrow = useIsNarrow();
   if (isNarrow) return <MobileManageDonations />;
@@ -272,9 +271,7 @@ function ManageDonationsDesktop() {
             <p className="text-emerald-100 text-sm">
               {translate("Total Verified")}
             </p>
-            <p className="text-2xl font-bold">
-              {formatRM(totalVerified)}
-            </p>
+            <p className="text-2xl font-bold">{formatRM(totalVerified)}</p>
           </CardContent>
         </Card>
         {[
@@ -319,7 +316,7 @@ function ManageDonationsDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{translate("Donor")}</TableHead>                
+                <TableHead>{translate("Donor")}</TableHead>
                 <TableHead className="text-center">
                   {translate("Recipient")}
                 </TableHead>
@@ -347,7 +344,7 @@ function ManageDonationsDesktop() {
                 <NoDataTableComponent colSpan={6} />
               ) : (
                 donationList.items.map((donation) => (
-                  <TableRow key={donation.id}>                    
+                  <TableRow key={donation.id}>
                     <TableCell className="font-medium">
                       {donation.donorname || translate("No Name")}
                     </TableCell>
@@ -489,7 +486,7 @@ function ManageDonationsDesktop() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {`${translate("Platform Transfer Status")} - ${translate("Donation")}`}
+                      {`${translate("Platform Transfer Status")} - ${translate("Donation")}`}
                     </p>
                     <p className="text-xs text-gray-400">
                       {translate(
@@ -558,7 +555,9 @@ function ManageDonationsDesktop() {
                                 "bucket-online-transaction",
                               )}
                               referrerPolicy="no-referrer"
-                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
                               alt={translate("Transaction proof")}
                               className="h-36 w-full rounded object-cover border"
                             />
