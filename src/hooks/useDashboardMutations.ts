@@ -1,6 +1,6 @@
 import { trpc } from "@/utils/trpc";
 
-type StatsType = "OS" | "GD" | "TTR" | "DDV" | "QM" | "CMC" | "QUO";
+type StatsType = "OS" | "GD" | "TTR" | "DDV" | "CQN" | "CMC" | "QUO";
 
 interface UseStatisticChartOptions {
   year: number;
@@ -155,10 +155,18 @@ export function useGetAdminDashboardStats({
       },
     );
 
-  const { data: QMStats, isLoading: isQMLoading } =
-    trpc.dashboard.getQMAdminStates.useQuery(
+  const { data: CQNStats, isLoading: isCQNLoading } =
+    trpc.dashboard.getCQNAdminStates.useQuery(
       { currentUserOrganisation: orgId, isSuperAdmin },
-      { enabled: enabled && needs("QM") },
+      {
+        enabled:
+          enabled &&
+          needs("CQN") &&
+          (!needs("OS") || !!OSStats) &&
+          (!needs("GD") || !!GDStats) &&
+          (!needs("TTR") || !!TTRStats) &&
+          (!needs("DDV") || !!DDVStats),
+      },
     );
 
   const { data: CMCStats, isLoading: isCMCLoading } =
@@ -171,7 +179,8 @@ export function useGetAdminDashboardStats({
           (!needs("OS") || !!OSStats) &&
           (!needs("GD") || !!GDStats) &&
           (!needs("TTR") || !!TTRStats) &&
-          (!needs("DDV") || !!DDVStats),
+          (!needs("DDV") || !!DDVStats) &&
+          (!needs("CQN") || !!CQNStats),
       },
     );
 
@@ -186,14 +195,14 @@ export function useGetAdminDashboardStats({
     GDStats,
     TTRStats,
     DDVStats,
-    QMStats,
+    CQNStats,
     CMCStats,
     QUOStats,
     isOSLoading,
     isGDLoading,
     isTTRLoading,
     isDDVLoading,
-    isQMLoading,
+    isCQNLoading,
     isCMCLoading,
     isQUOLoading,
   };
