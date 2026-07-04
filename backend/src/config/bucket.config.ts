@@ -29,5 +29,7 @@ export const getBucketConfig = () => ({
   // Activity & People
   activityPostBucketId: process.env.ACTIVITY_POST_STORAGE_ID!,
   deadPersonBucketId: process.env.DEAD_PERSON_STORAGE_ID!,
-  deadPersonCertificateBucketId: process.env.DEAD_PERSON_CERTIFICATE_STORAGE_ID!,
+  deathConfirmationBucketId: process.env.DEATH_CONFIRMATION_STORAGE_ID,
+  policeReportBucketId: process.env.POLICE_REPORT_STORAGE_ID,
+  supportingDocJenazahCaseBucketId: process.env.SUPPORTING_DOC_JENAZAH_CASE_STORAGE_ID,
 });

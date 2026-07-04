@@ -46,9 +46,6 @@ export class DeadPerson {
   biography?: string | null;
 
   @Column("varchar", { length: 255, nullable: true })
-  deathcertificatephotourl?: string | null;
-
-  @Column("varchar", { length: 255, nullable: true })
   photourl?: string | null;
 
   @Column("double precision", { nullable: true })

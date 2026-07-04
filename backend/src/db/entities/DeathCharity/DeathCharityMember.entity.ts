@@ -55,9 +55,6 @@ export class DeathCharityMember extends AuditableEntity {
   @Column("boolean", { default: false })
   isdeceased!: boolean;
 
-  @Column("boolean", { default: true })
-  isactive!: boolean;
-
   @Column("integer", { nullable: true })
   mosqueId?: number | null;
 
@@ -67,4 +64,7 @@ export class DeathCharityMember extends AuditableEntity {
 
   @ManyToOne(() => Organisation, { nullable: true, onDelete: "SET NULL" })
   organisation?: Organisation | null;
+
+  @Column("boolean", { default: false })
+  isapproved!: boolean;
 }

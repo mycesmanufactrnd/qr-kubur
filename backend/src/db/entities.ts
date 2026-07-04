@@ -41,3 +41,4 @@ export * from "./entities/DeathCharity/DeathCharityDependent.entity.js";
 export * from "./entities/DeathCharity/DeathCharityPayment.entity.js";
 export * from "./entities/StoredFile.entity.js";
 export * from "./entities/QariahDeathNotification.entity.js";
+export * from "./entities/JenazahCase.entity.js";
