@@ -147,6 +147,7 @@ export const defaultDeadPersonField = {
   dateofdeath: '',
   causeofdeath: '',
   grave: '',
+  gravelot: '',
   biography: '',
   heirname: '',
   heirphoneno: '',
@@ -248,6 +249,7 @@ export const defaultDeathCharityMemberField = {
   email: "",
   address: "",
   isactive: true,
+  isdeceased: false,
   deathcharity: "",
 };
 

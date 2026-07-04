@@ -14,6 +14,7 @@ import { createPageUrl } from "@/utils/index";
 import { translate } from "@/utils/translations";
 import { hashPassword } from "@/utils/helpers";
 import { validateFields } from "@/utils/validations";
+import { ROLE_TYPE } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
@@ -70,6 +71,11 @@ function UserCard({
             >
               {user.role}
             </Badge>
+            {user.roletype && (
+              <Badge className="border-0 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                {ROLE_TYPE.mosque?.[user.roletype] || user.roletype}
+              </Badge>
+            )}
             {affiliation && (
               <span className="text-xs text-slate-400 truncate">
                 {affiliation}
@@ -142,6 +148,7 @@ function UserFormSheet({
       ? {
           ...editing,
           password: "",
+          roletype: editing.roletype || "",
           organisation: editing.organisation?.id
             ? String(editing.organisation.id)
             : editing.organisation
@@ -161,6 +168,7 @@ function UserFormSheet({
           phoneno: "",
           password: "",
           role: "employee",
+          roletype: "",
           organisation:
             isAdmin && !isSuperAdmin
               ? String(currentUser?.organisation?.id ?? "")
@@ -189,10 +197,52 @@ function UserFormSheet({
 
   const showOrgSelect = isSuperAdmin || !!currentUser?.organisation?.id;
   const showTahfizSelect = isSuperAdmin || !!currentUser?.tahfizcenter?.id;
-  const orgDisabled = isAdmin && !isSuperAdmin && !!currentUser?.organisation;
+  const isCurrentUserOrgParent = Boolean(
+    currentUser?.organisation?.id &&
+      (currentUser.organisation.parentorganisation == null ||
+        currentUser.organisation.parentorganisation?.id == null ||
+        currentUser.organisation.parentorganisationId == null),
+  );
+  const orgDisabled =
+    isAdmin &&
+    !isSuperAdmin &&
+    !!currentUser?.organisation &&
+    !isCurrentUserOrgParent;
   const tahfizDisabled =
     (isAdmin && !isSuperAdmin && !!currentUser?.tahfizcenter) ||
     !!currentUser?.organisation;
+
+  const selectedOrganisation = organisations.find(
+    (org) => String(org.id) === String(local.organisation),
+  );
+  const showRoleTypeSelect = Boolean(
+    local.organisation &&
+      local.role === "employee" &&
+      !!selectedOrganisation?.canmanagemosque,
+  );
+
+  const handleRoleChange = (value) => {
+    set("role", value);
+    if (value !== "employee" || !selectedOrganisation?.canmanagemosque) {
+      set("roletype", "");
+    }
+  };
+
+  const handleOrganisationChange = (value) => {
+    const nextOrganisation = organisations.find(
+      (org) => String(org.id) === String(value),
+    );
+
+    setLocal((prev) => ({
+      ...prev,
+      organisation: value,
+      tahfizcenter: "",
+      roletype:
+        prev.role === "employee" && nextOrganisation?.canmanagemosque
+          ? prev.roletype || ""
+          : "",
+    }));
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
@@ -260,33 +310,13 @@ function UserFormSheet({
           />
         </Field>
 
-        <Field label={translate("Role")}>
-          <select
-            className={inputCls}
-            value={local.role || "employee"}
-            onChange={(e) => set("role", e.target.value)}
-          >
-            {isSuperAdmin && (
-              <option value="superadmin">{translate("Super Admin")}</option>
-            )}
-            <option value="admin">{translate("Admin")}</option>
-            <option value="employee">{translate("Employee")}</option>
-          </select>
-        </Field>
-
-        {showOrgSelect && (
+                {showOrgSelect && (
           <Field label={translate("Organisation")}>
             <select
               className={inputCls}
               value={local.organisation || ""}
               disabled={orgDisabled}
-              onChange={(e) =>
-                setLocal((prev) => ({
-                  ...prev,
-                  organisation: e.target.value,
-                  tahfizcenter: "",
-                }))
-              }
+              onChange={(e) => handleOrganisationChange(e.target.value)}
             >
               <option value="">{translate("Select Organisation")}</option>
               {organisations.map((org) => (
@@ -318,6 +348,38 @@ function UserFormSheet({
                   {center.name}
                 </option>
               ))}
+            </select>
+          </Field>
+        )}
+
+        <Field label={translate("Role")}>
+          <select
+            className={inputCls}
+            value={local.role || "employee"}
+            onChange={(e) => handleRoleChange(e.target.value)}
+          >
+            {isSuperAdmin && (
+              <option value="superadmin">{translate("Super Admin")}</option>
+            )}
+            <option value="admin">{translate("Admin")}</option>
+            <option value="employee">{translate("Employee")}</option>
+          </select>
+        </Field>
+
+        {showRoleTypeSelect && (
+          <Field label={translate("Role Type")}>
+            <select
+              className={inputCls}
+              value={local.roletype || ""}
+              onChange={(e) => set("roletype", e.target.value)}
+            >
+              <option value="">{translate("Select Role Type")}</option>
+              {ROLE_TYPE.mosque &&
+                Object.entries(ROLE_TYPE.mosque).map(([key, value]) => (
+                  <option key={key} value={key}>
+                    {value}
+                  </option>
+                ))}
             </select>
           </Field>
         )}

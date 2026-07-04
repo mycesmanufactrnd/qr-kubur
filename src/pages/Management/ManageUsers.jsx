@@ -30,6 +30,7 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { useAdminAccess } from "@/utils/auth";
 import { validateFields } from "@/utils/validations";
+import { ROLE_TYPE } from "@/utils/enums";
 import {
   useGetUserPaginated,
   useUserMutations,
@@ -97,6 +98,22 @@ function ManageUsersDesktop() {
   const { createUser, updateUser, deleteUser } = useUserMutations();
   const navigate = useNavigate();
 
+  const isCurrentUserOrgParent = Boolean(
+    currentUser?.organisation?.id &&
+      (currentUser.organisation.parentorganisation == null ||
+        currentUser.organisation.parentorganisation?.id == null ||
+        currentUser.organisation.parentorganisationId == null),
+  );
+
+  const selectedOrganisation = organisations.items.find(
+    (org) => String(org.id) === String(editUser?.organisation),
+  );
+  const showRoleTypeSelect = Boolean(
+    editUser?.organisation &&
+      editUser?.role === "employee" &&
+      !!selectedOrganisation?.canmanagemosque,
+  );
+
   const handleAddUser = () => {
     setIsAddMode(true);
     const defaultState = isAdmin && !isSuperAdmin ? currentUserStates : [];
@@ -112,6 +129,7 @@ function ManageUsersDesktop() {
       phoneno: "",
       password: "",
       role: "employee",
+      roletype: "",
       organisation: defaultOrgId || null,
       tahfizcenter: defaultTahfizId || null,
       states: defaultState,
@@ -126,6 +144,7 @@ function ManageUsersDesktop() {
     setEditUser({
       ...user,
       password: "",
+      roletype: user.roletype || "",
       organisation: user.organisation?.id ?? null,
       tahfizcenter: user.tahfizcenter?.id ?? null,
       isAppUser: appUsers.items.some((u) => u.id === user.id),
@@ -192,6 +211,41 @@ function ManageUsersDesktop() {
           });
       }
     }
+  };
+
+  const handleRoleChange = (value) => {
+    if (!editUser) return;
+
+    const nextOrganisation = organisations.items.find(
+      (org) => String(org.id) === String(editUser.organisation),
+    );
+
+    setEditUser({
+      ...editUser,
+      role: value,
+      roletype:
+        value === "employee" && nextOrganisation?.canmanagemosque
+          ? editUser.roletype || ""
+          : "",
+    });
+  };
+
+  const handleOrganisationChange = (value) => {
+    if (!editUser) return;
+
+    const nextOrganisation = organisations.items.find(
+      (org) => String(org.id) === String(value),
+    );
+
+    setEditUser({
+      ...editUser,
+      organisation: value,
+      tahfizcenter: null,
+      roletype:
+        editUser.role === "employee" && nextOrganisation?.canmanagemosque
+          ? editUser.roletype || ""
+          : "",
+    });
   };
 
   const handleStateToggle = (states) => {
@@ -522,47 +576,19 @@ function ManageUsersDesktop() {
                 </div>
               )}
 
-              <div>
-                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
-                  {translate("Role")}
-                </label>
-                <Select
-                  value={editUser.role || "employee"}
-                  onValueChange={(v) => setEditUser({ ...editUser, role: v })}
-                >
-                  <SelectTrigger className="dark:border-slate-600">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isSuperAdmin && (
-                      <SelectItem value="superadmin">
-                        {translate("Super Admin")}
-                      </SelectItem>
-                    )}
-                    <SelectItem value="admin">{translate("Admin")}</SelectItem>
-                    <SelectItem value="employee">
-                      {translate("Employee")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {(isSuperAdmin || currentUser?.organisation?.id) && (
+               {(isSuperAdmin || currentUser?.organisation?.id) && (
                 <div>
                   <label className="text-sm font-medium mb-2 block dark:text-slate-300">
                     {translate("Organisation")}
                   </label>
                   <Select
                     value={editUser.organisation || ""}
-                    onValueChange={(v) =>
-                      setEditUser({
-                        ...editUser,
-                        organisation: v,
-                        tahfizcenter: null,
-                      })
-                    }
+                    onValueChange={handleOrganisationChange}
                     disabled={
-                      isAdmin && !isSuperAdmin && currentUser.organisation
+                      isAdmin &&
+                      !isSuperAdmin &&
+                      currentUser.organisation &&
+                      !isCurrentUserOrgParent
                     }
                   >
                     <SelectTrigger className="dark:border-slate-600">
@@ -615,6 +641,56 @@ function ManageUsersDesktop() {
                   </Select>
                 </div>
               )}
+
+              <div>
+                <label className="text-sm font-medium mb-2 block dark:text-slate-300">
+                  {translate("Role")}
+                </label>
+                <Select
+                  value={editUser.role || "employee"}
+                  onValueChange={handleRoleChange}
+                >
+                  <SelectTrigger className="dark:border-slate-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isSuperAdmin && (
+                      <SelectItem value="superadmin">
+                        {translate("Super Admin")}
+                      </SelectItem>
+                    )}
+                    <SelectItem value="admin">{translate("Admin")}</SelectItem>
+                    <SelectItem value="employee">
+                      {translate("Employee")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {showRoleTypeSelect && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block dark:text-slate-300">
+                    {translate("Role Type")}
+                  </label>
+                  <Select
+                    value={editUser.roletype || ""}
+                    onValueChange={(v) =>
+                      setEditUser({ ...editUser, roletype: v })
+                    }
+                  >
+                    <SelectTrigger className="dark:border-slate-600">
+                      <SelectValue placeholder={translate("Select Role Type")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(ROLE_TYPE.mosque).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}             
 
               <div>
                 <label className="text-sm font-medium mb-2 block dark:text-slate-300">

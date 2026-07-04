@@ -5,6 +5,9 @@ import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { deadPersonSchema } from "../schemas/deadpersonSchema.js";
 
+const stripIcDashes = (value) =>
+  typeof value === "string" ? value.replace(/-/g, "").trim() : value;
+
 export const deadPersonRouter = router({
   getPaginated: protectedProcedure
     .input(
@@ -14,6 +17,7 @@ export const deadPersonRouter = router({
         filterName: z.string().optional(),
         filterIC: z.string().optional(),
         filterGrave: z.number().optional(),
+        filterGraveLot: z.string().optional(),
         filterState: z.string().optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
@@ -29,6 +33,7 @@ export const deadPersonRouter = router({
         filterName,
         filterIC,
         filterGrave,
+        filterGraveLot,
         filterState,
         dateFrom,
         dateTo,
@@ -64,6 +69,12 @@ export const deadPersonRouter = router({
       if (filterGrave) {
         query.andWhere("deadperson.graveId = :graveId", {
           graveId: filterGrave,
+        });
+      }
+
+      if (filterGraveLot?.trim()) {
+        query.andWhere("deadperson.gravelot ILIKE :gravelot", {
+          gravelot: `%${filterGraveLot.trim()}%`,
         });
       }
 
@@ -112,10 +123,37 @@ export const deadPersonRouter = router({
 
       const person = deadPersonRepo.create({
         ...input,
+        icnumber: stripIcDashes(input.icnumber),
         createdbyId: Number(ctx.user.id),
       });
 
       return await deadPersonRepo.save(person);
+    }),
+
+  upsertForQariah: protectedProcedure
+    .input(deadPersonSchema)
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user?.id) throw new Error("Unauthorized");
+      const repo = AppDataSource.getRepository(DeadPerson);
+
+      const icnumber = stripIcDashes(input.icnumber);
+
+      let existing: DeadPerson | null = null;
+      if (icnumber) {
+        existing = await repo.findOne({ where: { icnumber } });
+      }
+
+      if (existing) {
+        repo.merge(existing, { ...input, icnumber });
+        return await repo.save(existing);
+      }
+
+      const person = repo.create({
+        ...input,
+        icnumber,
+        createdbyId: Number(ctx.user.id),
+      });
+      return await repo.save(person);
     }),
 
   update: protectedProcedure
@@ -128,6 +166,10 @@ export const deadPersonRouter = router({
         Object.entries(input.data).filter(([_, v]) => v !== undefined),
       );
 
+      if (cleanedInput.icnumber !== undefined) {
+        cleanedInput.icnumber = stripIcDashes(cleanedInput.icnumber);
+      }
+
       deadPersonRepo.merge(person, cleanedInput);
 
       return await deadPersonRepo.save(person);
@@ -137,6 +179,16 @@ export const deadPersonRouter = router({
     const repo = AppDataSource.getRepository(DeadPerson);
     return await repo.delete(input);
   }),
+
+  getByIcNumber: publicProcedure
+    .input(z.object({ icnumber: z.string() }))
+    .query(async ({ input }) => {
+      if (!input.icnumber) return null;
+      return await AppDataSource.getRepository(DeadPerson).findOne({
+        where: { icnumber: stripIcDashes(input.icnumber) },
+        relations: ["grave"],
+      });
+    }),
 
   getDeadPersonById: publicProcedure
     .input(z.object({ id: z.number() }))

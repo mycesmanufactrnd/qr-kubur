@@ -2,44 +2,60 @@
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
-import { DeathCharity, DeathCharityClaim, DeathCharityDependent, DeathCharityMember, Mosque } from "../db/entities.js";
+import {
+  DeathCharity,
+  DeathCharityClaim,
+  DeathCharityDependent,
+  DeathCharityMember,
+  Mosque,
+  Organisation,
+} from "../db/entities.js";
 import { deathCharityMemberSchema } from "../schemas/deathCharityMemberSchema.js";
 import { claimFromMemberSchema } from "../schemas/deathCharityClaimSchema.js";
 
+const stripIcDashes = (value) =>
+  typeof value === "string" ? value.replace(/-/g, "").trim() : value;
+
 export const deathCharityMemberRouter = router({
   getPaginated: protectedProcedure
-    .input(z.object({
-      page: z.number().min(1).default(1),
-      pageSize: z.number().min(1).default(10),
-      filterFullName: z.string().optional(),
-      sortField: z.string().optional(),
-      sortOrder: z.enum(["ASC", "DESC"]).optional(),
-    }))
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).default(10),
+        filterFullName: z.string().optional(),
+        sortField: z.string().optional(),
+        sortOrder: z.enum(["ASC", "DESC"]).optional(),
+      }),
+    )
     .query(async ({ input }) => {
       const { page, pageSize, filterFullName, sortField, sortOrder } = input;
 
-      const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
+      const deathCharityMemberRepo =
+        AppDataSource.getRepository(DeathCharityMember);
 
-      const query = deathCharityMemberRepo.createQueryBuilder('member');
-        query.leftJoinAndSelect('member.deathcharity', 'deathcharity');
-        query.leftJoinAndSelect('member.claims', 'memberclaims');
-        query.leftJoinAndSelect('member.dependents', 'dependents');
-        query.leftJoinAndSelect('dependents.claims', 'dependentsclaims');
+      const query = deathCharityMemberRepo.createQueryBuilder("member");
+      query.innerJoinAndSelect("member.deathcharity", "deathcharity");
+      query.leftJoinAndSelect("member.claims", "memberclaims");
+      query.leftJoinAndSelect("member.dependents", "dependents");
+      query.leftJoinAndSelect("dependents.claims", "dependentsclaims");
 
       if (filterFullName) {
-        query.andWhere('member.fullname ILIKE :fullname', { fullname: `%${filterFullName}%` });
+        query.andWhere("member.fullname ILIKE :fullname", {
+          fullname: `%${filterFullName}%`,
+        });
       }
 
       if (page && pageSize) {
-        query.skip((page - 1) * pageSize).take(pageSize)
+        query.skip((page - 1) * pageSize).take(pageSize);
       }
 
       const allowedSortFields: Record<string, string> = {
-        fullname: 'member.fullname',
-        createdat: 'member.createdat',
+        fullname: "member.fullname",
+        createdat: "member.createdat",
       };
-      const orderCol = (sortField && allowedSortFields[sortField]) || 'member.createdat';
-      const orderDir = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+      const orderCol =
+        (sortField && allowedSortFields[sortField]) || "member.createdat";
+      const orderDir = sortOrder === "ASC" ? "ASC" : "DESC";
 
       const [items, total] = await query
         .orderBy(orderCol, orderDir)
@@ -51,37 +67,75 @@ export const deathCharityMemberRouter = router({
   create: protectedProcedure
     .input(deathCharityMemberSchema)
     .mutation(async ({ input }) => {
-      const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
-      const deathCharity = deathCharityMemberRepo.create(input);
+      const deathCharityMemberRepo =
+        AppDataSource.getRepository(DeathCharityMember);
+
+      const icnumber = stripIcDashes(input.icnumber);
+
+      const existing = await deathCharityMemberRepo.findOne({
+        where: { icnumber },
+      });
+
+      if (existing) {
+        throw new Error("IC number is already registered.");
+      }
+
+      const deathCharity = deathCharityMemberRepo.create({
+        ...input,
+        icnumber,
+        isapproved: true,
+      });
+
       return await deathCharityMemberRepo.save(deathCharity);
     }),
 
   update: protectedProcedure
     .input(z.object({ id: z.number(), data: deathCharityMemberSchema }))
     .mutation(async ({ input }) => {
-      const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
-      const deathCharity = await deathCharityMemberRepo.findOneByOrFail({ id: input.id });
+      const deathCharityMemberRepo =
+        AppDataSource.getRepository(DeathCharityMember);
+      const deathCharity = await deathCharityMemberRepo.findOneByOrFail({
+        id: input.id,
+      });
 
       const cleanedInput = Object.fromEntries(
-        Object.entries(input.data).filter(([_, v]) => v !== undefined)
+        Object.entries(input.data).filter(([_, v]) => v !== undefined),
       );
+
+      if (cleanedInput.icnumber !== undefined) {
+        cleanedInput.icnumber = stripIcDashes(cleanedInput.icnumber);
+      }
+
+      // Auto-derive organisation from mosque when mosque changes
+      if (input.data.mosque !== undefined) {
+        if (input.data.mosque?.id) {
+          const mosqueRepo = AppDataSource.getRepository(Mosque);
+          const mosque = await mosqueRepo.findOne({
+            where: { id: input.data.mosque.id },
+            relations: ["organisation"],
+          });
+          cleanedInput.organisation = mosque?.organisation ?? null;
+        } else {
+          cleanedInput.organisation = null;
+        }
+      }
 
       deathCharityMemberRepo.merge(deathCharity, cleanedInput);
       return await deathCharityMemberRepo.save(deathCharity);
     }),
 
-  delete: protectedProcedure
-    .input(z.number())
-    .mutation(async ({ input }) => {
-      const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharity);
-      return await deathCharityMemberRepo.delete(input);
-    }),
+  delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+    const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharity);
+    return await deathCharityMemberRepo.delete(input);
+  }),
 
   getMemberByDeathCharity: protectedProcedure
-    .input(z.object({
+    .input(
+      z.object({
         deathcharityId: z.number(),
         isSuperAdmin: z.boolean().default(false),
-      }))
+      }),
+    )
     .query(async ({ input }) => {
       const { deathcharityId, isSuperAdmin } = input;
 
@@ -92,20 +146,22 @@ export const deathCharityMemberRouter = router({
       }
 
       return await memberRepo.find({
-        where: { 
-          deathcharity: { 
-            id: deathcharityId 
-          } 
+        where: {
+          deathcharity: {
+            id: deathcharityId,
+          },
         },
       });
     }),
 
   searchByDeathCharity: publicProcedure
-    .input(z.object({
-      deathcharityId: z.number(),
-      keyword: z.string().trim().min(1),
-      limit: z.number().min(1).max(25).default(10),
-    }))
+    .input(
+      z.object({
+        deathcharityId: z.number(),
+        keyword: z.string().trim().min(1),
+        limit: z.number().min(1).max(25).default(10),
+      }),
+    )
     .query(async ({ input }) => {
       const { deathcharityId, keyword, limit } = input;
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
@@ -114,7 +170,9 @@ export const deathCharityMemberRouter = router({
         .createQueryBuilder("member")
         .leftJoin("member.deathcharity", "deathcharity")
         .where("deathcharity.id = :deathcharityId", { deathcharityId })
-        .andWhere("(member.fullname ILIKE :keyword OR member.icnumber ILIKE :keyword)")
+        .andWhere(
+          "(member.fullname ILIKE :keyword OR member.icnumber ILIKE :keyword)",
+        )
         .setParameter("keyword", `%${keyword}%`)
         .orderBy("member.fullname", "ASC")
         .take(limit)
@@ -127,36 +185,74 @@ export const deathCharityMemberRouter = router({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).default(20),
         filterFullName: z.string().optional().nullable(),
+        filterOrganisationId: z.number().optional().nullable(),
         filterMosqueId: z.number().optional().nullable(),
+        filterIsDeceased: z.boolean().optional().nullable(),
+        filterIsApproved: z.boolean().optional().nullable(),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, filterFullName, filterMosqueId } = input;
+      const {
+        page,
+        pageSize,
+        filterFullName,
+        filterOrganisationId,
+        filterMosqueId,
+        filterIsDeceased,
+        filterIsApproved,
+      } = input;
       const repo = AppDataSource.getRepository(DeathCharityMember);
       const query = repo
         .createQueryBuilder("m")
+        .leftJoinAndSelect("m.organisation", "organisation")
         .leftJoinAndSelect("m.mosque", "mosque")
-        .where("m.mosqueId IS NOT NULL");
+        .where("m.organisationId IS NOT NULL");
 
       if (filterFullName?.trim()) {
-        query.andWhere("m.fullname ILIKE :name", { name: `%${filterFullName.trim()}%` });
+        query.andWhere("m.fullname ILIKE :name", {
+          name: `%${filterFullName.trim()}%`,
+        });
+      }
+      if (filterOrganisationId) {
+        query.andWhere("m.organisationId = :organisationId", {
+          organisationId: filterOrganisationId,
+        });
       }
       if (filterMosqueId) {
         query.andWhere("m.mosqueId = :mosqueId", { mosqueId: filterMosqueId });
       }
+      if (filterIsDeceased !== undefined && filterIsDeceased !== null) {
+        query.andWhere("m.isdeceased = :isdeceased", { isdeceased: filterIsDeceased });
+      }
+      if (filterIsApproved !== undefined && filterIsApproved !== null) {
+        query.andWhere("m.isapproved = :isapproved", { isapproved: filterIsApproved });
+      }
 
-      query.orderBy("m.createdat", "DESC").skip((page - 1) * pageSize).take(pageSize);
+      query
+        .orderBy("m.createdat", "DESC")
+        .skip((page - 1) * pageSize)
+        .take(pageSize);
       const [items, total] = await query.getManyAndCount();
       return { items, total };
     }),
 
   getMosquesByState: publicProcedure
-    .input(z.object({ state: z.string().optional().nullable() }))
+    .input(
+      z.object({
+        state: z.string().optional().nullable(),
+        organisationId: z.number().optional().nullable(),
+      }),
+    )
     .query(async ({ input }) => {
       const repo = AppDataSource.getRepository(Mosque);
       const query = repo.createQueryBuilder("mosque");
       if (input.state) {
         query.where("mosque.state = :state", { state: input.state });
+      }
+      if (input.organisationId) {
+        query.andWhere("mosque.organisationId = :orgId", {
+          orgId: input.organisationId,
+        });
       }
       return query
         .select(["mosque.id", "mosque.name", "mosque.state", "mosque.address"])
@@ -164,33 +260,101 @@ export const deathCharityMemberRouter = router({
         .getMany();
     }),
 
+  getOrganisations: publicProcedure
+    .input(
+      z.object({
+        state: z.string().optional().nullable(),
+        organisationId: z.number().optional().nullable(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const repo = AppDataSource.getRepository(Organisation);
+      // Only organisations with mosque management enabled
+      const query = repo
+        .createQueryBuilder("organisation")
+        .where("organisation.canmanagemosque = :can", { can: true });
+
+      if (input.state) {
+        query.andWhere(":state = ANY(organisation.states)", {
+          state: input.state,
+        });
+      }
+
+      if (input.organisationId) {
+        // Load the relation to check parent vs child — FK column not directly selectable
+        const callerOrg = await repo.findOne({
+          where: { id: input.organisationId },
+          relations: ["parentorganisation"],
+        });
+        if (!callerOrg?.parentorganisation) {
+          // Top-level org: show itself + all direct children
+          query.andWhere(
+            "(organisation.id = :orgId OR organisation.parentorganisationId = :orgId)",
+            { orgId: input.organisationId },
+          );
+        } else {
+          // Child org: show only itself
+          query.andWhere("organisation.id = :orgId", {
+            orgId: input.organisationId,
+          });
+        }
+      }
+
+      return query
+        .select([
+          "organisation.id",
+          "organisation.name",
+          "organisation.states",
+          "organisation.address",
+        ])
+        .orderBy("organisation.name", "ASC")
+        .getMany();
+    }),
+
   registerQariah: publicProcedure
-    .input(z.object({
-      fullname: z.string().min(1),
-      icnumber: z.string().min(1),
-      phone: z.string().optional().nullable(),
-      email: z.string().optional().nullable(),
-      address: z.string().optional().nullable(),
-      mosque: z.object({ id: z.number() }).optional().nullable(),
-    }))
+    .input(
+      z.object({
+        fullname: z.string().min(1),
+        icnumber: z.string().min(1),
+        phone: z.string().optional().nullable(),
+        email: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        mosque: z.object({ id: z.number() }).optional().nullable(),
+      }),
+    )
     .mutation(async ({ input }) => {
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
 
+      const icnumber = stripIcDashes(input.icnumber);
+
       const existing = await memberRepo.findOne({
-        where: { icnumber: input.icnumber.trim() },
+        where: { icnumber },
       });
+
       if (existing) {
         throw new Error("IC number is already registered.");
       }
 
+      // Auto-derive organisation from mosque
+      let organisation = null;
+      if (input.mosque?.id) {
+        const mosqueRepo = AppDataSource.getRepository(Mosque);
+        const mosque = await mosqueRepo.findOne({
+          where: { id: input.mosque.id },
+          relations: ["organisation"],
+        });
+        organisation = mosque?.organisation ?? null;
+      }
+
       const member = memberRepo.create({
         fullname: input.fullname,
-        icnumber: input.icnumber.trim(),
+        icnumber,
         phone: input.phone ?? null,
         email: input.email ?? null,
         address: input.address ?? null,
         mosque: input.mosque ?? null,
-        isactive: true,
+        organisation,
+        isapproved: false,
       });
       return await memberRepo.save(member);
     }),
@@ -205,7 +369,8 @@ export const deathCharityMemberRouter = router({
         throw new Error("Death charity is required.");
       }
 
-      const icnumber = (input.icnumber || "").trim();
+      const icnumber = stripIcDashes(input.icnumber || "");
+
       const existingMember = await memberRepo
         .createQueryBuilder("member")
         .leftJoin("member.deathcharity", "deathcharity")
@@ -231,10 +396,12 @@ export const deathCharityMemberRouter = router({
     }),
 
   getDependentsByMember: protectedProcedure
-    .input(z.object({
+    .input(
+      z.object({
         memberId: z.number(),
         isSuperAdmin: z.boolean().default(false),
-      }))
+      }),
+    )
     .query(async ({ input }) => {
       const { memberId, isSuperAdmin } = input;
 
@@ -245,10 +412,10 @@ export const deathCharityMemberRouter = router({
       }
 
       return await dependentRepo.find({
-        where: { 
-          member: { 
-            id: memberId
-          } 
+        where: {
+          member: {
+            id: memberId,
+          },
         },
       });
     }),
@@ -263,9 +430,9 @@ export const deathCharityMemberRouter = router({
             fullname: z.string().min(1),
             icnumber: z.string().min(1),
             relationship: z.enum(["spouse", "child"]),
-          })
+          }),
         ),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { member, dependents } = input;
@@ -273,8 +440,11 @@ export const deathCharityMemberRouter = router({
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
       const dependentRepo = AppDataSource.getRepository(DeathCharityDependent);
 
-      const deathCharityMember = await memberRepo.findOne({ where: { id: member.id } });
-      if (!deathCharityMember) throw new Error("Death charity member not found");
+      const deathCharityMember = await memberRepo.findOne({
+        where: { id: member.id },
+      });
+      if (!deathCharityMember)
+        throw new Error("Death charity member not found");
 
       const existingDependents = await dependentRepo.find({
         where: { member: { id: member.id } },
@@ -282,11 +452,13 @@ export const deathCharityMemberRouter = router({
 
       for (const dependent of dependents) {
         if (dependent.id) {
-          const existing = await dependentRepo.findOneByOrFail({ id: dependent.id });
+          const existing = await dependentRepo.findOneByOrFail({
+            id: dependent.id,
+          });
 
           dependentRepo.merge(existing, {
             fullname: dependent.fullname,
-            icnumber: dependent.icnumber,
+            icnumber: stripIcDashes(dependent.icnumber),
             relationship: dependent.relationship,
           });
 
@@ -294,7 +466,7 @@ export const deathCharityMemberRouter = router({
         } else {
           const entity = dependentRepo.create({
             fullname: dependent.fullname,
-            icnumber: dependent.icnumber,
+            icnumber: stripIcDashes(dependent.icnumber),
             relationship: dependent.relationship,
             member: { id: member.id },
           });
@@ -302,32 +474,54 @@ export const deathCharityMemberRouter = router({
         }
       }
 
-      const idsToKeep = dependents.filter(dependent => dependent.id).map(dependent => dependent.id);
+      const idsToKeep = dependents
+        .filter((dependent) => dependent.id)
+        .map((dependent) => dependent.id);
       const toDelete = existingDependents.filter(
-        existing => !idsToKeep.includes(existing.id)
+        (existing) => !idsToKeep.includes(existing.id),
       );
 
       if (toDelete.length > 0) {
         try {
-          await dependentRepo.delete(toDelete.map(d => d.id));
+          await dependentRepo.delete(toDelete.map((d) => d.id));
         } catch (error: any) {
-          if (
-            error.code === "23503" || 
-            error.message.includes("foreign key")
-          ) {
+          if (error.code === "23503" || error.message.includes("foreign key")) {
             throw new Error(
-              "Cannot delete dependent because there are associated claims. Delete claims first."
+              "Cannot delete dependent because there are associated claims. Delete claims first.",
             );
           }
           throw error;
         }
       }
 
-      // for (const dependent of toDelete) {
-      //   await dependentRepo.softRemove(dependent);
-      // }
-
       return dependents;
+    }),
+
+  approveMember: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(DeathCharityMember);
+      const member = await repo.findOneByOrFail({ id: input });
+      member.isapproved = true;
+      return await repo.save(member);
+    }),
+
+  searchByIcNumber: publicProcedure
+    .input(
+      z.object({
+        icnumber: z.string(),
+        mosqueId: z.number().optional().nullable(),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (!input.icnumber?.trim()) return null;
+      return await AppDataSource.getRepository(DeathCharityMember).findOne({
+        where: {
+          icnumber: stripIcDashes(input.icnumber),
+          ...(input.mosqueId ? { mosqueId: input.mosqueId } : {}),
+        },
+        relations: ["mosque", "organisation"],
+      });
     }),
 
   createClaims: protectedProcedure
@@ -344,7 +538,7 @@ export const deathCharityMemberRouter = router({
           member: c.member?.id ?? null,
           dependent: c.dependent?.id ?? null,
           deathcharity: c.deathcharity?.id ?? null,
-        })
+        }),
       );
 
       return await claimRepo.save(claimEntities);

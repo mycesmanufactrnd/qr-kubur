@@ -41,6 +41,8 @@ import { ganttchartRouter } from "./ganttchartRouter.js";
 import { paymentComparisonRouter } from "./paymentComparisonRouter.js";
 import { financialReportRouter } from "./financialReportRouter.js";
 import { collectionTreeRouter } from "./collectionTreeRouter.js";
+import { qariahNotificationRouter } from "./qariahNotificationRouter.js";
+import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -84,6 +86,8 @@ export const appRouter = trpcRouter({
   paymentComparison: paymentComparisonRouter,
   financialReport: financialReportRouter,
   collectionTree: collectionTreeRouter,
+  qariahNotification: qariahNotificationRouter,
+  jenazahCase: jenazahCaseRouter,
 });
 
 export type AppRouter = typeof appRouter;
