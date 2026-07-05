@@ -12,6 +12,7 @@ import { translate } from "@/utils/translations";
 import { STATES_MY } from "@/utils/enums";
 import { showApiError } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
+import { initFCM } from "@/firebase/firebase";
 
 
 
@@ -54,15 +55,30 @@ export default function UserQariahRegistration() {
     onError: (err) => showApiError(err),
   });
 
+  const saveQariahDeviceToken = trpc.qariahDevice.saveToken.useMutation();
+
   const onSubmit = async (data) => {
+    const icnumber = data.icnumber.replace(/-/g, "");
+    const mosqueId = data.mosqueId ? Number(data.mosqueId) : null;
+
     await registerMutation.mutateAsync({
       fullname: data.fullname,
-      icnumber: data.icnumber.replace(/-/g, ""),
+      icnumber,
       phone: data.phone || null,
       email: data.email || null,
       address: data.address || null,
-      mosque: data.mosqueId ? { id: Number(data.mosqueId) } : null,
+      mosque: mosqueId ? { id: mosqueId } : null,
     });
+
+    const token = await initFCM();
+    if (token) {
+      localStorage.setItem("fcmQariahToken", token);
+      saveQariahDeviceToken.mutate({
+        fcmQariahToken: token,
+        icnumber,
+        mosqueId,
+      });
+    }
   };
 
   useEffect(() => {

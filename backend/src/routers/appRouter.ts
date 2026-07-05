@@ -43,6 +43,7 @@ import { financialReportRouter } from "./financialReportRouter.js";
 import { collectionTreeRouter } from "./collectionTreeRouter.js";
 import { qariahNotificationRouter } from "./qariahNotificationRouter.js";
 import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
+import { qariahDeviceRouter } from "./qariahDeviceRouter.js";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -88,6 +89,7 @@ export const appRouter = trpcRouter({
   collectionTree: collectionTreeRouter,
   qariahNotification: qariahNotificationRouter,
   jenazahCase: jenazahCaseRouter,
+  qariahDevice: qariahDeviceRouter,
 });
 
 export type AppRouter = typeof appRouter;
