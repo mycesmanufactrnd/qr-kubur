@@ -6,7 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from "typeorm";
-import { GoogleUser } from "./GoogleUser.entity.js";
+import { GoogleUser } from "../GoogleUser/GoogleUser.entity.js";
 
 @Entity("googleuserdevice")
 export class GoogleUserDevice {

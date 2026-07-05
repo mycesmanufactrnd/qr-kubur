@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   JoinColumn,
 } from "typeorm";
-import { User } from "./User.entity.js";
+import { User } from "../User.entity.js";
 
 @Entity("userdevice")
 export class UserDevice {
