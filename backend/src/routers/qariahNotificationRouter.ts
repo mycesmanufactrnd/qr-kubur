@@ -7,8 +7,7 @@ import {
   DeathCharityMember,
   Organisation,
   QariahDeathNotification,
-  User,
-  UserDevice,
+  QariahDevice,
 } from "../db/entities.js";
 import { sendPushNotifications } from "../services/firebase.service.js";
 
@@ -32,37 +31,28 @@ async function doSendNotification(
   message: string,
 ): Promise<number> {
   const memberRepo = AppDataSource.getRepository(DeathCharityMember);
-  const userRepo = AppDataSource.getRepository(User);
-  const deviceRepo = AppDataSource.getRepository(UserDevice);
+  const deviceRepo = AppDataSource.getRepository(QariahDevice);
 
   const qariahMembers = await memberRepo.find({
     where: {
       organisation: { id: organisationId },
-      isactive: true,
-      ...(mosqueId ? { mosque: { id: mosqueId } } : {}),
+      isapproved: true,
+      ...(mosqueId ? { mosqueId } : {}),
     },
-    select: ["id", "email"],
+    select: ["id", "icnumber"],
   });
 
-  const emails = qariahMembers
-    .filter((m) => m.id !== excludeMemberId && m.email?.trim())
-    .map((m) => m.email!.trim().toLowerCase());
+  const icnumbers = qariahMembers
+    .filter((m) => m.id !== excludeMemberId)
+    .map((m) => m.icnumber);
 
-  if (emails.length === 0) return 0;
-
-  const users = await userRepo
-    .createQueryBuilder("u")
-    .select("u.id")
-    .where("LOWER(u.email) IN (:...emails)", { emails })
-    .getMany();
-
-  if (users.length === 0) return 0;
+  if (icnumbers.length === 0) return 0;
 
   const devices = await deviceRepo.find({
-    where: { user: { id: In(users.map((u) => u.id)) } },
+    where: { icnumber: In(icnumbers), isapproved: true },
   });
 
-  const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+  const tokens = devices.map((d) => d.fcmQariahToken).filter(Boolean);
   if (tokens.length === 0) return 0;
 
   const staleTokens = await sendPushNotifications(
@@ -73,7 +63,7 @@ async function doSendNotification(
 
   if (staleTokens.length > 0) {
     await deviceRepo.delete(
-      staleTokens.map((t) => ({ fcmToken: t })) as any,
+      staleTokens.map((t) => ({ fcmQariahToken: t })) as any,
     );
   }
 

@@ -4,6 +4,7 @@ import { AppDataSource } from "../datasource.js";
 import { JenazahCase, DeathCharityMember, Mosque } from "../db/entities.js";
 import { JenazahCaseStatus } from "../db/enums.js";
 import { z } from "zod";
+import { sendNotificationFCMToOrganisation } from "../services/firebase.service.js";
 
 const sanitizeDetails = (details) => {
   if (!details || typeof details.deceasedIcnumber !== "string") return details;
@@ -11,6 +12,15 @@ const sanitizeDetails = (details) => {
     ...details,
     deceasedIcnumber: details.deceasedIcnumber.replace(/-/g, "").trim(),
   };
+};
+
+const resolveOrganisationIdFromMosque = async (mosqueId) => {
+  if (!mosqueId) return null;
+  const mosque = await AppDataSource.getRepository(Mosque).findOne({
+    where: { id: mosqueId },
+    relations: ["organisation"],
+  });
+  return mosque?.organisation?.id ?? null;
 };
 
 export const jenazahCaseRouter = router({
@@ -43,7 +53,30 @@ export const jenazahCaseRouter = router({
         policereportphotourl: input.policereportphotourl ?? null,
         supportingphotourl: input.supportingphotourl ?? null,
       });
-      return await repo.save(c);
+      const savedCase = await repo.save(c);
+
+      const organisationId = await resolveOrganisationIdFromMosque(
+        input.mosqueId,
+      );
+      if (organisationId) {
+        if (approved) {
+          await sendNotificationFCMToOrganisation({
+            organisationId,
+            event: "jenazahcase_approved",
+            inputData: { deceasedFullname: savedCase.details?.deceasedFullname },
+            roles: ["admin", "employee"],
+          });
+        } else {
+          await sendNotificationFCMToOrganisation({
+            organisationId,
+            event: "jenazahcase_created",
+            inputData: {},
+            roles: ["admin"],
+          });
+        }
+      }
+
+      return savedCase;
     }),
 
   getPaginated: protectedProcedure
@@ -178,9 +211,26 @@ export const jenazahCaseRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(JenazahCase);
       const c = await repo.findOneByOrFail({ id: input.id });
+      const wasApproved = c.status === JenazahCaseStatus.APPROVED;
       c.status = input.status;
       c.isapproved = input.status === "approved";
       if (input.adminremarks !== undefined) c.adminremarks = input.adminremarks ?? null;
-      return await repo.save(c);
+      const savedCase = await repo.save(c);
+
+      if (input.status === JenazahCaseStatus.APPROVED && !wasApproved) {
+        const organisationId = await resolveOrganisationIdFromMosque(
+          c.mosqueId,
+        );
+        if (organisationId) {
+          await sendNotificationFCMToOrganisation({
+            organisationId,
+            event: "jenazahcase_approved",
+            inputData: { deceasedFullname: c.details?.deceasedFullname },
+            roles: ["admin", "employee"],
+          });
+        }
+      }
+
+      return savedCase;
     }),
 });

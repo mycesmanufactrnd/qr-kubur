@@ -3,15 +3,19 @@ import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
 import {
-  DeathCharity,
   DeathCharityClaim,
   DeathCharityDependent,
   DeathCharityMember,
   Mosque,
   Organisation,
+  QariahDevice,
 } from "../db/entities.js";
 import { deathCharityMemberSchema } from "../schemas/deathCharityMemberSchema.js";
 import { claimFromMemberSchema } from "../schemas/deathCharityClaimSchema.js";
+import {
+  sendNotificationFCMToOrganisation,
+  sendNotificationToQariahDevices,
+} from "../services/firebase.service.js";
 
 const stripIcDashes = (value) =>
   typeof value === "string" ? value.replace(/-/g, "").trim() : value;
@@ -125,7 +129,27 @@ export const deathCharityMemberRouter = router({
     }),
 
   delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
-    const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharity);
+    const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
+
+    const member = await deathCharityMemberRepo.findOne({
+      where: { id: input },
+      relations: ["mosque"],
+    });
+
+    if (member && !member.isapproved) {
+      // A still-pending registration is being deleted — this is a rejection.
+      await sendNotificationToQariahDevices({
+        icnumber: member.icnumber,
+        notification: {
+          title: "Pendaftaran Qariah Ditolak",
+          body: `Pendaftaran anda sebagai ahli qariah ${member.mosque?.name ?? ""} tidak diluluskan.`,
+        },
+      });
+      await AppDataSource.getRepository(QariahDevice).delete({
+        icnumber: member.icnumber,
+      });
+    }
+
     return await deathCharityMemberRepo.delete(input);
   }),
 
@@ -356,7 +380,18 @@ export const deathCharityMemberRouter = router({
         organisation,
         isapproved: false,
       });
-      return await memberRepo.save(member);
+      const savedMember = await memberRepo.save(member);
+
+      if (organisation?.id) {
+        await sendNotificationFCMToOrganisation({
+          organisationId: organisation.id,
+          event: "qariah_registered",
+          inputData: { fullname: input.fullname },
+          roles: ["admin"],
+        });
+      }
+
+      return savedMember;
     }),
 
   createPublic: publicProcedure
@@ -501,9 +536,28 @@ export const deathCharityMemberRouter = router({
     .input(z.number())
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeathCharityMember);
-      const member = await repo.findOneByOrFail({ id: input });
+      const member = await repo.findOne({
+        where: { id: input },
+        relations: ["mosque"],
+      });
+      if (!member) throw new Error("Death charity member not found");
+
       member.isapproved = true;
-      return await repo.save(member);
+      const savedMember = await repo.save(member);
+
+      await AppDataSource.getRepository(QariahDevice).update(
+        { icnumber: member.icnumber },
+        { isapproved: true },
+      );
+      await sendNotificationToQariahDevices({
+        icnumber: member.icnumber,
+        notification: {
+          title: "Pendaftaran Qariah Diluluskan",
+          body: `Pendaftaran anda sebagai ahli qariah ${member.mosque?.name ?? ""} telah diluluskan.`,
+        },
+      });
+
+      return savedMember;
     }),
 
   searchByIcNumber: publicProcedure

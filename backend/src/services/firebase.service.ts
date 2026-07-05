@@ -5,6 +5,7 @@ import { In } from "typeorm";
 import {
   GoogleUserDevice,
   GoogleUserRecord,
+  QariahDevice,
   User,
   UserDevice,
 } from "../db/entities.js";
@@ -287,17 +288,22 @@ export const sendNotificationFCMToOrganisation = async ({
   organisationId,
   event,
   inputData,
+  roles,
 }: {
   organisationId: number;
   event: string;
   inputData: Record<string, any>;
+  roles?: string[];
 }): Promise<void> => {
   try {
     const userRepo = AppDataSource.getRepository(User);
     const deviceRepo = AppDataSource.getRepository(UserDevice);
 
     const orgUsers = await userRepo.find({
-      where: { organisation: { id: organisationId } },
+      where: {
+        organisation: { id: organisationId },
+        ...(roles?.length ? { role: In(roles) } : {}),
+      },
       select: ["id"],
     });
     if (orgUsers.length === 0) return;
@@ -324,6 +330,23 @@ export const sendNotificationFCMToOrganisation = async ({
         : "Permohonan perkhidmatan baru telah diterima.";
     }
 
+    if (event === "qariah_registered") {
+      const fullname = inputData.fullname ?? "Seseorang";
+      title = "Pendaftaran Qariah Baru";
+      body = `${fullname} telah mendaftar sebagai ahli qariah baru. Sila semak dan luluskan.`;
+    }
+
+    if (event === "jenazahcase_created") {
+      title = "Permohonan Kes Jenazah Baru";
+      body = "Permohonan pengurusan jenazah baru telah diterima. Sila semak dan luluskan.";
+    }
+
+    if (event === "jenazahcase_approved") {
+      const deceasedFullname = inputData.deceasedFullname ?? "seorang ahli";
+      title = "Kes Jenazah Diluluskan";
+      body = `Kes jenazah untuk ${deceasedFullname} telah diluluskan.`;
+    }
+
     if (!title) return;
 
     const staleTokens = await sendPushNotifications(
@@ -341,5 +364,36 @@ export const sendNotificationFCMToOrganisation = async ({
     }
   } catch (error) {
     console.error("[FCM] Failed to notify organisation:", error);
+  }
+};
+
+// by icnumber.
+export const sendNotificationToQariahDevices = async ({
+  icnumber,
+  notification,
+}: {
+  icnumber: string;
+  notification: { title: string; body: string };
+}): Promise<void> => {
+  try {
+    const deviceRepo = AppDataSource.getRepository(QariahDevice);
+
+    const devices = await deviceRepo.findBy({ icnumber });
+    const tokens = devices.map((d) => d.fcmQariahToken).filter(Boolean);
+    if (tokens.length === 0) return;
+
+    const staleTokens = await sendPushNotifications(tokens, notification, {
+      icnumber,
+      event: "qariahRegistrationStatus",
+    });
+
+    if (staleTokens.length > 0) {
+      await deviceRepo.delete(
+        staleTokens.map((t) => ({ fcmQariahToken: t })) as any,
+      );
+      console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
+    }
+  } catch (error) {
+    console.error("[FCM] Failed to notify qariah device:", error);
   }
 };
