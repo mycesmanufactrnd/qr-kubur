@@ -177,3 +177,26 @@ export function resolveGpsState(raw: string | undefined, statesList: string[]): 
   );
 }
 
+export function parseDobFromIcNumber(icnumber: string) {
+  const digits = (icnumber || "").replace(/\D/g, "");
+  if (digits.length < 6) return "";
+
+  const yy = Number(digits.slice(0, 2));
+  const month = Number(digits.slice(2, 4));
+  const day = Number(digits.slice(4, 6));
+  if (month < 1 || month > 12 || day < 1 || day > 31) return "";
+
+  const currentYY = new Date().getFullYear() % 100;
+  const year = (yy <= currentYY ? 2000 : 1900) + yy;
+
+  const parsed = new Date(year, month - 1, day);
+  const isValidCalendarDate =
+    parsed.getFullYear() === year &&
+    parsed.getMonth() === month - 1 &&
+    parsed.getDate() === day;
+  if (!isValidCalendarDate) return "";
+
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${year}-${pad(month)}-${pad(day)}`;
+}
+

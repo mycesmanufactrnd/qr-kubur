@@ -22,13 +22,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
@@ -1049,45 +1042,47 @@ function ManageOrganisationsDesktop() {
       </div>
 
       <SearchBar
-        value={tempName}
-        onChange={setTempName}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Search Organisation Name")}
         buttonClassName="bg-violet-600 hover:bg-violet-700 text-white"
-        filtersClassName="grid grid-cols-1 sm:grid-cols-3 gap-3"
-      >
-        <Select value={String(tempType)} onValueChange={setTempType}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("Organisation Type")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translate("All Types")}</SelectItem>
-            {organisationTypeList.items.map((type) => (
-              <SelectItem key={type.id} value={String(type.id)}>
-                {type.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={tempState} onValueChange={setTempState}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("State")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translate("All States")}</SelectItem>
-            {(isSuperAdmin
-              ? STATES_MY
-              : STATES_MY.filter((s) => currentUserStates.includes(s))
-            ).map((state) => (
-              <SelectItem key={state} value={state}>
-                {state}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "name",
+            value: tempName,
+            onChange: setTempName,
+            label: translate("Search Organisation Name"),
+          },
+          {
+            type: "select",
+            key: "type",
+            value: String(tempType),
+            onChange: setTempType,
+            label: translate("Organisation Type"),
+            options: [
+              { value: "all", label: translate("All Types") },
+              ...organisationTypeList.items.map((type) => ({
+                value: String(type.id),
+                label: type.name,
+              })),
+            ],
+          },
+          {
+            type: "select",
+            key: "state",
+            value: tempState,
+            onChange: setTempState,
+            label: translate("State"),
+            options: [
+              { value: "all", label: translate("All States") },
+              ...(isSuperAdmin
+                ? STATES_MY
+                : STATES_MY.filter((s) => currentUserStates.includes(s))
+              ).map((state) => ({ value: state, label: state })),
+            ],
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">

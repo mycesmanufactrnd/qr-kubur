@@ -15,6 +15,7 @@ import {
   Map,
   BadgeCheck,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -408,6 +409,26 @@ export default function UserDashboard() {
             </Link>
           ))}
         </div>
+      </div>
+
+      <div className="mx-4 mt-4">
+        <Link
+          to={createPageUrl("JenazahEmergencyRequest")}
+          className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-[22px] border border-rose-100 dark:border-rose-900/30 shadow-sm p-4 no-underline"
+        >
+          <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {translate("Permohonan Pengurusan Jenazah")}
+            </p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {translate("Submit an urgent funeral management request")}
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 shrink-0" />
+        </Link>
       </div>
 
       <div className="db-body">

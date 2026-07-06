@@ -90,6 +90,7 @@ import InventoryHistory from '@/pages/Management/InventoryHistory.jsx';
 import InventoryAudit from '@/pages/Management/InventoryAudit.jsx';
 import InventoryReports from '@/pages/Management/InventoryReports.jsx';
 import ManageJenazahCase from '@/pages/Management/ManageJenazahCase.jsx';
+import DetailJenazah from '@/pages/DetailJenazah';
 
 import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
@@ -200,6 +201,7 @@ export const PAGES = {
     "InventoryAudit": InventoryAudit,
     "InventoryReports": InventoryReports,
     "ManageJenazahCase": ManageJenazahCase,
+    "DetailJenazah": DetailJenazah,
 
     "ManagePaymentDistribution": ManagePaymentDistribution,
     "ManagePaymentFields": ManagePaymentFields,

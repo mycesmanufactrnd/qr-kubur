@@ -20,13 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import SearchBar from "@/components/forms/SearchBar";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -284,28 +277,30 @@ function ManageDeathCharityDesktop() {
       </div>
 
       <SearchBar
-        value={tempName}
-        onChange={setTempName}
         onSearch={handleSearch}
         onReset={handleReset}
-        filtersClassName="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3"
-      >
-        {isSuperAdmin && (
-          <Select value={tempState} onValueChange={setTempState}>
-            <SelectTrigger>
-              <SelectValue placeholder={translate("State")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{translate("All States")}</SelectItem>
-              {STATES_MY.map((state) => (
-                <SelectItem key={state} value={state}>
-                  {state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "name",
+            value: tempName,
+            onChange: setTempName,
+            label: translate("Death Charity"),
+          },
+          {
+            type: "select",
+            key: "state",
+            show: isSuperAdmin,
+            value: tempState,
+            onChange: setTempState,
+            label: "Negeri",
+            options: [
+              { value: "all", label: translate("All States") },
+              ...STATES_MY.map((state) => ({ value: state, label: state })),
+            ],
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">

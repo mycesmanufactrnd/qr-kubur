@@ -319,10 +319,17 @@ export default function ManageDeathCharityClaim() {
       </div>
 
       <SearchBar
-        value={tempDeceasedName}
-        onChange={setTempDeceasedName}
         onSearch={handleSearch}
         onReset={handleReset}
+        filters={[
+          {
+            type: "text",
+            key: "deceasedName",
+            value: tempDeceasedName,
+            onChange: setTempDeceasedName,
+            label: translate("Deceased Name"),
+          },
+        ]}
       />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">

@@ -34,13 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import SearchBar from "@/components/forms/SearchBar";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -431,62 +424,48 @@ function ManageQuotationsDesktop() {
       </div>
 
       <SearchBar
-        value={tempService}
-        onChange={setTempService}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Service Name")}
         buttonClassName="bg-sky-600 hover:bg-sky-700"
-        filtersClassName="grid grid-cols-2 sm:grid-cols-4 gap-3"
-      >
-        <Select value={tempStatus} onValueChange={setTempStatus}>
-          <SelectTrigger className="bg-transparent border-slate-300 text-slate-900 dark:border-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("Status")} />
-          </SelectTrigger>
-
-          <SelectContent className="bg-white text-slate-900 border-slate-200 dark:bg-slate-900 dark:text-white dark:border-slate-700">
-            <SelectItem
-              value="all"
-              className="focus:bg-slate-100 dark:focus:bg-white/10"
-            >
-              {translate("All Status")}
-            </SelectItem>
-
-            <SelectItem
-              value="pending"
-              className="focus:bg-slate-100 dark:focus:bg-white/10"
-            >
-              {translate("Pending")}
-            </SelectItem>
-
-            <SelectItem
-              value="completed"
-              className="focus:bg-slate-100 dark:focus:bg-white/10"
-            >
-              {translate("Completed")}
-            </SelectItem>
-
-            <SelectItem
-              value="rejected"
-              className="focus:bg-slate-100 dark:focus:bg-white/10"
-            >
-              {translate("Rejected")}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          type="date"
-          value={tempDateFrom}
-          onChange={(e) => setTempDateFrom(e.target.value)}
-          className="dark:border-slate-600"
-        />
-        <Input
-          type="date"
-          value={tempDateTo}
-          onChange={(e) => setTempDateTo(e.target.value)}
-          className="dark:border-slate-600"
-        />
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "service",
+            value: tempService,
+            onChange: setTempService,
+            label: translate("Service Name"),
+          },
+          {
+            type: "select",
+            key: "status",
+            value: tempStatus,
+            onChange: setTempStatus,
+            label: translate("Status"),
+            options: [
+              { value: "all", label: translate("All Status") },
+              { value: "pending", label: translate("Pending") },
+              { value: "completed", label: translate("Completed") },
+              { value: "rejected", label: translate("Rejected") },
+            ],
+          },
+          {
+            type: "text",
+            key: "dateFrom",
+            isDate: true,
+            label: translate("Date From"),
+            value: tempDateFrom,
+            onChange: setTempDateFrom,
+          },
+          {
+            type: "text",
+            key: "dateTo",
+            isDate: true,
+            label: translate("Date To"),
+            value: tempDateTo,
+            onChange: setTempDateTo,
+          },
+        ]}
+      />
 
       <div className="grid grid-cols-3 gap-4">
         {[

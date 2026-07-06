@@ -26,13 +26,14 @@ import { skipToken } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { formatRM } from "@/utils/helpers";
 import { resolveFileUrl } from "@/utils";
-import { QuotationStatus, TahlilStatus } from "@/utils/enums";
+import { QuotationStatus, TahlilStatus, JenazahCaseStatus } from "@/utils/enums";
 
 const ENTITY_NAME_MAP = {
   donation: "Donation",
   tahlilrequest: "Tahlil Request",
   quotation: "Quotation",
   deathcharity: "Death Charity Payment",
+  jenazahcase: "Kes Jenazah",
 };
 
 const ENTITY_COLOR = {
@@ -40,6 +41,7 @@ const ENTITY_COLOR = {
   tahlilrequest: "text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:border-blue-800",
   quotation: "text-sky-600 bg-sky-50 border-sky-100 dark:text-sky-400 dark:bg-sky-900/20 dark:border-sky-800",
   deathcharity: "text-purple-600 bg-purple-50 border-purple-100 dark:text-purple-400 dark:bg-purple-900/20 dark:border-purple-800",
+  jenazahcase: "text-rose-600 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-900/20 dark:border-rose-800",
 };
 
 const QUOTATION_STATUS_CONFIG = {
@@ -52,6 +54,12 @@ const TAHLIL_STATUS_CONFIG = {
   [TahlilStatus.PENDING]: { label: "Pending", Icon: Clock, bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-400", iconColor: "text-amber-500 dark:text-amber-400" },
   [TahlilStatus.ACCEPTED]: { label: "Accepted", Icon: BadgeCheck, bg: "bg-blue-50 dark:bg-blue-900/20", border: "border-blue-200 dark:border-blue-800", text: "text-blue-700 dark:text-blue-400", iconColor: "text-blue-500 dark:text-blue-400" },
   [TahlilStatus.COMPLETED]: { label: "Completed", Icon: CheckCircle, bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-400", iconColor: "text-emerald-500 dark:text-emerald-400" },
+};
+
+const JENAZAH_STATUS_CONFIG = {
+  [JenazahCaseStatus.PENDING]: { label: "Pending", Icon: Clock, bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-400", iconColor: "text-amber-500 dark:text-amber-400" },
+  [JenazahCaseStatus.APPROVED]: { label: "Approved", Icon: CheckCircle, bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-400", iconColor: "text-emerald-500 dark:text-emerald-400" },
+  [JenazahCaseStatus.REJECTED]: { label: "Rejected", Icon: XCircle, bg: "bg-red-50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-400", iconColor: "text-red-500 dark:text-red-400" },
 };
 
 function StatusBadge({ status, configMap }) {
@@ -168,7 +176,14 @@ export default function UserTransactionRecords() {
         : skipToken,
     );
 
-  const isDetailLoading = loadingQuo || loadingTahlil || loadingDonation || loadingDC;
+  const { data: jenazahDetail, isLoading: loadingJenazah } =
+    trpc.jenazahCase.getByReferenceNo.useQuery(
+      entityName === "jenazahcase" && selectedRecord?.referenceno
+        ? { referenceno: selectedRecord.referenceno }
+        : skipToken,
+    );
+
+  const isDetailLoading = loadingQuo || loadingTahlil || loadingDonation || loadingDC || loadingJenazah;
 
   const renderDetail = () => {
     if (isDetailLoading) {
@@ -356,6 +371,39 @@ export default function UserTransactionRecords() {
           </div>
           {dc.amount != null && (
             <AmountRow label={translate("Payment Amount")} value={dc.amount} highlight />
+          )}
+        </div>
+      );
+    }
+
+    if (entityName === "jenazahcase" && jenazahDetail) {
+      const j = jenazahDetail;
+      const jd = j.details ?? {};
+      return (
+        <div className="space-y-4">
+          <div className="flex justify-center pb-1">
+            <StatusBadge status={j.status} configMap={JENAZAH_STATUS_CONFIG} />
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-700/40 rounded-xl border border-slate-100 dark:border-slate-600 overflow-hidden divide-y divide-slate-100 dark:divide-slate-600">
+            <InfoRow icon={Building2} label={translate("Mosque")} value={j.mosque?.name} />
+            <InfoRow icon={Building2} label={translate("Address")} value={j.mosque?.address} />
+            <InfoRow icon={User} label={translate("Deceased")} value={jd.deceasedFullname} />
+            <InfoRow icon={BadgeCheck} label={translate("IC No.")} value={jd.deceasedIcnumber} />
+            <InfoRow icon={User} label={translate("Nama Waris")} value={jd.heirname} />
+            <InfoRow icon={Phone} label={translate("No. Tel. Waris")} value={jd.heirphoneno} />
+            <InfoRow
+              icon={Calendar}
+              label={translate("Burial Date")}
+              value={jd.burialDate ? new Date(jd.burialDate).toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" }) : null}
+            />
+          </div>
+
+          {j.adminremarks && (
+            <div className="px-3 py-2.5 bg-slate-50 dark:bg-slate-700/40 border border-slate-100 dark:border-slate-600 rounded-xl">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wide font-semibold">{translate("Notes")}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-200">{j.adminremarks}</p>
+            </div>
           )}
         </div>
       );

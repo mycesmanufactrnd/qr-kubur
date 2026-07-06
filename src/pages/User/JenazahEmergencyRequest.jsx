@@ -4,11 +4,12 @@ import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import TextInputForm from "@/components/forms/TextInputForm";
+import SelectForm from "@/components/forms/SelectForm";
+import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import MultipleFileUploadForm from "@/components/forms/MultipleFileUploadForm";
 import { appendCurrentUserToFormData, createPageUrl } from "@/utils";
 import BackNavigation from "@/components/BackNavigation";
-import NoDataCardComponent from "@/components/NoDataCardComponent";
 import {
   Select,
   SelectContent,
@@ -24,17 +25,53 @@ import {
   XCircle,
   AlertTriangle,
   MapPin,
+  Download,
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-import { CARE_SCENARIOS } from "@/utils/enums";
+import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
+import { useLocationContext } from "@/providers/LocationProvider";
+import { defaultJenazahRequestField } from "@/utils/defaultformfields";
+import { translate } from "@/utils/translations";
+import { getStoredGoogleUser } from "@/utils/auth";
+import { generateJenazahCasePdf } from "@/components/PDF/JenazahCase";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
 export default function JenazahEmergencyRequest() {
   const location = useLocation();
   const navigate = useNavigate();
-  const mosque = location.state?.mosque ?? null;
+  const mosqueFromNav = location.state?.mosque ?? null;
+  const isMosqueLocked = !!mosqueFromNav;
+  const [mosque, setMosque] = useState(mosqueFromNav);
+  const { userState } = useLocationContext();
+
+  const {
+    control: pickerControl,
+    watch: watchPicker,
+    setValue: setPickerValue,
+  } = useForm({ defaultValues: { state: "", mosqueId: "" } });
+
+  useEffect(() => {
+    if (userState && STATES_MY.includes(userState)) {
+      setPickerValue("state", userState);
+    }
+  }, [userState, setPickerValue]);
+
+  const pickerState = watchPicker("state");
+  const pickerMosqueId = watchPicker("mosqueId");
+
+  const { data: pickerMosques = [], isLoading: pickerMosqueLoading } =
+    trpc.deathCharityMember.getMosquesByState.useQuery(
+      { state: pickerState || null, canArrangeFuneral: true },
+      { enabled: !isMosqueLocked },
+    );
+
+  useEffect(() => {
+    if (!pickerMosqueId) return;
+    const picked = pickerMosques.find((m) => String(m.id) === pickerMosqueId);
+    if (picked) setMosque(picked);
+  }, [pickerMosqueId, pickerMosques]);
 
   const {
     control,
@@ -44,18 +81,7 @@ export default function JenazahEmergencyRequest() {
     trigger,
     formState: { errors },
   } = useForm({
-    defaultValues: {
-      icSearch: "",
-      fullname: "",
-      icnumber: "",
-      phone: "",
-      userremarks: "",
-      deathconfirmationphotourl: "",
-      policereportphotourl: "",
-      supportingphotourl: "",
-      burialdate: "",
-      careScenarioOther: "",
-    },
+    defaultValues: defaultJenazahRequestField,
   });
 
   const icSearch = watch("icSearch");
@@ -67,10 +93,13 @@ export default function JenazahEmergencyRequest() {
   const [searchedIc, setSearchedIc] = useState("");
   const [currentCoords, setCurrentCoords] = useState(null);
   const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [submittedCase, setSubmittedCase] = useState(null);
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
-      showApiError({ message: "Peranti ini tidak menyokong perkongsian lokasi." });
+      showApiError({
+        message: "Peranti ini tidak menyokong perkongsian lokasi.",
+      });
       return;
     }
     setFetchingLocation(true);
@@ -122,7 +151,6 @@ export default function JenazahEmergencyRequest() {
   const createCase = trpc.jenazahCase.create.useMutation({
     onSuccess: () => {
       showSuccess("Permohonan jenazah telah dihantar.");
-      navigate(createPageUrl("JenazahEmergency"));
     },
     onError: (err) => showApiError(err),
   });
@@ -228,31 +256,111 @@ export default function JenazahEmergencyRequest() {
       burialDate: data.burialdate,
       pickupLat: currentCoords?.lat ?? null,
       pickupLng: currentCoords?.lng ?? null,
+      heirname: data.heirname?.trim() || null,
+      heirphoneno: data.heirphoneno?.trim() || null,
     };
 
-    createCase.mutate({
-      mosqueId: mosque?.id ?? null,
-      qariahmemberid: memberResult?.id ?? null,
-      details,
-      userremarks: data.userremarks?.trim() || null,
-      deathconfirmationphotourl: data.deathconfirmationphotourl || null,
-      policereportphotourl: data.policereportphotourl || null,
-      supportingphotourl: data.supportingphotourl || null,
-    });
+    const googleUser = getStoredGoogleUser();
+
+    createCase.mutate(
+      {
+        mosqueId: mosque?.id ?? null,
+        qariahmemberid: memberResult?.id ?? null,
+        details,
+        userremarks: data.userremarks?.trim() || null,
+        deathconfirmationphotourl: data.deathconfirmationphotourl || null,
+        policereportphotourl: data.policereportphotourl || null,
+        supportingphotourl: data.supportingphotourl || null,
+        googleuserId: googleUser?.id ?? null,
+      },
+      {
+        onSuccess: (savedCase) => {
+          setSubmittedCase({
+            referenceno: savedCase?.referenceno,
+            fullname: data.fullname,
+            icnumber: data.icnumber,
+            phone: data.phone,
+            heirname: data.heirname,
+            heirphoneno: data.heirphoneno,
+            burialdate: data.burialdate,
+            mosqueName: mosque?.name,
+            mosqueAddress: mosque?.address,
+          });
+        },
+      },
+    );
+  };
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!submittedCase) return;
+    setIsGeneratingPdf(true);
+    try {
+      await generateJenazahCasePdf(submittedCase);
+    } catch {
+      showApiError({ message: "Gagal menjana PDF." });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const isSearching = searchQuery.isFetching;
   const hasSearched = searchedIc !== "";
 
-  if (!mosque) {
+  if (submittedCase) {
     return (
       <div className="min-h-screen space-y-3 pb-2">
         <BackNavigation title="Permohonan Pengurusan Jenazah" />
-        <NoDataCardComponent
-          isPage
-          title="Tiada Masjid Dipilih"
-          description="Sila pilih masjid daripada senarai kecemasan jenazah terlebih dahulu."
-        />
+        <div className="px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-6 pb-10">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+            Permohonan Berjaya Dihantar
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">
+            Permohonan pengurusan jenazah anda telah diterima dan sedang
+            diproses oleh pihak masjid.
+          </p>
+
+          <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+              No. Rujukan
+            </p>
+            <p className="text-lg font-bold font-mono tracking-widest text-emerald-600 dark:text-emerald-400">
+              {submittedCase.referenceno}
+            </p>
+          </div>
+
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Sila simpan no. rujukan ini untuk semakan status permohonan anda.
+          </p>
+
+          <div className="w-full flex flex-col gap-2 pt-2">
+            <Button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+            >
+              {isGeneratingPdf ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              Muat Turun PDF
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+            >
+              Kembali
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -265,21 +373,74 @@ export default function JenazahEmergencyRequest() {
         onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="px-4 space-y-5 max-w-lg mx-auto w-full"
       >
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
-            <Building2 className="w-3 h-3" /> Masjid Dipilih
-          </p>
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-            {mosque.name}
-          </p>
-          {mosque.address && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {mosque.address}
+        {isMosqueLocked ? (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+              <Building2 className="w-3 h-3" /> Masjid Dipilih
             </p>
-          )}
-        </div>
+            <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+              {mosque.name}
+            </p>
+            {mosque.address && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {mosque.address}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Pilih negeri dan masjid yang menyediakan perkhidmatan pengurusan
+                jenazah untuk meneruskan permohonan.
+              </p>
+            </div>
 
-        {pageStep === 1 && (
+            <SelectForm
+              name="state"
+              control={pickerControl}
+              label="Negeri"
+              placeholder="Pilih negeri"
+              options={STATES_MY}
+              onValueChange={() => setPickerValue("mosqueId", "")}
+            />
+
+            <Select2Form
+              name="mosqueId"
+              control={pickerControl}
+              label="Masjid"
+              options={pickerMosques.map((m) => ({
+                value: String(m.id),
+                label: m.name,
+              }))}
+              disabled={!pickerState}
+              loading={pickerMosqueLoading}
+              disabledMessage="Pilih negeri dahulu"
+              placeholder="Cari masjid..."
+              searchPlaceholder="Cari masjid..."
+              emptyMessage="Tiada masjid tersedia untuk pengurusan jenazah di negeri ini"
+            />
+
+            {mosque && (
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                  <Building2 className="w-3 h-3" /> Masjid Dipilih
+                </p>
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {mosque.name}
+                </p>
+                {mosque.address && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {mosque.address}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {mosque && pageStep === 1 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
               Lokasi & Prosedur
@@ -304,7 +465,7 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  Tidak, dalam kawasan
+                  Dalam Kawasan Qariah
                 </button>
                 <button
                   type="button"
@@ -315,7 +476,7 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  Ya, luar negeri/daerah
+                  Luar Negeri/Daerah
                 </button>
               </div>
             </div>
@@ -329,8 +490,8 @@ export default function JenazahEmergencyRequest() {
                     <span className="text-red-500 ml-1">*</span>
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Kongsikan lokasi GPS anda supaya masjid dapat mencari
-                    lokasi jenazah dengan lebih tepat.
+                    Kongsikan lokasi GPS anda supaya masjid dapat mencari lokasi
+                    jenazah dengan lebih tepat.
                   </p>
                   <Button
                     type="button"
@@ -379,7 +540,7 @@ export default function JenazahEmergencyRequest() {
                       <SelectValue placeholder="Pilih pengurusan jenazah" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CARE_SCENARIOSNARIOS.map((s) => (
+                      {CARE_SCENARIOS.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
                         </SelectItem>
@@ -446,7 +607,7 @@ export default function JenazahEmergencyRequest() {
           </>
         )}
 
-        {pageStep === 2 && (
+        {mosque && pageStep === 2 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
               Maklumat Jenazah
@@ -510,19 +671,26 @@ export default function JenazahEmergencyRequest() {
 
             {hasSearched && !isSearching && (
               <>
+                <TextInputForm
+                  name="fullname"
+                  control={control}
+                  label="Nama Penuh Jenazah"
+                  required
+                  errors={errors}
+                  placeholder="Nama penuh"
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
-                    name="fullname"
+                    name="heirname"
                     control={control}
-                    label="Nama Penuh Jenazah"
+                    label={translate("Nama Waris")}
                     required
-                    errors={errors}
-                    placeholder="Nama penuh"
+                    placeholder="Nama penuh waris"
                   />
                   <TextInputForm
-                    name="phone"
+                    name="heirphoneno"
                     control={control}
-                    label="No. Telefon"
+                    label={translate("No. Tel. Waris")}
                     isPhone
                     required
                     placeholder="0123456789"
@@ -584,48 +752,50 @@ export default function JenazahEmergencyRequest() {
           </>
         )}
 
-        <div className="flex gap-2 pt-2 pb-6">
-          {pageStep === 1 ? (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(createPageUrl("JenazahEmergency"))}
-                className="flex-1"
-              >
-                Batal
-              </Button>
-              <Button
-                type="button"
-                onClick={handleNextStep}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-              >
-                Seterusnya
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPageStep(1)}
-                className="flex-1"
-              >
-                Kembali
-              </Button>
-              <Button
-                type="submit"
-                disabled={createCase.isPending || !hasSearched || isSearching}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
-              >
-                {createCase.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                Hantar Permohonan
-              </Button>
-            </>
-          )}
-        </div>
+        {mosque && (
+          <div className="flex gap-2 pt-2 pb-6">
+            {pageStep === 1 ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+                  className="flex-1"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                >
+                  Seterusnya
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPageStep(1)}
+                  className="flex-1"
+                >
+                  Kembali
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createCase.isPending || !hasSearched || isSearching}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
+                >
+                  {createCase.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Hantar Permohonan
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </form>
     </div>
   );

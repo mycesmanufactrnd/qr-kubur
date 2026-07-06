@@ -72,30 +72,16 @@ import { useGetGravePaginated } from "@/hooks/useGraveMutations";
 import { translate } from "@/utils/translations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { STATES_MY } from "@/utils/enums";
-
-const DEFAULT_FORM = {
-  fullname: "",
-  icnumber: "",
-  phone: "",
-  email: "",
-  address: "",
-  isdeceased: false,
-  // Create dialog — org & mosque picker
-  createOrgId: null,
-  createMosqueId: null,
-  // Dead person fields (populated when marking member deceased)
-  grave: "",
-  gravelot: "",
-  causeofdeath: "",
-  dateofdeath: "",
-  dateofbirth: "",
-  heirname: "",
-  heirphoneno: "",
-};
+import { parseDobFromIcNumber } from "@/utils/helpers";
+import { defaultQariahMemberField } from "@/utils/defaultformfields";
 
 export default function ManageQariahMember() {
   const isNarrow = useIsNarrow();
-  return isNarrow ? <MobileManageQariahMember /> : <ManageQariahMemberDesktop />;
+  return isNarrow ? (
+    <MobileManageQariahMember />
+  ) : (
+    <ManageQariahMemberDesktop />
+  );
 }
 
 function ManageQariahMemberDesktop() {
@@ -112,8 +98,8 @@ function ManageQariahMemberDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlFullName = searchParams.get("fullname") || "";
-  const urlOrgId = searchParams.get("organisationId")
-    ? parseInt(searchParams.get("organisationId"))
+  const urlMosqueId = searchParams.get("mosqueId")
+    ? parseInt(searchParams.get("mosqueId"))
     : null;
   const urlIsApproved =
     searchParams.get("isApproved") === "true"
@@ -129,15 +115,13 @@ function ManageQariahMemberDesktop() {
         : null;
 
   const [tempFullName, setTempFullName] = useState(urlFullName);
-  const [filterState, setFilterState] = useState("");
-  const [filterOrgId, setFilterOrgId] = useState(urlOrgId ?? null);
+  const [filterMosqueId, setFilterMosqueId] = useState(urlMosqueId ?? null);
   const [filterIsApproved, setFilterIsApproved] = useState(urlIsApproved);
   const [filterIsDeceased, setFilterIsDeceased] = useState(urlIsDeceased);
-  const [filterOrgOpen, setFilterOrgOpen] = useState(false);
+  const [filterMosqueOpen, setFilterMosqueOpen] = useState(false);
 
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  // Dialog state — null = create mode, object = edit mode
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [isApprovedLocal, setIsApprovedLocal] = useState(true);
@@ -149,8 +133,8 @@ function ManageQariahMemberDesktop() {
   const [notifyConfirmMode, setNotifyConfirmMode] = useState(null);
   const [pendingSubmitData, setPendingSubmitData] = useState(null);
   const [notifyReminderMember, setNotifyReminderMember] = useState(null);
+  const [unmarkConfirmOpen, setUnmarkConfirmOpen] = useState(false);
 
-  // Edit dialog — state + mosque picker (org auto-derived from mosque on save)
   const [dialogState, setDialogState] = useState("");
   const [mosqueComboOpen, setMosqueComboOpen] = useState(false);
   const [selectedMosqueId, setSelectedMosqueId] = useState(null);
@@ -163,10 +147,17 @@ function ManageQariahMemberDesktop() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm({ defaultValues: DEFAULT_FORM });
+  } = useForm({ defaultValues: defaultQariahMemberField });
 
   const isdeceased = watch("isdeceased");
   const createOrgIdValue = watch("createOrgId");
+  const icnumberValue = watch("icnumber");
+
+  useEffect(() => {
+    if (!isdeceased || editingMember?.isdeceased) return;
+    const dob = parseDobFromIcNumber(icnumberValue);
+    if (dob) setValue("dateofbirth", dob);
+  }, [icnumberValue, isdeceased, editingMember?.isdeceased]);
 
   useEffect(() => {
     setTempFullName(urlFullName);
@@ -177,38 +168,39 @@ function ManageQariahMemberDesktop() {
       page: urlPage,
       pageSize: itemsPerPage,
       filterFullName: urlFullName || null,
-      filterOrganisationId: urlOrgId || null,
+      filterOrganisationId: userOrgId || null,
+      filterMosqueId: urlMosqueId || null,
       filterIsApproved: urlIsApproved,
       filterIsDeceased: urlIsDeceased,
     });
 
-  // Organisations for top filter and create dialog — scoped by user's own org
   const { data: allOrganisations = [] } =
     trpc.deathCharityMember.getOrganisations.useQuery({
-      state: filterState || null,
       organisationId: userOrgId,
     });
 
-  // Mosques for create dialog — filtered by selected org
+  const { data: filterMosques = [] } =
+    trpc.deathCharityMember.getMosquesByState.useQuery(
+      { organisationId: userOrgId },
+      { enabled: !!userOrgId },
+    );
+
   const { data: createMosques = [], isLoading: createMosquesLoading } =
     trpc.deathCharityMember.getMosquesByState.useQuery(
       { organisationId: createOrgIdValue },
       { enabled: isDialogOpen && !editingMember && !!createOrgIdValue },
     );
 
-  // Reset the chosen mosque whenever the create-dialog organisation changes
   useEffect(() => {
     setValue("createMosqueId", null);
   }, [createOrgIdValue]);
 
-  // Mosques for edit dialog — filtered by state
   const { data: dialogMosques = [], isLoading: dialogMosquesLoading } =
     trpc.deathCharityMember.getMosquesByState.useQuery(
       { state: dialogState || null },
       { enabled: isDialogOpen && !!editingMember },
     );
 
-  // Graves for deceased assignment (filtered by organisation)
   const deceasedOrgId =
     createOrgIdValue ?? editingMember?.organisation?.id ?? userOrgId ?? null;
   const { gravesList: deceasedGraves = { items: [] } } = useGetGravePaginated({
@@ -216,18 +208,8 @@ function ManageQariahMemberDesktop() {
     pageSize: 1000,
   });
 
-  // Load existing DeadPerson record when editing a deceased member
-  const { data: existingDeadPerson } = trpc.deadperson.getByIcNumber.useQuery(
-    { icnumber: editingMember?.icnumber ?? "" },
-    {
-      enabled:
-        isDialogOpen &&
-        !!editingMember?.isdeceased &&
-        !!editingMember?.icnumber,
-    },
-  );
-
   useEffect(() => {
+    const existingDeadPerson = editingMember?.deadperson;
     if (!isDialogOpen || !editingMember?.isdeceased || !existingDeadPerson)
       return;
     const toDateStr = (val) => {
@@ -244,12 +226,16 @@ function ManageQariahMemberDesktop() {
     if (existingDeadPerson.grave?.id) {
       setValue("grave", String(existingDeadPerson.grave.id));
     }
-  }, [existingDeadPerson, isDialogOpen, editingMember?.isdeceased]);
+  }, [editingMember, isDialogOpen]);
 
   const upsertDeadPersonMutation = trpc.deadperson.upsertForQariah.useMutation({
     onSuccess: () => {
       showSuccess(translate("Dead person recorded"), "success");
     },
+    onError: (err) => showApiError(err),
+  });
+
+  const deleteDeadPersonMutation = trpc.deadperson.delete.useMutation({
     onError: (err) => showApiError(err),
   });
 
@@ -260,7 +246,6 @@ function ManageQariahMemberDesktop() {
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
-      // append current user info if helper available
       try {
         const { appendCurrentUserToFormData } = await import("@/utils");
         appendCurrentUserToFormData(formDataUpload);
@@ -334,7 +319,7 @@ function ManageQariahMemberDesktop() {
   const handleSearch = () => {
     const params = { page: "1" };
     if (tempFullName) params.fullname = tempFullName;
-    if (filterOrgId) params.organisationId = filterOrgId.toString();
+    if (filterMosqueId) params.mosqueId = filterMosqueId.toString();
     if (filterIsApproved !== null) params.isApproved = String(filterIsApproved);
     if (filterIsDeceased !== null) params.isDeceased = String(filterIsDeceased);
     setSearchParams(params);
@@ -342,8 +327,7 @@ function ManageQariahMemberDesktop() {
 
   const handleReset = () => {
     setTempFullName("");
-    setFilterState("");
-    setFilterOrgId(null);
+    setFilterMosqueId(null);
     setFilterIsApproved(null);
     setFilterIsDeceased(null);
     setSearchParams({});
@@ -352,7 +336,7 @@ function ManageQariahMemberDesktop() {
   const openCreateDialog = () => {
     setEditingMember(null);
     setIsApprovedLocal(true);
-    reset(DEFAULT_FORM);
+    reset(defaultQariahMemberField);
     setIsDialogOpen(true);
   };
 
@@ -415,7 +399,6 @@ function ManageQariahMemberDesktop() {
       });
     }
 
-    // Upsert DeadPerson record whenever isdeceased is true
     if (Boolean(formData.isdeceased)) {
       if (!formData.grave) {
         showApiError(
@@ -453,10 +436,12 @@ function ManageQariahMemberDesktop() {
         heirphoneno: formData.heirphoneno,
         grave: { id: Number(formData.grave) },
         gravelot: formData.gravelot?.trim() || null,
+        deathCharityMemberId: savedMember?.id ?? null,
       });
+    } else if (editingMember?.deadperson?.id) {
+      await deleteDeadPersonMutation.mutateAsync(editingMember.deadperson.id);
     }
 
-    // Close dialog and refresh table after all mutations complete
     refetch();
     setIsDialogOpen(false);
 
@@ -471,6 +456,10 @@ function ManageQariahMemberDesktop() {
   const onSubmit = async (formData) => {
     const isMarkingDeceased =
       Boolean(formData.isdeceased) && !editingMember?.isdeceased;
+    const isUnmarkingDeceased =
+      !formData.isdeceased &&
+      editingMember?.isdeceased &&
+      !!editingMember?.deadperson?.id;
 
     if (isMarkingDeceased) {
       setPendingSubmitData({ formData });
@@ -479,7 +468,20 @@ function ManageQariahMemberDesktop() {
       return;
     }
 
+    if (isUnmarkingDeceased) {
+      setPendingSubmitData({ formData });
+      setUnmarkConfirmOpen(true);
+      return;
+    }
+
     await submitMember(formData, false);
+  };
+
+  const handleUnmarkConfirm = async () => {
+    setUnmarkConfirmOpen(false);
+    if (!pendingSubmitData) return;
+    await submitMember(pendingSubmitData.formData, false);
+    setPendingSubmitData(null);
   };
 
   const handleNotifyConfirmation = async (shouldNotify) => {
@@ -510,6 +512,9 @@ function ManageQariahMemberDesktop() {
 
   const confirmDelete = async () => {
     if (!memberToDelete) return;
+    if (memberToDelete.deadperson?.id) {
+      await deleteDeadPersonMutation.mutateAsync(memberToDelete.deadperson.id);
+    }
     await deleteMutation.mutateAsync(memberToDelete.id);
   };
 
@@ -519,17 +524,12 @@ function ManageQariahMemberDesktop() {
     setNotifyConfirmOpen(true);
   };
 
-  const selectedFilterOrgName = filterOrgId
-    ? (allOrganisations.find((o) => o.id === filterOrgId)?.name ?? "")
-    : "";
-
   const isPending =
     createMutation.isPending ||
     updateMutation.isPending ||
     upsertDeadPersonMutation.isPending ||
     approveMutation.isPending;
   const formDisabled = !!(editingMember && !isApprovedLocal);
-  const colSpan = canEdit || canDelete ? 10 : 9;
 
   if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
@@ -580,116 +580,53 @@ function ManageQariahMemberDesktop() {
       </div>
 
       <SearchBar
-        value={tempFullName}
-        onChange={setTempFullName}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Search by name...")}
-        filtersClassName="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"
-      >
-        <Select
-          value={filterState || "_all"}
-          onValueChange={(v) => {
-            setFilterState(v === "_all" ? "" : v);
-            setFilterOrgId(null);
-          }}
-        >
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("All States")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="_all">{translate("All States")}</SelectItem>
-            {STATES_MY.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Popover open={filterOrgOpen} onOpenChange={setFilterOrgOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-between bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 font-normal"
-            >
-              <span className="truncate">
-                {filterOrgId
-                  ? selectedFilterOrgName
-                  : translate("All Organisations")}
-              </span>
-              <ChevronsUpDown className="w-4 h-4 opacity-50 ml-2 shrink-0" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-0">
-            <Command>
-              <CommandInput placeholder={translate("Search organisation...")} />
-              <CommandEmpty>{translate("No organisation found.")}</CommandEmpty>
-              <CommandGroup className="max-h-56 overflow-y-auto">
-                <CommandItem
-                  value="__all"
-                  onSelect={() => {
-                    setFilterOrgId(null);
-                    setFilterOrgOpen(false);
-                  }}
-                >
-                  <Check
-                    className={`w-4 h-4 mr-2 ${!filterOrgId ? "opacity-100" : "opacity-0"}`}
-                  />
-                  {translate("All Organisations")}
-                </CommandItem>
-                {allOrganisations.map((o) => (
-                  <CommandItem
-                    key={o.id}
-                    value={o.name}
-                    onSelect={() => {
-                      setFilterOrgId(o.id);
-                      setFilterOrgOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={`w-4 h-4 mr-2 ${filterOrgId === o.id ? "opacity-100" : "opacity-0"}`}
-                    />
-                    {o.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
-
-        <Select
-          value={filterIsApproved === null ? "_all" : String(filterIsApproved)}
-          onValueChange={(v) =>
-            setFilterIsApproved(v === "_all" ? null : v === "true")
-          }
-        >
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("All Status")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="_all">{translate("All Status")}</SelectItem>
-            <SelectItem value="false">{translate("Pending")}</SelectItem>
-            <SelectItem value="true">{translate("Approved")}</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filterIsDeceased === null ? "_all" : String(filterIsDeceased)}
-          onValueChange={(v) =>
-            setFilterIsDeceased(v === "_all" ? null : v === "true")
-          }
-        >
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("All Members")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="_all">{translate("All Members")}</SelectItem>
-            <SelectItem value="false">{translate("Living")}</SelectItem>
-            <SelectItem value="true">{translate("Arwah")}</SelectItem>
-          </SelectContent>
-        </Select>
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "fullname",
+            value: tempFullName,
+            onChange: setTempFullName,
+            label: translate("Full Name"),
+          },
+          {
+            type: "select2",
+            key: "mosque",
+            value: String(filterMosqueId),
+            onChange: (v) => setFilterMosqueId(v ? Number(v) : null),
+            label: translate("Mosque"),
+            searchPlaceholder: translate("Search mosque..."),
+            emptyMessage: translate("No mosque found."),
+            options: filterMosques.map((m) => ({
+              value: String(m.id),
+              label: m.name,
+            })),
+          },
+          {
+            type: "select",
+            key: "isApproved",
+            value: String(filterIsApproved),
+            onChange: (v) => setFilterIsApproved(v === "true"),
+            label: translate("Status"),
+            options: [
+              { value: "false", label: translate("Pending") },
+              { value: "true", label: translate("Approved") },
+            ],
+          },
+          {
+            type: "select",
+            key: "isDeceased",
+            value: String(filterIsDeceased),
+            onChange: (v) => setFilterIsDeceased(v === "true"),
+            label: translate("Deceased"),
+            options: [
+              { value: "false", label: translate("Living") },
+              { value: "true", label: translate("Arwah") },
+            ],
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
@@ -699,8 +636,6 @@ function ManageQariahMemberDesktop() {
                 <TableHead>{translate("Full Name")}</TableHead>
                 <TableHead>{translate("IC No")}</TableHead>
                 <TableHead>{translate("Phone")}</TableHead>
-                <TableHead>{translate("Email")}</TableHead>
-                <TableHead>{translate("Organisation")}</TableHead>
                 <TableHead>{translate("Mosque")}</TableHead>
                 <TableHead className="text-center">
                   {translate("Deceased")}
@@ -718,9 +653,9 @@ function ManageQariahMemberDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={colSpan} />
+                <InlineLoadingComponent isTable colSpan={9} />
               ) : items.length === 0 ? (
-                <NoDataTableComponent colSpan={colSpan} />
+                <NoDataTableComponent colSpan={9} />
               ) : (
                 items.map((member) => (
                   <TableRow
@@ -736,8 +671,6 @@ function ManageQariahMemberDesktop() {
                     </TableCell>
                     <TableCell>{member.icnumber}</TableCell>
                     <TableCell>{member.phone ?? "—"}</TableCell>
-                    <TableCell>{member.email ?? "—"}</TableCell>
-                    <TableCell>{member.organisation?.name ?? "—"}</TableCell>
                     <TableCell>{member.mosque?.name ?? "—"}</TableCell>
                     <TableCell className="text-center">
                       {member.isdeceased ? translate("Yes") : translate("No")}
@@ -758,61 +691,57 @@ function ManageQariahMemberDesktop() {
                         </span>
                       )}
                     </TableCell>
-                    {(canEdit || canDelete) && (
-                      <TableCell className="text-center">
-                        <div className="flex justify-center gap-1">
-                          {canEdit && (
-                            <>
-                              {!member.isapproved && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setMemberToApprove(member);
-                                    setApproveConfirmOpen(true);
-                                  }}
-                                  title={translate("Approve Member")}
-                                  disabled={approveMutation.isPending}
-                                >
-                                  <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                </Button>
-                              )}
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-1">
+                        {canEdit && (
+                          <>
+                            {!member.isapproved && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => openEditDialog(member)}
+                                onClick={() => {
+                                  setMemberToApprove(member);
+                                  setApproveConfirmOpen(true);
+                                }}
+                                title={translate("Approve Member")}
+                                disabled={approveMutation.isPending}
                               >
-                                <Edit className="w-4 h-4 text-blue-500" />
+                                <CheckCircle className="w-4 h-4 text-emerald-500" />
                               </Button>
-                              {member.isdeceased && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openReminderConfirm(member)}
-                                  title={translate(
-                                    "Send reminder notification",
-                                  )}
-                                >
-                                  <Bell className="w-4 h-4 text-amber-500" />
-                                </Button>
-                              )}
-                            </>
-                          )}
-                          {canDelete && (
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setMemberToDelete(member);
-                                setDeleteDialogOpen(true);
-                              }}
+                              onClick={() => openEditDialog(member)}
                             >
-                              <Trash2 className="w-4 h-4 text-red-500" />
+                              <Edit className="w-4 h-4 text-blue-500" />
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    )}
+                            {member.isdeceased && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openReminderConfirm(member)}
+                                title={translate("Send reminder notification")}
+                              >
+                                <Bell className="w-4 h-4 text-amber-500" />
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setMemberToDelete(member);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -885,7 +814,15 @@ function ManageQariahMemberDesktop() {
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={isdeceased}
-                        onCheckedChange={(v) => setValue("isdeceased", v)}
+                        onCheckedChange={(v) => {
+                          setValue("isdeceased", v);
+                          if (v && !editingMember?.isdeceased) {
+                            setValue(
+                              "dateofdeath",
+                              new Date().toISOString().split("T")[0],
+                            );
+                          }
+                        }}
                         disabled={formDisabled}
                       />
                       <Label>{translate("Deceased")}</Label>
@@ -897,40 +834,44 @@ function ManageQariahMemberDesktop() {
                   <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                     {translate("Member Information")}
                   </h3>
-                  <TextInputForm
-                    name="fullname"
-                    control={control}
-                    label={translate("Full Name")}
-                    required
-                    errors={errors}
-                    disabled={formDisabled}
-                  />
                   <div className="grid grid-cols-2 gap-4">
+                    <TextInputForm
+                      name="fullname"
+                      control={control}
+                      label={translate("Full Name")}
+                      required
+                      errors={errors}
+                      disabled={formDisabled}
+                    />
                     <TextInputForm
                       name="icnumber"
                       isICNumber
                       control={control}
                       label={translate("IC No.")}
-                      required={isdeceased}
-                      errors={errors}
-                      disabled={formDisabled}
-                    />
-                    <TextInputForm
-                      name="phone"
-                      control={control}
-                      label={translate("Phone")}
+                      required
                       errors={errors}
                       disabled={formDisabled}
                     />
                   </div>
-                  <TextInputForm
-                    name="email"
-                    control={control}
-                    label={translate("Email")}
-                    isEmail
-                    errors={errors}
-                    disabled={formDisabled}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <TextInputForm
+                      name="phone"
+                      control={control}
+                      required
+                      isPhone
+                      label={translate("Phone")}
+                      errors={errors}
+                      disabled={formDisabled}
+                    />
+                    <TextInputForm
+                      name="email"
+                      control={control}
+                      label={translate("Email")}
+                      isEmail
+                      errors={errors}
+                      disabled={formDisabled}
+                    />
+                  </div>
                   <TextInputForm
                     name="address"
                     control={control}
@@ -1229,9 +1170,29 @@ function ManageQariahMemberDesktop() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title={translate("Delete Qariah Member")}
-        description={`${translate("Delete")} "${memberToDelete?.fullname}"?`}
+        description={
+          memberToDelete?.deadperson?.id
+            ? `${translate("Delete")} "${memberToDelete?.fullname}"? ${translate("This member has recorded arwah/grave information (shown publicly at the grave) that will also be permanently deleted.")}`
+            : `${translate("Delete")} "${memberToDelete?.fullname}"?`
+        }
         onConfirm={confirmDelete}
         confirmText={translate("Delete")}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={unmarkConfirmOpen}
+        onOpenChange={(open) => {
+          setUnmarkConfirmOpen(open);
+          if (!open) setPendingSubmitData(null);
+        }}
+        title={translate("Unmark as Deceased")}
+        description={translate(
+          "This member has recorded arwah/grave information (shown publicly at the grave). Continuing will permanently delete that record.",
+        )}
+        onConfirm={handleUnmarkConfirm}
+        confirmText={translate("Yes, Delete")}
+        cancelText={translate("Cancel")}
         variant="destructive"
       />
 

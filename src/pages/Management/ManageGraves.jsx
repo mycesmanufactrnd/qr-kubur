@@ -21,15 +21,7 @@ import {
 import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -55,7 +47,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 import { showSuccess, showError } from "@/components/ToastrNotification";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { GraveStatus, STATES_MY } from "@/utils/enums";
+import { ACCEPTED_UPLOAD_TYPES, GraveStatus, STATES_MY } from "@/utils/enums";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { useAdminAccess } from "@/utils/auth";
@@ -68,6 +60,7 @@ import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import QRCodeDialog from "@/components/QRCodeDialog";
 import { defaultGraveField } from "@/utils/defaultformfields";
 import { defaultGraveFilter } from "@/utils/defaultfilter";
+import { defaultGraveTemplateHeaders } from "@/utils/defaulttemplateheader";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useForm } from "react-hook-form";
@@ -141,24 +134,8 @@ function ManageGravesDesktop() {
   const [uploadDragOver, setUploadDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const GRAVE_TEMPLATE_HEADERS = [
-    "name",
-    "state",
-    "block",
-    "lot",
-    "address",
-    "latitude",
-    "longitude",
-    "picname",
-    "picphoneno",
-    "totalgraves",
-    "photourl",
-  ];
-
-  const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
-
   const downloadGraveTemplate = () => {
-    const csv = GRAVE_TEMPLATE_HEADERS.join(",") + "\n";
+    const csv = defaultGraveTemplateHeaders.join(",") + "\n";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -497,62 +474,58 @@ function ManageGravesDesktop() {
       </div>
 
       <SearchBar
-        value={tempName}
-        onChange={setTempName}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Cemetery Name")}
         buttonClassName="bg-emerald-600 text-white"
-        filtersClassName="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3"
-      >
-        {isSuperAdmin && (
-          <Select value={tempState} onValueChange={setTempState}>
-            <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-              <SelectValue placeholder="Negeri" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{translate("All States")}</SelectItem>
-              {STATES_MY.map((state) => (
-                <SelectItem key={state} value={state}>
-                  {state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        <Select value={tempStatus} onValueChange={setTempStatus}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-
-          <SelectContent className="bg-slate-900 border-slate-700 text-white">
-            <SelectItem value="all" className="focus:bg-white/10">
-              {translate("All Status")}
-            </SelectItem>
-            <SelectItem value="active" className="focus:bg-white/10">
-              {translate("Active")}
-            </SelectItem>
-            <SelectItem value="full" className="focus:bg-white/10">
-              {translate("Full")}
-            </SelectItem>
-            <SelectItem value="maintenance" className="focus:bg-white/10">
-              {translate("Maintenance")}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder={translate("Block")}
-          value={tempBlock}
-          onChange={(e) => setTempBlock(e.target.value)}
-          className="dark:border-slate-600"
-        />
-        <Input
-          placeholder={translate("Lot")}
-          value={tempLot}
-          onChange={(e) => setTempLot(e.target.value)}
-          className="dark:border-slate-600"
-        />
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "name",
+            value: tempName,
+            onChange: setTempName,
+            label: translate("Cemetery Name"),
+          },
+          {
+            type: "select",
+            key: "state",
+            show: isSuperAdmin,
+            value: tempState,
+            onChange: setTempState,
+            label: "Negeri",
+            options: [
+              { value: "all", label: translate("All States") },
+              ...STATES_MY.map((state) => ({ value: state, label: state })),
+            ],
+          },
+          {
+            type: "select",
+            key: "status",
+            value: tempStatus,
+            onChange: setTempStatus,
+            label: "Status",
+            options: [
+              { value: "all", label: translate("All Status") },
+              { value: "active", label: translate("Active") },
+              { value: "full", label: translate("Full") },
+              { value: "maintenance", label: translate("Maintenance") },
+            ],
+          },
+          {
+            type: "text",
+            key: "block",
+            value: tempBlock,
+            onChange: setTempBlock,
+            label: translate("Block"),
+          },
+          {
+            type: "text",
+            key: "lot",
+            value: tempLot,
+            onChange: setTempLot,
+            label: translate("Lot"),
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
@@ -622,9 +595,9 @@ function ManageGravesDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={6} />
+                <InlineLoadingComponent isTable colSpan={7} />
               ) : gravesList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={6} />
+                <NoDataTableComponent colSpan={7} />
               ) : (
                 gravesList.items.map((grave) => (
                   <TableRow key={grave.id}>
@@ -760,7 +733,7 @@ function ManageGravesDesktop() {
                 <FileText className="w-4 h-4 text-stone-400" />
                 <span className="font-medium">{translate("CSV Template")}</span>
                 <span className="text-xs text-stone-400 dark:text-stone-500">
-                  ({GRAVE_TEMPLATE_HEADERS.length} {translate("columns")})
+                  ({defaultGraveTemplateHeaders.length} {translate("columns")})
                 </span>
               </div>
               <Button

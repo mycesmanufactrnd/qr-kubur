@@ -12,6 +12,7 @@ import {
   QrCode,
   Navigation,
   User,
+  Eye,
 } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
@@ -24,7 +25,8 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
+import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
@@ -38,8 +40,9 @@ import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import { parseDobFromIcNumber } from "@/utils/helpers";
 
-function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
+function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR, onDetail }) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="flex gap-3 p-4">
@@ -89,6 +92,13 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
         </div>
       </div>
       <div className="flex items-center gap-2 px-4 pb-3">
+        <button
+          onClick={() => onDetail(person)}
+          className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          {translate("Detail")}
+        </button>
         <button
           onClick={() => onQR(person)}
           className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
@@ -142,6 +152,14 @@ function PersonFormSheet({
 
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
+
+  const icnumberValue = watch("icnumber");
+
+  useEffect(() => {
+    if (editing) return;
+    const dob = parseDobFromIcNumber(icnumberValue);
+    if (dob) setValue("dateofbirth", dob);
+  }, [icnumberValue, editing]);
 
   const getLocation = () => {
     if (!navigator.geolocation) return;
@@ -321,6 +339,7 @@ function PersonFormSheet({
 }
 
 export default function MobileManageDeadPersons() {
+  const navigate = useNavigate();
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
     useAdminAccess();
   const {
@@ -498,6 +517,7 @@ export default function MobileManageDeadPersons() {
                   person={person}
                   canEdit={canEdit}
                   canDelete={canDelete}
+                  onDetail={(p) => navigate(`${createPageUrl("DetailJenazah")}?id=${p.id}`)}
                   onEdit={(p) => {
                     setEditingPerson(p);
                     setFormOpen(true);

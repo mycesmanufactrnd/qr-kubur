@@ -287,6 +287,8 @@ export const paymentToyyibStatus = {
   "03": "Unsuccessful",
 };
 
+export const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
+
 export const SST_PERCENTAGE = 0.06;
 export const PLATFORM_FEE = 2;
 export const PLATFORM_DONATION_FEE = 1.5;

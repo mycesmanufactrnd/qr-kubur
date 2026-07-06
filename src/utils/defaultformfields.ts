@@ -1,17 +1,23 @@
-import { ActiveInactiveStatus, ClaimStatus, ProjectStatus, WaqfCategory, WaqfType } from "./enums";
+import {
+  ActiveInactiveStatus,
+  ClaimStatus,
+  ProjectStatus,
+  WaqfCategory,
+  WaqfType,
+} from "./enums";
 
 export const defaultGraveField = {
-  name: '',
-  state: '',
-  block: '',
-  lot: '',
-  address: '',
-  latitude: '',
-  longitude: '',
-  photourl: '',
-  picname: '',
-  picphoneno: '',
-  organisation: '',
+  name: "",
+  state: "",
+  block: "",
+  lot: "",
+  address: "",
+  latitude: "",
+  longitude: "",
+  photourl: "",
+  picname: "",
+  picphoneno: "",
+  organisation: "",
   status: ActiveInactiveStatus.ACTIVE,
   totalgraves: 0,
 };
@@ -20,14 +26,14 @@ export const defaultTahlilRequestField = {
   tahfizId: null,
   selectedservices: [],
   deceasednames: [],
-  amount: '',
-  customAmount: '',
-  requestorname: '',
-  requestorphoneno: '',
-  requestoremail: '',
-  customservice: '',
-  paymentMethod: '',
-}
+  amount: "",
+  customAmount: "",
+  requestorname: "",
+  requestorphoneno: "",
+  requestoremail: "",
+  customservice: "",
+  paymentMethod: "",
+};
 
 export const defaultTahlilStatus = {
   referenceno: "",
@@ -38,81 +44,81 @@ export const defaultTahlilStatus = {
   deceasednames: [],
   selectedservices: [],
   photourls: [],
-}
+};
 
 export const defaultSuggestionField = {
-  name: '',
-  phoneno: '',
-  email: '',
-  type: '',
-  watchSelectedGrave: '',
-  entityId: '',
-  suggestedchanges: '',
-  reason: ''
-}
+  name: "",
+  phoneno: "",
+  email: "",
+  type: "",
+  watchSelectedGrave: "",
+  entityId: "",
+  suggestedchanges: "",
+  reason: "",
+};
 
 export const defaultTahfizField = {
-  name: '',
-  description: '',
+  name: "",
+  description: "",
   serviceoffered: [],
-  serviceprice: {}, 
-  state: '',
-  address: '',
-  phone: '',
-  email: '',
-  latitude: '', 
-  longitude: '',
-  photourl: '',
-  parentorganisation: '',
-  user_fullname: '',
-  user_username: '',
-  user_phoneno: '',
-  user_role: 'admin',
-}
+  serviceprice: {},
+  state: "",
+  address: "",
+  phone: "",
+  email: "",
+  latitude: "",
+  longitude: "",
+  photourl: "",
+  parentorganisation: "",
+  user_fullname: "",
+  user_username: "",
+  user_phoneno: "",
+  user_role: "admin",
+};
 
 export const defaultDonationField = {
-  recipientType: 'organisation',
-  selectedRecipient: '',
-  amount: '',
-  customAmount: '',
-  paymentMethod: '',
-  donorname: '',
-  donoremail: '',
-  donorphoneno: '',
-  notes: 'Sedeqah',
-}
+  recipientType: "organisation",
+  selectedRecipient: "",
+  amount: "",
+  customAmount: "",
+  paymentMethod: "",
+  donorname: "",
+  donoremail: "",
+  donorphoneno: "",
+  notes: "Sedeqah",
+};
 
 export const defaultOrganisationTypeField = {
-  organisations: '',
-  name: '',
-  description: '',
+  organisations: "",
+  name: "",
+  description: "",
   status: ActiveInactiveStatus.ACTIVE,
-}
+};
 
 export const defaultOrganisationField = {
-  name: '',
+  name: "",
   parentorganisation: null,
   organisationtype: null,
   serviceoffered: [],
   serviceprice: {},
-  states: '',
-  address: '',
-  photourl: '',
-  phone: '',
-  email: '',
-  url: '',
-  latitude: '',
-  longitude: '',
+  states: "",
+  address: "",
+  photourl: "",
+  phone: "",
+  email: "",
+  url: "",
+  latitude: "",
+  longitude: "",
   canbedonated: false,
   canmanagemosque: false,
   canmanagegrave: false,
   isgraveservices: false,
   status: ActiveInactiveStatus.ACTIVE,
-  user_fullname: '',
-  user_username: '',
-  user_phoneno: '',
-  user_role: 'admin',
-}
+  user_fullname: "",
+  user_username: "",
+  user_phoneno: "",
+  user_role: "admin",
+};
 
 export const defaultQuickRegisterForm = {
   name: "",
@@ -134,92 +140,92 @@ export const defaultQuickRegisterForm = {
 };
 
 export const defaultPaymentConfigField = {
-  code: '',
-  name: '',
-  category: 'manual',
+  code: "",
+  name: "",
+  category: "manual",
   status: ActiveInactiveStatus.ACTIVE,
-}
+};
 
 export const defaultDeadPersonField = {
-  name: '',
-  icnumber: '',
-  dateofbirth: '',
-  dateofdeath: '',
-  causeofdeath: '',
-  grave: '',
-  gravelot: '',
-  biography: '',
-  heirname: '',
-  heirphoneno: '',
-  photourl: '',
-  latitude: '',
-  longitude: '',
-}
+  name: "",
+  icnumber: "",
+  dateofbirth: "",
+  dateofdeath: "",
+  causeofdeath: "",
+  grave: "",
+  gravelot: "",
+  biography: "",
+  heirname: "",
+  heirphoneno: "",
+  photourl: "",
+  latitude: "",
+  longitude: "",
+};
 
 export const defaultPaymentField = {
   paymentplatform: null,
-  key: '',
-  label: '',
-  fieldtype: 'text',
+  key: "",
+  label: "",
+  fieldtype: "text",
   required: false,
-  placeholder: ''
-}
+  placeholder: "",
+};
 
 export const defaultHeritageField = {
-  name: '',
-  era: '',
-  eradescription: '',
-  description: '',
-  historicalsources: '',
-  latitude: '',
-  longitude: '',
-  photourl: '',
-  address: '',
-  state: '',
-  url: '',
+  name: "",
+  era: "",
+  eradescription: "",
+  description: "",
+  historicalsources: "",
+  latitude: "",
+  longitude: "",
+  photourl: "",
+  address: "",
+  state: "",
+  url: "",
   isfeatured: false,
-}
+};
 
 export const defaultActivityPost = {
-  title: '',
-  content: '',
-  photourl: '',
+  title: "",
+  content: "",
+  photourl: "",
   ispublished: false,
   tahfizcenter: null,
   mosque: null,
-}
+};
 
 export const defaultWaqfProjectField = {
-  waqfname: '',
-  description: '',
-  state: '',
+  waqfname: "",
+  description: "",
+  state: "",
   category: WaqfCategory.MOSQUE,
-  beneficiaries: '',
-  startdate: '',
-  enddate: '',
+  beneficiaries: "",
+  startdate: "",
+  enddate: "",
   status: ProjectStatus.PLANNED,
   progresspercentage: 0,
   totalrequired: 0,
   amountcollected: 0,
-  location: '',
-  responsibleperson: '',
+  location: "",
+  responsibleperson: "",
   waqftype: WaqfType.CASH,
-  photourl: '',
-  notes: ''
-}
+  photourl: "",
+  notes: "",
+};
 
 export const defaultMosqueField = {
-  name: '',
-  state: '',
-  address: '',
-  email: '',
-  url: '',
-  latitude: '',
-  longitude: '',
-  organisation: '',
-  photourl: '',
-  picname: '',
-  picphoneno: '',
+  name: "",
+  state: "",
+  address: "",
+  email: "",
+  url: "",
+  latitude: "",
+  longitude: "",
+  organisation: "",
+  photourl: "",
+  picname: "",
+  picphoneno: "",
   canarrangefuneral: false,
   hasdeathcharity: false,
 };
@@ -238,7 +244,7 @@ export const defaultDeathCharityField = {
   maxdependents: 0,
   isselfregister: true,
   isactive: true,
-  organisation: '',
+  organisation: "",
   mosqueid: null,
 };
 
@@ -261,4 +267,56 @@ export const defaultDeathCharityClaimField = {
   member: "",
   dependent: "",
   status: ClaimStatus.PENDING,
+};
+
+export const defaultQariahMemberField = {
+  fullname: "",
+  icnumber: "",
+  phone: "",
+  email: "",
+  address: "",
+  isdeceased: false,
+  createOrgId: null,
+  createMosqueId: null,
+  grave: "",
+  gravelot: "",
+  causeofdeath: "",
+  dateofdeath: "",
+  dateofbirth: "",
+  heirname: "",
+  heirphoneno: "",
+};
+
+export const defaultJenazahRequestField = {
+  icSearch: "",
+  fullname: "",
+  icnumber: "",
+  phone: "",
+  heirname: "",
+  heirphoneno: "",
+  userremarks: "",
+  deathconfirmationphotourl: "",
+  policereportphotourl: "",
+  supportingphotourl: "",
+  burialdate: "",
+  careScenarioOther: "",
+};
+
+export const defaultManageJenazahCaseField = {
+  icSearch: "",
+  selectedOrgId: null,
+  selectedMosqueId: null,
+  deceasedFullname: "",
+  deceasedIcnumber: "",
+  heirname: "",
+  heirphoneno: "",
+  pickupLat: "",
+  pickupLng: "",
+  careScenario: "",
+  careScenarioOther: "",
+  burialdate: "",
+  adminremarks: "",
+  deathconfirmationphotourl: "",
+  policereportphotourl: "",
+  supportingphotourl: "",
 };

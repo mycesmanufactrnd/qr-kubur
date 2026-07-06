@@ -59,8 +59,9 @@ import {
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
 import { useUserMutations } from "@/hooks/useUserMutations";
 import { useAdminAccess } from "@/utils/auth";
-import { STATES_MY } from "@/utils/enums";
+import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
+import { defaultTahfizTemplateHeaders } from "@/utils/defaulttemplateheader";
 import { hashPassword } from "@/utils/helpers";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
@@ -130,22 +131,8 @@ function ManageTahfizCentersDesktop() {
   const [uploadDragOver, setUploadDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const TAHFIZ_TEMPLATE_HEADERS = [
-    "name",
-    "state",
-    "address",
-    "phone",
-    "email",
-    "url",
-    "latitude",
-    "longitude",
-    "photourl",
-  ];
-
-  const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
-
   const downloadTahfizTemplate = () => {
-    const csv = TAHFIZ_TEMPLATE_HEADERS.join(",") + "\n";
+    const csv = defaultTahfizTemplateHeaders.join(",") + "\n";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -1235,7 +1222,7 @@ function ManageTahfizCentersDesktop() {
                 <FileText className="w-4 h-4 text-amber-500" />
                 <span className="font-medium">{translate("CSV Template")}</span>
                 <span className="text-xs text-amber-500 dark:text-amber-600">
-                  ({TAHFIZ_TEMPLATE_HEADERS.length} {translate("columns")})
+                  ({defaultTahfizTemplateHeaders.length} {translate("columns")})
                 </span>
               </div>
               <Button

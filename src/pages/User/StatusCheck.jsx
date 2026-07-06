@@ -14,6 +14,10 @@ import {
   Phone,
   Mail,
   Heart,
+  HeartPulse,
+  IdCard,
+  Users,
+  MessageSquare,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,7 +30,11 @@ import { showError } from "@/components/ToastrNotification";
 import { skipToken } from "@tanstack/react-query";
 import { formatRM } from "@/utils/helpers";
 import { resolveFileUrl } from "@/utils";
-import { TahlilStatus, QuotationStatus } from "@/utils/enums";
+import {
+  TahlilStatus,
+  QuotationStatus,
+  JenazahCaseStatus,
+} from "@/utils/enums";
 import { defaultTahlilStatus } from "@/utils/defaultformfields";
 
 const TAHLIL_STATUS = {
@@ -74,6 +82,33 @@ const SERVICE_STATUS = {
     iconColor: "text-emerald-500 dark:text-emerald-400",
   },
   [QuotationStatus.REJECTED]: {
+    label: "Rejected",
+    Icon: XCircle,
+    bg: "bg-red-50 dark:bg-red-900/20",
+    border: "border-red-200 dark:border-red-800",
+    text: "text-red-700 dark:text-red-400",
+    iconColor: "text-red-500 dark:text-red-400",
+  },
+};
+
+const JENAZAH_STATUS = {
+  [JenazahCaseStatus.PENDING]: {
+    label: "Pending",
+    Icon: Clock,
+    bg: "bg-amber-50 dark:bg-amber-900/20",
+    border: "border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-400",
+    iconColor: "text-amber-500 dark:text-amber-400",
+  },
+  [JenazahCaseStatus.APPROVED]: {
+    label: "Approved",
+    Icon: CheckCircle,
+    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-200 dark:border-emerald-800",
+    text: "text-emerald-700 dark:text-emerald-400",
+    iconColor: "text-emerald-500 dark:text-emerald-400",
+  },
+  [JenazahCaseStatus.REJECTED]: {
     label: "Rejected",
     Icon: XCircle,
     bg: "bg-red-50 dark:bg-red-900/20",
@@ -139,7 +174,13 @@ export default function StatusCheck() {
   const [serviceSearching, setServiceSearching] = useState(false);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
 
-  // Auto-search from URL ?ref= (supports both tahlil and quotation prefixes)
+  // Jenazah state
+  const [jenazahRef, setJenazahRef] = useState("");
+  const [jenazahKey, setJenazahKey] = useState("");
+  const [jenazahSearching, setJenazahSearching] = useState(false);
+  const [jenazahDialogOpen, setJenazahDialogOpen] = useState(false);
+
+  // Auto-search from URL ?ref= (supports tahlil, jenazah case, and quotation prefixes)
   useEffect(() => {
     if (autoSearched.current) return;
     const params = new URLSearchParams(window.location.search);
@@ -151,6 +192,11 @@ export default function StatusCheck() {
       setTahlilRef(ref);
       setTahlilSearching(true);
       setTahlilKey(ref);
+    } else if (ref.toUpperCase().startsWith("JNZ")) {
+      setActiveTab("jenazah");
+      setJenazahRef(ref);
+      setJenazahSearching(true);
+      setJenazahKey(ref);
     } else {
       setActiveTab("service");
       setServiceRef(ref);
@@ -234,6 +280,36 @@ export default function StatusCheck() {
     setServiceKey("");
   };
 
+  const { data: jenazahCase, isLoading: jenazahLoading } =
+    trpc.jenazahCase.getByReferenceNo.useQuery(
+      jenazahKey ? { referenceno: jenazahKey } : skipToken,
+      { enabled: !!jenazahKey },
+    );
+
+  useEffect(() => {
+    if (!jenazahKey || jenazahLoading) return;
+    setJenazahSearching(false);
+    if (!jenazahCase) {
+      showError(translate("Case not found"));
+      return;
+    }
+    setJenazahDialogOpen(true);
+  }, [jenazahCase, jenazahLoading, jenazahKey]);
+
+  const handleJenazahSearch = () => {
+    if (!jenazahRef.trim()) {
+      showError(translate("Please enter Reference No."));
+      return;
+    }
+    setJenazahSearching(true);
+    setJenazahKey(jenazahRef.trim());
+  };
+
+  const handleJenazahClose = () => {
+    setJenazahDialogOpen(false);
+    setJenazahKey("");
+  };
+
   return (
     <div className="min-h-screen pb-10">
       <BackNavigation title={translate("Status Check")} />
@@ -261,6 +337,17 @@ export default function StatusCheck() {
           >
             <Briefcase className="w-4 h-4" />
             {translate("Service")}
+          </button>
+          <button
+            onClick={() => setActiveTab("jenazah")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              activeTab === "jenazah"
+                ? "bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-400 shadow-sm"
+                : "text-slate-500 dark:text-slate-400"
+            }`}
+          >
+            <HeartPulse className="w-4 h-4" />
+            {translate("Jenazah")}
           </button>
         </div>
 
@@ -374,6 +461,64 @@ export default function StatusCheck() {
                 <span className="font-bold">{translate("Tip")}:</span>{" "}
                 {translate(
                   "Your reference number can be found in the payment receipt sent to your email.",
+                )}
+              </p>
+            </div>
+          </>
+        )}
+
+        {activeTab === "jenazah" && (
+          <>
+            <div className="flex flex-col items-center text-center gap-2 pb-1">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center">
+                <HeartPulse className="w-7 h-7 text-white" />
+              </div>
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                {translate("Check Funeral Case Status")}
+              </h2>
+              <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[260px] leading-relaxed">
+                {translate(
+                  "Enter reference number to check your funeral case status.",
+                )}
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 space-y-3">
+              <div className="px-4 py-3 -mx-4 -mt-4 mb-0 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-rose-600 dark:text-rose-400">
+                  {translate("Case Search")}
+                </p>
+              </div>
+              <div className="space-y-1.5 pt-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                  {translate("Transaction Reference No.")}
+                </label>
+                <Input
+                  placeholder={`${translate("Example")}: JNZ-2024-0001`}
+                  value={jenazahRef}
+                  onChange={(e) => setJenazahRef(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleJenazahSearch()}
+                  className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-rose-300 focus:border-rose-300"
+                />
+              </div>
+              <Button
+                onClick={handleJenazahSearch}
+                disabled={jenazahSearching}
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-500 text-white text-sm font-semibold gap-2 disabled:opacity-50"
+              >
+                <Search className="w-4 h-4" />
+                {jenazahSearching
+                  ? translate("Searching...")
+                  : translate("Search Status")}
+              </Button>
+            </div>
+
+            <div className="flex gap-2.5 items-start px-4 py-3.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl">
+              <span className="text-base mt-0.5">💡</span>
+              <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
+                <span className="font-bold">{translate("Tip")}:</span>{" "}
+                {translate(
+                  "Your reference number can be found in the confirmation message sent after submitting the case.",
                 )}
               </p>
             </div>
@@ -518,7 +663,9 @@ export default function StatusCheck() {
                       key={`${url}-${idx}`}
                       src={resolveFileUrl(url, "bucket-tahlil-request")}
                       referrerPolicy="no-referrer"
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                       alt={`Tahlil ${idx + 1}`}
                       className="h-24 w-full rounded-lg object-cover border border-slate-100 dark:border-slate-700"
                     />
@@ -657,7 +804,9 @@ export default function StatusCheck() {
                       "bucket-organisation-services-proof",
                     )}
                     referrerPolicy="no-referrer"
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
                     alt="Service completion"
                     className="h-48 w-full rounded-xl object-cover border border-slate-100 dark:border-slate-700"
                   />
@@ -666,6 +815,118 @@ export default function StatusCheck() {
 
               <Button
                 onClick={handleServiceClose}
+                variant="outline"
+                className="w-full h-11 rounded-xl dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              >
+                {translate("Close")}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={jenazahDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) handleJenazahClose();
+        }}
+      >
+        <DialogContent className="max-w-lg w-[calc(100%-2rem)] max-h-[80vh] overflow-y-auto rounded-2xl p-0 border-0 shadow-2xl bg-white dark:bg-slate-900">
+          <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-700 text-center">
+            <DialogTitle className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+              {translate("Funeral Case Status")}
+            </DialogTitle>
+            {jenazahCase && (
+              <div className="flex flex-col items-center gap-2.5">
+                <span className="text-lg font-bold tracking-widest font-mono text-slate-800 dark:text-slate-200">
+                  {jenazahCase.referenceno}
+                </span>
+                <StatusBadge
+                  status={jenazahCase.status}
+                  configMap={JENAZAH_STATUS}
+                />
+              </div>
+            )}
+          </div>
+
+          {jenazahCase && (
+            <div className="px-5 py-4 space-y-5">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
+                <InfoRow
+                  Icon={Building2}
+                  label={translate("Mosque")}
+                  value={jenazahCase.mosque?.name}
+                />
+                <InfoRow
+                  Icon={MapPin}
+                  label={translate("Address")}
+                  value={jenazahCase.mosque?.address}
+                />
+                <InfoRow
+                  Icon={User}
+                  label={translate("Deceased Name")}
+                  value={jenazahCase.details?.deceasedFullname}
+                />
+                <InfoRow
+                  Icon={IdCard}
+                  label={translate("IC No.")}
+                  value={jenazahCase.details?.deceasedIcnumber}
+                />
+                <InfoRow
+                  Icon={Users}
+                  label={translate("Nama Waris")}
+                  value={jenazahCase.details?.heirname}
+                />
+                <InfoRow
+                  Icon={Phone}
+                  label={translate("No. Tel. Waris")}
+                  value={jenazahCase.details?.heirphoneno}
+                />
+                {jenazahCase.details?.burialDate && (
+                  <InfoRow
+                    Icon={Calendar}
+                    label={translate("Burial Date")}
+                    value={new Date(
+                      jenazahCase.details.burialDate,
+                    ).toLocaleDateString("ms-MY", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  />
+                )}
+                {jenazahCase.createdat && (
+                  <InfoRow
+                    Icon={Calendar}
+                    label={translate("Date")}
+                    value={new Date(jenazahCase.createdat).toLocaleDateString(
+                      "ms-MY",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      },
+                    )}
+                  />
+                )}
+              </div>
+
+              {jenazahCase.adminremarks && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-1">
+                    {translate("Notes")} Admin
+                  </p>
+                  <div className="flex items-start gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-xl">
+                    <MessageSquare className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
+                    <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
+                      {jenazahCase.adminremarks}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <Button
+                onClick={handleJenazahClose}
                 variant="outline"
                 className="w-full h-11 rounded-xl dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
               >
