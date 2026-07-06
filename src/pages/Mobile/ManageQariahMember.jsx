@@ -31,6 +31,7 @@ import { useGetGravePaginated } from "@/hooks/useGraveMutations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { STATES_MY } from "@/utils/enums";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import { parseDobFromIcNumber } from "@/utils/helpers";
 
 const DEFAULT_FORM = {
   fullname: "",
@@ -185,6 +186,15 @@ function MemberFormSheet({
   const isdeceased = watch("isdeceased");
   const createOrgIdValue = watch("createOrgId");
   const dialogState = watch("state");
+  const icnumberValue = watch("icnumber");
+
+  // Derive date of birth from the IC number while marking someone newly deceased.
+  // Skip when editing a member who was already deceased — that data is loaded from the DB record instead.
+  useEffect(() => {
+    if (!isdeceased || editing?.isdeceased) return;
+    const dob = parseDobFromIcNumber(icnumberValue);
+    if (dob) setValue("dateofbirth", dob);
+  }, [icnumberValue, isdeceased, editing?.isdeceased]);
 
   const [isApprovedLocal, setIsApprovedLocal] = useState(
     editing?.isapproved ?? true,
@@ -229,12 +239,9 @@ function MemberFormSheet({
     pageSize: 1000,
   });
 
-  const { data: existingDeadPerson } = trpc.deadperson.getByIcNumber.useQuery(
-    { icnumber: editing?.icnumber ?? "" },
-    { enabled: !!editing?.isdeceased && !!editing?.icnumber },
-  );
-
+  // Populate DeadPerson fields from the member's linked deadperson relation
   useEffect(() => {
+    const existingDeadPerson = editing?.deadperson;
     if (!editing?.isdeceased || !existingDeadPerson) return;
     const toDateStr = (val) => {
       if (!val) return "";
@@ -250,7 +257,7 @@ function MemberFormSheet({
     if (existingDeadPerson.grave?.id) {
       setValue("grave", String(existingDeadPerson.grave.id));
     }
-  }, [existingDeadPerson]);
+  }, [editing]);
 
   const stateOptions = isSuperAdmin ? STATES_MY : currentUserStates || [];
 
@@ -300,7 +307,15 @@ function MemberFormSheet({
           <div className="flex items-center gap-2">
             <Switch
               checked={isdeceased}
-              onCheckedChange={(v) => setValue("isdeceased", v)}
+              onCheckedChange={(v) => {
+                setValue("isdeceased", v);
+                if (v && !editing?.isdeceased) {
+                  setValue(
+                    "dateofdeath",
+                    new Date().toISOString().split("T")[0],
+                  );
+                }
+              }}
               disabled={formDisabled}
             />
             <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -521,8 +536,13 @@ function MemberFormSheet({
 }
 
 export default function MobileManageQariahMember() {
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin, currentUserStates } =
-    useAdminAccess();
+  const {
+    currentUser,
+    loadingUser,
+    hasAdminAccess,
+    isSuperAdmin,
+    currentUserStates,
+  } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
   const {
     loading: permissionsLoading,
@@ -548,6 +568,7 @@ export default function MobileManageQariahMember() {
   const [notifyConfirmMode, setNotifyConfirmMode] = useState(null);
   const [pendingSubmitData, setPendingSubmitData] = useState(null);
   const [notifyReminderMember, setNotifyReminderMember] = useState(null);
+  const [unmarkConfirmOpen, setUnmarkConfirmOpen] = useState(false);
 
   const { data, isLoading, refetch } =
     trpc.deathCharityMember.getQariahPaginated.useQuery({
@@ -568,12 +589,14 @@ export default function MobileManageQariahMember() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / itemsPerPage);
 
-  const upsertDeadPersonMutation = trpc.deadperson.upsertForQariah.useMutation(
-    {
-      onSuccess: () => showSuccess(translate("Dead person recorded"), "success"),
-      onError: (err) => showApiError(err),
-    },
-  );
+  const upsertDeadPersonMutation = trpc.deadperson.upsertForQariah.useMutation({
+    onSuccess: () => showSuccess(translate("Dead person recorded"), "success"),
+    onError: (err) => showApiError(err),
+  });
+
+  const deleteDeadPersonMutation = trpc.deadperson.delete.useMutation({
+    onError: (err) => showApiError(err),
+  });
 
   const createMutation = trpc.deathCharityMember.create.useMutation({
     onSuccess: () => showSuccess(translate("Created"), "success"),
@@ -653,6 +676,7 @@ export default function MobileManageQariahMember() {
         formData.heirname,
         formData.heirphoneno,
       ];
+
       if (requiredFields.some((f) => !f || String(f).trim() === "")) {
         showApiError(
           new Error(translate("Please fill all required deceased details.")),
@@ -674,7 +698,11 @@ export default function MobileManageQariahMember() {
         heirphoneno: formData.heirphoneno,
         grave: { id: Number(formData.grave) },
         gravelot: formData.gravelot?.trim() || null,
+        deathCharityMemberId: savedMember?.id ?? null,
       });
+    } else if (formSheet?.member?.deadperson?.id) {
+      // Unmarked as deceased — remove the now-orphaned public deadperson/grave record
+      await deleteDeadPersonMutation.mutateAsync(formSheet.member.deadperson.id);
     }
 
     refetch();
@@ -691,6 +719,10 @@ export default function MobileManageQariahMember() {
   const handleFormSubmit = async (formData) => {
     const isMarkingDeceased =
       Boolean(formData.isdeceased) && !formSheet?.member?.isdeceased;
+    const isUnmarkingDeceased =
+      !formData.isdeceased &&
+      formSheet?.member?.isdeceased &&
+      !!formSheet?.member?.deadperson?.id;
 
     if (isMarkingDeceased) {
       setPendingSubmitData({ formData });
@@ -699,7 +731,20 @@ export default function MobileManageQariahMember() {
       return;
     }
 
+    if (isUnmarkingDeceased) {
+      setPendingSubmitData({ formData });
+      setUnmarkConfirmOpen(true);
+      return;
+    }
+
     await submitMember(formData, false);
+  };
+
+  const handleUnmarkConfirm = async () => {
+    setUnmarkConfirmOpen(false);
+    if (!pendingSubmitData) return;
+    await submitMember(pendingSubmitData.formData, false);
+    setPendingSubmitData(null);
   };
 
   const handleApprove = async (memberId) => {
@@ -734,6 +779,9 @@ export default function MobileManageQariahMember() {
 
   const confirmDelete = async () => {
     if (!deleteDialog) return;
+    if (deleteDialog.deadperson?.id) {
+      await deleteDeadPersonMutation.mutateAsync(deleteDialog.deadperson.id);
+    }
     await deleteMutation.mutateAsync(deleteDialog.id);
   };
 
@@ -755,7 +803,11 @@ export default function MobileManageQariahMember() {
         <div className="flex items-center gap-2 pt-1">
           <AdvancedFilters
             parameter={[
-              { label: translate("Full Name"), type: "text", searchColumn: "fullname" },
+              {
+                label: translate("Full Name"),
+                type: "text",
+                searchColumn: "fullname",
+              },
               {
                 label: translate("Status"),
                 type: "select",
@@ -860,6 +912,7 @@ export default function MobileManageQariahMember() {
           setMemberToApprove(null);
         }}
         confirmText={translate("Approve")}
+        isMobile
       />
 
       <ConfirmDialog
@@ -868,7 +921,29 @@ export default function MobileManageQariahMember() {
         title={translate("Delete Qariah Member")}
         isDelete
         itemToDelete={deleteDialog?.fullname}
+        description={
+          deleteDialog?.deadperson?.id
+            ? `${translate("Are you sure to delete")} "${deleteDialog?.fullname}"? ${translate("This member has recorded arwah/grave information (shown publicly at the grave) that will also be permanently deleted.")}`
+            : undefined
+        }
         onConfirm={confirmDelete}
+        isMobile
+      />
+
+      <ConfirmDialog
+        open={unmarkConfirmOpen}
+        onOpenChange={(open) => {
+          setUnmarkConfirmOpen(open);
+          if (!open) setPendingSubmitData(null);
+        }}
+        title={translate("Unmark as Deceased")}
+        description={translate(
+          "This member has recorded arwah/grave information (shown publicly at the grave). Continuing will permanently delete that record.",
+        )}
+        onConfirm={handleUnmarkConfirm}
+        confirmText={translate("Yes, Delete")}
+        cancelText={translate("Cancel")}
+        isMobile
       />
 
       <ConfirmDialog
@@ -902,6 +977,7 @@ export default function MobileManageQariahMember() {
         onConfirm={() => handleNotifyConfirmation(true)}
         confirmText={translate("Yes, Notify")}
         cancelText={translate("No")}
+        isMobile
       />
     </div>
   );

@@ -44,25 +44,25 @@ import {
 } from "lucide-react";
 import { CARE_SCENARIOS } from "@/utils/enums";
 import { parseDobFromIcNumber } from "@/utils/helpers";
-import { defaultManageJenazahCsae } from "@/utils/defaultformfields";
+import { defaultManageJenazahCaseField } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
 const STATUS_CONFIG = {
   pending: {
-    label: "Tertunda",
+    label: translate("Pending"),
     className:
       "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
     icon: Clock,
   },
   approved: {
-    label: "Diluluskan",
+    label: translate("Approved"),
     className:
       "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     icon: CheckCircle2,
   },
   rejected: {
-    label: "Ditolak",
+    label: translate("Rejected"),
     className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     icon: XCircle,
   },
@@ -151,7 +151,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     watch,
     setValue,
     formState: { errors },
-  } = useForm({ defaultValues: defaultManageJenazahCsae });
+  } = useForm({ defaultValues: defaultManageJenazahCaseField });
 
   const selectedOrgId = watch("selectedOrgId");
   const selectedMosqueId = watch("selectedMosqueId");
@@ -182,14 +182,14 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
         body: formDataUpload,
       });
       if (!res.ok) {
-        showApiError({ message: "Gagal memuat naik fail" });
+        showApiError({ message: translate("Failed to upload file") });
         return null;
       }
       const data = await res.json();
-      showSuccess("Fail berjaya dimuat naik");
+      showSuccess(translate("File uploaded successfully"));
       return data.file_url;
     } catch {
-      showApiError({ message: "Gagal memuat naik fail" });
+      showApiError({ message: translate("Failed to upload file") });
       return null;
     }
   };
@@ -259,19 +259,27 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
 
   const handleFormSubmit = (data) => {
     if (isOutOfArea === null) {
-      showApiError({ message: "Sila jawab soalan lokasi kejadian." });
+      showApiError({
+        message: translate("Please answer the incident location question."),
+      });
       return;
     }
     if (!data.careScenario) {
-      showApiError({ message: "Sila pilih lokasi pengurusan jenazah." });
+      showApiError({
+        message: translate("Please select the funeral management location."),
+      });
       return;
     }
     if (data.careScenario === "other" && !data.careScenarioOther?.trim()) {
-      showApiError({ message: "Sila nyatakan cara pengurusan jenazah." });
+      showApiError({
+        message: translate(
+          "Please specify the funeral management procedure.",
+        ),
+      });
       return;
     }
     if (!data.burialdate) {
-      showApiError({ message: "Sila nyatakan tarikh pengebumian." });
+      showApiError({ message: translate("Please specify the burial date.") });
       return;
     }
 
@@ -324,19 +332,19 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          Tambah Kes Jenazah
+          {translate("Add Funeral Case")}
         </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
-        <FormSection title="Organisasi & Masjid">
+        <FormSection title={translate("Organisation & Mosque")}>
           <Select2Form
             name="selectedOrgId"
             control={control}
-            label="Organisasi"
-            placeholder="Pilih organisasi..."
-            searchPlaceholder="Cari organisasi..."
-            emptyMessage="Tiada organisasi."
+            label={translate("Organisation")}
+            placeholder={translate("Select organisation")}
+            searchPlaceholder={translate("Search organisation...")}
+            emptyMessage={translate("No organisations.")}
             options={organisations.map((o) => ({
               value: o.id,
               label: o.name,
@@ -345,12 +353,14 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           <Select2Form
             name="selectedMosqueId"
             control={control}
-            label="Masjid"
+            label={translate("Mosque")}
             placeholder={
-              selectedOrgId ? "Pilih masjid..." : "Pilih organisasi dahulu"
+              selectedOrgId
+                ? translate("Select Mosque")
+                : translate("Select organisation first")
             }
-            searchPlaceholder="Cari masjid..."
-            emptyMessage="Tiada masjid dijumpai."
+            searchPlaceholder={translate("Search mosque...")}
+            emptyMessage={translate("No mosques found.")}
             options={mosques.map((m) => ({
               value: m.id,
               label: m.name,
@@ -360,15 +370,15 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           />
         </FormSection>
 
-        <FormSection title="Semak Ahli Qariah">
+        <FormSection title={translate("Check Qariah Membership")}>
           <div className="flex gap-2 items-end">
             <div className="flex-1">
               <TextInputForm
                 name="icSearch"
                 control={control}
-                label="No. IC"
+                label={translate("IC No.")}
                 isICNumber
-                placeholder="Masukkan No. IC"
+                placeholder={translate("Enter IC number")}
               />
             </div>
             <button
@@ -379,27 +389,28 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
               }
               className="shrink-0 h-9 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-40"
             >
-              {memberSearching ? "Mencari..." : "Cari"}
+              {memberSearching ? translate("Searching...") : translate("Search")}
             </button>
           </div>
           {searchAttempted &&
             (memberResult ? (
               <p className="text-xs text-emerald-600 flex items-center gap-1">
-                <BadgeCheck className="w-3.5 h-3.5" /> Ahli Qariah Berdaftar
+                <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                {translate("Registered Qariah Member")}
               </p>
             ) : (
               <p className="text-xs text-slate-400 flex items-center gap-1">
-                <Info className="w-3.5 h-3.5" /> Tidak ditemui — isi maklumat
-                secara manual
+                <Info className="w-3.5 h-3.5" />{" "}
+                {translate("Not found — fill in details manually")}
               </p>
             ))}
         </FormSection>
 
-        <FormSection title="Maklumat Jenazah">
+        <FormSection title={translate("Maklumat Jenazah")}>
           <TextInputForm
             name="deceasedFullname"
             control={control}
-            label="Nama Penuh"
+            label={translate("Full Name")}
             required
             errors={errors}
           />
@@ -407,14 +418,14 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             <TextInputForm
               name="deceasedIcnumber"
               control={control}
-              label="No. IC"
+              label={translate("IC No.")}
               isICNumber
               errors={errors}
             />
             <TextInputForm
               name="deceasedPhone"
               control={control}
-              label="Telefon"
+              label={translate("Phone")}
               isPhone
               errors={errors}
             />
@@ -422,19 +433,19 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           <TextInputForm
             name="deceasedEmail"
             control={control}
-            label="E-mel"
+            label={translate("Email")}
             isEmail
             errors={errors}
           />
           <TextInputForm
             name="deceasedAddress"
             control={control}
-            label="Alamat"
+            label={translate("Address")}
             isTextArea
           />
         </FormSection>
 
-        <FormSection title="Lokasi Kejadian">
+        <FormSection title={translate("Incident Location")}>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -445,7 +456,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
                   : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
               }`}
             >
-              Dalam Kawasan Qariah
+              {translate("Within Qariah Area")}
             </button>
             <button
               type="button"
@@ -456,17 +467,17 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
                   : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
               }`}
             >
-              Luar Negeri/Daerah
+              {translate("Outside state/district")}
             </button>
           </div>
         </FormSection>
 
-        <FormSection title="Pengurusan Jenazah">
+        <FormSection title={translate("Funeral Management")}>
           <SelectForm
             name="careScenario"
             control={control}
-            label="Pengurusan Jenazah"
-            placeholder="Pilih pengurusan jenazah"
+            label={translate("Funeral Management")}
+            placeholder={translate("Select funeral management")}
             options={CARE_SCENARIOS}
             required
             errors={errors}
@@ -475,17 +486,19 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             <TextInputForm
               name="careScenarioOther"
               control={control}
-              label="Nyatakan cara pengurusan"
+              label={translate("Specify the procedure")}
               isTextArea
               rows={2}
               required
               errors={errors}
-              placeholder="Terangkan lokasi jenazah, mandi, dan solat"
+              placeholder={translate(
+                "Describe the location, bathing, and prayer arrangements",
+              )}
             />
           )}
         </FormSection>
 
-        <FormSection title="Tarikh Pengebumian">
+        <FormSection title={translate("Burial Date")}>
           <div className="flex gap-2">
             <button
               type="button"
@@ -498,7 +511,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
                   : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
               }`}
             >
-              Hari Ini
+              {translate("Today")}
             </button>
             <button
               type="button"
@@ -514,27 +527,29 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
                   : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
               }`}
             >
-              Esok
+              {translate("Tomorrow")}
             </button>
           </div>
           <TextInputForm
             name="burialdate"
             control={control}
-            label="Atau pilih tarikh lain"
+            label={translate("Or pick another date")}
             isDate
             required
             errors={errors}
           />
         </FormSection>
 
-        <FormSection title="Lokasi Jemputan (opsional)">
+        <FormSection
+          title={`${translate("Pickup Location")} (${translate("Optional")})`}
+        >
           <button
             type="button"
             onClick={() => setShowMap((v) => !v)}
             className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 active:opacity-70"
           >
             <MapPin className="w-3.5 h-3.5" />
-            {showMap ? "Sembunyi Peta" : "Pilih di Peta"}
+            {showMap ? translate("Hide Map") : translate("Pick on Map")}
           </button>
           {showMap && (
             <MapLocationPicker
@@ -544,27 +559,27 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
                 setValue("pickupLat", lat.toFixed(6));
                 setValue("pickupLng", lng.toFixed(6));
               }}
-              placeholder="Cari lokasi..."
+              placeholder={translate("Search location...")}
             />
           )}
         </FormSection>
 
-        <FormSection title="Catatan Admin">
+        <FormSection title={translate("Admin Notes")}>
           <TextInputForm
             name="adminremarks"
             control={control}
-            label="Catatan (opsional)"
+            label={`${translate("Notes")} (${translate("Optional")})`}
             isTextArea
             rows={2}
-            placeholder="Catatan dalaman untuk rekod..."
+            placeholder={translate("Internal notes for record...")}
           />
         </FormSection>
 
-        <FormSection title="Dokumen">
+        <FormSection title={translate("Documents")}>
           <FileUploadForm
             name="deathconfirmationphotourl"
             control={control}
-            label="Pengesahan Kematian"
+            label={translate("Death Confirmation")}
             required
             errors={errors}
             accept="image/*,application/pdf"
@@ -576,7 +591,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           <FileUploadForm
             name="policereportphotourl"
             control={control}
-            label="Laporan Polis"
+            label={translate("Police Report")}
             required
             errors={errors}
             accept="image/*,application/pdf"
@@ -588,7 +603,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           <MultipleFileUploadForm
             name="supportingphotourl"
             control={control}
-            label="Dokumen Sokongan (opsional)"
+            label={`${translate("Supporting Documents")} (${translate("Optional")})`}
             errors={errors}
             bucketName="supporting-doc-jenazah-case"
             handleFileUpload={handleFileUpload}
@@ -604,7 +619,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           className="w-full h-12 rounded-2xl bg-rose-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
-          {isSubmitting ? "Menyimpan..." : "Tambah Kes"}
+          {isSubmitting ? translate("Saving...") : translate("Add Case")}
         </button>
       </div>
     </div>
@@ -707,7 +722,7 @@ function CaseDetailSheet({
         </button>
         <div className="flex-1 min-w-0 flex items-center gap-2">
           <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-            Butiran Kes Jenazah
+            {translate("Funeral Case Details")}
           </h2>
           {caseItem && <StatusBadge status={caseItem.status} />}
         </div>
@@ -717,7 +732,7 @@ function CaseDetailSheet({
         {caseItem?.mosque && (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2.5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-0.5">
-              Masjid
+              {translate("Mosque")}
             </p>
             <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
               {caseItem.mosque.name}
@@ -730,43 +745,45 @@ function CaseDetailSheet({
           </div>
         )}
 
-        <FormSection title="Maklumat Jenazah">
+        <FormSection title={translate("Maklumat Jenazah")}>
           <div className="grid grid-cols-2 gap-3">
-            <DetailRow label="Nama" value={d.deceasedFullname} />
-            <DetailRow label="No. IC" value={d.deceasedIcnumber} />
-            <DetailRow label="Telefon" value={d.deceasedPhone} />
-            <DetailRow label="E-mel" value={d.deceasedEmail} />
+            <DetailRow label={translate("Name")} value={d.deceasedFullname} />
+            <DetailRow label={translate("IC No.")} value={d.deceasedIcnumber} />
+            <DetailRow label={translate("Phone")} value={d.deceasedPhone} />
+            <DetailRow label={translate("Email")} value={d.deceasedEmail} />
           </div>
           {d.deceasedAddress && (
-            <DetailRow label="Alamat" value={d.deceasedAddress} />
+            <DetailRow label={translate("Address")} value={d.deceasedAddress} />
           )}
-          <DetailRow label="Status Ahli Qariah">
+          <DetailRow label={translate("Qariah Member Status")}>
             {d.isQariahMember ? (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
-                <BadgeCheck className="w-3.5 h-3.5" /> Ahli Qariah Berdaftar
+                <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                {translate("Registered Qariah Member")}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                <Info className="w-3.5 h-3.5" /> Bukan Ahli Qariah
+                <Info className="w-3.5 h-3.5" />{" "}
+                {translate("Not a Qariah Member")}
               </span>
             )}
           </DetailRow>
         </FormSection>
 
-        <FormSection title="Prosedur Jenazah">
+        <FormSection title={translate("Funeral Procedure")}>
           <div className="grid grid-cols-2 gap-3">
             <DetailRow
-              label="Lokasi Kejadian"
+              label={translate("Incident Location")}
               value={
                 d.isOutOfArea === true
-                  ? "Luar negeri/daerah"
+                  ? translate("Outside state/district")
                   : d.isOutOfArea === false
-                    ? "Dalam kawasan"
+                    ? translate("Within area")
                     : null
               }
             />
             <DetailRow
-              label="Tarikh Pengebumian"
+              label={translate("Burial Date")}
               value={
                 d.burialDate
                   ? new Date(d.burialDate).toLocaleDateString("ms-MY", {
@@ -777,7 +794,7 @@ function CaseDetailSheet({
             />
           </div>
           <DetailRow
-            label="Pengurusan Mandi & Solat"
+            label={translate("Bathing & Prayer Management")}
             value={
               d.careScenario === "other"
                 ? d.careScenarioOther
@@ -788,9 +805,10 @@ function CaseDetailSheet({
         </FormSection>
 
         {mapsUrl && (
-          <FormSection title="Lokasi Jemputan">
+          <FormSection title={translate("Pickup Location")}>
             <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
-              <MapPinned className="w-4 h-4" /> Jemput ke lokasi semasa
+              <MapPinned className="w-4 h-4" />{" "}
+              {translate("Pickup at current location")}
             </div>
             <a
               href={mapsUrl}
@@ -799,12 +817,13 @@ function CaseDetailSheet({
               className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 underline"
             >
               <Navigation className="w-3 h-3" />
-              {d.pickupLat?.toFixed(5)}, {d.pickupLng?.toFixed(5)} — Buka Peta
+              {d.pickupLat?.toFixed(5)}, {d.pickupLng?.toFixed(5)} —{" "}
+              {translate("Open Map")}
             </a>
           </FormSection>
         )}
 
-        <DetailRow label="Tarikh Permohonan">
+        <DetailRow label={translate("Application Date")}>
           <p className="text-sm text-slate-700 dark:text-slate-300">
             {caseItem?.createdat
               ? new Date(caseItem.createdat).toLocaleString("ms-MY", {
@@ -818,17 +837,17 @@ function CaseDetailSheet({
         {!showDeceasedForm && (
           <div className="space-y-3">
             <DocumentLinks
-              label="Pengesahan Kematian"
+              label={translate("Death Confirmation")}
               value={caseItem?.deathconfirmationphotourl}
               bucket="bucket-death-confirmation"
             />
             <DocumentLinks
-              label="Laporan Polis"
+              label={translate("Police Report")}
               value={caseItem?.policereportphotourl}
               bucket="bucket-police-report"
             />
             <DocumentLinks
-              label="Dokumen Sokongan"
+              label={translate("Supporting Documents")}
               value={caseItem?.supportingphotourl}
               bucket="supporting-doc-jenazah-case"
             />
@@ -838,7 +857,7 @@ function CaseDetailSheet({
         {caseItem?.userremarks && (
           <div className="space-y-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              Catatan Pemohon
+              {translate("Applicant's Remarks")}
             </p>
             <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
               {caseItem.userremarks}
@@ -848,20 +867,23 @@ function CaseDetailSheet({
 
         <div className="space-y-1.5">
           <Label className="text-xs text-slate-500 dark:text-slate-400">
-            Catatan Admin {caseItem?.status === "pending" ? "(opsional)" : ""}
+            {translate("Admin Notes")}{" "}
+            {caseItem?.status === "pending" ? `(${translate("Optional")})` : ""}
           </Label>
           {caseItem?.status === "pending" ? (
             <Textarea
               value={adminRemarks}
               onChange={(e) => setAdminRemarks(e.target.value)}
-              placeholder="Catatan dalaman admin..."
+              placeholder={translate("Internal admin notes...")}
               rows={2}
               className="text-sm resize-none dark:bg-slate-800 dark:border-slate-700"
             />
           ) : (
             <p className="text-sm text-slate-700 dark:text-slate-300">
               {caseItem?.adminremarks || (
-                <span className="text-slate-400 italic">Tiada catatan</span>
+                <span className="text-slate-400 italic">
+                  {translate("No remarks")}
+                </span>
               )}
             </p>
           )}
@@ -869,25 +891,25 @@ function CaseDetailSheet({
 
         {caseItem?.addedtoqariah && (
           <p className="text-xs text-center text-emerald-600 flex items-center justify-center gap-1">
-            <BadgeCheck className="w-3.5 h-3.5" /> Telah didaftarkan sebagai
-            ahli qariah
+            <BadgeCheck className="w-3.5 h-3.5" />{" "}
+            {translate("Already registered as a Qariah member")}
           </p>
         )}
 
         {showDeceasedForm && (
-          <FormSection title="Maklumat Arwah">
+          <FormSection title={translate("Deceased Information")}>
             <DocumentLinks
-              label="Pengesahan Kematian"
+              label={translate("Death Confirmation")}
               value={caseItem?.deathconfirmationphotourl}
               bucket="bucket-death-confirmation"
             />
             <DocumentLinks
-              label="Laporan Polis"
+              label={translate("Police Report")}
               value={caseItem?.policereportphotourl}
               bucket="bucket-police-report"
             />
             <DocumentLinks
-              label="Dokumen Sokongan"
+              label={translate("Supporting Documents")}
               value={caseItem?.supportingphotourl}
               bucket="supporting-doc-jenazah-case"
             />
@@ -895,8 +917,8 @@ function CaseDetailSheet({
             <SelectForm
               name="grave"
               control={dc}
-              label="Kubur"
-              placeholder="Pilih Kubur"
+              label={translate("Grave")}
+              placeholder={translate("Select Grave")}
               options={graves.map((g) => ({ value: g.id, label: g.name }))}
               required
               errors={de}
@@ -904,28 +926,28 @@ function CaseDetailSheet({
             <TextInputForm
               name="gravelot"
               control={dc}
-              label="Lot Kubur"
+              label={translate("Grave Lot")}
               errors={de}
               required
             />
             <TextInputForm
               name="causeofdeath"
               control={dc}
-              label="Sebab Kematian"
+              label={translate("Cause of Death")}
               errors={de}
             />
             <div className="grid grid-cols-2 gap-3">
               <TextInputForm
                 name="dateofbirth"
                 control={dc}
-                label="Tarikh Lahir"
+                label={translate("Date of Birth")}
                 isDate
                 errors={de}
               />
               <TextInputForm
                 name="dateofdeath"
                 control={dc}
-                label="Tarikh Kematian"
+                label={translate("Date of Death")}
                 isDate
                 required
                 errors={de}
@@ -935,13 +957,13 @@ function CaseDetailSheet({
               <TextInputForm
                 name="heirname"
                 control={dc}
-                label="Nama Waris"
+                label={translate("Nama Waris")}
                 errors={de}
               />
               <TextInputForm
                 name="heirphoneno"
                 control={dc}
-                label="No. Tel. Waris"
+                label={translate("No. Tel. Waris")}
                 errors={de}
               />
             </div>
@@ -961,7 +983,7 @@ function CaseDetailSheet({
               disabled={isBusy}
               className="flex-1 h-11 rounded-2xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-70 disabled:opacity-50"
             >
-              <XCircle className="w-4 h-4" /> Tolak
+              <XCircle className="w-4 h-4" /> {translate("Reject")}
             </button>
             {showDeceasedForm ? (
               <>
@@ -971,7 +993,7 @@ function CaseDetailSheet({
                   disabled={isBusy}
                   className="flex-1 h-11 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold active:opacity-70 disabled:opacity-50"
                 >
-                  Batal
+                  {translate("Cancel")}
                 </button>
                 <button
                   type="button"
@@ -980,7 +1002,7 @@ function CaseDetailSheet({
                   className="flex-[2] h-11 rounded-2xl bg-green-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-80 disabled:opacity-50"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  {isBusy ? "Menyimpan..." : "Luluskan & Simpan"}
+                  {isBusy ? translate("Saving...") : translate("Approve & Save")}
                 </button>
               </>
             ) : (
@@ -1004,7 +1026,7 @@ function CaseDetailSheet({
             disabled={isBusy}
             className="w-full h-11 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold active:opacity-70 disabled:opacity-50"
           >
-            Tetapkan Semula ke Tertunda
+            {translate("Reset to Pending")}
           </button>
         )}
 
@@ -1018,7 +1040,7 @@ function CaseDetailSheet({
               className="w-full h-11 rounded-2xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-80 disabled:opacity-50"
             >
               <UserPlus className="w-4 h-4" />
-              {isAddingToQariah ? "Mendaftar..." : "Tambah ke Qariah"}
+              {isAddingToQariah ? translate("Registering...") : translate("Add to Qariah")}
             </button>
           )}
       </div>
@@ -1043,7 +1065,7 @@ export default function MobileManageJenazahCase() {
 
   const updateStatus = trpc.jenazahCase.updateStatus.useMutation({
     onSuccess: () => {
-      showSuccess("Status kes dikemaskini.");
+      showSuccess(translate("Case status updated."));
       setSelectedCase(null);
       refetch();
     },
@@ -1052,7 +1074,7 @@ export default function MobileManageJenazahCase() {
 
   const createMutation = trpc.jenazahCase.create.useMutation({
     onSuccess: () => {
-      showSuccess("Kes jenazah berjaya ditambah.");
+      showSuccess(translate("Funeral case added successfully."));
       setFormOpen(false);
       refetch();
     },
@@ -1061,7 +1083,7 @@ export default function MobileManageJenazahCase() {
 
   const deleteMutation = trpc.jenazahCase.delete.useMutation({
     onSuccess: () => {
-      showSuccess("Kes jenazah berjaya dipadam.");
+      showSuccess(translate("Funeral case deleted successfully."));
       setCaseToDelete(null);
       refetch();
     },
@@ -1070,7 +1092,7 @@ export default function MobileManageJenazahCase() {
 
   const addToQariahMutation = trpc.jenazahCase.addToQariah.useMutation({
     onSuccess: () => {
-      showSuccess("Ahli berjaya didaftarkan ke Qariah.");
+      showSuccess(translate("Member successfully registered to Qariah."));
       setSelectedCase(null);
       refetch();
     },
@@ -1097,10 +1119,10 @@ export default function MobileManageJenazahCase() {
   };
 
   const STATUS_TABS = [
-    { label: "Semua", value: "" },
-    { label: "Tertunda", value: "pending" },
-    { label: "Diluluskan", value: "approved" },
-    { label: "Ditolak", value: "rejected" },
+    { label: translate("All"), value: "" },
+    { label: translate("Pending"), value: "pending" },
+    { label: translate("Approved"), value: "approved" },
+    { label: translate("Rejected"), value: "rejected" },
   ];
 
   const items = data?.items ?? [];
@@ -1112,7 +1134,7 @@ export default function MobileManageJenazahCase() {
 
   return (
     <div className="min-h-screen pb-6">
-      <BackNavigation title="Pengurusan Kes Jenazah" />
+      <BackNavigation title={translate("Funeral Case Management")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-3 pt-1">
         <button
@@ -1120,7 +1142,7 @@ export default function MobileManageJenazahCase() {
           className="w-full h-11 rounded-2xl bg-rose-600 text-white text-sm font-semibold flex items-center justify-center gap-2 active:opacity-80 shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Tambah Kes Jenazah
+          {translate("Add Funeral Case")}
         </button>
 
         <div className="flex gap-1 overflow-x-auto pb-0.5">
@@ -1145,7 +1167,10 @@ export default function MobileManageJenazahCase() {
         {isLoading ? (
           <InlineLoadingComponent isPage />
         ) : items.length === 0 ? (
-          <MobileEmptyList icon={ClipboardList} title="Tiada Kes Dijumpai" />
+          <MobileEmptyList
+            icon={ClipboardList}
+            title={translate("No Cases Found")}
+          />
         ) : (
           <div className="space-y-2">
             {items.map((c) => {
@@ -1178,7 +1203,7 @@ export default function MobileManageJenazahCase() {
                     )}
                     {d.isQariahMember && (
                       <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                        <BadgeCheck className="w-3 h-3" /> Ahli Qariah
+                        <BadgeCheck className="w-3 h-3" /> {translate("Qariah Member")}
                       </span>
                     )}
                   </div>
@@ -1201,7 +1226,7 @@ export default function MobileManageJenazahCase() {
                               setAddToQariahId(c.id);
                             }}
                             className="text-emerald-500 hover:text-emerald-700 transition-colors p-1.5"
-                            title="Tambah ke Qariah"
+                            title={translate("Add to Qariah")}
                           >
                             <UserPlus className="w-3.5 h-3.5" />
                           </button>
@@ -1267,7 +1292,7 @@ export default function MobileManageJenazahCase() {
         onOpenChange={(v) => {
           if (!v) setCaseToDelete(null);
         }}
-        title="Padam Kes Jenazah"
+        title={translate("Delete Funeral Case")}
         isDelete
         itemToDelete={caseToDelete?.details?.deceasedFullname}
         onConfirm={() => deleteMutation.mutate({ id: caseToDelete?.id })}
@@ -1279,9 +1304,11 @@ export default function MobileManageJenazahCase() {
         onOpenChange={(v) => {
           if (!v) setAddToQariahId(null);
         }}
-        title="Tambah ke Qariah"
-        description="Adakah anda pasti untuk mendaftarkan arwah ini sebagai ahli Qariah? Rekod akan dicipta dalam senarai ahli."
-        confirmText="Ya, Tambah"
+        title={translate("Add to Qariah")}
+        description={translate(
+          "Are you sure you want to register this deceased person as a Qariah member? A record will be created in the member list.",
+        )}
+        confirmText={translate("Yes, Add")}
         onConfirm={() => addToQariahMutation.mutate({ id: addToQariahId })}
         isMobile
       />

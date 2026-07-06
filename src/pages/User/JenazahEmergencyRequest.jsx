@@ -30,7 +30,7 @@ import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { defaultJenazahEmergencyRequest } from "@/utils/defaultformfields";
+import { defaultJenazahRequestField } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
@@ -77,7 +77,7 @@ export default function JenazahEmergencyRequest() {
     trigger,
     formState: { errors },
   } = useForm({
-    defaultValues: defaultJenazahEmergencyRequest,
+    defaultValues: defaultJenazahRequestField,
   });
 
   const icSearch = watch("icSearch");

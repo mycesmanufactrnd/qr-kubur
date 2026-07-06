@@ -30,13 +30,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -60,7 +53,8 @@ import SearchBar from "@/components/forms/SearchBar";
 
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { STATES_MY } from "@/utils/enums";
+import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
+import { defaultMosqueTemplateHeaders } from "@/utils/defaulttemplateheader";
 import { validateFields } from "@/utils/validations";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 
@@ -124,25 +118,8 @@ function ManageMosquesDesktop() {
   const [uploadDragOver, setUploadDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const MOSQUE_TEMPLATE_HEADERS = [
-    "name",
-    "state",
-    "address",
-    "email",
-    "url",
-    "latitude",
-    "longitude",
-    "picname",
-    "picphoneno",
-    "photourl",
-    "canarrangefuneral",
-    "hasdeathcharity",
-  ];
-
-  const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
-
   const downloadMosqueTemplate = () => {
-    const csv = MOSQUE_TEMPLATE_HEADERS.join(",") + "\n";
+    const csv = defaultMosqueTemplateHeaders.join(",") + "\n";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -452,27 +429,30 @@ function ManageMosquesDesktop() {
       </div>
 
       <SearchBar
-        value={tempName}
-        onChange={setTempName}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Name")}
         buttonClassName="bg-stone-600 hover:bg-stone-700 text-white"
-      >
-        <Select value={tempState} onValueChange={setTempState}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("State")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translate("All States")}</SelectItem>
-            {STATES_MY.map((state) => (
-              <SelectItem key={state} value={state}>
-                {state}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "name",
+            value: tempName,
+            onChange: setTempName,
+            label: translate("Name"),
+          },
+          {
+            type: "select",
+            key: "state",
+            value: tempState,
+            onChange: setTempState,
+            label: translate("State"),
+            options: [
+              { value: "all", label: translate("All States") },
+              ...STATES_MY.map((state) => ({ value: state, label: state })),
+            ],
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
@@ -599,7 +579,7 @@ function ManageMosquesDesktop() {
                 <FileText className="w-4 h-4 text-stone-400" />
                 <span className="font-medium">{translate("CSV Template")}</span>
                 <span className="text-xs text-stone-400 dark:text-stone-500">
-                  ({MOSQUE_TEMPLATE_HEADERS.length} {translate("columns")})
+                  ({defaultMosqueTemplateHeaders.length} {translate("columns")})
                 </span>
               </div>
               <Button

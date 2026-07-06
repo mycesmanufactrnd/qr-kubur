@@ -7,18 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { Users, Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import SearchBar from "@/components/forms/SearchBar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -380,52 +372,51 @@ function ManageUsersDesktop() {
       </div>
 
       <SearchBar
-        value={search}
-        onChange={setSearch}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Search User")}
         buttonClassName="bg-emerald-600 hover:bg-emerald-700 text-white"
-        filtersClassName="grid grid-cols-1 sm:grid-cols-3 gap-3"
-      >
-        <Input
-          placeholder={translate("Search Email")}
-          value={filterEmail}
-          onChange={(e) => setFilterEmail(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          className="dark:border-slate-600"
-        />
-        <Input
-          placeholder={translate("Search Username")}
-          value={filterUsername}
-          onChange={(e) => setFilterUsername(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          className="dark:border-slate-600"
-        />
-        {isSuperAdmin && (
-          <Select
-            value={filterOrganisationId}
-            onValueChange={(value) => {
+        filters={[
+          {
+            type: "text",
+            key: "search",
+            value: search,
+            onChange: setSearch,
+            label: translate("Search User"),
+          },
+          {
+            type: "text",
+            key: "filterEmail",
+            value: filterEmail,
+            onChange: setFilterEmail,
+            label: translate("Search Email"),
+          },
+          {
+            type: "text",
+            key: "filterUsername",
+            value: filterUsername,
+            onChange: setFilterUsername,
+            label: translate("Search Username"),
+          },
+          {
+            type: "select",
+            key: "filterOrganisationId",
+            show: isSuperAdmin,
+            value: filterOrganisationId,
+            onChange: (value) => {
               setFilterOrganisationId(value);
               setPage(1);
-            }}
-          >
-            <SelectTrigger className="dark:border-slate-600">
-              <SelectValue placeholder={translate("Organisation")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                {translate("All Organisations")}
-              </SelectItem>
-              {organisations.items.map((org) => (
-                <SelectItem key={org.id} value={String(org.id)}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </SearchBar>
+            },
+            label: translate("Organisation"),
+            options: [
+              { value: "all", label: translate("All Organisations") },
+              ...organisations.items.map((org) => ({
+                value: String(org.id),
+                label: org.name,
+              })),
+            ],
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">

@@ -23,15 +23,7 @@ import { ImageViewer } from "@/components/ImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
 import SearchBar from "@/components/forms/SearchBar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import QRCodeDialog from "@/components/QRCodeDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -99,7 +91,7 @@ function ManageDeadPersonsDesktop() {
   const urlSortField = searchParams.get("sortField") || "";
   const urlSortOrder = searchParams.get("sortOrder") || "";
 
-  const [tempName, setTeampName] = useState(urlName);
+  const [tempName, setTempName] = useState(urlName);
   const [tempIC, setTempIC] = useState(urlIC);
   const [tempGrave, setTempGrave] = useState(urlGrave);
   const [tempGraveLot, setTempGraveLot] = useState(urlGraveLot);
@@ -186,7 +178,7 @@ function ManageDeadPersonsDesktop() {
   } = useCrudPermissions("dead_persons");
 
   useEffect(() => {
-    setTeampName(urlName);
+    setTempName(urlName);
     setTempIC(urlIC);
     setTempGrave(urlGrave);
     setTempGraveLot(urlGraveLot);
@@ -425,85 +417,75 @@ function ManageDeadPersonsDesktop() {
       </div>
 
       <SearchBar
-        value={tempName}
-        onChange={setTeampName}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Full Name")}
         buttonClassName="bg-blue-600 hover:bg-blue-700 text-white"
-        filtersClassName="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3"
-      >
-        {isSuperAdmin && (
-          <Select
-            value={tempState}
-            onValueChange={(v) => {
-              setTempState(v);
-              setTempGrave("all");
-            }}
-          >
-            <SelectTrigger className="bg-transparent border-white text-white hover:bg-white/10 focus:ring-0">
-              <SelectValue placeholder="Negeri" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700 text-white">
-              <SelectItem value="all" className="focus:bg-white/10">
-                {translate("All States")}
-              </SelectItem>
-              {STATES_MY.map((s) => (
-                <SelectItem key={s} value={s} className="focus:bg-white/10">
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        <Input
-          placeholder={translate("IC No")}
-          value={tempIC}
-          onChange={(e) => setTempIC(e.target.value)}
-          className="dark:border-slate-600"
-        />
-
-        <Input
-          placeholder={translate("Grave Lot")}
-          value={tempGraveLot}
-          onChange={(e) => setTempGraveLot(e.target.value)}
-          className="dark:border-slate-600"
-        />
-
-        <Select value={tempGrave} onValueChange={setTempGrave}>
-          <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
-            <SelectValue placeholder={translate("Cemetery")} />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-700 text-white">
-            <SelectItem value="all" className="focus:bg-white/10">
-              {translate("All Cemeteries")}
-            </SelectItem>
-            {gravesList.items.map((g) => (
-              <SelectItem
-                key={g.id}
-                value={String(g.id)}
-                className="focus:bg-white/10"
-              >
-                {g.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Input
-          type="date"
-          value={tempDateFrom}
-          onChange={(e) => setTempDateFrom(e.target.value)}
-          className="dark:border-slate-600"
-        />
-        <Input
-          type="date"
-          value={tempDateTo}
-          onChange={(e) => setTempDateTo(e.target.value)}
-          className="dark:border-slate-600"
-        />
-      </SearchBar>
+        filters={[
+          {
+            type: "text",
+            key: "name",
+            value: tempName,
+            onChange: setTempName,
+            label: translate("Full Name"),
+          },
+          {
+            type: "select",
+            key: "state",
+            show: isSuperAdmin,
+            value: tempState,
+            onChange: setTempState,
+            label: "Negeri",
+            options: [
+              { value: "all", label: translate("All States") },
+              ...STATES_MY.map((state) => ({ value: state, label: state })),
+            ],
+          },
+          {
+            type: "text",
+            key: "icnumber",
+            value: tempIC,
+            onChange: setTempIC,
+            label: translate("IC No"),
+          },
+          {
+            type: "text",
+            key: "gravelot",
+            value: tempGraveLot,
+            onChange: setTempGraveLot,
+            label: translate("Grave Lot"),
+          },
+          {
+            type: "select",
+            key: "grave",
+            value: tempGrave,
+            onChange: setTempGrave,
+            label: translate("Cemetery"),
+            options: [
+              { value: "all", label: translate("All Cemeteries") },
+              ...gravesList.items.map((g) => ({
+                value: String(g.id),
+                label: g.name,
+              })),
+            ],
+          },
+          {
+            type: "text",
+            key: "dateFrom",
+            isDate: true,
+            label: translate("Date From"),
+            value: tempDateFrom,
+            onChange: setTempDateFrom,
+          },
+          {
+            type: "text",
+            key: "dateTo",
+            isDate: true,
+            label: translate("Date To"),
+            value: tempDateTo,
+            onChange: setTempDateTo,
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-gray-800">
         <CardContent className="p-0">
@@ -553,9 +535,9 @@ function ManageDeadPersonsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoadingDeadPerson ? (
-                <InlineLoadingComponent isTable={true} colSpan={5} />
+                <InlineLoadingComponent isTable={true} colSpan={7} />
               ) : deadPersonsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={6} />
+                <NoDataTableComponent colSpan={7} />
               ) : (
                 deadPersonsList.items.map((person) => (
                   <TableRow key={person.id}>

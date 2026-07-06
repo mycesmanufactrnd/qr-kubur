@@ -511,10 +511,17 @@ function ManageDeathCharityMemberDesktop() {
       </div>
 
       <SearchBar
-        value={tempFullName}
-        onChange={setTempFullName}
         onSearch={handleSearch}
         onReset={handleReset}
+        filters={[
+          {
+            type: "text",
+            key: "fullname",
+            value: tempFullName,
+            onChange: setTempFullName,
+            label: translate("Full Name"),
+          },
+        ]}
       />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
