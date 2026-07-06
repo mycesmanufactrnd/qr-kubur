@@ -24,6 +24,7 @@ import {
   BarChart,
   Bell,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
@@ -73,6 +74,8 @@ export default function MobileAdminDashboard() {
     isCQNLoading,
     isCMCLoading,
     isQUOLoading,
+    refetchAll,
+    isRefetching,
   } = useGetAdminDashboardStats({
     currentUser,
     isSuperAdmin,
@@ -327,24 +330,35 @@ export default function MobileAdminDashboard() {
               {currentUser?.full_name || translate("Admin")}
             </p>
           </div>
-          {isSuperAdmin && (
-            <div className="flex flex-col gap-1.5 items-end">
-              <Link
-                to={createPageUrl("SuperAdminDashboard")}
-                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 no-underline"
-              >
-                <Sparkles size={11} />
-                Super
-              </Link>
-              <Link
-                to={createPageUrl("TahfizDashboard")}
-                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 no-underline"
-              >
-                <BookOpen size={11} />
-                Tahfiz
-              </Link>
-            </div>
-          )}
+          <div className="flex flex-col gap-1.5 items-end">
+            <button
+              type="button"
+              onClick={() => refetchAll()}
+              disabled={isRefetching}
+              title={translate("Refresh")}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={isRefetching ? "animate-spin" : ""} />
+            </button>
+            {isSuperAdmin && (
+              <>
+                <Link
+                  to={createPageUrl("SuperAdminDashboard")}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 no-underline"
+                >
+                  <Sparkles size={11} />
+                  Super
+                </Link>
+                <Link
+                  to={createPageUrl("TahfizDashboard")}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 no-underline"
+                >
+                  <BookOpen size={11} />
+                  Tahfiz
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
