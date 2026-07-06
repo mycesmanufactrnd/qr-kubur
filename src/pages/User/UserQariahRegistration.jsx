@@ -14,8 +14,6 @@ import { showApiError } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { initFCM } from "@/firebase/firebase";
 
-
-
 const SectionTitle = ({ children }) => (
   <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 pb-1 border-b border-slate-100 dark:border-slate-700">
     {children}
