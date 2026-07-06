@@ -328,6 +328,11 @@ export default function GraveDetails() {
                                     : "-"}
                                 </span>
                               </div>
+                              {person.gravelot && (
+                                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                  {translate("Grave Lot")}: {person.gravelot}
+                                </div>
+                              )}
                             </Link>
                           </div>
 

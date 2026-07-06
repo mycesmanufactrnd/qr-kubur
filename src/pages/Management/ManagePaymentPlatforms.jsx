@@ -263,7 +263,7 @@ export default function ManagePaymentPlatforms() {
                 type="button" variant="outline" 
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate('Cancel')}
+                {translate('Close')}
               </Button>
               <Button 
                 type="submit" className="bg-blue-600"

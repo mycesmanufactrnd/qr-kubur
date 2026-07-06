@@ -85,6 +85,7 @@ export function handleLoginTRPC() {
          */
         storeTokensFallback(data.accessToken, data.refreshToken);
 
+        sessionStorage.removeItem("user_location");
         sessionStorage.setItem("clientIP", data.clientIp);
         sessionStorage.setItem("appUserAuth", JSON.stringify(data));
 

@@ -7,7 +7,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -30,7 +30,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
     ports:
-      - "8083:${BACKEND_PORT}"
+      - "${BACKEND_PORT:-8083}:${BACKEND_PORT:-8083}"
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules

@@ -46,6 +46,9 @@ import { inventoryPackageRouter } from "./inventoryPackageRouter.js";
 import { inventoryTransactionRouter } from "./inventoryTransactionRouter.js";
 import { inventoryAssetRouter } from "./inventoryAssetRouter.js";
 import { inventoryAuditRouter } from "./inventoryAuditRouter.js";
+import { qariahNotificationRouter } from "./qariahNotificationRouter.js";
+import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
+import { qariahDeviceRouter } from "./qariahDeviceRouter.js";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -94,6 +97,9 @@ export const appRouter = trpcRouter({
   inventoryTransaction: inventoryTransactionRouter,
   inventoryAsset: inventoryAssetRouter,
   inventoryAudit: inventoryAuditRouter,
+  qariahNotification: qariahNotificationRouter,
+  jenazahCase: jenazahCaseRouter,
+  qariahDevice: qariahDeviceRouter,
 });
 
 export type AppRouter = typeof appRouter;

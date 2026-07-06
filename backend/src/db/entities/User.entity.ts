@@ -34,8 +34,11 @@ export class User {
   @Column("varchar", { nullable: true })
   password!: string;
 
-  @Column("varchar", { length: 20, nullable: true })
+  @Column("varchar", { length: 20, nullable: false })
   role!: string;
+
+  @Column("varchar", { length: 20, nullable: true })
+  roletype?: string;
 
   @ManyToOne(() => Organisation, (organisation) => organisation.users, {
     nullable: true,

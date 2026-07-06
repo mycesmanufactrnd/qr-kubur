@@ -7,6 +7,7 @@ type useGetDeadPersonPaginatedParams = {
   filterName?: string;
   filterIC?: string;
   filterGrave?: number;
+  filterGraveLot?: string;
   filterState?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -23,6 +24,7 @@ export function useGetDeadPersonPaginated({
   filterName,
   filterIC,
   filterGrave,
+  filterGraveLot,
   filterState,
   dateFrom,
   dateTo,
@@ -37,6 +39,7 @@ export function useGetDeadPersonPaginated({
       filterName,
       filterIC,
       filterGrave,
+      filterGraveLot,
       filterState,
       dateFrom,
       dateTo,

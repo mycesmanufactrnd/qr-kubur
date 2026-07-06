@@ -7,7 +7,8 @@ export const deathCharityMemberSchema = z.object({
     phone: z.string().optional().nullable(),
     email: z.string().optional().nullable(),
     address: z.string().optional().nullable(),
-    isactive: z.boolean().default(true),
+    isdeceased: z.boolean().default(false),
     deathcharity: z.object({ id: z.number() }).nullable().optional(),
     mosque: z.object({ id: z.number() }).nullable().optional(),
+    organisation: z.object({ id: z.number() }).nullable().optional(),
 });

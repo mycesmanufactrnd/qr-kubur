@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
+import { ImageViewer } from "@/components/ImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
 import SearchBar from "@/components/forms/SearchBar";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,7 @@ function ManageDeadPersonsDesktop() {
   const urlName = searchParams.get("name") || "";
   const urlIC = searchParams.get("ic") || "";
   const urlGrave = searchParams.get("grave") || "all";
+  const urlGraveLot = searchParams.get("gravelot") || "";
   const urlState = searchParams.get("state") || "all";
   const urlDateFrom = searchParams.get("dateFrom") || "";
   const urlDateTo = searchParams.get("dateTo") || "";
@@ -96,6 +98,7 @@ function ManageDeadPersonsDesktop() {
   const [tempName, setTeampName] = useState(urlName);
   const [tempIC, setTempIC] = useState(urlIC);
   const [tempGrave, setTempGrave] = useState(urlGrave);
+  const [tempGraveLot, setTempGraveLot] = useState(urlGraveLot);
   const [tempState, setTempState] = useState(urlState);
   const [tempDateFrom, setTempDateFrom] = useState(urlDateFrom);
   const [tempDateTo, setTempDateTo] = useState(urlDateTo);
@@ -133,6 +136,7 @@ function ManageDeadPersonsDesktop() {
     "dateofdeath",
     "causeofdeath",
     "grave_id",
+    "gravelot",
     "latitude",
     "longitude",
     "biography",
@@ -173,10 +177,11 @@ function ManageDeadPersonsDesktop() {
     setTeampName(urlName);
     setTempIC(urlIC);
     setTempGrave(urlGrave);
+    setTempGraveLot(urlGraveLot);
     setTempState(urlState);
     setTempDateFrom(urlDateFrom);
     setTempDateTo(urlDateTo);
-  }, [urlName, urlIC, urlGrave, urlState, urlDateFrom, urlDateTo]);
+  }, [urlName, urlIC, urlGrave, urlGraveLot, urlState, urlDateFrom, urlDateTo]);
 
   const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
     {
@@ -202,12 +207,16 @@ function ManageDeadPersonsDesktop() {
     filterName: urlName,
     filterIC: urlIC,
     filterGrave: urlGrave === "all" ? undefined : Number(urlGrave),
+    filterGraveLot: urlGraveLot || undefined,
     filterState: urlState === "all" ? undefined : urlState,
     dateFrom: urlDateFrom,
     dateTo: urlDateTo,
     organisationIds: accessibleOrgIds,
     sortField: urlSortField || undefined,
-    sortOrder: urlSortOrder === "ASC" || urlSortOrder === "DESC" ? urlSortOrder : undefined,
+    sortOrder:
+      urlSortOrder === "ASC" || urlSortOrder === "DESC"
+        ? urlSortOrder
+        : undefined,
   });
 
   const { gravesList } = useGetGravePaginated({
@@ -223,6 +232,7 @@ function ManageDeadPersonsDesktop() {
       name: "",
       ic: "",
       grave: "",
+      gravelot: "",
       state: "",
       dateFrom: "",
       dateTo: "",
@@ -230,6 +240,7 @@ function ManageDeadPersonsDesktop() {
     if (tempName) params.name = tempName;
     if (tempIC) params.ic = tempIC;
     if (tempGrave !== "all") params.grave = tempGrave;
+    if (tempGraveLot) params.gravelot = tempGraveLot;
     if (tempState !== "all") params.state = tempState;
     if (tempDateFrom) params.dateFrom = tempDateFrom;
     if (tempDateTo) params.dateTo = tempDateTo;
@@ -281,9 +292,11 @@ function ManageDeadPersonsDesktop() {
   const onSubmit = async (formData) => {
     const submitData = {
       ...formData,
+      icnumber: formData.icnumber?.replace(/-/g, "") || null,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       grave: formData.grave ? { id: Number(formData.grave) } : null,
+      gravelot: formData.gravelot?.trim() || null,
     };
 
     try {
@@ -439,13 +452,20 @@ function ManageDeadPersonsDesktop() {
           className="dark:border-slate-600"
         />
 
+        <Input
+          placeholder={translate("Grave Lot")}
+          value={tempGraveLot}
+          onChange={(e) => setTempGraveLot(e.target.value)}
+          className="dark:border-slate-600"
+        />
+
         <Select value={tempGrave} onValueChange={setTempGrave}>
           <SelectTrigger className="bg-transparent dark:border-slate-600 dark:text-white dark:hover:bg-white/10 focus:ring-0">
             <SelectValue placeholder={translate("Cemetery")} />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-700 text-white">
             <SelectItem value="all" className="focus:bg-white/10">
-              {translate("All cemeteries")}
+              {translate("All Cemeteries")}
             </SelectItem>
             {gravesList.items.map((g) => (
               <SelectItem
@@ -506,10 +526,13 @@ function ManageDeadPersonsDesktop() {
                   </span>
                 </TableHead>
                 <TableHead className="text-center">
+                  {translate("Grave Lot")}
+                </TableHead>
+                <TableHead className="text-center">
                   {translate("Cemetery Name")}
                 </TableHead>
                 <TableHead className="text-center">
-                  {translate("Image")}
+                  {translate("Grave Image")}
                 </TableHead>
                 <TableHead className="text-center">
                   {translate("Actions")}
@@ -520,7 +543,7 @@ function ManageDeadPersonsDesktop() {
               {isLoadingDeadPerson ? (
                 <InlineLoadingComponent isTable={true} colSpan={5} />
               ) : deadPersonsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={5} />
+                <NoDataTableComponent colSpan={6} />
               ) : (
                 deadPersonsList.items.map((person) => (
                   <TableRow key={person.id}>
@@ -536,14 +559,15 @@ function ManageDeadPersonsDesktop() {
                         : "-"}
                     </TableCell>
                     <TableCell className="text-center">
+                      {person.gravelot || "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
                       {person.grave?.name || "-"}
                     </TableCell>
                     <TableCell>
-                      <img
-                        src={resolveFileUrl(person.photourl, "bucket-dead-person")}
-                        referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
-                        alt="photo"
+                      <ImageViewer
+                        src={person.photourl}
+                        bucket="bucket-dead-person"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />
                     </TableCell>
@@ -729,163 +753,194 @@ function ManageDeadPersonsDesktop() {
       </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto dark:bg-gray-800">
+        <DialogContent className="max-w-[80vw] max-h-[90vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="dark:text-white">
-              {editingPerson ? translate("edit") : translate("Add New")}
+              {editingPerson ? translate("Edit") : translate("Add New")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm
-              name="name"
-              control={control}
-              label={translate("Name")}
-              required
-              errors={errors}
-            />
-            <TextInputForm
-              name="icnumber"
-              control={control}
-              label={translate("IC No.")}
-              errors={errors}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="dateofbirth"
-                control={control}
-                label={translate("Date of Birth")}
-                isDate
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="dateofdeath"
-                control={control}
-                label={translate("Date of Death")}
-                isDate
-                required
-                errors={errors}
-              />
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                  {translate("Dead Person Details")}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <TextInputForm
+                    name="name"
+                    control={control}
+                    label={translate("Name")}
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="icnumber"
+                    control={control}
+                    isICNumber
+                    label={translate("IC No.")}
+                    errors={errors}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <TextInputForm
+                    name="dateofbirth"
+                    control={control}
+                    label={translate("Date of Birth")}
+                    isDate
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="dateofdeath"
+                    control={control}
+                    label={translate("Date of Death")}
+                    isDate
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <TextInputForm
+                  name="causeofdeath"
+                  control={control}
+                  required
+                  label={translate("Cause of Death")}
+                />
+                <TextInputForm
+                  name="biography"
+                  control={control}
+                  label={translate("Biography")}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <TextInputForm
+                    name="heirname"
+                    control={control}
+                    label={translate("Nama Waris")}
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="heirphoneno"
+                    control={control}
+                    label={translate("No. Tel. Waris")}
+                    errors={errors}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 border-l pl-6 dark:border-slate-600">
+                <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                  {translate("Cemetery Details")}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <SelectForm
+                    name="grave"
+                    control={control}
+                    label={translate("Cemetery")}
+                    placeholder={translate("Select Cemetery")}
+                    options={gravesList.items.map((grave) => ({
+                      value: grave.id,
+                      label: grave.name,
+                    }))}
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="gravelot"
+                    control={control}
+                    label={translate("Grave Lot")}
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <FileUploadForm
+                  name="photourl"
+                  control={control}
+                  label={translate("Grave Image")}
+                  required
+                  errors={errors}
+                  bucketName="bucket-dead-person"
+                  uploading={uploading}
+                  handleFileUpload={handleFileUpload}
+                  translate={translate}
+                />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <TextInputForm
+                    name="latitude"
+                    control={control}
+                    label={translate("Latitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="longitude"
+                    control={control}
+                    label={translate("Longitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 bg-blue-600 text-white"
+                    onClick={() => {
+                      if (!navigator.geolocation) return;
+                      setIsLocating(true);
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setValue("latitude", pos.coords.latitude.toFixed(6));
+                          setValue(
+                            "longitude",
+                            pos.coords.longitude.toFixed(6),
+                          );
+                          setIsLocating(false);
+                        },
+                        () => {
+                          setIsLocating(false);
+                        },
+                      );
+                    }}
+                    disabled={isLocating}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {isLocating
+                      ? translate("Getting location...")
+                      : translate("Get Current Location")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowMap((v) => !v)}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {showMap ? translate("Hide Map") : translate("Pick on Map")}
+                  </Button>
+                </div>
+                {showMap && (
+                  <MapLocationPicker
+                    lat={watch("latitude")}
+                    lng={watch("longitude")}
+                    onChange={(lat, lng) => {
+                      setValue("latitude", lat.toFixed(6));
+                      setValue("longitude", lng.toFixed(6));
+                    }}
+                    placeholder={translate("Search location...")}
+                  />
+                )}
+              </div>
             </div>
-            <TextInputForm
-              name="causeofdeath"
-              control={control}
-              label={translate("Cause of Death")}
-            />
-            <SelectForm
-              name="grave"
-              control={control}
-              label={translate("Grave")}
-              placeholder={translate("Select Grave")}
-              options={gravesList.items.map((grave) => ({
-                value: grave.id,
-                label: grave.name,
-              }))}
-              required
-              errors={errors}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 bg-blue-600 text-white"
-                onClick={() => {
-                  if (!navigator.geolocation) return;
-                  setIsLocating(true);
-                  navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                      setValue("latitude", pos.coords.latitude.toFixed(6));
-                      setValue("longitude", pos.coords.longitude.toFixed(6));
-                      setIsLocating(false);
-                    },
-                    () => {
-                      setIsLocating(false);
-                    },
-                  );
-                }}
-                disabled={isLocating}
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                {isLocating
-                  ? translate("Getting location...")
-                  : translate("Get Current Location")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowMap((v) => !v)}
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                {showMap ? translate("Hide Map") : translate("Pick on Map")}
-              </Button>
-            </div>
-            {showMap && (
-              <MapLocationPicker
-                lat={watch("latitude")}
-                lng={watch("longitude")}
-                onChange={(lat, lng) => {
-                  setValue("latitude", lat.toFixed(6));
-                  setValue("longitude", lng.toFixed(6));
-                }}
-                placeholder={translate("Search location...")}
-              />
-            )}
-            <TextInputForm
-              name="biography"
-              control={control}
-              label={translate("Biography")}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="heirname"
-                control={control}
-                label={translate("Nama Waris")}
-                errors={errors}
-              />
-              <TextInputForm
-                name="heirphoneno"
-                control={control}
-                label={translate("No. Tel. Waris")}
-                errors={errors}
-              />
-            </div>
-            <FileUploadForm
-              name="photourl"
-              control={control}
-              label={translate("Photo")}
-              required
-              errors={errors}
-              bucketName="bucket-dead-person"
-              uploading={uploading}
-              handleFileUpload={handleFileUpload}
-              translate={translate}
-            />
+
             <DialogFooter>
               <Button
                 type="button"
                 variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

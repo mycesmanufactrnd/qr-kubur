@@ -39,6 +39,7 @@ const parseUploadedBy = (raw: string | undefined): StoredFileUploadedBy | null =
 };
 
 export const registerUploadRoutes = (app: FastifyInstance) => {
+  
   app.post('/api/upload/:bucket', async (request, reply) => {
     try {
       const { bucket } = request.params as { bucket: string };

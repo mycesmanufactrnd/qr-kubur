@@ -52,7 +52,7 @@ export default function MobileAdminDashboard() {
 
     if (isOrgCanManageGrave) arr.push("GD");
     if (isOrgCanBeDonated) arr.push("DDV");
-    if (isOrgCanManageMosque) arr.push("CMC");
+    if (isOrgCanManageMosque) arr.push("CMC", "CQN");
     if (isOrgGraveService) arr.push("QUO");
     
     return arr;
@@ -64,11 +64,13 @@ export default function MobileAdminDashboard() {
     OSStats,
     GDStats,
     DDVStats,
+    CQNStats,
     CMCStats,
     QUOStats,
     isOSLoading,
     isGDLoading,
     isDDVLoading,
+    isCQNLoading,
     isCMCLoading,
     isQUOLoading,
   } = useGetAdminDashboardStats({
@@ -84,6 +86,9 @@ export default function MobileAdminDashboard() {
   const deadPersonCount = GDStats?.deadPersonCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
+  const qariahMemberCount = CQNStats?.qariahMemberCount ?? 0;
+  const qariahNotificationCount = CQNStats?.qariahNotificationCount ?? 0;
+  const jenazahCaseCount = CQNStats?.jenazahCaseCount ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
   const deathCharityTotalPayout = CMCStats?.deathCharityTotalPayout ?? 0;
@@ -128,6 +133,35 @@ export default function MobileAdminDashboard() {
       page: "ManageOrganisations",
       loading: isOSLoading,
       color: "violet",
+      wide: true,
+    },
+  ];
+
+  const qariahStats = [
+    {
+      label: translate("Total Ahli Qariah"),
+      value: qariahMemberCount,
+      icon: Users,
+      page: "ManageQariahMember",
+      loading: isCQNLoading,
+      color: "green",
+    },
+    {
+      label: translate("Notifikasi Kematian"),
+      value: qariahNotificationCount,
+      icon: Bell,
+      page: "ManageNotifyDeathQariah",
+      loading: isCQNLoading,
+      color: "blue",
+    },
+    {
+      label: translate("Kes Jenazah"),
+      value: jenazahCaseCount,
+      icon: ClipboardList,
+      page: "ManageJenazahCase",
+      loading: isCQNLoading,
+      color: "rose",
+      wide: true,
     },
   ];
 
@@ -335,6 +369,18 @@ export default function MobileAdminDashboard() {
             <StatCard key={i} {...s} />
           ))}
         </div>
+
+        {/* Qariah */}
+        {isOrgCanManageMosque && (
+          <>
+            <SectionLabel label={translate("Qariah")} />
+            <div className="grid grid-cols-2 gap-2.5 mb-5">
+              {qariahStats.map((s, i) => (
+                <StatCard key={i} {...s} />
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Khairat */}
         {isOrgCanManageMosque && (

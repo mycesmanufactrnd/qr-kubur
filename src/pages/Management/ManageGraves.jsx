@@ -262,7 +262,10 @@ function ManageGravesDesktop() {
     filterLot: urlLot || undefined,
     organisationIds: accessibleOrgIds,
     sortField: urlSortField || undefined,
-    sortOrder: urlSortOrder === "ASC" || urlSortOrder === "DESC" ? urlSortOrder : undefined,
+    sortOrder:
+      urlSortOrder === "ASC" || urlSortOrder === "DESC"
+        ? urlSortOrder
+        : undefined,
   });
 
   const handleSort = (field) => {
@@ -277,10 +280,13 @@ function ManageGravesDesktop() {
   };
 
   const SortIcon = ({ field }) => {
-    if (urlSortField !== field) return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-400" />;
-    return urlSortOrder === "ASC"
-      ? <ChevronUp className="w-3 h-3 ml-1 text-emerald-500" />
-      : <ChevronDown className="w-3 h-3 ml-1 text-emerald-500" />;
+    if (urlSortField !== field)
+      return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-400" />;
+    return urlSortOrder === "ASC" ? (
+      <ChevronUp className="w-3 h-3 ml-1 text-emerald-500" />
+    ) : (
+      <ChevronDown className="w-3 h-3 ml-1 text-emerald-500" />
+    );
   };
 
   const { organisationsList } = useGetOrganisationPaginated({});
@@ -434,7 +440,7 @@ function ManageGravesDesktop() {
         <Breadcrumb
           items={[
             { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-            { label: translate("Manage Graves"), page: "ManageGraves" },
+            { label: translate("Manage Cemetery"), page: "ManageGraves" },
           ]}
         />
         <AccessDeniedComponent />
@@ -447,14 +453,14 @@ function ManageGravesDesktop() {
       <Breadcrumb
         items={[
           { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-          { label: translate("Manage Graves"), page: "ManageGraves" },
+          { label: translate("Manage Cemetery"), page: "ManageGraves" },
         ]}
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
           <MapPin className="w-6 h-6 text-emerald-600" />
-          {translate("Manage Graves")}
+          {translate("Manage Cemetery")}
         </h1>
         <div className="flex items-center gap-2">
           {canDelete && selectedIds.length > 0 && (
@@ -483,7 +489,7 @@ function ManageGravesDesktop() {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {translate("Add Grave")}
+                {translate("Add Cemetery")}
               </Button>
             </>
           )}
@@ -495,7 +501,7 @@ function ManageGravesDesktop() {
         onChange={setTempName}
         onSearch={handleSearch}
         onReset={handleReset}
-        placeholder={translate("Cemetery name")}
+        placeholder={translate("Cemetery Name")}
         buttonClassName="bg-emerald-600 text-white"
         filtersClassName="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3"
       >
@@ -572,7 +578,7 @@ function ManageGravesDesktop() {
                   onClick={() => handleSort("name")}
                 >
                   <span className="flex items-center">
-                    {translate("Cemetery name")}
+                    {translate("Cemetery Name")}
                     <SortIcon field="name" />
                   </span>
                 </TableHead>
@@ -739,7 +745,7 @@ function ManageGravesDesktop() {
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
-              {translate("Upload Graves via CSV / Excel")}
+              {translate("Upload Cemetery via CSV / Excel")}
             </DialogTitle>
             <DialogDescription>
               {translate(
@@ -852,176 +858,197 @@ function ManageGravesDesktop() {
       </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+        <DialogContent className="max-w-[80vw] max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
-              {editingGrave ? translate("Edit Grave") : translate("Add Grave")}
+              {editingGrave
+                ? translate("Edit Cemetery")
+                : translate("Add Cemetery")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm
-              name="name"
-              control={control}
-              label={translate("Name")}
-              required
-              errors={errors}
-            />
-            <SelectForm
-              name="state"
-              control={control}
-              label={translate("State")}
-              placeholder={translate("Select states")}
-              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-              required
-              errors={errors}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="block"
-                control={control}
-                label={translate("Block")}
-              />
-              <TextInputForm
-                name="lot"
-                control={control}
-                label={translate("Lot")}
-              />
+            <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+              {translate("Cemetery Details")}
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="name"
+                    control={control}
+                    label={translate("Name")}
+                    required
+                    errors={errors}
+                  />
+                  <SelectForm
+                    name="state"
+                    control={control}
+                    label={translate("State")}
+                    placeholder={translate("Select states")}
+                    options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="block"
+                    control={control}
+                    label={translate("Block")}
+                  />
+                  <TextInputForm
+                    name="lot"
+                    control={control}
+                    label={translate("Lot")}
+                  />
+                </div>
+                <TextInputForm
+                  name="address"
+                  control={control}
+                  label={translate("Address")}
+                  isTextArea
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="latitude"
+                    control={control}
+                    label={translate("Latitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="longitude"
+                    control={control}
+                    label={translate("Longitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 bg-emerald-600 text-white"
+                    onClick={() => {
+                      if (!navigator.geolocation) return;
+                      setIsLocating(true);
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setValue("latitude", pos.coords.latitude.toFixed(6));
+                          setValue(
+                            "longitude",
+                            pos.coords.longitude.toFixed(6),
+                          );
+                          setIsLocating(false);
+                        },
+                        () => {
+                          setIsLocating(false);
+                        },
+                      );
+                    }}
+                    disabled={isLocating}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {isLocating
+                      ? translate("Getting location...")
+                      : translate("Get Current Location")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowMap((v) => !v)}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {showMap ? translate("Hide Map") : translate("Pick on Map")}
+                  </Button>
+                </div>
+                {showMap && (
+                  <MapLocationPicker
+                    lat={watch("latitude")}
+                    lng={watch("longitude")}
+                    onChange={(lat, lng) => {
+                      setValue("latitude", lat.toFixed(6));
+                      setValue("longitude", lng.toFixed(6));
+                    }}
+                    placeholder={translate("Search location...")}
+                  />
+                )}
+              </div>
+
+              <div className="space-y-4 border-l pl-6 dark:border-slate-600">
+                <SelectForm
+                  name="organisation"
+                  control={control}
+                  placeholder={translate("Select Organisation")}
+                  label={translate("Managing Organisation")}
+                  options={organisationsList.items.map((org) => ({
+                    value: org.id,
+                    label: org.name,
+                  }))}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="picname"
+                    control={control}
+                    label={translate("PIC Name")}
+                  />
+                  <TextInputForm
+                    name="picphoneno"
+                    control={control}
+                    label={translate("PIC Phone No.")}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <TextInputForm
+                      name="totalgraves"
+                      control={control}
+                      label={translate("Total Graves")}
+                      isNumber
+                      errors={errors}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {translate("Number of graves in this cemetery")}
+                    </p>
+                  </div>
+                  <SelectForm
+                    name="status"
+                    control={control}
+                    label={translate("Status")}
+                    placeholder={translate("Select Status")}
+                    options={Object.values(GraveStatus).map((status) => ({
+                      value: status,
+                      label: translate(
+                        status.charAt(0).toUpperCase() + status.slice(1),
+                      ),
+                    }))}
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <FileUploadForm
+                  name="photourl"
+                  control={control}
+                  label={translate("Photo")}
+                  errors={errors}
+                  bucketName="bucket-grave"
+                  uploading={uploading}
+                  handleFileUpload={handleFileUpload}
+                  translate={translate}
+                />
+              </div>
             </div>
-            <TextInputForm
-              name="address"
-              control={control}
-              label={translate("Address")}
-              isTextArea
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 bg-emerald-600 text-white"
-                onClick={() => {
-                  if (!navigator.geolocation) return;
-                  setIsLocating(true);
-                  navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                      setValue("latitude", pos.coords.latitude.toFixed(6));
-                      setValue("longitude", pos.coords.longitude.toFixed(6));
-                      setIsLocating(false);
-                    },
-                    () => {
-                      setIsLocating(false);
-                    },
-                  );
-                }}
-                disabled={isLocating}
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                {isLocating
-                  ? translate("Getting location...")
-                  : translate("Get Current Location")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowMap((v) => !v)}
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                {showMap ? translate("Hide Map") : translate("Pick on Map")}
-              </Button>
-            </div>
-            {showMap && (
-              <MapLocationPicker
-                lat={watch("latitude")}
-                lng={watch("longitude")}
-                onChange={(lat, lng) => {
-                  setValue("latitude", lat.toFixed(6));
-                  setValue("longitude", lng.toFixed(6));
-                }}
-                placeholder={translate("Search location...")}
-              />
-            )}
-            <SelectForm
-              name="organisation"
-              control={control}
-              placeholder={translate("Select Organisation")}
-              label={translate("Managing Organisation")}
-              options={organisationsList.items.map((org) => ({
-                value: org.id,
-                label: org.name,
-              }))}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="picname"
-                control={control}
-                label={translate("PIC Name")}
-              />
-              <TextInputForm
-                name="picphoneno"
-                control={control}
-                label={translate("PIC Phone No.")}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="totalgraves"
-                control={control}
-                label={translate("Total Graves")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <SelectForm
-                name="status"
-                control={control}
-                label={translate("Status")}
-                placeholder={translate("Select Status")}
-                options={Object.values(GraveStatus).map((status) => ({
-                  value: status,
-                  label: translate(
-                    status.charAt(0).toUpperCase() + status.slice(1),
-                  ),
-                }))}
-                required
-                errors={errors}
-              />
-            </div>
-            <FileUploadForm
-              name="photourl"
-              control={control}
-              label={translate("Photo")}
-              required
-              errors={errors}
-              bucketName="bucket-grave"
-              uploading={uploading}
-              handleFileUpload={handleFileUpload}
-              translate={translate}
-            />
+
             <DialogFooter>
               <Button
                 type="button"
                 variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

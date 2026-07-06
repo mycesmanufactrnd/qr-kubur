@@ -6,6 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   OneToMany,
+  OneToOne,
   UpdateDateColumn,
   JoinColumn,
 } from "typeorm";
@@ -15,6 +16,8 @@ import { DeathCharityDependent } from "./DeathCharityDependent.entity.js";
 import { DeathCharityClaim } from "./DeathCharityClaim.entity.js";
 import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.js";
 import { Mosque } from "../Mosque.entity.js";
+import { Organisation } from "../Organisation.entity.js";
+import { DeadPerson } from "../DeadPerson.entity.js";
 
 @Entity("deathcharitymember")
 export class DeathCharityMember extends AuditableEntity {
@@ -51,8 +54,8 @@ export class DeathCharityMember extends AuditableEntity {
   @Column("text", { nullable: true })
   address?: string;
 
-  @Column("boolean", { default: true })
-  isactive!: boolean;
+  @Column("boolean", { default: false })
+  isdeceased!: boolean;
 
   @Column("integer", { nullable: true })
   mosqueId?: number | null;
@@ -60,4 +63,17 @@ export class DeathCharityMember extends AuditableEntity {
   @ManyToOne(() => Mosque, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "mosqueId" })
   mosque?: Mosque | null;
+
+  @ManyToOne(() => Organisation, { nullable: true, onDelete: "SET NULL" })
+  organisation?: Organisation | null;
+
+  @Column("boolean", { default: false })
+  isapproved!: boolean;
+
+  @Column("integer", { nullable: true })
+  deadpersonId?: number | null;
+
+  @OneToOne(() => DeadPerson, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "deadpersonId" })
+  deadperson?: DeadPerson | null;
 }

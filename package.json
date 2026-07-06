@@ -24,7 +24,7 @@
     "docker:restart:dev:logs": "npm run docker:restart:dev && npm run docker:logs:backend",
     "docker:psql": "docker exec -it postgres_db psql -U postgres -d qr_kubur",
     "docker:seed:prod": "docker compose exec backend npm run seed:prod",
-    "docker:compose:dev": "docker compose -f docker-compose.dev.yml up -d --build --remove-orphans",
+    "docker:compose:dev": "docker compose -f docker-compose.dev.yml --env-file .env.dev up -d --build --remove-orphans",
     "docker:compose:prod": "docker compose up -d --build --remove-orphans && npm run build"
   },
   "dependencies": {

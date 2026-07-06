@@ -26,6 +26,7 @@ import {
   BarChart,
   Menu,
   Package,
+  Bell,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ function AdminDashboardDesktop() {
 
     if (isOrgCanManageGrave) arr.push("GD");
     if (isOrgCanBeDonated) arr.push("DDV");
-    if (isOrgCanManageMosque) arr.push("CMC", "QM");
+    if (isOrgCanManageMosque) arr.push("CMC", "CQN");
     if (isOrgGraveService) arr.push("QUO");
 
     return arr;
@@ -78,13 +79,13 @@ function AdminDashboardDesktop() {
     OSStats,
     GDStats,
     DDVStats,
-    QMStats,
+    CQNStats,
     CMCStats,
     QUOStats,
     isOSLoading,
     isGDLoading,
     isDDVLoading,
-    isQMLoading,
+    isCQNLoading,
     isCMCLoading,
     isQUOLoading,
   } = useGetAdminDashboardStats({
@@ -100,7 +101,11 @@ function AdminDashboardDesktop() {
   const deadPersonCount = GDStats?.deadPersonCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
-  const qariahMemberCount = QMStats?.qariahMemberCount ?? 0;
+  const qariahMemberCount = CQNStats?.qariahMemberCount ?? 0;
+  const qariahNotificationCount = CQNStats?.qariahNotificationCount ?? 0;
+  const jenazahCaseCount = CQNStats?.jenazahCaseCount ?? 0;
+  const jenazahCasePendingCount = CQNStats?.jenazahCasePendingCount ?? 0;
+  const deathCharityMemberPendingCount = CQNStats?.deathCharityMemberPendingCount ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
   const deathCharityTotalPayout = CMCStats?.deathCharityTotalPayout ?? 0;
@@ -261,6 +266,26 @@ function AdminDashboardDesktop() {
           },
         ]
       : []),
+    ...(isOrgCanManageMosque
+      ? [
+          {
+            label: translate("Kelulusan Ahli Qariah"),
+            value: deathCharityMemberPendingCount || 0,
+            loading: isCQNLoading,
+            page: "ManageQariahMember",
+            color: "violet",
+            icon: Users,
+          },
+          {
+            label: translate("Kes Jenazah Tertunda"),
+            value: jenazahCasePendingCount || 0,
+            loading: isCQNLoading,
+            page: "ManageJenazahCase",
+            color: "rose",
+            icon: ClipboardList,
+          },
+        ]
+      : []),
   ];
 
   if (loadingUser) {
@@ -393,7 +418,45 @@ function AdminDashboardDesktop() {
                           {translate("Total Ahli Qariah")}
                         </p>
                         <p className="text-right text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                          {isQMLoading ? "—" : qariahMemberCount.toLocaleString()}
+                          {isCQNLoading ? "—" : qariahMemberCount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link to={createPageUrl("ManageNotifyDeathQariah")} className="block group">
+                <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 hover:scale-105">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                        <Bell className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-1 text-blue-700 dark:text-blue-400">
+                          {translate("Notifikasi Kematian")}
+                        </p>
+                        <p className="text-right text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                          {isCQNLoading ? "—" : qariahNotificationCount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link to={createPageUrl("ManageJenazahCase")} className="block group">
+                <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/20 dark:to-orange-900/20 hover:scale-105">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between">
+                      <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                        <ClipboardList className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-1 text-rose-700 dark:text-rose-400">
+                          {translate("Kes Jenazah")}
+                        </p>
+                        <p className="text-right text-3xl font-bold bg-gradient-to-r from-rose-600 to-orange-600 dark:from-rose-400 dark:to-orange-400 bg-clip-text text-transparent">
+                          {isCQNLoading ? "—" : jenazahCaseCount.toLocaleString()}
                         </p>
                       </div>
                     </div>

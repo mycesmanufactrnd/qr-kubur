@@ -1,19 +1,17 @@
 // @ts-nocheck
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGetMosqueCoordinates } from "@/hooks/useMosqueMutations";
-import { Button } from "@/components/ui/button";
+import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
-import BackNavigation from "@/components/BackNavigation";
 import { useLocationContext } from "@/providers/LocationProvider";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import { Phone, MapPin, Navigation, AlertCircle, User } from "lucide-react";
 import { openDirections, showEarthDistance } from "@/utils/helpers";
-import { OfflineDownloadBanner } from "@/components/OfflineDownloadBanner";
+import BackNavigation from "@/components/BackNavigation";
 
-const OFFLINE_KEY = "qubur-offline-mosques";
-
-const EmergencyMosqueCard = ({ mosque }) => {
+const EmergencyMosqueCard = ({ mosque, onRequest }) => {
   if (!mosque) return null;
 
   return (
@@ -61,12 +59,19 @@ const EmergencyMosqueCard = ({ mosque }) => {
         >
           <Navigation className="w-3.5 h-3.5" /> Directions
         </button>
+        <button
+          onClick={() => onRequest(mosque)}
+          className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+        >
+          <User className="w-3.5 h-3.5" /> Jenazah
+        </button>
       </div>
     </div>
   );
 };
 
 export default function JenazahEmergency() {
+  const navigate = useNavigate();
   const [displayedCount, setDisplayedCount] = useState(10);
   const sentinelRef = useRef(null);
   const { userLocation, userState } = useLocationContext();
@@ -79,26 +84,6 @@ export default function JenazahEmergency() {
     { ...filters, limit: 5 },
   );
 
-  const [savedEntry, setSavedEntry] = useState(() => {
-    try {
-      const raw = localStorage.getItem(OFFLINE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  });
-
-  const savedMosques = savedEntry?.mosques ?? [];
-  const offlineStatus = savedEntry ? "cached" : "idle";
-  const isFallback = !isLoading && mosques.length === 0 && savedMosques.length > 0;
-  const displayMosques = mosques.length > 0 ? mosques : savedMosques;
-
-  function saveOffline() {
-    try {
-      const entry = { mosques, savedAt: new Date().toISOString() };
-      localStorage.setItem(OFFLINE_KEY, JSON.stringify(entry));
-      setSavedEntry(entry);
-    } catch {}
-  }
-
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -110,10 +95,14 @@ export default function JenazahEmergency() {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [displayedCount, displayMosques.length]);
+  }, [displayedCount, mosques.length]);
+
+  const handleRequest = (mosque) => {
+    navigate(createPageUrl("JenazahEmergencyRequest"), { state: { mosque } });
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 space-y-3 pb-2">
+    <div className="min-h-screen space-y-3 pb-2">
       <BackNavigation
         title={translate("Jenazah Emergency") || "Kecemasan Jenazah"}
       />
@@ -127,35 +116,19 @@ export default function JenazahEmergency() {
         </p>
       </div>
 
-      {isFallback && (
-        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
-          <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-          <p className="text-xs text-amber-700 dark:text-amber-400">
-            {translate("Showing saved offline data")}
-          </p>
-        </div>
-      )}
-
       {isLoading ? (
         <ListCardSkeletonComponent />
-      ) : displayMosques.length === 0 ? (
+      ) : mosques.length === 0 ? (
         <NoDataCardComponent isPage title={translate("No Mosque Found")} />
       ) : (
         <div className="space-y-2">
-          {displayMosques.slice(0, displayedCount).map((m) => (
-            <EmergencyMosqueCard key={m.id} mosque={m} />
+          {mosques.slice(0, displayedCount).map((m) => (
+            <EmergencyMosqueCard key={m.id} mosque={m} onRequest={handleRequest} />
           ))}
-          {displayedCount < displayMosques.length && (
+          {displayedCount < mosques.length && (
             <div ref={sentinelRef} className="flex justify-center py-4">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
             </div>
-          )}
-          {!isLoading && mosques.length > 0 && (
-            <OfflineDownloadBanner
-              status={offlineStatus}
-              onDownload={saveOffline}
-              idleLabel={translate("Save mosque list for offline use?")}
-            />
           )}
         </div>
       )}

@@ -299,7 +299,7 @@ export default function ManagePaymentFields() {
                 type="button" variant="outline" 
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate('Cancel')}
+                {translate('Close')}
               </Button>
               <Button 
                 type="submit" className="bg-purple-600"

@@ -329,6 +329,12 @@ export enum QuotationStatus {
   REJECTED = "rejected",
 }
 
+export enum JenazahCaseStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
 export const QUOTATION_OVERDUE_DAYS = 7;
 
 // ─── Inventory Module ─────────────────────────────────────────────────────────
@@ -419,3 +425,18 @@ export enum CheckDetailResult {
   MISSING = "MISSING",
   OVER_COUNT = "OVER_COUNT",
 }
+export const ROLE_TYPE = {
+  mosque: {
+    PenggaliKubur: "Penggali Kubur",
+    Petugas: "Petugas Pengurusan Jenazah",
+  }
+}
+
+export const CARE_SCENARIOS = [
+  { value: "home_home", label: "Di Rumah — Mandi & Solat di Rumah" },
+  { value: "home_mosque", label: "Di Rumah — Mandi & Solat di Masjid" },
+  { value: "hospital_hospital", label: "Di Hospital — Mandi & Solat di Hospital" },
+  { value: "hospital_mosque", label: "Di Hospital — Mandi & Solat di Masjid" },
+  { value: "hospital_home", label: "Di Hospital — Mandi & Solat di Rumah" },
+  { value: "other", label: "Lain-lain (Nyatakan Sendiri)" },
+];

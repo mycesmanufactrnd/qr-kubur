@@ -17,6 +17,7 @@ export default function SelectForm({
   required = false,
   errors = {},
   disabled = false,
+  onValueChange,
 }) {
   const errorMessage = errors?.[name]?.message;
 
@@ -39,7 +40,7 @@ export default function SelectForm({
         render={({ field }) => (
           <Select
             value={field.value ?? ""}
-            onValueChange={field.onChange}
+            onValueChange={(val) => { field.onChange(val); onValueChange?.(val); }}
             disabled={disabled}
           >
             <SelectTrigger disabled={disabled} className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">

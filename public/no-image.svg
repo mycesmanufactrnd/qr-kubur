@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180">
+  <rect width="240" height="180" fill="#f8fafc"/>
+  <rect x="70" y="32" width="100" height="86" rx="6" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+  <clipPath id="frame">
+    <rect x="70" y="32" width="100" height="86" rx="6"/>
+  </clipPath>
+  <circle cx="97" cy="57" r="10" fill="#e2e8f0"/>
+  <path d="M74 118 L97 84 L116 102 L130 87 L166 118 Z" fill="#e2e8f0" clip-path="url(#frame)"/>
+  <text x="120" y="148" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12" fill="#94a3b8">Tiada Gambar</text>
+</svg>

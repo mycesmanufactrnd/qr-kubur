@@ -9,7 +9,9 @@ import {
   DeathCharityMember,
   Donation,
   Grave,
+  JenazahCase,
   Organisation,
+  QariahDeathNotification,
   Quotation,
   Suggestion,
   TahfizCenter,
@@ -282,8 +284,8 @@ export const dashboardRouter = router({
       };
     }),
 
-  // QM: Qariah Member
-  getQMAdminStates: protectedProcedure
+  // CQN: Case, Qariah, Notifications
+  getCQNAdminStates: protectedProcedure
     .input(
       z.object({
         currentUserOrganisation: z.number().optional().nullable(),
@@ -291,12 +293,95 @@ export const dashboardRouter = router({
       }),
     )
     .query(async ({ input }) => {
+      const { isSuperAdmin, currentUserOrganisation } = input;
+      const notifRepo = AppDataSource.getRepository(QariahDeathNotification);
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
-      const count = await memberRepo
-        .createQueryBuilder("member")
-        .where("member.mosqueId IS NOT NULL")
-        .getCount();
-      return { qariahMemberCount: count };
+      const jenazahCaseRepo = AppDataSource.getRepository(JenazahCase);
+
+      if (isSuperAdmin) {
+        const [
+          notificationCount,
+          memberCount,
+          jenazahCaseCount,
+          jenazahCasePendingCount,
+          deathCharityMemberPendingCount,
+        ] = await Promise.all([
+          notifRepo.count(),
+          memberRepo
+            .createQueryBuilder("member")
+            .where("member.organisationId IS NOT NULL")
+            .getCount(),
+          jenazahCaseRepo.count(),
+          jenazahCaseRepo.count({ where: { status: "pending" } }),
+          memberRepo.count({ where: { isapproved: false } }),
+        ]);
+
+        return {
+          qariahNotificationCount: notificationCount,
+          qariahMemberCount: memberCount,
+          jenazahCaseCount,
+          jenazahCasePendingCount,
+          deathCharityMemberPendingCount,
+        };
+      }
+
+      if (!currentUserOrganisation) {
+        return {
+          qariahNotificationCount: 0,
+          qariahMemberCount: 0,
+          jenazahCaseCount: 0,
+          jenazahCasePendingCount: 0,
+          deathCharityMemberPendingCount: 0,
+        };
+      }
+
+      const [
+        notificationCount,
+        memberCount,
+        jenazahCaseCount,
+        jenazahCasePendingCount,
+        deathCharityMemberPendingCount,
+      ] = await Promise.all([
+        notifRepo
+          .createQueryBuilder("noti")
+          .leftJoin("noti.organisation", "organisation")
+          .where("organisation.id = :id", { id: currentUserOrganisation })
+          .getCount(),
+
+        memberRepo
+          .createQueryBuilder("member")
+          .where("member.organisationId = :id", {
+            id: currentUserOrganisation,
+          })
+          .getCount(),
+
+        jenazahCaseRepo
+          .createQueryBuilder("jenazahCase")
+          .leftJoin("jenazahCase.mosque", "mosque")
+          .where("mosque.organisationId = :id", { id: currentUserOrganisation })
+          .getCount(),
+
+        jenazahCaseRepo
+          .createQueryBuilder("jenazahCase")
+          .leftJoin("jenazahCase.mosque", "mosque")
+          .where("mosque.organisationId = :id", { id: currentUserOrganisation })
+          .andWhere("jenazahCase.status = :status", { status: "pending" })
+          .getCount(),
+
+        memberRepo
+          .createQueryBuilder("member")
+          .where("member.organisationId = :id", { id: currentUserOrganisation })
+          .andWhere("member.isapproved = :val", { val: false })
+          .getCount(),
+      ]);
+
+      return {
+        qariahNotificationCount: notificationCount,
+        qariahMemberCount: memberCount,
+        jenazahCaseCount,
+        jenazahCasePendingCount,
+        deathCharityMemberPendingCount,
+      };
     }),
 
   // CMC: Charity, Member, Claim

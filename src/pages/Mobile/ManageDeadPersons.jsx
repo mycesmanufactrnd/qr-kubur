@@ -80,6 +80,11 @@ function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
                 {person.grave.name}
               </span>
             )}
+            {person.gravelot && (
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {translate("Grave Lot")}: {person.gravelot}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -211,6 +216,13 @@ function PersonFormSheet({
           required
           errors={errors}
         />
+        <TextInputForm
+          name="gravelot"
+          control={control}
+          label={translate("Grave Lot")}
+          required
+          errors={errors}
+        />
         <div className="grid grid-cols-2 gap-3">
           <TextInputForm
             name="latitude"
@@ -322,6 +334,7 @@ export default function MobileManageDeadPersons() {
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [appliedGraveLot, setAppliedGraveLot] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
@@ -348,6 +361,7 @@ export default function MobileManageDeadPersons() {
     page,
     pageSize: itemsPerPage,
     filterName: appliedSearch,
+    filterGraveLot: appliedGraveLot,
     organisationIds: accessibleOrgIds,
   });
 
@@ -400,6 +414,7 @@ export default function MobileManageDeadPersons() {
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       grave: formData.grave ? { id: Number(formData.grave) } : null,
+      gravelot: formData.gravelot?.trim() || null,
     };
     try {
       if (editingPerson) {
@@ -446,9 +461,15 @@ export default function MobileManageDeadPersons() {
                   type: "text",
                   searchColumn: "name",
                 },
+                {
+                  label: translate("Grave Lot"),
+                  type: "text",
+                  searchColumn: "gravelot",
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.name || "");
+                setAppliedGraveLot(f.gravelot || "");
                 setPage(1);
               }}
             />

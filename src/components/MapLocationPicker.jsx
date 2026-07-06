@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin, Loader2, LocateFixed } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -18,6 +18,14 @@ function MapFlyTo({ target }) {
   useEffect(() => {
     if (target) map.flyTo(target, 16);
   }, [target, map]);
+  return null;
+}
+
+function MapRefSetter({ mapRef }) {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+  }, [map, mapRef]);
   return null;
 }
 
@@ -51,9 +59,11 @@ export default function MapLocationPicker({ lat, lng, onChange, placeholder = "S
   const [showDropdown, setShowDropdown] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const [locating, setLocating] = useState(false);
   const debounceRef = useRef(null);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
+  const mapRef = useRef(null);
 
   const position =
     lat != null && lng != null && lat !== "" && lng !== ""
@@ -61,6 +71,34 @@ export default function MapLocationPicker({ lat, lng, onChange, placeholder = "S
       : null;
 
   const initialCenter = position ?? [4.2105, 101.9758];
+
+  // Default the map to the user's current location when no location is set yet
+  useEffect(() => {
+    if (position || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFlyTarget([pos.coords.latitude, pos.coords.longitude]);
+      },
+      () => {},
+    );
+  }, []);
+
+  const goToCurrentLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const target = [pos.coords.latitude, pos.coords.longitude];
+        if (mapRef.current) {
+          mapRef.current.flyTo(target, 16);
+        } else {
+          setFlyTarget(target);
+        }
+        setLocating(false);
+      },
+      () => setLocating(false),
+    );
+  };
 
   // Recompute dropdown position whenever it becomes visible or suggestions change
   useEffect(() => {
@@ -122,7 +160,6 @@ export default function MapLocationPicker({ lat, lng, onChange, placeholder = "S
 
   return (
     <div className="space-y-2">
-      {/* Search with autocomplete */}
       <div ref={containerRef} className="relative">
         <div className="relative flex items-center">
           <Input
@@ -139,7 +176,6 @@ export default function MapLocationPicker({ lat, lng, onChange, placeholder = "S
           )}
         </div>
 
-        {/* Dropdown — fixed so it's never clipped by overflow-hidden/auto parents */}
         {showDropdown && (
           <ul
             style={{
@@ -167,8 +203,7 @@ export default function MapLocationPicker({ lat, lng, onChange, placeholder = "S
         )}
       </div>
 
-      {/* Map */}
-      <div className="rounded-lg overflow-hidden border dark:border-slate-600" style={{ height: 300 }}>
+      <div className="relative rounded-lg overflow-hidden border dark:border-slate-600" style={{ height: 300 }}>
         <MapContainer
           center={initialCenter}
           zoom={position ? 15 : 10}
@@ -180,8 +215,23 @@ export default function MapLocationPicker({ lat, lng, onChange, placeholder = "S
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <MapFlyTo target={flyTarget} />
+          <MapRefSetter mapRef={mapRef} />
           <ClickAndDragMarker position={position} onMove={onChange} />
         </MapContainer>
+
+        <button
+          type="button"
+          onClick={goToCurrentLocation}
+          disabled={locating}
+          title="Go to current location"
+          className="absolute top-2 right-2 z-[1000] flex items-center justify-center w-8 h-8 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 shadow-md hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          {locating ? (
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+          ) : (
+            <LocateFixed className="w-4 h-4 text-emerald-600" />
+          )}
+        </button>
       </div>
 
       <p className="text-xs text-muted-foreground">

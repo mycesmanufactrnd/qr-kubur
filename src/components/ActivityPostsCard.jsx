@@ -1,19 +1,22 @@
-﻿import { Card, CardContent } from "@/components/ui/card";
+﻿// @ts-nocheck
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Building2 } from 'lucide-react';
-import moment from 'moment';
-import { resolveFileUrl } from '@/utils';
+import { Building2 } from "lucide-react";
+import moment from "moment";
+import { ImageViewer } from "./ImageViewer";
 
-export default function ActivityPostsCard({ post, poster, showPoster = false }) {
+export default function ActivityPostsCard({
+  post,
+  poster,
+  showPoster = false,
+}) {
   return (
     <Card className="overflow-hidden bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 rounded-2xl">
       {post.photourl && (
         <div className="overflow-hidden">
-          <img
-            src={resolveFileUrl(post.photourl, 'bucket-activity-storage')}
-            referrerPolicy="no-referrer"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-            alt={post.title}
+          <ImageViewer
+            src={post.photourl}
+            bucket="bucket-activity-storage"
             className="w-full h-40 object-cover hover:scale-105 transition-transform duration-500"
           />
         </div>
@@ -40,7 +43,7 @@ export default function ActivityPostsCard({ post, poster, showPoster = false }) 
 
         <div
           className="prose prose-xs prose-slate dark:prose-invert max-w-none text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-3"
-          dangerouslySetInnerHTML={{ __html: post.content || '' }}
+          dangerouslySetInnerHTML={{ __html: post.content || "" }}
         />
 
         <p className="text-[11px] text-slate-400 pt-0.5">

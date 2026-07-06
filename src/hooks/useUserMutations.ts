@@ -6,6 +6,8 @@ type useGetUserPaginatedParams = {
   page?: number;
   pageSize?: number;
   search?: string;
+  email?: string;
+  username?: string;
   organisationId?: number | null;
 };
 
@@ -32,6 +34,8 @@ export function useGetUserPaginated({
   page,
   pageSize,
   search,
+  email,
+  username,
   organisationId,
 }: useGetUserPaginatedParams) {
   const { currentUser, hasAdminAccess, checkRole } = useAdminAccess();
@@ -42,6 +46,8 @@ export function useGetUserPaginated({
         page,
         pageSize,
         search,
+        email,
+        username,
         organisationId,
         currentUser,
         checkRole,

@@ -423,7 +423,7 @@ function ManageDeathCharityDesktop() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+        <DialogContent className="max-w-[80vw] max-h-[90vh] overflow-y-auto dark:bg-slate-800">
           <DialogHeader>
             <DialogTitle>
               {editingDeathCharity
@@ -432,158 +432,165 @@ function ManageDeathCharityDesktop() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Organisation Details")}
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                <SelectForm
-                  name="organisation"
-                  control={control}
-                  label={translate("Managing Organisation")}
-                  placeholder={translate("All managing organisations")}
-                  options={organisationsList.items.map((org) => ({
-                    value: org.id,
-                    label: org.name,
-                  }))}
-                  required
-                  errors={errors}
-                />
-                <div className="grid grid-cols-1 gap-4">
-                  <SelectForm
-                    name="mosqueid"
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Organisation Details")}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <SelectForm
+                      name="organisation"
+                      control={control}
+                      label={translate("Managing Organisation")}
+                      placeholder={translate("All managing organisations")}
+                      options={organisationsList.items.map((org) => ({
+                        value: org.id,
+                        label: org.name,
+                      }))}
+                      required
+                      errors={errors}
+                    />
+                    <div className="grid grid-cols-1 gap-4">
+                      <SelectForm
+                        name="mosqueid"
+                        control={control}
+                        label={translate("Managing Mosque")}
+                        placeholder={translate("Select managing mosque")}
+                        options={mosqueList.map((mosque) => ({
+                          value: mosque.id,
+                          label: mosque.name,
+                        }))}
+                        required
+                        errors={errors}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Basic Information")}
+                  </h3>
+                  <TextInputForm
+                    name="name"
                     control={control}
-                    label={translate("Managing Mosque")}
-                    placeholder={translate("Select managing mosque")}
-                    options={mosqueList.map((mosque) => ({
-                      value: mosque.id,
-                      label: mosque.name,
-                    }))}
+                    label={translate("Name")}
+                    required
+                    errors={errors}
+                  />
+                  <SelectForm
+                    name="state"
+                    control={control}
+                    label={translate("State")}
+                    placeholder={translate("Select states")}
+                    options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="description"
+                    control={control}
+                    label={translate("Description")}
+                    isTextArea
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6 border-l pl-6 dark:border-slate-600">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Contact Information")}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <TextInputForm
+                      name="contactperson"
+                      control={control}
+                      label={translate("Contact Person")}
+                      required
+                      errors={errors}
+                    />
+                    <TextInputForm
+                      name="contactphone"
+                      control={control}
+                      label={translate("Contact Phone No.")}
+                      required
+                      errors={errors}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Fee Information")}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <TextInputForm
+                      name="registrationfee"
+                      control={control}
+                      label={translate("Registration Fee")}
+                      isMoney
+                      required
+                      errors={errors}
+                    />
+                    <TextInputForm
+                      name="yearlyfee"
+                      control={control}
+                      label={translate("Yearly Fee")}
+                      isMoney
+                      required
+                      errors={errors}
+                    />
+                  </div>
+                  <TextInputForm
+                    name="deathbenefitamount"
+                    control={control}
+                    label={translate("Death Benefit Amount")}
+                    isMoney
                     required
                     errors={errors}
                   />
                 </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Basic Information")}
-              </h3>
-              <TextInputForm
-                name="name"
-                control={control}
-                label={translate("Name")}
-                required
-                errors={errors}
-              />
-              <SelectForm
-                name="state"
-                control={control}
-                label={translate("State")}
-                placeholder={translate("Select states")}
-                options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="description"
-                control={control}
-                label={translate("Description")}
-                isTextArea
-              />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Contact Information")}
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <TextInputForm
-                  name="contactperson"
-                  control={control}
-                  label={translate("Contact Person")}
-                  required
-                  errors={errors}
-                />
-                <TextInputForm
-                  name="contactphone"
-                  control={control}
-                  label={translate("Contact Phone No.")}
-                  required
-                  errors={errors}
-                />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Fee Information")}
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <TextInputForm
-                  name="registrationfee"
-                  control={control}
-                  label={translate("Registration Fee")}
-                  isMoney
-                  required
-                  errors={errors}
-                />
-                <TextInputForm
-                  name="yearlyfee"
-                  control={control}
-                  label={translate("Yearly Fee")}
-                  isMoney
-                  required
-                  errors={errors}
-                />
-              </div>
-              <TextInputForm
-                name="deathbenefitamount"
-                control={control}
-                label={translate("Death Benefit Amount")}
-                isMoney
-                required
-                errors={errors}
-              />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Coverage Details")}
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <CheckboxForm
-                  name="coversspouse"
-                  control={control}
-                  label={translate("Covers Spouse")}
-                />
-                <CheckboxForm
-                  name="coverschildren"
-                  control={control}
-                  label={translate("Covers Children")}
-                />
-              </div>
-              <TextInputForm
-                name="maxdependents"
-                control={control}
-                label={translate("Max Dependents")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <CheckboxForm
-                name="isselfregister"
-                control={control}
-                label={translate("Allow Self Register")}
-              />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Status")}
-              </h3>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={isactive}
-                  onCheckedChange={(v) => setValue("isactive", v)}
-                />
-                <Label>{translate("Active")}</Label>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Coverage Details")}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <CheckboxForm
+                      name="coversspouse"
+                      control={control}
+                      label={translate("Covers Spouse")}
+                    />
+                    <CheckboxForm
+                      name="coverschildren"
+                      control={control}
+                      label={translate("Covers Children")}
+                    />
+                  </div>
+                  <TextInputForm
+                    name="maxdependents"
+                    control={control}
+                    label={translate("Max Dependents")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                  <CheckboxForm
+                    name="isselfregister"
+                    control={control}
+                    label={translate("Allow Self Register")}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Status")}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={isactive}
+                      onCheckedChange={(v) => setValue("isactive", v)}
+                    />
+                    <Label>{translate("Active")}</Label>
+                  </div>
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -592,7 +599,7 @@ function ManageDeathCharityDesktop() {
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

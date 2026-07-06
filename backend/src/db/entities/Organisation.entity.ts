@@ -120,6 +120,9 @@ export class Organisation {
   @OneToMany(() => Grave, (grave) => grave.organisation)
   graves?: Grave[];
 
+  @Column("text", { nullable: true })
+  deathnotificationtemplate?: string | null;
+
   @Column("integer", { nullable: true })
   createdbyId?: number | null;
 

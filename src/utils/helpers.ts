@@ -156,3 +156,24 @@ export function formatDate(d: Date | string | null | undefined): string {
   return new Date(d).toLocaleDateString("en-MY");
 }
 
+const GPS_STATE_MAP: Record<string, string> = {
+  "penang": "Pulau Pinang",
+  "federal territory of kuala lumpur": "Kuala Lumpur",
+  "wilayah persekutuan kuala lumpur": "Kuala Lumpur",
+  "federal territory of labuan": "Labuan",
+  "labuan federal territory": "Labuan",
+  "wilayah persekutuan labuan": "Labuan",
+  "federal territory of putrajaya": "Putrajaya",
+  "wilayah persekutuan putrajaya": "Putrajaya",
+};
+
+export function resolveGpsState(raw: string | undefined, statesList: string[]): string | null {
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  return (
+    GPS_STATE_MAP[lower] ??
+    statesList.find((s) => s.toLowerCase() === lower) ??
+    null
+  );
+}
+

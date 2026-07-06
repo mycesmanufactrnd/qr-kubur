@@ -38,6 +38,7 @@ import CheckTahlilStatus from '@/pages/User/CheckTahlilStatus';
 import SurahPage from '@/pages/User/SurahPage';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
 import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
+import JenazahEmergencyRequest from '@/pages/User/JenazahEmergencyRequest.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
 import DailyDua from '@/pages/ExtraFeatures/DailyDua.jsx';
 import AsmaulHusna from '@/pages/ExtraFeatures/Asmaulhusna.jsx';
@@ -73,6 +74,7 @@ import ManageIslamicEvent from '@/pages/Management/ManageIslamicEvent';
 import ManageWaqfProject from '@/pages/Management/ManageWaqfProject';
 import ManageMosques from '@/pages/Management/ManageMosques.jsx';
 import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
+import ManageNotifyDeathQariah from '@/pages/Management/ManageNotifyDeathQariah.jsx';
 import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
 import ManageQariahMember from '@/pages/Management/ManageQariahMember.jsx';
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
@@ -87,6 +89,7 @@ import ManageInventoryAssets from '@/pages/Management/ManageInventoryAssets.jsx'
 import InventoryHistory from '@/pages/Management/InventoryHistory.jsx';
 import InventoryAudit from '@/pages/Management/InventoryAudit.jsx';
 import InventoryReports from '@/pages/Management/InventoryReports.jsx';
+import ManageJenazahCase from '@/pages/Management/ManageJenazahCase.jsx';
 
 import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
@@ -145,6 +148,7 @@ export const PAGES = {
     "SurahPage": SurahPage,
     "SolatJenazah": SolatJenazah,
     "JenazahEmergency": JenazahEmergency,
+    "JenazahEmergencyRequest": JenazahEmergencyRequest,
     "IslamicCalendar": IslamicCalendar,
     "DailyDua": DailyDua,
     "Asmaulhusna": AsmaulHusna,
@@ -180,6 +184,7 @@ export const PAGES = {
     "ManageWaqfProject": ManageWaqfProject,
     "ManageMosques": ManageMosques,
     "ManageDeathCharity": ManageDeathCharity,
+    "ManageNotifyDeathQariah": ManageNotifyDeathQariah,
     "ManageDeathCharityMember": ManageDeathCharityMember,
     "ManageQariahMember": ManageQariahMember,
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
@@ -194,6 +199,7 @@ export const PAGES = {
     "InventoryHistory": InventoryHistory,
     "InventoryAudit": InventoryAudit,
     "InventoryReports": InventoryReports,
+    "ManageJenazahCase": ManageJenazahCase,
 
     "ManagePaymentDistribution": ManagePaymentDistribution,
     "ManagePaymentFields": ManagePaymentFields,
