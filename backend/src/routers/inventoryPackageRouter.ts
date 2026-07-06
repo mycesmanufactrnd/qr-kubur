@@ -72,7 +72,6 @@ export const inventoryPackageRouter = router({
 
   getAll: protectedProcedure.query(async () => {
     return await AppDataSource.getRepository(InventoryPackage).find({
-      where: { status: ActiveInactiveStatus.ACTIVE },
       relations: ["packageItems", "packageItems.item"],
       order: { package_name: "ASC" },
     });

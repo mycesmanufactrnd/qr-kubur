@@ -46,9 +46,15 @@ function filterItems(items, search) {
 
 // ── Item Checkbox ─────────────────────────────────────────────────────────────
 
-function ItemCheckbox({ item, checked, qty, onToggle, onQtyChange }) {
-  const isOutOfStock = item.current_quantity === 0;
-  const isOverStock  = checked && qty > item.current_quantity;
+function ItemCheckbox({ item, checked, qty, assetId, onToggle, onQtyChange, onAssetChange }) {
+  const isReusable = item.item_type === InventoryItemType.REUSABLE;
+  const availableAssets = isReusable
+    ? (item.assets ?? []).filter((a) => a.current_status === "AVAILABLE")
+    : [];
+  const hasAssets = availableAssets.length > 0;
+  const isOutOfStock = isReusable ? !hasAssets : item.current_quantity === 0;
+  const isOverStock  = !isReusable && checked && qty > item.current_quantity;
+
   return (
     <div
       className={`flex flex-col gap-1 px-3 py-2.5 rounded-lg border transition-colors cursor-pointer
@@ -78,13 +84,18 @@ function ItemCheckbox({ item, checked, qty, onToggle, onQtyChange }) {
               <span className="text-xs text-gray-400 ml-1.5">({item.item_code})</span>
             )}
           </p>
-          <p className={`text-xs mt-0.5 ${item.current_quantity === 0 ? "text-red-500" : item.current_quantity <= item.minimum_level ? "text-yellow-500" : "text-gray-400"}`}>
-            {translate("Stok")}: {item.current_quantity} {item.unit_type}
-            {item.current_quantity === 0 && " — Tiada stok"}
-            {item.current_quantity > 0 && item.current_quantity <= item.minimum_level && " — Rendah"}
+          <p className={`text-xs mt-0.5 ${
+            isReusable
+              ? hasAssets ? "text-gray-400" : "text-red-500"
+              : item.current_quantity === 0 ? "text-red-500" : item.current_quantity <= item.minimum_level ? "text-yellow-500" : "text-gray-400"
+          }`}>
+            {isReusable
+              ? `${translate("Aset tersedia")}: ${availableAssets.length}`
+              : `${translate("Stok")}: ${item.current_quantity} ${item.unit_type}${item.current_quantity === 0 ? " — Tiada stok" : item.current_quantity <= item.minimum_level ? " — Rendah" : ""}`
+            }
           </p>
         </div>
-        {checked && (
+        {checked && !isReusable && (
           <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
             <span className="text-xs text-gray-500">{translate("Qty")}:</span>
             <div className={`flex items-center border rounded-md overflow-hidden ${isOverStock ? "border-orange-400" : "dark:border-slate-600"}`}>
@@ -109,6 +120,20 @@ function ItemCheckbox({ item, checked, qty, onToggle, onQtyChange }) {
           </div>
         )}
       </div>
+      {checked && isReusable && hasAssets && (
+        <div className="pl-7 mt-1" onClick={(e) => e.stopPropagation()}>
+          <select
+            value={assetId ?? ""}
+            onChange={(e) => onAssetChange(item.id, e.target.value ? Number(e.target.value) : undefined)}
+            className="w-full text-xs border rounded-md px-2 py-1 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+          >
+            <option value="">{translate("Auto (aset pertama)")}</option>
+            {availableAssets.map((a) => (
+              <option key={a.id} value={a.id}>Asset #{a.id}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {isOverStock && (
         <p className="text-xs text-orange-600 dark:text-orange-400 font-medium pl-7">
           ⚠ {translate("Qty melebihi stok semasa")} ({item.current_quantity} {item.unit_type} {translate("tersedia")})
@@ -124,24 +149,29 @@ function useStockOutForm() {
   const [date, setDate]                   = useState(todayDate);
   const [time, setTime]                   = useState(nowTime);
   const [notes, setNotes]                 = useState("");
+  // selected: { [itemId]: { qty: number, assetId?: number } }
   const [selected, setSelected]           = useState({});
   const [selectedPackageId, setSelectedPackageId] = useState("");
 
   const toggleItem = (id) => {
     setSelected((prev) => {
       if (prev[id]) { const next = { ...prev }; delete next[id]; return next; }
-      return { ...prev, [id]: 1 };
+      return { ...prev, [id]: { qty: 1 } };
     });
   };
 
-  const setQty = (id, qty) => setSelected((prev) => ({ ...prev, [id]: qty }));
+  const setQty = (id, qty) =>
+    setSelected((prev) => ({ ...prev, [id]: { ...prev[id], qty } }));
+
+  const setAssetId = (id, assetId) =>
+    setSelected((prev) => ({ ...prev, [id]: { ...prev[id], assetId } }));
 
   const applyPackage = (pkg) => {
     if (!pkg) { setSelectedPackageId(""); return; }
     setSelectedPackageId(String(pkg.id));
     const newSelected = {};
     for (const pi of pkg.packageItems ?? []) {
-      newSelected[pi.itemId] = pi.quantity_required;
+      newSelected[pi.itemId] = { qty: pi.quantity_required };
     }
     setSelected(newSelected);
   };
@@ -156,7 +186,7 @@ function useStockOutForm() {
 
   const selectedCount = Object.keys(selected).length;
 
-  return { date, setDate, time, setTime, notes, setNotes, selected, toggleItem, setQty, applyPackage, selectedPackageId, resetForm, selectedCount };
+  return { date, setDate, time, setTime, notes, setNotes, selected, toggleItem, setQty, setAssetId, applyPackage, selectedPackageId, resetForm, selectedCount };
 }
 
 export default function InventoryStockOut() {
@@ -190,24 +220,23 @@ function InventoryStockOutDesktop() {
   const filteredReusable   = useMemo(() => filterItems(reusableItems,   searchReusable),   [reusableItems,   searchReusable]);
 
   const hasOverStock = useMemo(() =>
-    Object.entries(form.selected).some(([itemId, qty]) => {
+    Object.entries(form.selected).some(([itemId, { qty }]) => {
       const item = allItems.find((i) => String(i.id) === String(itemId));
-      return item && qty > item.current_quantity;
+      return item && item.item_type === InventoryItemType.ONE_TIME && qty > item.current_quantity;
     }),
     [form.selected, allItems],
   );
 
   const handleSubmit = async () => {
     if (form.selectedCount === 0 || hasOverStock) return;
-    const transactionDate = `${form.date}T${form.time}:00`;
     setIsSubmitting(true);
     try {
-      for (const [itemId, qty] of Object.entries(form.selected)) {
+      for (const [itemId, { qty, assetId }] of Object.entries(form.selected)) {
         await stockOut.mutateAsync({
           itemId: Number(itemId),
           quantity: Number(qty),
+          assetId: assetId ?? undefined,
           notes: form.notes || undefined,
-          transaction_date: transactionDate,
         });
       }
       form.resetForm();
@@ -367,9 +396,11 @@ function InventoryStockOutDesktop() {
                       key={item.id}
                       item={item}
                       checked={!!form.selected[item.id]}
-                      qty={form.selected[item.id] ?? 1}
+                      qty={form.selected[item.id]?.qty ?? 1}
+                      assetId={form.selected[item.id]?.assetId}
                       onToggle={form.toggleItem}
                       onQtyChange={form.setQty}
+                      onAssetChange={form.setAssetId}
                     />
                   ))}
                 </div>
@@ -406,9 +437,11 @@ function InventoryStockOutDesktop() {
                       key={item.id}
                       item={item}
                       checked={!!form.selected[item.id]}
-                      qty={form.selected[item.id] ?? 1}
+                      qty={form.selected[item.id]?.qty ?? 1}
+                      assetId={form.selected[item.id]?.assetId}
                       onToggle={form.toggleItem}
                       onQtyChange={form.setQty}
+                      onAssetChange={form.setAssetId}
                     />
                   ))}
                 </div>
@@ -448,24 +481,23 @@ function MobileInventoryStockOut() {
   const filteredReusable   = useMemo(() => filterItems(reusableItems,   searchReusable),   [reusableItems,   searchReusable]);
 
   const hasOverStock = useMemo(() =>
-    Object.entries(form.selected).some(([itemId, qty]) => {
+    Object.entries(form.selected).some(([itemId, { qty }]) => {
       const item = allItems.find((i) => String(i.id) === String(itemId));
-      return item && qty > item.current_quantity;
+      return item && item.item_type === InventoryItemType.ONE_TIME && qty > item.current_quantity;
     }),
     [form.selected, allItems],
   );
 
   const handleSubmit = async () => {
     if (form.selectedCount === 0 || hasOverStock) return;
-    const transactionDate = `${form.date}T${form.time}:00`;
     setIsSubmitting(true);
     try {
-      for (const [itemId, qty] of Object.entries(form.selected)) {
+      for (const [itemId, { qty, assetId }] of Object.entries(form.selected)) {
         await stockOut.mutateAsync({
           itemId: Number(itemId),
           quantity: Number(qty),
+          assetId: assetId ?? undefined,
           notes: form.notes || undefined,
-          transaction_date: transactionDate,
         });
       }
       form.resetForm();
@@ -561,7 +593,7 @@ function MobileInventoryStockOut() {
           ) : (
             <div className="space-y-1.5">
               {filteredConsumable.map((item) => (
-                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id] ?? 1} onToggle={form.toggleItem} onQtyChange={form.setQty} />
+                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id]?.qty ?? 1} assetId={form.selected[item.id]?.assetId} onToggle={form.toggleItem} onQtyChange={form.setQty} onAssetChange={form.setAssetId} />
               ))}
             </div>
           )}
@@ -588,7 +620,7 @@ function MobileInventoryStockOut() {
           ) : (
             <div className="space-y-1.5">
               {filteredReusable.map((item) => (
-                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id] ?? 1} onToggle={form.toggleItem} onQtyChange={form.setQty} />
+                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id]?.qty ?? 1} assetId={form.selected[item.id]?.assetId} onToggle={form.toggleItem} onQtyChange={form.setQty} onAssetChange={form.setAssetId} />
               ))}
             </div>
           )}

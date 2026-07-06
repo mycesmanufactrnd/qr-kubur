@@ -60,6 +60,7 @@ export function useInventoryItemMutations() {
     trpcUtils.inventoryItem.getAll.invalidate();
     trpcUtils.inventoryItem.getLowStock.invalidate();
     trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
+    trpcUtils.inventoryTransaction.getPaginated.invalidate();
   };
 
   const createItem = trpc.inventoryItem.create.useMutation({
@@ -77,7 +78,12 @@ export function useInventoryItemMutations() {
     onError: (err) => showApiError(err),
   });
 
-  return { createItem, updateItem, deleteItem };
+  const deleteByLocation = trpc.inventoryItem.deleteByLocation.useMutation({
+    onSuccess: () => { showSuccess('Lokasi', 'delete'); invalidateAll(); },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createItem, updateItem, deleteItem, deleteByLocation };
 }
 
 // ── Inventory Package ─────────────────────────────────────────────────────────
@@ -292,6 +298,7 @@ export function useInventoryAssetMutations() {
     trpcUtils.inventoryAsset.getPaginated.invalidate();
     trpcUtils.inventoryAsset.getInUse.invalidate();
     trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
+    trpcUtils.inventoryTransaction.getPaginated.invalidate();
   };
 
   const createAsset = trpc.inventoryAsset.create.useMutation({

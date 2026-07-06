@@ -1,10 +1,15 @@
 // @ts-nocheck
 import { protectedProcedure, router } from "../trpc.js";
-import { InventoryAsset } from "../db/entities.js";
+import { InventoryAsset, InventoryTransaction } from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { inventoryAssetSchema } from "../schemas/inventoryAssetSchema.js";
-import { InventoryAssetCondition, InventoryAssetStatus } from "../db/enums.js";
+import {
+  InventoryAssetCondition,
+  InventoryAssetStatus,
+  InventoryTransactionSource,
+  InventoryTransactionType,
+} from "../db/enums.js";
 import { TRPCError } from "@trpc/server";
 
 const ALLOWED_SORT_FIELDS: Record<string, string> = {
@@ -91,12 +96,30 @@ export const inventoryAssetRouter = router({
   create: protectedProcedure
     .input(inventoryAssetSchema)
     .mutation(async ({ input, ctx }) => {
-      const repo = AppDataSource.getRepository(InventoryAsset);
-      const asset = repo.create({
-        ...input,
-        createdbyId: Number(ctx.user.id),
+      return await AppDataSource.transaction(async (manager) => {
+        const asset = manager.create(InventoryAsset, {
+          ...input,
+          createdbyId: Number(ctx.user.id),
+        });
+        const savedAsset = await manager.save(asset);
+
+        // Auto-log STOCK_IN when asset is registered
+        await manager.save(
+          manager.create(InventoryTransaction, {
+            transaction_type: InventoryTransactionType.STOCK_IN,
+            itemId: savedAsset.itemId,
+            assetId: savedAsset.id,
+            quantity: 1,
+            before_quantity: 0,
+            after_quantity: 1,
+            source: InventoryTransactionSource.RESTOCK,
+            notes: `Aset didaftarkan: ${savedAsset.asset_number}`,
+            createdbyId: Number(ctx.user.id),
+          }),
+        );
+
+        return savedAsset;
       });
-      return await repo.save(asset);
     }),
 
   update: protectedProcedure

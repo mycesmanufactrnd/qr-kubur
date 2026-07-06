@@ -363,6 +363,9 @@ export enum InventoryItemStatus {
   AVAILABLE = "AVAILABLE",
   LOW_STOCK = "LOW_STOCK",
   OUT_OF_STOCK = "OUT_OF_STOCK",
+  IN_USE = "IN_USE",
+  MISSING = "MISSING",
+  MAINTENANCE = "MAINTENANCE",
 }
 
 export enum InventoryPackageGenderType {

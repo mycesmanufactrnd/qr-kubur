@@ -40,7 +40,7 @@ export default function TextInputForm({
 
   return (
     <div className="space-y-2">
-      <Label>
+      <Label className={disabled ? "text-gray-400 dark:text-gray-500" : ""}>
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>

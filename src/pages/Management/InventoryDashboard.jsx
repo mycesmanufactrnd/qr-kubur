@@ -261,7 +261,7 @@ export default function InventoryDashboard() {
                     return (
                       <TableRow key={tx.id}>
                         <TableCell className="font-medium text-sm truncate max-w-[120px]">
-                          {tx.item_name_snapshot || tx.item?.item_name || "-"}
+                          {tx.item?.item_name || "-"}
                         </TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${color}`}>
@@ -273,7 +273,7 @@ export default function InventoryDashboard() {
                           {tx.quantity > 0 ? `+${tx.quantity}` : tx.quantity}
                         </TableCell>
                         <TableCell className="text-xs text-gray-500">
-                          {formatDate(tx.transaction_date)}
+                          {formatDate(tx.createdat)}
                         </TableCell>
                       </TableRow>
                     );

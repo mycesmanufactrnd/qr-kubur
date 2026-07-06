@@ -101,7 +101,7 @@ function txTypeBadge(type) {
 
 function formatDate(dateStr) {
   if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("ms-MY", {
+  return new Date(dateStr).toLocaleString("ms-MY", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -132,7 +132,7 @@ function InventoryHistoryDesktop() {
   const urlSource    = searchParams.get("source") || "all";
   const urlDateFrom  = searchParams.get("dateFrom") || "";
   const urlDateTo    = searchParams.get("dateTo") || "";
-  const urlSortField = searchParams.get("sortField") || "transaction_date";
+  const urlSortField = searchParams.get("sortField") || "createdat";
   const urlSortOrder = searchParams.get("sortOrder") || "DESC";
 
   const [tempType, setTempType]       = useState(urlType);
@@ -290,10 +290,10 @@ function InventoryHistoryDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("transaction_date")}>
+                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("createdat")}>
                   <span className="flex items-center">
                     {translate("Tarikh Masa")}
-                    <SortIcon field="transaction_date" current={urlSortField} order={urlSortOrder} />
+                    <SortIcon field="createdat" current={urlSortField} order={urlSortOrder} />
                   </span>
                 </TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("transaction_type")}>
@@ -332,11 +332,11 @@ function InventoryHistoryDesktop() {
                   return (
                     <TableRow key={tx.id}>
                       <TableCell className="text-xs text-gray-500 whitespace-nowrap">
-                        {formatDate(tx.transaction_date)}
+                        {formatDate(tx.createdat)}
                       </TableCell>
                       <TableCell>{txTypeBadge(tx.transaction_type)}</TableCell>
                       <TableCell className="font-medium text-sm">
-                        {tx.item_name_snapshot || tx.item?.item_name || "—"}
+                        {tx.item?.item_name || "—"}
                       </TableCell>
                       <TableCell className={`text-right font-mono font-semibold ${cfg?.qtyColor ?? ""}`}>
                         {cfg?.qtyPrefix}{tx.quantity}
@@ -347,7 +347,7 @@ function InventoryHistoryDesktop() {
                         {isStockInRestock ? (sourceLabels[tx.source] ?? tx.source ?? "—") : "—"}
                       </TableCell>
                       <TableCell className="text-sm text-gray-500">
-                        {isStockOut ? (tx.package_name_snapshot || "—") : "—"}
+                        {isStockOut ? (tx.package?.package_name || "—") : "—"}
                       </TableCell>
                       <TableCell className="text-xs text-gray-500 max-w-[180px] truncate">
                         {tx.notes || "—"}
@@ -391,7 +391,7 @@ function MobileInventoryHistory() {
     page: urlPage,
     pageSize: itemsPerPage,
     filterType: urlType !== "all" ? urlType : undefined,
-    sortField: "transaction_date",
+    sortField: "createdat",
     sortOrder: "DESC",
   });
 
@@ -454,13 +454,13 @@ function MobileInventoryHistory() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         {txTypeBadge(tx.transaction_type)}
-                        <span className="text-xs text-gray-400">{formatDate(tx.transaction_date)}</span>
+                        <span className="text-xs text-gray-400">{formatDate(tx.createdat)}</span>
                       </div>
                       <p className="font-medium text-sm text-gray-900 dark:text-white mt-1 truncate">
-                        {tx.item_name_snapshot || tx.item?.item_name || "—"}
+                        {tx.item?.item_name || "—"}
                       </p>
-                      {tx.transaction_type === InventoryTransactionType.STOCK_OUT && tx.package_name_snapshot && (
-                        <p className="text-xs text-gray-400 truncate">{tx.package_name_snapshot}</p>
+                      {tx.transaction_type === InventoryTransactionType.STOCK_OUT && tx.package?.package_name && (
+                        <p className="text-xs text-gray-400 truncate">{tx.package?.package_name}</p>
                       )}
                       {tx.transaction_type === InventoryTransactionType.STOCK_IN &&
                         (tx.source === InventoryTransactionSource.RESTOCK || tx.source === InventoryTransactionSource.RETURN) && (

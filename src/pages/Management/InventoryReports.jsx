@@ -321,14 +321,14 @@ function InventoryReportsDesktop() {
                     return (
                       <TableRow key={tx.id}>
                         <TableCell className="text-xs text-gray-500 whitespace-nowrap">
-                          {formatDate(tx.transaction_date)}
+                          {formatDate(tx.createdat)}
                         </TableCell>
                         <TableCell>{txTypeBadge(tx.transaction_type)}</TableCell>
                         <TableCell className="font-medium text-sm">
-                          {tx.item_name_snapshot || tx.item?.item_name || "—"}
+                          {tx.item?.item_name || "—"}
                         </TableCell>
                         <TableCell className="text-sm text-gray-500">
-                          {tx.package_name_snapshot || "—"}
+                          {tx.package?.package_name || "—"}
                         </TableCell>
                         <TableCell className={`text-right font-mono font-semibold ${cfg?.qtyColor ?? ""}`}>
                           {cfg?.prefix}{tx.quantity}
@@ -495,13 +495,13 @@ function MobileInventoryReports() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             {txTypeBadge(tx.transaction_type)}
-                            <span className="text-xs text-gray-400">{formatDate(tx.transaction_date)}</span>
+                            <span className="text-xs text-gray-400">{formatDate(tx.createdat)}</span>
                           </div>
                           <p className="font-medium text-sm text-gray-900 dark:text-white mt-1 truncate">
-                            {tx.item_name_snapshot || tx.item?.item_name || "—"}
+                            {tx.item?.item_name || "—"}
                           </p>
-                          {tx.package_name_snapshot && (
-                            <p className="text-xs text-gray-400 truncate">{tx.package_name_snapshot}</p>
+                          {tx.package?.package_name && (
+                            <p className="text-xs text-gray-400 truncate">{tx.package?.package_name}</p>
                           )}
                         </div>
                         <div className="text-right shrink-0">

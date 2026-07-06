@@ -22,6 +22,7 @@ export const inventoryPackageSchema = z.object({
   age_group: z.nativeEnum(InventoryPackageAgeGroup),
   health_condition: z.nativeEnum(InventoryPackageHealthCondition),
   body_size: z.nativeEnum(InventoryPackageBodySize).optional().nullable(),
+  location: z.string().optional().nullable(),
   status: z.nativeEnum(ActiveInactiveStatus).optional(),
   packageItems: z
     .array(packageItemSchema)

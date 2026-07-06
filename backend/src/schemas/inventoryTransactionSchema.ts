@@ -5,18 +5,19 @@ import { InventoryTransactionSource } from "../db/enums.js";
 export const stockInSchema = z.object({
   itemId: z.number().int().positive("Item diperlukan"),
   quantity: z.number().int().positive("Kuantiti mesti lebih dari 0"),
+  assetId: z.number().int().optional().nullable(),
   source: z.nativeEnum(InventoryTransactionSource).optional(),
   notes: z.string().optional().nullable(),
-  transaction_date: z.string().optional().nullable(),
 });
 
 export const stockOutSchema = z.object({
   itemId: z.number().int().positive("Item diperlukan"),
   quantity: z.number().int().positive("Kuantiti mesti lebih dari 0"),
-  reference_type: z.string().optional().nullable(),
-  referenceId: z.number().int().optional().nullable(),
+  assetId: z.number().int().optional().nullable(),
+  jenazahCaseId: z.number().int().optional().nullable(),
+  packageId: z.number().int().optional().nullable(),
+  source: z.nativeEnum(InventoryTransactionSource).optional(),
   notes: z.string().optional().nullable(),
-  transaction_date: z.string().optional().nullable(),
 });
 
 export const adjustmentSchema = z.object({

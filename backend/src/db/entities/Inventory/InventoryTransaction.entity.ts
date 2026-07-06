@@ -9,7 +9,7 @@ import {
   Index,
 } from "typeorm";
 import { User } from "../User.entity.js";
-import { DeadPerson } from "../DeadPerson.entity.js";
+import { JenazahCase } from "../JenazahCase.entity.js";
 import {
   InventoryTransactionSource,
   InventoryTransactionType,
@@ -25,29 +25,19 @@ export class InventoryTransaction {
   id!: number;
 
   @Index()
-  @Column("timestamptz", { default: () => "NOW()" })
-  transaction_date!: Date;
-
-  @Index()
   @Column({
     type: "enum",
     enum: InventoryTransactionType,
   })
   transaction_type!: InventoryTransactionType;
 
-  @Column("varchar", { length: 50, nullable: true })
-  reference_type?: string | null;
-
-  // FK to DeadPerson when reference_type = 'JENAZAH_MODULE'.
-  // Stored as a plain integer so the ledger row survives if the
-  // jenazah record is later deleted (SET NULL via the relation).
   @Index()
   @Column("integer", { nullable: true })
-  referenceId?: number | null;
+  jenazahCaseId?: number | null;
 
-  @ManyToOne(() => DeadPerson, { nullable: true, onDelete: "SET NULL" })
-  @JoinColumn({ name: "referenceId" })
-  reference?: DeadPerson | null;
+  @ManyToOne(() => JenazahCase, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "jenazahCaseId" })
+  jenazahCase?: JenazahCase | null;
 
   @Index()
   @Column("integer")
@@ -64,7 +54,7 @@ export class InventoryTransaction {
 
   @ManyToOne(() => InventoryPackage, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "packageId" })
-  package?: InventoryPackage | null;
+  package?: InventoryPackage | null;  
 
   // Signed quantity: positive = stock in, negative = stock out.
   @Column("int")
@@ -86,10 +76,6 @@ export class InventoryTransaction {
   @JoinColumn({ name: "assetId" })
   asset?: InventoryAsset | null;
 
-  // Snapshot of asset status at transaction time for audit purposes.
-  @Column("varchar", { length: 50, nullable: true })
-  asset_status?: string | null;
-
   @Column({
     type: "enum",
     enum: InventoryTransactionSource,
@@ -99,14 +85,6 @@ export class InventoryTransaction {
 
   @Column("text", { nullable: true })
   notes?: string | null;
-
-  // Name snapshots so the ledger remains readable if items or packages
-  // are renamed after the transaction is recorded.
-  @Column("varchar", { length: 255, nullable: true })
-  item_name_snapshot?: string | null;
-
-  @Column("varchar", { length: 255, nullable: true })
-  package_name_snapshot?: string | null;
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

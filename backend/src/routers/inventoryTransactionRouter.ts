@@ -26,7 +26,7 @@ import { computeItemStatus } from "./inventoryItemRouter.js";
 
 const ALLOWED_SORT_FIELDS: Record<string, string> = {
   id: "tx.id",
-  transaction_date: "tx.transaction_date",
+  createdat: "tx.createdat",
   transaction_type: "tx.transaction_type",
   quantity: "tx.quantity",
   createdat: "tx.createdat",
@@ -83,16 +83,16 @@ export const inventoryTransactionRouter = router({
       }
 
       if (dateFrom) {
-        query.andWhere("tx.transaction_date >= :dateFrom", { dateFrom });
+        query.andWhere("tx.createdat >= :dateFrom", { dateFrom });
       }
 
       if (dateTo) {
-        query.andWhere("tx.transaction_date <= :dateTo", { dateTo });
+        query.andWhere("tx.createdat <= :dateTo", { dateTo });
       }
 
       const orderCol =
-        ALLOWED_SORT_FIELDS[sortField ?? "transaction_date"] ??
-        "tx.transaction_date";
+        ALLOWED_SORT_FIELDS[sortField ?? "createdat"] ??
+        "tx.createdat";
       const orderDir = sortOrder ?? "DESC";
 
       const [items, total] = await query
@@ -109,16 +109,42 @@ export const inventoryTransactionRouter = router({
   stockIn: protectedProcedure
     .input(stockInSchema)
     .mutation(async ({ input, ctx }) => {
-      const { itemId, quantity, source, notes, transaction_date } = input;
+      const { itemId, quantity, assetId, source, notes } = input;
 
       return await AppDataSource.transaction(async (manager) => {
         const item = await manager.findOneByOrFail(InventoryItem, {
           id: itemId,
         });
 
+        if (item.item_type === InventoryItemType.REUSABLE && assetId) {
+          const asset = await manager.findOneOrFail(InventoryAsset, { where: { id: assetId } });
+          await manager.update(InventoryAsset, assetId, {
+            current_status: InventoryAssetStatus.AVAILABLE,
+            assigned_to: null,
+          });
+
+          await manager.update(InventoryItem, itemId, {
+            status: InventoryItemStatus.AVAILABLE,
+          });
+
+          const tx = manager.create(InventoryTransaction, {
+            transaction_type: InventoryTransactionType.STOCK_IN,
+            itemId,
+            assetId,
+            quantity: 1,
+            before_quantity: 0,
+            after_quantity: 1,
+            source: source ?? InventoryTransactionSource.RETURN,
+            notes,
+            createdbyId: Number(ctx.user.id),
+          });
+
+          return await manager.save(tx);
+        }
+
         const beforeQty = item.current_quantity;
         const afterQty = beforeQty + quantity;
-        const newStatus = computeItemStatus(afterQty, item.minimum_level);
+        const newStatus = computeItemStatus(afterQty, item.minimum_level, item.item_type);
 
         await manager.update(InventoryItem, itemId, {
           current_quantity: afterQty,
@@ -128,13 +154,11 @@ export const inventoryTransactionRouter = router({
         const tx = manager.create(InventoryTransaction, {
           transaction_type: InventoryTransactionType.STOCK_IN,
           itemId,
-          item_name_snapshot: item.item_name,
           quantity,
           before_quantity: beforeQty,
           after_quantity: afterQty,
           source: source ?? InventoryTransactionSource.RESTOCK,
           notes,
-          transaction_date: transaction_date ? new Date(transaction_date) : new Date(),
           createdbyId: Number(ctx.user.id),
         });
 
@@ -147,13 +171,62 @@ export const inventoryTransactionRouter = router({
   stockOut: protectedProcedure
     .input(stockOutSchema)
     .mutation(async ({ input, ctx }) => {
-      const { itemId, quantity, reference_type, referenceId, notes, transaction_date } = input;
+      const { itemId, quantity, assetId, jenazahCaseId, packageId, source, notes } = input;
 
       return await AppDataSource.transaction(async (manager) => {
-        const item = await manager.findOneByOrFail(InventoryItem, {
-          id: itemId,
-        });
+        const item = await manager.findOneByOrFail(InventoryItem, { id: itemId });
+        const resolvedSource = source ?? InventoryTransactionSource.MANUAL;
 
+        if (item.item_type === InventoryItemType.REUSABLE) {
+          // Reusable: use provided assetId or pick first available asset.
+          let asset: InventoryAsset | null = null;
+          if (assetId) {
+            asset = await manager.findOneOrFail(InventoryAsset, { where: { id: assetId } });
+          } else {
+            asset = await manager
+              .createQueryBuilder(InventoryAsset, "asset")
+              .where("asset.itemId = :itemId", { itemId })
+              .andWhere("asset.current_status = :status", {
+                status: InventoryAssetStatus.AVAILABLE,
+              })
+              .orderBy("asset.id", "ASC")
+              .getOne();
+          }
+
+          if (!asset) {
+            throw new Error(
+              `Tiada aset tersedia untuk ${item.item_name}`,
+            );
+          }
+
+          await manager.update(InventoryAsset, asset.id, {
+            current_status: InventoryAssetStatus.IN_USE,
+            assigned_to: jenazahCaseId ? String(jenazahCaseId) : null,
+            last_used_date: new Date(),
+          });
+
+          await manager.update(InventoryItem, itemId, {
+            status: InventoryItemStatus.IN_USE,
+          });
+
+          const tx = manager.create(InventoryTransaction, {
+            transaction_type: InventoryTransactionType.STOCK_OUT,
+            itemId,
+            assetId: asset.id,
+            quantity: -1,
+            before_quantity: 1,
+            after_quantity: 0,
+            jenazahCaseId: jenazahCaseId ?? null,
+            packageId: packageId ?? null,
+            source: resolvedSource,
+            notes,
+            createdbyId: Number(ctx.user.id),
+          });
+
+          return await manager.save(tx);
+        }
+
+        // Consumable: deduct stock quantity.
         if (item.current_quantity < quantity) {
           throw new Error(
             `Stok tidak mencukupi. Stok semasa: ${item.current_quantity}, diperlukan: ${quantity}`,
@@ -162,7 +235,7 @@ export const inventoryTransactionRouter = router({
 
         const beforeQty = item.current_quantity;
         const afterQty = beforeQty - quantity;
-        const newStatus = computeItemStatus(afterQty, item.minimum_level);
+        const newStatus = computeItemStatus(afterQty, item.minimum_level, item.item_type);
 
         await manager.update(InventoryItem, itemId, {
           current_quantity: afterQty,
@@ -172,15 +245,13 @@ export const inventoryTransactionRouter = router({
         const tx = manager.create(InventoryTransaction, {
           transaction_type: InventoryTransactionType.STOCK_OUT,
           itemId,
-          item_name_snapshot: item.item_name,
           quantity: -quantity,
           before_quantity: beforeQty,
           after_quantity: afterQty,
-          reference_type,
-          referenceId,
-          source: InventoryTransactionSource.MANUAL,
+          jenazahCaseId: jenazahCaseId ?? null,
+          packageId: packageId ?? null,
+          source: resolvedSource,
           notes,
-          transaction_date: transaction_date ? new Date(transaction_date) : new Date(),
           createdbyId: Number(ctx.user.id),
         });
 
@@ -212,7 +283,6 @@ export const inventoryTransactionRouter = router({
         const tx = manager.create(InventoryTransaction, {
           transaction_type: InventoryTransactionType.ADJUSTMENT,
           itemId,
-          item_name_snapshot: item.item_name,
           quantity: diff,
           before_quantity: beforeQty,
           after_quantity: new_quantity,
@@ -277,15 +347,11 @@ export const inventoryTransactionRouter = router({
 
               await manager.save(
                 manager.create(InventoryTransaction, {
-                  transaction_date: now,
-                  transaction_type: InventoryTransactionType.STOCK_OUT,
-                  reference_type: "JENAZAH_MODULE",
-                  referenceId: jenazahId,
+                                    transaction_type: InventoryTransactionType.STOCK_OUT,
+                  jenazahCaseId: jenazahId,
                   packageId,
-                  package_name_snapshot: pkg.package_name,
                   itemId: pi.itemId,
-                  item_name_snapshot: item.item_name,
-                  quantity: -pi.quantity_required,
+                          quantity: -pi.quantity_required,
                   before_quantity: beforeQty,
                   after_quantity: afterQty,
                   source: InventoryTransactionSource.KES,
@@ -329,19 +395,14 @@ export const inventoryTransactionRouter = router({
 
               await manager.save(
                 manager.create(InventoryTransaction, {
-                  transaction_date: now,
-                  transaction_type: InventoryTransactionType.STOCK_OUT,
-                  reference_type: "JENAZAH_MODULE",
-                  referenceId: jenazahId,
+                                    transaction_type: InventoryTransactionType.STOCK_OUT,
+                  jenazahCaseId: jenazahId,
                   packageId,
-                  package_name_snapshot: pkg.package_name,
                   itemId: pi.itemId,
-                  item_name_snapshot: pi.item?.item_name ?? "",
                   quantity: -1,
                   before_quantity: 1,
                   after_quantity: 0,
                   assetId: asset.id,
-                  asset_status: InventoryAssetStatus.IN_USE,
                   source: InventoryTransactionSource.KES,
                   createdbyId: Number(ctx.user.id),
                 }),
@@ -404,17 +465,13 @@ export const inventoryTransactionRouter = router({
 
         await manager.save(
           manager.create(InventoryTransaction, {
-            transaction_date: now,
-            transaction_type: InventoryTransactionType.RETURN,
-            reference_type: "JENAZAH_MODULE",
-            referenceId: jenazahId,
+                        transaction_type: InventoryTransactionType.RETURN,
+            jenazahCaseId: jenazahId,
             itemId: asset.itemId,
-            item_name_snapshot: asset.item?.item_name ?? "",
             quantity: 1,
             before_quantity: 0,
             after_quantity: 1,
             assetId: asset.id,
-            asset_status: newStatus,
             source: InventoryTransactionSource.RETURN,
             notes: notes ?? `Dikembalikan dalam keadaan: ${condition}`,
             createdbyId: Number(ctx.user.id),
@@ -451,7 +508,7 @@ export const inventoryTransactionRouter = router({
     )
       .createQueryBuilder("tx")
       .leftJoinAndSelect("tx.item", "item")
-      .orderBy("tx.transaction_date", "DESC")
+      .orderBy("tx.createdat", "DESC")
       .take(10)
       .getMany();
 
@@ -505,13 +562,13 @@ export const inventoryTransactionRouter = router({
         .leftJoinAndSelect("tx.item", "item")
         .leftJoinAndSelect("tx.package", "package")
         .leftJoinAndSelect("tx.createdby", "createdby")
-        .where("tx.transaction_date >= :dateFrom", { dateFrom })
-        .andWhere("tx.transaction_date <= :dateTo", { dateTo });
+        .where("tx.createdat >= :dateFrom", { dateFrom })
+        .andWhere("tx.createdat <= :dateTo", { dateTo });
 
       if (filterType) {
         query.andWhere("tx.transaction_type = :type", { type: filterType });
       }
 
-      return query.orderBy("tx.transaction_date", "DESC").getMany();
+      return query.orderBy("tx.createdat", "DESC").getMany();
     }),
 });

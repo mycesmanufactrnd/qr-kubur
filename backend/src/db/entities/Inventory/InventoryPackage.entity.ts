@@ -61,6 +61,9 @@ export class InventoryPackage {
   })
   status!: ActiveInactiveStatus;
 
+  @Column("varchar", { length: 255, nullable: true })
+  location?: string | null;
+
   @OneToMany(() => PackageItem, (packageItem) => packageItem.package, {
     cascade: ["insert", "update"],
   })
