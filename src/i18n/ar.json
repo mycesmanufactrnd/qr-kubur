@@ -1124,5 +1124,12 @@
   "Remind": "تذكير",
   "Maklumat Waris": "معلومات الوارث",
   "Please complete the required fields before proceeding.": "يرجى إكمال الحقول المطلوبة قبل المتابعة.",
-  "Please search by IC number first.": "يرجى البحث برقم الهوية أولاً."
+  "Please search by IC number first.": "يرجى البحث برقم الهوية أولاً.",
+  "Case not found": "لم يتم العثور على الحالة",
+  "Jenazah": "الجنازة",
+  "Check Funeral Case Status": "تحقق من حالة طلب الجنازة",
+  "Enter reference number to check your funeral case status.": "أدخل الرقم المرجعي للتحقق من حالة طلب الجنازة الخاص بك.",
+  "Case Search": "البحث عن الحالة",
+  "Your reference number can be found in the confirmation message sent after submitting the case.": "يمكن العثور على رقمك المرجعي في رسالة التأكيد المرسلة بعد تقديم الطلب.",
+  "Funeral Case Status": "حالة طلب الجنازة"
 }

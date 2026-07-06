@@ -1137,5 +1137,12 @@
   "Remind": "Peringatkan",
   "Maklumat Waris": "Maklumat Waris",
   "Please complete the required fields before proceeding.": "Sila lengkapkan medan yang diperlukan sebelum meneruskan.",
-  "Please search by IC number first.": "Sila buat carian No. IC dahulu."
+  "Please search by IC number first.": "Sila buat carian No. IC dahulu.",
+  "Case not found": "Kes tidak dijumpai",
+  "Jenazah": "Jenazah",
+  "Check Funeral Case Status": "Semak Status Kes Jenazah",
+  "Enter reference number to check your funeral case status.": "Masukkan no. rujukan untuk menyemak status kes jenazah anda.",
+  "Case Search": "Carian Kes",
+  "Your reference number can be found in the confirmation message sent after submitting the case.": "No. rujukan anda boleh didapati dalam mesej pengesahan yang dihantar selepas permohonan dibuat.",
+  "Funeral Case Status": "Status Kes Jenazah"
 }
