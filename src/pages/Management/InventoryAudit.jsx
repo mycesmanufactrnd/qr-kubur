@@ -85,6 +85,14 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleString("ms-MY", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
 function SortIcon({ field, current, order }) {
   if (current !== field) return <ChevronsUpDown className="ml-1 h-3 w-3 opacity-40" />;
   return order === "ASC" ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />;
@@ -94,21 +102,31 @@ function SortIcon({ field, current, order }) {
 // Each row manages its own local state and saves on blur.
 
 function CountRow({ detail, sessionCompleted, onSaved }) {
+  const neverSaved = detail.physical_count === null || detail.physical_count === undefined;
   const [localCount, setLocalCount] = useState(
-    detail.physical_count !== null && detail.physical_count !== undefined
-      ? String(detail.physical_count)
-      : "",
+    neverSaved ? String(detail.system_quantity) : String(detail.physical_count),
   );
+  const [localNotes, setLocalNotes] = useState(detail.notes ?? "");
   const [saving, setSaving] = useState(false);
   const { updateCount } = useInventoryAuditMutations();
+
+  useEffect(() => {
+    if (neverSaved && !sessionCompleted) {
+      updateCount.mutateAsync({ detailId: detail.id, physical_count: detail.system_quantity })
+        .then(() => onSaved?.())
+        .catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSave = async () => {
     const val = parseInt(localCount, 10);
     if (isNaN(val) || val < 0) return;
-    if (val === detail.physical_count) return;
+    const noChange = val === detail.physical_count && localNotes === (detail.notes ?? "");
+    if (noChange) return;
     setSaving(true);
     try {
-      await updateCount.mutateAsync({ detailId: detail.id, physical_count: val });
+      await updateCount.mutateAsync({ detailId: detail.id, physical_count: val, notes: localNotes || undefined });
       onSaved?.();
     } catch (err) {
       showApiError(err);
@@ -155,6 +173,21 @@ function CountRow({ detail, sessionCompleted, onSaved }) {
           ? <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />
           : resultBadge(detail.result)}
       </TableCell>
+      <TableCell className="w-40">
+        {sessionCompleted ? (
+          <span className="text-sm text-gray-500">{detail.notes || "—"}</span>
+        ) : (
+          <Input
+            value={localNotes}
+            onChange={(e) => setLocalNotes(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
+            placeholder={translate("Optional")}
+            className="h-8 text-sm dark:border-slate-600 dark:bg-slate-700"
+            disabled={saving}
+          />
+        )}
+      </TableCell>
     </TableRow>
   );
 }
@@ -179,7 +212,7 @@ function InventoryAuditDesktop() {
   const urlStatus    = searchParams.get("status") || "all";
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [localStatus, setLocalStatus] = useState(null);
 
   const { control, handleSubmit, reset, register, formState: { errors, isSubmitting } } = useForm({
     defaultValues: { location: "", notes: "" },
@@ -194,21 +227,14 @@ function InventoryAuditDesktop() {
   const { data: detailData, isLoading: detailLoading, refetch: refetchDetail } =
     useGetAuditSessionDetails(selectedSessionId);
 
-  const { createSession, completeSession } = useInventoryAuditMutations();
+  const { createSession, completeSession, reopenSession } = useInventoryAuditMutations();
 
-  const onCreateSubmit = async (data) => {
-    await createSession.mutateAsync(
-      { location: data.location, notes: data.notes || undefined },
-      { onSuccess: () => { reset(); setCreateDialogOpen(false); } },
-    );
-  };
-
-  const handleComplete = async () => {
-    if (!selectedSessionId) return;
-    await completeSession.mutateAsync(selectedSessionId);
-    setCompleteDialogOpen(false);
-    refetchDetail();
-  };
+  // Sync localStatus from server whenever session data loads/changes
+  useEffect(() => {
+    if (detailData?.session?.status) {
+      setLocalStatus(detailData.session.status);
+    }
+  }, [detailData?.session?.status]);
 
   const openSession = (id) => {
     setSearchParams((p) => { const n = new URLSearchParams(p); n.set("sessionId", String(id)); return n; });
@@ -218,6 +244,37 @@ function InventoryAuditDesktop() {
     setSearchParams((p) => { const n = new URLSearchParams(p); n.delete("sessionId"); return n; });
   };
 
+  const onCreateSubmit = async (data) => {
+    const newSession = await createSession.mutateAsync({ location: data.location, notes: data.notes || undefined });
+    reset();
+    setCreateDialogOpen(false);
+    if (newSession?.id) openSession(newSession.id);
+  };
+
+  const handleToggleLocalStatus = () => {
+    setLocalStatus((prev) =>
+      prev === CheckSessionStatus.COMPLETED
+        ? CheckSessionStatus.IN_PROGRESS
+        : CheckSessionStatus.COMPLETED,
+    );
+  };
+
+  const handleSave = async () => {
+    if (!selectedSessionId || !detailData?.session) return;
+    const savedStatus = detailData.session.status;
+    if (localStatus !== savedStatus) {
+      if (localStatus === CheckSessionStatus.COMPLETED) {
+        await completeSession.mutateAsync(selectedSessionId);
+      } else {
+        await reopenSession.mutateAsync(selectedSessionId);
+      }
+      refetchDetail();
+    } else {
+      showSuccess(translate("Audit Session"), "update");
+    }
+  };
+
+
   if (loadingUser) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
@@ -226,7 +283,11 @@ function InventoryAuditDesktop() {
   if (selectedSessionId) {
     const session = detailData?.session;
     const details = detailData?.details ?? [];
-    const isCompleted = session?.status === CheckSessionStatus.COMPLETED;
+    const isCompleted = localStatus === CheckSessionStatus.COMPLETED;
+    const liveMatched  = details.filter((d) => d.result === CheckDetailResult.MATCH).length;
+    const liveMissing  = details.filter((d) => d.result === CheckDetailResult.MISSING).length;
+    const liveOver     = details.filter((d) => d.result === CheckDetailResult.OVER_COUNT).length;
+    const statusUnsaved = session && localStatus !== null && localStatus !== session.status;
 
     return (
       <div className="space-y-6">
@@ -245,7 +306,10 @@ function InventoryAuditDesktop() {
             <ClipboardCheck className="w-6 h-6 text-teal-600" />
             {translate("Audit Session")} #{selectedSessionId}
           </h1>
-          {session && sessionStatusBadge(session.status)}
+          {localStatus && sessionStatusBadge(localStatus)}
+          {statusUnsaved && (
+            <span className="text-xs text-amber-500 italic">{translate("Unsaved")}</span>
+          )}
         </div>
 
         {detailLoading ? (
@@ -257,10 +321,10 @@ function InventoryAuditDesktop() {
             {/* Session summary card */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: translate("Location"),    value: session.location },
-                { label: translate("Date"),        value: formatDate(session.session_date ?? session.createdat) },
-                { label: translate("Checked By"),  value: session.checkedBy?.full_name ?? session.checkedBy?.username ?? "—" },
-                { label: translate("Total Items"), value: session.total_items ?? details.length },
+                { label: translate("Location"),       value: session.location },
+                { label: translate("Tarikh Masa"),    value: formatDateTime(session.session_date ?? session.createdat) },
+                { label: translate("Checked By"),     value: session.checkedBy?.full_name ?? session.checkedBy?.username ?? "—" },
+                { label: translate("Total Items"),    value: session.total_items ?? details.length },
               ].map((s) => (
                 <Card key={s.label} className="dark:bg-slate-800 dark:border-slate-700">
                   <CardContent className="pt-4 pb-3 px-4">
@@ -271,42 +335,50 @@ function InventoryAuditDesktop() {
               ))}
             </div>
 
-            {/* Result summary (only when completed) */}
-            {isCompleted && (
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="dark:bg-slate-800 dark:border-slate-700">
-                  <CardContent className="pt-4 pb-3 px-4 text-center">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Matched")}</p>
-                    <p className="text-2xl font-bold text-green-600 mt-1">{session.matched ?? 0}</p>
-                  </CardContent>
-                </Card>
-                <Card className="dark:bg-slate-800 dark:border-slate-700">
-                  <CardContent className="pt-4 pb-3 px-4 text-center">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Missing")}</p>
-                    <p className="text-2xl font-bold text-red-600 mt-1">{session.missing ?? 0}</p>
-                  </CardContent>
-                </Card>
-                <Card className="dark:bg-slate-800 dark:border-slate-700">
-                  <CardContent className="pt-4 pb-3 px-4 text-center">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Over Count")}</p>
-                    <p className="text-2xl font-bold text-yellow-600 mt-1">{session.over_count ?? 0}</p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+            {/* Result summary — always visible */}
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
+                <CardContent className="pt-4 pb-3 px-4 text-center">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Matched")}</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{liveMatched}</p>
+                </CardContent>
+              </Card>
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
+                <CardContent className="pt-4 pb-3 px-4 text-center">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Missing")}</p>
+                  <p className="text-2xl font-bold text-red-600 mt-1">{liveMissing}</p>
+                </CardContent>
+              </Card>
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
+                <CardContent className="pt-4 pb-3 px-4 text-center">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Over Count")}</p>
+                  <p className="text-2xl font-bold text-yellow-600 mt-1">{liveOver}</p>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Actions */}
-            {!isCompleted && (
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => setCompleteDialogOpen(true)}
-                  className="bg-teal-600 hover:bg-teal-700 text-white"
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {translate("Complete Session")}
-                </Button>
-              </div>
-            )}
+            {/* Actions: toggle status left, Save right */}
+            <div className="flex justify-between gap-2">
+              <Button
+                variant="outline"
+                onClick={handleToggleLocalStatus}
+                className={isCompleted
+                  ? "border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400"
+                  : "border-teal-500 text-teal-600 hover:bg-teal-50 dark:border-teal-400 dark:text-teal-400"}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                {isCompleted ? translate("Selesai") : translate("In Progress")}
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={completeSession.isPending || reopenSession.isPending}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {(completeSession.isPending || reopenSession.isPending)
+                  ? translate("Saving...")
+                  : translate("Save")}
+              </Button>
+            </div>
 
             {/* Detail table */}
             <Card className="border-0 shadow-md dark:bg-slate-800">
@@ -319,11 +391,12 @@ function InventoryAuditDesktop() {
                       <TableHead className="w-28 text-center">{translate("Physical Count")}</TableHead>
                       <TableHead className="text-right">{translate("Difference")}</TableHead>
                       <TableHead className="text-center">{translate("Result")}</TableHead>
+                      <TableHead className="w-40">{translate("Catatan")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {details.length === 0 ? (
-                      <NoDataTableComponent colSpan={5} />
+                      <NoDataTableComponent colSpan={6} />
                     ) : (
                       details.map((detail) => (
                         <CountRow
@@ -340,14 +413,6 @@ function InventoryAuditDesktop() {
             </Card>
           </>
         )}
-
-        <ConfirmDialog
-          open={completeDialogOpen}
-          onOpenChange={setCompleteDialogOpen}
-          onConfirm={handleComplete}
-          title={translate("Complete Audit Session")}
-          description={translate("Once completed, physical counts can no longer be updated. Discrepancies are recorded for reference only — no automatic stock adjustments are applied.")}
-        />
       </div>
     );
   }
@@ -402,15 +467,16 @@ function InventoryAuditDesktop() {
                 <TableHead className="text-center">{translate("Items")}</TableHead>
                 <TableHead className="text-center">{translate("Matched")}</TableHead>
                 <TableHead className="text-center">{translate("Missing")}</TableHead>
+                <TableHead className="text-center">{translate("Over Count")}</TableHead>
                 <TableHead className="text-center">{translate("Status")}</TableHead>
                 <TableHead className="text-center">{translate("Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sessionsLoading ? (
-                <InlineLoadingComponent isTable colSpan={8} />
+                <InlineLoadingComponent isTable colSpan={9} />
               ) : sessionsList.length === 0 ? (
-                <NoDataTableComponent colSpan={8} />
+                <NoDataTableComponent colSpan={9} />
               ) : (
                 sessionsList.map((session) => (
                   <TableRow key={session.id}>
@@ -423,14 +489,13 @@ function InventoryAuditDesktop() {
                     </TableCell>
                     <TableCell className="text-center font-mono">{session.total_items ?? "—"}</TableCell>
                     <TableCell className="text-center">
-                      {session.status === CheckSessionStatus.COMPLETED
-                        ? <span className="font-mono text-green-600">{session.matched ?? 0}</span>
-                        : "—"}
+                      <span className="font-mono text-green-600">{session.matched ?? 0}</span>
                     </TableCell>
                     <TableCell className="text-center">
-                      {session.status === CheckSessionStatus.COMPLETED
-                        ? <span className="font-mono text-red-600">{session.missing ?? 0}</span>
-                        : "—"}
+                      <span className="font-mono text-red-600">{session.missing ?? 0}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="font-mono text-yellow-600">{session.over_count ?? 0}</span>
                     </TableCell>
                     <TableCell className="text-center">{sessionStatusBadge(session.status)}</TableCell>
                     <TableCell className="text-center">
@@ -505,7 +570,7 @@ function MobileInventoryAudit() {
   const urlPage = parseInt(searchParams.get("page") || "1");
   const [itemsPerPage] = useState(10);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [localStatus, setLocalStatus] = useState(null);
 
   const { control, handleSubmit, reset, register, formState: { errors, isSubmitting } } = useForm({
     defaultValues: { location: "", notes: "" },
@@ -519,20 +584,46 @@ function MobileInventoryAudit() {
   const { data: detailData, isLoading: detailLoading, refetch: refetchDetail } =
     useGetAuditSessionDetails(selectedSessionId);
 
-  const { createSession, completeSession } = useInventoryAuditMutations();
+  const { createSession, completeSession, reopenSession } = useInventoryAuditMutations();
+
+  useEffect(() => {
+    if (detailData?.session?.status) {
+      setLocalStatus(detailData.session.status);
+    }
+  }, [detailData?.session?.status]);
+
+  const openMobileSession = (id) => {
+    setSearchParams((p) => { const n = new URLSearchParams(p); n.set("sessionId", String(id)); return n; });
+  };
 
   const onCreateSubmit = async (data) => {
-    await createSession.mutateAsync(
-      { location: data.location, notes: data.notes || undefined },
-      { onSuccess: () => { reset(); setCreateDialogOpen(false); } },
+    const newSession = await createSession.mutateAsync({ location: data.location, notes: data.notes || undefined });
+    reset();
+    setCreateDialogOpen(false);
+    if (newSession?.id) openMobileSession(newSession.id);
+  };
+
+  const handleToggleLocalStatus = () => {
+    setLocalStatus((prev) =>
+      prev === CheckSessionStatus.COMPLETED
+        ? CheckSessionStatus.IN_PROGRESS
+        : CheckSessionStatus.COMPLETED,
     );
   };
 
-  const handleComplete = async () => {
-    if (!selectedSessionId) return;
-    await completeSession.mutateAsync(selectedSessionId);
-    setCompleteDialogOpen(false);
-    refetchDetail();
+  const handleSave = async () => {
+    if (!selectedSessionId || !detailData?.session) return;
+    const savedStatus = detailData.session.status;
+    if (localStatus !== savedStatus) {
+      if (localStatus === CheckSessionStatus.COMPLETED) {
+        await completeSession.mutateAsync(selectedSessionId);
+      } else {
+        await reopenSession.mutateAsync(selectedSessionId);
+      }
+      refetchDetail();
+    } else {
+      showSuccess(translate("Audit Session"), "update");
+    }
   };
 
   if (loadingUser) return <PageLoadingComponent />;
@@ -542,7 +633,11 @@ function MobileInventoryAudit() {
   if (selectedSessionId) {
     const session = detailData?.session;
     const details = detailData?.details ?? [];
-    const isCompleted = session?.status === CheckSessionStatus.COMPLETED;
+    const isCompleted = localStatus === CheckSessionStatus.COMPLETED;
+    const liveMatched = details.filter((d) => d.result === CheckDetailResult.MATCH).length;
+    const liveMissing = details.filter((d) => d.result === CheckDetailResult.MISSING).length;
+    const liveOver    = details.filter((d) => d.result === CheckDetailResult.OVER_COUNT).length;
+    const statusUnsaved = session && localStatus !== null && localStatus !== session.status;
 
     return (
       <div className="space-y-4 p-4">
@@ -553,7 +648,8 @@ function MobileInventoryAudit() {
           <h1 className="text-lg font-bold text-gray-900 dark:text-white">
             {translate("Audit")} #{selectedSessionId}
           </h1>
-          {session && sessionStatusBadge(session.status)}
+          {localStatus && sessionStatusBadge(localStatus)}
+          {statusUnsaved && <span className="text-xs text-amber-500 italic">{translate("Unsaved")}</span>}
         </div>
 
         {detailLoading ? <PageLoadingComponent /> : !session ? (
@@ -563,24 +659,37 @@ function MobileInventoryAudit() {
             <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardContent className="pt-4 space-y-1">
                 <p className="text-sm"><span className="text-gray-400">{translate("Location")}: </span><span className="font-medium">{session.location}</span></p>
-                <p className="text-sm"><span className="text-gray-400">{translate("Date")}: </span>{formatDate(session.session_date ?? session.createdat)}</p>
+                <p className="text-sm"><span className="text-gray-400">{translate("Tarikh Masa")}: </span>{formatDateTime(session.session_date ?? session.createdat)}</p>
                 <p className="text-sm"><span className="text-gray-400">{translate("Items")}: </span>{session.total_items ?? details.length}</p>
-                {isCompleted && (
-                  <div className="flex gap-4 pt-1">
-                    <span className="text-sm text-green-600 font-semibold">✓ {session.matched ?? 0}</span>
-                    <span className="text-sm text-red-600 font-semibold">✗ {session.missing ?? 0}</span>
-                    <span className="text-sm text-yellow-600 font-semibold">↑ {session.over_count ?? 0}</span>
-                  </div>
-                )}
+                <div className="flex gap-4 pt-1">
+                  <span className="text-sm text-green-600 font-semibold">✓ {liveMatched}</span>
+                  <span className="text-sm text-red-600 font-semibold">✗ {liveMissing}</span>
+                  <span className="text-sm text-yellow-600 font-semibold">↑ {liveOver}</span>
+                </div>
               </CardContent>
             </Card>
 
-            {!isCompleted && (
-              <Button onClick={() => setCompleteDialogOpen(true)} className="w-full bg-teal-600 hover:bg-teal-700 text-white">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleToggleLocalStatus}
+                className={`flex-1 ${isCompleted
+                  ? "border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+                  : "border-teal-500 text-teal-600 dark:border-teal-400 dark:text-teal-400"}`}
+              >
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                {translate("Complete Session")}
+                {isCompleted ? translate("Selesai") : translate("In Progress")}
               </Button>
-            )}
+              <Button
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                onClick={handleSave}
+                disabled={completeSession.isPending || reopenSession.isPending}
+              >
+                {(completeSession.isPending || reopenSession.isPending)
+                  ? translate("Saving...")
+                  : translate("Save")}
+              </Button>
+            </div>
 
             <div className="space-y-2">
               {details.map((detail) => (
@@ -594,14 +703,6 @@ function MobileInventoryAudit() {
             </div>
           </>
         )}
-
-        <ConfirmDialog
-          open={completeDialogOpen}
-          onOpenChange={setCompleteDialogOpen}
-          onConfirm={handleComplete}
-          title={translate("Complete Audit Session")}
-          description={translate("Once completed, physical counts can no longer be updated.")}
-        />
       </div>
     );
   }
@@ -639,13 +740,13 @@ function MobileInventoryAudit() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-400">{session.total_items ?? "—"} {translate("items")}</p>
-                    {session.status === CheckSessionStatus.COMPLETED && (
-                      <p className="text-xs mt-1">
-                        <span className="text-green-600">{session.matched ?? 0}✓</span>
-                        {" / "}
-                        <span className="text-red-600">{session.missing ?? 0}✗</span>
-                      </p>
-                    )}
+                    <p className="text-xs mt-1">
+                      <span className="text-green-600">{session.matched ?? 0}✓</span>
+                      {" / "}
+                      <span className="text-red-600">{session.missing ?? 0}✗</span>
+                      {" / "}
+                      <span className="text-yellow-600">{session.over_count ?? 0}↑</span>
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -678,18 +779,31 @@ function MobileInventoryAudit() {
 
 // Mobile per-item count card
 function MobileCountCard({ detail, sessionCompleted, onSaved }) {
+  const neverSaved = detail.physical_count === null || detail.physical_count === undefined;
   const [localCount, setLocalCount] = useState(
-    detail.physical_count !== null && detail.physical_count !== undefined ? String(detail.physical_count) : "",
+    neverSaved ? String(detail.system_quantity) : String(detail.physical_count),
   );
+  const [localNotes, setLocalNotes] = useState(detail.notes ?? "");
   const [saving, setSaving] = useState(false);
   const { updateCount } = useInventoryAuditMutations();
 
+  useEffect(() => {
+    if (neverSaved && !sessionCompleted) {
+      updateCount.mutateAsync({ detailId: detail.id, physical_count: detail.system_quantity })
+        .then(() => onSaved?.())
+        .catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSave = async () => {
     const val = parseInt(localCount, 10);
-    if (isNaN(val) || val < 0 || val === detail.physical_count) return;
+    if (isNaN(val) || val < 0) return;
+    const noChange = val === detail.physical_count && localNotes === (detail.notes ?? "");
+    if (noChange) return;
     setSaving(true);
     try {
-      await updateCount.mutateAsync({ detailId: detail.id, physical_count: val });
+      await updateCount.mutateAsync({ detailId: detail.id, physical_count: val, notes: localNotes || undefined });
       onSaved?.();
     } catch (err) {
       showApiError(err);
@@ -704,7 +818,7 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
 
   return (
     <Card className="dark:bg-slate-800 dark:border-slate-700">
-      <CardContent className="p-3">
+      <CardContent className="p-3 space-y-2">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -720,7 +834,7 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {resultBadge(detail.result)}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : resultBadge(detail.result)}
             {sessionCompleted ? (
               <span className="font-mono text-sm w-16 text-center">{detail.physical_count ?? "—"}</span>
             ) : (
@@ -737,6 +851,19 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
             )}
           </div>
         </div>
+        {sessionCompleted ? (
+          detail.notes ? <p className="text-xs text-gray-500">{translate("Catatan")}: {detail.notes}</p> : null
+        ) : (
+          <Input
+            value={localNotes}
+            onChange={(e) => setLocalNotes(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            placeholder={translate("Catatan (Optional)")}
+            className="h-8 text-xs dark:border-slate-600 dark:bg-slate-700"
+            disabled={saving}
+          />
+        )}
       </CardContent>
     </Card>
   );

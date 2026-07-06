@@ -177,4 +177,23 @@ export const inventoryAuditRouter = router({
         });
       });
     }),
+
+  // Reopen a completed session so counts can be updated again.
+  reopenSession: protectedProcedure
+    .input(z.number().int().positive())
+    .mutation(async ({ input: sessionId }) => {
+      const repo = AppDataSource.getRepository(CheckSession);
+      const session = await repo.findOneByOrFail({ id: sessionId });
+
+      if (session.status === CheckSessionStatus.IN_PROGRESS) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Sesi audit sudah dalam proses.",
+        });
+      }
+
+      await repo.update(sessionId, { status: CheckSessionStatus.IN_PROGRESS });
+
+      return repo.findOne({ where: { id: sessionId }, relations: ["checkedBy"] });
+    }),
 });

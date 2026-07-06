@@ -364,5 +364,10 @@ export function useInventoryAuditMutations() {
     onError: (err) => showApiError(err),
   });
 
-  return { createSession, updateCount, completeSession };
+  const reopenSession = trpc.inventoryAudit.reopenSession.useMutation({
+    onSuccess: () => { showSuccess('Sesi Audit', 'update'); invalidateSessions(); },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createSession, updateCount, completeSession, reopenSession };
 }
