@@ -81,6 +81,7 @@ import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
 import ManageJenazahCase from '@/pages/Management/ManageJenazahCase.jsx';
+import DetailJenazah from '@/pages/DetailJenazah';
 
 import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribution';
 import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
@@ -182,6 +183,7 @@ export const PAGES = {
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ManageQuotations": ManageQuotations,
     "ManageJenazahCase": ManageJenazahCase,
+    "DetailJenazah": DetailJenazah,
 
     "ManagePaymentDistribution": ManagePaymentDistribution,
     "ManagePaymentFields": ManagePaymentFields,
