@@ -1,7 +1,13 @@
 // @ts-nocheck
 import { publicProcedure, protectedProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
-import { JenazahCase, DeathCharityMember, Mosque } from "../db/entities.js";
+import {
+  JenazahCase,
+  DeathCharityMember,
+  Mosque,
+  RunningNo,
+  GoogleUserRecord,
+} from "../db/entities.js";
 import { JenazahCaseStatus } from "../db/enums.js";
 import { z } from "zod";
 import { sendNotificationFCMToOrganisation } from "../services/firebase.service.js";
@@ -12,6 +18,31 @@ const sanitizeDetails = (details) => {
     ...details,
     deceasedIcnumber: details.deceasedIcnumber.replace(/-/g, "").trim(),
   };
+};
+
+const generateJenazahReferenceNo = async () => {
+  const nextRunningNo = await AppDataSource.transaction(async (manager) => {
+    let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+
+    if (!running) {
+      running = manager.create(RunningNo, {
+        donation: 0,
+        tahlil: 0,
+        quotation: 0,
+        deathcharity: 0,
+        jenazahcase: 0,
+      });
+      await manager.save(running);
+    }
+
+    running.jenazahcase = (running.jenazahcase || 0) + 1;
+    await manager.save(running);
+
+    return running.jenazahcase;
+  });
+
+  const year = new Date().getFullYear();
+  return `JNZ-${year}-${String(nextRunningNo).padStart(4, "0")}`;
 };
 
 const resolveOrganisationIdFromMosque = async (mosqueId) => {
@@ -36,6 +67,7 @@ export const jenazahCaseRouter = router({
         policereportphotourl: z.string().optional().nullable(),
         supportingphotourl: z.string().optional().nullable(),
         autoApprove: z.boolean().optional(),
+        googleuserId: z.number().optional().nullable(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -47,6 +79,7 @@ export const jenazahCaseRouter = router({
         details: sanitizeDetails(input.details),
         status: approved ? JenazahCaseStatus.APPROVED : JenazahCaseStatus.PENDING,
         isapproved: approved,
+        referenceno: await generateJenazahReferenceNo(),
         userremarks: input.userremarks ?? null,
         adminremarks: input.adminremarks ?? null,
         deathconfirmationphotourl: input.deathconfirmationphotourl ?? null,
@@ -54,6 +87,18 @@ export const jenazahCaseRouter = router({
         supportingphotourl: input.supportingphotourl ?? null,
       });
       const savedCase = await repo.save(c);
+
+      if (input.googleuserId) {
+        const recordRepo = AppDataSource.getRepository(GoogleUserRecord);
+        const record = recordRepo.create({
+          entityname: "jenazahcase",
+          entityid: savedCase.id,
+          referenceno: savedCase.referenceno,
+          status: savedCase.status,
+          googleuser: { id: input.googleuserId },
+        });
+        await recordRepo.save(record);
+      }
 
       const organisationId = await resolveOrganisationIdFromMosque(
         input.mosqueId,
@@ -232,5 +277,20 @@ export const jenazahCaseRouter = router({
       }
 
       return savedCase;
+    }),
+
+  getByReferenceNo: publicProcedure
+    .input(
+      z.object({
+        referenceno: z.string().optional().nullable(),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (!input.referenceno) return null;
+      const repo = AppDataSource.getRepository(JenazahCase);
+      return await repo.findOne({
+        where: { referenceno: input.referenceno },
+        relations: ["mosque"],
+      });
     }),
 });
