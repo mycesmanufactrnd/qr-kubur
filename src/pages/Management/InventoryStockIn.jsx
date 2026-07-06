@@ -27,8 +27,8 @@ import { InventoryTransactionSource, InventoryItemType } from "@/utils/enums";
 
 // Source options the user can pick
 const typeOptions = [
-  { value: InventoryTransactionSource.MANUAL,  label: translate("Restock from Purchase") },
-  { value: InventoryTransactionSource.RETURN,  label: translate("Return Item")            },
+  { value: InventoryTransactionSource.RESTOCK, label: translate("Restock") },
+  { value: InventoryTransactionSource.RETURN,  label: translate("Pulangan") },
 ];
 
 function todayDate() {
@@ -72,13 +72,25 @@ function ItemCheckbox({ item, checked, qty, onToggle, onQtyChange }) {
       {checked && (
         <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           <span className="text-xs text-gray-500">{translate("Qty")}:</span>
-          <Input
-            type="number"
-            min={1}
-            value={qty}
-            onChange={(e) => onQtyChange(item.id, Math.max(1, Number(e.target.value)))}
-            className="h-7 w-20 text-sm text-center dark:border-slate-600 dark:bg-slate-800"
-          />
+          <div className="flex items-center border rounded-md overflow-hidden dark:border-slate-600">
+            <button
+              type="button"
+              onClick={() => onQtyChange(item.id, Math.max(1, qty - 1))}
+              className="px-2 h-7 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm font-bold"
+            >−</button>
+            <Input
+              type="number"
+              min={1}
+              value={qty}
+              onChange={(e) => onQtyChange(item.id, Math.max(1, Number(e.target.value)))}
+              className="h-7 w-12 text-sm text-center border-0 rounded-none dark:bg-slate-800 focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              onClick={() => onQtyChange(item.id, qty + 1)}
+              className="px-2 h-7 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm font-bold"
+            >+</button>
+          </div>
         </div>
       )}
     </div>
@@ -90,7 +102,7 @@ function ItemCheckbox({ item, checked, qty, onToggle, onQtyChange }) {
 function useStockInForm() {
   const [date, setDate]         = useState(todayDate);
   const [time, setTime]         = useState(nowTime);
-  const [type, setType]         = useState(InventoryTransactionSource.MANUAL);
+  const [type, setType]         = useState(InventoryTransactionSource.RESTOCK);
   const [notes, setNotes]       = useState("");
   const [selected, setSelected] = useState({}); // { [itemId]: qty }
 

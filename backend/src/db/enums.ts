@@ -157,10 +157,10 @@ export enum InventoryTransactionType {
 }
 
 export enum InventoryTransactionSource {
-  MANUAL = "MANUAL",
-  JENAZAH_MODULE = "JENAZAH_MODULE",
+  RESTOCK = "RESTOCK",
   RETURN = "RETURN",
-  SYSTEM = "SYSTEM",
+  MANUAL = "MANUAL",
+  KES = "KES",
 }
 
 export enum CheckSessionStatus {

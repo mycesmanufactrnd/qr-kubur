@@ -16,6 +16,7 @@ export const stockOutSchema = z.object({
   reference_type: z.string().optional().nullable(),
   referenceId: z.number().int().optional().nullable(),
   notes: z.string().optional().nullable(),
+  transaction_date: z.string().optional().nullable(),
 });
 
 export const adjustmentSchema = z.object({

@@ -132,7 +132,7 @@ export const inventoryTransactionRouter = router({
           quantity,
           before_quantity: beforeQty,
           after_quantity: afterQty,
-          source: source ?? InventoryTransactionSource.MANUAL,
+          source: source ?? InventoryTransactionSource.RESTOCK,
           notes,
           transaction_date: transaction_date ? new Date(transaction_date) : new Date(),
           createdbyId: Number(ctx.user.id),
@@ -147,7 +147,7 @@ export const inventoryTransactionRouter = router({
   stockOut: protectedProcedure
     .input(stockOutSchema)
     .mutation(async ({ input, ctx }) => {
-      const { itemId, quantity, reference_type, referenceId, notes } = input;
+      const { itemId, quantity, reference_type, referenceId, notes, transaction_date } = input;
 
       return await AppDataSource.transaction(async (manager) => {
         const item = await manager.findOneByOrFail(InventoryItem, {
@@ -180,6 +180,7 @@ export const inventoryTransactionRouter = router({
           referenceId,
           source: InventoryTransactionSource.MANUAL,
           notes,
+          transaction_date: transaction_date ? new Date(transaction_date) : new Date(),
           createdbyId: Number(ctx.user.id),
         });
 
@@ -287,7 +288,7 @@ export const inventoryTransactionRouter = router({
                   quantity: -pi.quantity_required,
                   before_quantity: beforeQty,
                   after_quantity: afterQty,
-                  source: InventoryTransactionSource.JENAZAH_MODULE,
+                  source: InventoryTransactionSource.KES,
                   createdbyId: Number(ctx.user.id),
                 }),
               );
@@ -341,7 +342,7 @@ export const inventoryTransactionRouter = router({
                   after_quantity: 0,
                   assetId: asset.id,
                   asset_status: InventoryAssetStatus.IN_USE,
-                  source: InventoryTransactionSource.JENAZAH_MODULE,
+                  source: InventoryTransactionSource.KES,
                   createdbyId: Number(ctx.user.id),
                 }),
               );

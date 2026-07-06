@@ -45,8 +45,7 @@ export const inventoryAssetRouter = router({
       const repo = AppDataSource.getRepository(InventoryAsset);
       const query = repo
         .createQueryBuilder("asset")
-        .leftJoinAndSelect("asset.item", "item")
-        .leftJoinAndSelect("asset.assignedJenazah", "assignedJenazah");
+        .leftJoinAndSelect("asset.item", "item");
 
       if (filterItemId) {
         query.andWhere("asset.itemId = :itemId", { itemId: filterItemId });

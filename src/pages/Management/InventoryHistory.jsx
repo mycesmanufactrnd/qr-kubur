@@ -81,10 +81,10 @@ const TX_TYPE_CONFIG = {
 };
 
 const sourceLabels = {
-  [InventoryTransactionSource.MANUAL]:         "Manual",
-  [InventoryTransactionSource.JENAZAH_MODULE]: "Jenazah",
-  [InventoryTransactionSource.RETURN]:         "Return",
-  [InventoryTransactionSource.SYSTEM]:         "System",
+  [InventoryTransactionSource.RESTOCK]: "Restock",
+  [InventoryTransactionSource.RETURN]:  "Pulangan",
+  [InventoryTransactionSource.MANUAL]:  "Manual",
+  [InventoryTransactionSource.KES]:     "Kes",
 };
 
 function txTypeBadge(type) {
@@ -292,18 +292,17 @@ function InventoryHistoryDesktop() {
               <TableRow>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("transaction_date")}>
                   <span className="flex items-center">
-                    {translate("Date")}
+                    {translate("Tarikh Masa")}
                     <SortIcon field="transaction_date" current={urlSortField} order={urlSortOrder} />
                   </span>
                 </TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("transaction_type")}>
                   <span className="flex items-center">
-                    {translate("Type")}
+                    {translate("Jenis")}
                     <SortIcon field="transaction_type" current={urlSortField} order={urlSortOrder} />
                   </span>
                 </TableHead>
                 <TableHead>{translate("Item")}</TableHead>
-                <TableHead>{translate("Package")}</TableHead>
                 <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort("quantity")}>
                   <span className="flex items-center justify-end">
                     {translate("Qty")}
@@ -312,18 +311,24 @@ function InventoryHistoryDesktop() {
                 </TableHead>
                 <TableHead className="text-right">{translate("Before")}</TableHead>
                 <TableHead className="text-right">{translate("After")}</TableHead>
-                <TableHead>{translate("Source")}</TableHead>
-                <TableHead>{translate("Notes")}</TableHead>
+                <TableHead>{translate("Sumber")}</TableHead>
+                <TableHead>{translate("Package")}</TableHead>
+                <TableHead>{translate("Catatan")}</TableHead>
+                <TableHead>{translate("Recorded By")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={9} />
+                <InlineLoadingComponent isTable colSpan={10} />
               ) : transactionsList.length === 0 ? (
-                <NoDataTableComponent colSpan={9} />
+                <NoDataTableComponent colSpan={10} />
               ) : (
                 transactionsList.map((tx) => {
                   const cfg = TX_TYPE_CONFIG[tx.transaction_type];
+                  const isStockOut = tx.transaction_type === InventoryTransactionType.STOCK_OUT;
+                  const isStockInRestock =
+                    tx.transaction_type === InventoryTransactionType.STOCK_IN &&
+                    (tx.source === InventoryTransactionSource.RESTOCK || tx.source === InventoryTransactionSource.RETURN);
                   return (
                     <TableRow key={tx.id}>
                       <TableCell className="text-xs text-gray-500 whitespace-nowrap">
@@ -333,19 +338,22 @@ function InventoryHistoryDesktop() {
                       <TableCell className="font-medium text-sm">
                         {tx.item_name_snapshot || tx.item?.item_name || "—"}
                       </TableCell>
-                      <TableCell className="text-sm text-gray-500">
-                        {tx.package_name_snapshot || "—"}
-                      </TableCell>
                       <TableCell className={`text-right font-mono font-semibold ${cfg?.qtyColor ?? ""}`}>
                         {cfg?.qtyPrefix}{tx.quantity}
                       </TableCell>
                       <TableCell className="text-right font-mono text-gray-400">{tx.before_quantity ?? "—"}</TableCell>
                       <TableCell className="text-right font-mono text-gray-500">{tx.after_quantity ?? "—"}</TableCell>
                       <TableCell className="text-xs text-gray-500">
-                        {sourceLabels[tx.source] ?? tx.source ?? "—"}
+                        {isStockInRestock ? (sourceLabels[tx.source] ?? tx.source ?? "—") : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {isStockOut ? (tx.package_name_snapshot || "—") : "—"}
                       </TableCell>
                       <TableCell className="text-xs text-gray-500 max-w-[180px] truncate">
                         {tx.notes || "—"}
+                      </TableCell>
+                      <TableCell className="text-xs text-gray-500">
+                        {tx.createdby?.fullname || tx.createdby?.username || "—"}
                       </TableCell>
                     </TableRow>
                   );
@@ -451,18 +459,27 @@ function MobileInventoryHistory() {
                       <p className="font-medium text-sm text-gray-900 dark:text-white mt-1 truncate">
                         {tx.item_name_snapshot || tx.item?.item_name || "—"}
                       </p>
-                      {tx.package_name_snapshot && (
+                      {tx.transaction_type === InventoryTransactionType.STOCK_OUT && tx.package_name_snapshot && (
                         <p className="text-xs text-gray-400 truncate">{tx.package_name_snapshot}</p>
+                      )}
+                      {tx.transaction_type === InventoryTransactionType.STOCK_IN &&
+                        (tx.source === InventoryTransactionSource.RESTOCK || tx.source === InventoryTransactionSource.RETURN) && (
+                        <p className="text-xs text-gray-400">{translate("Sumber")}: {sourceLabels[tx.source] ?? tx.source}</p>
                       )}
                       {tx.notes && (
                         <p className="text-xs text-gray-500 mt-0.5 truncate">{tx.notes}</p>
+                      )}
+                      {(tx.createdby?.fullname || tx.createdby?.username) && (
+                        <p className="text-xs text-gray-400 mt-0.5">{tx.createdby?.fullname || tx.createdby?.username}</p>
                       )}
                     </div>
                     <div className="text-right shrink-0">
                       <p className={`font-mono font-bold text-base ${cfg?.qtyColor ?? "text-gray-700"}`}>
                         {cfg?.qtyPrefix}{tx.quantity}
                       </p>
-                      <p className="text-xs text-gray-400 font-mono">→ {tx.after_quantity}</p>
+                      <p className="text-xs text-gray-400 font-mono">
+                        {tx.before_quantity ?? "—"} → {tx.after_quantity ?? "—"}
+                      </p>
                     </div>
                   </div>
                 </CardContent>

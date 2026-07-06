@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -594,7 +595,17 @@ function MobileManageInventoryAssets() {
         )}
       </div>
 
-      <SearchBar value={tempAssetNum} onChange={setTempAssetNum} onSearch={handleSearch} onReset={handleReset} placeholder={translate("Asset number")} buttonClassName="bg-purple-600 text-white" />
+      <div className="flex gap-2">
+        <Input
+          value={tempAssetNum}
+          onChange={(e) => setTempAssetNum(e.target.value)}
+          placeholder={translate("Asset number")}
+          className="dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+        />
+        <Button onClick={handleSearch} className="bg-purple-600 hover:bg-purple-700 text-white">{translate("Search")}</Button>
+        <Button variant="outline" onClick={handleReset}>{translate("Reset")}</Button>
+      </div>
 
       {isLoading ? (
         <PageLoadingComponent />

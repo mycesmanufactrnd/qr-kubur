@@ -52,10 +52,10 @@ const TX_TYPE_CONFIG = {
 };
 
 const sourceLabels = {
-  [InventoryTransactionSource.MANUAL]:         "Manual",
-  [InventoryTransactionSource.JENAZAH_MODULE]: "Jenazah",
-  [InventoryTransactionSource.RETURN]:         "Return",
-  [InventoryTransactionSource.SYSTEM]:         "System",
+  [InventoryTransactionSource.RESTOCK]: "Restock",
+  [InventoryTransactionSource.RETURN]:  "Pulangan",
+  [InventoryTransactionSource.MANUAL]:  "Manual",
+  [InventoryTransactionSource.KES]:     "Kes",
 };
 
 function txTypeBadge(type) {

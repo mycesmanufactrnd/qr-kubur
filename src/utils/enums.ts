@@ -398,15 +398,15 @@ export enum InventoryAssetCondition {
 export enum InventoryTransactionType {
   STOCK_IN = "STOCK_IN",
   STOCK_OUT = "STOCK_OUT",
-  RETURN = "RETURN",
-  ADJUSTMENT = "ADJUSTMENT",
+  // RETURN = "RETURN",
+  // ADJUSTMENT = "ADJUSTMENT",
 }
 
 export enum InventoryTransactionSource {
-  MANUAL = "MANUAL",
-  JENAZAH_MODULE = "JENAZAH_MODULE",
+  RESTOCK = "RESTOCK",
   RETURN = "RETURN",
-  SYSTEM = "SYSTEM",
+  MANUAL = "MANUAL",
+  KES = "KES",
 }
 
 export enum CheckSessionStatus {
