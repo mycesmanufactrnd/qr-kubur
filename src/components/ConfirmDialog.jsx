@@ -20,7 +20,7 @@ export default function ConfirmDialog({
   description,
   onConfirm,
   confirmText,
-  cancelText = translate("Cancel"),
+  cancelText = translate("Close"),
   variant = "default",
   isDelete = false,
   itemToDelete = null,

@@ -1048,7 +1048,7 @@ function ManageGravesDesktop() {
                 variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

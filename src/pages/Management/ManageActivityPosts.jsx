@@ -500,7 +500,7 @@ function ManageActivityPostsDesktop() {
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

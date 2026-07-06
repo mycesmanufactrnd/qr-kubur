@@ -940,7 +940,7 @@ function ManageDeadPersonsDesktop() {
                 variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

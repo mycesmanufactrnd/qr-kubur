@@ -542,7 +542,7 @@ export default function ManageDeathCharityClaim() {
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               <Button
                 type="submit"

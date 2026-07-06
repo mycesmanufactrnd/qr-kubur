@@ -1182,7 +1182,7 @@ function ManageQariahMemberDesktop() {
                 variant="destructive"
                 onClick={() => setIsDialogOpen(false)}
               >
-                {translate("Cancel")}
+                {translate("Close")}
               </Button>
               {formDisabled ? (
                 <Button
