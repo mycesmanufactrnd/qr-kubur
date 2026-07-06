@@ -31,6 +31,7 @@ import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultJenazahRequestField } from "@/utils/defaultformfields";
+import { translate } from "@/utils/translations";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
@@ -252,6 +253,8 @@ export default function JenazahEmergencyRequest() {
       burialDate: data.burialdate,
       pickupLat: currentCoords?.lat ?? null,
       pickupLng: currentCoords?.lng ?? null,
+      heirname: data.heirname?.trim() || null,
+      heirphoneno: data.heirphoneno?.trim() || null,
     };
 
     createCase.mutate({
@@ -368,7 +371,7 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  Tidak, dalam kawasan
+                  Dalam Kawasan Qariah
                 </button>
                 <button
                   type="button"
@@ -379,7 +382,7 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  Ya, luar negeri/daerah
+                  Luar Negeri/Daerah
                 </button>
               </div>
             </div>
@@ -574,19 +577,26 @@ export default function JenazahEmergencyRequest() {
 
             {hasSearched && !isSearching && (
               <>
+                <TextInputForm
+                  name="fullname"
+                  control={control}
+                  label="Nama Penuh Jenazah"
+                  required
+                  errors={errors}
+                  placeholder="Nama penuh"
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
-                    name="fullname"
+                    name="heirname"
                     control={control}
-                    label="Nama Penuh Jenazah"
+                    label={translate("Nama Waris")}
                     required
-                    errors={errors}
-                    placeholder="Nama penuh"
+                    placeholder="Nama penuh waris"
                   />
                   <TextInputForm
-                    name="phone"
+                    name="heirphoneno"
                     control={control}
-                    label="No. Telefon"
+                    label={translate("No. Tel. Waris")}
                     isPhone
                     required
                     placeholder="0123456789"
