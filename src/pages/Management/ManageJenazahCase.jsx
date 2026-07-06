@@ -69,6 +69,8 @@ import {
   MapPin,
 } from "lucide-react";
 import { CARE_SCENARIOS } from "@/utils/enums";
+import { parseDobFromIcNumber } from "@/utils/helpers";
+import { defaultManageJenazahCsae } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
@@ -215,16 +217,7 @@ function CaseDetailDialog({
 
   // Pre-parse DOB from IC for the deceased form default
   const icRaw = (d.deceasedIcnumber ?? "").replace(/-/g, "");
-  const parsedDob = (() => {
-    if (icRaw.length >= 6) {
-      const yy = icRaw.slice(0, 2);
-      const mm = icRaw.slice(2, 4);
-      const dd = icRaw.slice(4, 6);
-      const year = parseInt(yy) <= 30 ? `20${yy}` : `19${yy}`;
-      return `${year}-${mm}-${dd}`;
-    }
-    return "";
-  })();
+  const parsedDob = parseDobFromIcNumber(icRaw);
 
   const {
     control: dc,
@@ -618,26 +611,6 @@ function CaseDetailDialog({
   );
 }
 
-const DEFAULT_CASE_FORM = {
-  icSearch: "",
-  selectedOrgId: null,
-  selectedMosqueId: null,
-  deceasedFullname: "",
-  deceasedIcnumber: "",
-  deceasedPhone: "",
-  deceasedEmail: "",
-  deceasedAddress: "",
-  pickupLat: "",
-  pickupLng: "",
-  careScenario: "",
-  careScenarioOther: "",
-  burialdate: "",
-  adminremarks: "",
-  deathconfirmationphotourl: "",
-  policereportphotourl: "",
-  supportingphotourl: "",
-};
-
 function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   const { currentUser } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
@@ -649,7 +622,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     reset,
     setValue,
     formState: { errors },
-  } = useForm({ defaultValues: DEFAULT_CASE_FORM });
+  } = useForm({ defaultValues: defaultManageJenazahCsae });
 
   const selectedOrgId = watch("selectedOrgId");
   const selectedMosqueId = watch("selectedMosqueId");
@@ -733,10 +706,9 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     setSearchAttempted(true);
   }, [memberResult, memberSearching, searchedIc, setValue]);
 
-  // Reset on open
   useEffect(() => {
     if (!open) return;
-    reset(DEFAULT_CASE_FORM);
+    reset(defaultManageJenazahCsae);
     setIsQariahMember(false);
     setSearchedIc("");
     setSearchAttempted(false);
