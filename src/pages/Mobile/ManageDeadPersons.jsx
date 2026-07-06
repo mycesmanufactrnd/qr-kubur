@@ -38,6 +38,7 @@ import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import { parseDobFromIcNumber } from "@/utils/helpers";
 
 function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR }) {
   return (
@@ -142,6 +143,14 @@ function PersonFormSheet({
 
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
+
+  const icnumberValue = watch("icnumber");
+
+  useEffect(() => {
+    if (editing) return;
+    const dob = parseDobFromIcNumber(icnumberValue);
+    if (dob) setValue("dateofbirth", dob);
+  }, [icnumberValue, editing]);
 
   const getLocation = () => {
     if (!navigator.geolocation) return;

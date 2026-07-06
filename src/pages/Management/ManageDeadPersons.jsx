@@ -72,6 +72,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
+import { parseDobFromIcNumber } from "@/utils/helpers";
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
@@ -117,6 +118,14 @@ function ManageDeadPersonsDesktop() {
   } = useForm({
     defaultValues: defaultDeadPersonField,
   });
+
+  const icnumberValue = watch("icnumber");
+
+  useEffect(() => {
+    if (editingPerson) return;
+    const dob = parseDobFromIcNumber(icnumberValue);
+    if (dob) setValue("dateofbirth", dob);
+  }, [icnumberValue, editingPerson]);
 
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
