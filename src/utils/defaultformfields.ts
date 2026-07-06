@@ -269,7 +269,25 @@ export const defaultDeathCharityClaimField = {
   status: ClaimStatus.PENDING,
 };
 
-export const defaultJenazahEmergencyRequest = {
+export const defaultQariahMemberField = {
+  fullname: "",
+  icnumber: "",
+  phone: "",
+  email: "",
+  address: "",
+  isdeceased: false,
+  createOrgId: null,
+  createMosqueId: null,
+  grave: "",
+  gravelot: "",
+  causeofdeath: "",
+  dateofdeath: "",
+  dateofbirth: "",
+  heirname: "",
+  heirphoneno: "",
+};
+
+export const defaultJenazahRequestField = {
   icSearch: "",
   fullname: "",
   icnumber: "",
@@ -282,7 +300,7 @@ export const defaultJenazahEmergencyRequest = {
   careScenarioOther: "",
 };
 
-export const defaultManageJenazahCsae = {
+export const defaultManageJenazahCaseField = {
   icSearch: "",
   selectedOrgId: null,
   selectedMosqueId: null,
