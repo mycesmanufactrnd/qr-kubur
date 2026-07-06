@@ -7,11 +7,13 @@ import {
   CreateDateColumn,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from "typeorm";
 import { Grave } from "./Grave.entity.js";
 import { Suggestion } from "./Suggestion.entity.js";
 import { Quotation } from "./Quotation.entity.js";
 import { User } from "./User.entity.js";
+import { DeathCharityMember } from "./DeathCharity/DeathCharityMember.entity.js";
 
 @Entity("deadperson")
 export class DeadPerson {
@@ -72,4 +74,7 @@ export class DeadPerson {
   @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "createdbyId" })
   createdby?: User | null;
+
+  @OneToOne(() => DeathCharityMember, (member) => member.deadperson)
+  deathcharitymember?: DeathCharityMember | null;
 }
