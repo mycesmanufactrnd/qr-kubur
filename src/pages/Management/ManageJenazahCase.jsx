@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
@@ -224,8 +225,8 @@ function CaseDetailDialog({
       causeofdeath: "",
       dateofdeath: "",
       dateofbirth: parsedDob,
-      heirname: "",
-      heirphoneno: "",
+      heirname: d.heirname ?? "",
+      heirphoneno: d.heirphoneno ?? "",
     },
   });
 
@@ -616,6 +617,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     watch,
     reset,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm({ defaultValues: defaultManageJenazahCaseField });
 
@@ -627,7 +629,8 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   const [searchAttempted, setSearchAttempted] = useState(false);
   const [isQariahMember, setIsQariahMember] = useState(false);
   const [isOutOfArea, setIsOutOfArea] = useState(null);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
+  const [activeTab, setActiveTab] = useState("deceased");
 
   const handleFileUpload = async (file, bucketName) => {
     try {
@@ -679,9 +682,6 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     if (memberResult) {
       setValue("deceasedFullname", memberResult.fullname ?? "");
       setValue("deceasedIcnumber", memberResult.icnumber ?? searchedIc);
-      setValue("deceasedPhone", memberResult.phone ?? "");
-      setValue("deceasedEmail", memberResult.email ?? "");
-      setValue("deceasedAddress", memberResult.address ?? "");
       setIsQariahMember(true);
       if (memberResult.mosque?.id) {
         setValue("selectedMosqueId", memberResult.mosque.id);
@@ -693,9 +693,6 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     } else {
       setValue("deceasedFullname", "");
       setValue("deceasedIcnumber", searchedIc.trim());
-      setValue("deceasedPhone", "");
-      setValue("deceasedEmail", "");
-      setValue("deceasedAddress", "");
       setIsQariahMember(false);
     }
     setSearchAttempted(true);
@@ -708,11 +705,10 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     setSearchedIc("");
     setSearchAttempted(false);
     setIsOutOfArea(null);
-    setShowMap(false);
+    setShowMap(true);
+    setActiveTab("deceased");
   }, [open, reset]);
 
-  // Reset the chosen mosque whenever the organisation changes
-  // (skip once right after IC-search prefill sets both org and mosque together)
   useEffect(() => {
     if (skipMosqueResetRef.current) {
       skipMosqueResetRef.current = false;
@@ -726,6 +722,42 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     if (!ic) return;
     setSearchAttempted(false);
     setSearchedIc((prev) => (prev.trim() === ic ? ic + "​" : ic));
+  };
+
+  const handleNextFromDeceased = async () => {
+    if (!searchAttempted) {
+      showApiError({
+        message: translate("Please search by IC number first."),
+      });
+      return;
+    }
+    const valid = await trigger(["deceasedFullname", "heirname", "heirphoneno"]);
+    if (!valid) {
+      showApiError({
+        message: translate("Please complete the required fields before proceeding."),
+      });
+      return;
+    }
+    setActiveTab("management");
+  };
+
+  const handleNextFromManagement = async () => {
+    if (isOutOfArea === null) {
+      showApiError({
+        message: translate("Please answer the incident location question."),
+      });
+      return;
+    }
+    const fieldsToCheck = ["careScenario", "burialdate"];
+    if (careScenario === "other") fieldsToCheck.push("careScenarioOther");
+    const valid = await trigger(fieldsToCheck);
+    if (!valid) {
+      showApiError({
+        message: translate("Please complete the required fields before proceeding."),
+      });
+      return;
+    }
+    setActiveTab("notes");
   };
 
   const handleFormSubmit = (data) => {
@@ -802,18 +834,27 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
         if (!v) onClose();
       }}
     >
-      <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
         <DialogHeader>
           <DialogTitle>{translate("Add Funeral Case")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-3 gap-6">
-            <div className="space-y-5">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="deceased" className="pointer-events-none">
+                {translate("Maklumat Jenazah")}
+              </TabsTrigger>
+              <TabsTrigger value="management" className="pointer-events-none">
+                {translate("Funeral Management")}
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="pointer-events-none">
+                {translate("Notes & Documents")}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="deceased" className="space-y-5 mt-4">
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                  {translate("Maklumat Jenazah")}
-                </h3>
                 <Select2Form
                   name="selectedOrgId"
                   control={control}
@@ -870,8 +911,8 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                     {memberSearching ? translate("Searching...") : translate("Search")}
                   </Button>
                 </div>
-                {searchAttempted &&
-                  (memberResult ? (
+                {searchAttempted ? (
+                  memberResult ? (
                     <p className="text-xs text-emerald-600 flex items-center gap-1">
                       <BadgeCheck className="w-3.5 h-3.5" /> {translate("Registered Qariah Member")}
                     </p>
@@ -879,58 +920,53 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                     <p className="text-xs text-slate-400 flex items-center gap-1">
                       <Info className="w-3.5 h-3.5" /> {translate("Not found — fill in details manually")}
                     </p>
-                  ))}
+                  )
+                ) : (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5" /> {translate("Please search by IC number first.")}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3">
+                <TextInputForm
+                  name="deceasedFullname"
+                  control={control}
+                  label={translate("Full Name")}
+                  required
+                  errors={errors}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                  {translate("Maklumat Waris")}
+                </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
-                    name="deceasedFullname"
+                    name="heirname"
                     control={control}
-                    label={translate("Full Name")}
+                    label={translate("Nama Waris")}
                     required
                     errors={errors}
                   />
                   <TextInputForm
-                    name="deceasedIcnumber"
+                    name="heirphoneno"
                     control={control}
-                    label={translate("IC No.")}
-                    isICNumber
-                    errors={errors}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <TextInputForm
-                    name="deceasedPhone"
-                    control={control}
-                    label={translate("Phone")}
+                    label={translate("No. Tel. Waris")}
                     isPhone
-                    errors={errors}
-                  />
-                  <TextInputForm
-                    name="deceasedEmail"
-                    control={control}
-                    label={translate("Email")}
-                    isEmail
+                    required
                     errors={errors}
                   />
                 </div>
-                <TextInputForm
-                  name="deceasedAddress"
-                  control={control}
-                  label={translate("Address")}
-                  isTextArea
-                />
               </div>
-            </div>
+            </TabsContent>
 
-            <div className="space-y-5 border-l pl-6 dark:border-slate-600">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Funeral Management")}
-              </h3>
+            <TabsContent value="management" className="space-y-5 mt-4">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {translate("Incident Location")}
+                  <span className="text-red-500 ml-1">*</span>
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -1052,12 +1088,9 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                   />
                 )}
               </div>
-            </div>
+            </TabsContent>
 
-            <div className="space-y-5 border-l pl-6 dark:border-slate-600">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Notes & Documents")}
-              </h3>
+            <TabsContent value="notes" className="space-y-5 mt-4">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {translate("Admin Notes")}
@@ -1109,21 +1142,62 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                   handleFileUpload={handleFileUpload}
                 />
               </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {translate("Cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-rose-600 hover:bg-rose-700 text-white"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {translate("Add Case")}
-            </Button>
+            {activeTab === "deceased" && (
+              <>
+                <Button type="button" variant="outline" onClick={onClose}>
+                  {translate("Cancel")}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleNextFromDeceased}
+                  disabled={!searchAttempted}
+                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  {translate("Next")}
+                </Button>
+              </>
+            )}
+            {activeTab === "management" && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setActiveTab("deceased")}
+                >
+                  {translate("Back")}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleNextFromManagement}
+                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  {translate("Next")}
+                </Button>
+              </>
+            )}
+            {activeTab === "notes" && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setActiveTab("management")}
+                >
+                  {translate("Back")}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {translate("Add Case")}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
@@ -1303,6 +1377,7 @@ function ManageJenazahCaseDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>{translate("Reference No")}</TableHead>
                 <TableHead>{translate("Deceased Name")}</TableHead>
                 <TableHead>{translate("IC No.")}</TableHead>
                 <TableHead>{translate("Mosque")}</TableHead>
@@ -1325,6 +1400,11 @@ function ManageJenazahCaseDesktop() {
                       key={c.id}
                       className="hover:bg-slate-50 dark:hover:bg-slate-700/50"
                     >
+                      <TableCell className="text-sm font-mono text-slate-600 dark:text-slate-300">
+                        {c.referenceno || (
+                          <span className="text-slate-400 italic">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {d.deceasedFullname || (
                           <span className="text-slate-400 italic">—</span>

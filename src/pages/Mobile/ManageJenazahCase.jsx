@@ -161,7 +161,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
   const [searchAttempted, setSearchAttempted] = useState(false);
   const [isQariahMember, setIsQariahMember] = useState(false);
   const [isOutOfArea, setIsOutOfArea] = useState(null);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -220,9 +220,6 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     if (memberResult) {
       setValue("deceasedFullname", memberResult.fullname ?? "");
       setValue("deceasedIcnumber", memberResult.icnumber ?? searchedIc);
-      setValue("deceasedPhone", memberResult.phone ?? "");
-      setValue("deceasedEmail", memberResult.email ?? "");
-      setValue("deceasedAddress", memberResult.address ?? "");
       setIsQariahMember(true);
       if (memberResult.mosque?.id) {
         setValue("selectedMosqueId", memberResult.mosque.id);
@@ -234,9 +231,6 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     } else {
       setValue("deceasedFullname", "");
       setValue("deceasedIcnumber", searchedIc.trim());
-      setValue("deceasedPhone", "");
-      setValue("deceasedEmail", "");
-      setValue("deceasedAddress", "");
       setIsQariahMember(false);
     }
     setSearchAttempted(true);
@@ -392,8 +386,8 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
               {memberSearching ? translate("Searching...") : translate("Search")}
             </button>
           </div>
-          {searchAttempted &&
-            (memberResult ? (
+          {searchAttempted ? (
+            memberResult ? (
               <p className="text-xs text-emerald-600 flex items-center gap-1">
                 <BadgeCheck className="w-3.5 h-3.5" />{" "}
                 {translate("Registered Qariah Member")}
@@ -403,7 +397,13 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
                 <Info className="w-3.5 h-3.5" />{" "}
                 {translate("Not found — fill in details manually")}
               </p>
-            ))}
+            )
+          ) : (
+            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <Info className="w-3.5 h-3.5" />{" "}
+              {translate("Please search by IC number first.")}
+            </p>
+          )}
         </FormSection>
 
         <FormSection title={translate("Maklumat Jenazah")}>
@@ -414,38 +414,34 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             required
             errors={errors}
           />
-          <div className="grid grid-cols-2 gap-3">
-            <TextInputForm
-              name="deceasedIcnumber"
-              control={control}
-              label={translate("IC No.")}
-              isICNumber
-              errors={errors}
-            />
-            <TextInputForm
-              name="deceasedPhone"
-              control={control}
-              label={translate("Phone")}
-              isPhone
-              errors={errors}
-            />
-          </div>
+        </FormSection>
+
+        <FormSection title={translate("Maklumat Waris")}>
           <TextInputForm
-            name="deceasedEmail"
+            name="heirname"
             control={control}
-            label={translate("Email")}
-            isEmail
+            label={translate("Nama Waris")}
+            required
             errors={errors}
           />
           <TextInputForm
-            name="deceasedAddress"
+            name="heirphoneno"
             control={control}
-            label={translate("Address")}
-            isTextArea
+            label={translate("No. Tel. Waris")}
+            isPhone
+            required
+            errors={errors}
           />
         </FormSection>
 
-        <FormSection title={translate("Incident Location")}>
+        <FormSection
+          title={
+            <>
+              {translate("Incident Location")}
+              <span className="text-red-500 ml-1">*</span>
+            </>
+          }
+        >
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -663,8 +659,8 @@ function CaseDetailSheet({
       causeofdeath: "",
       dateofdeath: "",
       dateofbirth: parsedDob,
-      heirname: "",
-      heirphoneno: "",
+      heirname: d.heirname ?? "",
+      heirphoneno: d.heirphoneno ?? "",
     },
   });
 
@@ -729,6 +725,16 @@ function CaseDetailSheet({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-32">
+        {caseItem?.referenceno && (
+          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-3 py-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
+              {translate("Reference No")}
+            </p>
+            <p className="text-sm font-mono font-semibold text-slate-800 dark:text-slate-100">
+              {caseItem.referenceno}
+            </p>
+          </div>
+        )}
         {caseItem?.mosque && (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2.5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-0.5">
@@ -1183,6 +1189,11 @@ export default function MobileManageJenazahCase() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
+                      {c.referenceno && (
+                        <p className="text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400 tracking-wide">
+                          {c.referenceno}
+                        </p>
+                      )}
                       <p className="font-semibold text-sm truncate">
                         {d.deceasedFullname || "—"}
                       </p>
