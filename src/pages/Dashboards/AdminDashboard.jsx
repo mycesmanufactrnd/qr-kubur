@@ -26,6 +26,7 @@ import {
   BarChart,
   Menu,
   Bell,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,8 @@ function AdminDashboardDesktop() {
     isCQNLoading,
     isCMCLoading,
     isQUOLoading,
+    refetchAll,
+    isRefetching,
   } = useGetAdminDashboardStats({
     currentUser,
     isSuperAdmin,
@@ -315,6 +318,16 @@ function AdminDashboardDesktop() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => refetchAll()}
+                disabled={isRefetching}
+                title={translate("Refresh")}
+                className="border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`} />
+              </Button>
               {isSuperAdmin ? (
                 <>
                   <Link to={createPageUrl("SuperAdminDashboard")}>
