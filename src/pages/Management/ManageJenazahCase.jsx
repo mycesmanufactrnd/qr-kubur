@@ -700,14 +700,14 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
   useEffect(() => {
     if (!open) return;
-    reset(defaultManageJenazahCaseField);
+    reset({ ...defaultManageJenazahCaseField, selectedOrgId: userOrgId ?? null });
     setIsQariahMember(false);
     setSearchedIc("");
     setSearchAttempted(false);
     setIsOutOfArea(null);
     setShowMap(true);
     setActiveTab("deceased");
-  }, [open, reset]);
+  }, [open, reset, userOrgId]);
 
   useEffect(() => {
     if (skipMosqueResetRef.current) {
@@ -725,13 +725,24 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   };
 
   const handleNextFromDeceased = async () => {
+    if (!selectedMosqueId) {
+      showApiError({
+        message: translate("Please select a mosque first."),
+      });
+      return;
+    }
     if (!searchAttempted) {
       showApiError({
         message: translate("Please search by IC number first."),
       });
       return;
     }
-    const valid = await trigger(["deceasedFullname", "heirname", "heirphoneno"]);
+    const valid = await trigger([
+      "selectedMosqueId",
+      "deceasedFullname",
+      "heirname",
+      "heirphoneno",
+    ]);
     if (!valid) {
       showApiError({
         message: translate("Please complete the required fields before proceeding."),
@@ -884,6 +895,8 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                   }))}
                   disabled={!selectedOrgId}
                   loading={mosquesLoading}
+                  required
+                  errors={errors}
                 />
               </div>
 
@@ -902,6 +915,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                     type="button"
                     onClick={handleSearch}
                     disabled={
+                      !selectedMosqueId ||
                       !(icSearch ?? "").replace(/-/g, "").trim() ||
                       memberSearching
                     }
@@ -911,7 +925,11 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                     {memberSearching ? translate("Searching...") : translate("Search")}
                   </Button>
                 </div>
-                {searchAttempted ? (
+                {!selectedMosqueId ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5" /> {translate("Please select a mosque first.")}
+                  </p>
+                ) : searchAttempted ? (
                   memberResult ? (
                     <p className="text-xs text-emerald-600 flex items-center gap-1">
                       <BadgeCheck className="w-3.5 h-3.5" /> {translate("Registered Qariah Member")}
@@ -1154,7 +1172,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                 <Button
                   type="button"
                   onClick={handleNextFromDeceased}
-                  disabled={!searchAttempted}
+                  disabled={!selectedMosqueId || !searchAttempted}
                   className="bg-rose-600 hover:bg-rose-700 text-white"
                 >
                   {translate("Next")}

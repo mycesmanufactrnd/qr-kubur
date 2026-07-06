@@ -1131,5 +1131,6 @@
   "Enter reference number to check your funeral case status.": "أدخل الرقم المرجعي للتحقق من حالة طلب الجنازة الخاص بك.",
   "Case Search": "البحث عن الحالة",
   "Your reference number can be found in the confirmation message sent after submitting the case.": "يمكن العثور على رقمك المرجعي في رسالة التأكيد المرسلة بعد تقديم الطلب.",
-  "Funeral Case Status": "حالة طلب الجنازة"
+  "Funeral Case Status": "حالة طلب الجنازة",
+  "Please select a mosque first.": "يرجى اختيار المسجد أولاً."
 }

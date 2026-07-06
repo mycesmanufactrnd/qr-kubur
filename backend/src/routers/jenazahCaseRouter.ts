@@ -103,6 +103,7 @@ export const jenazahCaseRouter = router({
       const organisationId = await resolveOrganisationIdFromMosque(
         input.mosqueId,
       );
+      
       if (organisationId) {
         if (approved) {
           await sendNotificationFCMToOrganisation({

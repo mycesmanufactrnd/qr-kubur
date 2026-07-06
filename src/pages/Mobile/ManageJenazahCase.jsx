@@ -172,6 +172,10 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (userOrgId) setValue("selectedOrgId", userOrgId);
+  }, [userOrgId, setValue]);
+
   const handleFileUpload = async (file, bucketName) => {
     try {
       const formDataUpload = new FormData();
@@ -251,7 +255,17 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     setSearchedIc((prev) => (prev.trim() === ic ? ic + "​" : ic));
   };
 
+  const onFormInvalid = () => {
+    showApiError({
+      message: translate("Please complete the required fields before proceeding."),
+    });
+  };
+
   const handleFormSubmit = (data) => {
+    if (!data.selectedMosqueId) {
+      showApiError({ message: translate("Please select a mosque first.") });
+      return;
+    }
     if (isOutOfArea === null) {
       showApiError({
         message: translate("Please answer the incident location question."),
@@ -361,6 +375,8 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             }))}
             disabled={!selectedOrgId}
             loading={mosquesLoading}
+            required
+            errors={errors}
           />
         </FormSection>
 
@@ -379,14 +395,21 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
               type="button"
               onClick={handleSearch}
               disabled={
-                !(icSearch ?? "").replace(/-/g, "").trim() || memberSearching
+                !selectedMosqueId ||
+                !(icSearch ?? "").replace(/-/g, "").trim() ||
+                memberSearching
               }
               className="shrink-0 h-9 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-40"
             >
               {memberSearching ? translate("Searching...") : translate("Search")}
             </button>
           </div>
-          {searchAttempted ? (
+          {!selectedMosqueId ? (
+            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <Info className="w-3.5 h-3.5" />{" "}
+              {translate("Please select a mosque first.")}
+            </p>
+          ) : searchAttempted ? (
             memberResult ? (
               <p className="text-xs text-emerald-600 flex items-center gap-1">
                 <BadgeCheck className="w-3.5 h-3.5" />{" "}
@@ -610,7 +633,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
       <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         <button
           type="button"
-          onClick={handleSubmit(handleFormSubmit)}
+          onClick={handleSubmit(handleFormSubmit, onFormInvalid)}
           disabled={isSubmitting}
           className="w-full h-12 rounded-2xl bg-rose-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
