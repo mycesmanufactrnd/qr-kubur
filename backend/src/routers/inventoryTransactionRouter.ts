@@ -109,7 +109,7 @@ export const inventoryTransactionRouter = router({
   stockIn: protectedProcedure
     .input(stockInSchema)
     .mutation(async ({ input, ctx }) => {
-      const { itemId, quantity, source, notes } = input;
+      const { itemId, quantity, source, notes, transaction_date } = input;
 
       return await AppDataSource.transaction(async (manager) => {
         const item = await manager.findOneByOrFail(InventoryItem, {
@@ -134,6 +134,7 @@ export const inventoryTransactionRouter = router({
           after_quantity: afterQty,
           source: source ?? InventoryTransactionSource.MANUAL,
           notes,
+          transaction_date: transaction_date ? new Date(transaction_date) : new Date(),
           createdbyId: Number(ctx.user.id),
         });
 
@@ -321,7 +322,7 @@ export const inventoryTransactionRouter = router({
 
               await manager.update(InventoryAsset, asset.id, {
                 current_status: InventoryAssetStatus.IN_USE,
-                assignedJenazahId: jenazahId,
+                assigned_to: String(jenazahId),
                 last_used_date: now,
               });
 
@@ -395,7 +396,7 @@ export const inventoryTransactionRouter = router({
 
         await manager.update(InventoryAsset, assetId, {
           current_status: newStatus,
-          assignedJenazahId: null,
+          assigned_to: null,
           condition,
           last_used_date: now,
         });

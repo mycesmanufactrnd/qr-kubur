@@ -7,6 +7,7 @@ export const stockInSchema = z.object({
   quantity: z.number().int().positive("Kuantiti mesti lebih dari 0"),
   source: z.nativeEnum(InventoryTransactionSource).optional(),
   notes: z.string().optional().nullable(),
+  transaction_date: z.string().optional().nullable(),
 });
 
 export const stockOutSchema = z.object({

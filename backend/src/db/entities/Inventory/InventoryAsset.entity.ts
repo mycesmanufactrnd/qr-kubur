@@ -20,8 +20,8 @@ export class InventoryAsset {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column("varchar", { length: 100, unique: true, nullable: true })
-  asset_number?: string | null;
+  // @Column("varchar", { length: 100, unique: true, nullable: true })
+  // asset_number?: string | null;
 
   @Index()
   @Column("integer")
@@ -43,12 +43,12 @@ export class InventoryAsset {
 
   // Null when not in use. SET NULL on DeadPerson delete so the asset
   // record survives even if the jenazah record is cleaned up later.
-  @Column("integer", { nullable: true })
-  assignedJenazahId?: number | null;
+  // @Column("integer", { nullable: true })
+  // assignedJenazahId?: number | null;
 
-  @ManyToOne(() => DeadPerson, { nullable: true, onDelete: "SET NULL" })
-  @JoinColumn({ name: "assignedJenazahId" })
-  assignedJenazah?: DeadPerson | null;
+  // @ManyToOne(() => DeadPerson, { nullable: true, onDelete: "SET NULL" })
+  // @JoinColumn({ name: "assignedJenazahId" })
+  // assignedJenazah?: DeadPerson | null;
 
   @Column("timestamptz", { nullable: true })
   last_used_date?: Date | null;

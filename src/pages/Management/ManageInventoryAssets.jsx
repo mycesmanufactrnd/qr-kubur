@@ -419,9 +419,7 @@ function ManageInventoryAssetsDesktop() {
                     <TableCell className="text-center">{statusBadge(asset.current_status)}</TableCell>
                     <TableCell className="text-center">{conditionBadge(asset.condition)}</TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {asset.assignedJenazah
-                        ? (asset.assignedJenazah.name ?? `ID: ${asset.assignedJenazahId}`)
-                        : "—"}
+                      {asset.assigned_to || "—"}
                     </TableCell>
                     <TableCell className="text-sm text-gray-500 max-w-[160px] truncate">
                       {asset.notes || "—"}
@@ -615,9 +613,9 @@ function MobileManageInventoryAssets() {
                       {statusBadge(asset.current_status)}
                       {conditionBadge(asset.condition)}
                     </div>
-                    {asset.assignedJenazah && (
+                    {asset.assigned_to && (
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                        {translate("Assigned")}: {asset.assignedJenazah.name ?? `ID: ${asset.assignedJenazahId}`}
+                        {translate("Assigned")}: {asset.assigned_to}
                       </p>
                     )}
                   </div>

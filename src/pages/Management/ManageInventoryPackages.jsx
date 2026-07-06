@@ -8,10 +8,10 @@ import {
   Edit,
   Trash2,
   Boxes,
+  Eye,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  X,
 } from "lucide-react";
 import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,7 +56,7 @@ import {
   useInventoryPackageMutations,
   useGetAllInventoryItems,
 } from "@/hooks/useInventoryMutations";
-import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   ActiveInactiveStatus,
   InventoryItemType,
@@ -92,10 +92,6 @@ const statusOptions = [
   { value: ActiveInactiveStatus.ACTIVE,   label: translate("Active")   },
   { value: ActiveInactiveStatus.INACTIVE, label: translate("Inactive") },
 ];
-const itemTypeOptions = [
-  { value: InventoryItemType.ONE_TIME, label: translate("Consumable") },
-  { value: InventoryItemType.REUSABLE, label: translate("Reusable")   },
-];
 
 const defaultPackageField = {
   package_name: "",
@@ -105,7 +101,7 @@ const defaultPackageField = {
   health_condition: InventoryPackageHealthCondition.NORMAL,
   body_size: null,
   status: ActiveInactiveStatus.ACTIVE,
-  packageItems: [{ itemId: "", quantity_required: 1, item_type: InventoryItemType.ONE_TIME }],
+  packageItems: [],
 };
 
 function SortIcon({ field, current, order }) {
@@ -119,6 +115,124 @@ function statusBadge(status) {
     : <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">{translate("Inactive")}</span>;
 }
 
+// ── View Dialog ───────────────────────────────────────────────────────────────
+
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex justify-between items-start gap-4 py-1.5 border-b border-gray-100 dark:border-slate-700 last:border-0">
+      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0">{label}</span>
+      <span className="text-sm text-gray-900 dark:text-white text-right">{value ?? "—"}</span>
+    </div>
+  );
+}
+
+function PackageViewDialog({ pkg, open, onOpenChange, onEdit }) {
+  if (!pkg) return null;
+
+  const consumable = (pkg.packageItems ?? []).filter((pi) => pi.item_type === InventoryItemType.ONE_TIME);
+  const reusable   = (pkg.packageItems ?? []).filter((pi) => pi.item_type === InventoryItemType.REUSABLE);
+
+  const genderLabel = genderOptions.find((o) => o.value === pkg.gender_type)?.label ?? pkg.gender_type;
+  const ageLabel    = ageGroupOptions.find((o) => o.value === pkg.age_group)?.label ?? pkg.age_group;
+  const healthLabel = healthOptions.find((o) => o.value === pkg.health_condition)?.label ?? pkg.health_condition;
+  const sizeLabel   = bodySizeOptions.find((o) => o.value === pkg.body_size)?.label;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Boxes className="w-5 h-5 text-indigo-600" />
+            {pkg.package_name}
+          </DialogTitle>
+          <DialogDescription>{pkg.description || translate("No description")}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5">
+          {/* Details */}
+          <div className="rounded-lg border dark:border-slate-700 px-4 py-2">
+            <DetailRow label={translate("Status")}           value={statusBadge(pkg.status)} />
+            <DetailRow label={translate("Gender")}           value={genderLabel} />
+            <DetailRow label={translate("Age Group")}        value={ageLabel} />
+            <DetailRow label={translate("Health Condition")} value={healthLabel} />
+            {sizeLabel && <DetailRow label={translate("Body Size")} value={sizeLabel} />}
+          </div>
+
+          {/* Items */}
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              {translate("Package Items")}
+              <span className="ml-2 text-xs font-normal text-indigo-600 dark:text-indigo-400">
+                {pkg.packageItems?.length ?? 0} {translate("items")}
+              </span>
+            </p>
+
+            {consumable.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1.5">
+                  {translate("Consumable")}
+                </p>
+                <div className="space-y-1">
+                  {consumable.map((pi) => (
+                    <div key={pi.itemId} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-sm">
+                      <span className="text-gray-800 dark:text-gray-200">
+                        {pi.item?.item_name ?? `Item #${pi.itemId}`}
+                        {pi.item?.item_code && (
+                          <span className="text-xs text-gray-400 ml-1.5">({pi.item.item_code})</span>
+                        )}
+                      </span>
+                      <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950 px-2 py-0.5 rounded-full">
+                        ×{pi.quantity_required}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {reusable.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1.5">
+                  {translate("Reusable")}
+                </p>
+                <div className="space-y-1">
+                  {reusable.map((pi) => (
+                    <div key={pi.itemId} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-sm">
+                      <span className="text-gray-800 dark:text-gray-200">
+                        {pi.item?.item_name ?? `Item #${pi.itemId}`}
+                        {pi.item?.item_code && (
+                          <span className="text-xs text-gray-400 ml-1.5">({pi.item.item_code})</span>
+                        )}
+                      </span>
+                      <span className="text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950 px-2 py-0.5 rounded-full">
+                        ×{pi.quantity_required}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(pkg.packageItems?.length ?? 0) === 0 && (
+              <p className="text-sm text-gray-400 text-center py-3">{translate("No items in this package")}</p>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{translate("Close")}</Button>
+          {onEdit && (
+            <Button onClick={() => { onOpenChange(false); onEdit(); }} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Edit className="w-4 h-4 mr-2" />
+              {translate("Edit")}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ManageInventoryPackages() {
   const isNarrow = useIsNarrow();
   return isNarrow ? <MobileManageInventoryPackages /> : <ManageInventoryPackagesDesktop />;
@@ -126,148 +240,126 @@ export default function ManageInventoryPackages() {
 
 // ── Package Items Sub-form ────────────────────────────────────────────────────
 
-function PackageItemsForm({ control, errors, allItems }) {
-  const { fields, append, remove } = useFieldArray({ control, name: "packageItems" });
-  const watchedItems = useWatch({ control, name: "packageItems" });
-
-  const itemMap = Object.fromEntries((allItems ?? []).map((i) => [String(i.id), i]));
-
-  const handleItemSelect = (index, itemId, onChange) => {
-    onChange(Number(itemId));
-    const selectedItem = itemMap[itemId];
-    if (selectedItem) {
-      // Auto-fill item_type from the selected item's type
-      const currentFields = watchedItems ?? [];
-      // We use Controller for item_type, so we set via form setValue — handled in onChange below
-    }
-  };
-
+function ItemCheckboxSection({ title, items, value, onToggle, onQtyChange }) {
+  if (!items.length) return null;
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-semibold">{translate("Package Items")} <span className="text-red-500">*</span></Label>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => append({ itemId: "", quantity_required: 1, item_type: InventoryItemType.ONE_TIME })}
-        >
-          <Plus className="w-3 h-3 mr-1" />
-          {translate("Add Item")}
-        </Button>
-      </div>
-
-      {errors?.packageItems && !Array.isArray(errors.packageItems) && (
-        <p className="text-xs text-red-500">{errors.packageItems.message}</p>
-      )}
-
-      <div className="border rounded-lg dark:border-slate-600 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50 dark:bg-slate-700">
-              <TableHead>{translate("Item")}</TableHead>
-              <TableHead className="w-24 text-center">{translate("Qty")}</TableHead>
-              <TableHead className="w-36">{translate("Type")}</TableHead>
-              <TableHead className="w-10" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fields.map((field, index) => {
-              const selectedItemId = watchedItems?.[index]?.itemId;
-              const selectedItem = selectedItemId ? itemMap[String(selectedItemId)] : null;
-
-              return (
-                <TableRow key={field.id}>
-                  {/* Item select */}
-                  <TableCell className="py-2">
-                    <Controller
-                      name={`packageItems.${index}.itemId`}
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: f }) => (
-                        <Select
-                          value={String(f.value || "")}
-                          onValueChange={(val) => {
-                            f.onChange(Number(val));
-                          }}
-                        >
-                          <SelectTrigger className="h-8 text-sm dark:border-slate-600 dark:bg-slate-800">
-                            <SelectValue placeholder={translate("Select item")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(allItems ?? []).map((item) => (
-                              <SelectItem key={item.id} value={String(item.id)}>
-                                {item.item_name}
-                                {item.item_code ? ` (${item.item_code})` : ""}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {errors?.packageItems?.[index]?.itemId && (
-                      <p className="text-xs text-red-500 mt-0.5">{translate("Required")}</p>
-                    )}
-                  </TableCell>
-
-                  {/* Quantity */}
-                  <TableCell className="py-2">
-                    <Controller
-                      name={`packageItems.${index}.quantity_required`}
-                      control={control}
-                      rules={{ required: true, min: 1 }}
-                      render={({ field: f }) => (
-                        <Input
-                          type="number"
-                          min={1}
-                          className="h-8 text-sm text-center dark:border-slate-600 dark:bg-slate-800"
-                          value={f.value}
-                          onChange={(e) => f.onChange(Number(e.target.value))}
-                        />
-                      )}
-                    />
-                  </TableCell>
-
-                  {/* Item type */}
-                  <TableCell className="py-2">
-                    <Controller
-                      name={`packageItems.${index}.item_type`}
-                      control={control}
-                      render={({ field: f }) => (
-                        <Select value={f.value} onValueChange={f.onChange}>
-                          <SelectTrigger className="h-8 text-sm dark:border-slate-600 dark:bg-slate-800">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {itemTypeOptions.map((o) => (
-                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </TableCell>
-
-                  {/* Remove */}
-                  <TableCell className="py-2 text-center">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      disabled={fields.length === 1}
-                      onClick={() => remove(index)}
-                    >
-                      <X className="w-3 h-3 text-red-500" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 px-1 mb-2">
+        {title}
+      </p>
+      <div className="space-y-1">
+        {items.map((item) => {
+          const checked = value.some((v) => v.itemId === item.id);
+          const qty = value.find((v) => v.itemId === item.id)?.quantity_required ?? 1;
+          return (
+            <div
+              key={item.id}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors cursor-pointer
+                ${checked
+                  ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 dark:border-indigo-500"
+                  : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
+                }`}
+              onClick={() => onToggle(item)}
+            >
+              <input
+                type="checkbox"
+                id={`item-${item.id}`}
+                checked={checked}
+                onChange={() => onToggle(item)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0"
+              />
+              <label
+                htmlFor={`item-${item.id}`}
+                className="flex-1 text-sm cursor-pointer select-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {item.item_name}
+                {item.item_code && (
+                  <span className="text-xs text-gray-400 ml-1.5">({item.item_code})</span>
+                )}
+              </label>
+              {checked && (
+                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-xs text-gray-500 shrink-0">{translate("Qty")}:</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={qty}
+                    onChange={(e) => onQtyChange(item.id, Math.max(1, Number(e.target.value)))}
+                    className="h-7 w-16 text-sm text-center dark:border-slate-600 dark:bg-slate-800"
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
+  );
+}
+
+function PackageItemsForm({ control, errors, allItems }) {
+  const consumableItems = (allItems ?? []).filter((i) => i.item_type === InventoryItemType.ONE_TIME);
+  const reusableItems   = (allItems ?? []).filter((i) => i.item_type === InventoryItemType.REUSABLE);
+
+  return (
+    <Controller
+      name="packageItems"
+      control={control}
+      rules={{ validate: (v) => (v && v.length > 0) || translate("At least one item required") }}
+      render={({ field }) => {
+        const value = field.value ?? [];
+
+        const toggle = (item) => {
+          if (value.some((v) => v.itemId === item.id)) {
+            field.onChange(value.filter((v) => v.itemId !== item.id));
+          } else {
+            field.onChange([...value, { itemId: item.id, quantity_required: 1, item_type: item.item_type }]);
+          }
+        };
+
+        const setQty = (itemId, qty) => {
+          field.onChange(value.map((v) => (v.itemId === itemId ? { ...v, quantity_required: qty } : v)));
+        };
+
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold">
+                {translate("Package Items")} <span className="text-red-500">*</span>
+              </Label>
+              {value.length > 0 && (
+                <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                  {value.length} {translate("selected")}
+                </span>
+              )}
+            </div>
+
+            {errors?.packageItems && !Array.isArray(errors.packageItems) && (
+              <p className="text-xs text-red-500">{errors.packageItems.message}</p>
+            )}
+
+            <div className="border rounded-lg dark:border-slate-600 p-3 space-y-4 max-h-72 overflow-y-auto">
+              <ItemCheckboxSection
+                title={translate("Consumable")}
+                items={consumableItems}
+                value={value}
+                onToggle={toggle}
+                onQtyChange={setQty}
+              />
+              <ItemCheckboxSection
+                title={translate("Reusable")}
+                items={reusableItems}
+                value={value}
+                onToggle={toggle}
+                onQtyChange={setQty}
+              />
+            </div>
+          </div>
+        );
+      }}
+    />
   );
 }
 
@@ -299,6 +391,7 @@ function ManageInventoryPackagesDesktop() {
   const [editingPackage, setEditingPackage]     = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [packageToDelete, setPackageToDelete]   = useState(null);
+  const [viewingPackage, setViewingPackage]     = useState(null);
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultPackageField,
@@ -362,7 +455,7 @@ function ManageInventoryPackagesDesktop() {
       status: pkg.status,
       packageItems: pkg.packageItems?.length
         ? pkg.packageItems.map((pi) => ({ itemId: pi.itemId, quantity_required: pi.quantity_required, item_type: pi.item_type }))
-        : [{ itemId: "", quantity_required: 1, item_type: InventoryItemType.ONE_TIME }],
+        : [],
     });
     setIsDialogOpen(true);
   };
@@ -504,6 +597,9 @@ function ManageInventoryPackagesDesktop() {
                     </TableCell>
                     <TableCell className="text-center">{statusBadge(pkg.status)}</TableCell>
                     <TableCell className="text-center">
+                      <Button variant="ghost" size="sm" onClick={() => setViewingPackage(pkg)}>
+                        <Eye className="w-4 h-4 text-gray-500" />
+                      </Button>
                       {hasAdminAccess && (
                         <Button variant="ghost" size="sm" onClick={() => openEditDialog(pkg)}>
                           <Edit className="w-4 h-4" />
@@ -530,6 +626,13 @@ function ManageInventoryPackagesDesktop() {
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={(n) => { setItemsPerPage(n); setSearchParams((p) => { const np = new URLSearchParams(p); np.set("page", "1"); return np; }); }}
         totalItems={total}
+      />
+
+      <PackageViewDialog
+        pkg={viewingPackage}
+        open={!!viewingPackage}
+        onOpenChange={(o) => { if (!o) setViewingPackage(null); }}
+        onEdit={hasAdminAccess ? () => openEditDialog(viewingPackage) : null}
       />
 
       {/* Add / Edit Dialog */}
@@ -605,6 +708,7 @@ function MobileManageInventoryPackages() {
   const [editingPackage, setEditingPackage]     = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [packageToDelete, setPackageToDelete]   = useState(null);
+  const [viewingPackage, setViewingPackage]     = useState(null);
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     defaultValues: defaultPackageField,
@@ -700,6 +804,9 @@ function MobileManageInventoryPackages() {
                     </div>
                   </div>
                   <div className="flex gap-1 ml-2">
+                    <Button variant="ghost" size="sm" onClick={() => setViewingPackage(pkg)}>
+                      <Eye className="w-4 h-4 text-gray-500" />
+                    </Button>
                     {hasAdminAccess && (
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(pkg)}>
                         <Edit className="w-4 h-4" />
@@ -719,6 +826,13 @@ function MobileManageInventoryPackages() {
       )}
 
       <Pagination currentPage={urlPage} totalPages={totalPages} onPageChange={(p) => setSearchParams((prev) => { const n = new URLSearchParams(prev); n.set("page", String(p)); return n; })} itemsPerPage={itemsPerPage} totalItems={total} />
+
+      <PackageViewDialog
+        pkg={viewingPackage}
+        open={!!viewingPackage}
+        onOpenChange={(o) => { if (!o) setViewingPackage(null); }}
+        onEdit={hasAdminAccess ? () => openEditDialog(viewingPackage) : null}
+      />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto dark:bg-slate-800">

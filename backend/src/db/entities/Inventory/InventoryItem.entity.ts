@@ -57,11 +57,11 @@ export class InventoryItem {
   @Column("int", { default: 0 })
   minimum_level!: number;
 
-  @Column("int", { nullable: true })
-  maximum_level?: number | null;
+  // @Column("int", { nullable: true })
+  // maximum_level?: number | null;
 
-  @Column("decimal", { precision: 10, scale: 2, nullable: true })
-  unit_cost?: number | null;
+  // @Column("decimal", { precision: 10, scale: 2, nullable: true })
+  // unit_cost?: number | null;
 
   @Index()
   @Column({

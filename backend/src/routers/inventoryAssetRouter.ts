@@ -84,7 +84,7 @@ export const inventoryAssetRouter = router({
   getInUse: protectedProcedure.query(async () => {
     return await AppDataSource.getRepository(InventoryAsset).find({
       where: { current_status: InventoryAssetStatus.IN_USE },
-      relations: ["item", "assignedJenazah"],
+      relations: ["item"],
       order: { last_used_date: "DESC" },
     });
   }),
