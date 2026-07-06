@@ -17,6 +17,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  Eye,
 } from "lucide-react";
 import { ImageViewer } from "@/components/ImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,7 +71,8 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
+import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 
 export default function ManageDeadPersons() {
@@ -80,6 +82,7 @@ export default function ManageDeadPersons() {
 }
 
 function ManageDeadPersonsDesktop() {
+  const navigate = useNavigate();
   const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
     useAdminAccess();
 
@@ -572,6 +575,14 @@ function ManageDeadPersonsDesktop() {
                       />
                     </TableCell>
                     <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`${createPageUrl("DetailJenazah")}?id=${person.id}`)}
+                        title="Lihat Detail"
+                      >
+                        <Eye className="w-4 h-4 text-emerald-600" />
+                      </Button>
                       {canEdit && (
                         <Button
                           variant="ghost"
