@@ -524,10 +524,6 @@ function ManageQariahMemberDesktop() {
     setNotifyConfirmOpen(true);
   };
 
-  const selectedFilterMosqueName = filterMosqueId
-    ? (filterMosques.find((m) => m.id === filterMosqueId)?.name ?? "")
-    : "";
-
   const isPending =
     createMutation.isPending ||
     updateMutation.isPending ||
@@ -597,29 +593,23 @@ function ManageQariahMemberDesktop() {
           {
             type: "select2",
             key: "mosque",
-            value: filterMosqueId ? String(filterMosqueId) : "",
+            value: String(filterMosqueId),
             onChange: (v) => setFilterMosqueId(v ? Number(v) : null),
             label: translate("Mosque"),
             searchPlaceholder: translate("Search mosque..."),
             emptyMessage: translate("No mosque found."),
-            options: [
-              { value: "", label: translate("All Mosques") },
-              ...filterMosques.map((m) => ({
-                value: String(m.id),
-                label: m.name,
-              })),
-            ],
+            options: filterMosques.map((m) => ({
+              value: String(m.id),
+              label: m.name,
+            })),
           },
           {
             type: "select",
             key: "isApproved",
-            value:
-              filterIsApproved === null ? "all" : String(filterIsApproved),
-            onChange: (v) =>
-              setFilterIsApproved(v === "all" ? null : v === "true"),
+            value: String(filterIsApproved),
+            onChange: (v) => setFilterIsApproved(v === "true"),
             label: translate("Status"),
             options: [
-              { value: "all", label: translate("All Status") },
               { value: "false", label: translate("Pending") },
               { value: "true", label: translate("Approved") },
             ],
@@ -627,13 +617,10 @@ function ManageQariahMemberDesktop() {
           {
             type: "select",
             key: "isDeceased",
-            value:
-              filterIsDeceased === null ? "all" : String(filterIsDeceased),
-            onChange: (v) =>
-              setFilterIsDeceased(v === "all" ? null : v === "true"),
+            value: String(filterIsDeceased),
+            onChange: (v) => setFilterIsDeceased(v === "true"),
             label: translate("Deceased"),
             options: [
-              { value: "all", label: translate("All Members") },
               { value: "false", label: translate("Living") },
               { value: "true", label: translate("Arwah") },
             ],

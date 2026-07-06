@@ -15,6 +15,9 @@ export class JenazahCase {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column("varchar", { length: 255, nullable: true })
+  referenceno?: string;
+
   @Column("integer", { nullable: true })
   mosqueId?: number | null;
 
@@ -46,7 +49,7 @@ export class JenazahCase {
 
   @Column("text", { nullable: true })
   deathconfirmationphotourl?: string | null;
-  
+
   @Column("text", { nullable: true })
   policereportphotourl?: string | null;
 

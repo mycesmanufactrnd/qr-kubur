@@ -4,71 +4,113 @@ import { AppDataSource } from "../datasource.js";
 import { RunningNo } from "../db/entities.js";
 
 export const runningNoRouter = router({
-  createQuotationRunningNo: publicProcedure
-    .mutation(async () => {
-      return AppDataSource.transaction(async (manager) => {
-        let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+  createQuotationRunningNo: publicProcedure.mutation(async () => {
+    return AppDataSource.transaction(async (manager) => {
+      let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
-        if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
-          await manager.save(running);
-        }
-
-        running.quotation = (running.quotation || 0) + 1;
+      if (!running) {
+        running = manager.create(RunningNo, {
+          donation: 0,
+          tahlil: 0,
+          quotation: 0,
+          deathcharity: 0,
+          jenazahcase: 0,
+        });
         await manager.save(running);
+      }
 
-        return running.quotation;
-      });
-    }),
+      running.quotation = (running.quotation || 0) + 1;
+      await manager.save(running);
 
-  createDeathCharityRunningNo: publicProcedure
-    .mutation(async () => {
-      return AppDataSource.transaction(async (manager) => {
-        let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+      return running.quotation;
+    });
+  }),
 
-        if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
-          await manager.save(running);
-        }
+  createDeathCharityRunningNo: publicProcedure.mutation(async () => {
+    return AppDataSource.transaction(async (manager) => {
+      let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
-        running.deathcharity = (running.deathcharity || 0) + 1;
+      if (!running) {
+        running = manager.create(RunningNo, {
+          donation: 0,
+          tahlil: 0,
+          quotation: 0,
+          deathcharity: 0,
+          jenazahcase: 0,
+        });
         await manager.save(running);
+      }
 
-        return running.deathcharity;
-      });
-    }),
+      running.deathcharity = (running.deathcharity || 0) + 1;
+      await manager.save(running);
 
-  createDonationRunningNo: publicProcedure
-    .mutation(async () => {
-      return AppDataSource.transaction(async (manager) => {
-        let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+      return running.deathcharity;
+    });
+  }),
 
-        if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
-          await manager.save(running);
-        }
+  createDonationRunningNo: publicProcedure.mutation(async () => {
+    return AppDataSource.transaction(async (manager) => {
+      let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
-        running.donation = (running.donation || 0) + 1;
+      if (!running) {
+        running = manager.create(RunningNo, {
+          donation: 0,
+          tahlil: 0,
+          quotation: 0,
+          deathcharity: 0,
+          jenazahcase: 0,
+        });
         await manager.save(running);
+      }
 
-        return running.donation;
-      });
-    }),
+      running.donation = (running.donation || 0) + 1;
+      await manager.save(running);
 
-  createTahlilRunningNo: publicProcedure
-    .mutation(async () => {
-      return AppDataSource.transaction(async (manager) => {
-        let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+      return running.donation;
+    });
+  }),
 
-        if (!running) {
-          running = manager.create(RunningNo, { donation: 0, tahlil: 0, quotation: 0, deathcharity: 0 });
-          await manager.save(running);
-        }
+  createTahlilRunningNo: publicProcedure.mutation(async () => {
+    return AppDataSource.transaction(async (manager) => {
+      let running = await manager.findOne(RunningNo, { where: { id: 1 } });
 
-        running.tahlil = (running.tahlil || 0) + 1;
+      if (!running) {
+        running = manager.create(RunningNo, {
+          donation: 0,
+          tahlil: 0,
+          quotation: 0,
+          deathcharity: 0,
+          jenazahcase: 0,
+        });
         await manager.save(running);
+      }
 
-        return running.tahlil;
-      });
-    }),
+      running.tahlil = (running.tahlil || 0) + 1;
+      await manager.save(running);
+
+      return running.tahlil;
+    });
+  }),
+
+  createJenazahCaseRunningNo: publicProcedure.mutation(async () => {
+    return AppDataSource.transaction(async (manager) => {
+      let running = await manager.findOne(RunningNo, { where: { id: 1 } });
+
+      if (!running) {
+        running = manager.create(RunningNo, {
+          donation: 0,
+          tahlil: 0,
+          quotation: 0,
+          deathcharity: 0,
+          jenazahcase: 0,
+        });
+        await manager.save(running);
+      }
+
+      running.jenazahcase = (running.jenazahcase || 0) + 1;
+      await manager.save(running);
+
+      return running.jenazahcase;
+    });
+  }),
 });
