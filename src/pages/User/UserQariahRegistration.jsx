@@ -61,6 +61,11 @@ export default function UserQariahRegistration() {
     const icnumber = data.icnumber.replace(/-/g, "");
     const mosqueId = data.mosqueId ? Number(data.mosqueId) : null;
 
+    // Request notification permission first, while the click's user-activation
+    // is still active — some browsers (e.g. Edge) silently drop the prompt into
+    // a "quiet"/blocked state if requestPermission() fires after an await.
+    const token = await initFCM();
+
     await registerMutation.mutateAsync({
       fullname: data.fullname,
       icnumber,
@@ -70,7 +75,6 @@ export default function UserQariahRegistration() {
       mosque: mosqueId ? { id: mosqueId } : null,
     });
 
-    const token = await initFCM();
     if (token) {
       localStorage.setItem("fcmQariahToken", token);
       saveQariahDeviceToken.mutate({
