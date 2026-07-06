@@ -129,7 +129,8 @@ export const deathCharityMemberRouter = router({
     }),
 
   delete: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
-    const deathCharityMemberRepo = AppDataSource.getRepository(DeathCharityMember);
+    const deathCharityMemberRepo =
+      AppDataSource.getRepository(DeathCharityMember);
 
     const member = await deathCharityMemberRepo.findOne({
       where: { id: input },
@@ -227,33 +228,41 @@ export const deathCharityMemberRouter = router({
       } = input;
       const repo = AppDataSource.getRepository(DeathCharityMember);
       const query = repo
-        .createQueryBuilder("m")
-        .leftJoinAndSelect("m.organisation", "organisation")
-        .leftJoinAndSelect("m.mosque", "mosque")
-        .where("m.organisationId IS NOT NULL");
+        .createQueryBuilder("member")
+        .leftJoinAndSelect("member.organisation", "organisation")
+        .leftJoinAndSelect("member.mosque", "mosque")
+        .leftJoinAndSelect("member.deadperson", "deadperson")
+        .leftJoinAndSelect("deadperson.grave", "deadpersongrave")
+        .where("member.organisationId IS NOT NULL");
 
       if (filterFullName?.trim()) {
-        query.andWhere("m.fullname ILIKE :name", {
+        query.andWhere("member.fullname ILIKE :name", {
           name: `%${filterFullName.trim()}%`,
         });
       }
       if (filterOrganisationId) {
-        query.andWhere("m.organisationId = :organisationId", {
+        query.andWhere("member.organisationId = :organisationId", {
           organisationId: filterOrganisationId,
         });
       }
       if (filterMosqueId) {
-        query.andWhere("m.mosqueId = :mosqueId", { mosqueId: filterMosqueId });
+        query.andWhere("member.mosqueId = :mosqueId", {
+          mosqueId: filterMosqueId,
+        });
       }
       if (filterIsDeceased !== undefined && filterIsDeceased !== null) {
-        query.andWhere("m.isdeceased = :isdeceased", { isdeceased: filterIsDeceased });
+        query.andWhere("member.isdeceased = :isdeceased", {
+          isdeceased: filterIsDeceased,
+        });
       }
       if (filterIsApproved !== undefined && filterIsApproved !== null) {
-        query.andWhere("m.isapproved = :isapproved", { isapproved: filterIsApproved });
+        query.andWhere("member.isapproved = :isapproved", {
+          isapproved: filterIsApproved,
+        });
       }
 
       query
-        .orderBy("m.createdat", "DESC")
+        .orderBy("member.createdat", "DESC")
         .skip((page - 1) * pageSize)
         .take(pageSize);
       const [items, total] = await query.getManyAndCount();
@@ -265,6 +274,7 @@ export const deathCharityMemberRouter = router({
       z.object({
         state: z.string().optional().nullable(),
         organisationId: z.number().optional().nullable(),
+        canArrangeFuneral: z.boolean().optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -277,6 +287,9 @@ export const deathCharityMemberRouter = router({
         query.andWhere("mosque.organisationId = :orgId", {
           orgId: input.organisationId,
         });
+      }
+      if (input.canArrangeFuneral) {
+        query.andWhere("mosque.canarrangefuneral = true");
       }
       return query
         .select(["mosque.id", "mosque.name", "mosque.state", "mosque.address"])
