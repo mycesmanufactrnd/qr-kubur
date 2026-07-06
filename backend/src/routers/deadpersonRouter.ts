@@ -1,9 +1,13 @@
 // @ts-nocheck
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
-import { DeadPerson } from "../db/entities.js";
+import { DeadPerson, DeathCharityMember } from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { deadPersonSchema } from "../schemas/deadpersonSchema.js";
+
+const upsertForQariahSchema = deadPersonSchema.extend({
+  deathCharityMemberId: z.number().optional().nullable(),
+});
 
 const stripIcDashes = (value) =>
   typeof value === "string" ? value.replace(/-/g, "").trim() : value;
@@ -131,29 +135,37 @@ export const deadPersonRouter = router({
     }),
 
   upsertForQariah: protectedProcedure
-    .input(deadPersonSchema)
+    .input(upsertForQariahSchema)
     .mutation(async ({ input, ctx }) => {
       if (!ctx.user?.id) throw new Error("Unauthorized");
       const repo = AppDataSource.getRepository(DeadPerson);
 
-      const icnumber = stripIcDashes(input.icnumber);
+      const { deathCharityMemberId, ...data } = input;
+      const icnumber = stripIcDashes(data.icnumber);
 
       let existing: DeadPerson | null = null;
       if (icnumber) {
         existing = await repo.findOne({ where: { icnumber } });
       }
 
-      if (existing) {
-        repo.merge(existing, { ...input, icnumber });
-        return await repo.save(existing);
+      const savedPerson = existing
+        ? await repo.save(repo.merge(existing, { ...data, icnumber }))
+        : await repo.save(
+            repo.create({
+              ...data,
+              icnumber,
+              createdbyId: Number(ctx.user.id),
+            }),
+          );
+
+      if (deathCharityMemberId) {
+        await AppDataSource.getRepository(DeathCharityMember).update(
+          deathCharityMemberId,
+          { deadpersonId: savedPerson.id },
+        );
       }
 
-      const person = repo.create({
-        ...input,
-        icnumber,
-        createdbyId: Number(ctx.user.id),
-      });
-      return await repo.save(person);
+      return savedPerson;
     }),
 
   update: protectedProcedure
