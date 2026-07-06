@@ -25,6 +25,7 @@ import {
   XCircle,
   AlertTriangle,
   MapPin,
+  Download,
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
@@ -32,6 +33,8 @@ import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultJenazahRequestField } from "@/utils/defaultformfields";
 import { translate } from "@/utils/translations";
+import { getStoredGoogleUser } from "@/utils/auth";
+import { generateJenazahCasePdf } from "@/components/PDF/JenazahCase";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
@@ -90,6 +93,7 @@ export default function JenazahEmergencyRequest() {
   const [searchedIc, setSearchedIc] = useState("");
   const [currentCoords, setCurrentCoords] = useState(null);
   const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [submittedCase, setSubmittedCase] = useState(null);
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
@@ -147,7 +151,6 @@ export default function JenazahEmergencyRequest() {
   const createCase = trpc.jenazahCase.create.useMutation({
     onSuccess: () => {
       showSuccess("Permohonan jenazah telah dihantar.");
-      navigate(createPageUrl("JenazahEmergency"));
     },
     onError: (err) => showApiError(err),
   });
@@ -257,19 +260,110 @@ export default function JenazahEmergencyRequest() {
       heirphoneno: data.heirphoneno?.trim() || null,
     };
 
-    createCase.mutate({
-      mosqueId: mosque?.id ?? null,
-      qariahmemberid: memberResult?.id ?? null,
-      details,
-      userremarks: data.userremarks?.trim() || null,
-      deathconfirmationphotourl: data.deathconfirmationphotourl || null,
-      policereportphotourl: data.policereportphotourl || null,
-      supportingphotourl: data.supportingphotourl || null,
-    });
+    const googleUser = getStoredGoogleUser();
+
+    createCase.mutate(
+      {
+        mosqueId: mosque?.id ?? null,
+        qariahmemberid: memberResult?.id ?? null,
+        details,
+        userremarks: data.userremarks?.trim() || null,
+        deathconfirmationphotourl: data.deathconfirmationphotourl || null,
+        policereportphotourl: data.policereportphotourl || null,
+        supportingphotourl: data.supportingphotourl || null,
+        googleuserId: googleUser?.id ?? null,
+      },
+      {
+        onSuccess: (savedCase) => {
+          setSubmittedCase({
+            referenceno: savedCase?.referenceno,
+            fullname: data.fullname,
+            icnumber: data.icnumber,
+            phone: data.phone,
+            heirname: data.heirname,
+            heirphoneno: data.heirphoneno,
+            burialdate: data.burialdate,
+            mosqueName: mosque?.name,
+            mosqueAddress: mosque?.address,
+          });
+        },
+      },
+    );
+  };
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!submittedCase) return;
+    setIsGeneratingPdf(true);
+    try {
+      await generateJenazahCasePdf(submittedCase);
+    } catch {
+      showApiError({ message: "Gagal menjana PDF." });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const isSearching = searchQuery.isFetching;
   const hasSearched = searchedIc !== "";
+
+  if (submittedCase) {
+    return (
+      <div className="min-h-screen space-y-3 pb-2">
+        <BackNavigation title="Permohonan Pengurusan Jenazah" />
+        <div className="px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-6 pb-10">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+            Permohonan Berjaya Dihantar
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">
+            Permohonan pengurusan jenazah anda telah diterima dan sedang
+            diproses oleh pihak masjid.
+          </p>
+
+          <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+              No. Rujukan
+            </p>
+            <p className="text-lg font-bold font-mono tracking-widest text-emerald-600 dark:text-emerald-400">
+              {submittedCase.referenceno}
+            </p>
+          </div>
+
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Sila simpan no. rujukan ini untuk semakan status permohonan anda.
+          </p>
+
+          <div className="w-full flex flex-col gap-2 pt-2">
+            <Button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+            >
+              {isGeneratingPdf ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              Muat Turun PDF
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+            >
+              Kembali
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen space-y-3 pb-2">
