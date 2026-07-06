@@ -4,11 +4,12 @@ import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import TextInputForm from "@/components/forms/TextInputForm";
+import SelectForm from "@/components/forms/SelectForm";
+import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import MultipleFileUploadForm from "@/components/forms/MultipleFileUploadForm";
 import { appendCurrentUserToFormData, createPageUrl } from "@/utils";
 import BackNavigation from "@/components/BackNavigation";
-import NoDataCardComponent from "@/components/NoDataCardComponent";
 import {
   Select,
   SelectContent,
@@ -27,14 +28,46 @@ import {
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-import { CARE_SCENARIOS } from "@/utils/enums";
+import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
+import { useLocationContext } from "@/providers/LocationProvider";
+import { defaultJenazahEmergencyRequest } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
 export default function JenazahEmergencyRequest() {
   const location = useLocation();
   const navigate = useNavigate();
-  const mosque = location.state?.mosque ?? null;
+  const mosqueFromNav = location.state?.mosque ?? null;
+  const isMosqueLocked = !!mosqueFromNav;
+  const [mosque, setMosque] = useState(mosqueFromNav);
+  const { userState } = useLocationContext();
+
+  const {
+    control: pickerControl,
+    watch: watchPicker,
+    setValue: setPickerValue,
+  } = useForm({ defaultValues: { state: "", mosqueId: "" } });
+
+  useEffect(() => {
+    if (userState && STATES_MY.includes(userState)) {
+      setPickerValue("state", userState);
+    }
+  }, [userState, setPickerValue]);
+
+  const pickerState = watchPicker("state");
+  const pickerMosqueId = watchPicker("mosqueId");
+
+  const { data: pickerMosques = [], isLoading: pickerMosqueLoading } =
+    trpc.deathCharityMember.getMosquesByState.useQuery(
+      { state: pickerState || null, canArrangeFuneral: true },
+      { enabled: !isMosqueLocked },
+    );
+
+  useEffect(() => {
+    if (!pickerMosqueId) return;
+    const picked = pickerMosques.find((m) => String(m.id) === pickerMosqueId);
+    if (picked) setMosque(picked);
+  }, [pickerMosqueId, pickerMosques]);
 
   const {
     control,
@@ -44,18 +77,7 @@ export default function JenazahEmergencyRequest() {
     trigger,
     formState: { errors },
   } = useForm({
-    defaultValues: {
-      icSearch: "",
-      fullname: "",
-      icnumber: "",
-      phone: "",
-      userremarks: "",
-      deathconfirmationphotourl: "",
-      policereportphotourl: "",
-      supportingphotourl: "",
-      burialdate: "",
-      careScenarioOther: "",
-    },
+    defaultValues: defaultJenazahEmergencyRequest,
   });
 
   const icSearch = watch("icSearch");
@@ -70,7 +92,9 @@ export default function JenazahEmergencyRequest() {
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
-      showApiError({ message: "Peranti ini tidak menyokong perkongsian lokasi." });
+      showApiError({
+        message: "Peranti ini tidak menyokong perkongsian lokasi.",
+      });
       return;
     }
     setFetchingLocation(true);
@@ -244,19 +268,6 @@ export default function JenazahEmergencyRequest() {
   const isSearching = searchQuery.isFetching;
   const hasSearched = searchedIc !== "";
 
-  if (!mosque) {
-    return (
-      <div className="min-h-screen space-y-3 pb-2">
-        <BackNavigation title="Permohonan Pengurusan Jenazah" />
-        <NoDataCardComponent
-          isPage
-          title="Tiada Masjid Dipilih"
-          description="Sila pilih masjid daripada senarai kecemasan jenazah terlebih dahulu."
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen space-y-3 pb-2">
       <BackNavigation title="Permohonan Pengurusan Jenazah" />
@@ -265,21 +276,74 @@ export default function JenazahEmergencyRequest() {
         onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="px-4 space-y-5 max-w-lg mx-auto w-full"
       >
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
-            <Building2 className="w-3 h-3" /> Masjid Dipilih
-          </p>
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-            {mosque.name}
-          </p>
-          {mosque.address && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {mosque.address}
+        {isMosqueLocked ? (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+              <Building2 className="w-3 h-3" /> Masjid Dipilih
             </p>
-          )}
-        </div>
+            <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+              {mosque.name}
+            </p>
+            {mosque.address && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {mosque.address}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Pilih negeri dan masjid yang menyediakan perkhidmatan pengurusan
+                jenazah untuk meneruskan permohonan.
+              </p>
+            </div>
 
-        {pageStep === 1 && (
+            <SelectForm
+              name="state"
+              control={pickerControl}
+              label="Negeri"
+              placeholder="Pilih negeri"
+              options={STATES_MY}
+              onValueChange={() => setPickerValue("mosqueId", "")}
+            />
+
+            <Select2Form
+              name="mosqueId"
+              control={pickerControl}
+              label="Masjid"
+              options={pickerMosques.map((m) => ({
+                value: String(m.id),
+                label: m.name,
+              }))}
+              disabled={!pickerState}
+              loading={pickerMosqueLoading}
+              disabledMessage="Pilih negeri dahulu"
+              placeholder="Cari masjid..."
+              searchPlaceholder="Cari masjid..."
+              emptyMessage="Tiada masjid tersedia untuk pengurusan jenazah di negeri ini"
+            />
+
+            {mosque && (
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                  <Building2 className="w-3 h-3" /> Masjid Dipilih
+                </p>
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {mosque.name}
+                </p>
+                {mosque.address && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {mosque.address}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {mosque && pageStep === 1 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
               Lokasi & Prosedur
@@ -329,8 +393,8 @@ export default function JenazahEmergencyRequest() {
                     <span className="text-red-500 ml-1">*</span>
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Kongsikan lokasi GPS anda supaya masjid dapat mencari
-                    lokasi jenazah dengan lebih tepat.
+                    Kongsikan lokasi GPS anda supaya masjid dapat mencari lokasi
+                    jenazah dengan lebih tepat.
                   </p>
                   <Button
                     type="button"
@@ -379,7 +443,7 @@ export default function JenazahEmergencyRequest() {
                       <SelectValue placeholder="Pilih pengurusan jenazah" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CARE_SCENARIOSNARIOS.map((s) => (
+                      {CARE_SCENARIOS.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
                         </SelectItem>
@@ -446,7 +510,7 @@ export default function JenazahEmergencyRequest() {
           </>
         )}
 
-        {pageStep === 2 && (
+        {mosque && pageStep === 2 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
               Maklumat Jenazah
@@ -584,48 +648,50 @@ export default function JenazahEmergencyRequest() {
           </>
         )}
 
-        <div className="flex gap-2 pt-2 pb-6">
-          {pageStep === 1 ? (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(createPageUrl("JenazahEmergency"))}
-                className="flex-1"
-              >
-                Batal
-              </Button>
-              <Button
-                type="button"
-                onClick={handleNextStep}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-              >
-                Seterusnya
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPageStep(1)}
-                className="flex-1"
-              >
-                Kembali
-              </Button>
-              <Button
-                type="submit"
-                disabled={createCase.isPending || !hasSearched || isSearching}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
-              >
-                {createCase.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                Hantar Permohonan
-              </Button>
-            </>
-          )}
-        </div>
+        {mosque && (
+          <div className="flex gap-2 pt-2 pb-6">
+            {pageStep === 1 ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+                  className="flex-1"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                >
+                  Seterusnya
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPageStep(1)}
+                  className="flex-1"
+                >
+                  Kembali
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createCase.isPending || !hasSearched || isSearching}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
+                >
+                  {createCase.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Hantar Permohonan
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </form>
     </div>
   );
