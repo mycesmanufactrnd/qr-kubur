@@ -95,7 +95,7 @@ export function useDeathCharityMemberMutations() {
   }
 }
 
-export function useGetMemberByDeathCharity(deathCharityId) {
+export function useGetMemberByDeathCharity(deathCharityId: any) {
   const { isSuperAdmin } = useAdminAccess();
 
   return trpc.deathCharityMember.getMemberByDeathCharity.useQuery(
@@ -104,7 +104,7 @@ export function useGetMemberByDeathCharity(deathCharityId) {
   );
 }
 
-export function useGetDependentsByMember(memberId) {
+export function useGetDependentsByMember(memberId: any) {
   const { isSuperAdmin } = useAdminAccess();
 
   return trpc.deathCharityMember.getDependentsByMember.useQuery(

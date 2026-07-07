@@ -225,6 +225,8 @@ export default function MobileManageActivityPosts() {
   const [itemsPerPage] = useState(10);
 
   const [appliedTitle, setAppliedTitle] = useState("");
+  const [appliedMosqueId, setAppliedMosqueId] = useState(null);
+  const [appliedIsPublished, setAppliedIsPublished] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
@@ -239,6 +241,8 @@ export default function MobileManageActivityPosts() {
       page,
       pageSize: itemsPerPage,
       filterTitle: appliedTitle || undefined,
+      filterMosqueId: appliedMosqueId,
+      filterIsPublished: appliedIsPublished,
     });
 
   const { data: organisationMosques = [], isLoading: isMosquesLoading } =
@@ -370,9 +374,35 @@ export default function MobileManageActivityPosts() {
                   type: "text",
                   searchColumn: "title",
                 },
+                ...(isOrganisationAdmin
+                  ? [
+                      {
+                        label: translate("Mosque"),
+                        type: "select",
+                        searchColumn: "mosqueId",
+                        options: organisationMosques.map((m) => ({
+                          id: m.id,
+                          name: m.name,
+                        })),
+                      },
+                    ]
+                  : []),
+                {
+                  label: translate("Status"),
+                  type: "select",
+                  searchColumn: "isPublished",
+                  options: [
+                    { id: "true", name: translate("Published") },
+                    { id: "false", name: translate("Draft") },
+                  ],
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedTitle(f.title || "");
+                setAppliedMosqueId(f.mosqueId ? Number(f.mosqueId) : null);
+                setAppliedIsPublished(
+                  f.isPublished === "" ? null : f.isPublished === "true",
+                );
                 setPage(1);
               }}
             />

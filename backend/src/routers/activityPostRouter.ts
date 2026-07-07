@@ -15,12 +15,22 @@ export const activityPostRouter = router({
         filterTitle: z.string().optional(),
         mosqueId: z.number().optional().nullable(),
         tahfizId: z.number().optional().nullable(),
+        filterMosqueId: z.number().optional().nullable(),
+        filterIsPublished: z.boolean().optional().nullable(),
         isSuperAdmin: z.boolean().default(false),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, filterTitle, mosqueId, tahfizId, isSuperAdmin } =
-        input;
+      const {
+        page,
+        pageSize,
+        filterTitle,
+        mosqueId,
+        tahfizId,
+        filterMosqueId,
+        filterIsPublished,
+        isSuperAdmin,
+      } = input;
 
       const activityPostRepo = AppDataSource.getRepository(ActivityPost);
       const query = activityPostRepo
@@ -39,6 +49,18 @@ export const activityPostRouter = router({
       if (filterTitle) {
         query.andWhere("posts.title ILIKE :title", {
           title: `%${filterTitle}%`,
+        });
+      }
+
+      if (filterMosqueId) {
+        query.andWhere("posts.mosqueId = :filterMosqueId", {
+          filterMosqueId,
+        });
+      }
+
+      if (filterIsPublished !== undefined && filterIsPublished !== null) {
+        query.andWhere("posts.ispublished = :filterIsPublished", {
+          filterIsPublished,
         });
       }
 

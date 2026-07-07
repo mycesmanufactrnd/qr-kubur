@@ -5,10 +5,10 @@ import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import MobileManageActivityPosts from "@/pages/Mobile/ManageActivityPosts";
 import { translate } from "@/utils/translations";
-import { MapPin, Plus, Edit, Trash2, Search, X, Save } from "lucide-react";
+import { MapPin, Plus, Edit, Trash2, Save } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import SearchBar from "@/components/forms/SearchBar";
 import {
   Dialog,
   DialogContent,
@@ -66,8 +66,19 @@ function ManageActivityPostsDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlTitle = searchParams.get("title") || "";
+  const urlMosqueId = searchParams.get("mosqueId")
+    ? parseInt(searchParams.get("mosqueId"))
+    : null;
+  const urlIsPublished =
+    searchParams.get("isPublished") === "true"
+      ? true
+      : searchParams.get("isPublished") === "false"
+        ? false
+        : null;
 
   const [tempTitle, setTempTitle] = useState(urlTitle);
+  const [tempMosqueId, setTempMosqueId] = useState(urlMosqueId);
+  const [tempIsPublished, setTempIsPublished] = useState(urlIsPublished);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState({ id: null });
@@ -88,6 +99,8 @@ function ManageActivityPostsDesktop() {
       page: urlPage,
       pageSize: itemsPerPage,
       filterTitle: urlTitle,
+      filterMosqueId: urlMosqueId,
+      filterIsPublished: urlIsPublished,
     });
 
   const { data: organisationMosques = [], isLoading: isMosquesLoading } =
@@ -108,16 +121,22 @@ function ManageActivityPostsDesktop() {
 
   useEffect(() => {
     setTempTitle(urlTitle);
-  }, [urlTitle]);
+    setTempMosqueId(urlMosqueId);
+    setTempIsPublished(urlIsPublished);
+  }, [urlTitle, urlMosqueId, urlIsPublished]);
 
   const handleSearch = () => {
-    const params = { page: "1", title: "" };
+    const params = { page: "1" };
     if (tempTitle) params.title = tempTitle;
+    if (tempMosqueId) params.mosqueId = tempMosqueId.toString();
+    if (tempIsPublished !== null) params.isPublished = String(tempIsPublished);
     setSearchParams(params);
   };
 
   const handleReset = () => {
     setTempTitle("");
+    setTempMosqueId(null);
+    setTempIsPublished(null);
     setSearchParams({});
   };
 
@@ -290,33 +309,44 @@ function ManageActivityPostsDesktop() {
         </div>
       </div>
 
-      <Card className="border-0 shadow-md dark:bg-slate-800">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
-              <Input
-                placeholder={translate("Title")}
-                value={tempTitle}
-                onChange={(e) => setTempTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="pl-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
-              />
-            </div>
-            <Button
-              onClick={handleSearch}
-              className="bg-emerald-600 hover:bg-emerald-700 px-6"
-            >
-              {translate("Search")}
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleReset} size="sm">
-              <X className="w-4 h-4 mr-2" /> {translate("Reset")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchBar
+        onSearch={handleSearch}
+        onReset={handleReset}
+        filters={[
+          {
+            type: "text",
+            key: "title",
+            value: tempTitle,
+            onChange: setTempTitle,
+            label: translate("Title"),
+          },
+          {
+            type: "select2",
+            key: "mosque",
+            value: tempMosqueId != null ? String(tempMosqueId) : "",
+            onChange: (v) => setTempMosqueId(v ? Number(v) : null),
+            label: translate("Mosque"),
+            searchPlaceholder: translate("Search mosque..."),
+            emptyMessage: translate("No mosque found."),
+            options: organisationMosques.map((m) => ({
+              value: String(m.id),
+              label: m.name,
+            })),
+            show: isOrganisationAdmin,
+          },
+          {
+            type: "select",
+            key: "isPublished",
+            value: String(tempIsPublished),
+            onChange: (v) => setTempIsPublished(v === "true"),
+            label: translate("Status"),
+            options: [
+              { value: "true", label: translate("Published") },
+              { value: "false", label: translate("Draft") },
+            ],
+          },
+        ]}
+      />
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
@@ -340,9 +370,9 @@ function ManageActivityPostsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <InlineLoadingComponent isTable colSpan={4} />
+                <InlineLoadingComponent isTable colSpan={5} />
               ) : activityPostsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={4} />
+                <NoDataTableComponent colSpan={5} />
               ) : (
                 activityPostsList.items.map((post) => (
                   <TableRow key={post.id}>

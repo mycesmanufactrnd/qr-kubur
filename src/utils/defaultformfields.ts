@@ -321,3 +321,16 @@ export const defaultManageJenazahCaseField = {
   policereportphotourl: "",
   supportingphotourl: "",
 };
+
+export const defaultUserField = {
+  fullname: "",
+  username: "",
+  email: "",
+  phoneno: "",
+  password: "",
+  role: "employee",
+  roletype: "",
+  organisation: "",
+  tahfizcenter: "",
+  states: [],
+};

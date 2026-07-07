@@ -46,19 +46,7 @@ import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
 import { hashPassword } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import { createPageUrl } from "@/utils";
-
-const DEFAULT_USER_FORM = {
-  fullname: "",
-  username: "",
-  email: "",
-  phoneno: "",
-  password: "",
-  role: "employee",
-  roletype: "",
-  organisation: "",
-  tahfizcenter: "",
-  states: [],
-};
+import { defaultUserField } from "@/utils/defaultformfields";
 
 export default function ManageUsers() {
   const isNarrow = useIsNarrow();
@@ -95,7 +83,7 @@ function ManageUsersDesktop() {
     setValue,
     reset,
     formState: { errors },
-  } = useForm({ defaultValues: DEFAULT_USER_FORM });
+  } = useForm({ defaultValues: defaultUserField });
 
   const formOrganisation = watch("organisation");
   const formRole = watch("role");
@@ -119,7 +107,11 @@ function ManageUsersDesktop() {
     fullname: search,
     email: filterEmail,
     username: filterUsername,
-    organisationId: isSuperAdmin && (Number(filterOrganisationId) || null),
+    organisationId: isSuperAdmin
+      ? filterOrganisationId
+        ? Number(filterOrganisationId)
+        : null
+      : null,
   });
 
   const { organisationsList: organisations } = useGetOrganisationPaginated({});
@@ -127,6 +119,7 @@ function ManageUsersDesktop() {
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
   const { createUser, updateUser, deleteUser } = useUserMutations();
+
   const navigate = useNavigate();
 
   const isCurrentUserOrgParent = Boolean(
@@ -154,7 +147,7 @@ function ManageUsersDesktop() {
       isAdmin && !isSuperAdmin ? currentUser.tahfizcenter?.id : null;
 
     reset({
-      ...DEFAULT_USER_FORM,
+      ...defaultUserField,
       organisation: defaultOrgId ? String(defaultOrgId) : "",
       tahfizcenter: defaultTahfizId ? String(defaultTahfizId) : "",
       states: defaultState,
