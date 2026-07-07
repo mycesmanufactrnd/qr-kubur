@@ -580,12 +580,20 @@ export const deathCharityMemberRouter = router({
         icnumber: z.string(),
         mosqueId: z.number().optional().nullable(),
         searchCase: z.boolean().default(false),
+        searchMany: z.boolean().default(false),
       }),
     )
     .query(async ({ input }) => {
-      if (!input.icnumber?.trim()) return null;
+      if (!input.icnumber?.trim()) return input.searchMany ? [] : null;
 
       const icnumber = stripIcDashes(input.icnumber);
+
+      if (input.searchMany) {
+        return await AppDataSource.getRepository(DeathCharityMember).find({
+          where: { icnumber },
+          relations: ["mosque", "organisation", "deadperson"],
+        });
+      }
 
       const member = await AppDataSource.getRepository(DeathCharityMember).findOne({
         where: {
