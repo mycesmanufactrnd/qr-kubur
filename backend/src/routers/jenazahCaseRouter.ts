@@ -280,6 +280,28 @@ export const jenazahCaseRouter = router({
       return savedCase;
     }),
 
+  notifyPendingReminder: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(JenazahCase);
+      const caseRequest = await repo.findOneByOrFail({ id: input.id });
+
+      const organisationId = await resolveOrganisationIdFromMosque(
+        caseRequest.mosqueId,
+      );
+
+      if (organisationId) {
+        await sendNotificationFCMToOrganisation({
+          organisationId,
+          event: "jenazahcase_pending_reminder",
+          inputData: { deceasedFullname: caseRequest.details?.deceasedFullname },
+          roles: ["admin"],
+        });
+      }
+
+      return { success: true };
+    }),
+
   getByReferenceNo: publicProcedure
     .input(
       z.object({

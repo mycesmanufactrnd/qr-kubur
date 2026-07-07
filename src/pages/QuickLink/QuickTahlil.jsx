@@ -33,7 +33,6 @@ import { userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
 
 const CUSTOM_SERVICE_KEY = "custom";
-const SAVED_PHONE_KEY = "userphoneno";
 
 function Section({ title, icon: Icon, accent = "emerald", children }) {
   const colors = {
@@ -107,7 +106,7 @@ export default function QuickTahlil() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("requestorphoneno"))
       setValue("requestorphoneno", saved);
   }, []);
@@ -324,7 +323,7 @@ export default function QuickTahlil() {
     };
 
     const phone = formData.requestorphoneno?.trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
     if (phone && phone !== savedPhone) {
       setPendingPayload(tahlilRequest);
       setPendingPhone(phone);
@@ -758,7 +757,7 @@ export default function QuickTahlil() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

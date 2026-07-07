@@ -292,6 +292,7 @@ export const defaultJenazahRequestField = {
   fullname: "",
   icnumber: "",
   phone: "",
+  causeofdeath: "",
   heirname: "",
   heirphoneno: "",
   userremarks: "",

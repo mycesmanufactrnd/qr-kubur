@@ -39,8 +39,6 @@ import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 export default function OrganisationDetails() {
   const { googleUser } = userGoogleAccess();
   const navigate = useNavigate();
@@ -128,7 +126,7 @@ export default function OrganisationDetails() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("payerphone")) {
       setValue("payerphone", saved);
     }
@@ -349,7 +347,7 @@ export default function OrganisationDetails() {
         : null,
     };
     const phone = (formData.payerphone || "").trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(quotationDetails);
@@ -931,7 +929,7 @@ export default function OrganisationDetails() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

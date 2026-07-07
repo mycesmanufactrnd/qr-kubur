@@ -117,8 +117,6 @@ function TypeToggle({ value, onChange }) {
   );
 }
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 export default function DonationPage() {
   const { googleUser } = userGoogleAccess();
   const hasAppliedUrlRecipient = useRef(false);
@@ -185,7 +183,7 @@ export default function DonationPage() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("donorphoneno")) {
       setValue("donorphoneno", saved);
     }
@@ -469,7 +467,7 @@ export default function DonationPage() {
       return;
     }
     const phone = (formData.donorphoneno || "").trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(formData);
@@ -879,7 +877,7 @@ export default function DonationPage() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

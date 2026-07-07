@@ -48,8 +48,6 @@ import { showSuccess } from "@/components/ToastrNotification";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import SettingsPageMobile from "@/pages/Mobile/SettingsPage";
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 export default function SettingsPage() {
   const isNarrow = useIsNarrow();
   if (isNarrow) return <SettingsPageMobile />;
@@ -75,7 +73,7 @@ function SettingsPageDesktop() {
   const [gpsPermission, setGpsPermission] = useState("unknown");
   const [requestingGps, setRequestingGps] = useState(false);
   const [savedPhone, setSavedPhone] = useState(
-    () => localStorage.getItem(SAVED_PHONE_KEY) || "",
+    () => localStorage.getItem("userphoneno") || "",
   );
   const [phoneDraft, setPhoneDraft] = useState(savedPhone);
 
@@ -583,10 +581,10 @@ function SettingsPageDesktop() {
                 onClick={() => {
                   const trimmed = phoneDraft.trim();
                   if (trimmed) {
-                    localStorage.setItem(SAVED_PHONE_KEY, trimmed);
+                    localStorage.setItem("userphoneno", trimmed);
                     setSavedPhone(trimmed);
                   } else {
-                    localStorage.removeItem(SAVED_PHONE_KEY);
+                    localStorage.removeItem("userphoneno");
                     setSavedPhone("");
                   }
                   showSuccess("Phone No.", "update");

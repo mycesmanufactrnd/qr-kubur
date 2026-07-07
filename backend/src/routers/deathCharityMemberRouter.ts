@@ -6,6 +6,7 @@ import {
   DeathCharityClaim,
   DeathCharityDependent,
   DeathCharityMember,
+  JenazahCase,
   Mosque,
   Organisation,
   QariahDevice,
@@ -578,17 +579,32 @@ export const deathCharityMemberRouter = router({
       z.object({
         icnumber: z.string(),
         mosqueId: z.number().optional().nullable(),
+        searchCase: z.boolean().default(false),
       }),
     )
     .query(async ({ input }) => {
       if (!input.icnumber?.trim()) return null;
-      return await AppDataSource.getRepository(DeathCharityMember).findOne({
+
+      const icnumber = stripIcDashes(input.icnumber);
+
+      const member = await AppDataSource.getRepository(DeathCharityMember).findOne({
         where: {
-          icnumber: stripIcDashes(input.icnumber),
+          icnumber,
           ...(input.mosqueId ? { mosqueId: input.mosqueId } : {}),
         },
         relations: ["mosque", "organisation"],
       });
+
+      if (!input.searchCase) return member;
+
+      const existingCase = await AppDataSource.getRepository(JenazahCase)
+        .createQueryBuilder("caserequest")
+        .leftJoinAndSelect("caserequest.mosque", "mosque")
+        .where("caserequest.details->>'deceasedIcnumber' = :icnumber", { icnumber })
+        .orderBy("caserequest.createdat", "DESC")
+        .getOne();
+
+      return { member, existingCase };
     }),
 
   createClaims: protectedProcedure

@@ -222,8 +222,8 @@ function CaseDetailDialog({
     defaultValues: {
       grave: "",
       gravelot: "",
-      causeofdeath: "",
-      dateofdeath: "",
+      causeofdeath: d.causeofdeath ?? "",
+      dateofdeath: toDateInputValue(new Date()),
       dateofbirth: parsedDob,
       heirname: d.heirname ?? "",
       heirphoneno: d.heirphoneno ?? "",
@@ -301,22 +301,39 @@ function CaseDetailDialog({
                 {translate("Maklumat Jenazah")}
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <DetailRow label={translate("Name")} value={d.deceasedFullname} />
-                <DetailRow label={translate("IC No.")} value={d.deceasedIcnumber} />
+                <DetailRow
+                  label={translate("Name")}
+                  value={d.deceasedFullname}
+                />
+                <DetailRow
+                  label={translate("IC No.")}
+                  value={d.deceasedIcnumber}
+                />
                 <DetailRow label={translate("Phone")} value={d.deceasedPhone} />
                 <DetailRow label={translate("Email")} value={d.deceasedEmail} />
               </div>
               {d.deceasedAddress && (
-                <DetailRow label={translate("Address")} value={d.deceasedAddress} />
+                <DetailRow
+                  label={translate("Address")}
+                  value={d.deceasedAddress}
+                />
+              )}
+              {d.causeofdeath && (
+                <DetailRow
+                  label={translate("Cause of Death")}
+                  value={d.causeofdeath}
+                />
               )}
               <DetailRow label={translate("Qariah Member Status")}>
                 {d.isQariahMember ? (
                   <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
-                    <BadgeCheck className="w-3.5 h-3.5" /> {translate("Registered Qariah Member")}
+                    <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                    {translate("Registered Qariah Member")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                    <Info className="w-3.5 h-3.5" /> {translate("Not a Qariah Member")}
+                    <Info className="w-3.5 h-3.5" />{" "}
+                    {translate("Not a Qariah Member")}
                   </span>
                 )}
               </DetailRow>
@@ -365,7 +382,8 @@ function CaseDetailDialog({
                   {translate("Pickup Location")}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
-                  <MapPinned className="w-4 h-4" /> {translate("Pickup at current location")}
+                  <MapPinned className="w-4 h-4" />{" "}
+                  {translate("Pickup at current location")}
                 </div>
                 <a
                   href={mapsUrl}
@@ -443,7 +461,9 @@ function CaseDetailDialog({
               ) : (
                 <p className="text-sm text-slate-700 dark:text-slate-300">
                   {caseItem?.adminremarks || (
-                    <span className="text-slate-400 italic">{translate("No remarks")}</span>
+                    <span className="text-slate-400 italic">
+                      {translate("No remarks")}
+                    </span>
                   )}
                 </p>
               )}
@@ -501,12 +521,15 @@ function CaseDetailDialog({
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   <UserPlus className="w-4 h-4 mr-1.5" />
-                  {isAddingToQariah ? translate("Registering...") : translate("Add to Qariah")}
+                  {isAddingToQariah
+                    ? translate("Registering...")
+                    : translate("Add to Qariah")}
                 </Button>
               )}
             {caseItem?.addedtoqariah && (
               <p className="text-xs text-center text-emerald-600 flex items-center justify-center gap-1">
-                <BadgeCheck className="w-3.5 h-3.5" /> {translate("Already registered as a Qariah member")}
+                <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                {translate("Already registered as a Qariah member")}
               </p>
             )}
           </div>
@@ -575,6 +598,10 @@ function CaseDetailDialog({
                   required={showDeceasedForm}
                 />
               </div>
+
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b pb-2 dark:border-slate-600">
+                {translate("Maklumat Waris")}
+              </h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <TextInputForm
@@ -700,7 +727,10 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
   useEffect(() => {
     if (!open) return;
-    reset({ ...defaultManageJenazahCaseField, selectedOrgId: userOrgId ?? null });
+    reset({
+      ...defaultManageJenazahCaseField,
+      selectedOrgId: userOrgId ?? null,
+    });
     setIsQariahMember(false);
     setSearchedIc("");
     setSearchAttempted(false);
@@ -745,7 +775,9 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     ]);
     if (!valid) {
       showApiError({
-        message: translate("Please complete the required fields before proceeding."),
+        message: translate(
+          "Please complete the required fields before proceeding.",
+        ),
       });
       return;
     }
@@ -764,7 +796,9 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     const valid = await trigger(fieldsToCheck);
     if (!valid) {
       showApiError({
-        message: translate("Please complete the required fields before proceeding."),
+        message: translate(
+          "Please complete the required fields before proceeding.",
+        ),
       });
       return;
     }
@@ -786,9 +820,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     }
     if (data.careScenario === "other" && !data.careScenarioOther?.trim()) {
       showApiError({
-        message: translate(
-          "Please specify the funeral management procedure.",
-        ),
+        message: translate("Please specify the funeral management procedure."),
       });
       return;
     }
@@ -922,26 +954,32 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                     variant="outline"
                     className="shrink-0 mb-0.5"
                   >
-                    {memberSearching ? translate("Searching...") : translate("Search")}
+                    {memberSearching
+                      ? translate("Searching...")
+                      : translate("Search")}
                   </Button>
                 </div>
                 {!selectedMosqueId ? (
                   <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5" /> {translate("Please select a mosque first.")}
+                    <Info className="w-3.5 h-3.5" />{" "}
+                    {translate("Please select a mosque first.")}
                   </p>
                 ) : searchAttempted ? (
                   memberResult ? (
                     <p className="text-xs text-emerald-600 flex items-center gap-1">
-                      <BadgeCheck className="w-3.5 h-3.5" /> {translate("Registered Qariah Member")}
+                      <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                      {translate("Registered Qariah Member")}
                     </p>
                   ) : (
                     <p className="text-xs text-slate-400 flex items-center gap-1">
-                      <Info className="w-3.5 h-3.5" /> {translate("Not found — fill in details manually")}
+                      <Info className="w-3.5 h-3.5" />{" "}
+                      {translate("Not found — fill in details manually")}
                     </p>
                   )
                 ) : (
                   <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5" /> {translate("Please search by IC number first.")}
+                    <Info className="w-3.5 h-3.5" />{" "}
+                    {translate("Please search by IC number first.")}
                   </p>
                 )}
               </div>
@@ -1344,7 +1382,10 @@ function ManageJenazahCaseDesktop() {
       <Breadcrumb
         items={[
           { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-          { label: translate("Funeral Case Management"), page: "ManageJenazahCase" },
+          {
+            label: translate("Funeral Case Management"),
+            page: "ManageJenazahCase",
+          },
         ]}
       />
 
@@ -1399,10 +1440,18 @@ function ManageJenazahCaseDesktop() {
                 <TableHead>{translate("Deceased Name")}</TableHead>
                 <TableHead>{translate("IC No.")}</TableHead>
                 <TableHead>{translate("Mosque")}</TableHead>
-                <TableHead className="text-center">{translate("Qariah Member")}</TableHead>
-                <TableHead className="text-center">{translate("Date")}</TableHead>
-                <TableHead className="text-center">{translate("Status")}</TableHead>
-                <TableHead className="text-center">{translate("Action")}</TableHead>
+                <TableHead className="text-center">
+                  {translate("Qariah Member")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Date")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Status")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {translate("Action")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1439,7 +1488,8 @@ function ManageJenazahCaseDesktop() {
                       <TableCell className="text-center">
                         {d.isQariahMember ? (
                           <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 hover:bg-emerald-100 text-xs">
-                            <BadgeCheck className="w-3 h-3 mr-1" /> {translate("Yes")}
+                            <BadgeCheck className="w-3 h-3 mr-1" />{" "}
+                            {translate("Yes")}
                           </Badge>
                         ) : (
                           <span className="text-xs text-slate-400">—</span>

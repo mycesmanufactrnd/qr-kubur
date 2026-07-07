@@ -20,8 +20,6 @@ import { translate } from "@/utils/translations";
 import { userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 function Section({
   title,
   icon: Icon,
@@ -95,7 +93,7 @@ export default function QuickDonation() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("donorphoneno")) setValue("donorphoneno", saved);
   }, []);
 
@@ -218,7 +216,7 @@ export default function QuickDonation() {
       return;
     }
     const phone = (formData.donorphoneno || "").trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
     if (phone && phone !== savedPhone) {
       setPendingPayload(formData);
       setPendingPhone(phone);
@@ -498,7 +496,7 @@ export default function QuickDonation() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

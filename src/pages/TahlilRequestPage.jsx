@@ -51,7 +51,6 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 
 const CUSTOM_SERVICE_KEY = "custom";
-const SAVED_PHONE_KEY = "userphoneno";
 
 function Section({ title, icon: Icon, children, accent = "emerald" }) {
   const colors = {
@@ -159,7 +158,7 @@ export default function TahlilRequestPage() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("requestorphoneno")) {
       setValue("requestorphoneno", saved);
     }
@@ -468,7 +467,7 @@ export default function TahlilRequestPage() {
     };
 
     const phone = formData.requestorphoneno?.trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(tahlilRequest);
@@ -906,7 +905,7 @@ export default function TahlilRequestPage() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

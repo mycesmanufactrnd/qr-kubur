@@ -347,6 +347,12 @@ export const sendNotificationFCMToOrganisation = async ({
       body = `Kes jenazah untuk ${deceasedFullname} telah diluluskan.`;
     }
 
+    if (event === "jenazahcase_pending_reminder") {
+      const deceasedFullname = inputData.deceasedFullname ?? "seorang ahli";
+      title = "Peringatan: Kes Jenazah Belum Diluluskan";
+      body = `Kes jenazah untuk ${deceasedFullname} masih menunggu kelulusan. Sila semak semula.`;
+    }
+
     if (!title) return;
 
     const staleTokens = await sendPushNotifications(

@@ -54,8 +54,6 @@ const PAYMENT_PLAN = {
   YEARLY_ONLY: "yearly_only",
 };
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 function formatCoverage(payment) {
   const fromYear = Number(payment.coversfromyear || 0);
   const toYear = Number(payment.coverstoyear || payment.coversfromyear || 0);
@@ -126,7 +124,7 @@ export default function DeathCharityUserPayment() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved) {
       setRegistrationForm((prev) => ({ ...prev, phone: prev.phone || saved }));
     }
@@ -747,7 +745,7 @@ export default function DeathCharityUserPayment() {
     };
 
     const phone = (selectedMember?.phone || registrationForm.phone)?.trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(paymentData);
@@ -1383,7 +1381,7 @@ export default function DeathCharityUserPayment() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

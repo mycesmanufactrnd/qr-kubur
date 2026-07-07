@@ -45,8 +45,6 @@ import { useLocationContext } from "@/providers/LocationProvider";
 import { showSuccess } from "@/components/ToastrNotification";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 const SectionCard = ({ title, children }) => (
   <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
@@ -125,7 +123,7 @@ export default function SettingsPageMobile() {
   const [gpsPermission, setGpsPermission] = useState("unknown");
   const [requestingGps, setRequestingGps] = useState(false);
   const [savedPhone, setSavedPhone] = useState(
-    () => localStorage.getItem(SAVED_PHONE_KEY) || "",
+    () => localStorage.getItem("userphoneno") || "",
   );
   const [phoneDraft, setPhoneDraft] = useState(savedPhone);
 
@@ -154,13 +152,16 @@ export default function SettingsPageMobile() {
       if (token) {
         // Native Capacitor push token — set granted directly (Notification API won't reflect it)
         setNotifPermission("granted");
+        
         // Save token to backend; don't block success toast on network failures
         try {
           const googleUser = getStoredGoogleUser();
           if (googleUser?.id) {
             await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmToken: token });
           }
+          
           const appUserAuth = sessionStorage.getItem("appUserAuth");
+          
           if (appUserAuth) {
             await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
           }
@@ -537,10 +538,10 @@ export default function SettingsPageMobile() {
                 onClick={() => {
                   const trimmed = phoneDraft.trim();
                   if (trimmed) {
-                    localStorage.setItem(SAVED_PHONE_KEY, trimmed);
+                    localStorage.setItem("userphoneno", trimmed);
                     setSavedPhone(trimmed);
                   } else {
-                    localStorage.removeItem(SAVED_PHONE_KEY);
+                    localStorage.removeItem("userphoneno");
                     setSavedPhone("");
                   }
                   showSuccess("Phone No.", "update");

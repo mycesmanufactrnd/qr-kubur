@@ -679,8 +679,8 @@ function CaseDetailSheet({
     defaultValues: {
       grave: "",
       gravelot: "",
-      causeofdeath: "",
-      dateofdeath: "",
+      causeofdeath: d.causeofdeath ?? "",
+      dateofdeath: toDateInputValue(new Date()),
       dateofbirth: parsedDob,
       heirname: d.heirname ?? "",
       heirphoneno: d.heirphoneno ?? "",
@@ -783,6 +783,12 @@ function CaseDetailSheet({
           </div>
           {d.deceasedAddress && (
             <DetailRow label={translate("Address")} value={d.deceasedAddress} />
+          )}
+          {d.causeofdeath && (
+            <DetailRow
+              label={translate("Cause of Death")}
+              value={d.causeofdeath}
+            />
           )}
           <DetailRow label={translate("Qariah Member Status")}>
             {d.isQariahMember ? (
