@@ -104,7 +104,7 @@ function SettingsPageDesktop() {
           if (googleUser?.id) {
             await trpcClient.google.saveDeviceToken.mutate({
               googleUserId: Number(googleUser.id),
-              fcmToken: token,
+              fcmGoogleToken: token,
             });
           }
           const appUserAuth = sessionStorage.getItem("appUserAuth");

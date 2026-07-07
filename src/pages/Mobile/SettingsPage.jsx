@@ -157,7 +157,7 @@ export default function SettingsPageMobile() {
         try {
           const googleUser = getStoredGoogleUser();
           if (googleUser?.id) {
-            await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmToken: token });
+            await trpcClient.google.saveDeviceToken.mutate({ googleUserId: Number(googleUser.id), fcmGoogleToken: token });
           }
           
           const appUserAuth = sessionStorage.getItem("appUserAuth");

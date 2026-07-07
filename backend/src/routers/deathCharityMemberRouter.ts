@@ -592,7 +592,7 @@ export const deathCharityMemberRouter = router({
           icnumber,
           ...(input.mosqueId ? { mosqueId: input.mosqueId } : {}),
         },
-        relations: ["mosque", "organisation"],
+        relations: ["mosque", "organisation", "deadperson"],
       });
 
       if (!input.searchCase) return member;

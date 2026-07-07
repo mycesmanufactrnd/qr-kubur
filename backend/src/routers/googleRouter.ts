@@ -22,7 +22,7 @@ export const googleRouter = router({
     saveDeviceToken: publicProcedure
         .input(z.object({
             googleUserId: z.number(),
-            fcmToken: z.string(),
+            fcmGoogleToken: z.string(),
         }))
         .mutation(async ({ input }) => {
             const deviceRepo = AppDataSource.getRepository(GoogleUserDevice);
@@ -32,7 +32,7 @@ export const googleRouter = router({
             if (!googleUser) throw new Error("Google user not found");
 
             // If this exact token already exists, just ensure it's linked to this user
-            const existingByToken = await deviceRepo.findOneBy({ fcmToken: input.fcmToken });
+            const existingByToken = await deviceRepo.findOneBy({ fcmGoogleToken: input.fcmGoogleToken });
             if (existingByToken) {
                 existingByToken.googleuser = googleUser;
                 await deviceRepo.save(existingByToken);
@@ -40,7 +40,7 @@ export const googleRouter = router({
             }
 
             // New token from a new device/browser — create a separate row so all devices get notified
-            const device = deviceRepo.create({ fcmToken: input.fcmToken, googleuser: googleUser });
+            const device = deviceRepo.create({ fcmGoogleToken: input.fcmGoogleToken, googleuser: googleUser });
             await deviceRepo.save(device);
 
             return { success: true };

@@ -428,10 +428,12 @@ export function useLoginGoogle() {
       setStoredGoogleAuth(data.user);
       try {
         const { initFCM } = await import("@/firebase/firebase");
-        const fcmToken = await initFCM();
-        if (fcmToken && data.user?.id) {
+        
+        const fcmGoogleToken = await initFCM();
+        
+        if (fcmGoogleToken && data.user?.id) {
           trpcClient.google.saveDeviceToken
-            .mutate({ googleUserId: Number(data.user.id), fcmToken })
+            .mutate({ googleUserId: Number(data.user.id), fcmGoogleToken })
             .catch((e) => console.error("[FCM] saveDeviceToken after login failed:", e));
         }
       } catch (e) {
