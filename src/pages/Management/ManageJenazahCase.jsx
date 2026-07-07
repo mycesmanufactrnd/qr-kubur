@@ -1261,8 +1261,6 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   );
 }
 
-// ─── Desktop view ─────────────────────────────────────────────────────────
-
 function ManageJenazahCaseDesktop() {
   const { hasAdminAccess, loadingUser } = useAdminAccess();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1275,14 +1273,17 @@ function ManageJenazahCaseDesktop() {
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlStatus = searchParams.get("status") || "";
   const urlSearch = searchParams.get("search") || "";
+  const urlReferenceNo = searchParams.get("referenceno") || "";
 
   const [tempSearch, setTempSearch] = useState(urlSearch);
-  const [tempStatus, setTempStatus] = useState(urlStatus || "all");
+  const [tempStatus, setTempStatus] = useState(urlStatus);
+  const [tempReferenceNo, setTempReferenceNo] = useState(urlReferenceNo);
 
   useEffect(() => {
     setTempSearch(urlSearch);
-    setTempStatus(urlStatus || "all");
-  }, [urlSearch, urlStatus]);
+    setTempStatus(urlStatus);
+    setTempReferenceNo(urlReferenceNo);
+  }, [urlSearch, urlStatus, urlReferenceNo]);
 
   const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
     {
@@ -1290,6 +1291,7 @@ function ManageJenazahCaseDesktop() {
       pageSize: itemsPerPage,
       status: urlStatus || undefined,
       search: urlSearch || undefined,
+      referenceno: urlReferenceNo || undefined,
     },
     { enabled: !loadingUser && hasAdminAccess },
   );
@@ -1363,14 +1365,17 @@ function ManageJenazahCaseDesktop() {
     const params = { ...Object.fromEntries(searchParams), page: "1" };
     if (tempSearch) params.search = tempSearch;
     else delete params.search;
-    if (tempStatus && tempStatus !== "all") params.status = tempStatus;
+    if (tempReferenceNo) params.referenceno = tempReferenceNo;
+    else delete params.referenceno;
+    if (tempStatus) params.status = tempStatus;
     else delete params.status;
     setSearchParams(params);
   };
 
   const handleReset = () => {
     setTempSearch("");
-    setTempStatus("all");
+    setTempReferenceNo("");
+    setTempStatus("");
     setSearchParams({ page: "1" });
   };
 
@@ -1416,13 +1421,19 @@ function ManageJenazahCaseDesktop() {
             label: translate("Search deceased name or IC No."),
           },
           {
+            type: "text",
+            key: "referenceno",
+            value: tempReferenceNo,
+            onChange: setTempReferenceNo,
+            label: translate("Reference No"),
+          },
+          {
             type: "select",
             key: "status",
             value: tempStatus,
             onChange: setTempStatus,
             label: translate("Status"),
             options: [
-              { value: "all", label: translate("All Status") },
               { value: "pending", label: translate("Pending") },
               { value: "approved", label: translate("Approved") },
               { value: "rejected", label: translate("Rejected") },

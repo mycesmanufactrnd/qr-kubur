@@ -61,7 +61,6 @@ import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import {
   useGetMosquePaginated,
   useMosqueMutations,
-  useGetMosquesByOrganisationId,
 } from "@/hooks/useMosqueMutations";
 
 import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
@@ -94,15 +93,23 @@ function ManageMosquesDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("name") || "";
-  const urlState = searchParams.get("state") || "all";
+  const urlState = searchParams.get("state") || "";
+  const urlCanArrangeFuneral = searchParams.get("canarrangefuneral") || "";
+  const urlHasDeathCharity = searchParams.get("hasdeathcharity") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
+  const [tempCanArrangeFuneral, setTempCanArrangeFuneral] =
+    useState(urlCanArrangeFuneral);
+  const [tempHasDeathCharity, setTempHasDeathCharity] =
+    useState(urlHasDeathCharity);
 
   useEffect(() => {
     setTempName(urlName);
     setTempState(urlState);
-  }, [urlName, urlState]);
+    setTempCanArrangeFuneral(urlCanArrangeFuneral);
+    setTempHasDeathCharity(urlHasDeathCharity);
+  }, [urlName, urlState, urlCanArrangeFuneral, urlHasDeathCharity]);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -212,50 +219,33 @@ function ManageMosquesDesktop() {
     }
   }, [photourl, photoUrlInput]);
 
-  const { mosquesList, totalPages, isLoading, refetch: refetchMosques } = useGetMosquePaginated({
-    page: urlPage,
-    pageSize: itemsPerPage,
-    filterName: urlName,
-    filterState: urlState === "all" ? undefined : urlState,
-  });
-
   const currentOrganisationId = currentUser?.organisation?.id ?? null;
   const isOrgScoped = !isSuperAdmin && !!currentOrganisationId;
 
-  const { data: mosquesByOrganisation = [], isLoading: loadingOrgMosques } =
-    useGetMosquesByOrganisationId(isOrgScoped ? currentOrganisationId : null);
+  const {
+    mosquesList,
+    totalPages,
+    isLoading,
+    refetch: refetchMosques,
+  } = useGetMosquePaginated({
+    page: urlPage,
+    pageSize: itemsPerPage,
+    filterName: urlName,
+    filterState: urlState,
+    filterOrganisationId: isOrgScoped ? currentOrganisationId : undefined,
+    filterCanArrangeFuneral: urlCanArrangeFuneral || undefined,
+    filterHasDeathCharity: urlHasDeathCharity || undefined,
+  });
 
   const { organisationsList, isLoading: orgLoading } =
     useGetOrganisationPaginated({});
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
-  const normalizedSearch = (urlName || "").trim().toLowerCase();
-  const filteredOrgMosques = isOrgScoped
-    ? (mosquesByOrganisation || []).filter((mosque) => {
-        const matchesName = normalizedSearch
-          ? (mosque?.name || "").toLowerCase().includes(normalizedSearch)
-          : true;
-        const matchesState =
-          urlState === "all" ? true : mosque?.state === urlState;
-        return matchesName && matchesState;
-      })
-    : [];
-
-  const effectiveTotal = isOrgScoped
-    ? filteredOrgMosques.length
-    : mosquesList.total;
-  const effectiveTotalPages = Math.ceil(effectiveTotal / itemsPerPage);
-
-  const pagedOrgMosques = isOrgScoped
-    ? filteredOrgMosques.slice(
-        (urlPage - 1) * itemsPerPage,
-        urlPage * itemsPerPage,
-      )
-    : [];
-
-  const tableItems = isOrgScoped ? pagedOrgMosques : mosquesList.items;
-  const tableLoading = isOrgScoped ? loadingOrgMosques : isLoading;
+  const tableItems = mosquesList.items;
+  const tableLoading = isLoading;
+  const effectiveTotal = mosquesList.total;
+  const effectiveTotalPages = totalPages;
 
   const handlePhotoUpload = async (file) => {
     if (!file) return;
@@ -292,13 +282,17 @@ function ManageMosquesDesktop() {
   const handleSearch = () => {
     const params = { page: "1" };
     if (tempName) params.name = tempName;
-    if (tempState !== "all") params.state = tempState;
+    if (tempState) params.state = tempState;
+    if (tempCanArrangeFuneral) params.canarrangefuneral = tempCanArrangeFuneral;
+    if (tempHasDeathCharity) params.hasdeathcharity = tempHasDeathCharity;
     setSearchParams(params);
   };
 
   const handleReset = () => {
     setTempName("");
-    setTempState("all");
+    setTempState("");
+    setTempCanArrangeFuneral("");
+    setTempHasDeathCharity("");
     setSearchParams({ page: "1" });
   };
 
@@ -446,9 +440,28 @@ function ManageMosquesDesktop() {
             value: tempState,
             onChange: setTempState,
             label: translate("State"),
+            options: STATES_MY.map((state) => ({ value: state, label: state })),
+          },
+          {
+            type: "select",
+            key: "canarrangefuneral",
+            value: tempCanArrangeFuneral,
+            onChange: setTempCanArrangeFuneral,
+            label: translate("Can Arrange Funeral"),
             options: [
-              { value: "all", label: translate("All States") },
-              ...STATES_MY.map((state) => ({ value: state, label: state })),
+              { value: "true", label: translate("Yes") },
+              { value: "false", label: translate("No") },
+            ],
+          },
+          {
+            type: "select",
+            key: "hasdeathcharity",
+            value: tempHasDeathCharity,
+            onChange: setTempHasDeathCharity,
+            label: translate("Has Death Charity"),
+            options: [
+              { value: "true", label: translate("Yes") },
+              { value: "false", label: translate("No") },
             ],
           },
         ]}

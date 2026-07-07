@@ -995,7 +995,7 @@ export default function ManageTahfizCenters() {
   const [itemsPerPage] = useState(10);
 
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [appliedState, setAppliedState] = useState("all");
+  const [appliedState, setAppliedState] = useState("");
 
   const [formSheet, setFormSheet] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(null);
@@ -1004,7 +1004,7 @@ export default function ManageTahfizCenters() {
     page,
     pageSize: itemsPerPage,
     filterName: appliedSearch,
-    filterState: appliedState === "all" ? undefined : appliedState,
+    filterState: appliedState || undefined,
   });
 
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
@@ -1201,7 +1201,7 @@ export default function ManageTahfizCenters() {
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.name || "");
-                setAppliedState(f.state || "all");
+                setAppliedState(f.state || "");
                 setPage(1);
               }}
             />

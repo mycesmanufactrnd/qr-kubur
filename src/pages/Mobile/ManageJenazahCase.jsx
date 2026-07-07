@@ -1154,7 +1154,6 @@ export default function MobileManageJenazahCase() {
   };
 
   const STATUS_TABS = [
-    { label: translate("All"), value: "" },
     { label: translate("Pending"), value: "pending" },
     { label: translate("Approved"), value: "approved" },
     { label: translate("Rejected"), value: "rejected" },

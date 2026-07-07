@@ -180,7 +180,7 @@ export default function MobileManagePermissions() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: appliedSearch,
+    fullname: appliedSearch,
   });
 
   const upsertPermission = useUpsertPermission();

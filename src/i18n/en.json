@@ -264,6 +264,8 @@
 
   "Manage User Permissions": "Manage User Permissions",
   "Search User": "Search User",
+  "Search Email": "Search Email",
+  "Search Username": "Search Username",
   "No users found": "No users found",
   "Select a user to manage access": "Select a user to manage access",
   "Enable All":"Enable All",

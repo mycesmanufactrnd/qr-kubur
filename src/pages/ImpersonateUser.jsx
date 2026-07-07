@@ -35,7 +35,7 @@ export default function ImpersonateUser() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: searchQuery,
+    fullname: searchQuery,
   });
 
   if (loadingUsers) {

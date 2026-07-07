@@ -74,7 +74,7 @@ function ManageDeathCharityDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("name") || "";
-  const urlState = searchParams.get("state") || "all";
+  const urlState = searchParams.get("state") || "";
   const urlSortField = searchParams.get("sortField") || "";
   const urlSortOrder = searchParams.get("sortOrder") || "";
 
@@ -99,7 +99,7 @@ function ManageDeathCharityDesktop() {
       page: urlPage,
       pageSize: itemsPerPage,
       filterName: urlName,
-      filterState: urlState === "all" ? undefined : urlState,
+      filterState: urlState || undefined,
       sortField: urlSortField || undefined,
       sortOrder:
         urlSortOrder === "ASC" || urlSortOrder === "DESC"
@@ -138,7 +138,7 @@ function ManageDeathCharityDesktop() {
   const handleSearch = () => {
     const params = { page: "1", name: "", state: "" };
     if (tempName) params.name = tempName;
-    if (tempState !== "all") params.state = tempState;
+    if (tempState) params.state = tempState;
     setSearchParams(params);
   };
 
@@ -294,10 +294,7 @@ function ManageDeathCharityDesktop() {
             value: tempState,
             onChange: setTempState,
             label: "Negeri",
-            options: [
-              { value: "all", label: translate("All States") },
-              ...STATES_MY.map((state) => ({ value: state, label: state })),
-            ],
+            options: STATES_MY.map((state) => ({ value: state, label: state })),
           },
         ]}
       />

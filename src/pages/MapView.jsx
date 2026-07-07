@@ -118,14 +118,13 @@ export default function MapView() {
 
         <div className="flex items-center gap-2">
           <Select
-            value={selectedState ?? activeState ?? "all"}
-            onValueChange={(v) => setSelectedState(v === "all" ? null : v)}
+            value={selectedState ?? activeState}
+            onValueChange={(v) => setSelectedState(v)}
           >
             <SelectTrigger className="w-36 h-7 text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="z-[2000]">
-              <SelectItem value="all">{translate("All States")}</SelectItem>
               {STATES_MY.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}

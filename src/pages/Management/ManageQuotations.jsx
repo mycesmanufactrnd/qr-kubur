@@ -59,7 +59,7 @@ function ManageQuotationsDesktop() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
-  const urlStatus = searchParams.get("status") || "all";
+  const urlStatus = searchParams.get("status") || "";
   const urlService = searchParams.get("service") || "";
   const urlDateFrom = searchParams.get("dateFrom") || "";
   const urlDateTo = searchParams.get("dateTo") || "";
@@ -80,7 +80,7 @@ function ManageQuotationsDesktop() {
 
   const handleSearch = () => {
     const params = { page: "1" };
-    if (tempStatus !== "all") params.status = tempStatus;
+    if (tempStatus) params.status = tempStatus;
     if (tempService) params.service = tempService;
     if (tempDateFrom) params.dateFrom = tempDateFrom;
     if (tempDateTo) params.dateTo = tempDateTo;
@@ -118,7 +118,7 @@ function ManageQuotationsDesktop() {
   const { quotationList, totalPages, isLoading } = useGetQuotationPaginated({
     page,
     pageSize: itemsPerPage,
-    filterStatus: urlStatus === "all" ? null : urlStatus,
+    filterStatus: urlStatus || null,
     filterService: urlService || null,
     dateFrom: urlDateFrom || null,
     dateTo: urlDateTo || null,
@@ -442,7 +442,6 @@ function ManageQuotationsDesktop() {
             onChange: setTempStatus,
             label: translate("Status"),
             options: [
-              { value: "all", label: translate("All Status") },
               { value: "pending", label: translate("Pending") },
               { value: "completed", label: translate("Completed") },
               { value: "rejected", label: translate("Rejected") },

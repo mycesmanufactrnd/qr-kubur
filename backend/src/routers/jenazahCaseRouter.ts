@@ -133,10 +133,11 @@ export const jenazahCaseRouter = router({
         status: z.string().optional(),
         mosqueId: z.number().optional(),
         search: z.string().optional(),
+        referenceno: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, status, mosqueId, search } = input;
+      const { page, pageSize, status, mosqueId, search, referenceno } = input;
       const repo = AppDataSource.getRepository(JenazahCase);
       const query = repo
         .createQueryBuilder("jc")
@@ -153,6 +154,11 @@ export const jenazahCaseRouter = router({
           "(jc.details->>'deceasedFullname' ILIKE :search OR jc.details->>'deceasedIcnumber' ILIKE :search)",
           { search: `%${search}%` },
         );
+      }
+      if (referenceno) {
+        query.andWhere("jc.referenceno ILIKE :referenceno", {
+          referenceno: `%${referenceno}%`,
+        });
       }
 
       const [items, total] = await query

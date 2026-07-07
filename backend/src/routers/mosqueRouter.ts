@@ -118,10 +118,21 @@ export const mosqueRouter = router({
         pageSize: z.number().min(1).default(10),
         filterName: z.string().optional(),
         filterState: z.string().optional(),
+        filterOrganisationId: z.number().optional(),
+        filterCanArrangeFuneral: z.enum(["true", "false"]).optional(),
+        filterHasDeathCharity: z.enum(["true", "false"]).optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, filterName, filterState } = input;
+      const {
+        page,
+        pageSize,
+        filterName,
+        filterState,
+        filterOrganisationId,
+        filterCanArrangeFuneral,
+        filterHasDeathCharity,
+      } = input;
 
       const mosqueRepo = AppDataSource.getRepository(Mosque);
       const query = mosqueRepo
@@ -130,12 +141,30 @@ export const mosqueRouter = router({
 
       if (filterName) {
         query.andWhere("mosque.name ILIKE :name", {
-          search: `%${filterName}%`,
+          name: `%${filterName}%`,
         });
       }
 
       if (filterState) {
         query.andWhere("mosque.state = :state", { state: filterState });
+      }
+
+      if (filterOrganisationId) {
+        query.andWhere("organisation.id = :organisationId", {
+          organisationId: filterOrganisationId,
+        });
+      }
+
+      if (filterCanArrangeFuneral) {
+        query.andWhere("mosque.canarrangefuneral = :canArrangeFuneral", {
+          canArrangeFuneral: filterCanArrangeFuneral === "true",
+        });
+      }
+
+      if (filterHasDeathCharity) {
+        query.andWhere("mosque.hasdeathcharity = :hasDeathCharity", {
+          hasDeathCharity: filterHasDeathCharity === "true",
+        });
       }
 
       if (page && pageSize) {

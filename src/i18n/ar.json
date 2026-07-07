@@ -278,6 +278,8 @@
 
   "Manage User Permissions":"إدارة أذونات المستخدم",
   "Search User":"البحث عن المستخدم",
+  "Search Email":"البحث عن البريد الإلكتروني",
+  "Search Username":"البحث عن اسم المستخدم",
   "No users found":"لم يتم العثور على مستخدم",
   "Select a user to manage access":"اختر المستخدم لإدارة الوصول",
   "Enable All":"تفعيل الكل",

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import MobileManageQariahMember from "@/pages/Mobile/ManageQariahMember";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
@@ -14,6 +14,9 @@ import {
   UserPlus,
   Bell,
   CheckCircle,
+  Search,
+  Loader2,
+  XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,11 +127,13 @@ function ManageQariahMemberDesktop() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
+  const [icCheckOpen, setIcCheckOpen] = useState(false);
+  const [icCheckSearchedIc, setIcCheckSearchedIc] = useState("");
   const [isApprovedLocal, setIsApprovedLocal] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
-  const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
   const [memberToApprove, setMemberToApprove] = useState(null);
+  const [approveSearchedIc, setApproveSearchedIc] = useState("");
   const [notifyConfirmOpen, setNotifyConfirmOpen] = useState(false);
   const [notifyConfirmMode, setNotifyConfirmMode] = useState(null);
   const [pendingSubmitData, setPendingSubmitData] = useState(null);
@@ -158,6 +163,23 @@ function ManageQariahMemberDesktop() {
     const dob = parseDobFromIcNumber(icnumberValue);
     if (dob) setValue("dateofbirth", dob);
   }, [icnumberValue, isdeceased, editingMember?.isdeceased]);
+
+  const {
+    control: icCheckControl,
+    watch: watchIcCheck,
+    reset: resetIcCheck,
+  } = useForm({ defaultValues: { icSearch: "" } });
+
+  const icCheckInputValue = watchIcCheck("icSearch");
+
+  const didMountIcCheckInput = useRef(false);
+  useEffect(() => {
+    if (!didMountIcCheckInput.current) {
+      didMountIcCheckInput.current = true;
+      return;
+    }
+    setIcCheckSearchedIc("");
+  }, [icCheckInputValue]);
 
   useEffect(() => {
     setTempFullName(urlFullName);
@@ -199,6 +221,18 @@ function ManageQariahMemberDesktop() {
     trpc.deathCharityMember.getMosquesByState.useQuery(
       { state: dialogState || null },
       { enabled: isDialogOpen && !!editingMember },
+    );
+
+  const { data: icCheckResult, isFetching: icCheckSearching } =
+    trpc.deathCharityMember.searchByIcNumber.useQuery(
+      { icnumber: icCheckSearchedIc, mosqueId: null },
+      { enabled: !!icCheckSearchedIc, staleTime: 0 },
+    );
+
+  const { data: approveResults = [], isFetching: approveSearching } =
+    trpc.deathCharityMember.searchByIcNumber.useQuery(
+      { icnumber: approveSearchedIc, mosqueId: null, searchMany: true },
+      { enabled: !!approveSearchedIc, staleTime: 0 },
     );
 
   const deceasedOrgId =
@@ -333,11 +367,28 @@ function ManageQariahMemberDesktop() {
     setSearchParams({});
   };
 
-  const openCreateDialog = () => {
+  const openCreateDialog = (icnumber = "") => {
     setEditingMember(null);
     setIsApprovedLocal(true);
-    reset(defaultQariahMemberField);
+    reset({ ...defaultQariahMemberField, icnumber });
     setIsDialogOpen(true);
+  };
+
+  const openIcCheckDialog = () => {
+    resetIcCheck({ icSearch: "" });
+    setIcCheckSearchedIc("");
+    setIcCheckOpen(true);
+  };
+
+  const handleIcCheckSearch = () => {
+    const ic = (icCheckInputValue ?? "").replace(/-/g, "").trim();
+    if (!ic) return;
+    setIcCheckSearchedIc(ic);
+  };
+
+  const handleContinueRegistration = () => {
+    setIcCheckOpen(false);
+    openCreateDialog(icCheckSearchedIc);
   };
 
   const openEditDialog = (member) => {
@@ -366,6 +417,18 @@ function ManageQariahMemberDesktop() {
     if (editingMember?.id === memberId) {
       setIsApprovedLocal(true);
     }
+  };
+
+  const openApproveCheck = (member) => {
+    setMemberToApprove(member);
+    setApproveSearchedIc((member.icnumber ?? "").replace(/-/g, "").trim());
+  };
+
+  const handleApproveConfirm = async () => {
+    if (!memberToApprove) return;
+    await handleApprove(memberToApprove.id);
+    setMemberToApprove(null);
+    setIsDialogOpen(false);
   };
 
   const submitMember = async (formData, shouldNotify = false) => {
@@ -569,7 +632,7 @@ function ManageQariahMemberDesktop() {
         <div className="flex items-center gap-2">
           {canCreate && (
             <Button
-              onClick={openCreateDialog}
+              onClick={openIcCheckDialog}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <UserPlus className="w-4 h-4 mr-2" />
@@ -699,10 +762,7 @@ function ManageQariahMemberDesktop() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => {
-                                  setMemberToApprove(member);
-                                  setApproveConfirmOpen(true);
-                                }}
+                                onClick={() => openApproveCheck(member)}
                                 title={translate("Approve Member")}
                                 disabled={approveMutation.isPending}
                               >
@@ -929,7 +989,6 @@ function ManageQariahMemberDesktop() {
                   </div>
                 )}
 
-                {/* Mosque — Edit mode */}
                 {editingMember && (
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
@@ -1129,7 +1188,7 @@ function ManageQariahMemberDesktop() {
                 <Button
                   type="button"
                   className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={() => handleApprove(editingMember.id)}
+                  onClick={() => openApproveCheck(editingMember)}
                   disabled={isPending}
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -1150,21 +1209,200 @@ function ManageQariahMemberDesktop() {
         </DialogContent>
       </Dialog>
 
-      <ConfirmDialog
-        open={approveConfirmOpen}
+      <Dialog open={icCheckOpen} onOpenChange={setIcCheckOpen}>
+        <DialogContent className="max-w-md dark:bg-slate-800">
+          <DialogHeader>
+            <DialogTitle>{translate("Check Qariah Membership")}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <TextInputForm
+                  name="icSearch"
+                  control={icCheckControl}
+                  label={translate("IC No.")}
+                  isICNumber
+                  placeholder={translate("Enter IC number")}
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={handleIcCheckSearch}
+                disabled={icCheckSearching || !(icCheckInputValue ?? "").trim()}
+                className="mb-0.5"
+              >
+                {icCheckSearching ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+
+            {icCheckSearchedIc && !icCheckSearching && icCheckResult && (
+              <div className="border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 space-y-1">
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {translate("Registered Qariah Member")}
+                </p>
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {icCheckResult.fullname}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {icCheckResult.icnumber}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {translate("Mosque")}: {icCheckResult.mosque?.name ?? "—"}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {translate("Organisation")}:{" "}
+                  {icCheckResult.organisation?.name ?? "—"}
+                </p>
+                <span
+                  className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${
+                    icCheckResult.isapproved
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  }`}
+                >
+                  {icCheckResult.isapproved
+                    ? translate("Approved")
+                    : translate("Pending")}
+                </span>
+              </div>
+            )}
+
+            {icCheckSearchedIc && !icCheckSearching && !icCheckResult && (
+              <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  {translate("No Records Found")}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIcCheckOpen(false)}>
+              {translate("Close")}
+            </Button>
+            {icCheckSearchedIc && !icCheckSearching && !icCheckResult && (
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                onClick={handleContinueRegistration}
+              >
+                {translate("Continue Registration")}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!memberToApprove}
         onOpenChange={(open) => {
-          setApproveConfirmOpen(open);
           if (!open) setMemberToApprove(null);
         }}
-        title={translate("Approve Qariah Member")}
-        description={`${translate("Approve")} "${memberToApprove?.fullname}"?`}
-        onConfirm={async () => {
-          if (memberToApprove) await handleApprove(memberToApprove.id);
-          setApproveConfirmOpen(false);
-          setMemberToApprove(null);
-        }}
-        confirmText={translate("Approve")}
-      />
+      >
+        <DialogContent className="max-w-md dark:bg-slate-800">
+          <DialogHeader>
+            <DialogTitle>{translate("Approve Qariah Member")}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>{translate("IC No.")}</Label>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100 px-3 py-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                {memberToApprove?.icnumber ?? "—"}
+              </p>
+            </div>
+
+            {approveSearching && (
+              <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {translate("Searching...")}
+              </p>
+            )}
+
+            {approveSearchedIc &&
+              !approveSearching &&
+              approveResults.length > 0 && (
+                <div className="space-y-2">
+                  {approveResults.map((r) => (
+                    <div
+                      key={r.id}
+                      className={`border rounded-lg p-3 space-y-1 ${
+                        r.id === memberToApprove?.id
+                          ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20"
+                          : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                        {r.fullname}
+                        {r.id === memberToApprove?.id && (
+                          <span className="ml-2 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase">
+                            {translate("This Record")}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {r.icnumber}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {translate("Mosque")}: {r.mosque?.name ?? "—"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {translate("Organisation")}:{" "}
+                        {r.organisation?.name ?? "—"}
+                      </p>
+                      <span
+                        className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${
+                          r.isapproved
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        }`}
+                      >
+                        {r.isapproved
+                          ? translate("Approved")
+                          : translate("Pending")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            {approveSearchedIc &&
+              !approveSearching &&
+              approveResults.length === 0 && (
+                <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    {translate("No Records Found")}
+                  </p>
+                </div>
+              )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="destructive" onClick={() => setMemberToApprove(null)}>
+              {translate("Close")}
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={handleApproveConfirm}
+              disabled={approveMutation.isPending}
+            >
+              {approveMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              )}
+              {translate("Approve")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteDialogOpen}

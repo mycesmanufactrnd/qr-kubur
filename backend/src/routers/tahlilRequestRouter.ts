@@ -87,7 +87,7 @@ export const tahlilRequestRouter = router({
         });
       }
 
-      if (filterStatus && filterStatus !== "all") {
+      if (filterStatus) {
         query.andWhere("tahlilrequest.status = :status", {
           status: filterStatus,
         });
@@ -99,7 +99,7 @@ export const tahlilRequestRouter = router({
         });
       }
 
-      if (filterService && filterService !== "all") {
+      if (filterService) {
         query.andWhere(":service = ANY(tahlilrequest.selectedservices)", {
           service: filterService,
         });

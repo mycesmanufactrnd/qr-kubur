@@ -134,7 +134,7 @@ export const organisationRouter = router({
         });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere(":state = ANY(organisation.states)", {
           state: filterState,
         });

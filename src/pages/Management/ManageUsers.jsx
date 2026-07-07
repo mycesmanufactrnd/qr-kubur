@@ -81,7 +81,7 @@ function ManageUsersDesktop() {
   const [search, setSearch] = useState("");
   const [filterEmail, setFilterEmail] = useState("");
   const [filterUsername, setFilterUsername] = useState("");
-  const [filterOrganisationId, setFilterOrganisationId] = useState("all");
+  const [filterOrganisationId, setFilterOrganisationId] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -116,13 +116,10 @@ function ManageUsersDesktop() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: search,
+    fullname: search,
     email: filterEmail,
     username: filterUsername,
-    organisationId:
-      isSuperAdmin && filterOrganisationId !== "all"
-        ? Number(filterOrganisationId)
-        : null,
+    organisationId: isSuperAdmin && (Number(filterOrganisationId) || null),
   });
 
   const { organisationsList: organisations } = useGetOrganisationPaginated({});
@@ -291,7 +288,7 @@ function ManageUsersDesktop() {
     setSearch("");
     setFilterEmail("");
     setFilterUsername("");
-    setFilterOrganisationId("all");
+    setFilterOrganisationId("");
     setPage(1);
   };
 
@@ -407,13 +404,10 @@ function ManageUsersDesktop() {
               setPage(1);
             },
             label: translate("Organisation"),
-            options: [
-              { value: "all", label: translate("All Organisations") },
-              ...organisations.items.map((org) => ({
-                value: String(org.id),
-                label: org.name,
-              })),
-            ],
+            options: organisations.items.map((org) => ({
+              value: String(org.id),
+              label: org.name,
+            })),
           },
         ]}
       />

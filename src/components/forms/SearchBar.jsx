@@ -67,7 +67,7 @@ export default function SearchBar({
     return (
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-4 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="flex flex-wrap gap-3">
             {visibleFilters.map((filter, idx) => {
               const key = filter.key ?? idx;
               const {
@@ -77,18 +77,24 @@ export default function SearchBar({
                 ...fieldProps
               } = filter;
 
+              let field;
               if (type === "select") {
-                return <PlainSelect key={key} {...fieldProps} />;
+                field = <PlainSelect {...fieldProps} />;
+              } else if (type === "select2") {
+                field = <PlainSelect2 {...fieldProps} />;
+              } else {
+                field = (
+                  <PlainTextInput
+                    {...fieldProps}
+                    onKeyDown={fieldProps.onKeyDown ?? handleEnter}
+                  />
+                );
               }
-              if (type === "select2") {
-                return <PlainSelect2 key={key} {...fieldProps} />;
-              }
+
               return (
-                <PlainTextInput
-                  key={key}
-                  {...fieldProps}
-                  onKeyDown={fieldProps.onKeyDown ?? handleEnter}
-                />
+                <div key={key} className="flex-1 min-w-[200px]">
+                  {field}
+                </div>
               );
             })}
           </div>

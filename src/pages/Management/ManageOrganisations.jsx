@@ -96,8 +96,8 @@ function ManageOrganisationsDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("search") || "";
-  const urlType = searchParams.get("type") || "all";
-  const urlState = searchParams.get("state") || "all";
+  const urlType = searchParams.get("type") || "";
+  const urlState = searchParams.get("state") || "";
   const urlSortField = searchParams.get("sortField") || "";
   const urlSortOrder = searchParams.get("sortOrder") || "";
 
@@ -420,7 +420,7 @@ function ManageOrganisationsDesktop() {
 
   const handleAddOrUpdateUser = () => {
     const { fullname, username, email, phoneno, role } = getUserFormValues();
-    
+
     const hasInput = fullname || username || phoneno;
 
     if (!hasInput) {
@@ -433,10 +433,23 @@ function ManageOrganisationsDesktop() {
       return;
     }
 
-    if (!validateFields({ email, phoneno }, [
-      { field: "email", label: translate("Email"), type: "email", onlyIfExists: true },
-      { field: "phoneno", label: translate("Phone No."), type: "phone", onlyIfExists: true },
-    ])) return;
+    if (
+      !validateFields({ email, phoneno }, [
+        {
+          field: "email",
+          label: translate("Email"),
+          type: "email",
+          onlyIfExists: true,
+        },
+        {
+          field: "phoneno",
+          label: translate("Phone No."),
+          type: "phone",
+          onlyIfExists: true,
+        },
+      ])
+    )
+      return;
 
     if (editingUserIndex !== null) {
       const nextEntries = userEntries.map((entry, index) =>
@@ -526,16 +539,18 @@ function ManageOrganisationsDesktop() {
     };
   };
 
-
   const { organisationsList, totalPages, isLoading } =
     useGetOrganisationPaginated({
       page: urlPage,
       pageSize: itemsPerPage,
       filterName: urlName,
-      filterType: urlType === "all" ? undefined : Number(urlType),
-      filterState: urlState === "all" ? undefined : urlState,
+      filterType: Number(urlType) || undefined,
+      filterState: urlState || undefined,
       sortField: urlSortField || undefined,
-      sortOrder: urlSortOrder === "ASC" || urlSortOrder === "DESC" ? urlSortOrder : undefined,
+      sortOrder:
+        urlSortOrder === "ASC" || urlSortOrder === "DESC"
+          ? urlSortOrder
+          : undefined,
     });
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
@@ -696,8 +711,8 @@ function ManageOrganisationsDesktop() {
   const handleSearch = () => {
     const params = { page: "1", search: "", type: "", state: "" };
     if (tempName) params.search = tempName;
-    if (tempType !== "all") params.type = tempType;
-    if (tempState !== "all") params.state = tempState;
+    if (tempType) params.type = tempType;
+    if (tempState) params.state = tempState;
     setSearchParams(params);
   };
 
@@ -1059,13 +1074,10 @@ function ManageOrganisationsDesktop() {
             value: String(tempType),
             onChange: setTempType,
             label: translate("Organisation Type"),
-            options: [
-              { value: "all", label: translate("All Types") },
-              ...organisationTypeList.items.map((type) => ({
-                value: String(type.id),
-                label: type.name,
-              })),
-            ],
+            options: organisationTypeList.items.map((type) => ({
+              value: String(type.id),
+              label: type.name,
+            })),
           },
           {
             type: "select",
@@ -1073,13 +1085,10 @@ function ManageOrganisationsDesktop() {
             value: tempState,
             onChange: setTempState,
             label: translate("State"),
-            options: [
-              { value: "all", label: translate("All States") },
-              ...(isSuperAdmin
-                ? STATES_MY
-                : STATES_MY.filter((s) => currentUserStates.includes(s))
-              ).map((state) => ({ value: state, label: state })),
-            ],
+            options: (isSuperAdmin
+              ? STATES_MY
+              : STATES_MY.filter((s) => currentUserStates.includes(s))
+            ).map((state) => ({ value: state, label: state })),
           },
         ]}
       />
@@ -1159,7 +1168,9 @@ function ManageOrganisationsDesktop() {
                           "bucket-organisation",
                         )}
                         referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                         alt="photo"
                         className="w-12 h-10 object-cover rounded mx-auto"
                       />
@@ -1347,7 +1358,10 @@ function ManageOrganisationsDesktop() {
                       navigator.geolocation.getCurrentPosition(
                         (pos) => {
                           setValue("latitude", pos.coords.latitude.toFixed(6));
-                          setValue("longitude", pos.coords.longitude.toFixed(6));
+                          setValue(
+                            "longitude",
+                            pos.coords.longitude.toFixed(6),
+                          );
                           setIsLocating(false);
                         },
                         () => {
@@ -1654,7 +1668,9 @@ function ManageOrganisationsDesktop() {
                             <TableRow
                               key={entry.id}
                               className={
-                                editingUserIndex === index ? "bg-violet-50 dark:bg-violet-900/20" : ""
+                                editingUserIndex === index
+                                  ? "bg-violet-50 dark:bg-violet-900/20"
+                                  : ""
                               }
                             >
                               <TableCell className="font-medium">

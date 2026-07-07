@@ -69,7 +69,7 @@ function ManagePermissionsDesktop() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: searchQuery,
+    fullname: searchQuery,
   });
 
   const upsertPermission = useUpsertPermission();

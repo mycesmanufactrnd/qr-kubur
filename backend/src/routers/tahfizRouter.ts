@@ -127,7 +127,7 @@ export const tahfizRouter = router({
         });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere("tahfiz.state = :state", { state: filterState });
       }
 
