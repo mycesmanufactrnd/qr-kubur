@@ -14,7 +14,7 @@ export class GoogleUserDevice {
   id!: number;
 
   @Column("varchar", { unique: true })
-  fcmToken!: string;
+  fcmGoogleToken!: string;
 
   @ManyToOne(() => GoogleUser, { nullable: true, onDelete: "CASCADE" })
   googleuser?: GoogleUser | null;
