@@ -1262,7 +1262,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 }
 
 function ManageJenazahCaseDesktop() {
-  const { hasAdminAccess, loadingUser } = useAdminAccess();
+  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } = useAdminAccess();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCase, setSelectedCase] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -1292,6 +1292,8 @@ function ManageJenazahCaseDesktop() {
       status: urlStatus || undefined,
       search: urlSearch || undefined,
       referenceno: urlReferenceNo || undefined,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin,
     },
     { enabled: !loadingUser && hasAdminAccess },
   );

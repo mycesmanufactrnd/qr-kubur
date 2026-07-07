@@ -1220,5 +1220,12 @@
   "Delete the death notification record for \"{name}\"?": "هل تريد حذف سجل إشعار الوفاة لـ \"{name}\"؟",
   "Notification sent to {count} qariah members.": "تم إرسال الإشعار إلى {count} من أعضاء القارية.",
   "Notification resent to {count} qariah members.": "تم إعادة إرسال الإشعار إلى {count} من أعضاء القارية.",
-  "Message template saved.": "تم حفظ قالب الرسالة."
+  "Message template saved.": "تم حفظ قالب الرسالة.",
+  "No Name": "بدون اسم",
+  "Pending Jenazah Case(s)": "حالة (حالات) جنازة معلقة",
+  "Jenazah cases awaiting approval": "حالات الجنازة بانتظار الموافقة",
+  "Pending Qariah Registration(s)": "تسجيل (تسجيلات) قارية معلقة",
+  "Qariah members awaiting approval": "أعضاء القارية بانتظار الموافقة",
+  "There is no reject action for pending registrations — to decline a registration, delete it instead.": "لا يوجد إجراء رفض للتسجيلات المعلقة — لرفض التسجيل، احذفه بدلاً من ذلك.",
+  "There is no reject action — to decline this registration, delete it instead.": "لا يوجد إجراء رفض — لرفض هذا التسجيل، احذفه بدلاً من ذلك."
 }

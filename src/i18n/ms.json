@@ -1233,5 +1233,12 @@
   "Delete the death notification record for \"{name}\"?": "Padam rekod notifikasi kematian \"{name}\"?",
   "Notification sent to {count} qariah members.": "Notifikasi dihantar kepada {count} ahli qariah.",
   "Notification resent to {count} qariah members.": "Notifikasi dihantar semula kepada {count} ahli qariah.",
-  "Message template saved.": "Templat mesej disimpan."
+  "Message template saved.": "Templat mesej disimpan.",
+  "No Name": "Tiada Nama",
+  "Pending Jenazah Case(s)": "Kes Jenazah Belum Selesai",
+  "Jenazah cases awaiting approval": "Kes jenazah menunggu kelulusan",
+  "Pending Qariah Registration(s)": "Pendaftaran Qariah Belum Selesai",
+  "Qariah members awaiting approval": "Ahli qariah menunggu kelulusan",
+  "There is no reject action for pending registrations — to decline a registration, delete it instead.": "Tiada tindakan tolak untuk pendaftaran belum selesai — untuk menolak pendaftaran, padamkannya sebaliknya.",
+  "There is no reject action — to decline this registration, delete it instead.": "Tiada tindakan tolak — untuk menolak pendaftaran ini, padamkannya sebaliknya."
 }

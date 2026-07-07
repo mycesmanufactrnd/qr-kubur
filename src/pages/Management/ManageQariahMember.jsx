@@ -17,6 +17,7 @@ import {
   Search,
   Loader2,
   XCircle,
+  Info,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -691,6 +692,15 @@ function ManageQariahMemberDesktop() {
         ]}
       />
 
+      <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3.5 py-2.5">
+        <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+        <span className="text-xs text-amber-800 dark:text-amber-300">
+          {translate(
+            "There is no reject action for pending registrations — to decline a registration, delete it instead.",
+          )}
+        </span>
+      </div>
+
       <Card className="border-0 shadow-md dark:bg-slate-800">
         <CardContent className="p-0">
           <Table>
@@ -749,7 +759,12 @@ function ManageQariahMemberDesktop() {
                           {translate("Approved")}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        <span
+                          className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                          title={translate(
+                            "There is no reject action — to decline this registration, delete it instead.",
+                          )}
+                        >
                           {translate("Pending")}
                         </span>
                       )}
@@ -1175,6 +1190,14 @@ function ManageQariahMemberDesktop() {
                 </div>
               )}
             </div>
+
+            {formDisabled && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 -mt-2">
+                {translate(
+                  "There is no reject action — to decline this registration, delete it instead.",
+                )}
+              </p>
+            )}
 
             <DialogFooter>
               <Button

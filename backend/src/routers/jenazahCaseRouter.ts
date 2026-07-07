@@ -134,35 +134,56 @@ export const jenazahCaseRouter = router({
         mosqueId: z.number().optional(),
         search: z.string().optional(),
         referenceno: z.string().optional(),
+        currentUserOrganisation: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().optional().default(false),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, status, mosqueId, search, referenceno } = input;
+      const {
+        page,
+        pageSize,
+        status,
+        mosqueId,
+        search,
+        referenceno,
+        currentUserOrganisation,
+        isSuperAdmin,
+      } = input;
       const repo = AppDataSource.getRepository(JenazahCase);
       const query = repo
-        .createQueryBuilder("jc")
-        .leftJoinAndSelect("jc.mosque", "mosque");
+        .createQueryBuilder("jenazahcase")
+        .leftJoinAndSelect("jenazahcase.mosque", "mosque");
+
+      if (!isSuperAdmin) {
+        if (!currentUserOrganisation) return { items: [], total: 0 };
+        query.andWhere("mosque.organisationId = :orgId", {
+          orgId: currentUserOrganisation,
+        });
+      }
 
       if (status) {
-        query.andWhere("jc.status = :status", { status });
+        query.andWhere("jenazahcase.status = :status", { status });
       }
+
       if (mosqueId) {
-        query.andWhere("jc.mosqueId = :mosqueId", { mosqueId });
+        query.andWhere("jenazahcase.mosqueId = :mosqueId", { mosqueId });
       }
+
       if (search) {
         query.andWhere(
-          "(jc.details->>'deceasedFullname' ILIKE :search OR jc.details->>'deceasedIcnumber' ILIKE :search)",
+          "(jenazahcase.details->>'deceasedFullname' ILIKE :search OR jenazahcase.details->>'deceasedIcnumber' ILIKE :search)",
           { search: `%${search}%` },
         );
       }
+      
       if (referenceno) {
-        query.andWhere("jc.referenceno ILIKE :referenceno", {
+        query.andWhere("jenazahcase.referenceno ILIKE :referenceno", {
           referenceno: `%${referenceno}%`,
         });
       }
 
       const [items, total] = await query
-        .orderBy("jc.createdat", "DESC")
+        .orderBy("jenazahcase.createdat", "DESC")
         .skip((page - 1) * pageSize)
         .take(pageSize)
         .getManyAndCount();

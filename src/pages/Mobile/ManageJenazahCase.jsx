@@ -1084,7 +1084,7 @@ function CaseDetailSheet({
 }
 
 export default function MobileManageJenazahCase() {
-  const { hasAdminAccess, loadingUser } = useAdminAccess();
+  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } = useAdminAccess();
   const [statusFilter, setStatusFilter] = useState("pending");
   const [page, setPage] = useState(1);
   const [selectedCase, setSelectedCase] = useState(null);
@@ -1094,7 +1094,13 @@ export default function MobileManageJenazahCase() {
   const itemsPerPage = 10;
 
   const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
-    { page, pageSize: itemsPerPage, status: statusFilter || undefined },
+    {
+      page,
+      pageSize: itemsPerPage,
+      status: statusFilter || undefined,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin,
+    },
     { enabled: !loadingUser && hasAdminAccess },
   );
 

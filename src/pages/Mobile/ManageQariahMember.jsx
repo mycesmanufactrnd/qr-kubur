@@ -13,6 +13,7 @@ import {
   Search,
   Loader2,
   XCircle,
+  Info,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -1106,6 +1107,15 @@ export default function MobileManageQariahMember() {
               <Plus className="w-3.5 h-3.5" />
             </button>
           )}
+        </div>
+
+        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3 py-2.5">
+          <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="text-[11px] text-amber-800 dark:text-amber-300">
+            {translate(
+              "There is no reject action for pending registrations — to decline a registration, delete it instead.",
+            )}
+          </span>
         </div>
 
         {isLoading ? (
