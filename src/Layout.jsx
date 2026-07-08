@@ -37,7 +37,6 @@ import {
   Boxes,
   TrendingUp,
   TrendingDown,
-  Wrench,
   History,
   ClipboardCheck,
   FileBarChart2,
@@ -190,11 +189,6 @@ function LayoutContent({ children, currentPageName }) {
             name: translate("Stock Out"),
             icon: TrendingDown,
             page: "InventoryStockOut",
-          },
-          {
-            name: translate("Assets"),
-            icon: Wrench,
-            page: "ManageInventoryAssets",
           },
           {
             name: translate("Tx History"),

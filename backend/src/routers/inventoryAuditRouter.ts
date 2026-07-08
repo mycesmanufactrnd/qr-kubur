@@ -1,14 +1,27 @@
 // @ts-nocheck
 import { protectedProcedure, router } from "../trpc.js";
-import { CheckDetail, CheckSession, InventoryItem } from "../db/entities.js";
+import {
+  CheckDetail,
+  CheckSession,
+  InventoryItem,
+  InventoryTransaction,
+} from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import {
   checkSessionSchema,
   updateCheckDetailSchema,
+  updateReusableCheckDetailSchema,
 } from "../schemas/checkSessionSchema.js";
-import { CheckDetailResult, CheckSessionStatus } from "../db/enums.js";
+import {
+  CheckDetailResult,
+  CheckSessionStatus,
+  InventoryTransactionType,
+  InventoryTransactionSource,
+  InventoryItemType,
+} from "../db/enums.js";
 import { TRPCError } from "@trpc/server";
+import { computeItemStatus } from "./inventoryItemRouter.js";
 
 export const inventoryAuditRouter = router({
   getSessions: protectedProcedure
@@ -17,10 +30,11 @@ export const inventoryAuditRouter = router({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).default(10),
         filterStatus: z.nativeEnum(CheckSessionStatus).optional(),
+        filterLocation: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, filterStatus } = input;
+      const { page, pageSize, filterStatus, filterLocation } = input;
 
       const repo = AppDataSource.getRepository(CheckSession);
       const query = repo
@@ -29,6 +43,10 @@ export const inventoryAuditRouter = router({
 
       if (filterStatus) {
         query.andWhere("session.status = :status", { status: filterStatus });
+      }
+
+      if (filterLocation) {
+        query.andWhere("session.location = :location", { location: filterLocation });
       }
 
       const [items, total] = await query
@@ -54,9 +72,10 @@ export const inventoryAuditRouter = router({
         });
         const savedSession = await manager.save(session);
 
-        // Snapshot every active item.
+        // Snapshot only items stored at the audited location.
         const items = await manager.find(InventoryItem, {
           select: ["id", "current_quantity"],
+          where: { location: input.location },
         });
 
         const details = items.map((item) =>
@@ -101,7 +120,9 @@ export const inventoryAuditRouter = router({
     }),
 
   // Save the auditor's physical count for a single row.
-  // Computes difference and result automatically.
+  // Computes difference and result automatically. While the session is
+  // IN_PROGRESS this only records the audit finding — the live InventoryItem
+  // is untouched until the session is completed.
   updateCount: protectedProcedure
     .input(updateCheckDetailSchema)
     .mutation(async ({ input }) => {
@@ -131,12 +152,38 @@ export const inventoryAuditRouter = router({
       return await repo.save(detail);
     }),
 
-  // Finalise the session: aggregate match/missing/over_count counts,
-  // then mark as COMPLETED. No stock adjustments are applied automatically
-  // — discrepancies are informational only.
+  // Save the auditor's condition/status check for a reusable item row.
+  // Only recorded on the audit while IN_PROGRESS — the live InventoryItem
+  // is synced once the session is completed.
+  updateReusableCount: protectedProcedure
+    .input(updateReusableCheckDetailSchema)
+    .mutation(async ({ input }) => {
+      const { detailId, condition, reusable_status, notes } = input;
+
+      const repo = AppDataSource.getRepository(CheckDetail);
+      const detail = await repo.findOneByOrFail({ id: detailId });
+
+      const session = await AppDataSource.getRepository(CheckSession).findOneBy(
+        { id: detail.sessionId },
+      );
+      if (session?.status === CheckSessionStatus.COMPLETED) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Sesi audit telah selesai. Kiraan tidak boleh dikemaskini.",
+        });
+      }
+
+      repo.merge(detail, { condition, reusable_status, notes });
+      return await repo.save(detail);
+    }),
+
+  // Finalise the session: aggregate match/missing/over_count counts, apply
+  // every audited row's finding to the live InventoryItem (quantity for
+  // consumables, condition/status for reusables, each logged as a stock
+  // ADJUSTMENT), then mark as COMPLETED.
   completeSession: protectedProcedure
     .input(z.number().int().positive())
-    .mutation(async ({ input: sessionId }) => {
+    .mutation(async ({ input: sessionId, ctx }) => {
       return await AppDataSource.transaction(async (manager) => {
         const session = await manager.findOneByOrFail(CheckSession, {
           id: sessionId,
@@ -151,6 +198,7 @@ export const inventoryAuditRouter = router({
 
         const details = await manager.find(CheckDetail, {
           where: { sessionId },
+          relations: ["item"],
         });
 
         let matched = 0;
@@ -161,6 +209,44 @@ export const inventoryAuditRouter = router({
           if (d.result === CheckDetailResult.MATCH) matched++;
           else if (d.result === CheckDetailResult.MISSING) missing++;
           else if (d.result === CheckDetailResult.OVER_COUNT) over_count++;
+
+          const item = d.item;
+          if (!item) continue;
+
+          if (item.item_type === InventoryItemType.REUSABLE) {
+            if (d.condition || d.reusable_status) {
+              await manager.update(InventoryItem, item.id, {
+                condition: d.condition ?? item.condition,
+                status: d.reusable_status ?? item.status,
+              });
+            }
+            continue;
+          }
+
+          if (d.physical_count === null || d.physical_count === undefined) continue;
+
+          const stockDiff = d.physical_count - item.current_quantity;
+          if (stockDiff === 0) continue;
+
+          const newStatus = computeItemStatus(d.physical_count, item.minimum_level, item.item_type);
+
+          await manager.update(InventoryItem, item.id, {
+            current_quantity: d.physical_count,
+            status: newStatus,
+          });
+
+          await manager.save(
+            manager.create(InventoryTransaction, {
+              transaction_type: InventoryTransactionType.ADJUSTMENT,
+              itemId: item.id,
+              quantity: stockDiff,
+              before_quantity: item.current_quantity,
+              after_quantity: d.physical_count,
+              source: InventoryTransactionSource.AUDIT,
+              notes: d.notes || `Pelarasan stok daripada audit sesi #${sessionId}`,
+              createdbyId: Number(ctx.user.id),
+            }),
+          );
         }
 
         await manager.update(CheckSession, sessionId, {

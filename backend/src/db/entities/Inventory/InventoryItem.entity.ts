@@ -15,10 +15,11 @@ import {
   InventoryItemType,
   InventoryItemStatus,
   InventoryUnitType,
+  CheckItemCondition,
 } from "../../enums.js";
-import { InventoryAsset } from "./InventoryAsset.entity.js";
 import { InventoryTransaction } from "./InventoryTransaction.entity.js";
 import { PackageItem } from "./PackageItem.entity.js";
+import { ReusableItemGroup } from "./ReusableItemGroup.entity.js";
 
 @Entity("inventory_item")
 export class InventoryItem {
@@ -48,8 +49,9 @@ export class InventoryItem {
   @Column({
     type: "enum",
     enum: InventoryUnitType,
+    nullable: true,
   })
-  unit_type!: InventoryUnitType;
+  unit_type?: InventoryUnitType | null;
 
   @Column("int", { default: 0 })
   current_quantity!: number;
@@ -74,11 +76,23 @@ export class InventoryItem {
   @Column("varchar", { length: 255, nullable: true })
   location?: string | null;
 
+  // Reusable items only — physical condition (Good / Damaged).
+  @Column({
+    type: "enum",
+    enum: CheckItemCondition,
+    nullable: true,
+  })
+  condition?: CheckItemCondition | null;
+
   @Column("text", { nullable: true })
   description?: string | null;
 
-  @OneToMany(() => InventoryAsset, (asset) => asset.item)
-  assets?: InventoryAsset[];
+  @Column("integer", { nullable: true })
+  groupId?: number | null;
+
+  @ManyToOne(() => ReusableItemGroup, (group) => group.items, { nullable: true, onDelete: "SET NULL", eager: false })
+  @JoinColumn({ name: "groupId" })
+  group?: ReusableItemGroup | null;
 
   @OneToMany(() => InventoryTransaction, (transaction) => transaction.item)
   transactions?: InventoryTransaction[];

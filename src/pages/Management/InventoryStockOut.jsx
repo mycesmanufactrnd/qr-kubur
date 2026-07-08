@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { translate } from "@/utils/translations";
 import { TrendingDown, Search, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,9 @@ import {
   useGetAllInventoryPackages,
   useInventoryTransactionMutations,
 } from "@/hooks/useInventoryMutations";
-import { InventoryItemType } from "@/utils/enums";
+import { InventoryItemType, InventoryItemStatus } from "@/utils/enums";
+
+const NO_LOCATION = "__NO_LOCATION__";
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
@@ -32,6 +34,27 @@ function todayDate() {
 function nowTime() {
   const now = new Date();
   return now.toTimeString().slice(0, 5);
+}
+
+function getLocationsFromItems(items) {
+  const set = new Set();
+  for (const i of items) {
+    set.add(i.location ? i.location : NO_LOCATION);
+  }
+  return Array.from(set).sort((a, b) => {
+    if (a === NO_LOCATION) return 1;
+    if (b === NO_LOCATION) return -1;
+    return a.localeCompare(b);
+  });
+}
+
+function filterByTypeAndEligibility(items, itemType) {
+  return items.filter((i) => {
+    if (i.item_type !== itemType) return false;
+    // Reusable items not AVAILABLE (in use / missing / maintenance) can't be taken out.
+    if (itemType === InventoryItemType.REUSABLE && i.status !== InventoryItemStatus.AVAILABLE) return false;
+    return true;
+  });
 }
 
 function filterItems(items, search) {
@@ -44,16 +67,20 @@ function filterItems(items, search) {
   );
 }
 
+function filterPackagesByLocation(packages, location) {
+  if (!location) return packages;
+  return packages.filter((pkg) =>
+    (pkg.packageItems ?? []).some(
+      (pi) => pi.item && (pi.item.location || NO_LOCATION) === location,
+    ),
+  );
+}
+
 // ── Item Checkbox ─────────────────────────────────────────────────────────────
 
-function ItemCheckbox({ item, checked, qty, assetId, onToggle, onQtyChange, onAssetChange }) {
-  const isReusable = item.item_type === InventoryItemType.REUSABLE;
-  const availableAssets = isReusable
-    ? (item.assets ?? []).filter((a) => a.current_status === "AVAILABLE")
-    : [];
-  const hasAssets = availableAssets.length > 0;
-  const isOutOfStock = isReusable ? !hasAssets : item.current_quantity === 0;
-  const isOverStock  = !isReusable && checked && qty > item.current_quantity;
+function ItemCheckbox({ item, checked, qty, onToggle, onQtyChange, showQty = true }) {
+  const isOutOfStock = showQty && item.current_quantity === 0;
+  const isOverStock  = showQty && checked && qty > item.current_quantity;
 
   return (
     <div
@@ -84,18 +111,15 @@ function ItemCheckbox({ item, checked, qty, assetId, onToggle, onQtyChange, onAs
               <span className="text-xs text-gray-400 ml-1.5">({item.item_code})</span>
             )}
           </p>
-          <p className={`text-xs mt-0.5 ${
-            isReusable
-              ? hasAssets ? "text-gray-400" : "text-red-500"
-              : item.current_quantity === 0 ? "text-red-500" : item.current_quantity <= item.minimum_level ? "text-yellow-500" : "text-gray-400"
-          }`}>
-            {isReusable
-              ? `${translate("Aset tersedia")}: ${availableAssets.length}`
-              : `${translate("Stok")}: ${item.current_quantity} ${item.unit_type}${item.current_quantity === 0 ? " — Tiada stok" : item.current_quantity <= item.minimum_level ? " — Rendah" : ""}`
-            }
-          </p>
+          {showQty && (
+            <p className={`text-xs mt-0.5 ${
+              item.current_quantity === 0 ? "text-red-500" : item.current_quantity <= item.minimum_level ? "text-yellow-500" : "text-gray-400"
+            }`}>
+              {`${translate("Stok")}: ${item.current_quantity} ${item.unit_type}${item.current_quantity === 0 ? " — Tiada stok" : item.current_quantity <= item.minimum_level ? " — Rendah" : ""}`}
+            </p>
+          )}
         </div>
-        {checked && !isReusable && (
+        {checked && showQty && (
           <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
             <span className="text-xs text-gray-500">{translate("Qty")}:</span>
             <div className={`flex items-center border rounded-md overflow-hidden ${isOverStock ? "border-orange-400" : "dark:border-slate-600"}`}>
@@ -120,20 +144,6 @@ function ItemCheckbox({ item, checked, qty, assetId, onToggle, onQtyChange, onAs
           </div>
         )}
       </div>
-      {checked && isReusable && hasAssets && (
-        <div className="pl-7 mt-1" onClick={(e) => e.stopPropagation()}>
-          <select
-            value={assetId ?? ""}
-            onChange={(e) => onAssetChange(item.id, e.target.value ? Number(e.target.value) : undefined)}
-            className="w-full text-xs border rounded-md px-2 py-1 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-          >
-            <option value="">{translate("Auto (aset pertama)")}</option>
-            {availableAssets.map((a) => (
-              <option key={a.id} value={a.id}>Asset #{a.id}</option>
-            ))}
-          </select>
-        </div>
-      )}
       {isOverStock && (
         <p className="text-xs text-orange-600 dark:text-orange-400 font-medium pl-7">
           ⚠ {translate("Qty melebihi stok semasa")} ({item.current_quantity} {item.unit_type} {translate("tersedia")})
@@ -143,13 +153,46 @@ function ItemCheckbox({ item, checked, qty, assetId, onToggle, onQtyChange, onAs
   );
 }
 
+// ── Type toggle (Consumable / Reusable) ───────────────────────────────────────
+
+function ItemTypeToggle({ value, onChange }) {
+  return (
+    <div className="inline-flex rounded-lg border border-gray-200 dark:border-slate-600 p-1 bg-gray-50 dark:bg-slate-800">
+      <button
+        type="button"
+        onClick={() => onChange(InventoryItemType.ONE_TIME)}
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          value === InventoryItemType.ONE_TIME
+            ? "bg-red-600 text-white shadow-sm"
+            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+        }`}
+      >
+        {translate("Consumable")}
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange(InventoryItemType.REUSABLE)}
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          value === InventoryItemType.REUSABLE
+            ? "bg-purple-600 text-white shadow-sm"
+            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+        }`}
+      >
+        {translate("Reusable")}
+      </button>
+    </div>
+  );
+}
+
 // ── Shared form state ─────────────────────────────────────────────────────────
 
 function useStockOutForm() {
   const [date, setDate]                   = useState(todayDate);
   const [time, setTime]                   = useState(nowTime);
+  const [itemType, setItemType]           = useState(InventoryItemType.ONE_TIME);
+  const [location, setLocation]           = useState("");
   const [notes, setNotes]                 = useState("");
-  // selected: { [itemId]: { qty: number, assetId?: number } }
+  // selected: { [itemId]: { qty: number } }
   const [selected, setSelected]           = useState({});
   const [selectedPackageId, setSelectedPackageId] = useState("");
 
@@ -163,15 +206,27 @@ function useStockOutForm() {
   const setQty = (id, qty) =>
     setSelected((prev) => ({ ...prev, [id]: { ...prev[id], qty } }));
 
-  const setAssetId = (id, assetId) =>
-    setSelected((prev) => ({ ...prev, [id]: { ...prev[id], assetId } }));
-
-  const applyPackage = (pkg) => {
+  const applyPackage = (pkg, allItems = [], itemType = null) => {
     if (!pkg) { setSelectedPackageId(""); return; }
     setSelectedPackageId(String(pkg.id));
     const newSelected = {};
     for (const pi of pkg.packageItems ?? []) {
-      newSelected[pi.itemId] = { qty: pi.quantity_required };
+      if (itemType && pi.item_type !== itemType) continue;
+      if (pi.itemId) {
+        newSelected[pi.itemId] = { qty: pi.quantity_required };
+        continue;
+      }
+      // Group-based reusable line — resolve to a concrete available item from the group.
+      if (pi.groupId) {
+        const candidate = allItems
+          .filter((i) =>
+            i.groupId === pi.groupId &&
+            i.status === InventoryItemStatus.AVAILABLE &&
+            i.current_quantity >= pi.quantity_required,
+          )
+          .sort((a, b) => a.id - b.id)[0];
+        if (candidate) newSelected[candidate.id] = { qty: pi.quantity_required };
+      }
     }
     setSelected(newSelected);
   };
@@ -179,6 +234,7 @@ function useStockOutForm() {
   const resetForm = () => {
     setDate(todayDate());
     setTime(nowTime());
+    setLocation("");
     setNotes("");
     setSelected({});
     setSelectedPackageId("");
@@ -186,7 +242,14 @@ function useStockOutForm() {
 
   const selectedCount = Object.keys(selected).length;
 
-  return { date, setDate, time, setTime, notes, setNotes, selected, toggleItem, setQty, setAssetId, applyPackage, selectedPackageId, resetForm, selectedCount };
+  return {
+    date, setDate, time, setTime,
+    itemType, setItemType,
+    location, setLocation,
+    notes, setNotes,
+    selected, toggleItem, setQty, applyPackage, selectedPackageId,
+    resetForm, selectedCount,
+  };
 }
 
 export default function InventoryStockOut() {
@@ -202,27 +265,50 @@ function InventoryStockOutDesktop() {
   const { packagesList } = useGetAllInventoryPackages();
   const { stockOut } = useInventoryTransactionMutations();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchConsumable, setSearchConsumable] = useState("");
-  const [searchReusable, setSearchReusable]     = useState("");
-
-  const consumableItems = useMemo(
-    () => (allItems ?? []).filter((i) => i.item_type === InventoryItemType.ONE_TIME),
-    [allItems],
-  );
-  const reusableItems = useMemo(
-    () => (allItems ?? []).filter((i) => i.item_type === InventoryItemType.REUSABLE),
-    [allItems],
-  );
+  const [searchItems, setSearchItems] = useState("");
 
   const form = useStockOutForm();
 
-  const filteredConsumable = useMemo(() => filterItems(consumableItems, searchConsumable), [consumableItems, searchConsumable]);
-  const filteredReusable   = useMemo(() => filterItems(reusableItems,   searchReusable),   [reusableItems,   searchReusable]);
+  const typedItems = useMemo(
+    () => filterByTypeAndEligibility(allItems ?? [], form.itemType),
+    [allItems, form.itemType],
+  );
+
+  const locations = useMemo(() => getLocationsFromItems(typedItems), [typedItems]);
+
+  useEffect(() => {
+    if (form.location && !locations.includes(form.location)) {
+      form.setLocation("");
+    }
+  }, [locations]);
+
+  const locationFilteredItems = useMemo(
+    () => (form.location ? typedItems.filter((i) => (i.location || NO_LOCATION) === form.location) : typedItems),
+    [typedItems, form.location],
+  );
+
+  const filteredItems = useMemo(() => filterItems(locationFilteredItems, searchItems), [locationFilteredItems, searchItems]);
+
+  const packagesForLocation = useMemo(
+    () => filterPackagesByLocation(packagesList, form.location),
+    [packagesList, form.location],
+  );
+
+  useEffect(() => {
+    if (form.selectedPackageId && !packagesForLocation.some((p) => String(p.id) === form.selectedPackageId)) {
+      form.applyPackage(null);
+    }
+  }, [packagesForLocation]);
+
+  const handleItemTypeChange = (newType) => {
+    form.setItemType(newType);
+    form.setLocation("");
+  };
 
   const hasOverStock = useMemo(() =>
     Object.entries(form.selected).some(([itemId, { qty }]) => {
       const item = allItems.find((i) => String(i.id) === String(itemId));
-      return item && item.item_type === InventoryItemType.ONE_TIME && qty > item.current_quantity;
+      return item && qty > item.current_quantity;
     }),
     [form.selected, allItems],
   );
@@ -231,11 +317,10 @@ function InventoryStockOutDesktop() {
     if (form.selectedCount === 0 || hasOverStock) return;
     setIsSubmitting(true);
     try {
-      for (const [itemId, { qty, assetId }] of Object.entries(form.selected)) {
+      for (const [itemId, { qty }] of Object.entries(form.selected)) {
         await stockOut.mutateAsync({
           itemId: Number(itemId),
           quantity: Number(qty),
-          assetId: assetId ?? undefined,
           notes: form.notes || undefined,
         });
       }
@@ -249,6 +334,7 @@ function InventoryStockOutDesktop() {
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   const recordedBy = currentUser?.fullname;
+  const isReusable = form.itemType === InventoryItemType.REUSABLE;
 
   return (
     <div className="space-y-6">
@@ -258,11 +344,14 @@ function InventoryStockOutDesktop() {
         { label: translate("Stock Out"), page: "InventoryStockOut" },
       ]} />
 
-      <div className="flex items-center gap-2">
-        <TrendingDown className="w-6 h-6 text-red-600" />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {translate("Stock Out")}
-        </h1>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <TrendingDown className="w-6 h-6 text-red-600" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {translate("Stock Out")}
+          </h1>
+        </div>
+        <ItemTypeToggle value={form.itemType} onChange={handleItemTypeChange} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
@@ -307,13 +396,33 @@ function InventoryStockOutDesktop() {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-sm font-medium">{translate("Location")}</Label>
+              <Select
+                value={form.location || "all"}
+                onValueChange={(val) => form.setLocation(val === "all" ? "" : val)}
+              >
+                <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                  <SelectValue placeholder={translate("All locations")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{translate("All locations")}</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc} value={loc}>
+                      {loc === NO_LOCATION ? translate("No location") : loc}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="text-sm font-medium">{translate("Pakej")}</Label>
               <Select
                 value={form.selectedPackageId}
                 onValueChange={(val) => {
                   if (val === "none") { form.applyPackage(null); return; }
-                  const pkg = packagesList.find((p) => String(p.id) === val);
-                  form.applyPackage(pkg ?? null);
+                  const pkg = packagesForLocation.find((p) => String(p.id) === val);
+                  form.applyPackage(pkg ?? null, allItems, form.itemType);
                 }}
               >
                 <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-white">
@@ -321,7 +430,7 @@ function InventoryStockOutDesktop() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">{translate("Tiada pakej")}</SelectItem>
-                  {packagesList.map((pkg) => (
+                  {packagesForLocation.map((pkg) => (
                     <SelectItem key={pkg.id} value={String(pkg.id)}>
                       {pkg.package_name}
                     </SelectItem>
@@ -364,91 +473,46 @@ function InventoryStockOutDesktop() {
           </CardContent>
         </Card>
 
-        {/* ── Right: Item Lists ───────────────────────────────────────────── */}
-        <div className="lg:col-span-3 space-y-4">
-
-          {/* Consumable */}
+        {/* ── Right: Item list ─────────────────────────────────────────────── */}
+        <div className="lg:col-span-3">
           <Card className="dark:bg-slate-800 dark:border-slate-700 shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Package className="w-4 h-4 text-red-600" />
-                {translate("Consumable Items")}
+                {isReusable ? translate("Reusable Items") : translate("Consumable Items")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  value={searchConsumable}
-                  onChange={(e) => setSearchConsumable(e.target.value)}
-                  placeholder={translate("Search consumable...")}
+                  value={searchItems}
+                  onChange={(e) => setSearchItems(e.target.value)}
+                  placeholder={translate("Search items...")}
                   className="pl-9 dark:border-slate-600 dark:bg-slate-700"
                 />
               </div>
               {itemsLoading ? (
                 <p className="text-center text-sm text-gray-400 py-6">{translate("Loading...")}</p>
-              ) : filteredConsumable.length === 0 ? (
+              ) : filteredItems.length === 0 ? (
                 <p className="text-center text-sm text-gray-400 py-6">{translate("No items found")}</p>
               ) : (
-                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                  {filteredConsumable.map((item) => (
+                <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
+                  {filteredItems.map((item) => (
                     <ItemCheckbox
                       key={item.id}
                       item={item}
                       checked={!!form.selected[item.id]}
                       qty={form.selected[item.id]?.qty ?? 1}
-                      assetId={form.selected[item.id]?.assetId}
                       onToggle={form.toggleItem}
                       onQtyChange={form.setQty}
-                      onAssetChange={form.setAssetId}
+                      showQty={!isReusable}
                     />
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Reusable */}
-          <Card className="dark:bg-slate-800 dark:border-slate-700 shadow-md">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Package className="w-4 h-4 text-purple-600" />
-                {translate("Reusable Items")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  value={searchReusable}
-                  onChange={(e) => setSearchReusable(e.target.value)}
-                  placeholder={translate("Search reusable...")}
-                  className="pl-9 dark:border-slate-600 dark:bg-slate-700"
-                />
-              </div>
-              {itemsLoading ? (
-                <p className="text-center text-sm text-gray-400 py-6">{translate("Loading...")}</p>
-              ) : filteredReusable.length === 0 ? (
-                <p className="text-center text-sm text-gray-400 py-6">{translate("No items found")}</p>
-              ) : (
-                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                  {filteredReusable.map((item) => (
-                    <ItemCheckbox
-                      key={item.id}
-                      item={item}
-                      checked={!!form.selected[item.id]}
-                      qty={form.selected[item.id]?.qty ?? 1}
-                      assetId={form.selected[item.id]?.assetId}
-                      onToggle={form.toggleItem}
-                      onQtyChange={form.setQty}
-                      onAssetChange={form.setAssetId}
-                    />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
         </div>
       </div>
     </div>
@@ -463,27 +527,50 @@ function MobileInventoryStockOut() {
   const { packagesList } = useGetAllInventoryPackages();
   const { stockOut } = useInventoryTransactionMutations();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchConsumable, setSearchConsumable] = useState("");
-  const [searchReusable, setSearchReusable]     = useState("");
-
-  const consumableItems = useMemo(
-    () => (allItems ?? []).filter((i) => i.item_type === InventoryItemType.ONE_TIME),
-    [allItems],
-  );
-  const reusableItems = useMemo(
-    () => (allItems ?? []).filter((i) => i.item_type === InventoryItemType.REUSABLE),
-    [allItems],
-  );
+  const [searchItems, setSearchItems] = useState("");
 
   const form = useStockOutForm();
 
-  const filteredConsumable = useMemo(() => filterItems(consumableItems, searchConsumable), [consumableItems, searchConsumable]);
-  const filteredReusable   = useMemo(() => filterItems(reusableItems,   searchReusable),   [reusableItems,   searchReusable]);
+  const typedItems = useMemo(
+    () => filterByTypeAndEligibility(allItems ?? [], form.itemType),
+    [allItems, form.itemType],
+  );
+
+  const locations = useMemo(() => getLocationsFromItems(typedItems), [typedItems]);
+
+  useEffect(() => {
+    if (form.location && !locations.includes(form.location)) {
+      form.setLocation("");
+    }
+  }, [locations]);
+
+  const locationFilteredItems = useMemo(
+    () => (form.location ? typedItems.filter((i) => (i.location || NO_LOCATION) === form.location) : typedItems),
+    [typedItems, form.location],
+  );
+
+  const filteredItems = useMemo(() => filterItems(locationFilteredItems, searchItems), [locationFilteredItems, searchItems]);
+
+  const packagesForLocation = useMemo(
+    () => filterPackagesByLocation(packagesList, form.location),
+    [packagesList, form.location],
+  );
+
+  useEffect(() => {
+    if (form.selectedPackageId && !packagesForLocation.some((p) => String(p.id) === form.selectedPackageId)) {
+      form.applyPackage(null);
+    }
+  }, [packagesForLocation]);
+
+  const handleItemTypeChange = (newType) => {
+    form.setItemType(newType);
+    form.setLocation("");
+  };
 
   const hasOverStock = useMemo(() =>
     Object.entries(form.selected).some(([itemId, { qty }]) => {
       const item = allItems.find((i) => String(i.id) === String(itemId));
-      return item && item.item_type === InventoryItemType.ONE_TIME && qty > item.current_quantity;
+      return item && qty > item.current_quantity;
     }),
     [form.selected, allItems],
   );
@@ -492,11 +579,10 @@ function MobileInventoryStockOut() {
     if (form.selectedCount === 0 || hasOverStock) return;
     setIsSubmitting(true);
     try {
-      for (const [itemId, { qty, assetId }] of Object.entries(form.selected)) {
+      for (const [itemId, { qty }] of Object.entries(form.selected)) {
         await stockOut.mutateAsync({
           itemId: Number(itemId),
           quantity: Number(qty),
-          assetId: assetId ?? undefined,
           notes: form.notes || undefined,
         });
       }
@@ -510,6 +596,7 @@ function MobileInventoryStockOut() {
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   const recordedBy = currentUser?.fullname;
+  const isReusable = form.itemType === InventoryItemType.REUSABLE;
 
   return (
     <div className="space-y-4 p-4">
@@ -518,10 +605,13 @@ function MobileInventoryStockOut() {
         { label: translate("Stock Out"), page: "InventoryStockOut" },
       ]} />
 
-      <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-        <TrendingDown className="w-5 h-5 text-red-600" />
-        {translate("Stock Out")}
-      </h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <TrendingDown className="w-5 h-5 text-red-600" />
+          {translate("Stock Out")}
+        </h1>
+        <ItemTypeToggle value={form.itemType} onChange={handleItemTypeChange} />
+      </div>
 
       <Card className="dark:bg-slate-800 dark:border-slate-700">
         <CardContent className="pt-5 space-y-4">
@@ -542,13 +632,33 @@ function MobileInventoryStockOut() {
           </div>
 
           <div className="space-y-1.5">
+            <Label className="text-sm font-medium">{translate("Location")}</Label>
+            <Select
+              value={form.location || "all"}
+              onValueChange={(val) => form.setLocation(val === "all" ? "" : val)}
+            >
+              <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                <SelectValue placeholder={translate("All locations")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{translate("All locations")}</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc} value={loc}>
+                    {loc === NO_LOCATION ? translate("No location") : loc}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
             <Label className="text-sm font-medium">{translate("Pakej")}</Label>
             <Select
               value={form.selectedPackageId}
               onValueChange={(val) => {
                 if (val === "none") { form.applyPackage(null); return; }
-                const pkg = packagesList.find((p) => String(p.id) === val);
-                form.applyPackage(pkg ?? null);
+                const pkg = packagesForLocation.find((p) => String(p.id) === val);
+                form.applyPackage(pkg ?? null, allItems, form.itemType);
               }}
             >
               <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-white">
@@ -556,7 +666,7 @@ function MobileInventoryStockOut() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">{translate("Tiada pakej")}</SelectItem>
-                {packagesList.map((pkg) => (
+                {packagesForLocation.map((pkg) => (
                   <SelectItem key={pkg.id} value={String(pkg.id)}>{pkg.package_name}</SelectItem>
                 ))}
               </SelectContent>
@@ -573,54 +683,27 @@ function MobileInventoryStockOut() {
         </CardContent>
       </Card>
 
-      {/* Consumable Items */}
+      {/* Item list */}
       <Card className="dark:bg-slate-800 dark:border-slate-700">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Package className="w-4 h-4 text-red-600" />
-            {translate("Consumable Items")}
+            {isReusable ? translate("Reusable Items") : translate("Consumable Items")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input value={searchConsumable} onChange={(e) => setSearchConsumable(e.target.value)} placeholder={translate("Search consumable...")} className="pl-9 dark:border-slate-600 dark:bg-slate-700" />
+            <Input value={searchItems} onChange={(e) => setSearchItems(e.target.value)} placeholder={translate("Search items...")} className="pl-9 dark:border-slate-600 dark:bg-slate-700" />
           </div>
           {itemsLoading ? (
             <p className="text-center text-sm text-gray-400 py-4">{translate("Loading...")}</p>
-          ) : filteredConsumable.length === 0 ? (
+          ) : filteredItems.length === 0 ? (
             <p className="text-center text-sm text-gray-400 py-4">{translate("No items found")}</p>
           ) : (
             <div className="space-y-1.5">
-              {filteredConsumable.map((item) => (
-                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id]?.qty ?? 1} assetId={form.selected[item.id]?.assetId} onToggle={form.toggleItem} onQtyChange={form.setQty} onAssetChange={form.setAssetId} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Reusable Items */}
-      <Card className="dark:bg-slate-800 dark:border-slate-700">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Package className="w-4 h-4 text-purple-600" />
-            {translate("Reusable Items")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input value={searchReusable} onChange={(e) => setSearchReusable(e.target.value)} placeholder={translate("Search reusable...")} className="pl-9 dark:border-slate-600 dark:bg-slate-700" />
-          </div>
-          {itemsLoading ? (
-            <p className="text-center text-sm text-gray-400 py-4">{translate("Loading...")}</p>
-          ) : filteredReusable.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 py-4">{translate("No items found")}</p>
-          ) : (
-            <div className="space-y-1.5">
-              {filteredReusable.map((item) => (
-                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id]?.qty ?? 1} assetId={form.selected[item.id]?.assetId} onToggle={form.toggleItem} onQtyChange={form.setQty} onAssetChange={form.setAssetId} />
+              {filteredItems.map((item) => (
+                <ItemCheckbox key={item.id} item={item} checked={!!form.selected[item.id]} qty={form.selected[item.id]?.qty ?? 1} onToggle={form.toggleItem} onQtyChange={form.setQty} showQty={!isReusable} />
               ))}
             </div>
           )}

@@ -85,7 +85,6 @@ import ManageInventoryItems from '@/pages/Management/ManageInventoryItems.jsx';
 import ManageInventoryPackages from '@/pages/Management/ManageInventoryPackages.jsx';
 import InventoryStockIn from '@/pages/Management/InventoryStockIn.jsx';
 import InventoryStockOut from '@/pages/Management/InventoryStockOut.jsx';
-import ManageInventoryAssets from '@/pages/Management/ManageInventoryAssets.jsx';
 import InventoryHistory from '@/pages/Management/InventoryHistory.jsx';
 import InventoryAudit from '@/pages/Management/InventoryAudit.jsx';
 import InventoryReports from '@/pages/Management/InventoryReports.jsx';
@@ -196,7 +195,6 @@ export const PAGES = {
     "ManageInventoryPackages": ManageInventoryPackages,
     "InventoryStockIn": InventoryStockIn,
     "InventoryStockOut": InventoryStockOut,
-    "ManageInventoryAssets": ManageInventoryAssets,
     "InventoryHistory": InventoryHistory,
     "InventoryAudit": InventoryAudit,
     "InventoryReports": InventoryReports,

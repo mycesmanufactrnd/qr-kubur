@@ -85,6 +85,7 @@ const sourceLabels = {
   [InventoryTransactionSource.RETURN]:  "Pulangan",
   [InventoryTransactionSource.MANUAL]:  "Manual",
   [InventoryTransactionSource.KES]:     "Kes",
+  [InventoryTransactionSource.AUDIT]:   "Audit",
 };
 
 function txTypeBadge(type) {
@@ -326,9 +327,6 @@ function InventoryHistoryDesktop() {
                 transactionsList.map((tx) => {
                   const cfg = TX_TYPE_CONFIG[tx.transaction_type];
                   const isStockOut = tx.transaction_type === InventoryTransactionType.STOCK_OUT;
-                  const isStockInRestock =
-                    tx.transaction_type === InventoryTransactionType.STOCK_IN &&
-                    (tx.source === InventoryTransactionSource.RESTOCK || tx.source === InventoryTransactionSource.RETURN);
                   return (
                     <TableRow key={tx.id}>
                       <TableCell className="text-xs text-gray-500 whitespace-nowrap">
@@ -344,7 +342,7 @@ function InventoryHistoryDesktop() {
                       <TableCell className="text-right font-mono text-gray-400">{tx.before_quantity ?? "—"}</TableCell>
                       <TableCell className="text-right font-mono text-gray-500">{tx.after_quantity ?? "—"}</TableCell>
                       <TableCell className="text-xs text-gray-500">
-                        {isStockInRestock ? (sourceLabels[tx.source] ?? tx.source ?? "—") : "—"}
+                        {tx.source ? (sourceLabels[tx.source] ?? tx.source) : "—"}
                       </TableCell>
                       <TableCell className="text-sm text-gray-500">
                         {isStockOut ? (tx.package?.package_name || "—") : "—"}
@@ -462,8 +460,7 @@ function MobileInventoryHistory() {
                       {tx.transaction_type === InventoryTransactionType.STOCK_OUT && tx.package?.package_name && (
                         <p className="text-xs text-gray-400 truncate">{tx.package?.package_name}</p>
                       )}
-                      {tx.transaction_type === InventoryTransactionType.STOCK_IN &&
-                        (tx.source === InventoryTransactionSource.RESTOCK || tx.source === InventoryTransactionSource.RETURN) && (
+                      {tx.source && (
                         <p className="text-xs text-gray-400">{translate("Sumber")}: {sourceLabels[tx.source] ?? tx.source}</p>
                       )}
                       {tx.notes && (

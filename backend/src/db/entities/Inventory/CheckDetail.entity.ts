@@ -7,7 +7,7 @@ import {
   JoinColumn,
   Index,
 } from "typeorm";
-import { CheckDetailResult } from "../../enums.js";
+import { CheckDetailResult, CheckItemCondition, CheckReusableStatus } from "../../enums.js";
 import { CheckSession } from "./CheckSession.entity.js";
 import { InventoryItem } from "./InventoryItem.entity.js";
 
@@ -54,4 +54,19 @@ export class CheckDetail {
 
   @Column("text", { nullable: true })
   notes?: string | null;
+
+  // Reusable-item audit fields — used instead of physical_count/result.
+  @Column({
+    type: "enum",
+    enum: CheckItemCondition,
+    nullable: true,
+  })
+  condition?: CheckItemCondition | null;
+
+  @Column({
+    type: "enum",
+    enum: CheckReusableStatus,
+    nullable: true,
+  })
+  reusable_status?: CheckReusableStatus | null;
 }

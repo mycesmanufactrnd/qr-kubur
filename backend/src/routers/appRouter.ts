@@ -44,8 +44,8 @@ import { collectionTreeRouter } from "./collectionTreeRouter.js";
 import { inventoryItemRouter } from "./inventoryItemRouter.js";
 import { inventoryPackageRouter } from "./inventoryPackageRouter.js";
 import { inventoryTransactionRouter } from "./inventoryTransactionRouter.js";
-import { inventoryAssetRouter } from "./inventoryAssetRouter.js";
 import { inventoryAuditRouter } from "./inventoryAuditRouter.js";
+import { reusableItemGroupRouter } from "./reusableItemGroupRouter.js";
 import { qariahNotificationRouter } from "./qariahNotificationRouter.js";
 import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
 import { qariahDeviceRouter } from "./qariahDeviceRouter.js";
@@ -95,8 +95,8 @@ export const appRouter = trpcRouter({
   inventoryItem: inventoryItemRouter,
   inventoryPackage: inventoryPackageRouter,
   inventoryTransaction: inventoryTransactionRouter,
-  inventoryAsset: inventoryAssetRouter,
   inventoryAudit: inventoryAuditRouter,
+  reusableItemGroup: reusableItemGroupRouter,
   qariahNotification: qariahNotificationRouter,
   jenazahCase: jenazahCaseRouter,
   qariahDevice: qariahDeviceRouter,

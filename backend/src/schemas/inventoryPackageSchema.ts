@@ -9,11 +9,16 @@ import {
   InventoryPackageHealthCondition,
 } from "../db/enums.js";
 
-export const packageItemSchema = z.object({
-  itemId: z.number().int().positive("Item diperlukan"),
-  quantity_required: z.number().int().positive("Kuantiti mesti lebih dari 0"),
-  item_type: z.nativeEnum(InventoryItemType),
-});
+export const packageItemSchema = z
+  .object({
+    itemId: z.number().int().positive().optional().nullable(),
+    groupId: z.number().int().positive().optional().nullable(),
+    quantity_required: z.number().int().positive("Kuantiti mesti lebih dari 0"),
+    item_type: z.nativeEnum(InventoryItemType),
+  })
+  .refine((v) => v.itemId != null || v.groupId != null, {
+    message: "Item atau kumpulan diperlukan",
+  });
 
 export const inventoryPackageSchema = z.object({
   package_name: z.string().min(1, "Nama pakej diperlukan"),

@@ -180,10 +180,12 @@ function PackageViewDialog({ pkg, open, onOpenChange, onEdit }) {
                 </p>
                 <div className="space-y-1">
                   {reusable.map((pi) => (
-                    <div key={pi.itemId} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-sm">
+                    <div key={pi.groupId ? `g${pi.groupId}` : pi.itemId} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-sm">
                       <span className="text-gray-800 dark:text-gray-200">
-                        {pi.item?.item_name ?? `Item #${pi.itemId}`}
-                        {pi.item?.item_code && (
+                        {pi.groupId
+                          ? (pi.group?.name ?? `${translate("Group")} #${pi.groupId}`)
+                          : (pi.item?.item_name ?? `Item #${pi.itemId}`)}
+                        {!pi.groupId && pi.item?.item_code && (
                           <span className="text-xs text-gray-400 ml-1.5">({pi.item.item_code})</span>
                         )}
                       </span>
@@ -285,6 +287,70 @@ function ItemCheckboxSection({ title, items, value, onToggle, onQtyChange }) {
   );
 }
 
+// ── Group Checkbox Section (reusable, grouped) ────────────────────────────────
+
+function GroupCheckboxSection({ title, groups, value, onToggle, onQtyChange }) {
+  if (!groups.length) return null;
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 px-1 mb-2">
+        {title}
+      </p>
+      <div className="space-y-1">
+        {groups.map((group) => {
+          const checked = value.some((v) => v.groupId === group.id);
+          const qty = value.find((v) => v.groupId === group.id)?.quantity_required ?? 1;
+          return (
+            <div
+              key={group.id}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors cursor-pointer
+                ${checked
+                  ? "border-purple-400 bg-purple-50 dark:bg-purple-950/30 dark:border-purple-500"
+                  : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
+                }`}
+              onClick={() => onToggle(group)}
+            >
+              <input
+                type="checkbox"
+                id={`group-${group.id}`}
+                checked={checked}
+                onChange={() => onToggle(group)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-4 h-4 accent-purple-600 cursor-pointer shrink-0"
+              />
+              <label
+                htmlFor={`group-${group.id}`}
+                className="flex-1 text-sm cursor-pointer select-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {group.name}
+                <span className="text-xs text-gray-400 ml-1.5">
+                  ({group.items.length} {translate("items")})
+                </span>
+              </label>
+              {checked && (
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => onQtyChange(group.id, Math.max(1, qty - 1))}
+                    className="h-7 w-7 rounded border border-gray-300 dark:border-slate-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 text-base leading-none select-none"
+                  >−</button>
+                  <span className="w-8 text-center text-sm font-medium tabular-nums">{qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => onQtyChange(group.id, qty + 1)}
+                    className="h-7 w-7 rounded border border-gray-300 dark:border-slate-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 text-base leading-none select-none"
+                  >+</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PackageItemsForm({ control, errors, allItems, selectedLocation, onLocationChange }) {
   const items = allItems ?? [];
 
@@ -292,8 +358,20 @@ function PackageItemsForm({ control, errors, allItems, selectedLocation, onLocat
     ? items.filter((i) => i.location === selectedLocation)
     : [];
 
-  const consumableItems = locationItems.filter((i) => i.item_type === InventoryItemType.ONE_TIME);
-  const reusableItems   = locationItems.filter((i) => i.item_type === InventoryItemType.REUSABLE);
+  const consumableItems  = locationItems.filter((i) => i.item_type === InventoryItemType.ONE_TIME);
+  const reusableItems    = locationItems.filter((i) => i.item_type === InventoryItemType.REUSABLE);
+  const reusableUngrouped = reusableItems.filter((i) => !i.groupId);
+  const reusableGroups = useMemo(() => {
+    const map = new Map();
+    for (const item of reusableItems) {
+      if (!item.groupId) continue;
+      if (!map.has(item.groupId)) {
+        map.set(item.groupId, { id: item.groupId, name: item.group?.name ?? `#${item.groupId}`, items: [] });
+      }
+      map.get(item.groupId).items.push(item);
+    }
+    return Array.from(map.values());
+  }, [reusableItems]);
 
   return (
     <Controller
@@ -313,6 +391,18 @@ function PackageItemsForm({ control, errors, allItems, selectedLocation, onLocat
 
         const setQty = (itemId, qty) => {
           field.onChange(value.map((v) => (v.itemId === itemId ? { ...v, quantity_required: qty } : v)));
+        };
+
+        const toggleGroup = (group) => {
+          if (value.some((v) => v.groupId === group.id)) {
+            field.onChange(value.filter((v) => v.groupId !== group.id));
+          } else {
+            field.onChange([...value, { groupId: group.id, quantity_required: 1, item_type: InventoryItemType.REUSABLE }]);
+          }
+        };
+
+        const setGroupQty = (groupId, qty) => {
+          field.onChange(value.map((v) => (v.groupId === groupId ? { ...v, quantity_required: qty } : v)));
         };
 
         return (
@@ -349,9 +439,16 @@ function PackageItemsForm({ control, errors, allItems, selectedLocation, onLocat
                   onToggle={toggle}
                   onQtyChange={setQty}
                 />
-                <ItemCheckboxSection
+                <GroupCheckboxSection
                   title={translate("Reusable")}
-                  items={reusableItems}
+                  groups={reusableGroups}
+                  value={value}
+                  onToggle={toggleGroup}
+                  onQtyChange={setGroupQty}
+                />
+                <ItemCheckboxSection
+                  title={translate("Reusable (Tiada Kumpulan)")}
+                  items={reusableUngrouped}
                   value={value}
                   onToggle={toggle}
                   onQtyChange={setQty}
@@ -550,7 +647,7 @@ function ManageInventoryPackagesDesktop() {
       location: pkg.location ?? "",
       status: pkg.status,
       packageItems: pkg.packageItems?.length
-        ? pkg.packageItems.map((pi) => ({ itemId: pi.itemId, quantity_required: pi.quantity_required, item_type: pi.item_type }))
+        ? pkg.packageItems.map((pi) => ({ itemId: pi.itemId ?? undefined, groupId: pi.groupId ?? undefined, quantity_required: pi.quantity_required, item_type: pi.item_type }))
         : [],
     });
     setIsDialogOpen(true);
@@ -563,7 +660,8 @@ function ManageInventoryPackagesDesktop() {
       body_size: data.body_size || undefined,
       location: data.location || undefined,
       packageItems: data.packageItems.map((pi) => ({
-        itemId: Number(pi.itemId),
+        itemId: pi.itemId != null ? Number(pi.itemId) : undefined,
+        groupId: pi.groupId != null ? Number(pi.groupId) : undefined,
         quantity_required: Number(pi.quantity_required),
         item_type: pi.item_type,
       })),
@@ -794,13 +892,13 @@ function MobileManageInventoryPackages() {
     reset({
       package_name: pkg.package_name, description: pkg.description ?? "", gender_type: pkg.gender_type,
       age_group: pkg.age_group, health_condition: pkg.health_condition, body_size: pkg.body_size ?? null, location: pkg.location ?? "", status: pkg.status,
-      packageItems: pkg.packageItems?.length ? pkg.packageItems.map((pi) => ({ itemId: pi.itemId, quantity_required: pi.quantity_required, item_type: pi.item_type })) : [],
+      packageItems: pkg.packageItems?.length ? pkg.packageItems.map((pi) => ({ itemId: pi.itemId ?? undefined, groupId: pi.groupId ?? undefined, quantity_required: pi.quantity_required, item_type: pi.item_type })) : [],
     });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
-    const payload = { ...data, description: data.description || undefined, body_size: data.body_size || undefined, location: data.location || undefined, packageItems: data.packageItems.map((pi) => ({ itemId: Number(pi.itemId), quantity_required: Number(pi.quantity_required), item_type: pi.item_type })) };
+    const payload = { ...data, description: data.description || undefined, body_size: data.body_size || undefined, location: data.location || undefined, packageItems: data.packageItems.map((pi) => ({ itemId: pi.itemId != null ? Number(pi.itemId) : undefined, groupId: pi.groupId != null ? Number(pi.groupId) : undefined, quantity_required: Number(pi.quantity_required), item_type: pi.item_type })) };
     if (editingPackage?.id) {
       await updatePackage.mutateAsync({ id: editingPackage.id, data: payload }, { onSuccess: () => setIsDialogOpen(false) });
     } else {

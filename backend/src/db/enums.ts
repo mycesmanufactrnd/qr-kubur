@@ -144,20 +144,6 @@ export enum InventoryPackageBodySize {
   LARGE = "LARGE",
 }
 
-export enum InventoryAssetStatus {
-  AVAILABLE = "AVAILABLE",
-  IN_USE = "IN_USE",
-  MAINTENANCE = "MAINTENANCE",
-  MISSING = "MISSING",
-}
-
-export enum InventoryAssetCondition {
-  GOOD = "GOOD",
-  DAMAGED = "DAMAGED",
-  MAINTENANCE = "MAINTENANCE",
-  MISSING = "MISSING",
-}
-
 export enum InventoryTransactionType {
   STOCK_IN = "STOCK_IN",
   STOCK_OUT = "STOCK_OUT",
@@ -170,6 +156,7 @@ export enum InventoryTransactionSource {
   RETURN = "RETURN",
   MANUAL = "MANUAL",
   KES = "KES",
+  AUDIT = "AUDIT",
 }
 
 export enum CheckSessionStatus {
@@ -181,5 +168,17 @@ export enum CheckDetailResult {
   MATCH = "MATCH",
   MISSING = "MISSING",
   OVER_COUNT = "OVER_COUNT",
+}
+
+export enum CheckItemCondition {
+  GOOD = "GOOD",
+  DAMAGED = "DAMAGED",
+}
+
+export enum CheckReusableStatus {
+  AVAILABLE = "AVAILABLE",
+  IN_USE = "IN_USE",
+  MISSING = "MISSING",
+  MAINTENANCE = "MAINTENANCE",
 }
 

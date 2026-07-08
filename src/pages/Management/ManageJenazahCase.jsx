@@ -41,6 +41,7 @@ import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+import { Checkbox } from "@/components/ui/checkbox";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
@@ -199,6 +200,12 @@ function CaseDetailDialog({
     caseItem?.adminremarks ?? "",
   );
   const [showDeceasedForm, setShowDeceasedForm] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedPackageId, setSelectedPackageId] = useState(null);
+  // consumables: Set of packageItem.id that are checked
+  const [checkedConsumables, setCheckedConsumables] = useState(new Set());
+  // reusables: Map of packageItem.id → chosen itemId at that slot
+  const [selectedReusables, setSelectedReusables] = useState(new Map());
 
   const d = caseItem?.details ?? {};
 
@@ -239,7 +246,131 @@ function CaseDetailDialog({
     onError: (err) => showApiError(err),
   });
 
-  const isBusy = isUpdating || upsertDeadPerson.isPending;
+  const trpcUtils = trpc.useUtils();
+
+  const stockOut = trpc.inventoryTransaction.stockOut.useMutation({
+    onSuccess: () => {
+      trpcUtils.inventoryTransaction.getPaginated.invalidate();
+      trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
+      trpcUtils.inventoryItem.getPaginated.invalidate();
+      trpcUtils.inventoryItem.getAll.invalidate();
+      trpcUtils.inventoryItem.getLowStock.invalidate();
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  const { data: rawPackages = [] } = trpc.inventoryPackage.getAll.useQuery(undefined, {
+    enabled: !!caseItem,
+  });
+  const packagesList = rawPackages.filter((p) => p.status === "active");
+
+  const { data: allItems = [] } = trpc.inventoryItem.getAll.useQuery(undefined, {
+    enabled: !!caseItem,
+  });
+
+  // Locations derived from each package's own location field.
+  const locations = [
+    ...new Set(packagesList.map((p) => p.location).filter(Boolean)),
+  ].sort();
+
+  const filteredPackages = selectedLocation
+    ? packagesList.filter((p) => p.location === selectedLocation)
+    : packagesList;
+
+  const selectedPackage = packagesList.find((p) => p.id === selectedPackageId) ?? null;
+  const packageItems = selectedPackage?.packageItems ?? [];
+  const consumableItems = packageItems.filter((pi) => pi.item_type === "CONSUMABLE");
+  const reusableItems = packageItems.filter((pi) => pi.item_type === "REUSABLE");
+
+  // All REUSABLE items at the selected location (used as swap options per reusable slot)
+  const reusableItemsAtLocation = allItems.filter(
+    (item) => item.item_type === "REUSABLE" && item.location === selectedLocation,
+  );
+
+  const handlePackageSelect = (pkgId) => {
+    const numId = pkgId ? Number(pkgId) : null;
+    setSelectedPackageId(numId);
+    const pkg = packagesList.find((p) => p.id === numId);
+    if (pkg) {
+      // Consumables: check those with sufficient stock, uncheck out-of-stock
+      const newChecked = new Set(
+        (pkg.packageItems ?? [])
+          .filter(
+            (pi) =>
+              pi.item_type === "CONSUMABLE" &&
+              (pi.item?.current_quantity ?? 0) >= pi.quantity_required,
+          )
+          .map((pi) => pi.id),
+      );
+      setCheckedConsumables(newChecked);
+
+      // Reusables: auto-select an AVAILABLE item at the chosen location, matched by
+      // group (when the package line references a ReusableItemGroup) or by the
+      // package's own itemId, never assigning the same physical item to two slots.
+      const newReusables = new Map();
+      const usedItemIds = new Set();
+      for (const pi of (pkg.packageItems ?? []).filter((pi) => pi.item_type === "REUSABLE")) {
+        const candidates = allItems.filter((i) => {
+          if (i.status !== "AVAILABLE" || usedItemIds.has(i.id)) return false;
+          if (pi.groupId) return i.groupId === pi.groupId && i.location === selectedLocation;
+          if (i.id === pi.itemId) return true;
+          return (
+            i.item_type === "REUSABLE" &&
+            i.location === selectedLocation &&
+            i.item_name === pi.item?.item_name
+          );
+        });
+        const chosen = candidates[0];
+        if (chosen) {
+          newReusables.set(pi.id, chosen.id);
+          usedItemIds.add(chosen.id);
+        }
+      }
+      setSelectedReusables(newReusables);
+    } else {
+      setCheckedConsumables(new Set());
+      setSelectedReusables(new Map());
+    }
+  };
+
+  const toggleConsumable = (packageItemId) => {
+    setCheckedConsumables((prev) => {
+      const next = new Set(prev);
+      next.has(packageItemId) ? next.delete(packageItemId) : next.add(packageItemId);
+      return next;
+    });
+  };
+
+  const selectReusable = (packageItemId, itemId) => {
+    setSelectedReusables((prev) => new Map(prev).set(packageItemId, itemId));
+  };
+
+  // Toggle a physical reusable item on/off from the location's full item list.
+  // Checking assigns it to the first unfilled package requirement it matches
+  // (by group, or by direct itemId/name); unchecking clears whichever slot it fills.
+  const toggleReusableItem = (item) => {
+    const assignedEntry = [...selectedReusables.entries()].find(
+      ([, itemId]) => itemId === item.id,
+    );
+    if (assignedEntry) {
+      setSelectedReusables((prev) => {
+        const next = new Map(prev);
+        next.delete(assignedEntry[0]);
+        return next;
+      });
+      return;
+    }
+
+    const slot = reusableItems.find((pi) => {
+      if (selectedReusables.has(pi.id)) return false;
+      if (pi.groupId) return item.groupId === pi.groupId;
+      if (pi.itemId === item.id) return true;
+      return item.item_name === pi.item?.item_name;
+    });
+    if (slot) selectReusable(slot.id, item.id);
+  };
+
+  const isBusy = isUpdating || upsertDeadPerson.isPending || stockOut.isPending;
 
   const onApproveSubmit = handleDeceasedSubmit(async (formData) => {
     try {
@@ -264,10 +395,58 @@ function CaseDetailDialog({
     }
   });
 
+  const handleLuluskanSimpan = handleDeceasedSubmit(async (formData) => {
+    try {
+      await upsertDeadPerson.mutateAsync({
+        name: d.deceasedFullname ?? "",
+        icnumber: icRaw,
+        dateofbirth: formData.dateofbirth || null,
+        dateofdeath: formData.dateofdeath || null,
+        causeofdeath: formData.causeofdeath || null,
+        biography: null,
+        photourl: null,
+        latitude: null,
+        longitude: null,
+        heirname: formData.heirname || null,
+        heirphoneno: formData.heirphoneno || null,
+        grave: formData.grave ? { id: Number(formData.grave) } : undefined,
+        gravelot: formData.gravelot?.trim() || null,
+      });
+      // Stock out checked consumables
+      for (const pi of consumableItems) {
+        if (checkedConsumables.has(pi.id)) {
+          await stockOut.mutateAsync({
+            itemId: pi.itemId,
+            quantity: pi.quantity_required,
+            jenazahCaseId: caseItem.id,
+            packageId: selectedPackageId,
+            source: "KES",
+          });
+        }
+      }
+      // Stock out selected reusable items (qty 1→0; backend falls back to qty deduction if no asset record)
+      for (const pi of reusableItems) {
+        const chosenItemId = selectedReusables.get(pi.id);
+        if (chosenItemId) {
+          await stockOut.mutateAsync({
+            itemId: chosenItemId,
+            quantity: 1,
+            jenazahCaseId: caseItem.id,
+            packageId: selectedPackageId,
+            source: "KES",
+          });
+        }
+      }
+      handleAction("approved");
+    } catch {
+      // errors shown by onError handlers
+    }
+  });
+
   return (
     <Dialog open={!!caseItem} onOpenChange={onClose}>
       <DialogContent
-        className={`${showDeceasedForm ? "max-w-[80vw]" : "max-w-xl"} max-h-[90vh] overflow-y-auto dark:bg-slate-800`}
+        className={`${showDeceasedForm ? "max-w-[95vw]" : "max-w-xl"} max-h-[90vh] overflow-y-auto dark:bg-slate-800`}
       >
         <DialogHeader>
           <DialogTitle className="text-base flex items-center gap-2">
@@ -277,7 +456,7 @@ function CaseDetailDialog({
         </DialogHeader>
 
         <div
-          className={showDeceasedForm ? "grid grid-cols-2 gap-6" : undefined}
+          className={showDeceasedForm ? "grid grid-cols-3 gap-6" : undefined}
         >
           <div className="space-y-4 py-1">
             {caseItem?.mosque && (
@@ -300,9 +479,11 @@ function CaseDetailDialog({
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 {translate("Maklumat Jenazah")}
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <DetailRow label={translate("Name")} value={d.deceasedFullname} />
                 <DetailRow label={translate("IC No.")} value={d.deceasedIcnumber} />
+              </div>
+              <div className="space-y-3">
                 <DetailRow label={translate("Phone")} value={d.deceasedPhone} />
                 <DetailRow label={translate("Email")} value={d.deceasedEmail} />
               </div>
@@ -326,7 +507,7 @@ function CaseDetailDialog({
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 {translate("Funeral Procedure")}
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <DetailRow
                   label={translate("Incident Location")}
                   value={
@@ -591,14 +772,145 @@ function CaseDetailDialog({
                 />
               </div>
 
-              <Button
-                onClick={onApproveSubmit}
-                disabled={isBusy}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                <CheckCircle className="w-4 h-4 mr-1.5" />
-                {isBusy ? translate("Saving...") : translate("Approve & Save")}
-              </Button>
+            </div>
+          )}
+
+          {showDeceasedForm && (
+            <div className="space-y-4 border-l pl-6 dark:border-slate-600 flex flex-col">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b pb-2 dark:border-slate-600">
+                {translate("Barang Pengurusan Jenazah")}
+              </h3>
+
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Lokasi")}</Label>
+                  <select
+                    value={selectedLocation ?? ""}
+                    onChange={(e) => {
+                      setSelectedLocation(e.target.value || null);
+                      setSelectedPackageId(null);
+                      setCheckedConsumables(new Set());
+                      setSelectedReusables(new Map());
+                    }}
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">{translate("Semua Lokasi")}</option>
+                    {locations.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Pakej")}</Label>
+                  <select
+                    value={selectedPackageId ?? ""}
+                    onChange={(e) => handlePackageSelect(e.target.value || null)}
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">{translate("Pilih pakej")}</option>
+                    {filteredPackages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>{pkg.package_name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {selectedPackage && (
+                <div className="flex-1 space-y-4 overflow-y-auto max-h-[45vh] pr-1">
+                  {/* Consumable items — checkbox, greyed if out of stock */}
+                  {consumableItems.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        {translate("Barangan Guna Habis")}
+                      </p>
+                      {consumableItems.map((pi) => {
+                        const outOfStock = (pi.item?.current_quantity ?? 0) < pi.quantity_required;
+                        return (
+                          <label
+                            key={pi.id}
+                            className={`flex items-center gap-2.5 ${outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
+                          >
+                            <Checkbox
+                              checked={!outOfStock && checkedConsumables.has(pi.id)}
+                              onCheckedChange={() => !outOfStock && toggleConsumable(pi.id)}
+                              disabled={outOfStock}
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                              {pi.item?.item_name ?? `Item #${pi.itemId}`}
+                            </span>
+                            <span className={`text-xs ${outOfStock ? "text-red-400" : "text-slate-400"}`}>
+                              {outOfStock
+                                ? translate("Stok habis")
+                                : `x${pi.quantity_required}`}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Reusable items — checkbox list of every reusable item at the location,
+                      same style as consumables. Checking assigns it to a matching package
+                      requirement; greyed out when not AVAILABLE (e.g. already in use). */}
+                  {reusableItems.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        {translate("Aset / Boleh Guna Semula")}
+                      </p>
+                      {reusableItemsAtLocation.length === 0 && (
+                        <p className="text-xs text-slate-400 italic">
+                          {translate("Tiada item boleh guna semula di lokasi ini.")}
+                        </p>
+                      )}
+                      {reusableItemsAtLocation.map((item) => {
+                        const available = item.status === "AVAILABLE";
+                        const checked = [...selectedReusables.values()].includes(item.id);
+                        return (
+                          <label
+                            key={item.id}
+                            className={`flex items-center gap-2.5 ${!available ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => available && toggleReusableItem(item)}
+                              disabled={!available}
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                              {item.item_name}
+                              {item.item_code && (
+                                <span className="ml-1 text-slate-400">({item.item_code})</span>
+                              )}
+                            </span>
+                            <span className={`text-xs ${!available ? "text-red-400" : "text-slate-400"}`}>
+                              {!available
+                                ? item.status === "IN_USE"
+                                  ? translate("Dalam Guna")
+                                  : item.status
+                                : translate("Tersedia")}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {consumableItems.length === 0 && reusableItems.length === 0 && (
+                    <p className="text-xs text-slate-400 italic">{translate("Tiada item dalam pakej ini.")}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2 mt-auto">
+                <Button
+                  onClick={handleLuluskanSimpan}
+                  disabled={isBusy}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1.5" />
+                  {isBusy ? translate("Menyimpan...") : translate("Luluskan & Simpan")}
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -631,6 +943,12 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   const [isOutOfArea, setIsOutOfArea] = useState(null);
   const [showMap, setShowMap] = useState(true);
   const [activeTab, setActiveTab] = useState("deceased");
+
+  // Barang Pengurusan Jenazah
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedPackageId, setSelectedPackageId] = useState(null);
+  const [checkedConsumables, setCheckedConsumables] = useState(new Set());
+  const [selectedReusables, setSelectedReusables] = useState(new Map());
 
   const handleFileUpload = async (file, bucketName) => {
     try {
@@ -676,6 +994,124 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
       { enabled: !!searchedIc.trim(), refetchOnWindowFocus: false },
     );
 
+  const trpcUtils = trpc.useUtils();
+
+  const stockOut = trpc.inventoryTransaction.stockOut.useMutation({
+    onSuccess: () => {
+      trpcUtils.inventoryTransaction.getPaginated.invalidate();
+      trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
+      trpcUtils.inventoryItem.getPaginated.invalidate();
+      trpcUtils.inventoryItem.getAll.invalidate();
+      trpcUtils.inventoryItem.getLowStock.invalidate();
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  const { data: rawPackages = [] } = trpc.inventoryPackage.getAll.useQuery(undefined, {
+    enabled: open,
+  });
+  const packagesList = rawPackages.filter((p) => p.status === "active");
+
+  const { data: allItems = [] } = trpc.inventoryItem.getAll.useQuery(undefined, {
+    enabled: open,
+  });
+
+  // Locations derived from each package's own location field.
+  const locations = [
+    ...new Set(packagesList.map((p) => p.location).filter(Boolean)),
+  ].sort();
+
+  const filteredPackages = selectedLocation
+    ? packagesList.filter((p) => p.location === selectedLocation)
+    : packagesList;
+
+  const selectedPackage = packagesList.find((p) => p.id === selectedPackageId) ?? null;
+  const packageItems = selectedPackage?.packageItems ?? [];
+  const consumableItems = packageItems.filter((pi) => pi.item_type === "CONSUMABLE");
+  const reusableItems = packageItems.filter((pi) => pi.item_type === "REUSABLE");
+
+  // All REUSABLE items at the selected location (used as swap options per reusable slot)
+  const reusableItemsAtLocation = allItems.filter(
+    (item) => item.item_type === "REUSABLE" && item.location === selectedLocation,
+  );
+
+  const handlePackageSelect = (pkgId) => {
+    const numId = pkgId ? Number(pkgId) : null;
+    setSelectedPackageId(numId);
+    const pkg = packagesList.find((p) => p.id === numId);
+    if (pkg) {
+      const newChecked = new Set(
+        (pkg.packageItems ?? [])
+          .filter(
+            (pi) =>
+              pi.item_type === "CONSUMABLE" &&
+              (pi.item?.current_quantity ?? 0) >= pi.quantity_required,
+          )
+          .map((pi) => pi.id),
+      );
+      setCheckedConsumables(newChecked);
+
+      const newReusables = new Map();
+      const usedItemIds = new Set();
+      for (const pi of (pkg.packageItems ?? []).filter((pi) => pi.item_type === "REUSABLE")) {
+        const candidates = allItems.filter((i) => {
+          if (i.status !== "AVAILABLE" || usedItemIds.has(i.id)) return false;
+          if (pi.groupId) return i.groupId === pi.groupId && i.location === selectedLocation;
+          if (i.id === pi.itemId) return true;
+          return (
+            i.item_type === "REUSABLE" &&
+            i.location === selectedLocation &&
+            i.item_name === pi.item?.item_name
+          );
+        });
+        const chosen = candidates[0];
+        if (chosen) {
+          newReusables.set(pi.id, chosen.id);
+          usedItemIds.add(chosen.id);
+        }
+      }
+      setSelectedReusables(newReusables);
+    } else {
+      setCheckedConsumables(new Set());
+      setSelectedReusables(new Map());
+    }
+  };
+
+  const toggleConsumable = (packageItemId) => {
+    setCheckedConsumables((prev) => {
+      const next = new Set(prev);
+      next.has(packageItemId) ? next.delete(packageItemId) : next.add(packageItemId);
+      return next;
+    });
+  };
+
+  const selectReusable = (packageItemId, itemId) => {
+    setSelectedReusables((prev) => new Map(prev).set(packageItemId, itemId));
+  };
+
+  // Toggle a physical reusable item on/off from the location's full item list.
+  const toggleReusableItem = (item) => {
+    const assignedEntry = [...selectedReusables.entries()].find(
+      ([, itemId]) => itemId === item.id,
+    );
+    if (assignedEntry) {
+      setSelectedReusables((prev) => {
+        const next = new Map(prev);
+        next.delete(assignedEntry[0]);
+        return next;
+      });
+      return;
+    }
+
+    const slot = reusableItems.find((pi) => {
+      if (selectedReusables.has(pi.id)) return false;
+      if (pi.groupId) return item.groupId === pi.groupId;
+      if (pi.itemId === item.id) return true;
+      return item.item_name === pi.item?.item_name;
+    });
+    if (slot) selectReusable(slot.id, item.id);
+  };
+
   // Pre-fill form when IC search completes
   useEffect(() => {
     if (!searchedIc || memberSearching) return;
@@ -707,6 +1143,10 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     setIsOutOfArea(null);
     setShowMap(true);
     setActiveTab("deceased");
+    setSelectedLocation(null);
+    setSelectedPackageId(null);
+    setCheckedConsumables(new Set());
+    setSelectedReusables(new Map());
   }, [open, reset]);
 
   useEffect(() => {
@@ -760,7 +1200,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     setActiveTab("notes");
   };
 
-  const handleFormSubmit = (data) => {
+  const handleFormSubmit = async (data) => {
     if (isOutOfArea === null) {
       showApiError({
         message: translate("Please answer the incident location question."),
@@ -800,7 +1240,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
       burialdate,
       ...formDetails
     } = data;
-    onSubmit({
+    const createdCase = await onSubmit({
       mosqueId: submittedMosqueId,
       adminremarks: adminremarks?.trim() || null,
       deathconfirmationphotourl: deathconfirmationphotourl || null,
@@ -825,6 +1265,33 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
             : null,
       },
     });
+
+    const caseId = createdCase?.id;
+    if (caseId) {
+      for (const pi of consumableItems) {
+        if (checkedConsumables.has(pi.id)) {
+          await stockOut.mutateAsync({
+            itemId: pi.itemId,
+            quantity: pi.quantity_required,
+            jenazahCaseId: caseId,
+            packageId: selectedPackageId,
+            source: "KES",
+          });
+        }
+      }
+      for (const pi of reusableItems) {
+        const chosenItemId = selectedReusables.get(pi.id);
+        if (chosenItemId) {
+          await stockOut.mutateAsync({
+            itemId: chosenItemId,
+            quantity: 1,
+            jenazahCaseId: caseId,
+            packageId: selectedPackageId,
+            source: "KES",
+          });
+        }
+      }
+    }
   };
 
   return (
@@ -834,22 +1301,37 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
         if (!v) onClose();
       }}
     >
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
         <DialogHeader>
           <DialogTitle>{translate("Add Funeral Case")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="deceased" className="pointer-events-none">
+            <TabsList className="grid w-full grid-cols-4 h-auto">
+              <TabsTrigger
+                value="deceased"
+                className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
+              >
                 {translate("Maklumat Jenazah")}
               </TabsTrigger>
-              <TabsTrigger value="management" className="pointer-events-none">
+              <TabsTrigger
+                value="management"
+                className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
+              >
                 {translate("Funeral Management")}
               </TabsTrigger>
-              <TabsTrigger value="notes" className="pointer-events-none">
+              <TabsTrigger
+                value="notes"
+                className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
+              >
                 {translate("Notes & Documents")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="items"
+                className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
+              >
+                {translate("Barang Pengurusan Jenazah")}
               </TabsTrigger>
             </TabsList>
 
@@ -1143,6 +1625,124 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                 />
               </div>
             </TabsContent>
+
+            <TabsContent value="items" className="space-y-4 mt-4">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Lokasi")}</Label>
+                  <select
+                    value={selectedLocation ?? ""}
+                    onChange={(e) => {
+                      setSelectedLocation(e.target.value || null);
+                      setSelectedPackageId(null);
+                      setCheckedConsumables(new Set());
+                      setSelectedReusables(new Map());
+                    }}
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">{translate("Semua Lokasi")}</option>
+                    {locations.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Pakej")}</Label>
+                  <select
+                    value={selectedPackageId ?? ""}
+                    onChange={(e) => handlePackageSelect(e.target.value || null)}
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">{translate("Pilih pakej")}</option>
+                    {filteredPackages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>{pkg.package_name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {selectedPackage && (
+                <div className="space-y-4">
+                  {consumableItems.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        {translate("Barangan Guna Habis")}
+                      </p>
+                      {consumableItems.map((pi) => {
+                        const outOfStock = (pi.item?.current_quantity ?? 0) < pi.quantity_required;
+                        return (
+                          <label
+                            key={pi.id}
+                            className={`flex items-center gap-2.5 ${outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
+                          >
+                            <Checkbox
+                              checked={!outOfStock && checkedConsumables.has(pi.id)}
+                              onCheckedChange={() => !outOfStock && toggleConsumable(pi.id)}
+                              disabled={outOfStock}
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                              {pi.item?.item_name ?? `Item #${pi.itemId}`}
+                            </span>
+                            <span className={`text-xs ${outOfStock ? "text-red-400" : "text-slate-400"}`}>
+                              {outOfStock
+                                ? translate("Stok habis")
+                                : `x${pi.quantity_required}`}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {reusableItems.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        {translate("Aset / Boleh Guna Semula")}
+                      </p>
+                      {reusableItemsAtLocation.length === 0 && (
+                        <p className="text-xs text-slate-400 italic">
+                          {translate("Tiada item boleh guna semula di lokasi ini.")}
+                        </p>
+                      )}
+                      {reusableItemsAtLocation.map((item) => {
+                        const available = item.status === "AVAILABLE";
+                        const checked = [...selectedReusables.values()].includes(item.id);
+                        return (
+                          <label
+                            key={item.id}
+                            className={`flex items-center gap-2.5 ${!available ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => available && toggleReusableItem(item)}
+                              disabled={!available}
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                              {item.item_name}
+                              {item.item_code && (
+                                <span className="ml-1 text-slate-400">({item.item_code})</span>
+                              )}
+                            </span>
+                            <span className={`text-xs ${!available ? "text-red-400" : "text-slate-400"}`}>
+                              {!available
+                                ? item.status === "IN_USE"
+                                  ? translate("Dalam Guna")
+                                  : item.status
+                                : translate("Tersedia")}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {consumableItems.length === 0 && reusableItems.length === 0 && (
+                    <p className="text-xs text-slate-400 italic">{translate("Tiada item dalam pakej ini.")}</p>
+                  )}
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
 
           <DialogFooter>
@@ -1189,8 +1789,26 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                   {translate("Back")}
                 </Button>
                 <Button
+                  type="button"
+                  onClick={() => setActiveTab("items")}
+                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  {translate("Next")}
+                </Button>
+              </>
+            )}
+            {activeTab === "items" && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setActiveTab("notes")}
+                >
+                  {translate("Back")}
+                </Button>
+                <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || stockOut.isPending}
                   className="bg-rose-600 hover:bg-rose-700 text-white"
                 >
                   <Save className="w-4 h-4 mr-2" />
@@ -1282,7 +1900,7 @@ function ManageJenazahCaseDesktop() {
     policereportphotourl,
     supportingphotourl,
   }) => {
-    await createMutation.mutateAsync({
+    return await createMutation.mutateAsync({
       mosqueId,
       details,
       adminremarks,

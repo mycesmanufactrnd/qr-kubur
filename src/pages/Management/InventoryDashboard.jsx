@@ -21,7 +21,6 @@ import {
   Package,
   AlertTriangle,
   XCircle,
-  Wrench,
   ArrowRight,
   ArrowUpRight,
   TrendingDown,
@@ -114,13 +113,6 @@ export default function InventoryDashboard() {
       iconColor: "text-red-600",
       bgColor: "bg-red-50 dark:bg-red-950",
     },
-    {
-      label: translate("Assets In Use"),
-      value: stats?.assetsInUse ?? 0,
-      icon: Wrench,
-      iconColor: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950",
-    },
   ];
 
   return (
@@ -192,7 +184,6 @@ export default function InventoryDashboard() {
             <div className="space-y-2">
               {[
                 { label: translate("Manage Items"),    page: "ManageInventoryItems",    icon: Package,         color: "blue" },
-                { label: translate("Manage Assets"),   page: "ManageInventoryAssets",   icon: Wrench,          color: "purple" },
                 { label: translate("Manage Packages"), page: "ManageInventoryPackages", icon: Boxes,           color: "indigo" },
                 { label: translate("Stock In"),        page: "InventoryStockIn",        icon: ArrowDownToLine, color: "green" },
                 { label: translate("Stock Out"),       page: "InventoryStockOut",       icon: ArrowUpFromLine, color: "red" },

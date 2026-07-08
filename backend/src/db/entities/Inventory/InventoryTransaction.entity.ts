@@ -15,7 +15,6 @@ import {
   InventoryTransactionType,
 } from "../../enums.js";
 import { InventoryItem } from "./InventoryItem.entity.js";
-import { InventoryAsset } from "./InventoryAsset.entity.js";
 import { InventoryPackage } from "./InventoryPackage.entity.js";
 
 // Immutable audit ledger — rows are never updated or deleted.
@@ -65,16 +64,6 @@ export class InventoryTransaction {
 
   @Column("int")
   after_quantity!: number;
-
-  @Column("integer", { nullable: true })
-  assetId?: number | null;
-
-  @ManyToOne(() => InventoryAsset, (asset) => asset.transactions, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
-  @JoinColumn({ name: "assetId" })
-  asset?: InventoryAsset | null;
 
   @Column({
     type: "enum",

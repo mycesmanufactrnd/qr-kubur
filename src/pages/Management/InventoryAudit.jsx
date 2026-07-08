@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import {
@@ -13,6 +13,16 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Loader2,
+  MapPin,
+  CalendarClock,
+  UserCircle2,
+  Boxes,
+  XCircle,
+  TrendingUp,
+  ShieldCheck,
+  ShieldAlert,
+  Wrench,
+  Clock3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +54,7 @@ import {
 } from "@/components/ui/table";
 import Breadcrumb from "@/components/Breadcrumb";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm.jsx";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
@@ -56,9 +67,16 @@ import {
   useGetAuditSessionsPaginated,
   useGetAuditSessionDetails,
   useInventoryAuditMutations,
+  useGetAllInventoryItems,
 } from "@/hooks/useInventoryMutations";
 import { useForm } from "react-hook-form";
-import { CheckDetailResult, CheckSessionStatus } from "@/utils/enums";
+import {
+  CheckDetailResult,
+  CheckSessionStatus,
+  CheckItemCondition,
+  CheckReusableStatus,
+  InventoryItemType,
+} from "@/utils/enums";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -91,6 +109,113 @@ function formatDateTime(dateStr) {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
+}
+
+function isReusableDetail(detail) {
+  return detail.item?.item_type === InventoryItemType.REUSABLE;
+}
+
+function countByField(details, getValue) {
+  const counts = {};
+  for (const d of details) {
+    const val = getValue(d);
+    if (!val) continue;
+    counts[val] = (counts[val] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function splitDetailsByType(details) {
+  const consumable = [];
+  const reusable = [];
+  for (const d of details) {
+    if (isReusableDetail(d)) reusable.push(d);
+    else consumable.push(d);
+  }
+  return { consumable, reusable };
+}
+
+const conditionOptions = [
+  { value: CheckItemCondition.GOOD, label: translate("Good") },
+  { value: CheckItemCondition.DAMAGED, label: translate("Damaged") },
+];
+
+const reusableStatusOptions = [
+  { value: CheckReusableStatus.AVAILABLE, label: translate("Available") },
+  { value: CheckReusableStatus.IN_USE, label: translate("In Use") },
+  { value: CheckReusableStatus.MISSING, label: translate("Missing") },
+  { value: CheckReusableStatus.MAINTENANCE, label: translate("Maintenance") },
+];
+
+function conditionBadge(condition) {
+  if (!condition) return <span className="text-xs text-gray-400">—</span>;
+  const cls = condition === CheckItemCondition.GOOD
+    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+  const label = condition === CheckItemCondition.GOOD ? translate("Good") : translate("Damaged");
+  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${cls}`}>{label}</span>;
+}
+
+function reusableStatusBadge(status) {
+  if (!status) return <span className="text-xs text-gray-400">—</span>;
+  const map = {
+    [CheckReusableStatus.AVAILABLE]:   { label: translate("Available"),   cls: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+    [CheckReusableStatus.IN_USE]:      { label: translate("In Use"),      cls: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
+    [CheckReusableStatus.MISSING]:     { label: translate("Missing"),     cls: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
+    [CheckReusableStatus.MAINTENANCE]: { label: translate("Maintenance"), cls: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
+  };
+  const cfg = map[status];
+  if (!cfg) return <span className="text-xs text-gray-400">{status}</span>;
+  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${cfg.cls}`}>{cfg.label}</span>;
+}
+
+const STAT_THEMES = {
+  gray:   { iconWrap: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300", value: "text-gray-900 dark:text-white" },
+  teal:   { iconWrap: "bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-400", value: "text-gray-900 dark:text-white" },
+  green:  { iconWrap: "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400", value: "text-green-600 dark:text-green-400" },
+  red:    { iconWrap: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400", value: "text-red-600 dark:text-red-400" },
+  yellow: { iconWrap: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400", value: "text-yellow-600 dark:text-yellow-400" },
+  blue:   { iconWrap: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400", value: "text-blue-600 dark:text-blue-400" },
+};
+
+function StatCard({ icon: Icon, label, value, theme = "gray" }) {
+  const t = STAT_THEMES[theme] ?? STAT_THEMES.gray;
+  return (
+    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-800">
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${t.iconWrap}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide truncate">{label}</p>
+          <p className={`text-lg font-bold truncate ${t.value}`}>{value}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MiniStat({ icon: Icon, label, value, theme = "gray" }) {
+  const t = STAT_THEMES[theme] ?? STAT_THEMES.gray;
+  return (
+    <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-slate-700/40 px-3 py-2 flex-1 min-w-[110px]">
+      <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${t.iconWrap}`}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide leading-none">{label}</p>
+        <p className={`text-sm font-bold leading-tight ${t.value}`}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function getLocationOptions(items) {
+  const set = new Set();
+  for (const i of items) {
+    if (i.location) set.add(i.location);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 
 function SortIcon({ field, current, order }) {
@@ -192,6 +317,99 @@ function CountRow({ detail, sessionCompleted, onSaved }) {
   );
 }
 
+// ── Reusable Item Row ─────────────────────────────────────────────────────────
+// Checks condition + status instead of quantity.
+
+function ReusableCountRow({ detail, sessionCompleted, onSaved }) {
+  const [localCondition, setLocalCondition] = useState(detail.condition ?? detail.item?.condition ?? "");
+  const [localStatus, setLocalStatus] = useState(detail.reusable_status ?? detail.item?.status ?? "");
+  const [localNotes, setLocalNotes] = useState(detail.notes ?? "");
+  const [saving, setSaving] = useState(false);
+  const { updateReusableCount } = useInventoryAuditMutations();
+
+  const persist = async (overrides = {}) => {
+    const condition = overrides.condition ?? localCondition;
+    const reusable_status = overrides.reusable_status ?? localStatus;
+    const notes = overrides.notes ?? localNotes;
+    if (!condition || !reusable_status) return;
+    setSaving(true);
+    try {
+      await updateReusableCount.mutateAsync({ detailId: detail.id, condition, reusable_status, notes: notes || undefined });
+      onSaved?.();
+    } catch (err) {
+      showApiError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium text-sm">
+        {detail.item?.item_name ?? `Item #${detail.itemId}`}
+      </TableCell>
+      <TableCell className="w-40">
+        {sessionCompleted ? (
+          conditionBadge(detail.condition ?? detail.item?.condition)
+        ) : (
+          <Select
+            value={localCondition}
+            onValueChange={(val) => { setLocalCondition(val); persist({ condition: val }); }}
+            disabled={saving}
+          >
+            <SelectTrigger className="h-8 text-sm dark:border-slate-600 dark:bg-slate-700">
+              <SelectValue placeholder={translate("Select")} />
+            </SelectTrigger>
+            <SelectContent>
+              {conditionOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </TableCell>
+      <TableCell className="w-40">
+        {sessionCompleted ? (
+          reusableStatusBadge(detail.reusable_status ?? detail.item?.status)
+        ) : (
+          <Select
+            value={localStatus}
+            onValueChange={(val) => { setLocalStatus(val); persist({ reusable_status: val }); }}
+            disabled={saving}
+          >
+            <SelectTrigger className="h-8 text-sm dark:border-slate-600 dark:bg-slate-700">
+              <SelectValue placeholder={translate("Select")} />
+            </SelectTrigger>
+            <SelectContent>
+              {reusableStatusOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </TableCell>
+      <TableCell className="text-center w-10">
+        {saving && <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />}
+      </TableCell>
+      <TableCell className="w-40">
+        {sessionCompleted ? (
+          <span className="text-sm text-gray-500">{detail.notes || "—"}</span>
+        ) : (
+          <Input
+            value={localNotes}
+            onChange={(e) => setLocalNotes(e.target.value)}
+            onBlur={() => persist()}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.currentTarget.blur(); } }}
+            placeholder={translate("Optional")}
+            className="h-8 text-sm dark:border-slate-600 dark:bg-slate-700"
+            disabled={saving}
+          />
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export default function InventoryAudit() {
   const isNarrow = useIsNarrow();
   return isNarrow ? <MobileInventoryAudit /> : <InventoryAuditDesktop />;
@@ -210,6 +428,7 @@ function InventoryAuditDesktop() {
   // Sessions list state
   const urlPage      = parseInt(searchParams.get("page") || "1");
   const urlStatus    = searchParams.get("status") || "all";
+  const urlLocation  = searchParams.get("location") || "all";
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [localStatus, setLocalStatus] = useState(null);
@@ -218,10 +437,14 @@ function InventoryAuditDesktop() {
     defaultValues: { location: "", notes: "" },
   });
 
+  const { itemsList } = useGetAllInventoryItems();
+  const locationOptions = useMemo(() => getLocationOptions(itemsList), [itemsList]);
+
   const { sessionsList, total, totalPages, isLoading: sessionsLoading } = useGetAuditSessionsPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
     filterStatus: urlStatus !== "all" ? urlStatus : undefined,
+    filterLocation: urlLocation !== "all" ? urlLocation : undefined,
   });
 
   const { data: detailData, isLoading: detailLoading, refetch: refetchDetail } =
@@ -283,10 +506,14 @@ function InventoryAuditDesktop() {
   if (selectedSessionId) {
     const session = detailData?.session;
     const details = detailData?.details ?? [];
+    const { consumable: consumableDetails, reusable: reusableDetails } = splitDetailsByType(details);
     const isCompleted = localStatus === CheckSessionStatus.COMPLETED;
     const liveMatched  = details.filter((d) => d.result === CheckDetailResult.MATCH).length;
-    const liveMissing  = details.filter((d) => d.result === CheckDetailResult.MISSING).length;
     const liveOver     = details.filter((d) => d.result === CheckDetailResult.OVER_COUNT).length;
+    const conditionCounts = countByField(reusableDetails, (d) => d.condition ?? d.item?.condition);
+    const statusCounts = countByField(reusableDetails, (d) => d.reusable_status ?? d.item?.status);
+    const liveMissing  = details.filter((d) => d.result === CheckDetailResult.MISSING).length
+      + (statusCounts[CheckReusableStatus.MISSING] ?? 0);
     const statusUnsaved = session && localStatus !== null && localStatus !== session.status;
 
     return (
@@ -320,41 +547,26 @@ function InventoryAuditDesktop() {
           <>
             {/* Session summary card */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: translate("Location"),       value: session.location },
-                { label: translate("Tarikh Masa"),    value: formatDateTime(session.session_date ?? session.createdat) },
-                { label: translate("Checked By"),     value: session.checkedBy?.full_name ?? session.checkedBy?.username ?? "—" },
-                { label: translate("Total Items"),    value: session.total_items ?? details.length },
-              ].map((s) => (
-                <Card key={s.label} className="dark:bg-slate-800 dark:border-slate-700">
-                  <CardContent className="pt-4 pb-3 px-4">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{s.label}</p>
-                    <p className="font-semibold text-gray-900 dark:text-white mt-0.5">{s.value}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              <StatCard icon={MapPin} label={translate("Location")} value={session.location} theme="teal" />
+              <StatCard icon={CalendarClock} label={translate("Tarikh Masa")} value={formatDateTime(session.session_date ?? session.createdat)} theme="gray" />
+              <StatCard icon={UserCircle2} label={translate("Checked By")} value={session.checkedBy?.full_name ?? session.checkedBy?.username ?? "—"} theme="gray" />
+              <StatCard icon={Boxes} label={translate("Total Items")} value={session.total_items ?? details.length} theme="gray" />
             </div>
 
-            {/* Result summary — always visible */}
-            <div className="grid grid-cols-3 gap-4">
-              <Card className="dark:bg-slate-800 dark:border-slate-700">
-                <CardContent className="pt-4 pb-3 px-4 text-center">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Matched")}</p>
-                  <p className="text-2xl font-bold text-green-600 mt-1">{liveMatched}</p>
-                </CardContent>
-              </Card>
-              <Card className="dark:bg-slate-800 dark:border-slate-700">
-                <CardContent className="pt-4 pb-3 px-4 text-center">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Missing")}</p>
-                  <p className="text-2xl font-bold text-red-600 mt-1">{liveMissing}</p>
-                </CardContent>
-              </Card>
-              <Card className="dark:bg-slate-800 dark:border-slate-700">
-                <CardContent className="pt-4 pb-3 px-4 text-center">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">{translate("Over Count")}</p>
-                  <p className="text-2xl font-bold text-yellow-600 mt-1">{liveOver}</p>
-                </CardContent>
-              </Card>
+            {/* Result & reusable summary — always visible */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <StatCard icon={CheckCircle2} label={translate("Matched")} value={liveMatched} theme="green" />
+              <StatCard icon={XCircle} label={translate("Missing")} value={liveMissing} theme="red" />
+              <StatCard icon={TrendingUp} label={translate("Over Count")} value={liveOver} theme="yellow" />
+              {reusableDetails.length > 0 && (
+                <>
+                  <StatCard icon={ShieldCheck} label={translate("Good")} value={conditionCounts[CheckItemCondition.GOOD] ?? 0} theme="green" />
+                  <StatCard icon={ShieldAlert} label={translate("Damaged")} value={conditionCounts[CheckItemCondition.DAMAGED] ?? 0} theme="red" />
+                  <StatCard icon={CheckCircle2} label={translate("Available")} value={statusCounts[CheckReusableStatus.AVAILABLE] ?? 0} theme="green" />
+                  <StatCard icon={Clock3} label={translate("In Use")} value={statusCounts[CheckReusableStatus.IN_USE] ?? 0} theme="blue" />
+                  <StatCard icon={Wrench} label={translate("Maintenance")} value={statusCounts[CheckReusableStatus.MAINTENANCE] ?? 0} theme="yellow" />
+                </>
+              )}
             </div>
 
             {/* Actions: toggle status left, Save right */}
@@ -380,37 +592,74 @@ function InventoryAuditDesktop() {
               </Button>
             </div>
 
-            {/* Detail table */}
-            <Card className="border-0 shadow-md dark:bg-slate-800">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{translate("Item")}</TableHead>
-                      <TableHead className="text-right">{translate("System Qty")}</TableHead>
-                      <TableHead className="w-28 text-center">{translate("Physical Count")}</TableHead>
-                      <TableHead className="text-right">{translate("Difference")}</TableHead>
-                      <TableHead className="text-center">{translate("Result")}</TableHead>
-                      <TableHead className="w-40">{translate("Catatan")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {details.length === 0 ? (
-                      <NoDataTableComponent colSpan={6} />
-                    ) : (
-                      details.map((detail) => (
-                        <CountRow
-                          key={detail.id}
-                          detail={detail}
-                          sessionCompleted={isCompleted}
-                          onSaved={refetchDetail}
-                        />
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            {/* Consumable items */}
+            <div className="space-y-2">
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{translate("Consumable Items")}</h2>
+              <Card className="border-0 shadow-md dark:bg-slate-800">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{translate("Item")}</TableHead>
+                        <TableHead className="text-right">{translate("System Qty")}</TableHead>
+                        <TableHead className="w-28 text-center">{translate("Physical Count")}</TableHead>
+                        <TableHead className="text-right">{translate("Difference")}</TableHead>
+                        <TableHead className="text-center">{translate("Result")}</TableHead>
+                        <TableHead className="w-40">{translate("Catatan")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {consumableDetails.length === 0 ? (
+                        <NoDataTableComponent colSpan={6} />
+                      ) : (
+                        consumableDetails.map((detail) => (
+                          <CountRow
+                            key={detail.id}
+                            detail={detail}
+                            sessionCompleted={isCompleted}
+                            onSaved={refetchDetail}
+                          />
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Reusable items */}
+            <div className="space-y-2">
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{translate("Reusable Items")}</h2>
+              <Card className="border-0 shadow-md dark:bg-slate-800">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{translate("Item")}</TableHead>
+                        <TableHead className="w-40">{translate("Condition")}</TableHead>
+                        <TableHead className="w-40">{translate("Status")}</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                        <TableHead className="w-40">{translate("Catatan")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reusableDetails.length === 0 ? (
+                        <NoDataTableComponent colSpan={5} />
+                      ) : (
+                        reusableDetails.map((detail) => (
+                          <ReusableCountRow
+                            key={detail.id}
+                            detail={detail}
+                            sessionCompleted={isCompleted}
+                            onSaved={refetchDetail}
+                          />
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
           </>
         )}
       </div>
@@ -438,7 +687,7 @@ function InventoryAuditDesktop() {
         </Button>
       </div>
 
-      {/* Status filter */}
+      {/* Status & Location filters */}
       <div className="flex items-center gap-3">
         <Label className="text-sm text-gray-500 shrink-0">{translate("Filter")}:</Label>
         <Select
@@ -452,6 +701,20 @@ function InventoryAuditDesktop() {
             <SelectItem value="all">{translate("All Sessions")}</SelectItem>
             <SelectItem value={CheckSessionStatus.IN_PROGRESS}>{translate("In Progress")}</SelectItem>
             <SelectItem value={CheckSessionStatus.COMPLETED}>{translate("Completed")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={urlLocation}
+          onValueChange={(val) => setSearchParams((p) => { const n = new URLSearchParams(p); n.set("page","1"); val !== "all" ? n.set("location", val) : n.delete("location"); return n; })}
+        >
+          <SelectTrigger className="w-44 dark:border-slate-600 dark:bg-slate-700">
+            <SelectValue placeholder={translate("All Locations")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{translate("All Locations")}</SelectItem>
+            {locationOptions.map((loc) => (
+              <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -530,10 +793,12 @@ function InventoryAuditDesktop() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onCreateSubmit)} className="space-y-4">
-            <TextInputForm
+            <SelectForm
               name="location"
               control={control}
               label={translate("Location / Area")}
+              placeholder={translate("Select location")}
+              options={locationOptions}
               required
               errors={errors}
             />
@@ -568,6 +833,7 @@ function MobileInventoryAudit() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedSessionId = searchParams.get("sessionId") ? Number(searchParams.get("sessionId")) : null;
   const urlPage = parseInt(searchParams.get("page") || "1");
+  const urlLocation = searchParams.get("location") || "all";
   const [itemsPerPage] = useState(10);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [localStatus, setLocalStatus] = useState(null);
@@ -576,9 +842,13 @@ function MobileInventoryAudit() {
     defaultValues: { location: "", notes: "" },
   });
 
+  const { itemsList } = useGetAllInventoryItems();
+  const locationOptions = useMemo(() => getLocationOptions(itemsList), [itemsList]);
+
   const { sessionsList, total, totalPages, isLoading: sessionsLoading } = useGetAuditSessionsPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
+    filterLocation: urlLocation !== "all" ? urlLocation : undefined,
   });
 
   const { data: detailData, isLoading: detailLoading, refetch: refetchDetail } =
@@ -633,10 +903,14 @@ function MobileInventoryAudit() {
   if (selectedSessionId) {
     const session = detailData?.session;
     const details = detailData?.details ?? [];
+    const { consumable: consumableDetails, reusable: reusableDetails } = splitDetailsByType(details);
     const isCompleted = localStatus === CheckSessionStatus.COMPLETED;
     const liveMatched = details.filter((d) => d.result === CheckDetailResult.MATCH).length;
-    const liveMissing = details.filter((d) => d.result === CheckDetailResult.MISSING).length;
     const liveOver    = details.filter((d) => d.result === CheckDetailResult.OVER_COUNT).length;
+    const conditionCounts = countByField(reusableDetails, (d) => d.condition ?? d.item?.condition);
+    const statusCounts = countByField(reusableDetails, (d) => d.reusable_status ?? d.item?.status);
+    const liveMissing = details.filter((d) => d.result === CheckDetailResult.MISSING).length
+      + (statusCounts[CheckReusableStatus.MISSING] ?? 0);
     const statusUnsaved = session && localStatus !== null && localStatus !== session.status;
 
     return (
@@ -656,16 +930,27 @@ function MobileInventoryAudit() {
           <p className="text-gray-400 text-center py-8">{translate("Not found")}</p>
         ) : (
           <>
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardContent className="pt-4 space-y-1">
-                <p className="text-sm"><span className="text-gray-400">{translate("Location")}: </span><span className="font-medium">{session.location}</span></p>
-                <p className="text-sm"><span className="text-gray-400">{translate("Tarikh Masa")}: </span>{formatDateTime(session.session_date ?? session.createdat)}</p>
-                <p className="text-sm"><span className="text-gray-400">{translate("Items")}: </span>{session.total_items ?? details.length}</p>
-                <div className="flex gap-4 pt-1">
-                  <span className="text-sm text-green-600 font-semibold">✓ {liveMatched}</span>
-                  <span className="text-sm text-red-600 font-semibold">✗ {liveMissing}</span>
-                  <span className="text-sm text-yellow-600 font-semibold">↑ {liveOver}</span>
+            <Card className="border-0 shadow-sm dark:bg-slate-800">
+              <CardContent className="pt-4 space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <MiniStat icon={MapPin} label={translate("Location")} value={session.location} theme="teal" />
+                  <MiniStat icon={CalendarClock} label={translate("Tarikh Masa")} value={formatDateTime(session.session_date ?? session.createdat)} theme="gray" />
+                  <MiniStat icon={Boxes} label={translate("Items")} value={session.total_items ?? details.length} theme="gray" />
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  <MiniStat icon={CheckCircle2} label={translate("Matched")} value={liveMatched} theme="green" />
+                  <MiniStat icon={XCircle} label={translate("Missing")} value={liveMissing} theme="red" />
+                  <MiniStat icon={TrendingUp} label={translate("Over Count")} value={liveOver} theme="yellow" />
+                </div>
+                {reusableDetails.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    <MiniStat icon={ShieldCheck} label={translate("Good")} value={conditionCounts[CheckItemCondition.GOOD] ?? 0} theme="green" />
+                    <MiniStat icon={ShieldAlert} label={translate("Damaged")} value={conditionCounts[CheckItemCondition.DAMAGED] ?? 0} theme="red" />
+                    <MiniStat icon={CheckCircle2} label={translate("Available")} value={statusCounts[CheckReusableStatus.AVAILABLE] ?? 0} theme="green" />
+                    <MiniStat icon={Clock3} label={translate("In Use")} value={statusCounts[CheckReusableStatus.IN_USE] ?? 0} theme="blue" />
+                    <MiniStat icon={Wrench} label={translate("Maintenance")} value={statusCounts[CheckReusableStatus.MAINTENANCE] ?? 0} theme="yellow" />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -692,14 +977,35 @@ function MobileInventoryAudit() {
             </div>
 
             <div className="space-y-2">
-              {details.map((detail) => (
-                <MobileCountCard
-                  key={detail.id}
-                  detail={detail}
-                  sessionCompleted={isCompleted}
-                  onSaved={refetchDetail}
-                />
-              ))}
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{translate("Consumable Items")}</h2>
+              {consumableDetails.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">{translate("No data")}</p>
+              ) : (
+                consumableDetails.map((detail) => (
+                  <MobileCountCard
+                    key={detail.id}
+                    detail={detail}
+                    sessionCompleted={isCompleted}
+                    onSaved={refetchDetail}
+                  />
+                ))
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{translate("Reusable Items")}</h2>
+              {reusableDetails.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">{translate("No data")}</p>
+              ) : (
+                reusableDetails.map((detail) => (
+                  <MobileReusableCard
+                    key={detail.id}
+                    detail={detail}
+                    sessionCompleted={isCompleted}
+                    onSaved={refetchDetail}
+                  />
+                ))
+              )}
             </div>
           </>
         )}
@@ -724,6 +1030,21 @@ function MobileInventoryAudit() {
           <Plus className="w-4 h-4" />
         </Button>
       </div>
+
+      <Select
+        value={urlLocation}
+        onValueChange={(val) => setSearchParams((p) => { const n = new URLSearchParams(p); n.set("page","1"); val !== "all" ? n.set("location", val) : n.delete("location"); return n; })}
+      >
+        <SelectTrigger className="w-full dark:border-slate-600 dark:bg-slate-700">
+          <SelectValue placeholder={translate("All Locations")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{translate("All Locations")}</SelectItem>
+          {locationOptions.map((loc) => (
+            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {sessionsLoading ? <PageLoadingComponent /> : sessionsList.length === 0 ? (
         <p className="text-center text-gray-400 py-8">{translate("No audit sessions yet")}</p>
@@ -763,7 +1084,15 @@ function MobileInventoryAudit() {
             <DialogTitle>{translate("New Audit Session")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onCreateSubmit)} className="space-y-4">
-            <TextInputForm name="location" control={control} label={translate("Location")} required errors={errors} />
+            <SelectForm
+              name="location"
+              control={control}
+              label={translate("Location")}
+              placeholder={translate("Select location")}
+              options={locationOptions}
+              required
+              errors={errors}
+            />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>{translate("Cancel")}</Button>
               <Button type="submit" disabled={isSubmitting} className="bg-teal-600 hover:bg-teal-700 text-white">
@@ -858,6 +1187,95 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
             value={localNotes}
             onChange={(e) => setLocalNotes(e.target.value)}
             onBlur={handleSave}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            placeholder={translate("Catatan (Optional)")}
+            className="h-8 text-xs dark:border-slate-600 dark:bg-slate-700"
+            disabled={saving}
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Mobile per-item reusable check card
+function MobileReusableCard({ detail, sessionCompleted, onSaved }) {
+  const [localCondition, setLocalCondition] = useState(detail.condition ?? detail.item?.condition ?? "");
+  const [localStatus, setLocalStatus] = useState(detail.reusable_status ?? detail.item?.status ?? "");
+  const [localNotes, setLocalNotes] = useState(detail.notes ?? "");
+  const [saving, setSaving] = useState(false);
+  const { updateReusableCount } = useInventoryAuditMutations();
+
+  const persist = async (overrides = {}) => {
+    const condition = overrides.condition ?? localCondition;
+    const reusable_status = overrides.reusable_status ?? localStatus;
+    const notes = overrides.notes ?? localNotes;
+    if (!condition || !reusable_status) return;
+    setSaving(true);
+    try {
+      await updateReusableCount.mutateAsync({ detailId: detail.id, condition, reusable_status, notes: notes || undefined });
+      onSaved?.();
+    } catch (err) {
+      showApiError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card className="dark:bg-slate-800 dark:border-slate-700">
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium text-gray-900 dark:text-white truncate flex-1 min-w-0">
+            {detail.item?.item_name ?? `Item #${detail.itemId}`}
+          </p>
+          {saving && <Loader2 className="h-4 w-4 animate-spin text-gray-400 shrink-0" />}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {sessionCompleted ? (
+            <div>{conditionBadge(detail.condition ?? detail.item?.condition)}</div>
+          ) : (
+            <Select
+              value={localCondition}
+              onValueChange={(val) => { setLocalCondition(val); persist({ condition: val }); }}
+              disabled={saving}
+            >
+              <SelectTrigger className="h-8 text-xs dark:border-slate-600 dark:bg-slate-700">
+                <SelectValue placeholder={translate("Condition")} />
+              </SelectTrigger>
+              <SelectContent>
+                {conditionOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {sessionCompleted ? (
+            <div>{reusableStatusBadge(detail.reusable_status ?? detail.item?.status)}</div>
+          ) : (
+            <Select
+              value={localStatus}
+              onValueChange={(val) => { setLocalStatus(val); persist({ reusable_status: val }); }}
+              disabled={saving}
+            >
+              <SelectTrigger className="h-8 text-xs dark:border-slate-600 dark:bg-slate-700">
+                <SelectValue placeholder={translate("Status")} />
+              </SelectTrigger>
+              <SelectContent>
+                {reusableStatusOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+        {sessionCompleted ? (
+          detail.notes ? <p className="text-xs text-gray-500">{translate("Catatan")}: {detail.notes}</p> : null
+        ) : (
+          <Input
+            value={localNotes}
+            onChange={(e) => setLocalNotes(e.target.value)}
+            onBlur={() => persist()}
             onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
             placeholder={translate("Catatan (Optional)")}
             className="h-8 text-xs dark:border-slate-600 dark:bg-slate-700"

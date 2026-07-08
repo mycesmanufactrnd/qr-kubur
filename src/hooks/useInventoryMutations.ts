@@ -86,6 +86,25 @@ export function useInventoryItemMutations() {
   return { createItem, updateItem, deleteItem, deleteByLocation };
 }
 
+// ── Reusable Item Group ───────────────────────────────────────────────────────
+
+export function useGetAllReusableItemGroups() {
+  const { hasAdminAccess } = useAdminAccess();
+  const { data, isLoading } = trpc.reusableItemGroup.getAll.useQuery(undefined, { enabled: hasAdminAccess });
+  return { groups: data ?? [], isLoading };
+}
+
+export function useReusableItemGroupMutations() {
+  const trpcUtils = trpc.useUtils();
+
+  const createGroup = trpc.reusableItemGroup.create.useMutation({
+    onSuccess: () => { trpcUtils.reusableItemGroup.getAll.invalidate(); },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createGroup };
+}
+
 // ── Inventory Package ─────────────────────────────────────────────────────────
 
 type GetInventoryPackagesPaginatedParams = {
@@ -216,8 +235,6 @@ export function useInventoryTransactionMutations() {
     trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
     trpcUtils.inventoryItem.getPaginated.invalidate();
     trpcUtils.inventoryItem.getLowStock.invalidate();
-    trpcUtils.inventoryAsset.getPaginated.invalidate();
-    trpcUtils.inventoryAsset.getInUse.invalidate();
   };
 
   const stockIn = trpc.inventoryTransaction.stockIn.useMutation({
@@ -240,83 +257,7 @@ export function useInventoryTransactionMutations() {
     onError: (err) => showApiError(err),
   });
 
-  const returnAsset = trpc.inventoryTransaction.returnAsset.useMutation({
-    onSuccess: () => { showSuccess('Pulangan Aset', 'update'); invalidateAll(); },
-    onError: (err) => showApiError(err),
-  });
-
-  return { stockIn, stockOut, adjustment, processPackage, returnAsset };
-}
-
-// ── Inventory Asset ───────────────────────────────────────────────────────────
-
-type GetInventoryAssetsPaginatedParams = {
-  page?: number;
-  pageSize?: number;
-  filterItemId?: number;
-  filterStatus?: string;
-  filterCondition?: string;
-  filterAssetNumber?: string;
-  sortField?: string;
-  sortOrder?: 'ASC' | 'DESC';
-};
-
-export function useGetInventoryAssetsPaginated({
-  page,
-  pageSize,
-  filterItemId,
-  filterStatus,
-  filterCondition,
-  filterAssetNumber,
-  sortField,
-  sortOrder,
-}: GetInventoryAssetsPaginatedParams) {
-  const { hasAdminAccess } = useAdminAccess();
-
-  const { data, isLoading, refetch, error } = trpc.inventoryAsset.getPaginated.useQuery(
-    { page, pageSize, filterItemId, filterStatus, filterCondition, filterAssetNumber, sortField, sortOrder },
-    { enabled: hasAdminAccess },
-  );
-
-  const assetsList = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / (pageSize ?? 10));
-
-  return { assetsList, total, totalPages, isLoading, refetch, error };
-}
-
-export function useGetAssetsInUse() {
-  const { hasAdminAccess } = useAdminAccess();
-  const { data, isLoading } = trpc.inventoryAsset.getInUse.useQuery(undefined, { enabled: hasAdminAccess });
-  return { assetsInUse: data ?? [], isLoading };
-}
-
-export function useInventoryAssetMutations() {
-  const trpcUtils = trpc.useUtils();
-
-  const invalidateAll = () => {
-    trpcUtils.inventoryAsset.getPaginated.invalidate();
-    trpcUtils.inventoryAsset.getInUse.invalidate();
-    trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
-    trpcUtils.inventoryTransaction.getPaginated.invalidate();
-  };
-
-  const createAsset = trpc.inventoryAsset.create.useMutation({
-    onSuccess: () => { showSuccess('Aset', 'create'); invalidateAll(); },
-    onError: (err) => showApiError(err),
-  });
-
-  const updateAsset = trpc.inventoryAsset.update.useMutation({
-    onSuccess: () => { showSuccess('Aset', 'update'); invalidateAll(); },
-    onError: (err) => showApiError(err),
-  });
-
-  const deleteAsset = trpc.inventoryAsset.delete.useMutation({
-    onSuccess: () => { showSuccess('Aset', 'delete'); invalidateAll(); },
-    onError: (err) => showApiError(err),
-  });
-
-  return { createAsset, updateAsset, deleteAsset };
+  return { stockIn, stockOut, adjustment, processPackage };
 }
 
 // ── Inventory Audit ───────────────────────────────────────────────────────────
@@ -325,17 +266,19 @@ type GetAuditSessionsPaginatedParams = {
   page?: number;
   pageSize?: number;
   filterStatus?: string;
+  filterLocation?: string;
 };
 
 export function useGetAuditSessionsPaginated({
   page,
   pageSize,
   filterStatus,
+  filterLocation,
 }: GetAuditSessionsPaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } = trpc.inventoryAudit.getSessions.useQuery(
-    { page, pageSize, filterStatus },
+    { page, pageSize, filterStatus, filterLocation },
     { enabled: hasAdminAccess },
   );
 
@@ -366,6 +309,10 @@ export function useInventoryAuditMutations() {
     onError: (err) => showApiError(err),
   });
 
+  const updateReusableCount = trpc.inventoryAudit.updateReusableCount.useMutation({
+    onError: (err) => showApiError(err),
+  });
+
   const completeSession = trpc.inventoryAudit.completeSession.useMutation({
     onSuccess: () => { showSuccess('Sesi Audit', 'update'); invalidateSessions(); },
     onError: (err) => showApiError(err),
@@ -376,5 +323,5 @@ export function useInventoryAuditMutations() {
     onError: (err) => showApiError(err),
   });
 
-  return { createSession, updateCount, completeSession, reopenSession };
+  return { createSession, updateCount, updateReusableCount, completeSession, reopenSession };
 }

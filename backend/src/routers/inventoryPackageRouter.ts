@@ -39,7 +39,8 @@ export const inventoryPackageRouter = router({
       const query = repo
         .createQueryBuilder("pkg")
         .leftJoinAndSelect("pkg.packageItems", "packageItems")
-        .leftJoinAndSelect("packageItems.item", "item");
+        .leftJoinAndSelect("packageItems.item", "item")
+        .leftJoinAndSelect("packageItems.group", "group");
 
       if (filterName) {
         query.andWhere("pkg.package_name ILIKE :name", {
@@ -72,7 +73,7 @@ export const inventoryPackageRouter = router({
 
   getAll: protectedProcedure.query(async () => {
     return await AppDataSource.getRepository(InventoryPackage).find({
-      relations: ["packageItems", "packageItems.item"],
+      relations: ["packageItems", "packageItems.item", "packageItems.group"],
       order: { package_name: "ASC" },
     });
   }),
@@ -82,7 +83,7 @@ export const inventoryPackageRouter = router({
     .query(async ({ input: packageId }) => {
       const pkg = await AppDataSource.getRepository(InventoryPackage).findOne({
         where: { id: packageId },
-        relations: ["packageItems", "packageItems.item"],
+        relations: ["packageItems", "packageItems.item", "packageItems.group"],
       });
 
       if (!pkg) throw new Error("Pakej tidak dijumpai");
@@ -94,6 +95,23 @@ export const inventoryPackageRouter = router({
       }[] = [];
 
       for (const pi of pkg.packageItems ?? []) {
+        if (pi.groupId) {
+          const groupItems = await AppDataSource.getRepository(InventoryItem).find({
+            where: { groupId: pi.groupId },
+          });
+          const available = groupItems.some((i) => i.current_quantity >= pi.quantity_required)
+            ? pi.quantity_required
+            : Math.max(...groupItems.map((i) => i.current_quantity), 0);
+          if (available < pi.quantity_required) {
+            shortfall.push({
+              item_name: pi.group?.name ?? "Unknown",
+              required: pi.quantity_required,
+              available,
+            });
+          }
+          continue;
+        }
+
         const current = pi.item?.current_quantity ?? 0;
         if (current < pi.quantity_required) {
           shortfall.push({
@@ -122,7 +140,8 @@ export const inventoryPackageRouter = router({
         const lineItems = packageItems.map((pi) =>
           manager.create(PackageItem, {
             packageId: savedPkg.id,
-            itemId: pi.itemId,
+            itemId: pi.itemId ?? null,
+            groupId: pi.groupId ?? null,
             quantity_required: pi.quantity_required,
             item_type: pi.item_type,
           }),
@@ -131,7 +150,7 @@ export const inventoryPackageRouter = router({
 
         return manager.findOne(InventoryPackage, {
           where: { id: savedPkg.id },
-          relations: ["packageItems", "packageItems.item"],
+          relations: ["packageItems", "packageItems.item", "packageItems.group"],
         });
       });
     }),
@@ -163,7 +182,8 @@ export const inventoryPackageRouter = router({
         const lineItems = packageItems.map((pi) =>
           manager.create(PackageItem, {
             packageId: input.id,
-            itemId: pi.itemId,
+            itemId: pi.itemId ?? null,
+            groupId: pi.groupId ?? null,
             quantity_required: pi.quantity_required,
             item_type: pi.item_type,
           }),
@@ -172,7 +192,7 @@ export const inventoryPackageRouter = router({
 
         return manager.findOne(InventoryPackage, {
           where: { id: input.id },
-          relations: ["packageItems", "packageItems.item"],
+          relations: ["packageItems", "packageItems.item", "packageItems.group"],
         });
       });
     }),

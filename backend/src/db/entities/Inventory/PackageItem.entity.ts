@@ -10,6 +10,7 @@ import {
 import { InventoryItemType } from "../../enums.js";
 import { InventoryPackage } from "./InventoryPackage.entity.js";
 import { InventoryItem } from "./InventoryItem.entity.js";
+import { ReusableItemGroup } from "./ReusableItemGroup.entity.js";
 
 @Entity("package_item")
 export class PackageItem {
@@ -27,14 +28,25 @@ export class PackageItem {
   package!: InventoryPackage;
 
   @Index()
-  @Column("integer")
-  itemId!: number;
+  @Column("integer", { nullable: true })
+  itemId?: number | null;
 
   @ManyToOne(() => InventoryItem, (item) => item.packageItems, {
+    nullable: true,
     onDelete: "RESTRICT",
   })
   @JoinColumn({ name: "itemId" })
-  item!: InventoryItem;
+  item?: InventoryItem | null;
+
+  // Set instead of itemId for reusable lines picked by group — the
+  // fulfilling item is resolved at dispatch time from the group's members.
+  @Index()
+  @Column("integer", { nullable: true })
+  groupId?: number | null;
+
+  @ManyToOne(() => ReusableItemGroup, { nullable: true, onDelete: "CASCADE" })
+  @JoinColumn({ name: "groupId" })
+  group?: ReusableItemGroup | null;
 
   @Column("int", { default: 1 })
   quantity_required!: number;

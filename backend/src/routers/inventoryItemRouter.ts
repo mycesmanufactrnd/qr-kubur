@@ -2,7 +2,6 @@
 import { protectedProcedure, router } from "../trpc.js";
 import {
   CheckDetail,
-  InventoryAsset,
   InventoryItem,
   InventoryTransaction,
   PackageItem,
@@ -94,11 +93,38 @@ export const inventoryItemRouter = router({
     }),
 
   getAll: protectedProcedure.query(async () => {
-    return await AppDataSource.getRepository(InventoryItem).find({
-      select: ["id", "item_code", "item_name", "category", "item_type", "unit_type", "current_quantity", "status", "minimum_level", "location"],
-      relations: ["assets"],
+    const items = await AppDataSource.getRepository(InventoryItem).find({
+      select: ["id", "item_code", "item_name", "category", "item_type", "unit_type", "current_quantity", "status", "condition", "minimum_level", "location", "groupId", "description"],
+      relations: ["group"],
       order: { item_name: "ASC" },
     });
+
+    const reusableIds = items
+      .filter((i) => i.item_type === InventoryItemType.REUSABLE)
+      .map((i) => i.id);
+
+    if (reusableIds.length === 0) return items;
+
+    // Most recent case-linked transaction per reusable item — tells us which
+    // funeral case is currently holding it (relevant while status is IN_USE).
+    const latestTx = await AppDataSource.getRepository(InventoryTransaction)
+      .createQueryBuilder("t")
+      .distinctOn(["t.itemId"])
+      .leftJoinAndSelect("t.jenazahCase", "jenazahCase")
+      .where("t.itemId IN (:...ids)", { ids: reusableIds })
+      .andWhere("t.jenazahCaseId IS NOT NULL")
+      .orderBy("t.itemId", "ASC")
+      .addOrderBy("t.createdat", "DESC")
+      .getMany();
+
+    const jenazahCaseByItemId = new Map(
+      latestTx.map((t) => [t.itemId, t.jenazahCase ?? null]),
+    );
+
+    return items.map((item) => ({
+      ...item,
+      jenazahCase: jenazahCaseByItemId.get(item.id) ?? null,
+    }));
   }),
 
   getById: protectedProcedure
@@ -207,7 +233,6 @@ export const inventoryItemRouter = router({
         // Must delete in dependency order due to RESTRICT foreign keys
         await manager.delete(CheckDetail, { itemId: In(ids) });
         await manager.delete(InventoryTransaction, { itemId: In(ids) });
-        await manager.delete(InventoryAsset, { itemId: In(ids) });
         await manager.delete(PackageItem, { itemId: In(ids) });
         await manager.delete(InventoryItem, { id: In(ids) });
 
@@ -222,7 +247,6 @@ export const inventoryItemRouter = router({
         const ids = [input];
         await manager.delete(CheckDetail, { itemId: In(ids) });
         await manager.delete(InventoryTransaction, { itemId: In(ids) });
-        await manager.delete(InventoryAsset, { itemId: In(ids) });
         await manager.delete(PackageItem, { itemId: In(ids) });
         await manager.delete(InventoryItem, { id: In(ids) });
         return { deleted: 1 };
@@ -237,7 +261,9 @@ export function computeItemStatus(
   itemType?: string,
 ): InventoryItemStatus {
   if (itemType === InventoryItemType.REUSABLE) {
-    return currentQty >= 1 ? InventoryItemStatus.AVAILABLE : InventoryItemStatus.OUT_OF_STOCK;
+    // Reusable items only ever sit in AVAILABLE / IN_USE / MAINTENANCE / MISSING —
+    // those latter three are set explicitly by stock operations, not derived from quantity.
+    return InventoryItemStatus.AVAILABLE;
   }
   if (currentQty <= 0) return InventoryItemStatus.OUT_OF_STOCK;
   if (currentQty <= minimumLevel) return InventoryItemStatus.LOW_STOCK;
