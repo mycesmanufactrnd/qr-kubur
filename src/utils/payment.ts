@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { trpcClient } from '@/utils/trpc';
+import { showError } from '@/components/ToastrNotification';
 
 const POLL_INTERVAL_MS = 3000;
 const POLL_TIMEOUT_MS = 10 * 60 * 1000; // give up after 10 minutes
@@ -48,44 +49,52 @@ export async function openPaymentUrl(
     return;
   }
 
-  const { Browser } = await import('@capacitor/browser');
+  try {
+    const { Browser } = await import('@capacitor/browser');
 
-  let settled = false;
-  let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let settled = false;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-  const finish = (statusText: string | null) => {
-    if (settled) return;
-    settled = true;
-    if (pollTimer) clearInterval(pollTimer);
-    Browser.removeAllListeners('browserFinished');
-    onStatus?.(statusText);
-  };
-
-  Browser.addListener('browserFinished', () => finish(null));
-
-  await Browser.open({ url });
-
-  if (orderNo && onStatus) {
-    const startedAt = Date.now();
-    pollTimer = setInterval(async () => {
+    const finish = (statusText: string | null) => {
       if (settled) return;
-      if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
-        finish(null);
-        return;
-      }
-      try {
-        const transaction =
-          await trpcClient.toyyibPay.getTransactionStatusByOrderNo.query({
-            orderNo,
-          });
-        const statusText = mapGatewayStatus(transaction?.gatewaystatus);
-        if (statusText === 'Success' || statusText === 'Unsuccessful') {
-          finish(statusText);
-          await Browser.close();
+      settled = true;
+      if (pollTimer) clearInterval(pollTimer);
+      Browser.removeAllListeners('browserFinished');
+      onStatus?.(statusText);
+    };
+
+    Browser.addListener('browserFinished', () => finish(null));
+
+    await Browser.open({ url });
+
+    if (orderNo && onStatus) {
+      const startedAt = Date.now();
+      pollTimer = setInterval(async () => {
+        if (settled) return;
+        if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+          finish(null);
+          return;
         }
-      } catch {
-        // transient network error while polling — keep trying until timeout
-      }
-    }, POLL_INTERVAL_MS);
+        try {
+          const transaction =
+            await trpcClient.toyyibPay.getTransactionStatusByOrderNo.query({
+              orderNo,
+            });
+          const statusText = mapGatewayStatus(transaction?.gatewaystatus);
+          if (statusText === 'Success' || statusText === 'Unsuccessful') {
+            finish(statusText);
+            await Browser.close();
+          }
+        } catch {
+          // transient network error while polling — keep trying until timeout
+        }
+      }, POLL_INTERVAL_MS);
+    }
+  } catch (err: any) {
+    // Surfaces failures that were previously silent, e.g. the native
+    // @capacitor/browser plugin not being registered in the installed
+    // build (requires a new native release to fix, not a web deploy).
+    showError(err?.message || 'Failed to open payment page.');
+    onStatus?.(null);
   }
 }
