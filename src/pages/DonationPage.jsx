@@ -203,12 +203,10 @@ export default function DonationPage() {
     [baseAmount],
   );
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-    if (!status_id) return;
-
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
     const pendingDonation = localStorage.getItem("donationPending");
     if (!pendingDonation) return;
 
@@ -249,12 +247,12 @@ export default function DonationPage() {
               ? { id: Number(formData.selectedRecipient) }
               : null,
           status: VerificationStatus.PENDING,
-          referenceno: order_id || null,
+          referenceno: orderId || null,
           googleuserId: googleRecordPayload?.id ?? null,
         })
         .then(async (res) => {
           if (res) {
-            const orderNo = String(order_id || "");
+            const orderNo = String(orderId || "");
 
             if (
               orderNo &&
@@ -299,6 +297,11 @@ export default function DonationPage() {
       showError(translate("Payment failed."));
       setLoadingPayment(false);
     }
+  };
+
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const hasSpecificState = selectedState !== "nearby" && !!selectedState;
@@ -441,7 +444,13 @@ export default function DonationPage() {
         returnTo: "donation",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       } else {

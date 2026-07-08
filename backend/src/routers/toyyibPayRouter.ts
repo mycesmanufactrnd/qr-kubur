@@ -3,6 +3,8 @@ import { z } from "zod";
 import { router, publicProcedure } from "../trpc.js";
 import { createBill, upsertTransactionAccountByOrderNo } from "../services/toyyibpay.service.js";
 import { getToyyibpayConfig } from "../config/toyyibpay.config.js";
+import { AppDataSource } from "../datasource.js";
+import { OnlineTransaction } from "../db/entities.js";
 
 export const toyyibPayRouter = router({
   createBill: publicProcedure
@@ -41,6 +43,15 @@ export const toyyibPayRouter = router({
         billCode: bill.data.BillCode,
         paymentUrl: `${baseUrl}/${bill.data.BillCode}`,
       };
+    }),
+
+  getTransactionStatusByOrderNo: publicProcedure
+    .input(z.object({ orderNo: z.string().trim().min(1) }))
+    .query(async ({ input }) => {
+      return await AppDataSource.getRepository(OnlineTransaction).findOne({
+        where: { orderno: input.orderNo },
+        order: { createdat: "DESC" },
+      });
     }),
 
   saveTransactionAccount: publicProcedure

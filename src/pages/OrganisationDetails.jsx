@@ -113,8 +113,6 @@ export default function OrganisationDetails() {
     }
   };
 
-  const pendingQuotationRaw =
-    localStorage.getItem("quotationPending") || "{}";
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
 
@@ -225,11 +223,12 @@ export default function OrganisationDetails() {
     if (!exists) setValue("paymentMethod", paymentPlatforms[0].code);
   }, [paymentPlatforms, paymentMethod, setValue]);
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-    if (!status_id || !pendingQuotationRaw) return;
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
+    const pendingQuotationRaw = localStorage.getItem("quotationPending");
+    if (!pendingQuotationRaw) return;
     const formData = JSON.parse(pendingQuotationRaw);
     const baseUrl = window.location.origin + window.location.pathname;
     const url = new URL(baseUrl);
@@ -255,12 +254,12 @@ export default function OrganisationDetails() {
       createOrganisationQuotation
         .mutateAsync({
           ...formData,
-          referenceno: order_id || formData.referenceno || null,
+          referenceno: orderId || formData.referenceno || null,
           googleuserId: googleRecordPayload?.id ?? null,
         })
         .then(async (res) => {
           if (res) {
-            const orderNo = String(order_id || "");
+            const orderNo = String(orderId || "");
             if (
               orderNo &&
               formData?.selectedAccount?.accountno &&
@@ -304,9 +303,16 @@ export default function OrganisationDetails() {
         .finally(handleFinally);
     } else if (statusText === "Pending") {
       showError(translate("Payment is still being processed."));
+      setLoadingPayment(false);
     } else {
       showError(translate("Payment failed."));
+      setLoadingPayment(false);
     }
+  };
+
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const onSubmit = async (formData) => {
@@ -390,7 +396,13 @@ export default function OrganisationDetails() {
         returnTo: "organisation",
       });
       if (quotation?.paymentUrl) {
-        openPaymentUrl(quotation.paymentUrl);
+        openPaymentUrl(quotation.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       } else {

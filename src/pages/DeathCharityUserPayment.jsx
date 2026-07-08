@@ -290,13 +290,10 @@ export default function DeathCharityUserPayment() {
     paymentPlan === PAYMENT_PLAN.YEARLY_ONLY ||
     paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-
-    if (!status_id) return;
-
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
     const pendingPaymentRaw = localStorage.getItem("charityPaymentPending");
     if (!pendingPaymentRaw) return;
 
@@ -358,7 +355,7 @@ export default function DeathCharityUserPayment() {
           throw new Error("Member information is missing.");
         }
 
-        const referenceNo = order_id || pendingPayment.referenceno || null;
+        const referenceNo = orderId || pendingPayment.referenceno || null;
 
         if (pendingPayment.createRegistrationPayment) {
           await createDeathCharityPayment.mutateAsync({
@@ -386,7 +383,7 @@ export default function DeathCharityUserPayment() {
           });
         }
 
-        const orderNo = String(order_id || "");
+        const orderNo = String(orderId || "");
         if (
           orderNo &&
           pendingPayment?.selectedAccount?.accountno &&
@@ -440,6 +437,11 @@ export default function DeathCharityUserPayment() {
       showError(translate("Payment failed."));
       setLoadingPayment(false);
     }
+  };
+
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   // ── IC PHOTO SCAN FUNCTIONS ───────────────────────────────────────────────
@@ -638,7 +640,13 @@ export default function DeathCharityUserPayment() {
       });
 
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       }

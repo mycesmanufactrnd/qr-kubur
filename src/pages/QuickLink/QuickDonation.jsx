@@ -15,7 +15,7 @@ import { validateFields } from "@/utils/validations";
 import { defaultDonationField } from "@/utils/defaultformfields";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import { userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
@@ -53,6 +53,7 @@ function Section({
 export default function QuickDonation() {
   const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const mosqueId = searchParams.get("mosqueId")
     ? Number(searchParams.get("mosqueId"))
     : null;
@@ -180,7 +181,23 @@ export default function QuickDonation() {
         returnTo: "donation",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        // On native, this page has no local resume logic of its own — like on
+        // web (where ToyyibPay's returnUrl points at DonationPage), hand the
+        // result off to DonationPage, which already knows how to finish
+        // creating the donation from the shared "donationPending" payload.
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (!statusText) {
+              setLoadingPayment(false);
+              return;
+            }
+            const statusId = statusText === "Success" ? "1" : "3";
+            navigate(
+              `${createPageUrl("DonationPage")}?status_id=${statusId}&order_id=${runningNo}`,
+            );
+          },
+        });
         setLoadingPayment(false);
         return true;
       }

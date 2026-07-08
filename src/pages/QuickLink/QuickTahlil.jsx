@@ -25,7 +25,7 @@ import { defaultTahlilRequestField } from "@/utils/defaultformfields";
 import { trimEmptyArray } from "@/utils/helpers";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { translate } from "@/utils/translations";
@@ -60,6 +60,7 @@ function Section({ title, icon: Icon, accent = "emerald", children }) {
 export default function QuickTahlil() {
   const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tahfizId = searchParams.get("tahfizId")
     ? Number(searchParams.get("tahfizId"))
     : null;
@@ -264,7 +265,24 @@ export default function QuickTahlil() {
         returnTo: "tahfiz",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        // On native, this page has no local resume logic of its own — like on
+        // web (where ToyyibPay's returnUrl points at TahlilRequestPage), hand
+        // the result off to TahlilRequestPage, which already knows how to
+        // finish creating the request from the shared "tahlilRequestPending"
+        // payload.
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (!statusText) {
+              setLoadingPayment(false);
+              return;
+            }
+            const statusId = statusText === "Success" ? "1" : "3";
+            navigate(
+              `${createPageUrl("TahlilRequestPage")}?status_id=${statusId}&order_id=${runningNo}`,
+            );
+          },
+        });
         setLoadingPayment(false);
         return true;
       }
