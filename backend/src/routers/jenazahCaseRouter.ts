@@ -77,7 +77,7 @@ export const jenazahCaseRouter = router({
         mosqueId: input.mosqueId ?? null,
         qariahmemberid: input.qariahmemberid ?? null,
         details: sanitizeDetails(input.details),
-        status: approved ? JenazahCaseStatus.APPROVED : JenazahCaseStatus.PENDING,
+        status: approved ? JenazahCaseStatus.ONGOING : JenazahCaseStatus.PENDING,
         isapproved: approved,
         referenceno: await generateJenazahReferenceNo(),
         userremarks: input.userremarks ?? null,
@@ -275,7 +275,8 @@ export const jenazahCaseRouter = router({
         id: z.number(),
         status: z.enum([
           JenazahCaseStatus.PENDING,
-          JenazahCaseStatus.APPROVED,
+          JenazahCaseStatus.ONGOING,
+          JenazahCaseStatus.CLOSED,
           JenazahCaseStatus.REJECTED,
         ]),
         adminremarks: z.string().optional().nullable(),
@@ -284,13 +285,17 @@ export const jenazahCaseRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(JenazahCase);
       const c = await repo.findOneByOrFail({ id: input.id });
-      const wasApproved = c.status === JenazahCaseStatus.APPROVED;
+      const wasApproved =
+        c.status === JenazahCaseStatus.ONGOING ||
+        c.status === JenazahCaseStatus.CLOSED;
       c.status = input.status;
-      c.isapproved = input.status === "approved";
+      c.isapproved =
+        input.status === JenazahCaseStatus.ONGOING ||
+        input.status === JenazahCaseStatus.CLOSED;
       if (input.adminremarks !== undefined) c.adminremarks = input.adminremarks ?? null;
       const savedCase = await repo.save(c);
 
-      if (input.status === JenazahCaseStatus.APPROVED && !wasApproved) {
+      if (input.status === JenazahCaseStatus.ONGOING && !wasApproved) {
         const organisationId = await resolveOrganisationIdFromMosque(
           c.mosqueId,
         );

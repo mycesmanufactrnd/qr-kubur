@@ -29,7 +29,7 @@ export const PERMISSIONS = {
   DEATH_CHARITY_VIEW: "death_charity_view",
   DEATH_CHARITY_CREATE: "death_charity_create",
   DEATH_CHARITY_EDIT: "death_charity_edit",
-  DEATH_CHARITY_DELETE: "death_charity_delete",
+  DEATH_CHARITY_DELETE: "death_charity_delete",  
 
   // Dead Persons
   DEAD_PERSONS_VIEW: "dead_persons_view",
@@ -93,6 +93,9 @@ export const PERMISSIONS = {
  
   // Financial Reports
   FINANCIAL_REPORTS_VIEW: "financial_reports_view",
+
+  // Qariah
+  // Jenazah Case
 };
 
 export const PERMISSION_CATEGORIES = {
@@ -211,6 +214,7 @@ export const PERMISSION_CATEGORIES = {
   // End Tahfiz Admin Only
   
   // Manual Filter Start
+  
   donations: {
     label: "Donation Records",
     permissions: [

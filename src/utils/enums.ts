@@ -333,7 +333,8 @@ export enum QuotationStatus {
 
 export enum JenazahCaseStatus {
   PENDING = "pending",
-  APPROVED = "approved",
+  ONGOING = "ongoing",
+  CLOSED = "closed",
   REJECTED = "rejected",
 }
 

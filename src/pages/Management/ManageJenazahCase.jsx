@@ -112,11 +112,17 @@ const STATUS_CONFIG = {
       "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
     icon: Clock,
   },
-  approved: {
-    label: translate("Approved"),
+  ongoing: {
+    label: translate("Ongoing"),
     className:
       "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     icon: CheckCircle2,
+  },
+  closed: {
+    label: translate("Closed"),
+    className:
+      "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    icon: BadgeCheck,
   },
   rejected: {
     label: translate("Rejected"),
@@ -235,6 +241,11 @@ function CaseDetailDialog({
   });
   const graves = gravesList.items;
 
+  const { data: deadPersonRecord } = trpc.deadperson.getByIcNumber.useQuery(
+    { icnumber: icRaw },
+    { enabled: !!icRaw && !!caseItem?.isapproved },
+  );
+
   const upsertDeadPerson = trpc.deadperson.upsertForQariah.useMutation({
     onError: (err) => showApiError(err),
   });
@@ -258,7 +269,7 @@ function CaseDetailDialog({
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,
         gravelot: formData.gravelot?.trim() || null,
       });
-      handleAction("approved");
+      handleAction("ongoing");
     } catch {
       // error shown by onError
     }
@@ -375,6 +386,56 @@ function CaseDetailDialog({
                 }
               />
             </div>
+
+            {caseItem?.isapproved && deadPersonRecord && (
+              <div className="space-y-2 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {translate("Deceased Information")}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <DetailRow
+                    label={translate("Grave")}
+                    value={deadPersonRecord.grave?.name}
+                  />
+                  <DetailRow
+                    label={translate("Grave Lot")}
+                    value={deadPersonRecord.gravelot}
+                  />
+                  <DetailRow
+                    label={translate("Cause of Death")}
+                    value={deadPersonRecord.causeofdeath}
+                  />
+                  <DetailRow
+                    label={translate("Date of Birth")}
+                    value={
+                      deadPersonRecord.dateofbirth
+                        ? new Date(
+                            deadPersonRecord.dateofbirth,
+                          ).toLocaleDateString("ms-MY", { dateStyle: "medium" })
+                        : null
+                    }
+                  />
+                  <DetailRow
+                    label={translate("Date of Death")}
+                    value={
+                      deadPersonRecord.dateofdeath
+                        ? new Date(
+                            deadPersonRecord.dateofdeath,
+                          ).toLocaleDateString("ms-MY", { dateStyle: "medium" })
+                        : null
+                    }
+                  />
+                  <DetailRow
+                    label={translate("Nama Waris")}
+                    value={deadPersonRecord.heirname}
+                  />
+                  <DetailRow
+                    label={translate("No. Tel. Waris")}
+                    value={deadPersonRecord.heirphoneno}
+                  />
+                </div>
+              </div>
+            )}
 
             {mapsUrl && (
               <div className="space-y-1.5 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
@@ -499,6 +560,18 @@ function CaseDetailDialog({
                     {translate("Verify")}
                   </Button>
                 )}
+              </div>
+            )}
+            {caseItem?.status === "ongoing" && (
+              <div className="flex justify-end pt-1">
+                <Button
+                  onClick={() => handleAction("closed")}
+                  disabled={isBusy}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <CheckCircle className="w-4 h-4 mr-1.5" />
+                  {translate("Close Case")}
+                </Button>
               </div>
             )}
             {caseItem?.status !== "pending" && (
@@ -1437,7 +1510,8 @@ function ManageJenazahCaseDesktop() {
             label: translate("Status"),
             options: [
               { value: "pending", label: translate("Pending") },
-              { value: "approved", label: translate("Approved") },
+              { value: "ongoing", label: translate("Ongoing") },
+              { value: "closed", label: translate("Closed") },
               { value: "rejected", label: translate("Rejected") },
             ],
           },

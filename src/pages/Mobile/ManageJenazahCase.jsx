@@ -55,11 +55,17 @@ const STATUS_CONFIG = {
       "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
     icon: Clock,
   },
-  approved: {
-    label: translate("Approved"),
+  ongoing: {
+    label: translate("Ongoing"),
     className:
       "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     icon: CheckCircle2,
+  },
+  closed: {
+    label: translate("Closed"),
+    className:
+      "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    icon: BadgeCheck,
   },
   rejected: {
     label: translate("Rejected"),
@@ -692,6 +698,11 @@ function CaseDetailSheet({
   });
   const graves = gravesList.items;
 
+  const { data: deadPersonRecord } = trpc.deadperson.getByIcNumber.useQuery(
+    { icnumber: icRaw },
+    { enabled: !!icRaw && !!caseItem?.isapproved },
+  );
+
   const upsertDeadPerson = trpc.deadperson.upsertForQariah.useMutation({
     onError: (err) => showApiError(err),
   });
@@ -724,7 +735,7 @@ function CaseDetailSheet({
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,
         gravelot: formData.gravelot?.trim() || null,
       });
-      handleAction("approved");
+      handleAction("ongoing");
     } catch {
       // error shown by onError
     }
@@ -838,6 +849,55 @@ function CaseDetailSheet({
             }
           />
         </FormSection>
+
+        {caseItem?.isapproved && deadPersonRecord && (
+          <FormSection title={translate("Deceased Information")}>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailRow
+                label={translate("Grave")}
+                value={deadPersonRecord.grave?.name}
+              />
+              <DetailRow
+                label={translate("Grave Lot")}
+                value={deadPersonRecord.gravelot}
+              />
+              <DetailRow
+                label={translate("Cause of Death")}
+                value={deadPersonRecord.causeofdeath}
+              />
+              <DetailRow
+                label={translate("Date of Birth")}
+                value={
+                  deadPersonRecord.dateofbirth
+                    ? new Date(deadPersonRecord.dateofbirth).toLocaleDateString(
+                        "ms-MY",
+                        { dateStyle: "medium" },
+                      )
+                    : null
+                }
+              />
+              <DetailRow
+                label={translate("Date of Death")}
+                value={
+                  deadPersonRecord.dateofdeath
+                    ? new Date(deadPersonRecord.dateofdeath).toLocaleDateString(
+                        "ms-MY",
+                        { dateStyle: "medium" },
+                      )
+                    : null
+                }
+              />
+              <DetailRow
+                label={translate("Nama Waris")}
+                value={deadPersonRecord.heirname}
+              />
+              <DetailRow
+                label={translate("No. Tel. Waris")}
+                value={deadPersonRecord.heirphoneno}
+              />
+            </div>
+          </FormSection>
+        )}
 
         {mapsUrl && (
           <FormSection title={translate("Pickup Location")}>
@@ -1054,6 +1114,18 @@ function CaseDetailSheet({
           </div>
         )}
 
+        {caseItem?.status === "ongoing" && (
+          <button
+            type="button"
+            onClick={() => handleAction("closed")}
+            disabled={isBusy}
+            className="w-full h-11 rounded-2xl bg-blue-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-80 disabled:opacity-50"
+          >
+            <CheckCircle className="w-4 h-4" />
+            {translate("Close Case")}
+          </button>
+        )}
+
         {caseItem?.status !== "pending" && (
           <button
             type="button"
@@ -1161,7 +1233,8 @@ export default function MobileManageJenazahCase() {
 
   const STATUS_TABS = [
     { label: translate("Pending"), value: "pending" },
-    { label: translate("Approved"), value: "approved" },
+    { label: translate("Ongoing"), value: "ongoing" },
+    { label: translate("Closed"), value: "closed" },
     { label: translate("Rejected"), value: "rejected" },
   ];
 

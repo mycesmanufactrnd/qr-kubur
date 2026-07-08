@@ -41,6 +41,7 @@ import { formatRM } from "@/utils/helpers";
 import { useMemo } from "react";
 import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert";
 import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
+import JenazahCaseOngoingAlert from "@/components/PopUpAlert/JenazahCaseOngoingAlert";
 import QariahRegistrationAlert from "@/components/PopUpAlert/QariahRegistrationAlert";
 import MobileAdminDashboard from "@/pages/Mobile/AdminDashboard";
 
@@ -663,6 +664,7 @@ function AdminDashboardDesktop() {
       <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3">
         {isOrgGraveService && <QuotationOverdueAlert />}
         {isOrgCanManageMosque && <JenazahCaseAlert />}
+        {isOrgCanManageMosque && <JenazahCaseOngoingAlert />}
         {isOrgCanManageMosque && <QariahRegistrationAlert />}
       </div>
     </>

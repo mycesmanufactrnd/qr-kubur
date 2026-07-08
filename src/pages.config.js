@@ -4,6 +4,8 @@ import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
 import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
 import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
 import StatisticDashboard from '@/pages/Dashboards/StatisticDashboard';
+import JenazahCaseDashboard from '@/pages/Dashboards/JenazahCaseDashboard';
+// import JenazahCaseDashboardMobile from '@/pages/Dashboards/JenazahCaseDashboardMobile';
 
 import AppUserLogin from '@/pages/AppUserLogin';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -106,6 +108,8 @@ export const PAGES = {
     "TahfizDashboard": TahfizDashboard,
     "SuperadminDashboard": SuperadminDashboard,
     "StatisticDashboard": StatisticDashboard,
+    "JenazahCaseDashboard": JenazahCaseDashboard,
+    // "JenazahCaseDashboardMobile": JenazahCaseDashboardMobile,
 
     "AppUserLogin": AppUserLogin,
     "ImpersonateUser": ImpersonateUser,

@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
+import { CARE_SCENARIOS, STATES_MY, JenazahCaseStatus } from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultJenazahRequestField } from "@/utils/defaultformfields";
 import { translate } from "@/utils/translations";
@@ -159,7 +159,9 @@ export default function JenazahEmergencyRequest() {
     { enabled: !!searchedIc, staleTime: 0 },
   );
 
-  const isCaseApproved = existingCase?.status === "approved";
+  const isCaseApproved =
+    existingCase?.status === JenazahCaseStatus.ONGOING ||
+    existingCase?.status === JenazahCaseStatus.CLOSED;
   const isCaseBlocking =
     !!existingCase && !isCaseApproved && !proceedDespitePending;
 
