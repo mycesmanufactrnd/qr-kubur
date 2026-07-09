@@ -85,6 +85,7 @@ export default function DeathCharityUserPayment() {
     : createPageUrl("SearchMosque");
 
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [paymentSucceeded, setPaymentSucceeded] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -318,6 +319,7 @@ export default function DeathCharityUserPayment() {
 
     if (statusText === "Success") {
       setLoadingPayment(true);
+      setPaymentSucceeded(true);
       showSuccess(translate("Payment successful!"));
 
       const storedUser =
@@ -443,8 +445,6 @@ export default function DeathCharityUserPayment() {
     if (!status_id) return;
     handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
-
-  // ── IC PHOTO SCAN FUNCTIONS ───────────────────────────────────────────────
 
   // Malaysian IC number patterns:
   //  formatted : 900101-01-1234  (YYMMDD-SS-NNNN)
@@ -777,7 +777,7 @@ export default function DeathCharityUserPayment() {
     return <PageLoadingComponent />;
   }
 
-  if (status_id) {
+  if (status_id || paymentSucceeded) {
     return <PaymentSuccessfulComponent />;
   }
 

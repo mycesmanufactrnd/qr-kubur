@@ -43,6 +43,7 @@ export default function OrganisationDetails() {
   const { googleUser } = userGoogleAccess();
   const navigate = useNavigate();
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [paymentSucceeded, setPaymentSucceeded] = useState(false);
   const { userLocation } = useLocationContext();
   const [searchParams] = useSearchParams();
   const organisationId = searchParams.get("id")
@@ -246,6 +247,7 @@ export default function OrganisationDetails() {
     };
     if (statusText === "Success") {
       setLoadingPayment(true);
+      setPaymentSucceeded(true);
       showSuccess(translate("Payment successful!"));
       const storedUser =
         localStorage.getItem("googleAuth") ||
@@ -416,7 +418,7 @@ export default function OrganisationDetails() {
   };
 
   if (isLoading || loadingPayment) return <PageLoadingComponent />;
-  if (status_id) return <PaymentSuccessfulComponent />;
+  if (status_id || paymentSucceeded) return <PaymentSuccessfulComponent />;
   if (isError || !organisation)
     return (
       <NoDataCardComponent isPage={true} description={translate("Organisation Not Found")} />

@@ -27,7 +27,6 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
-import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { translate } from "@/utils/translations";
 import { userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
@@ -66,8 +65,6 @@ export default function QuickTahlil() {
     : null;
 
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [submittedDeceasedNames, setSubmittedDeceasedNames] = useState([]);
   const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
@@ -350,31 +347,6 @@ export default function QuickTahlil() {
     }
     await proceedToPayment(tahlilRequest);
   };
-
-  if (submitted) {
-    return (
-      <PaymentSuccessfulComponent
-        shouldRedirect={false}
-        extraContent={
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {translate("Tahlil application for the deceased")}{" "}
-            <span className="font-bold text-emerald-600">
-              {submittedDeceasedNames.filter((n) => n).join(", ")}
-            </span>{" "}
-            {translate("has been sent to the tahfiz center.")}
-          </p>
-        }
-        actionButton={
-          <Button
-            onClick={() => setSubmitted(false)}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            {translate("Submit Another Application")}
-          </Button>
-        }
-      />
-    );
-  }
 
   if (isTahfizLoading || loadingPayment) return <PageLoadingComponent />;
 
