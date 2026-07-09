@@ -226,8 +226,7 @@ export default function DonationPage() {
       JSON.parse(pendingDonation);
 
     const handleFinally = () => {
-      const cleanUrl = clearQueryParams();
-      if (cleanUrl) window.location.href = cleanUrl;
+      clearQueryParams();
       localStorage.removeItem("donationPending");
       setLoadingPayment(false);
     };
@@ -293,7 +292,7 @@ export default function DonationPage() {
           }
         })
         .catch((error) => {
-          createLogMutation.mutateAsync({
+          return createLogMutation.mutateAsync({
             activitytype: "Create Donation",
             functionname: "createDonation.mutateAsync",
             useremail: "",

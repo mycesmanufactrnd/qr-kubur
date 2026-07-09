@@ -239,7 +239,7 @@ export default function OrganisationDetails() {
       url.searchParams.set("deadpersonId", formData.deadperson.id);
     if (formData?.grave?.id) url.searchParams.set("graveId", formData.grave.id);
     const handleFinally = () => {
-      window.location.href = url.toString();
+      window.history.replaceState({}, document.title, url.toString());
       localStorage.removeItem("quotationPending");
       setSelectedServices([]);
       setIsQuotationDialogOpen(false);

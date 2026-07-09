@@ -314,7 +314,7 @@ export default function DeathCharityUserPayment() {
       localStorage.removeItem("charityPaymentPending");
       setLoadingPayment(false);
 
-      window.location.href = url.toString();
+      window.history.replaceState({}, document.title, url.toString());
     };
 
     if (statusText === "Success") {
@@ -420,7 +420,7 @@ export default function DeathCharityUserPayment() {
           setSubmitError(message);
           showError(message);
 
-          createLogMutation.mutateAsync({
+          return createLogMutation.mutateAsync({
             activitytype: "Create Death Charity Payment",
             functionname: "createDeathCharityPayment.mutateAsync",
             useremail: "",
