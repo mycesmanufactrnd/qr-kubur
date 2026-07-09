@@ -22,7 +22,7 @@ import WaqfForm from "@/components/waqf/WaqfForm";
 import {
   useGetWaqfProjectPaginated,
   useWaqfProjectMutations,
-} from "@/hooks/useWaqfProjectMutations";
+} from "@/mutations/useWaqfProjectMutations";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import Pagination from "@/components/Pagination";

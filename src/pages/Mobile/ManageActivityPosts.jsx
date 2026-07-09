@@ -23,8 +23,8 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetActivityPostsPaginated,
   useActivityPostMutations,
-} from "@/hooks/useActivityPostMutations";
-import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
+} from "@/mutations/useActivityPostMutations";
+import { useGetMosquesByOrganisationId } from "@/mutations/useMosqueMutations";
 import { defaultActivityPost } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 

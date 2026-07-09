@@ -30,17 +30,17 @@ import NoDataCardComponent from "@/components/NoDataCardComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { createPageUrl } from "@/utils";
 import { showError, showSuccess } from "@/components/ToastrNotification";
-import { useGetDeathCharityByMosque } from "@/hooks/useDeathCharityMutations";
-import { useGetMosqueById } from "@/hooks/useMosqueMutations";
+import { useGetDeathCharityByMosque } from "@/mutations/useDeathCharityMutations";
+import { useGetMosqueById } from "@/mutations/useMosqueMutations";
 import {
   useDeathCharityMemberMutations,
   useSearchMemberByDeathCharity,
-} from "@/hooks/useDeathCharityMemberMutations";
+} from "@/mutations/useDeathCharityMemberMutations";
 import {
   useDeathCharityPaymentMutations,
   useGetPaymentByMemberId,
-} from "@/hooks/useDeathCharityPaymentMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/useDeathCharityPaymentMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus, PLATFORM_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";

@@ -10,6 +10,7 @@ import {
   User,
   Info,
   XCircle,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +36,9 @@ import {
   STATES_MY,
   VerificationStatus,
 } from "@/utils/enums";
-import { useGetTahfizCoordinates } from "@/hooks/useTahfizMutations";
-import { useGetOrganisationCoordinates } from "@/hooks/useOrganisationMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetTahfizCoordinates } from "@/mutations/useTahfizMutations";
+import { useGetOrganisationCoordinates } from "@/mutations/useOrganisationMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
@@ -663,7 +664,7 @@ export default function DonationPage() {
                           setValue("selectedRecipient", String(r.id));
                           setValue("paymentMethod", "");
                         }}
-                        className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left hover:bg-rose-50 dark:hover:bg-rose-900/20 active:bg-rose-100 dark:active:bg-rose-900/30 transition-colors"
+                        className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:bg-rose-50 hover:border-rose-200 dark:hover:bg-rose-900/20 dark:hover:border-rose-800 active:bg-rose-100 active:scale-[0.98] dark:active:bg-rose-900/30 transition-all"
                       >
                         <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shrink-0">
                           <Building2 className="w-3.5 h-3.5 text-rose-500" />
@@ -678,6 +679,7 @@ export default function DonationPage() {
                             </p>
                           )}
                         </div>
+                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
                       </button>
                     ))
                   ) : (

@@ -20,8 +20,8 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetPermission,
   useUpsertPermission,
-} from "@/hooks/usePermissionMutations";
-import { useGetUserPaginated } from "@/hooks/useUserMutations";
+} from "@/mutations/usePermissionMutations";
+import { useGetUserPaginated } from "@/mutations/useUserMutations";
 import Pagination from "@/components/Pagination";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";

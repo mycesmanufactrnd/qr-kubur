@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ChevronUp, ChevronDown, FileText, X } from "lucide-react";
 import { QUOTATION_OVERDUE_DAYS, QuotationStatus } from "@/utils/enums";
-import { useGetAllQuotations } from "@/hooks/useQuotationMutations";
+import { useGetAllQuotations } from "@/mutations/useQuotationMutations";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 

@@ -48,7 +48,7 @@ import {
   useGetStatisticOrgList,
   useGetStatisticGraveList,
   useGetStatisticDonationList,
-} from "@/hooks/useDashboardMutations";
+} from "@/mutations/useDashboardMutations";
 import { formatRM, formatDate } from "@/utils/helpers";
 import { MONTHS_SHORT, PIE_COLORS } from "@/utils/enums";
 

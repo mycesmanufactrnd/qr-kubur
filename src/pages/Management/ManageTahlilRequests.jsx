@@ -48,7 +48,7 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetTahlilRequestPaginated,
   useUpdateTahlilRequest,
-} from "@/hooks/useTahlilRequestMutations";
+} from "@/mutations/useTahlilRequestMutations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import Pagination from "@/components/Pagination";
@@ -62,7 +62,7 @@ import {
 } from "@/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { showError } from "@/components/ToastrNotification";
-import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 
 export default function ManageTahlilRequests() {
   const isNarrow = useIsNarrow();

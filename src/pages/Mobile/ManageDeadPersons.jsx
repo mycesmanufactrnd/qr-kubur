@@ -34,8 +34,8 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetDeadPersonPaginated,
   useDeadPersonMutations,
-} from "@/hooks/useDeadPersonMutations";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+} from "@/mutations/useDeadPersonMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";

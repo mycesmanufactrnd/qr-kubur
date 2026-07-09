@@ -54,9 +54,9 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetGravePaginated,
   useGraveMutations,
-} from "@/hooks/useGraveMutations";
+} from "@/mutations/useGraveMutations";
 import { trpc } from "@/utils/trpc";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import QRCodeDialog from "@/components/QRCodeDialog";
 import { defaultGraveField } from "@/utils/defaultformfields";
 import { defaultGraveFilter } from "@/utils/defaultfilter";

@@ -15,12 +15,12 @@ import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
-import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
+import { useGetOrganisationTypePaginated } from "@/mutations/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
   useOrganisationMutations,
-} from "@/hooks/useOrganisationMutations";
-import { useUserMutations } from "@/hooks/useUserMutations";
+} from "@/mutations/useOrganisationMutations";
+import { useUserMutations } from "@/mutations/useUserMutations";
 import { defaultOrganisationField } from "@/utils/defaultformfields";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";

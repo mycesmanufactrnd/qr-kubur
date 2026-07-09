@@ -1,4 +1,4 @@
-import { useUpdateLiveURLTahlilRequest } from '@/hooks/useTahlilRequestMutations';
+import { useUpdateLiveURLTahlilRequest } from '@/mutations/useTahlilRequestMutations';
 
 export default function JitsiController({ ids = [], onClose }) {
   if (ids.length === 0) return null;

@@ -73,12 +73,27 @@ export default function JenazahEmergencyRequest() {
     if (picked) setMosque(picked);
   }, [pickerMosqueId, pickerMosques]);
 
+  const handleChangeMosque = () => {
+    setMosque(null);
+    setPickerValue("mosqueId", "");
+    setPageStep(1);
+    setIsOutOfArea(null);
+    setCareScenario(null);
+    setSearchedIc("");
+    setCurrentCoords(null);
+    setMemberResult(undefined);
+    setExistingCase(null);
+    setProceedDespitePending(false);
+    reset(defaultJenazahRequestField);
+  };
+
   const {
     control,
     handleSubmit,
     setValue,
     watch,
     trigger,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: defaultJenazahRequestField,
@@ -477,6 +492,32 @@ export default function JenazahEmergencyRequest() {
               </p>
             )}
           </div>
+        ) : mosque ? (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 space-y-0.5">
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                  <Building2 className="w-3 h-3" />{" "}
+                  {translate("Selected Mosque")}
+                </p>
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {mosque.name}
+                </p>
+                {mosque.address && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {mosque.address}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleChangeMosque}
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 shrink-0"
+              >
+                {translate("Change")}
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="space-y-3">
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 flex items-start gap-2">
@@ -514,23 +555,6 @@ export default function JenazahEmergencyRequest() {
                 "No mosque available for funeral management in this state",
               )}
             />
-
-            {mosque && (
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
-                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
-                  <Building2 className="w-3 h-3" />{" "}
-                  {translate("Selected Mosque")}
-                </p>
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                  {mosque.name}
-                </p>
-                {mosque.address && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {mosque.address}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
         )}
 
@@ -966,7 +990,7 @@ export default function JenazahEmergencyRequest() {
                     isCaseApproved ||
                     isCaseBlocking
                   }
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                 >
                   {createCase.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />

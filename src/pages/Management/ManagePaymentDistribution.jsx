@@ -31,7 +31,7 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetPaymentDistributionPaginated,
   usePaymentDistributionMutation,
-} from "@/hooks/usePaymentDistributionMutation";
+} from "@/mutations/usePaymentDistributionMutation";
 import { formatRM } from "@/utils/helpers";
 import { ORG_SERVICE_FEE, ORG_SHARE } from "@/utils/enums";
 

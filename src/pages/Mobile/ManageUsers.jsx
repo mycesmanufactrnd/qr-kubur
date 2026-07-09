@@ -20,9 +20,9 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetUserPaginated,
   useUserMutations,
-} from "@/hooks/useUserMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
+} from "@/mutations/useUserMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useGetTahfizPaginated } from "@/mutations/useTahfizMutations";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 const roleColors = {

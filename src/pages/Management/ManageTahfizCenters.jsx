@@ -55,9 +55,9 @@ import { translate } from "@/utils/translations";
 import {
   useGetTahfizPaginated,
   useTahfizMutations,
-} from "@/hooks/useTahfizMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useUserMutations } from "@/hooks/useUserMutations";
+} from "@/mutations/useTahfizMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useUserMutations } from "@/mutations/useUserMutations";
 import { useAdminAccess } from "@/utils/auth";
 import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
@@ -69,7 +69,7 @@ import { trpc } from "@/utils/trpc";
 import {
   useGetConfigByEntity,
   useUpsertConfigByEntity,
-} from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/usePaymentConfigMutations";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";

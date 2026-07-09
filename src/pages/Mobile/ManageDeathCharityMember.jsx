@@ -32,9 +32,9 @@ import { createPageUrl } from "@/utils";
 import {
   useGetDeathCharityMemberPaginated,
   useDeathCharityMemberMutations,
-} from "@/hooks/useDeathCharityMemberMutations";
-import { useGetDeathCharityByOrganisation } from "@/hooks/useDeathCharityMutations";
-import { useDeathCharityClaimMutations } from "@/hooks/useDeathCharityClaimMutations";
+} from "@/mutations/useDeathCharityMemberMutations";
+import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMutations";
+import { useDeathCharityClaimMutations } from "@/mutations/useDeathCharityClaimMutations";
 import { defaultDeathCharityMemberField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 

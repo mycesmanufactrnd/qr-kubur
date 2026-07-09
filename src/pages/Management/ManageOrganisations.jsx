@@ -54,12 +54,12 @@ import { useAdminAccess } from "@/utils/auth";
 import { trpc } from "@/utils/trpc";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
-import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
+import { useGetOrganisationTypePaginated } from "@/mutations/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
   useOrganisationMutations,
-} from "@/hooks/useOrganisationMutations";
-import { useUserMutations } from "@/hooks/useUserMutations";
+} from "@/mutations/useOrganisationMutations";
+import { useUserMutations } from "@/mutations/useUserMutations";
 import { defaultOrganisationField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
@@ -72,7 +72,7 @@ import { validateFields } from "@/utils/validations";
 import {
   useGetConfigByEntity,
   useUpsertConfigByEntity,
-} from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/usePaymentConfigMutations";
 import AgreeServiceTerms from "@/components/AgreeServiceTerms";
 
 const DEFAULT_USER_PASSWORD = "password";

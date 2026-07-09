@@ -26,8 +26,8 @@ import { useLocationContext } from "@/providers/LocationProvider";
 import {
   useGetTahfizById,
   useGetTahfizCoordinates,
-} from "@/hooks/useTahfizMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/useTahfizMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import {
   DONATION_AMOUNTS,
   paymentToyyibStatus,

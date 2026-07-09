@@ -44,7 +44,7 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import {
   useGetHeritageSitesPaginated,
   useHeritageMutations,
-} from "@/hooks/useHeritageMutations";
+} from "@/mutations/useHeritageMutations";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { defaultHeritageField } from "@/utils/defaultformfields";

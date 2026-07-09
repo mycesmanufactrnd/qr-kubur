@@ -21,9 +21,9 @@ import { STATES_MY } from "@/utils/enums";
 import {
   useGetDeathCharityPaginated,
   useDeathCharityMutations,
-} from "@/hooks/useDeathCharityMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
+} from "@/mutations/useDeathCharityMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useGetMosquesByOrganisationId } from "@/mutations/useMosqueMutations";
 import { defaultDeathCharityField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 

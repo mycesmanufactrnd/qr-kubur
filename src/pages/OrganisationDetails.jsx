@@ -27,7 +27,7 @@ import NoDataCardComponent from "@/components/NoDataCardComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { PLATFORM_FEE, paymentToyyibStatus } from "@/utils/enums";
 import { activityLogError, shareLink } from "@/utils/helpers";
 import { trpc } from "@/utils/trpc";
@@ -427,7 +427,7 @@ export default function OrganisationDetails() {
   const imageSrc = resolveFileUrl(organisation.photourl, "bucket-organisation");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <div className="relative h-64 md:h-80 overflow-hidden">
         {imageSrc ? (
           <img
@@ -489,7 +489,7 @@ export default function OrganisationDetails() {
           </div>
         </div>
       </div>
-      <div className="max-w-6xl mx-auto px-4 pt-4 pb-12">
+      <div className="max-w-6xl mx-auto px-2 pt-4 pb-12">
         <div className="flex flex-wrap gap-2 mb-4">
           <DirectionButton
             latitude={organisation.latitude}

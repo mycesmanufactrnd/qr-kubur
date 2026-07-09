@@ -61,9 +61,9 @@ import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import {
   useGetMosquePaginated,
   useMosqueMutations,
-} from "@/hooks/useMosqueMutations";
+} from "@/mutations/useMosqueMutations";
 
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import { defaultMosqueField } from "@/utils/defaultformfields";
 import { useForm } from "react-hook-form";
 import CheckboxForm from "@/components/forms/CheckboxForm";

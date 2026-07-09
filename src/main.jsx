@@ -33,6 +33,7 @@ const SESSION_KEYS = [
 
 const clearSession = () => {
   SESSION_KEYS.forEach((k) => sessionStorage.removeItem(k));
+  localStorage.removeItem("appUserAuth");
   window.location.href = "/AppUserLogin";
 };
 

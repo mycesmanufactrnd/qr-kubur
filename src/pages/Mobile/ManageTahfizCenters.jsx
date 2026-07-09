@@ -26,13 +26,13 @@ import { trpc } from "@/utils/trpc";
 import {
   useGetTahfizPaginated,
   useTahfizMutations,
-} from "@/hooks/useTahfizMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useUserMutations } from "@/hooks/useUserMutations";
+} from "@/mutations/useTahfizMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useUserMutations } from "@/mutations/useUserMutations";
 import {
   useGetConfigByEntity,
   useUpsertConfigByEntity,
-} from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/usePaymentConfigMutations";
 import { defaultTahfizField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 

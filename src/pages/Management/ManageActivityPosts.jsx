@@ -37,8 +37,8 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import {
   useGetActivityPostsPaginated,
   useActivityPostMutations,
-} from "@/hooks/useActivityPostMutations";
-import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
+} from "@/mutations/useActivityPostMutations";
+import { useGetMosquesByOrganisationId } from "@/mutations/useMosqueMutations";
 import { defaultActivityPost } from "@/utils/defaultformfields";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";

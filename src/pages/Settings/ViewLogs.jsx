@@ -24,7 +24,7 @@ import {
 import Breadcrumb from "@/components/Breadcrumb";
 import Pagination from "@/components/Pagination";
 import { useAdminAccess } from "@/utils/auth";
-import { useGetActivityLogPaginated } from "@/hooks/useActivityLogMutations";
+import { useGetActivityLogPaginated } from "@/mutations/useActivityLogMutations";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";

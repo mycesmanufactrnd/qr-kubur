@@ -18,22 +18,32 @@ import {
   Users,
   Info,
   ImageIcon,
+  Building2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 import ShareButton from "@/components/ShareButton";
 import InitialAvatarImage from "@/components/InitialAvatarImage";
 import DirectionButton from "@/components/DirectionButton";
-import { useGetGraveById } from "@/hooks/useGraveMutations";
-import { useGetDeadPersonByGraveId } from "@/hooks/useDeadPersonMutations";
+import { useGetGraveById } from "@/mutations/useGraveMutations";
+import { useGetDeadPersonByGraveId } from "@/mutations/useDeadPersonMutations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import { translate } from "@/utils/translations";
 import { shareLink } from "@/utils/helpers";
 import DonationButton from "@/components/DonationButton";
+import { trpc } from "@/utils/trpc";
+import { ImageViewer } from "@/components/ImageViewer";
 
 export default function GraveDetails() {
   const navigate = useNavigate();
@@ -58,6 +68,7 @@ export default function GraveDetails() {
 
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
 
   const {
     data: grave,
@@ -69,6 +80,19 @@ export default function GraveDetails() {
     useGetDeadPersonByGraveId({
       graveId: graveId ?? 0,
     });
+
+  const graveState = grave?.state?.trim() || "";
+
+  const {
+    data: graveServiceOrganisations = [],
+    isLoading: isGraveServiceOrganisationsLoading,
+  } = trpc.organisation.getGraveServiceByState.useQuery(
+    {
+      state: graveState,
+      graveOrganisationId: grave?.organisation?.id ?? null,
+    },
+    { enabled: !!graveState },
+  );
 
   const handleSearch = () => {
     setIsSearching(true);
@@ -101,7 +125,7 @@ export default function GraveDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
+    <div className="min-h-screen ">
       <div className="relative h-72 md:h-80 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
         {grave.photourl ? (
           <img
@@ -167,7 +191,7 @@ export default function GraveDetails() {
           )}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 items-start px-1">
+        <div className="grid lg:grid-cols-3 gap-2 items-start px-1">
           <div className="space-y-6 lg:order-2">
             <Card className="border-0 shadow-sm overflow-hidden bg-white dark:bg-slate-800">
               <CardHeader className="bg-slate-50/50 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 py-3 px-4">
@@ -225,7 +249,102 @@ export default function GraveDetails() {
               </CardContent>
             </Card>
           </div>
-          <div className="lg:col-span-2 space-y-8 lg:order-1">
+          <div className="lg:col-span-2 space-y-4 lg:order-1">
+            <Collapsible
+              open={isServicesOpen}
+              onOpenChange={setIsServicesOpen}
+            >
+              <Card className="border-0 shadow-sm bg-white dark:bg-slate-800 overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between gap-2 py-3 px-4 text-left"
+                  >
+                    <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                      <Building2 className="w-4 h-4 text-violet-600" />
+                      {translate("Grave Service")}
+                    </CardTitle>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${
+                        isServicesOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent>
+                  <CardContent className="px-4 pb-4 pt-0 space-y-2">
+                    {isGraveServiceOrganisationsLoading ? (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {translate("Loading...")}
+                      </p>
+                    ) : graveServiceOrganisations.length === 0 ? (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {translate(
+                          "No grave service organisations available in this state",
+                        )}
+                      </p>
+                    ) : (
+                      graveServiceOrganisations.map((organisation) => (
+                        <Link
+                          key={organisation.id}
+                          to={`${createPageUrl("OrganisationDetails")}?id=${organisation.id}&graveId=${graveId}`}
+                          className="block"
+                        >
+                          <div className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-500 transition-colors">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0">
+                              {organisation.photourl ? (
+                                <ImageViewer
+                                  src={organisation.photourl}
+                                  bucket="bucket-organisation"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <Building2 className="w-5 h-5 text-violet-600 dark:text-violet-300" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                  {organisation.name}
+                                </p>
+                                <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {(organisation.serviceoffered || [])
+                                  .slice(0, 2)
+                                  .map((serviceName) => (
+                                    <Badge
+                                      key={`${organisation.id}-${serviceName}`}
+                                      variant="secondary"
+                                      className="text-[10px]"
+                                    >
+                                      {serviceName}
+                                    </Badge>
+                                  ))}
+
+                                {(organisation.serviceoffered || []).length >
+                                  2 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-[10px]"
+                                  >
+                                    +
+                                    {(organisation.serviceoffered || [])
+                                      .length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))
+                    )}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+
             <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">

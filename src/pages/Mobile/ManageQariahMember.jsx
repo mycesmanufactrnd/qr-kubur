@@ -32,7 +32,7 @@ import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { STATES_MY } from "@/utils/enums";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";

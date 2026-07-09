@@ -40,7 +40,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";

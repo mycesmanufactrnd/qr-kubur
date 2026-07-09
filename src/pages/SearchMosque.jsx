@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useGetMosqueCoordinates } from "@/hooks/useMosqueMutations";
+import { useGetMosqueCoordinates } from "@/mutations/useMosqueMutations";
 import { translate } from "@/utils/translations";
 import BackNavigation from "@/components/BackNavigation";
 import { STATES_MY } from "@/utils/enums";

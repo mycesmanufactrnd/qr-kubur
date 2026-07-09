@@ -22,8 +22,8 @@ import { trpc } from "@/utils/trpc";
 import {
   useCreateSuggestion,
   useRecentCountSuggestion,
-} from "@/hooks/useSuggestionMutations";
-import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
+} from "@/mutations/useSuggestionMutations";
+import { useGetGravesCoordinates } from "@/mutations/useGraveMutations";
 import { showEarthDistance } from "@/utils/helpers";
 import { defaultSuggestionField } from "@/utils/defaultformfields";
 import { useLocationContext } from "@/providers/LocationProvider";

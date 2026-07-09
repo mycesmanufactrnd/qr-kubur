@@ -5,7 +5,7 @@ import { translate } from '@/utils/translations';
 import BackNavigation from '@/components/BackNavigation';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
-import { useGetWaqfProject } from '@/hooks/useWaqfProjectMutations';
+import { useGetWaqfProject } from '@/mutations/useWaqfProjectMutations';
 import WaqfCard from '@/components/waqf/WaqfCard';
 import { WaqfCategory } from '@/utils/enums';
 import ShowNearLocation from '@/components/ShowNearLocation';

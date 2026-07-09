@@ -31,8 +31,8 @@ import { STATES_MY } from "@/utils/enums";
 import {
   useGetMosquePaginated,
   useMosqueMutations,
-} from "@/hooks/useMosqueMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
+} from "@/mutations/useMosqueMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import { defaultMosqueField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 

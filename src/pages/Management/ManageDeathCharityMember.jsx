@@ -54,7 +54,7 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import {
   useGetDeathCharityMemberPaginated,
   useDeathCharityMemberMutations,
-} from "@/hooks/useDeathCharityMemberMutations";
+} from "@/mutations/useDeathCharityMemberMutations";
 import { defaultDeathCharityMemberField } from "@/utils/defaultformfields";
 import { validateFields } from "@/utils/validations";
 import TextInputForm from "@/components/forms/TextInputForm";
@@ -62,8 +62,8 @@ import SelectForm from "@/components/forms/SelectForm";
 import { Switch } from "@/components/ui/switch";
 import { ClaimStatus } from "@/utils/enums";
 import { createPageUrl } from "@/utils";
-import { useGetDeathCharityByOrganisation } from "@/hooks/useDeathCharityMutations";
-import { useDeathCharityClaimMutations } from "@/hooks/useDeathCharityClaimMutations";
+import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMutations";
+import { useDeathCharityClaimMutations } from "@/mutations/useDeathCharityClaimMutations";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { trpc } from "@/utils/trpc";
 

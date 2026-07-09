@@ -8,7 +8,7 @@ import HeritageCardList from '@/components/HeritageCardList';
 import ListCardSkeletonComponent from '@/components/ListCardSkeletonComponent';
 import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { STATES_MY } from '@/utils/enums';
-import { useGetHeritageSitesCoordinates } from '@/hooks/useHeritageMutations';
+import { useGetHeritageSitesCoordinates } from '@/mutations/useHeritageMutations';
 import { useLocationContext } from '@/providers/LocationProvider';
 import ShowNearLocation from '@/components/ShowNearLocation';
 

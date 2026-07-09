@@ -43,7 +43,7 @@ import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import {
   useGetQuotationPaginated,
   useUpdateQuotation,
-} from "@/hooks/useQuotationMutations";
+} from "@/mutations/useQuotationMutations";
 import { ORG_SERVICE_FEE, ORG_SHARE, QuotationStatus } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
@@ -51,7 +51,7 @@ import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { formatRM } from "@/utils/helpers";
-import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 import { showError } from "@/components/ToastrNotification";
 
 function ManageQuotationsDesktop() {

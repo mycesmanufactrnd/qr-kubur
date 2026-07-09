@@ -14,7 +14,7 @@ import {
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import ProgressBar from "@/components/ProgressBar";
-import { useGetWaqfProjectById } from "@/hooks/useWaqfProjectMutations";
+import { useGetWaqfProjectById } from "@/mutations/useWaqfProjectMutations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import { translate } from "@/utils/translations";

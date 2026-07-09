@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useAdminAccess } from '@/utils/auth';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import AccessDeniedComponent from '@/components/AccessDeniedComponent';
-import { useDeleteSuggestion, useGetSuggestionPaginated, useUpdateSuggestion } from '@/hooks/useSuggestionMutations';
+import { useDeleteSuggestion, useGetSuggestionPaginated, useUpdateSuggestion } from '@/mutations/useSuggestionMutations';
 import Pagination from '@/components/Pagination';
 import { ApprovalStatus } from '@/utils/enums';
 import ConfirmDialog from '@/components/ConfirmDialog';

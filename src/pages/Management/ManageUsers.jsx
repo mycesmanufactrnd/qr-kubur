@@ -40,9 +40,9 @@ import { ROLE_TYPE } from "@/utils/enums";
 import {
   useGetUserPaginated,
   useUserMutations,
-} from "@/hooks/useUserMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
+} from "@/mutations/useUserMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useGetTahfizPaginated } from "@/mutations/useTahfizMutations";
 import { hashPassword } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import { createPageUrl } from "@/utils";

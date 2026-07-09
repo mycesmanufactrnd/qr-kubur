@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { translate } from '@/utils/translations';
 import { showWarning } from '@/components/ToastrNotification.jsx';
 import { STATES_MY } from '@/utils/enums';
-import { useGetTahfizCoordinates } from '@/hooks/useTahfizMutations';
+import { useGetTahfizCoordinates } from '@/mutations/useTahfizMutations';
 import { useLocationContext } from '@/providers/LocationProvider';
 import { Button } from "@/components/ui/button";
 import BackNavigation from '@/components/BackNavigation';

@@ -18,7 +18,7 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import { useAdminAccess } from '@/utils/auth';
-import { useGetPaymentPlatform, usePaymentPlatformMutations } from '@/hooks/usePaymentPlatformMutations';
+import { useGetPaymentPlatform, usePaymentPlatformMutations } from '@/mutations/usePaymentPlatformMutations';
 import { validateFields } from '@/utils/validations';
 import { translate } from '@/utils/translations';
 import { defaultPaymentConfigField } from '@/utils/defaultformfields';

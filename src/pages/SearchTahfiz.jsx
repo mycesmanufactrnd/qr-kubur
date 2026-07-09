@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { translate } from "@/utils/translations";
 import { showWarning } from "@/components/ToastrNotification.jsx";
 import { STATES_MY } from "@/utils/enums";
-import { useGetTahfizCoordinates } from "@/hooks/useTahfizMutations";
+import { useGetTahfizCoordinates } from "@/mutations/useTahfizMutations";
 import { useLocationContext } from "@/providers/LocationProvider";
 import BackNavigation from "@/components/BackNavigation";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters.jsx";

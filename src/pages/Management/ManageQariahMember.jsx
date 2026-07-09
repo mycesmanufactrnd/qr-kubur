@@ -72,7 +72,7 @@ import FileUploadForm from "@/components/forms/FileUploadForm";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import { translate } from "@/utils/translations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { STATES_MY } from "@/utils/enums";

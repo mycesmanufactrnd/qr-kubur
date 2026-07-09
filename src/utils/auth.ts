@@ -88,6 +88,9 @@ export function handleLoginTRPC() {
         sessionStorage.removeItem("user_location");
         sessionStorage.setItem("clientIP", data.clientIp);
         sessionStorage.setItem("appUserAuth", JSON.stringify(data));
+        if (data.role) {
+          localStorage.setItem("appUserAuth", JSON.stringify(data));
+        }
 
         const permissions = await trpcClient.permission.getByUser.query({
           userId: data.id,
@@ -116,6 +119,7 @@ export function handleLoginTRPC() {
 
         // Login succeeded but user isn't configured for admin access.
         sessionStorage.removeItem("appUserAuth");
+        localStorage.removeItem("appUserAuth");
         sessionStorage.removeItem("permissions");
         clearTokensFallback();
         setError("Your account is not set up for admin access.");
@@ -127,6 +131,7 @@ export function handleLoginTRPC() {
         );
         console.error(e);
         sessionStorage.removeItem("appUserAuth");
+        localStorage.removeItem("appUserAuth");
         sessionStorage.removeItem("permissions");
         clearTokensFallback();
         setError(e?.message || "Login failed");
@@ -194,6 +199,7 @@ export async function handleLogout(clearPermissions?: () => void) {
   }
 
   sessionStorage.removeItem("appUserAuth");
+  localStorage.removeItem("appUserAuth");
   sessionStorage.removeItem("superAdminAuth");
   sessionStorage.removeItem("isImpersonating");
   clearTokensFallback();
@@ -210,6 +216,7 @@ export function removeImpersonation() {
   }
 
   sessionStorage.setItem("appUserAuth", superAdminAuth);
+  localStorage.setItem("appUserAuth", superAdminAuth);
   sessionStorage.removeItem("superAdminAuth");
   sessionStorage.removeItem("isImpersonating");
 
@@ -235,6 +242,9 @@ export async function impersonateUser(user: any) {
 
   // Write the impersonated user exactly as normal login would
   sessionStorage.setItem("appUserAuth", JSON.stringify(fullUser));
+  if (fullUser.role) {
+    localStorage.setItem("appUserAuth", JSON.stringify(fullUser));
+  }
   sessionStorage.setItem("permissions", JSON.stringify(permissions));
 
   // Role-based redirect — mirrors handleLoginTRPC logic
@@ -261,6 +271,9 @@ async function refreshAppUserAuth(cachedUser: any) {
 
     if (refreshedUser) {
       sessionStorage.setItem("appUserAuth", JSON.stringify(refreshedUser));
+      if (refreshedUser.role) {
+        localStorage.setItem("appUserAuth", JSON.stringify(refreshedUser));
+      }
 
       const permissions = await trpcClient.permission.getByUser.query({
         userId: Number(refreshedUser.id),

@@ -19,7 +19,7 @@ import { motion } from "framer-motion";
 import {
   useGetHeritageById,
   useHeritageMutations,
-} from "@/hooks/useHeritageMutations";
+} from "@/mutations/useHeritageMutations";
 import { openDirections, shareLink } from "@/utils/helpers";
 import { resolveFileUrl } from "@/utils";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";

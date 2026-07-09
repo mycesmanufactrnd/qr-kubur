@@ -24,8 +24,8 @@ import { TahlilStatus, getServiceLabels } from "@/utils/enums";
 import {
   useGetTahlilRequestPaginated,
   useUpdateTahlilRequest,
-} from "@/hooks/useTahlilRequestMutations";
-import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+} from "@/mutations/useTahlilRequestMutations";
+import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 import JitsiController from "@/components/jitsi/JitsiController";
 import { useNavigate } from "react-router-dom";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";

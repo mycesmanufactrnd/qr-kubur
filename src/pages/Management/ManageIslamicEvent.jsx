@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { trpc } from "@/utils/trpc";
-import { useIslamicEventMutations } from "@/hooks/useIslamicEventMutations";
+import { useIslamicEventMutations } from "@/mutations/useIslamicEventMutations";
 import {
   Plus,
   Edit,
