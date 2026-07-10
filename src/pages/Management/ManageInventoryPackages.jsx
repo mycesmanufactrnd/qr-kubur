@@ -464,10 +464,9 @@ function PackageItemsForm({ control, errors, allItems, selectedLocation, onLocat
 
 // ── Package Location Card ─────────────────────────────────────────────────────
 
-function PackageLocationCard({ location, packages, onAddPackage, onView, onEdit, onDelete, hasAdminAccess, style }) {
+function PackageLocationCard({ location, packages, onAddPackage, onView, onEdit, onDelete, hasAdminAccess }) {
   return (
     <Card
-      style={style}
       className="border shadow-sm dark:bg-slate-800 dark:border-slate-700 cursor-pointer hover:shadow-xl hover:scale-105 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300"
       onClick={() => onView(location)}
     >
@@ -539,38 +538,72 @@ function PackageLocationDetailDialog({ location, packages, open, onClose, onView
         {packages.length === 0 ? (
           <p className="text-sm text-gray-400 py-6 text-center">{translate("No packages in this location.")}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b dark:border-slate-600 text-left text-xs text-gray-500 dark:text-gray-400">
-                  <th className="pb-2 pr-3 font-medium">{translate("Package Name")}</th>
-                  <th className="pb-2 pr-3 font-medium">{translate("Gender")}</th>
-                  <th className="pb-2 pr-3 font-medium">{translate("Age Group")}</th>
-                  <th className="pb-2 pr-3 font-medium">{translate("Health")}</th>
-                  <th className="pb-2 pr-3 font-medium text-center">{translate("Items")}</th>
-                  <th className="pb-2 pr-3 font-medium">{translate("Status")}</th>
-                  <th className="pb-2 font-medium text-center">{translate("Actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {packages.map((pkg) => (
-                  <tr key={pkg.id} className="border-b dark:border-slate-700 last:border-0">
-                    <td className="py-2 pr-3 font-medium text-gray-900 dark:text-white">
-                      {pkg.package_name}
+          <>
+            {/* Desktop table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b dark:border-slate-600 text-left text-xs text-gray-500 dark:text-gray-400">
+                    <th className="pb-2 pr-3 font-medium">{translate("Package Name")}</th>
+                    <th className="pb-2 pr-3 font-medium">{translate("Gender")}</th>
+                    <th className="pb-2 pr-3 font-medium">{translate("Age Group")}</th>
+                    <th className="pb-2 pr-3 font-medium">{translate("Health")}</th>
+                    <th className="pb-2 pr-3 font-medium text-center">{translate("Items")}</th>
+                    <th className="pb-2 pr-3 font-medium">{translate("Status")}</th>
+                    <th className="pb-2 font-medium text-center">{translate("Actions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {packages.map((pkg) => (
+                    <tr key={pkg.id} className="border-b dark:border-slate-700 last:border-0">
+                      <td className="py-2 pr-3 font-medium text-gray-900 dark:text-white">
+                        {pkg.package_name}
+                        {pkg.description && (
+                          <div className="text-xs text-gray-400 font-normal truncate max-w-[160px]">{pkg.description}</div>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{pkg.gender_type}</td>
+                      <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{pkg.age_group}</td>
+                      <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{pkg.health_condition}</td>
+                      <td className="py-2 pr-3 text-center">
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 text-xs font-semibold">
+                          {pkg.packageItems?.length ?? 0}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-3">{statusBadge(pkg.status)}</td>
+                      <td className="py-2 text-center">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onView(pkg); }}>
+                          <Eye className="w-3.5 h-3.5 text-gray-500" />
+                        </Button>
+                        {hasAdminAccess && (
+                          <>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onEdit(pkg); }}>
+                              <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onDelete(pkg); }}>
+                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </Button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="sm:hidden space-y-2">
+              {packages.map((pkg) => (
+                <div key={pkg.id} className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{pkg.package_name}</p>
                       {pkg.description && (
-                        <div className="text-xs text-gray-400 font-normal truncate max-w-[160px]">{pkg.description}</div>
+                        <p className="text-xs text-gray-400 truncate">{pkg.description}</p>
                       )}
-                    </td>
-                    <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{pkg.gender_type}</td>
-                    <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{pkg.age_group}</td>
-                    <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{pkg.health_condition}</td>
-                    <td className="py-2 pr-3 text-center">
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 text-xs font-semibold">
-                        {pkg.packageItems?.length ?? 0}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-3">{statusBadge(pkg.status)}</td>
-                    <td className="py-2 text-center">
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onView(pkg); }}>
                         <Eye className="w-3.5 h-3.5 text-gray-500" />
                       </Button>
@@ -584,12 +617,21 @@ function PackageLocationDetailDialog({ location, packages, open, onClose, onView
                           </Button>
                         </>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center flex-wrap gap-1.5 mt-2">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{pkg.gender_type} · {pkg.age_group} · {pkg.health_condition}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 text-xs font-semibold">
+                      {pkg.packageItems?.length ?? 0} {translate("items")}
+                    </span>
+                    {statusBadge(pkg.status)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
@@ -717,23 +759,19 @@ function ManageInventoryPackagesDesktop() {
           <p className="text-sm mt-1">{translate("Click 'Add Package' to create your first package")}</p>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-4">
-          {allLocations.map((location) => {
-            const cols = Math.min(allLocations.length, 3);
-            return (
-              <PackageLocationCard
-                key={location}
-                style={{ width: `calc((100% - ${(cols - 1) * 16}px) / ${cols})` }}
-                location={location}
-                packages={locationGroups[location] ?? []}
-                onAddPackage={() => openAddDialog(location)}
-                onView={() => setDetailLocation(location)}
-                onEdit={openEditDialog}
-                onDelete={(pkg) => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}
-                hasAdminAccess={hasAdminAccess}
-              />
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {allLocations.map((location) => (
+            <PackageLocationCard
+              key={location}
+              location={location}
+              packages={locationGroups[location] ?? []}
+              onAddPackage={() => openAddDialog(location)}
+              onView={() => setDetailLocation(location)}
+              onEdit={openEditDialog}
+              onDelete={(pkg) => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}
+              hasAdminAccess={hasAdminAccess}
+            />
+          ))}
         </div>
       )}
 

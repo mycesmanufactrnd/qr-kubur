@@ -122,52 +122,88 @@ function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete
   const reusableItems = items.filter((i) => i.item_type === InventoryItemType.REUSABLE);
 
   const ItemTable = ({ rows, isReusable }) => (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b dark:border-slate-600 text-left text-xs text-gray-500 dark:text-gray-400">
-            {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Group")}</th>}
-            <th className="pb-2 pr-3 font-medium">{translate("Code")}</th>
-            <th className="pb-2 pr-3 font-medium">{translate("Item Name")}</th>
-            <th className="pb-2 pr-3 font-medium">{translate("Category")}</th>
-            {!isReusable && <th className="pb-2 pr-3 font-medium text-right">{translate("Qty")}</th>}
-            {!isReusable && <th className="pb-2 pr-3 font-medium text-right">{translate("Min")}</th>}
-            {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Condition")}</th>}
-            <th className="pb-2 pr-3 font-medium">{translate("Status")}</th>
-            {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Nama Arwah")}</th>}
-            {hasAdminAccess && <th className="pb-2 font-medium text-center">{translate("Actions")}</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((item) => (
-            <tr key={item.id} className="border-b dark:border-slate-700 last:border-0">
-              {isReusable && (
-                <td className="py-2 pr-3 text-xs text-blue-600 dark:text-blue-400 font-medium">
-                  {item.group?.name || "—"}
-                </td>
-              )}
-              <td className="py-2 pr-3 font-mono text-xs text-gray-400">{item.item_code || "—"}</td>
-              <td className="py-2 pr-3 font-medium text-gray-900 dark:text-white">{item.item_name}</td>
-              <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{item.category}</td>
-              {!isReusable && (
-                <td className="py-2 pr-3 text-right font-mono">{item.current_quantity} {item.unit_type}</td>
-              )}
-              {!isReusable && (
-                <td className="py-2 pr-3 text-right font-mono text-gray-500">{item.minimum_level}</td>
-              )}
-              {isReusable && (
-                <td className="py-2 pr-3">{conditionBadge(item.condition)}</td>
-              )}
-              <td className="py-2 pr-3">{statusBadge(item.status)}</td>
-              {isReusable && (
-                <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">
-                  {item.status === InventoryItemStatus.IN_USE && item.jenazahCase?.details?.deceasedFullname
-                    ? item.jenazahCase.details.deceasedFullname
-                    : "—"}
-                </td>
-              )}
+    <>
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b dark:border-slate-600 text-left text-xs text-gray-500 dark:text-gray-400">
+              {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Group")}</th>}
+              <th className="pb-2 pr-3 font-medium">{translate("Code")}</th>
+              <th className="pb-2 pr-3 font-medium">{translate("Item Name")}</th>
+              <th className="pb-2 pr-3 font-medium">{translate("Category")}</th>
+              {!isReusable && <th className="pb-2 pr-3 font-medium text-right">{translate("Qty")}</th>}
+              {!isReusable && <th className="pb-2 pr-3 font-medium text-right">{translate("Min")}</th>}
+              {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Condition")}</th>}
+              <th className="pb-2 pr-3 font-medium">{translate("Status")}</th>
+              {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Nama Arwah")}</th>}
+              {hasAdminAccess && <th className="pb-2 font-medium text-center">{translate("Actions")}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => (
+              <tr key={item.id} className="border-b dark:border-slate-700 last:border-0">
+                {isReusable && (
+                  <td className="py-2 pr-3 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    {item.group?.name || "—"}
+                  </td>
+                )}
+                <td className="py-2 pr-3 font-mono text-xs text-gray-400">{item.item_code || "—"}</td>
+                <td className="py-2 pr-3 font-medium text-gray-900 dark:text-white">{item.item_name}</td>
+                <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">{item.category}</td>
+                {!isReusable && (
+                  <td className="py-2 pr-3 text-right font-mono">{item.current_quantity} {item.unit_type}</td>
+                )}
+                {!isReusable && (
+                  <td className="py-2 pr-3 text-right font-mono text-gray-500">{item.minimum_level}</td>
+                )}
+                {isReusable && (
+                  <td className="py-2 pr-3">{conditionBadge(item.condition)}</td>
+                )}
+                <td className="py-2 pr-3">{statusBadge(item.status)}</td>
+                {isReusable && (
+                  <td className="py-2 pr-3 text-gray-600 dark:text-gray-300">
+                    {item.status === InventoryItemStatus.IN_USE && item.jenazahCase?.details?.deceasedFullname
+                      ? item.jenazahCase.details.deceasedFullname
+                      : "—"}
+                  </td>
+                )}
+                {hasAdminAccess && (
+                  <td className="py-2 text-center">
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
+                      onClick={() => { onClose(); onEdit(item); }}>
+                      <Edit className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
+                      onClick={() => { onClose(); onDelete(item); }}>
+                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                    </Button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-2">
+        {rows.map((item) => (
+          <div key={item.id} className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {item.item_name}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {item.item_code || "—"} · {item.category}
+                </p>
+                {isReusable && item.group?.name && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">{item.group.name}</p>
+                )}
+              </div>
               {hasAdminAccess && (
-                <td className="py-2 text-center">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
                     onClick={() => { onClose(); onEdit(item); }}>
                     <Edit className="w-3.5 h-3.5" />
@@ -176,13 +212,27 @@ function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete
                     onClick={() => { onClose(); onDelete(item); }}>
                     <Trash2 className="w-3.5 h-3.5 text-red-500" />
                   </Button>
-                </td>
+                </div>
               )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+            </div>
+            <div className="flex items-center flex-wrap gap-1.5 mt-2">
+              {!isReusable && (
+                <span className="text-xs font-mono text-gray-500 bg-gray-50 dark:bg-slate-700/50 px-2 py-0.5 rounded">
+                  {item.current_quantity}/{item.minimum_level} {item.unit_type}
+                </span>
+              )}
+              {isReusable && conditionBadge(item.condition)}
+              {statusBadge(item.status)}
+            </div>
+            {isReusable && item.status === InventoryItemStatus.IN_USE && item.jenazahCase?.details?.deceasedFullname && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                {translate("Nama Arwah")}: {item.jenazahCase.details.deceasedFullname}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
   );
 
   return (
@@ -257,14 +307,12 @@ function LocationCard({
   onDeleteLocation,
   onOpenDetail,
   hasAdminAccess,
-  style,
 }) {
   const consumableCount = items.filter((i) => i.item_type === InventoryItemType.ONE_TIME).length;
   const reusableCount = items.filter((i) => i.item_type === InventoryItemType.REUSABLE).length;
 
   return (
     <Card
-      style={style}
       className="border shadow-sm dark:bg-slate-800 dark:border-slate-700 cursor-pointer hover:shadow-xl hover:scale-105 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300"
       onClick={onOpenDetail}
     >
@@ -569,7 +617,7 @@ export default function ManageInventoryItems() {
   if (!hasAdminAccess) return <AccessDeniedComponent />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <Breadcrumb
         items={[
           { label: translate("Admin Dashboard"), page: "AdminDashboard" },
@@ -578,13 +626,13 @@ export default function ManageInventoryItems() {
         ]}
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-          <Package className="w-6 h-6 text-blue-600" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
+          <Package className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
           {translate("Inventory Items")}
         </h1>
         {hasAdminAccess && (
-          <Button onClick={() => setAddLocDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button onClick={() => setAddLocDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add Location")}
           </Button>
@@ -601,22 +649,18 @@ export default function ManageInventoryItems() {
           <p className="text-sm mt-1">{translate("Click 'Add Location' to set up your inventory storage areas")}</p>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-4">
-          {allLocations.map((location) => {
-            const cols = Math.min(allLocations.length, 3);
-            return (
-              <LocationCard
-                key={location}
-                style={{ width: `calc((100% - ${(cols - 1) * 16}px) / ${cols})` }}
-                location={location}
-                items={locationGroups[location] || []}
-                onAddItem={() => openTypeSelect(location)}
-                onDeleteLocation={() => { setLocationToDelete(location); setDeleteLocDialog(true); }}
-                onOpenDetail={() => setDetailLocation(location)}
-                hasAdminAccess={hasAdminAccess}
-              />
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {allLocations.map((location) => (
+            <LocationCard
+              key={location}
+              location={location}
+              items={locationGroups[location] || []}
+              onAddItem={() => openTypeSelect(location)}
+              onDeleteLocation={() => { setLocationToDelete(location); setDeleteLocDialog(true); }}
+              onOpenDetail={() => setDetailLocation(location)}
+              hasAdminAccess={hasAdminAccess}
+            />
+          ))}
         </div>
       )}
 

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React from "react";
+import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
@@ -84,6 +85,13 @@ function formatDate(dateStr) {
 }
 
 export default function InventoryDashboard() {
+  const isNarrow = useIsNarrow();
+  return isNarrow ? <MobileInventoryDashboard /> : <InventoryDashboardDesktop />;
+}
+
+// ── Desktop ───────────────────────────────────────────────────────────────────
+
+function InventoryDashboardDesktop() {
   const { hasAdminAccess, loadingUser } = useAdminAccess();
   const { stats, isLoading: statsLoading } = useGetInventoryDashboardStats();
   const { lowStockItems, isLoading: lowStockLoading } = useGetLowStockItems();
@@ -341,6 +349,212 @@ export default function InventoryDashboard() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+// ── Mobile ────────────────────────────────────────────────────────────────────
+
+function MobileInventoryDashboard() {
+  const { hasAdminAccess, loadingUser } = useAdminAccess();
+  const { stats, isLoading: statsLoading } = useGetInventoryDashboardStats();
+  const { lowStockItems, isLoading: lowStockLoading } = useGetLowStockItems();
+
+  if (loadingUser) return <PageLoadingComponent />;
+  if (!hasAdminAccess) return <AccessDeniedComponent />;
+
+  const statCards = [
+    {
+      label: translate("Total Items"),
+      value: stats?.totalItems ?? 0,
+      icon: Package,
+      iconColor: "text-blue-600",
+      bgColor: "bg-blue-50 dark:bg-blue-950",
+    },
+    {
+      label: translate("Low Stock"),
+      value: stats?.lowStockCount ?? 0,
+      icon: AlertTriangle,
+      iconColor: "text-yellow-600",
+      bgColor: "bg-yellow-50 dark:bg-yellow-950",
+    },
+    {
+      label: translate("Out of Stock"),
+      value: stats?.outOfStockCount ?? 0,
+      icon: XCircle,
+      iconColor: "text-red-600",
+      bgColor: "bg-red-50 dark:bg-red-950",
+    },
+  ];
+
+  const quickActions = [
+    { label: translate("Manage Items"),    page: "ManageInventoryItems",    icon: Package,         color: "blue" },
+    { label: translate("Manage Packages"), page: "ManageInventoryPackages", icon: Boxes,           color: "indigo" },
+    { label: translate("Stock In"),        page: "InventoryStockIn",        icon: ArrowDownToLine, color: "green" },
+    { label: translate("Stock Out"),       page: "InventoryStockOut",       icon: ArrowUpFromLine, color: "red" },
+    { label: translate("History"),         page: "InventoryHistory",        icon: History,         color: "orange" },
+    { label: translate("Audit"),           page: "InventoryAudit",          icon: ClipboardCheck,  color: "teal" },
+    { label: translate("Reports"),         page: "InventoryReports",        icon: BarChart3,       color: "pink" },
+  ];
+
+  return (
+    <div className="p-4 space-y-4">
+      <Breadcrumb
+        items={[
+          { label: translate("Inventory"), page: "InventoryDashboard" },
+        ]}
+      />
+
+      <div>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+          {translate("Inventory Dashboard")}
+        </h1>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          {translate("Overview of inventory status and recent activity")}
+        </p>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-3 gap-2">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card key={card.label} className="border dark:border-slate-700 dark:bg-slate-800">
+              <CardContent className="p-3">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center mb-1.5 ${card.bgColor}`}>
+                  <Icon className={`h-4 w-4 ${card.iconColor}`} />
+                </div>
+                <p className="text-xl font-bold text-gray-900 dark:text-white leading-none">
+                  {statsLoading ? "—" : card.value}
+                </p>
+                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mt-1 leading-tight">
+                  {card.label}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Quick Actions */}
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader className="pb-2 pt-3 px-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </div>
+            {translate("Quick Actions")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+          <div className="grid grid-cols-2 gap-2">
+            {quickActions.map((action, i) => (
+              <Link key={i} to={createPageUrl(action.page)}>
+                <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-slate-100 dark:border-slate-700 py-3 px-2 active:bg-slate-100 dark:active:bg-slate-700 transition-colors">
+                  <action.icon className={`w-5 h-5 text-${action.color}-600`} />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300 text-center leading-tight">
+                    {action.label}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Low Stock Alerts */}
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader className="pb-2 pt-3 px-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              {translate("Low Stock Alerts")}
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+              <Link to={createPageUrl("ManageInventoryItems")}>
+                {translate("Manage")}
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+          {lowStockLoading ? (
+            <p className="text-center text-xs text-gray-400 py-4">{translate("Loading...")}</p>
+          ) : !lowStockItems.length ? (
+            <p className="text-center text-xs text-gray-400 py-4">{translate("All items are sufficiently stocked")}</p>
+          ) : (
+            <div className="space-y-2">
+              {lowStockItems.map((item) => {
+                const { label, color } = statusLabel(item.status);
+                return (
+                  <div key={item.id} className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 dark:bg-slate-700/40 px-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {item.item_name}
+                      </p>
+                      <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${color}`}>
+                        {label}
+                      </span>
+                    </div>
+                    <div className="text-right shrink-0 font-mono text-xs text-gray-500">
+                      {item.current_quantity} / {item.minimum_level}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Transactions */}
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader className="pb-2 pt-3 px-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              {translate("Recent Transactions")}
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+              <Link to={createPageUrl("InventoryHistory")}>
+                {translate("View All")}
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+          {statsLoading ? (
+            <p className="text-center text-xs text-gray-400 py-4">{translate("Loading...")}</p>
+          ) : !stats?.recentTransactions?.length ? (
+            <p className="text-center text-xs text-gray-400 py-4">{translate("No transactions yet")}</p>
+          ) : (
+            <div className="space-y-2">
+              {stats.recentTransactions.map((tx) => {
+                const { label, color } = txTypeLabel(tx.transaction_type);
+                return (
+                  <div key={tx.id} className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 dark:bg-slate-700/40 px-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {tx.item?.item_name || "-"}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${color}`}>
+                          {txTypeIcon(tx.transaction_type)}
+                          {label}
+                        </span>
+                        <span className="text-[10px] text-gray-400">{formatDate(tx.createdat)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 font-mono text-sm font-semibold text-gray-700 dark:text-gray-200">
+                      {tx.quantity > 0 ? `+${tx.quantity}` : tx.quantity}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
