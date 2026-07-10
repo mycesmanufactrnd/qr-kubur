@@ -25,6 +25,7 @@ console.log(process.env.FRONTEND_NGROK_URL || "❌ Not set");
 
 import { AppDataSource } from "./datasource.js";
 import Fastify from "fastify";
+import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { createContext } from "./trpc.js";
@@ -48,6 +49,11 @@ const app = Fastify({
   routerOptions: {
     maxParamLength: 5000,
   },
+});
+
+await app.register(helmet, {
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
 });
 
 await app.register(rateLimit, {
@@ -82,7 +88,8 @@ await app.register(import("@fastify/cors"), {
 
     console.log("❌ Blocked CORS:", origin);
 
-    return callback(null, true);
+    // return callback(null, true);
+    return callback(new Error("Not allowed by CORS"), false);
   },
   credentials: true,
 });
