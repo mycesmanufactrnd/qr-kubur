@@ -7,7 +7,7 @@ import { MapPin, Phone, Mail, Globe, ArrowLeft, Clock, Users, FileText, External
 import { createPageUrl, resolveFileUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
-import { useGetTahfizById } from '@/hooks/useTahfizMutations';
+import { useGetTahfizById } from '@/mutations/useTahfizMutations';
 import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
 import { useLocationContext } from '@/providers/LocationProvider';
@@ -15,7 +15,7 @@ import NoDataCardComponent from '@/components/NoDataCardComponent';
 import { translate } from '@/utils/translations';
 import { shareLink } from '@/utils/helpers';
 import { trpc } from '@/utils/trpc';
-import { useGetActivityPostsByRelationId } from '@/hooks/useActivityPostMutations';
+import { useGetActivityPostsByRelationId } from '@/mutations/useActivityPostMutations';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import BackNavigation from '@/components/BackNavigation';
 
@@ -112,7 +112,7 @@ export default function TahfizDetails() {
         <DonationButton recipientId={String(tahfizDetails.id)} recipientType={'tahfiz'} state={tahfizDetails.state} />
       </div>
 
-      <div className="px-4 pb-10 space-y-4 max-w-2xl mx-auto">
+      <div className="px-2 pb-10 space-y-4 max-w-2xl mx-auto">
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden border border-slate-100 dark:border-slate-700">
           {tahfizDetails.description && (

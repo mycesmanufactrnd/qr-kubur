@@ -77,7 +77,7 @@ export const jenazahCaseRouter = router({
         mosqueId: input.mosqueId ?? null,
         qariahmemberid: input.qariahmemberid ?? null,
         details: sanitizeDetails(input.details),
-        status: approved ? JenazahCaseStatus.APPROVED : JenazahCaseStatus.PENDING,
+        status: approved ? JenazahCaseStatus.ONGOING : JenazahCaseStatus.PENDING,
         isapproved: approved,
         referenceno: await generateJenazahReferenceNo(),
         userremarks: input.userremarks ?? null,
@@ -103,6 +103,7 @@ export const jenazahCaseRouter = router({
       const organisationId = await resolveOrganisationIdFromMosque(
         input.mosqueId,
       );
+      
       if (organisationId) {
         if (approved) {
           await sendNotificationFCMToOrganisation({
@@ -132,30 +133,57 @@ export const jenazahCaseRouter = router({
         status: z.string().optional(),
         mosqueId: z.number().optional(),
         search: z.string().optional(),
+        referenceno: z.string().optional(),
+        currentUserOrganisation: z.number().optional().nullable(),
+        isSuperAdmin: z.boolean().optional().default(false),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, status, mosqueId, search } = input;
+      const {
+        page,
+        pageSize,
+        status,
+        mosqueId,
+        search,
+        referenceno,
+        currentUserOrganisation,
+        isSuperAdmin,
+      } = input;
       const repo = AppDataSource.getRepository(JenazahCase);
       const query = repo
-        .createQueryBuilder("jc")
-        .leftJoinAndSelect("jc.mosque", "mosque");
+        .createQueryBuilder("jenazahcase")
+        .leftJoinAndSelect("jenazahcase.mosque", "mosque");
+
+      if (!isSuperAdmin) {
+        if (!currentUserOrganisation) return { items: [], total: 0 };
+        query.andWhere("mosque.organisationId = :orgId", {
+          orgId: currentUserOrganisation,
+        });
+      }
 
       if (status) {
-        query.andWhere("jc.status = :status", { status });
+        query.andWhere("jenazahcase.status = :status", { status });
       }
+
       if (mosqueId) {
-        query.andWhere("jc.mosqueId = :mosqueId", { mosqueId });
+        query.andWhere("jenazahcase.mosqueId = :mosqueId", { mosqueId });
       }
+
       if (search) {
         query.andWhere(
-          "(jc.details->>'deceasedFullname' ILIKE :search OR jc.details->>'deceasedIcnumber' ILIKE :search)",
+          "(jenazahcase.details->>'deceasedFullname' ILIKE :search OR jenazahcase.details->>'deceasedIcnumber' ILIKE :search)",
           { search: `%${search}%` },
         );
       }
+      
+      if (referenceno) {
+        query.andWhere("jenazahcase.referenceno ILIKE :referenceno", {
+          referenceno: `%${referenceno}%`,
+        });
+      }
 
       const [items, total] = await query
-        .orderBy("jc.createdat", "DESC")
+        .orderBy("jenazahcase.createdat", "DESC")
         .skip((page - 1) * pageSize)
         .take(pageSize)
         .getManyAndCount();
@@ -247,7 +275,8 @@ export const jenazahCaseRouter = router({
         id: z.number(),
         status: z.enum([
           JenazahCaseStatus.PENDING,
-          JenazahCaseStatus.APPROVED,
+          JenazahCaseStatus.ONGOING,
+          JenazahCaseStatus.CLOSED,
           JenazahCaseStatus.REJECTED,
         ]),
         adminremarks: z.string().optional().nullable(),
@@ -256,13 +285,17 @@ export const jenazahCaseRouter = router({
     .mutation(async ({ input }) => {
       const repo = AppDataSource.getRepository(JenazahCase);
       const c = await repo.findOneByOrFail({ id: input.id });
-      const wasApproved = c.status === JenazahCaseStatus.APPROVED;
+      const wasApproved =
+        c.status === JenazahCaseStatus.ONGOING ||
+        c.status === JenazahCaseStatus.CLOSED;
       c.status = input.status;
-      c.isapproved = input.status === "approved";
+      c.isapproved =
+        input.status === JenazahCaseStatus.ONGOING ||
+        input.status === JenazahCaseStatus.CLOSED;
       if (input.adminremarks !== undefined) c.adminremarks = input.adminremarks ?? null;
       const savedCase = await repo.save(c);
 
-      if (input.status === JenazahCaseStatus.APPROVED && !wasApproved) {
+      if (input.status === JenazahCaseStatus.ONGOING && !wasApproved) {
         const organisationId = await resolveOrganisationIdFromMosque(
           c.mosqueId,
         );
@@ -277,6 +310,28 @@ export const jenazahCaseRouter = router({
       }
 
       return savedCase;
+    }),
+
+  notifyPendingReminder: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(JenazahCase);
+      const caseRequest = await repo.findOneByOrFail({ id: input.id });
+
+      const organisationId = await resolveOrganisationIdFromMosque(
+        caseRequest.mosqueId,
+      );
+
+      if (organisationId) {
+        await sendNotificationFCMToOrganisation({
+          organisationId,
+          event: "jenazahcase_pending_reminder",
+          inputData: { deceasedFullname: caseRequest.details?.deceasedFullname },
+          roles: ["admin"],
+        });
+      }
+
+      return { success: true };
     }),
 
   getByReferenceNo: publicProcedure

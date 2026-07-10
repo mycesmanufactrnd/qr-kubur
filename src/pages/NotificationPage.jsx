@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { translate } from '@/utils/translations';
-import { useGetNotificationPaginated, useUpdateNotification } from '@/hooks/useNotificationMutations';
+import { useGetNotificationPaginated, useUpdateNotification } from '@/mutations/useNotificationMutations';
 import Pagination from '@/components/Pagination';
 import Breadcrumb from '@/components/Breadcrumb';
 import NoDataTableComponent from '@/components/NoDataTableComponent';

@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import { showWarning } from "@/components/ToastrNotification.jsx";
 import { STATES_MY } from "@/utils/enums";
-import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
+import { useGetGravesCoordinates } from "@/mutations/useGraveMutations";
 import { useLocationContext } from "@/providers/LocationProvider";
 import BackKeyNavigation from "@/components/BackKeyNavigation";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters.jsx";

@@ -67,7 +67,7 @@ function NotificationCard({ notif, canEdit, canDelete, onResend, onDelete }) {
             variant="outline"
             className="shrink-0 text-emerald-600 border-emerald-300 text-xs"
           >
-            {notif.notifiedcount} orang
+            {notif.notifiedcount} {translate("people")}
           </Badge>
         </div>
 
@@ -209,20 +209,20 @@ function NotifySheet({
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          Hantar Notifikasi Kematian Ahli Qariah
+          {translate("Send Qariah Death Notification")}
         </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
-        <FormSection title="Organisasi & Masjid">
+        <FormSection title={translate("Organisation & Mosque")}>
           {isCurrentUserParentOrganisation ? (
             <Select2Form
               name="notifyOrgId"
               control={control}
-              label="Organisasi"
-              placeholder="Pilih organisasi..."
-              searchPlaceholder="Cari organisasi..."
-              emptyMessage="Tiada organisasi dijumpai."
+              label={translate("Organisation")}
+              placeholder={translate("Select organisation...")}
+              searchPlaceholder={translate("Search organisation...")}
+              emptyMessage={translate("No organisations.")}
               options={allOrganisations.map((o) => ({
                 value: o.id,
                 label: o.name,
@@ -230,7 +230,7 @@ function NotifySheet({
             />
           ) : (
             <div className="space-y-1.5">
-              <Label>Organisasi</Label>
+              <Label>{translate("Organisation")}</Label>
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-200">
                 {currentUser?.organisation?.name || "—"}
               </div>
@@ -240,12 +240,12 @@ function NotifySheet({
           <Select2Form
             name="notifyMosqueId"
             control={control}
-            label="Masjid"
+            label={translate("Mosque")}
             placeholder={
-              notifyOrgId ? "Pilih masjid..." : "Pilih organisasi dahulu"
+              notifyOrgId ? translate("Select mosque...") : translate("Select organisation first")
             }
-            searchPlaceholder="Cari masjid..."
-            emptyMessage="Tiada masjid dijumpai."
+            searchPlaceholder={translate("Search mosque...")}
+            emptyMessage={translate("No mosques found.")}
             options={notifyOrgMosques.map((mosque) => ({
               value: mosque.id,
               label: mosque.name,
@@ -254,14 +254,14 @@ function NotifySheet({
           />
         </FormSection>
 
-        <FormSection title="Ahli Yang Wafat">
+        <FormSection title={translate("Deceased Member")}>
           <Select2Form
             name="selectedMemberId"
             control={control}
-            label="Ahli Qariah Yang Wafat"
-            placeholder="Cari ahli qariah..."
-            searchPlaceholder="Cari nama ahli..."
-            emptyMessage="Tiada ahli dijumpai."
+            label={translate("Deceased Qariah Member")}
+            placeholder={translate("Search qariah member...")}
+            searchPlaceholder={translate("Search member name...")}
+            emptyMessage={translate("No members found")}
             options={members.map((m) => ({
               value: m.id,
               label: `${m.fullname} (${m.icnumber}) · ${m.organisation?.name ?? "—"}`,
@@ -273,7 +273,7 @@ function NotifySheet({
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-xs space-y-1.5">
               <div className="flex justify-between gap-2">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Organisasi:
+                  {translate("Organisation")}:
                 </span>
                 <span className="font-medium text-slate-700 dark:text-slate-200 text-right">
                   {selectedMember.organisation?.name ?? "—"}
@@ -282,7 +282,7 @@ function NotifySheet({
               {selectedMember.mosque && (
                 <div className="flex justify-between gap-2">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Masjid:
+                    {translate("Mosque")}:
                   </span>
                   <span className="font-medium text-slate-700 dark:text-slate-200 text-right">
                     {selectedMember.mosque.name}
@@ -292,7 +292,7 @@ function NotifySheet({
               {selectedMember.address && (
                 <div className="flex justify-between gap-2">
                   <span className="text-slate-500 dark:text-slate-400 shrink-0">
-                    Alamat:
+                    {translate("Address")}:
                   </span>
                   <span className="font-medium text-slate-700 dark:text-slate-200 text-right">
                     {selectedMember.address}
@@ -303,7 +303,7 @@ function NotifySheet({
           )}
         </FormSection>
 
-        <FormSection title="Mesej Notifikasi">
+        <FormSection title={translate("Notification Message")}>
           <Textarea
             rows={5}
             value={notifyMessage}
@@ -312,8 +312,7 @@ function NotifySheet({
             className="dark:bg-slate-800 dark:border-slate-700"
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Mesej ini akan dihantar sebagai notifikasi tolak kepada semua ahli
-            qariah di bawah organisasi yang sama.
+            {translate("This message will be sent as a push notification to all qariah members under the same organisation.")}
           </p>
         </FormSection>
       </div>
@@ -326,7 +325,7 @@ function NotifySheet({
           className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
           <Send className="w-4 h-4" />
-          {isSending ? "Menghantar..." : "Hantar Notifikasi"}
+          {isSending ? translate("Sending...") : translate("Send Notification")}
         </button>
       </div>
     </div>
@@ -370,7 +369,7 @@ function TemplateSheet({ onClose, allOrganisations }) {
   const saveTemplateMutation =
     trpc.qariahNotification.saveOrganisationTemplate.useMutation({
       onSuccess: () => {
-        showSuccess("Templat mesej disimpan.", "success");
+        showSuccess(translate("Message template saved."), "success");
         refetchTemplate();
       },
       onError: (err) => showApiError(err),
@@ -396,19 +395,19 @@ function TemplateSheet({ onClose, allOrganisations }) {
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          Templat Mesej Notifikasi Organisasi
+          {translate("Organisation Notification Message Template")}
         </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
-        <FormSection title="Organisasi">
+        <FormSection title={translate("Organisation")}>
           <Select2Form
             name="templateOrgId"
             control={control}
-            label="Pilih Organisasi"
-            placeholder="Pilih organisasi..."
-            searchPlaceholder="Cari organisasi..."
-            emptyMessage="Tiada organisasi dijumpai."
+            label={translate("Select Organisation")}
+            placeholder={translate("Select organisation...")}
+            searchPlaceholder={translate("Search organisation...")}
+            emptyMessage={translate("No organisations.")}
             options={allOrganisations.map((o) => ({
               value: o.id,
               label:
@@ -420,7 +419,7 @@ function TemplateSheet({ onClose, allOrganisations }) {
         </FormSection>
 
         {templateOrgId && (
-          <FormSection title="Templat Mesej">
+          <FormSection title={translate("Message Template")}>
             <Textarea
               rows={6}
               placeholder={DEFAULT_TEMPLATE}
@@ -429,20 +428,20 @@ function TemplateSheet({ onClose, allOrganisations }) {
               className="dark:bg-slate-800 dark:border-slate-700"
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Pemboleh ubah:{" "}
+              {translate("Variables")}:{" "}
               <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">
                 {"{name}"}
               </code>{" "}
-              untuk nama ahli wafat,{" "}
+              {translate("for deceased member's name,")}{" "}
               <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">
                 {"{address}"}
               </code>{" "}
-              untuk alamat. Kosongkan untuk gunakan templat lalai.
+              {translate("for address. Leave empty to use the default template.")}
             </p>
 
             <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">
-                Pratonton mesej:
+                {translate("Message preview")}:
               </p>
               <p className="leading-relaxed">
                 {buildPreview(
@@ -461,7 +460,7 @@ function TemplateSheet({ onClose, allOrganisations }) {
           <button
             type="button"
             onClick={handleResetTemplate}
-            title="Padam templat — akan guna templat lalai"
+            title={translate("Delete template — will use default template")}
             className="flex items-center justify-center gap-1.5 h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 shrink-0"
           >
             <RotateCcw className="w-4 h-4" />
@@ -474,7 +473,7 @@ function TemplateSheet({ onClose, allOrganisations }) {
           className="flex-1 h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
-          {saveTemplateMutation.isPending ? "Menyimpan..." : "Simpan Templat"}
+          {saveTemplateMutation.isPending ? translate("Saving...") : translate("Save Template")}
         </button>
       </div>
     </div>
@@ -529,7 +528,10 @@ export default function MobileManageNotifyDeathQariah() {
   const notifyMutation = trpc.qariahNotification.notifyDeath.useMutation({
     onSuccess: (data) => {
       showSuccess(
-        `Notifikasi dihantar kepada ${data.notifiedcount} ahli qariah.`,
+        translate("Notification sent to {count} qariah members.").replace(
+          "{count}",
+          data.notifiedcount,
+        ),
         "success",
       );
       refetch();
@@ -542,7 +544,10 @@ export default function MobileManageNotifyDeathQariah() {
     {
       onSuccess: (data) => {
         showSuccess(
-          `Notifikasi dihantar semula kepada ${data.notifiedcount} ahli qariah.`,
+          translate("Notification resent to {count} qariah members.").replace(
+            "{count}",
+            data.notifiedcount,
+          ),
           "success",
         );
         refetch();
@@ -575,7 +580,7 @@ export default function MobileManageNotifyDeathQariah() {
 
   return (
     <div className="min-h-screen pb-6">
-      <BackNavigation title="Notifikasi Kematian Qariah" />
+      <BackNavigation title={translate("Qariah Death Notifications")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-4 pt-1">
         <div className="flex gap-2">
@@ -585,7 +590,7 @@ export default function MobileManageNotifyDeathQariah() {
               className="flex items-center justify-center gap-2 h-11 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 shrink-0"
             >
               <BookTemplate className="w-4 h-4 text-amber-500" />
-              Templat
+              {translate("Template")}
             </button>
           )}
           {canCreate && (
@@ -594,18 +599,12 @@ export default function MobileManageNotifyDeathQariah() {
               className="flex-1 h-11 rounded-2xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-2 active:opacity-80 shadow-sm"
             >
               <Send className="w-4 h-4" />
-              Hantar Notifikasi
+              {translate("Send Notification")}
             </button>
           )}
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center px-1">
-            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Sejarah Notifikasi
-            </h3>
-          </div>
-
           {notifLoading ? (
             <InlineLoadingComponent isPage />
           ) : items.length === 0 ? (
@@ -667,19 +666,25 @@ export default function MobileManageNotifyDeathQariah() {
       <ConfirmDialog
         open={renotifyDialogOpen}
         onOpenChange={setRenotifyDialogOpen}
-        title="Hantar Semula Notifikasi"
-        description={`Hantar semula notifikasi kematian "${notifToResend?.deceasedMember?.fullname ?? ""}" kepada semua ahli qariah organisasi ${notifToResend?.organisation?.name ?? ""}?`}
+        title={translate("Resend Notification")}
+        description={translate(
+          'Resend the death notification for "{name}" to all qariah members of organisation {org}?',
+        )
+          .replace("{name}", notifToResend?.deceasedMember?.fullname ?? "")
+          .replace("{org}", notifToResend?.organisation?.name ?? "")}
         onConfirm={() => resendMutation.mutateAsync(notifToResend?.id)}
-        confirmText="Hantar Semula"
+        confirmText={translate("Resend")}
       />
 
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Rekod Notifikasi"
-        description={`Padam rekod notifikasi kematian "${notifToDelete?.deceasedMember?.fullname ?? ""}"?`}
+        title={translate("Delete Notification Record")}
+        description={translate(
+          'Delete the death notification record for "{name}"?',
+        ).replace("{name}", notifToDelete?.deceasedMember?.fullname ?? "")}
         onConfirm={() => deleteMutation.mutateAsync(notifToDelete?.id)}
-        confirmText="Padam"
+        confirmText={translate("Delete")}
         variant="destructive"
       />
     </div>

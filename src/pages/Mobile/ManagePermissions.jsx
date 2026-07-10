@@ -15,8 +15,8 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetPermission,
   useUpsertPermission,
-} from "@/hooks/usePermissionMutations";
-import { useGetUserPaginated } from "@/hooks/useUserMutations";
+} from "@/mutations/usePermissionMutations";
+import { useGetUserPaginated } from "@/mutations/useUserMutations";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 
 function UserCard({ user, onSelect }) {
@@ -180,7 +180,7 @@ export default function MobileManagePermissions() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: appliedSearch,
+    fullname: appliedSearch,
   });
 
   const upsertPermission = useUpsertPermission();

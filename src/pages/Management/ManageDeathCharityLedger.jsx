@@ -18,13 +18,13 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, User, BookOpen } from "lucide-react";
 import PaymentForm from "@/components/deathcharity/PaymentForm";
-import { useGetMemberByDeathCharity } from "@/hooks/useDeathCharityMemberMutations";
+import { useGetMemberByDeathCharity } from "@/mutations/useDeathCharityMemberMutations";
 import {
   useDeathCharityPaymentMutations,
   useGetPaymentByMemberId,
-} from "@/hooks/useDeathCharityPaymentMutations";
+} from "@/mutations/useDeathCharityPaymentMutations";
 import { useSearchParams } from "react-router-dom";
-import { useGetDeathCharityByOrganisation } from "@/hooks/useDeathCharityMutations";
+import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMutations";
 import { translate } from "@/utils/translations";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import Breadcrumb from "@/components/Breadcrumb";

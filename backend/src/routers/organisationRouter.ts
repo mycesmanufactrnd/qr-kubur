@@ -134,7 +134,7 @@ export const organisationRouter = router({
         });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere(":state = ANY(organisation.states)", {
           state: filterState,
         });
@@ -363,6 +363,7 @@ export const organisationRouter = router({
         filterName: z.string().optional().nullable(),
         filterCanBeDonated: z.boolean().default(false),
         filterHasPaymentConfig: z.boolean().default(false),
+        limit: z.number().int().positive().optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -402,11 +403,14 @@ export const organisationRouter = router({
       }
 
       query
-        .orderBy(
+        .addSelect(
           `earth_distance(ll_to_earth(organisation.latitude, organisation.longitude), ll_to_earth(:lat, :lng))`,
-          "ASC",
+          "distance",
         )
+        .orderBy("distance", "ASC")
         .setParameters({ lat: latitude, lng: longitude });
+
+      if (input.limit) query.take(input.limit);
 
       const organisations = await query.getMany();
       const serviceMap = await loadOrganisationServicesMap(

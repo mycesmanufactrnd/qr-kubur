@@ -53,8 +53,8 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetDeadPersonPaginated,
   useDeadPersonMutations,
-} from "@/hooks/useDeadPersonMutations";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+} from "@/mutations/useDeadPersonMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
@@ -63,7 +63,11 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
+import {
+  appendCurrentUserToFormData,
+  resolveFileUrl,
+  createPageUrl,
+} from "@/utils";
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { parseDobFromIcNumber } from "@/utils/helpers";
@@ -83,9 +87,9 @@ function ManageDeadPersonsDesktop() {
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("name") || "";
   const urlIC = searchParams.get("ic") || "";
-  const urlGrave = searchParams.get("grave") || "all";
+  const urlGrave = searchParams.get("grave") || "";
   const urlGraveLot = searchParams.get("gravelot") || "";
-  const urlState = searchParams.get("state") || "all";
+  const urlState = searchParams.get("state") || "";
   const urlDateFrom = searchParams.get("dateFrom") || "";
   const urlDateTo = searchParams.get("dateTo") || "";
   const urlSortField = searchParams.get("sortField") || "";
@@ -210,9 +214,9 @@ function ManageDeadPersonsDesktop() {
     pageSize: itemsPerPage,
     filterName: urlName,
     filterIC: urlIC,
-    filterGrave: urlGrave === "all" ? undefined : Number(urlGrave),
+    filterGrave: Number(urlGrave) || undefined,
     filterGraveLot: urlGraveLot || undefined,
-    filterState: urlState === "all" ? undefined : urlState,
+    filterState: urlState || undefined,
     dateFrom: urlDateFrom,
     dateTo: urlDateTo,
     organisationIds: accessibleOrgIds,
@@ -243,9 +247,9 @@ function ManageDeadPersonsDesktop() {
     };
     if (tempName) params.name = tempName;
     if (tempIC) params.ic = tempIC;
-    if (tempGrave !== "all") params.grave = tempGrave;
+    if (tempGrave) params.grave = tempGrave;
     if (tempGraveLot) params.gravelot = tempGraveLot;
-    if (tempState !== "all") params.state = tempState;
+    if (tempState) params.state = tempState;
     if (tempDateFrom) params.dateFrom = tempDateFrom;
     if (tempDateTo) params.dateTo = tempDateTo;
     setSearchParams(params);
@@ -436,7 +440,6 @@ function ManageDeadPersonsDesktop() {
             onChange: setTempState,
             label: "Negeri",
             options: [
-              { value: "all", label: translate("All States") },
               ...STATES_MY.map((state) => ({ value: state, label: state })),
             ],
           },
@@ -460,13 +463,10 @@ function ManageDeadPersonsDesktop() {
             value: tempGrave,
             onChange: setTempGrave,
             label: translate("Cemetery"),
-            options: [
-              { value: "all", label: translate("All Cemeteries") },
-              ...gravesList.items.map((g) => ({
-                value: String(g.id),
-                label: g.name,
-              })),
-            ],
+            options: gravesList.items.map((g) => ({
+              value: String(g.id),
+              label: g.name,
+            })),
           },
           {
             type: "text",
@@ -569,7 +569,11 @@ function ManageDeadPersonsDesktop() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`${createPageUrl("DetailJenazah")}?id=${person.id}`)}
+                        onClick={() =>
+                          navigate(
+                            `${createPageUrl("DetailJenazah")}?id=${person.id}`,
+                          )
+                        }
                         title="Lihat Detail"
                       >
                         <Eye className="w-4 h-4 text-emerald-600" />

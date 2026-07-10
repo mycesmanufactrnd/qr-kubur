@@ -54,9 +54,9 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetGravePaginated,
   useGraveMutations,
-} from "@/hooks/useGraveMutations";
+} from "@/mutations/useGraveMutations";
 import { trpc } from "@/utils/trpc";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import QRCodeDialog from "@/components/QRCodeDialog";
 import { defaultGraveField } from "@/utils/defaultformfields";
 import { defaultGraveFilter } from "@/utils/defaultfilter";
@@ -87,8 +87,8 @@ function ManageGravesDesktop() {
   const urlName = searchParams.get("name") || "";
   const urlBlock = searchParams.get("block") || "";
   const urlLot = searchParams.get("lot") || "";
-  const urlState = searchParams.get("state") || "all";
-  const urlStatus = searchParams.get("status") || "all";
+  const urlState = searchParams.get("state") || "";
+  const urlStatus = searchParams.get("status") || "";
   const urlSortField = searchParams.get("sortField") || "";
   const urlSortOrder = searchParams.get("sortOrder") || "";
 
@@ -233,8 +233,8 @@ function ManageGravesDesktop() {
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName,
-    filterState: urlState === "all" ? undefined : urlState,
-    filterStatus: urlStatus === "all" ? undefined : urlStatus,
+    filterState: urlState || undefined,
+    filterStatus: urlStatus || undefined,
     filterBlock: urlBlock || undefined,
     filterLot: urlLot || undefined,
     organisationIds: accessibleOrgIds,
@@ -338,8 +338,8 @@ function ManageGravesDesktop() {
     if (tempName) params.name = tempName;
     if (tempBlock) params.block = tempBlock;
     if (tempLot) params.lot = tempLot;
-    if (tempState !== "all") params.state = tempState;
-    if (tempStatus !== "all") params.status = tempStatus;
+    if (tempState) params.state = tempState;
+    if (tempStatus) params.status = tempStatus;
     setSearchParams(params);
   };
 
@@ -492,10 +492,7 @@ function ManageGravesDesktop() {
             value: tempState,
             onChange: setTempState,
             label: "Negeri",
-            options: [
-              { value: "all", label: translate("All States") },
-              ...STATES_MY.map((state) => ({ value: state, label: state })),
-            ],
+            options: STATES_MY.map((state) => ({ value: state, label: state })),
           },
           {
             type: "select",
@@ -504,7 +501,6 @@ function ManageGravesDesktop() {
             onChange: setTempStatus,
             label: "Status",
             options: [
-              { value: "all", label: translate("All Status") },
               { value: "active", label: translate("Active") },
               { value: "full", label: translate("Full") },
               { value: "maintenance", label: translate("Maintenance") },

@@ -21,9 +21,9 @@ import { STATES_MY } from "@/utils/enums";
 import {
   useGetDeathCharityPaginated,
   useDeathCharityMutations,
-} from "@/hooks/useDeathCharityMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
+} from "@/mutations/useDeathCharityMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useGetMosquesByOrganisationId } from "@/mutations/useMosqueMutations";
 import { defaultDeathCharityField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
@@ -329,7 +329,7 @@ export default function MobileManageDeathCharity() {
   const [itemsPerPage] = useState(10);
 
   const [appliedName, setAppliedName] = useState("");
-  const [appliedState, setAppliedState] = useState("all");
+  const [appliedState, setAppliedState] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -342,7 +342,7 @@ export default function MobileManageDeathCharity() {
       page,
       pageSize: itemsPerPage,
       filterName: appliedName,
-      filterState: appliedState === "all" ? undefined : appliedState,
+      filterState: appliedState || undefined,
     });
 
   const { organisationsList } = useGetOrganisationPaginated({});
@@ -446,7 +446,7 @@ export default function MobileManageDeathCharity() {
               ]}
               onApplyFilter={(f) => {
                 setAppliedName(f.name || "");
-                setAppliedState(f.state || "all");
+                setAppliedState(f.state || "");
                 setPage(1);
               }}
             />

@@ -9,13 +9,13 @@ import { translate } from "@/utils/translations";
 import { formatRM } from "@/utils/helpers";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { useGetMemberByDeathCharity } from "@/hooks/useDeathCharityMemberMutations";
+import { useGetMemberByDeathCharity } from "@/mutations/useDeathCharityMemberMutations";
 import {
   useDeathCharityPaymentMutations,
   useGetPaymentByMemberId,
-} from "@/hooks/useDeathCharityPaymentMutations";
+} from "@/mutations/useDeathCharityPaymentMutations";
 import { useSearchParams } from "react-router-dom";
-import { useGetDeathCharityByOrganisation } from "@/hooks/useDeathCharityMutations";
+import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMutations";
 import {
   Select,
   SelectContent,

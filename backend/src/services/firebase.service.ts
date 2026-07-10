@@ -176,10 +176,12 @@ export const sendNotificationFCMFromGoogle = async ({
       googleuser: { id: record.googleuser.id },
     });
 
-    const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    const tokens = devices.map((d) => d.fcmGoogleToken).filter(Boolean);
+
     console.log(
       `[FCM→Google] Found ${tokens.length} device token(s) for googleUser#${record.googleuser.id}`,
     );
+
     if (tokens.length === 0) return;
 
     let staleTokens: string[] = [];
@@ -221,7 +223,9 @@ export const sendNotificationFCMFromGoogle = async ({
 
     // removing stale token
     if (staleTokens.length > 0) {
-      await deviceRepo.delete(staleTokens.map((t) => ({ fcmToken: t })) as any);
+      await deviceRepo.delete(
+        staleTokens.map((t) => ({ fcmGoogleToken: t })) as any,
+      );
       console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
     }
   } catch (error) {
@@ -338,13 +342,20 @@ export const sendNotificationFCMToOrganisation = async ({
 
     if (event === "jenazahcase_created") {
       title = "Permohonan Kes Jenazah Baru";
-      body = "Permohonan pengurusan jenazah baru telah diterima. Sila semak dan luluskan.";
+      body =
+        "Permohonan pengurusan jenazah baru telah diterima. Sila semak dan luluskan.";
     }
 
     if (event === "jenazahcase_approved") {
       const deceasedFullname = inputData.deceasedFullname ?? "seorang ahli";
       title = "Kes Jenazah Diluluskan";
       body = `Kes jenazah untuk ${deceasedFullname} telah diluluskan.`;
+    }
+
+    if (event === "jenazahcase_pending_reminder") {
+      const deceasedFullname = inputData.deceasedFullname ?? "seorang ahli";
+      title = "Peringatan: Kes Jenazah Belum Diluluskan";
+      body = `Kes jenazah untuk ${deceasedFullname} masih menunggu kelulusan. Sila semak semula.`;
     }
 
     if (!title) return;

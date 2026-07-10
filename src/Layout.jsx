@@ -297,8 +297,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const bottomNavItems = [
     { name: translate("Main"), icon: Home, page: "UserDashboard" },
-    { name: translate("Search"), icon: Search, page: "SearchGrave" },
-    { name: translate("QR Code"), icon: QrCode, page: "ScanQR" },
+    { name: translate("QubuR"), icon: Search, page: "SearchGrave" },
+    { name: translate("Scan QR"), icon: QrCode, page: "ScanQR" },
     { name: translate("Donation"), icon: Heart, page: "DonationPage" },
     { name: translate("Settings"), icon: Settings, page: "SettingsPage" },
   ];

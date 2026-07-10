@@ -198,7 +198,7 @@ export default function ScanQR() {
 
   if (graveLoading || personLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen">
         <BackNavigation title={translate("Scan QR")} />
         <PageLoadingComponent />
       </div>
@@ -206,7 +206,7 @@ export default function ScanQR() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen">
       <style>{css}</style>
       <BackNavigation title={translate("Scan QR Code")} />
 
@@ -480,19 +480,19 @@ export default function ScanQR() {
                   step: "01",
                   icon: Camera,
                   color: "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
-                  text: translate("Open camera or type the QR code manually"),
+                  text: translate("Open scanner in this app or camera"),
                 },
                 {
                   step: "02",
                   icon: ScanLine,
                   color: "bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400",
-                  text: translate("Aim at the QR code on the grave marker"),
+                  text: translate("Aim at the QR code on the grave marker or cemetery"),
                 },
                 {
                   step: "03",
                   icon: CheckCircle,
                   color: "bg-violet-50 dark:bg-violet-900/30 text-violet-500 dark:text-violet-400",
-                  text: translate("Grave details will appear automatically"),
+                  text: translate("Cemetery and Dead Person details will appear automatically"),
                 },
               ].map(({ step, icon: Icon, color, text }) => (
                 <div key={step} className="flex items-center gap-3 px-4 py-3.5">

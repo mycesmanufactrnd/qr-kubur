@@ -117,7 +117,7 @@ export default function ManageTempOrganisations() {
       page: urlPage,
       pageSize: itemsPerPage,
       filterName: urlName || undefined,
-      filterStatus: urlStatus === "all" ? undefined : urlStatus,
+      filterStatus: urlStatus || undefined,
     },
     { enabled: !!hasAdminAccess },
   );
@@ -280,7 +280,6 @@ export default function ManageTempOrganisations() {
                 <SelectValue placeholder={translate("Status")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate("All")}</SelectItem>
                 {statusOptions.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}

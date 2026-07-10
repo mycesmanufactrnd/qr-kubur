@@ -24,7 +24,7 @@ import { formatRM } from "@/utils/helpers";
 import {
   useGetQuotationPaginated,
   useUpdateQuotation,
-} from "@/hooks/useQuotationMutations";
+} from "@/mutations/useQuotationMutations";
 import { ORG_SERVICE_FEE, ORG_SHARE, QuotationStatus } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";

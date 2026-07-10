@@ -26,8 +26,8 @@ import { useLocationContext } from "@/providers/LocationProvider";
 import {
   useGetTahfizById,
   useGetTahfizCoordinates,
-} from "@/hooks/useTahfizMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/useTahfizMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import {
   DONATION_AMOUNTS,
   paymentToyyibStatus,
@@ -51,7 +51,6 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 
 const CUSTOM_SERVICE_KEY = "custom";
-const SAVED_PHONE_KEY = "userphoneno";
 
 function Section({ title, icon: Icon, children, accent = "emerald" }) {
   const colors = {
@@ -159,7 +158,7 @@ export default function TahlilRequestPage() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("requestorphoneno")) {
       setValue("requestorphoneno", saved);
     }
@@ -238,12 +237,10 @@ export default function TahlilRequestPage() {
 
   const finalAmountWithFee = finalAmountWithoutFee + platformFee;
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-    if (!status_id) return;
-
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
     const pendingTahlil = localStorage.getItem("tahlilRequestPending");
     if (!pendingTahlil) return;
 
@@ -269,7 +266,7 @@ export default function TahlilRequestPage() {
           selectedservices: formData.selectedservices || [],
           tahfizcenter: formData.tahfizcenter || null,
           customservice: formData.customservice || null,
-          referenceno: order_id || formData.referenceno || null,
+          referenceno: orderId || formData.referenceno || null,
           serviceamount: Number(formData.serviceamount) || 0,
           platformfeeamount: Number(formData.platformfeeamount) || 0,
           status: TahlilStatus.PENDING,
@@ -277,7 +274,7 @@ export default function TahlilRequestPage() {
         })
         .then(async (res) => {
           if (res) {
-            const orderNo = String(order_id || "");
+            const orderNo = String(orderId || "");
             if (
               orderNo &&
               selectedAccount?.accountno &&
@@ -303,6 +300,7 @@ export default function TahlilRequestPage() {
             }
             localStorage.removeItem("tahlilRequestPending");
             clearQueryParams();
+            setLoadingPayment(false);
           }
         })
         .catch((error) => {
@@ -316,12 +314,20 @@ export default function TahlilRequestPage() {
           });
           localStorage.removeItem("tahlilRequestPending");
           clearQueryParams();
+          setLoadingPayment(false);
         });
     } else if (statusText === "Pending") {
       showError(translate("Payment is still being processed."));
+      setLoadingPayment(false);
     } else {
       showError(translate("Payment failed."));
+      setLoadingPayment(false);
     }
+  };
+
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const { data: paymentConfigs } = useGetConfigByEntity({
@@ -416,7 +422,13 @@ export default function TahlilRequestPage() {
         returnTo: "tahfiz",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       } else {
@@ -468,7 +480,7 @@ export default function TahlilRequestPage() {
     };
 
     const phone = formData.requestorphoneno?.trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(tahlilRequest);
@@ -906,7 +918,7 @@ export default function TahlilRequestPage() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

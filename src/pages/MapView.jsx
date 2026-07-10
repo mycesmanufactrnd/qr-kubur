@@ -1,16 +1,23 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { Building2, Cross, BookOpen, Loader2, Search } from "lucide-react";
+import {
+  Building2,
+  Cross,
+  BookOpen,
+  Loader2,
+  Search,
+  LocateFixed,
+} from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/lib/assets/MarkerCluster.css";
 import "react-leaflet-cluster/lib/assets/MarkerCluster.Default.css";
-import { useGetTahfizCoordinates } from "@/hooks/useTahfizMutations";
-import { useGetGravesCoordinates } from "@/hooks/useGraveMutations";
-import { useGetMosqueCoordinates } from "@/hooks/useMosqueMutations";
+import { useGetTahfizCoordinates } from "@/mutations/useTahfizMutations";
+import { useGetGravesCoordinates } from "@/mutations/useGraveMutations";
+import { useGetMosqueCoordinates } from "@/mutations/useMosqueMutations";
 import { categoryIcon } from "@/components/map/categoryIcon";
 import { useLocationContext } from "@/providers/LocationProvider";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
@@ -37,12 +44,46 @@ L.Icon.Default.mergeOptions({
 });
 
 const DEFAULT_ZOOM = 11;
+const STATE_ZOOM = 9;
+
+// Approximate centroid of each Malaysian state, used to fly the map there
+// when the user picks a state from the filter dropdown.
+const STATE_CENTERS = {
+  Johor: [1.4854, 103.7618],
+  Kedah: [6.1184, 100.3685],
+  Kelantan: [5.15, 102.0],
+  Melaka: [2.1896, 102.2501],
+  "Negeri Sembilan": [2.7258, 101.9424],
+  Pahang: [3.8126, 102.3256],
+  Perak: [4.5921, 101.0901],
+  Perlis: [6.4449, 100.2048],
+  "Pulau Pinang": [5.4141, 100.3288],
+  Sabah: [5.9788, 116.0753],
+  Sarawak: [1.5533, 110.3592],
+  Selangor: [3.0738, 101.5183],
+  Terengganu: [5.3117, 103.1324],
+  "Kuala Lumpur": [3.139, 101.6869],
+  Putrajaya: [2.9264, 101.6964],
+  Labuan: [5.2831, 115.2308],
+};
+
+// Renders nothing — just flies the underlying Leaflet map whenever `target`
+// changes (state picker change or the "locate me" button).
+function MapFlyTo({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo(target.center, target.zoom, { duration: 1 });
+  }, [target, map]);
+  return null;
+}
 
 export default function MapView() {
   const { userLocation, userState, locationDenied, isLocationLoading } =
     useLocationContext();
 
   const [selectedState, setSelectedState] = useState(null); // null = follow userState
+  const [mapTarget, setMapTarget] = useState(null);
   const [visible, setVisible] = useState({
     mosque: true,
     grave: true,
@@ -55,8 +96,23 @@ export default function MapView() {
     : null;
   const center = userLocation
     ? [userLocation.lat, userLocation.lng]
-    : [4.2105, 108.9758];
+    : STATE_CENTERS[activeState] || [4.2105, 108.9758];
   const stateFilter = activeState ? { state: activeState } : {};
+
+  const handleStateChange = (v) => {
+    setSelectedState(v);
+    const stateCenter = STATE_CENTERS[v];
+    if (stateCenter) setMapTarget({ center: stateCenter, zoom: STATE_ZOOM });
+  };
+
+  const handleLocateMe = () => {
+    if (!userLocation) return;
+    setSelectedState(null); // follow the user's actual GPS state again
+    setMapTarget({
+      center: [userLocation.lat, userLocation.lng],
+      zoom: DEFAULT_ZOOM,
+    });
+  };
 
   const { data: allMosques = [], isLoading: loadingMosques } =
     useGetMosqueCoordinates(coords, stateFilter);
@@ -118,14 +174,13 @@ export default function MapView() {
 
         <div className="flex items-center gap-2">
           <Select
-            value={selectedState ?? activeState ?? "all"}
-            onValueChange={(v) => setSelectedState(v === "all" ? null : v)}
+            value={selectedState ?? activeState}
+            onValueChange={handleStateChange}
           >
             <SelectTrigger className="w-36 h-7 text-xs dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="z-[2000]">
-              <SelectItem value="all">{translate("All States")}</SelectItem>
               {STATES_MY.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
@@ -142,7 +197,10 @@ export default function MapView() {
         </div>
       </div>
 
-      <div style={{ height: "calc(100dvh - 230px)", overflow: "hidden" }}>
+      <div
+        className="relative"
+        style={{ height: "calc(100dvh - 230px)", overflow: "hidden" }}
+      >
         {locationDenied ? (
           <NoDataCardComponent isNoGPS isPage/>
         ) : <MapContainer
@@ -155,6 +213,8 @@ export default function MapView() {
             url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
             crossOrigin="anonymous"
           />
+
+          <MapFlyTo target={mapTarget} />
 
           {visible.mosque && (
             <MarkerClusterGroup chunkedLoading>
@@ -333,6 +393,18 @@ export default function MapView() {
             </MarkerClusterGroup>
           )}
         </MapContainer>}
+
+        {!locationDenied && userLocation && (
+          <button
+            type="button"
+            onClick={handleLocateMe}
+            title={translate("Get Current Location")}
+            aria-label={translate("Get Current Location")}
+            className="absolute bottom-4 right-4 z-[1000] w-11 h-11 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-600 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <LocateFixed className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          </button>
+        )}
       </div>
     </div>
   );

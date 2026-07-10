@@ -10,6 +10,7 @@ import {
   User,
   Info,
   XCircle,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +36,9 @@ import {
   STATES_MY,
   VerificationStatus,
 } from "@/utils/enums";
-import { useGetTahfizCoordinates } from "@/hooks/useTahfizMutations";
-import { useGetOrganisationCoordinates } from "@/hooks/useOrganisationMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetTahfizCoordinates } from "@/mutations/useTahfizMutations";
+import { useGetOrganisationCoordinates } from "@/mutations/useOrganisationMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
@@ -50,6 +51,8 @@ import { activityLogError, clearQueryParams } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { userGoogleAccess } from "@/utils/auth";
+
+const MAX_VISIBLE_RECIPIENTS = 3;
 
 function Section({
   title,
@@ -117,11 +120,10 @@ function TypeToggle({ value, onChange }) {
   );
 }
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 export default function DonationPage() {
   const { googleUser } = userGoogleAccess();
   const hasAppliedUrlRecipient = useRef(false);
+  const searchDebounceRef = useRef(null);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterName, setFilterName] = useState("");
@@ -140,6 +142,7 @@ export default function DonationPage() {
   const order_id = searchParams.get("order_id");
 
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [paymentSucceeded, setPaymentSucceeded] = useState(false);
   const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
@@ -185,7 +188,7 @@ export default function DonationPage() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("donorphoneno")) {
       setValue("donorphoneno", saved);
     }
@@ -194,6 +197,14 @@ export default function DonationPage() {
   useEffect(() => {
     if (locationDenied) showWarning(translate("Location not available"));
   }, [locationDenied]);
+
+  useEffect(() => {
+    clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilterName(searchQuery);
+    }, 350);
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [searchQuery]);
 
   const baseAmount = useMemo(
     () => Number(customAmount || amount) || 0,
@@ -205,12 +216,10 @@ export default function DonationPage() {
     [baseAmount],
   );
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-    if (!status_id) return;
-
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
     const pendingDonation = localStorage.getItem("donationPending");
     if (!pendingDonation) return;
 
@@ -218,14 +227,14 @@ export default function DonationPage() {
       JSON.parse(pendingDonation);
 
     const handleFinally = () => {
-      const cleanUrl = clearQueryParams();
-      if (cleanUrl) window.location.href = cleanUrl;
+      clearQueryParams();
       localStorage.removeItem("donationPending");
       setLoadingPayment(false);
     };
 
     if (statusText === "Success") {
       setLoadingPayment(true);
+      setPaymentSucceeded(true);
       showSuccess(translate("Payment successful!"));
 
       const storedUser =
@@ -251,12 +260,12 @@ export default function DonationPage() {
               ? { id: Number(formData.selectedRecipient) }
               : null,
           status: VerificationStatus.PENDING,
-          referenceno: order_id || null,
+          referenceno: orderId || null,
           googleuserId: googleRecordPayload?.id ?? null,
         })
         .then(async (res) => {
           if (res) {
-            const orderNo = String(order_id || "");
+            const orderNo = String(orderId || "");
 
             if (
               orderNo &&
@@ -284,7 +293,7 @@ export default function DonationPage() {
           }
         })
         .catch((error) => {
-          createLogMutation.mutateAsync({
+          return createLogMutation.mutateAsync({
             activitytype: "Create Donation",
             functionname: "createDonation.mutateAsync",
             useremail: "",
@@ -301,6 +310,11 @@ export default function DonationPage() {
       showError(translate("Payment failed."));
       setLoadingPayment(false);
     }
+  };
+
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const hasSpecificState = selectedState !== "nearby" && !!selectedState;
@@ -311,26 +325,30 @@ export default function DonationPage() {
   const shouldFetchTahfiz =
     recipientType === "tahfiz" && (!!userLocation || hasSpecificState);
 
-  const { organisations = [], isLoading: isOrgLoading } = useGetOrganisationCoordinates(
-    shouldFetchOrganisation && userLocation
-      ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : null,
-    selectedState === "nearby" ? userState : selectedState,
-    filterName,
-    true,
-    true,
-  );
-
-  const { data: tahfizCenters = [], isLoading: isTahfizLoading } = useGetTahfizCoordinates({
-    coordinates:
-      shouldFetchTahfiz && userLocation
+  const { organisations = [], isLoading: isOrgLoading } =
+    useGetOrganisationCoordinates(
+      shouldFetchOrganisation && userLocation
         ? { latitude: userLocation.lat, longitude: userLocation.lng }
         : null,
-    filterState: selectedState === "nearby" ? userState : selectedState,
-    isTahlilServiceOnly: false,
-    filterName,
-    filterHasPaymentConfig: true,
-  });
+      selectedState === "nearby" ? userState : selectedState,
+      filterName,
+      true,
+      true,
+      MAX_VISIBLE_RECIPIENTS,
+    );
+
+  const { data: tahfizCenters = [], isLoading: isTahfizLoading } =
+    useGetTahfizCoordinates({
+      coordinates:
+        shouldFetchTahfiz && userLocation
+          ? { latitude: userLocation.lat, longitude: userLocation.lng }
+          : null,
+      filterState: selectedState === "nearby" ? userState : selectedState,
+      isTahlilServiceOnly: false,
+      filterName,
+      filterHasPaymentConfig: true,
+      limit: MAX_VISIBLE_RECIPIENTS,
+    });
 
   useEffect(() => {
     if (!urlParamType || !["tahfiz", "organisation"].includes(urlParamType))
@@ -443,7 +461,13 @@ export default function DonationPage() {
         returnTo: "donation",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       } else {
@@ -469,7 +493,7 @@ export default function DonationPage() {
       return;
     }
     const phone = (formData.donorphoneno || "").trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(formData);
@@ -490,7 +514,7 @@ export default function DonationPage() {
   };
 
   if (loadingPayment) return <PageLoadingComponent />;
-  if (status_id) return <PaymentSuccessfulComponent />;
+  if (status_id || paymentSucceeded) return <PaymentSuccessfulComponent />;
 
   const isPreselected = !!urlParamId && !!urlParamType;
   const isListLoading = isOrgLoading || isTahfizLoading;
@@ -539,6 +563,32 @@ export default function DonationPage() {
                   </p>
                 </div>
               </div>
+            ) : selectedRecipientObj ? (
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-rose-100 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20">
+                <div className="w-9 h-9 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shrink-0">
+                  <Building2 className="w-4 h-4 text-rose-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-rose-400 leading-none mb-0.5">
+                    {recipientType === "organisation"
+                      ? translate("Organisation")
+                      : translate("Tahfiz Center")}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                    {selectedRecipientObj.name}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("selectedRecipient", "");
+                    setValue("paymentMethod", "");
+                  }}
+                  className="text-xs font-semibold text-rose-500 hover:text-rose-700 shrink-0"
+                >
+                  {translate("Change")}
+                </button>
+              </div>
             ) : (
               <div className="space-y-3">
                 <TypeToggle
@@ -558,11 +608,6 @@ export default function DonationPage() {
                     placeholder={translate("Search by name")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onBlur={() => {
-                      setFilterName(searchQuery);
-                      setValue("selectedRecipient", "");
-                      setValue("paymentMethod", "");
-                    }}
                     className="pl-8 pr-8 h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 text-sm"
                   />
                   {searchQuery && (
@@ -571,8 +616,6 @@ export default function DonationPage() {
                       onClick={() => {
                         setSearchQuery("");
                         setFilterName("");
-                        setValue("selectedRecipient", "");
-                        setValue("paymentMethod", "");
                       }}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                     >
@@ -607,49 +650,46 @@ export default function DonationPage() {
                   </Select>
                 </div>
 
-                <Select
-                  value={selectedRecipient ? String(selectedRecipient) : ""}
-                  onValueChange={(v) => {
-                    if (
-                      recipientType === "organisation" &&
-                      organisations.length > 0
-                    )
-                      setValue("selectedRecipient", v);
-                    if (recipientType === "tahfiz" && tahfizCenters.length > 0)
-                      setValue("selectedRecipient", v);
-                  }}
-                >
-                  <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm">
-                    <SelectValue
-                      placeholder={
-                        isListLoading
-                          ? translate("Searching...")
-                          : recipientType === "organisation"
-                            ? translate("Select organisation")
-                            : translate("Select Tahfiz Center")
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isListLoading ? (
-                      <SelectItem value="__loading__" disabled>
-                        {translate("Searching...")}
-                      </SelectItem>
-                    ) : recipientList.length > 0 ? (
-                      recipientList.map((r) => (
-                        <SelectItem key={r.id} value={String(r.id)}>
-                          {r.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="__empty__" disabled>
-                        {recipientType === "organisation"
-                          ? translate("No organisation found")
-                          : translate("No tahfiz centers found")}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                <div className="max-h-72 overflow-y-auto space-y-1 rounded-xl border border-slate-100 dark:border-slate-700 p-1.5">
+                  {isListLoading ? (
+                    <p className="text-center text-xs text-slate-400 py-6">
+                      {translate("Searching...")}
+                    </p>
+                  ) : recipientList.length > 0 ? (
+                    recipientList.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => {
+                          setValue("selectedRecipient", String(r.id));
+                          setValue("paymentMethod", "");
+                        }}
+                        className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:bg-rose-50 hover:border-rose-200 dark:hover:bg-rose-900/20 dark:hover:border-rose-800 active:bg-rose-100 active:scale-[0.98] dark:active:bg-rose-900/30 transition-all"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shrink-0">
+                          <Building2 className="w-3.5 h-3.5 text-rose-500" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                            {r.name}
+                          </p>
+                          {r.address && (
+                            <p className="text-xs text-slate-400 truncate">
+                              {r.address}
+                            </p>
+                          )}
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-center text-xs text-slate-400 py-6">
+                      {recipientType === "organisation"
+                        ? translate("No organisation found")
+                        : translate("No tahfiz centers found")}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </Section>
@@ -776,7 +816,10 @@ export default function DonationPage() {
                           className="max-w-[180px] rounded-lg border"
                         />
                       ) : (
-                        <p key={f.key} className="text-xs text-slate-600 dark:text-slate-400">
+                        <p
+                          key={f.key}
+                          className="text-xs text-slate-600 dark:text-slate-400"
+                        >
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {f.label}:
                           </span>{" "}
@@ -875,11 +918,14 @@ export default function DonationPage() {
           }
         }}
         title={translate("Save Phone Number")}
-        description={translate("Save {phone} for future use?").replace("{phone}", pendingPhone)}
+        description={translate("Save {phone} for future use?").replace(
+          "{phone}",
+          pendingPhone,
+        )}
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

@@ -31,9 +31,8 @@ import { STATES_MY } from "@/utils/enums";
 import {
   useGetMosquePaginated,
   useMosqueMutations,
-  useGetMosquesByOrganisationId,
-} from "@/hooks/useMosqueMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
+} from "@/mutations/useMosqueMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import { defaultMosqueField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
@@ -316,7 +315,9 @@ export default function MobileManageMosques() {
   const [itemsPerPage] = useState(10);
 
   const [appliedName, setAppliedName] = useState("");
-  const [appliedState, setAppliedState] = useState("all");
+  const [appliedState, setAppliedState] = useState("");
+  const [appliedCanArrangeFuneral, setAppliedCanArrangeFuneral] = useState("");
+  const [appliedHasDeathCharity, setAppliedHasDeathCharity] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingMosque, setEditingMosque] = useState(null);
@@ -332,43 +333,21 @@ export default function MobileManageMosques() {
     page,
     pageSize: itemsPerPage,
     filterName: appliedName,
-    filterState: appliedState === "all" ? undefined : appliedState,
+    filterState: appliedState || undefined,
+    filterOrganisationId: isOrgScoped ? currentOrganisationId : undefined,
+    filterCanArrangeFuneral: appliedCanArrangeFuneral || undefined,
+    filterHasDeathCharity: appliedHasDeathCharity || undefined,
   });
-
-  const { data: mosquesByOrganisation = [], isLoading: loadingOrgMosques } =
-    useGetMosquesByOrganisationId(isOrgScoped ? currentOrganisationId : null);
 
   const { organisationsList, isLoading: orgLoading } =
     useGetOrganisationPaginated({});
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
-  const normalizedSearch = appliedName.trim().toLowerCase();
-  const filteredOrgMosques = isOrgScoped
-    ? (mosquesByOrganisation || []).filter((m) => {
-        const matchesName = normalizedSearch
-          ? (m?.name || "").toLowerCase().includes(normalizedSearch)
-          : true;
-        const matchesState =
-          appliedState === "all" ? true : m?.state === appliedState;
-        return matchesName && matchesState;
-      })
-    : [];
-
-  const effectiveTotalPages = isOrgScoped
-    ? Math.max(1, Math.ceil(filteredOrgMosques.length / itemsPerPage))
-    : totalPages;
-
-  const effectiveTotalItems = isOrgScoped
-    ? filteredOrgMosques.length
-    : mosquesList.total;
-
-  const pagedOrgMosques = isOrgScoped
-    ? filteredOrgMosques.slice((page - 1) * itemsPerPage, page * itemsPerPage)
-    : [];
-
-  const listItems = isOrgScoped ? pagedOrgMosques : mosquesList.items;
-  const listLoading = isOrgScoped ? loadingOrgMosques : isLoading;
+  const effectiveTotalPages = totalPages;
+  const effectiveTotalItems = mosquesList.total;
+  const listItems = mosquesList.items;
+  const listLoading = isLoading;
 
   useEffect(() => {
     const open = formOpen || deleteDialogOpen;
@@ -481,10 +460,30 @@ export default function MobileManageMosques() {
                       },
                     ]
                   : []),
+                {
+                  label: translate("Can Arrange Funeral"),
+                  type: "select",
+                  searchColumn: "canarrangefuneral",
+                  options: [
+                    { id: "true", name: translate("Yes") },
+                    { id: "false", name: translate("No") },
+                  ],
+                },
+                {
+                  label: translate("Has Death Charity"),
+                  type: "select",
+                  searchColumn: "hasdeathcharity",
+                  options: [
+                    { id: "true", name: translate("Yes") },
+                    { id: "false", name: translate("No") },
+                  ],
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedName(f.name || "");
-                setAppliedState(f.state || "all");
+                setAppliedState(f.state);
+                setAppliedCanArrangeFuneral(f.canarrangefuneral);
+                setAppliedHasDeathCharity(f.hasdeathcharity);
                 setPage(1);
               }}
             />

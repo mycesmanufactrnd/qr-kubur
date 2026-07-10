@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetMosqueCoordinates } from "@/hooks/useMosqueMutations";
+import { useGetMosqueCoordinates } from "@/mutations/useMosqueMutations";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 import { useLocationContext } from "@/providers/LocationProvider";

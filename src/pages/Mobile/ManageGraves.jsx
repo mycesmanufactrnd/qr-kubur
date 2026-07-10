@@ -32,8 +32,8 @@ import { GraveStatus, STATES_MY } from "@/utils/enums";
 import {
   useGetGravePaginated,
   useGraveMutations,
-} from "@/hooks/useGraveMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
+} from "@/mutations/useGraveMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import { trpc } from "@/utils/trpc";
 import { defaultGraveField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";

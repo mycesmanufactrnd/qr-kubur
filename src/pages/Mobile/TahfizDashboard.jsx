@@ -19,7 +19,7 @@ import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
-import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
+import { useGetAdminDashboardStats } from "@/mutations/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 
 export default function MobileTahfizDashboard() {

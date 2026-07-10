@@ -23,12 +23,10 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetActivityPostsPaginated,
   useActivityPostMutations,
-} from "@/hooks/useActivityPostMutations";
-import { useGetMosquesByOrganisationId } from "@/hooks/useMosqueMutations";
+} from "@/mutations/useActivityPostMutations";
+import { useGetMosquesByOrganisationId } from "@/mutations/useMosqueMutations";
 import { defaultActivityPost } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
-
-// ─── Post card ────────────────────────────────────────────────────────────────
 
 function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
   const publisher = post.mosque?.name ?? post.tahfiz?.name ?? "";
@@ -93,8 +91,6 @@ function PostCard({ post, canEdit, canDelete, onEdit, onDelete }) {
   );
 }
 
-// ─── Form sheet ───────────────────────────────────────────────────────────────
-
 function PostFormSheet({
   editing,
   onClose,
@@ -122,7 +118,6 @@ function PostFormSheet({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
         <button
           onClick={onClose}
@@ -137,7 +132,6 @@ function PostFormSheet({
         </h2>
       </div>
 
-      {/* Scrollable form */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
         {isOrganisationAdmin && (
           <>
@@ -197,7 +191,6 @@ function PostFormSheet({
         />
       </div>
 
-      {/* Fixed save bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}
@@ -211,8 +204,6 @@ function PostFormSheet({
     </div>
   );
 }
-
-// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function MobileManageActivityPosts() {
   const {
@@ -234,6 +225,8 @@ export default function MobileManageActivityPosts() {
   const [itemsPerPage] = useState(10);
 
   const [appliedTitle, setAppliedTitle] = useState("");
+  const [appliedMosqueId, setAppliedMosqueId] = useState(null);
+  const [appliedIsPublished, setAppliedIsPublished] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
@@ -248,6 +241,8 @@ export default function MobileManageActivityPosts() {
       page,
       pageSize: itemsPerPage,
       filterTitle: appliedTitle || undefined,
+      filterMosqueId: appliedMosqueId,
+      filterIsPublished: appliedIsPublished,
     });
 
   const { data: organisationMosques = [], isLoading: isMosquesLoading } =
@@ -379,9 +374,35 @@ export default function MobileManageActivityPosts() {
                   type: "text",
                   searchColumn: "title",
                 },
+                ...(isOrganisationAdmin
+                  ? [
+                      {
+                        label: translate("Mosque"),
+                        type: "select",
+                        searchColumn: "mosqueId",
+                        options: organisationMosques.map((m) => ({
+                          id: m.id,
+                          name: m.name,
+                        })),
+                      },
+                    ]
+                  : []),
+                {
+                  label: translate("Status"),
+                  type: "select",
+                  searchColumn: "isPublished",
+                  options: [
+                    { id: "true", name: translate("Published") },
+                    { id: "false", name: translate("Draft") },
+                  ],
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedTitle(f.title || "");
+                setAppliedMosqueId(f.mosqueId ? Number(f.mosqueId) : null);
+                setAppliedIsPublished(
+                  f.isPublished === "" ? null : f.isPublished === "true",
+                );
                 setPage(1);
               }}
             />

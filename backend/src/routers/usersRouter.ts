@@ -95,7 +95,7 @@ export const usersRouter = router({
       z.object({
         page: z.number().min(1).optional(),
         pageSize: z.number().min(1).optional(),
-        search: z.string().optional(),
+        fullname: z.string().optional(),
         email: z.string().optional(),
         username: z.string().optional(),
         organisationId: z.number().optional().nullable(),
@@ -118,7 +118,7 @@ export const usersRouter = router({
       const {
         page,
         pageSize,
-        search,
+        fullname,
         email,
         username,
         organisationId,
@@ -159,9 +159,9 @@ export const usersRouter = router({
         }
       }
 
-      if (search) {
-        query.andWhere("user.fullname ILIKE :search", {
-          search: `%${search}%`,
+      if (fullname) {
+        query.andWhere("user.fullname ILIKE :fullname", {
+          fullname: `%${fullname}%`,
         });
       }
 

@@ -15,12 +15,12 @@ import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
-import { useGetOrganisationTypePaginated } from "@/hooks/useOrganisationTypeMutations";
+import { useGetOrganisationTypePaginated } from "@/mutations/useOrganisationTypeMutations";
 import {
   useGetOrganisationPaginated,
   useOrganisationMutations,
-} from "@/hooks/useOrganisationMutations";
-import { useUserMutations } from "@/hooks/useUserMutations";
+} from "@/mutations/useOrganisationMutations";
+import { useUserMutations } from "@/mutations/useUserMutations";
 import { defaultOrganisationField } from "@/utils/defaultformfields";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
@@ -56,8 +56,8 @@ export default function MobileManageOrganisation() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [appliedFilterType, setAppliedFilterType] = useState("all");
-  const [appliedFilterState, setAppliedFilterState] = useState("all");
+  const [appliedFilterType, setAppliedFilterType] = useState("");
+  const [appliedFilterState, setAppliedFilterState] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -86,10 +86,8 @@ export default function MobileManageOrganisation() {
       page,
       pageSize,
       filterName: appliedSearch,
-      filterType:
-        appliedFilterType === "all" ? undefined : Number(appliedFilterType),
-      filterState:
-        appliedFilterState === "all" ? undefined : appliedFilterState,
+      filterType: Number(appliedFilterType) || undefined,
+      filterState: appliedFilterState || undefined,
     });
 
   const { organisationTypeList = [] } = useGetOrganisationTypePaginated({});
@@ -216,10 +214,23 @@ export default function MobileManageOrganisation() {
       showError("Full Name and Username are required.");
       return;
     }
-    if (!validateFields({ email, phoneno }, [
-      { field: "email", label: translate("Email"), type: "email", onlyIfExists: true },
-      { field: "phoneno", label: translate("Phone No."), type: "phone", onlyIfExists: true },
-    ])) return;
+    if (
+      !validateFields({ email, phoneno }, [
+        {
+          field: "email",
+          label: translate("Email"),
+          type: "email",
+          onlyIfExists: true,
+        },
+        {
+          field: "phoneno",
+          label: translate("Phone No."),
+          type: "phone",
+          onlyIfExists: true,
+        },
+      ])
+    )
+      return;
     if (editingUserIndex !== null) {
       setUserEntries((prev) =>
         prev.map((e, i) =>
@@ -527,8 +538,8 @@ export default function MobileManageOrganisation() {
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.name || "");
-                setAppliedFilterType(f.type || "all");
-                setAppliedFilterState(f.state || "all");
+                setAppliedFilterType(f.type || "");
+                setAppliedFilterState(f.state || "");
                 setPage(1);
               }}
             />
@@ -1092,7 +1103,9 @@ function OrgFormSheet({
                         {entry.username} • {entry.role}
                       </p>
                       {entry.email && (
-                        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{entry.email}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                          {entry.email}
+                        </p>
                       )}
                     </div>
                     <button

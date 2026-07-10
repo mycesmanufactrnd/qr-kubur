@@ -8,6 +8,8 @@ type useGetActivityPostsPaginatedParams = {
   filterTitle?: string;
   mosqueId?: number | null;
   tahfizId?: number | null;
+  filterMosqueId?: number | null;
+  filterIsPublished?: boolean | null;
 };
 
 const titleMessage = 'Activity Posts';
@@ -36,19 +38,23 @@ export function useGetActivityPostsByRelationId({
   };
 }
 
-export function useGetActivityPostsPaginated({ 
-  page, 
-  pageSize, 
-  filterTitle 
+export function useGetActivityPostsPaginated({
+  page,
+  pageSize,
+  filterTitle,
+  filterMosqueId,
+  filterIsPublished,
 } : useGetActivityPostsPaginatedParams) {
   const { hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
   const { data, isLoading, refetch, error } = trpc.activityPost.getPaginated.useQuery(
-    { 
-      page, 
-      pageSize, 
+    {
+      page,
+      pageSize,
       filterTitle,
-      isSuperAdmin 
+      filterMosqueId,
+      filterIsPublished,
+      isSuperAdmin
     },
     { enabled: hasAdminAccess }
   );

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import BackNavigation from "@/components/BackNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { translate } from '@/utils/translations';
+import { usePdfCache } from "@/hooks/usePdfCache";
 
 const PDF_URL = 'https://qubur.mycesgroup.com/PanduanSolatJenazah.pdf';
 const VIEWER_URL = `https://docs.google.com/viewer?url=${encodeURIComponent(PDF_URL)}&embedded=true`;
@@ -36,13 +37,15 @@ function IframeWithLoader({ src, title }) {
 }
 
 export default function SolatJenazah() {
+  const { objectUrl } = usePdfCache(PDF_URL);
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <BackNavigation title={translate('Funeral Prayer Guide')}/>
 
       <Card>
         <CardContent className="p-0">
-          <IframeWithLoader src={VIEWER_URL} title={translate('Funeral Prayer Guide')} />
+          <IframeWithLoader src={objectUrl ?? VIEWER_URL} title={translate('Funeral Prayer Guide')} />
         </CardContent>
       </Card>
 

@@ -44,7 +44,7 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import {
   useGetHeritageSitesPaginated,
   useHeritageMutations,
-} from "@/hooks/useHeritageMutations";
+} from "@/mutations/useHeritageMutations";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { defaultHeritageField } from "@/utils/defaultformfields";
@@ -65,7 +65,7 @@ export default function ManageHeritageSites() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("name") || "";
-  const urlState = searchParams.get("state") || "all";
+  const urlState = searchParams.get("state") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
@@ -91,7 +91,7 @@ export default function ManageHeritageSites() {
       page: urlPage,
       pageSize: itemsPerPage,
       filterName: urlName,
-      filterState: urlState === "all" ? undefined : urlState,
+      filterState: urlState || undefined,
     });
 
   const { createHeritage, updateHeritage, deleteHeritage } =
@@ -134,7 +134,7 @@ export default function ManageHeritageSites() {
   const handleSearch = () => {
     const params = { page: "1" };
     if (tempName) params.name = tempName;
-    if (tempState !== "all") params.state = tempState;
+    if (tempState) params.state = tempState;
     setSearchParams(params);
   };
 
@@ -310,7 +310,6 @@ export default function ManageHeritageSites() {
                   <SelectValue placeholder="Negeri" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate("All States")}</SelectItem>
                   {STATES_MY.map((state) => (
                     <SelectItem key={state} value={state}>
                       {state}

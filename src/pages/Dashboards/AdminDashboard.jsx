@@ -37,10 +37,13 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
-import { useGetAdminDashboardStats } from "@/hooks/useDashboardMutations";
+import { useGetAdminDashboardStats } from "@/mutations/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 import { useMemo } from "react";
-import QuotationOverdueAlert from "@/components/QuotationOverdueAlert";
+import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert";
+import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
+import JenazahCaseOngoingAlert from "@/components/PopUpAlert/JenazahCaseOngoingAlert";
+import QariahRegistrationAlert from "@/components/PopUpAlert/QariahRegistrationAlert";
 import MobileAdminDashboard from "@/pages/Mobile/AdminDashboard";
 
 export default function AdminDashboard() {
@@ -668,7 +671,12 @@ function AdminDashboardDesktop() {
           </div>
         </div>
       </div>
-      {isOrgGraveService && <QuotationOverdueAlert />}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3">
+        {isOrgGraveService && <QuotationOverdueAlert />}
+        {isOrgCanManageMosque && <JenazahCaseAlert />}
+        {isOrgCanManageMosque && <JenazahCaseOngoingAlert />}
+        {isOrgCanManageMosque && <QariahRegistrationAlert />}
+      </div>
     </>
   );
 }

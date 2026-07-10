@@ -127,7 +127,7 @@ export const tahfizRouter = router({
         });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere("tahfiz.state = :state", { state: filterState });
       }
 
@@ -182,6 +182,7 @@ export const tahfizRouter = router({
         filterName: z.string().optional().nullable(),
         filterAddress: z.string().optional().nullable(),
         filterHasPaymentConfig: z.boolean().default(false),
+        limit: z.number().int().positive().optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -232,6 +233,8 @@ export const tahfizRouter = router({
         )
         .orderBy("distance", "ASC")
         .setParameters({ lat: latitude, lng: longitude });
+
+      if (input.limit) query.take(input.limit);
 
       const { entities, raw } = await query.getRawAndEntities();
 

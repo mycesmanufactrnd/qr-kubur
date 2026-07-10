@@ -5,7 +5,7 @@ import { showSuccess, showApiError } from '@/components/ToastrNotification';
 type useGetUserPaginatedParams = {
   page?: number;
   pageSize?: number;
-  search?: string;
+  fullname?: string;
   email?: string;
   username?: string;
   organisationId?: number | null;
@@ -33,7 +33,7 @@ export function useGetUsers(canView: boolean) {
 export function useGetUserPaginated({
   page,
   pageSize,
-  search,
+  fullname,
   email,
   username,
   organisationId,
@@ -45,7 +45,7 @@ export function useGetUserPaginated({
       {
         page,
         pageSize,
-        search,
+        fullname,
         email,
         username,
         organisationId,

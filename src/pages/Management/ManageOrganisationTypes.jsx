@@ -16,7 +16,7 @@ import AccessDeniedComponent from '@/components/AccessDeniedComponent';
 import PageLoadingComponent from '@/components/PageLoadingComponent';
 import InlineLoadingComponent from '@/components/InlineLoadingComponent';
 import NoDataTableComponent from '@/components/NoDataTableComponent';
-import { useGetOrganisationTypePaginated, useOrganisationTypeMutations } from '@/hooks/useOrganisationTypeMutations';
+import { useGetOrganisationTypePaginated, useOrganisationTypeMutations } from '@/mutations/useOrganisationTypeMutations';
 import { translate } from '@/utils/translations';
 import { ActiveInactiveStatus } from '@/utils/enums';
 import { defaultOrganisationTypeField } from '@/utils/defaultformfields';

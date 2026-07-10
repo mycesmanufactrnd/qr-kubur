@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { formatRM } from "@/utils/helpers";
 import { resolveFileUrl } from '@/utils';
 import NoDataTableComponent from "@/components/NoDataTableComponent";
-import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle } from "lucide-react";

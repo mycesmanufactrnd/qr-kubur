@@ -27,7 +27,7 @@ import NoDataCardComponent from "@/components/NoDataCardComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { PLATFORM_FEE, paymentToyyibStatus } from "@/utils/enums";
 import { activityLogError, shareLink } from "@/utils/helpers";
 import { trpc } from "@/utils/trpc";
@@ -39,12 +39,11 @@ import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 
-const SAVED_PHONE_KEY = "userphoneno";
-
 export default function OrganisationDetails() {
   const { googleUser } = userGoogleAccess();
   const navigate = useNavigate();
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [paymentSucceeded, setPaymentSucceeded] = useState(false);
   const { userLocation } = useLocationContext();
   const [searchParams] = useSearchParams();
   const organisationId = searchParams.get("id")
@@ -115,8 +114,6 @@ export default function OrganisationDetails() {
     }
   };
 
-  const pendingQuotationRaw =
-    localStorage.getItem("quotationPending") || "{}";
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
 
@@ -128,7 +125,7 @@ export default function OrganisationDetails() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("payerphone")) {
       setValue("payerphone", saved);
     }
@@ -227,11 +224,12 @@ export default function OrganisationDetails() {
     if (!exists) setValue("paymentMethod", paymentPlatforms[0].code);
   }, [paymentPlatforms, paymentMethod, setValue]);
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-    if (!status_id || !pendingQuotationRaw) return;
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
+    const pendingQuotationRaw = localStorage.getItem("quotationPending");
+    if (!pendingQuotationRaw) return;
     const formData = JSON.parse(pendingQuotationRaw);
     const baseUrl = window.location.origin + window.location.pathname;
     const url = new URL(baseUrl);
@@ -241,7 +239,7 @@ export default function OrganisationDetails() {
       url.searchParams.set("deadpersonId", formData.deadperson.id);
     if (formData?.grave?.id) url.searchParams.set("graveId", formData.grave.id);
     const handleFinally = () => {
-      window.location.href = url.toString();
+      window.history.replaceState({}, document.title, url.toString());
       localStorage.removeItem("quotationPending");
       setSelectedServices([]);
       setIsQuotationDialogOpen(false);
@@ -249,6 +247,7 @@ export default function OrganisationDetails() {
     };
     if (statusText === "Success") {
       setLoadingPayment(true);
+      setPaymentSucceeded(true);
       showSuccess(translate("Payment successful!"));
       const storedUser =
         localStorage.getItem("googleAuth") ||
@@ -257,12 +256,12 @@ export default function OrganisationDetails() {
       createOrganisationQuotation
         .mutateAsync({
           ...formData,
-          referenceno: order_id || formData.referenceno || null,
+          referenceno: orderId || formData.referenceno || null,
           googleuserId: googleRecordPayload?.id ?? null,
         })
         .then(async (res) => {
           if (res) {
-            const orderNo = String(order_id || "");
+            const orderNo = String(orderId || "");
             if (
               orderNo &&
               formData?.selectedAccount?.accountno &&
@@ -306,9 +305,16 @@ export default function OrganisationDetails() {
         .finally(handleFinally);
     } else if (statusText === "Pending") {
       showError(translate("Payment is still being processed."));
+      setLoadingPayment(false);
     } else {
       showError(translate("Payment failed."));
+      setLoadingPayment(false);
     }
+  };
+
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const onSubmit = async (formData) => {
@@ -349,7 +355,7 @@ export default function OrganisationDetails() {
         : null,
     };
     const phone = (formData.payerphone || "").trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(quotationDetails);
@@ -392,7 +398,13 @@ export default function OrganisationDetails() {
         returnTo: "organisation",
       });
       if (quotation?.paymentUrl) {
-        openPaymentUrl(quotation.paymentUrl);
+        openPaymentUrl(quotation.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       } else {
@@ -406,7 +418,7 @@ export default function OrganisationDetails() {
   };
 
   if (isLoading || loadingPayment) return <PageLoadingComponent />;
-  if (status_id) return <PaymentSuccessfulComponent />;
+  if (status_id || paymentSucceeded) return <PaymentSuccessfulComponent />;
   if (isError || !organisation)
     return (
       <NoDataCardComponent isPage={true} description={translate("Organisation Not Found")} />
@@ -415,7 +427,7 @@ export default function OrganisationDetails() {
   const imageSrc = resolveFileUrl(organisation.photourl, "bucket-organisation");
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <div className="relative h-64 md:h-80 overflow-hidden">
         {imageSrc ? (
           <img
@@ -477,7 +489,7 @@ export default function OrganisationDetails() {
           </div>
         </div>
       </div>
-      <div className="max-w-6xl mx-auto px-4 pt-4 pb-12">
+      <div className="max-w-6xl mx-auto px-2 pt-4 pb-12">
         <div className="flex flex-wrap gap-2 mb-4">
           <DirectionButton
             latitude={organisation.latitude}
@@ -931,7 +943,7 @@ export default function OrganisationDetails() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

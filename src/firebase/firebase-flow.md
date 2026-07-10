@@ -30,7 +30,7 @@ Browser opens app
                                                               └── backend/src/routers/googleRouter.ts
                                                                     → saveDeviceToken mutation
                                                                           └── backend/src/db/entities/GoogleUser/GoogleUserDevice.entity.ts
-                                                                                → upsert row: { fcmToken, googleuser }
+                                                                                → upsert row: { fcmGoogleToken, googleuser }
 ```
 
 ---

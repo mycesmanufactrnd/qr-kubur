@@ -48,7 +48,7 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetTahlilRequestPaginated,
   useUpdateTahlilRequest,
-} from "@/hooks/useTahlilRequestMutations";
+} from "@/mutations/useTahlilRequestMutations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import Pagination from "@/components/Pagination";
@@ -62,7 +62,7 @@ import {
 } from "@/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { showError } from "@/components/ToastrNotification";
-import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 
 export default function ManageTahlilRequests() {
   const isNarrow = useIsNarrow();
@@ -76,9 +76,9 @@ function ManageTahlilRequestsDesktop() {
     useAdminAccess();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
-  const urlStatus = searchParams.get("status") || "all";
+  const urlStatus = searchParams.get("status") || "";
   const urlReference = searchParams.get("reference") || "";
-  const urlService = searchParams.get("service") || "all";
+  const urlService = searchParams.get("service") || "";
   const urlTahfiz = searchParams.get("tahfiz") || "all";
 
   const [tempStatus, setTempStatus] = useState(urlStatus);
@@ -132,9 +132,9 @@ function ManageTahlilRequestsDesktop() {
   } = useGetTahlilRequestPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
-    filterStatus: urlStatus !== "all" ? urlStatus : undefined,
+    filterStatus: urlStatus || undefined,
     filterReference: urlReference || undefined,
-    filterService: urlService !== "all" ? urlService : undefined,
+    filterService: urlService || undefined,
     filterTahfizId: (() => {
       if (!isSuperAdmin || urlTahfiz === "all") return undefined;
       const parsed = Number(urlTahfiz);
@@ -154,7 +154,6 @@ function ManageTahlilRequestsDesktop() {
   });
 
   const statusOptions = [
-    { value: "all", label: translate("All Status") },
     { value: TahlilStatus.PENDING, label: translate("Pending") },
     { value: TahlilStatus.ACCEPTED, label: translate("Accepted") },
     { value: TahlilStatus.COMPLETED, label: translate("Completed") },
@@ -203,8 +202,8 @@ function ManageTahlilRequestsDesktop() {
     const trimmedReference = tempReference.trim();
 
     if (trimmedReference) params.reference = trimmedReference;
-    if (tempStatus !== "all") params.status = tempStatus;
-    if (tempService !== "all") params.service = tempService;
+    if (tempStatus) params.status = tempStatus;
+    if (tempService) params.service = tempService;
     if (isSuperAdmin && tempTahfiz !== "all") params.tahfiz = tempTahfiz;
 
     setSearchParams(params);
@@ -745,7 +744,6 @@ function ManageTahlilRequestsDesktop() {
                 <SelectValue placeholder={translate("Service Type")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate("All Services")}</SelectItem>
                 {serviceOptions.map((service) => (
                   <SelectItem key={service} value={service}>
                     {service}

@@ -7,20 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { showError } from "@/components/ToastrNotification";
 import { DONATION_AMOUNTS, PLATFORM_DONATION_FEE } from "@/utils/enums";
-import { useGetMosqueById } from "@/hooks/useMosqueMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetMosqueById } from "@/mutations/useMosqueMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
 import { defaultDonationField } from "@/utils/defaultformfields";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import { userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
-
-const SAVED_PHONE_KEY = "userphoneno";
 
 function Section({
   title,
@@ -55,6 +53,7 @@ function Section({
 export default function QuickDonation() {
   const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const mosqueId = searchParams.get("mosqueId")
     ? Number(searchParams.get("mosqueId"))
     : null;
@@ -95,7 +94,7 @@ export default function QuickDonation() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("donorphoneno")) setValue("donorphoneno", saved);
   }, []);
 
@@ -182,7 +181,23 @@ export default function QuickDonation() {
         returnTo: "donation",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        // On native, this page has no local resume logic of its own — like on
+        // web (where ToyyibPay's returnUrl points at DonationPage), hand the
+        // result off to DonationPage, which already knows how to finish
+        // creating the donation from the shared "donationPending" payload.
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (!statusText) {
+              setLoadingPayment(false);
+              return;
+            }
+            const statusId = statusText === "Success" ? "1" : "3";
+            navigate(
+              `${createPageUrl("DonationPage")}?status_id=${statusId}&order_id=${runningNo}`,
+            );
+          },
+        });
         setLoadingPayment(false);
         return true;
       }
@@ -218,7 +233,7 @@ export default function QuickDonation() {
       return;
     }
     const phone = (formData.donorphoneno || "").trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
     if (phone && phone !== savedPhone) {
       setPendingPayload(formData);
       setPendingPhone(phone);
@@ -498,7 +513,7 @@ export default function QuickDonation() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

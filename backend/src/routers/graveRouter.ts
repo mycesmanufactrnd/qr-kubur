@@ -50,7 +50,7 @@ export const graveRouter = router({
         query.andWhere("grave.name ILIKE :name", { name: `%${filterName}%` });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere("grave.state = :state", { state: filterState });
       }
 
@@ -64,7 +64,7 @@ export const graveRouter = router({
         query.andWhere("grave.lot ILIKE :lot", { lot: `%${filterLot}%` });
       }
 
-      if (filterStatus && filterStatus !== "all") {
+      if (filterStatus) {
         query.andWhere("grave.status = :status", { status: filterStatus });
       }
 

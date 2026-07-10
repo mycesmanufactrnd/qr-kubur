@@ -10,8 +10,13 @@ import {
   Bell,
   CheckCircle,
   Users,
+  Search,
+  Loader2,
+  XCircle,
+  Info,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
@@ -27,7 +32,7 @@ import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { STATES_MY } from "@/utils/enums";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
@@ -152,6 +157,7 @@ function MemberCard({
 
 function MemberFormSheet({
   editing,
+  initialIcNumber,
   onClose,
   onSubmit,
   onApprove,
@@ -180,7 +186,7 @@ function MemberFormSheet({
           state: editing.mosque?.state || "",
           mosque: editing.mosque?.id ? String(editing.mosque.id) : "",
         }
-      : DEFAULT_FORM,
+      : { ...DEFAULT_FORM, icnumber: initialIcNumber || "" },
   });
 
   const isdeceased = watch("isdeceased");
@@ -268,9 +274,8 @@ function MemberFormSheet({
     });
   };
 
-  const handleApproveClick = async () => {
-    await onApprove(editing.id);
-    setIsApprovedLocal(true);
+  const handleApproveClick = () => {
+    onApprove(editing);
   };
 
   return (
@@ -535,6 +540,257 @@ function MemberFormSheet({
   );
 }
 
+function IcCheckSheet({ onClose, onContinue }) {
+  const { control: icControl, watch: watchIcInput } = useForm({
+    defaultValues: { icSearch: "" },
+  });
+  const icInputValue = watchIcInput("icSearch");
+  const [searchedIc, setSearchedIc] = useState("");
+
+  useEffect(() => {
+    setSearchedIc("");
+  }, [icInputValue]);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, []);
+
+  const { data: result, isFetching: searching } =
+    trpc.deathCharityMember.searchByIcNumber.useQuery(
+      { icnumber: searchedIc, mosqueId: null },
+      { enabled: !!searchedIc, staleTime: 0 },
+    );
+
+  const handleSearch = () => {
+    const ic = (icInputValue ?? "").replace(/-/g, "").trim();
+    if (!ic) return;
+    setSearchedIc(ic);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
+        <button
+          onClick={onClose}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+        >
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+        </button>
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+          {translate("Check Qariah Membership")}
+        </h2>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <TextInputForm
+              name="icSearch"
+              control={icControl}
+              label={translate("IC No.")}
+              isICNumber
+              placeholder={translate("Enter IC number")}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleSearch}
+            disabled={searching || !(icInputValue ?? "").trim()}
+            className="shrink-0 h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-40 flex items-center gap-1.5 mb-0.5"
+          >
+            {searching ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Search className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        {searchedIc && !searching && result && (
+          <div className="border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 space-y-1">
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5" />
+              {translate("Registered Qariah Member")}
+            </p>
+            <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+              {result.fullname}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {result.icnumber}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {translate("Mosque")}: {result.mosque?.name ?? "—"}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {translate("Organisation")}: {result.organisation?.name ?? "—"}
+            </p>
+            <Badge
+              className={`border-0 text-xs ${
+                result.isapproved
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+              }`}
+            >
+              {result.isapproved ? translate("Approved") : translate("Pending")}
+            </Badge>
+          </div>
+        )}
+
+        {searchedIc && !searching && !result && (
+          <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 flex items-center gap-2">
+            <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {translate("No Records Found")}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {searchedIc && !searching && !result && (
+        <div className="border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
+          <button
+            type="button"
+            onClick={() => onContinue(searchedIc)}
+            className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80"
+          >
+            {translate("Continue Registration")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ApproveCheckSheet({ member, onClose, onApprove, isApproving }) {
+  const searchedIc = (member?.icnumber ?? "").replace(/-/g, "").trim();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, []);
+
+  const { data: results = [], isFetching: searching } =
+    trpc.deathCharityMember.searchByIcNumber.useQuery(
+      { icnumber: searchedIc, mosqueId: null, searchMany: true },
+      { enabled: !!searchedIc, staleTime: 0 },
+    );
+
+  return (
+    <div className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-slate-900">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
+        <button
+          onClick={onClose}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+        >
+          <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+        </button>
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+          {translate("Approve Qariah Member")}
+        </h2>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="space-y-1">
+          <Label className="text-xs">{translate("IC No.")}</Label>
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+            {member?.icnumber ?? "—"}
+          </p>
+        </div>
+
+        {searching && (
+          <p className="text-xs text-slate-400 flex items-center gap-1.5">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            {translate("Searching...")}
+          </p>
+        )}
+
+        {searchedIc && !searching && results.length > 0 && (
+          <div className="space-y-2">
+            {results.map((r) => (
+              <div
+                key={r.id}
+                className={`border rounded-xl p-3 space-y-1 ${
+                  r.id === member?.id
+                    ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20"
+                    : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                }`}
+              >
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {r.fullname}
+                  {r.id === member?.id && (
+                    <span className="ml-2 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase">
+                      {translate("This Record")}
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {r.icnumber}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {translate("Mosque")}: {r.mosque?.name ?? "—"}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {translate("Organisation")}: {r.organisation?.name ?? "—"}
+                </p>
+                <Badge
+                  className={`border-0 text-xs ${
+                    r.isapproved
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  }`}
+                >
+                  {r.isapproved ? translate("Approved") : translate("Pending")}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {searchedIc && !searching && results.length === 0 && (
+          <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 flex items-center gap-2">
+            <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {translate("No Records Found")}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-slate-100 dark:border-slate-700 p-4 shrink-0 flex gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 h-12 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-sm active:opacity-70"
+        >
+          {translate("Close")}
+        </button>
+        <button
+          type="button"
+          onClick={() => onApprove(member)}
+          disabled={isApproving}
+          className="flex-1 h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
+        >
+          {isApproving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <CheckCircle className="w-4 h-4" />
+          )}
+          {translate("Approve")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function MobileManageQariahMember() {
   const {
     currentUser,
@@ -561,8 +817,8 @@ export default function MobileManageQariahMember() {
   });
 
   const [formSheet, setFormSheet] = useState(null);
+  const [icCheckOpen, setIcCheckOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(null);
-  const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
   const [memberToApprove, setMemberToApprove] = useState(null);
   const [notifyConfirmOpen, setNotifyConfirmOpen] = useState(false);
   const [notifyConfirmMode, setNotifyConfirmMode] = useState(null);
@@ -752,6 +1008,13 @@ export default function MobileManageQariahMember() {
     refetch();
   };
 
+  const handleApproveConfirm = async (member) => {
+    if (!member) return;
+    await handleApprove(member.id);
+    setMemberToApprove(null);
+    setFormSheet(null);
+  };
+
   const handleNotifyConfirmation = async (shouldNotify) => {
     setNotifyConfirmOpen(false);
 
@@ -838,12 +1101,21 @@ export default function MobileManageQariahMember() {
           />
           {canCreate && (
             <button
-              onClick={() => setFormSheet({ mode: "add", member: null })}
+              onClick={() => setIcCheckOpen(true)}
               className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-600 text-white text-xs font-semibold active:opacity-80 shadow-sm ml-auto"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
           )}
+        </div>
+
+        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3 py-2.5">
+          <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="text-[11px] text-amber-800 dark:text-amber-300">
+            {translate(
+              "There is no reject action for pending registrations — to decline a registration, delete it instead.",
+            )}
+          </span>
         </div>
 
         {isLoading ? (
@@ -860,10 +1132,7 @@ export default function MobileManageQariahMember() {
                 canDelete={canDelete}
                 onEdit={(m) => setFormSheet({ mode: "edit", member: m })}
                 onDelete={(m) => setDeleteDialog(m)}
-                onApprove={(m) => {
-                  setMemberToApprove(m);
-                  setApproveConfirmOpen(true);
-                }}
+                onApprove={(m) => setMemberToApprove(m)}
                 onReminder={openReminderConfirm}
               />
             ))}
@@ -887,9 +1156,10 @@ export default function MobileManageQariahMember() {
       {formSheet && (
         <MemberFormSheet
           editing={formSheet.member}
+          initialIcNumber={formSheet.initialIcNumber}
           onClose={() => setFormSheet(null)}
           onSubmit={handleFormSubmit}
-          onApprove={handleApprove}
+          onApprove={(member) => setMemberToApprove(member)}
           isSubmitting={isSubmitting}
           isApproving={approveMutation.isPending}
           userOrgId={userOrgId}
@@ -898,22 +1168,28 @@ export default function MobileManageQariahMember() {
         />
       )}
 
-      <ConfirmDialog
-        open={approveConfirmOpen}
-        onOpenChange={(open) => {
-          setApproveConfirmOpen(open);
-          if (!open) setMemberToApprove(null);
-        }}
-        title={translate("Approve Qariah Member")}
-        description={`${translate("Approve")} "${memberToApprove?.fullname}"?`}
-        onConfirm={async () => {
-          if (memberToApprove) await handleApprove(memberToApprove.id);
-          setApproveConfirmOpen(false);
-          setMemberToApprove(null);
-        }}
-        confirmText={translate("Approve")}
-        isMobile
-      />
+      {icCheckOpen && (
+        <IcCheckSheet
+          onClose={() => setIcCheckOpen(false)}
+          onContinue={(searchedIc) => {
+            setIcCheckOpen(false);
+            setFormSheet({
+              mode: "add",
+              member: null,
+              initialIcNumber: searchedIc,
+            });
+          }}
+        />
+      )}
+
+      {memberToApprove && (
+        <ApproveCheckSheet
+          member={memberToApprove}
+          onClose={() => setMemberToApprove(null)}
+          onApprove={handleApproveConfirm}
+          isApproving={approveMutation.isPending}
+        />
+      )}
 
       <ConfirmDialog
         open={!!deleteDialog}

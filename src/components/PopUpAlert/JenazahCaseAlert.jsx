@@ -1,27 +1,38 @@
-import { useState, useMemo, useRef } from "react";
+// @ts-nocheck
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ChevronUp, ChevronDown, FileText, X } from "lucide-react";
-import { QUOTATION_OVERDUE_DAYS, QuotationStatus } from "@/utils/enums";
-import { useGetAllQuotations } from "@/hooks/useQuotationMutations";
+import {
+  AlertTriangle,
+  ChevronUp,
+  ChevronDown,
+  ClipboardList,
+  X,
+} from "lucide-react";
+import { JenazahCaseStatus } from "@/utils/enums";
+import { useAdminAccess } from "@/utils/auth";
+import { trpc } from "@/utils/trpc";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 
-export default function QuotationOverdueAlert() {
+export default function JenazahCaseAlert() {
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [translateX, setTranslateX] = useState(0);
   const touchStartX = useRef(null);
-  const { items } = useGetAllQuotations();
+  const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
-  const overdueItems = useMemo(() => {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - QUOTATION_OVERDUE_DAYS);
-    return items.filter(
-      (q) =>
-        q.status === QuotationStatus.PENDING &&
-        new Date(q.createdat) < cutoff,
-    );
-  }, [items]);
+  const { data } = trpc.jenazahCase.getPaginated.useQuery(
+    {
+      page: 1,
+      pageSize: 500,
+      status: JenazahCaseStatus.PENDING,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin,
+    },
+    { enabled: hasAdminAccess && !!currentUser },
+  );
+
+  const pendingItems = data?.items ?? [];
 
   const onTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
@@ -42,24 +53,27 @@ export default function QuotationOverdueAlert() {
     touchStartX.current = null;
   };
 
-  if (overdueItems.length === 0 || dismissed) return null;
+  if (pendingItems.length === 0 || dismissed) return null;
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 w-80 shadow-2xl rounded-xl overflow-hidden border border-amber-300 transition-transform"
-      style={{ transform: `translateX(${translateX}px)`, opacity: Math.max(0, 1 - translateX / 200) }}
+      className="w-80 shadow-2xl rounded-xl overflow-hidden border border-rose-300 transition-transform"
+      style={{
+        transform: `translateX(${translateX}px)`,
+        opacity: Math.max(0, 1 - translateX / 200),
+      }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
       <div
-        className="flex items-center justify-between px-4 py-3 bg-amber-500 cursor-pointer select-none"
+        className="flex items-center justify-between px-4 py-3 bg-rose-500 cursor-pointer select-none"
         onClick={() => setCollapsed((c) => !c)}
       >
         <div className="flex items-center gap-2 text-white">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span className="text-sm font-semibold">
-            {overdueItems.length} {translate("Overdue Quotation(s)")}
+            {pendingItems.length} {translate("Pending Jenazah Case(s)")}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -69,8 +83,11 @@ export default function QuotationOverdueAlert() {
             <ChevronDown className="w-4 h-4 text-white" />
           )}
           <button
-            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-            className="ml-1 p-0.5 rounded hover:bg-amber-600 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDismissed(true);
+            }}
+            className="ml-1 p-0.5 rounded hover:bg-rose-600 transition-colors"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4 text-white" />
@@ -81,23 +98,23 @@ export default function QuotationOverdueAlert() {
       {!collapsed && (
         <div className="bg-white dark:bg-slate-800 max-h-64 overflow-y-auto">
           <p className="px-4 pt-3 pb-1 text-xs text-gray-500 dark:text-gray-400">
-            {translate("Pending quotations older than")} {QUOTATION_OVERDUE_DAYS} {translate("days — action required")}
+            {translate("Jenazah cases awaiting approval")}
           </p>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {overdueItems.map((q) => (
+            {pendingItems.map((c) => (
               <Link
-                key={q.id}
-                to={createPageUrl("ManageQuotations")}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                key={c.id}
+                to={`${createPageUrl("ManageJenazahCase")}?referenceno=${encodeURIComponent(c.referenceno)}`}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
               >
-                <FileText className="w-4 h-4 text-amber-500 shrink-0" />
+                <ClipboardList className="w-4 h-4 text-rose-500 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
-                    {q.payername || translate("No Name")}
+                    {c.details?.deceasedFullname || translate("No Name")}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {q.referenceno || "-"} &bull;{" "}
-                    {new Date(q.createdat).toLocaleDateString("ms-MY")}
+                    {c.referenceno || "-"} &bull;{" "}
+                    {new Date(c.createdat).toLocaleDateString("ms-MY")}
                   </p>
                 </div>
               </Link>

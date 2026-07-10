@@ -183,7 +183,10 @@ function ManageNotifyDeathQariahDesktop() {
   const notifyMutation = trpc.qariahNotification.notifyDeath.useMutation({
     onSuccess: (data) => {
       showSuccess(
-        `Notifikasi dihantar kepada ${data.notifiedcount} ahli qariah.`,
+        translate("Notification sent to {count} qariah members.").replace(
+          "{count}",
+          data.notifiedcount,
+        ),
         "success",
       );
       refetch();
@@ -197,7 +200,10 @@ function ManageNotifyDeathQariahDesktop() {
   const resendMutation = trpc.qariahNotification.resendNotification.useMutation({
     onSuccess: (data) => {
       showSuccess(
-        `Notifikasi dihantar semula kepada ${data.notifiedcount} ahli qariah.`,
+        translate("Notification resent to {count} qariah members.").replace(
+          "{count}",
+          data.notifiedcount,
+        ),
         "success",
       );
       refetch();
@@ -219,7 +225,7 @@ function ManageNotifyDeathQariahDesktop() {
 
   const saveTemplateMutation = trpc.qariahNotification.saveOrganisationTemplate.useMutation({
     onSuccess: () => {
-      showSuccess("Templat mesej disimpan.", "success");
+      showSuccess(translate("Message template saved."), "success");
       refetchTemplate();
     },
     onError: (err) => showApiError(err),
@@ -267,7 +273,7 @@ function ManageNotifyDeathQariahDesktop() {
     <div className="space-y-6">
       <Breadcrumb items={[
         { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: "Notifikasi Kematian Qariah", page: "ManageNotifyDeathQariah" },
+        { label: translate("Qariah Death Notifications"), page: "ManageNotifyDeathQariah" },
       ]} />
       <AccessDeniedComponent />
     </div>
@@ -277,13 +283,13 @@ function ManageNotifyDeathQariahDesktop() {
     <div className="space-y-6">
       <Breadcrumb items={[
         { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: "Notifikasi Kematian Qariah", page: "ManageNotifyDeathQariah" },
+        { label: translate("Qariah Death Notifications"), page: "ManageNotifyDeathQariah" },
       ]} />
 
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Bell className="w-6 h-6 text-emerald-600" />
-          Notifikasi Kematian Ahli Qariah
+          {translate("Qariah Death Notifications")}
         </h1>
         <div className="flex items-center gap-2">
           {canEdit && (
@@ -292,7 +298,7 @@ function ManageNotifyDeathQariahDesktop() {
               onClick={openTemplateDialog}
             >
               <BookTemplate className="w-4 h-4 mr-2 text-amber-500" />
-              Templat Mesej Organisasi
+              {translate("Organisation Message Template")}
             </Button>
           )}
           {canCreate && (
@@ -301,28 +307,23 @@ function ManageNotifyDeathQariahDesktop() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Send className="w-4 h-4 mr-2" />
-              Hantar Notifikasi Kematian
+              {translate("Send Death Notification")}
             </Button>
           )}
         </div>
       </div>
 
       <Card className="border-0 shadow-md dark:bg-slate-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center">
-            <span>Sejarah Notifikasi</span>
-          </CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ahli Yang Wafat</TableHead>
-                <TableHead>Organisasi</TableHead>
-                <TableHead>Mesej</TableHead>
-                <TableHead className="text-center">Dihantar Kepada</TableHead>
-                <TableHead>Terakhir Dihantar</TableHead>
-                <TableHead className="text-center">Tindakan</TableHead>
+                <TableHead>{translate("Deceased Member")}</TableHead>
+                <TableHead>{translate("Organisation")}</TableHead>
+                <TableHead>{translate("Message")}</TableHead>
+                <TableHead className="text-center">{translate("Sent To")}</TableHead>
+                <TableHead>{translate("Last Sent")}</TableHead>
+                <TableHead className="text-center">{translate("Action")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -354,7 +355,7 @@ function ManageNotifyDeathQariahDesktop() {
                         variant="outline"
                         className="text-emerald-600 border-emerald-300"
                       >
-                        {notif.notifiedcount} orang
+                        {notif.notifiedcount} {translate("people")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-slate-500">
@@ -368,7 +369,7 @@ function ManageNotifyDeathQariahDesktop() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            title="Hantar semula notifikasi"
+                            title={translate("Resend notification")}
                             onClick={() => {
                               setNotifToResend(notif);
                               setRenotifyDialogOpen(true);
@@ -420,7 +421,7 @@ function ManageNotifyDeathQariahDesktop() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="w-5 h-5 text-emerald-600" />
-              Hantar Notifikasi Kematian Ahli Qariah
+              {translate("Send Qariah Death Notification")}
             </DialogTitle>
           </DialogHeader>
 
@@ -431,10 +432,10 @@ function ManageNotifyDeathQariahDesktop() {
                   <Select2Form
                     name="notifyOrgId"
                     control={control}
-                    label="Organisasi"
-                    placeholder="Pilih organisasi..."
-                    searchPlaceholder="Cari organisasi..."
-                    emptyMessage="Tiada organisasi dijumpai."
+                    label={translate("Organisation")}
+                    placeholder={translate("Select organisation...")}
+                    searchPlaceholder={translate("Search organisation...")}
+                    emptyMessage={translate("No organisations.")}
                     options={allOrganisations.map((o) => ({
                       value: o.id,
                       label: o.name,
@@ -442,7 +443,7 @@ function ManageNotifyDeathQariahDesktop() {
                   />
                 ) : (
                   <>
-                    <Label>Organisasi</Label>
+                    <Label>{translate("Organisation")}</Label>
                     <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-200">
                       {currentUser?.organisation?.name || "—"}
                     </div>
@@ -453,12 +454,12 @@ function ManageNotifyDeathQariahDesktop() {
               <Select2Form
                 name="notifyMosqueId"
                 control={control}
-                label="Masjid"
+                label={translate("Mosque")}
                 placeholder={
-                  notifyOrgId ? "Pilih masjid..." : "Pilih organisasi dahulu"
+                  notifyOrgId ? translate("Select mosque...") : translate("Select organisation first")
                 }
-                searchPlaceholder="Cari masjid..."
-                emptyMessage="Tiada masjid dijumpai."
+                searchPlaceholder={translate("Search mosque...")}
+                emptyMessage={translate("No mosques found.")}
                 options={notifyOrgMosques.map((mosque) => ({
                   value: mosque.id,
                   label: mosque.name,
@@ -470,10 +471,10 @@ function ManageNotifyDeathQariahDesktop() {
             <Select2Form
               name="selectedMemberId"
               control={control}
-              label="Ahli Qariah Yang Wafat"
-              placeholder="Cari ahli qariah..."
-              searchPlaceholder="Cari nama ahli..."
-              emptyMessage="Tiada ahli dijumpai."
+              label={translate("Deceased Qariah Member")}
+              placeholder={translate("Search qariah member...")}
+              searchPlaceholder={translate("Search member name...")}
+              emptyMessage={translate("No members found")}
               options={members.map((m) => ({
                 value: m.id,
                 label: `${m.fullname} (${m.icnumber}) · ${m.organisation?.name ?? "—"}`,
@@ -484,18 +485,18 @@ function ManageNotifyDeathQariahDesktop() {
             {selectedMember && (
               <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-3 text-sm space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Organisasi:</span>
+                  <span className="text-slate-500">{translate("Organisation")}:</span>
                   <span className="font-medium">{selectedMember.organisation?.name ?? "—"}</span>
                 </div>
                 {selectedMember.mosque && (
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Masjid:</span>
+                    <span className="text-slate-500">{translate("Mosque")}:</span>
                     <span className="font-medium">{selectedMember.mosque.name}</span>
                   </div>
                 )}
                 {selectedMember.address && (
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Alamat:</span>
+                    <span className="text-slate-500">{translate("Address")}:</span>
                     <span className="font-medium text-right max-w-[60%]">
                       {selectedMember.address}
                     </span>
@@ -505,7 +506,7 @@ function ManageNotifyDeathQariahDesktop() {
             )}
 
             <div className="space-y-1">
-              <Label>Mesej Notifikasi</Label>
+              <Label>{translate("Notification Message")}</Label>
               <Textarea
                 rows={5}
                 value={notifyMessage}
@@ -514,7 +515,7 @@ function ManageNotifyDeathQariahDesktop() {
                 className="dark:bg-slate-700 dark:border-slate-600"
               />
               <p className="text-xs text-slate-500">
-                Mesej ini akan dihantar sebagai notifikasi tolak kepada semua ahli qariah di bawah organisasi yang sama.
+                {translate("This message will be sent as a push notification to all qariah members under the same organisation.")}
               </p>
             </div>
           </div>
@@ -524,7 +525,7 @@ function ManageNotifyDeathQariahDesktop() {
               variant="outline"
               onClick={() => setNotifyDialogOpen(false)}
             >
-              Batal
+              {translate("Cancel")}
             </Button>
             <Button
               onClick={handleSendNotification}
@@ -532,7 +533,7 @@ function ManageNotifyDeathQariahDesktop() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Send className="w-4 h-4 mr-2" />
-              {notifyMutation.isPending ? "Menghantar..." : "Hantar Notifikasi"}
+              {notifyMutation.isPending ? translate("Sending...") : translate("Send Notification")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -543,7 +544,7 @@ function ManageNotifyDeathQariahDesktop() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookTemplate className="w-5 h-5 text-amber-500" />
-              Templat Mesej Notifikasi Organisasi
+              {translate("Organisation Notification Message Template")}
             </DialogTitle>
           </DialogHeader>
 
@@ -552,10 +553,10 @@ function ManageNotifyDeathQariahDesktop() {
               <Select2Form
                 name="templateOrgId"
                 control={control}
-                label="Pilih Organisasi"
-                placeholder="Pilih organisasi..."
-                searchPlaceholder="Cari organisasi..."
-                emptyMessage="Tiada organisasi dijumpai."
+                label={translate("Select Organisation")}
+                placeholder={translate("Select organisation...")}
+                searchPlaceholder={translate("Search organisation...")}
+                emptyMessage={translate("No organisations.")}
                 options={allOrganisations.map((o) => ({
                   value: o.id,
                   label:
@@ -569,7 +570,7 @@ function ManageNotifyDeathQariahDesktop() {
             {templateOrgId && (
               <>
                 <div className="space-y-1">
-                  <Label>Templat Mesej</Label>
+                  <Label>{translate("Message Template")}</Label>
                   <Textarea
                     rows={4}
                     placeholder={DEFAULT_TEMPLATE}
@@ -578,14 +579,13 @@ function ManageNotifyDeathQariahDesktop() {
                     className="dark:bg-slate-700 dark:border-slate-600"
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Pemboleh ubah: <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{name}"}</code> untuk nama ahli wafat,{" "}
-                    <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{address}"}</code> untuk alamat.
-                    Kosongkan untuk gunakan templat lalai.
+                    {translate("Variables")}: <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{name}"}</code> {translate("for deceased member's name,")}{" "}
+                    <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">{"{address}"}</code> {translate("for address. Leave empty to use the default template.")}
                   </p>
                 </div>
 
                 <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
-                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">Pratonton mesej:</p>
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">{translate("Message preview")}:</p>
                   <p className="leading-relaxed">
                     {buildPreview(
                       templateText || DEFAULT_TEMPLATE,
@@ -603,16 +603,16 @@ function ManageNotifyDeathQariahDesktop() {
               variant="outline"
               onClick={() => setTemplateDialogOpen(false)}
             >
-              Tutup
+              {translate("Close")}
             </Button>
             {templateOrgId && (
               <Button
                 variant="outline"
                 onClick={handleResetTemplate}
-                title="Padam templat — akan guna templat lalai"
+                title={translate("Delete template — will use default template")}
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
-                Guna Lalai
+                {translate("Use Default")}
               </Button>
             )}
             <Button
@@ -621,7 +621,7 @@ function ManageNotifyDeathQariahDesktop() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Save className="w-4 h-4 mr-2" />
-              {saveTemplateMutation.isPending ? "Menyimpan..." : "Simpan Templat"}
+              {saveTemplateMutation.isPending ? translate("Saving...") : translate("Save Template")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -631,20 +631,26 @@ function ManageNotifyDeathQariahDesktop() {
       <ConfirmDialog
         open={renotifyDialogOpen}
         onOpenChange={setRenotifyDialogOpen}
-        title="Hantar Semula Notifikasi"
-        description={`Hantar semula notifikasi kematian "${notifToResend?.deceasedMember?.fullname ?? ""}" kepada semua ahli qariah organisasi ${notifToResend?.organisation?.name ?? ""}?`}
+        title={translate("Resend Notification")}
+        description={translate(
+          'Resend the death notification for "{name}" to all qariah members of organisation {org}?',
+        )
+          .replace("{name}", notifToResend?.deceasedMember?.fullname ?? "")
+          .replace("{org}", notifToResend?.organisation?.name ?? "")}
         onConfirm={() => resendMutation.mutateAsync(notifToResend?.id)}
-        confirmText="Hantar Semula"
+        confirmText={translate("Resend")}
       />
 
       {/* ── Delete Confirm ────────────────────────────────────────────── */}
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Padam Rekod Notifikasi"
-        description={`Padam rekod notifikasi kematian "${notifToDelete?.deceasedMember?.fullname ?? ""}"?`}
+        title={translate("Delete Notification Record")}
+        description={translate(
+          'Delete the death notification record for "{name}"?',
+        ).replace("{name}", notifToDelete?.deceasedMember?.fullname ?? "")}
         onConfirm={() => deleteMutation.mutateAsync(notifToDelete?.id)}
-        confirmText="Padam"
+        confirmText={translate("Delete")}
         variant="destructive"
       />
     </div>

@@ -8,6 +8,9 @@ type useGetMosquePaginatedParams = {
   pageSize?: number;
   filterName?: string;
   filterState?: string;
+  filterOrganisationId?: number | null;
+  filterCanArrangeFuneral?: 'true' | 'false';
+  filterHasDeathCharity?: 'true' | 'false';
 };
 
 const titleMessage = 'Mosque';
@@ -17,12 +20,23 @@ export function useGetMosquePaginated({
   pageSize,
   filterName,
   filterState,
+  filterOrganisationId,
+  filterCanArrangeFuneral,
+  filterHasDeathCharity,
 }: useGetMosquePaginatedParams) {
   const { hasAdminAccess } = useAdminAccess();
 
   const { data, isLoading, refetch, error } =
     trpc.mosque.getPaginated.useQuery(
-      { page, pageSize, filterName, filterState },
+      {
+        page,
+        pageSize,
+        filterName,
+        filterState,
+        filterOrganisationId: filterOrganisationId ?? undefined,
+        filterCanArrangeFuneral,
+        filterHasDeathCharity,
+      },
       { enabled: hasAdminAccess }
     );
 

@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { DONATION_AMOUNTS, PLATFORM_FEE, TahlilStatus } from "@/utils/enums";
-import { useGetTahfizById } from "@/hooks/useTahfizMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetTahfizById } from "@/mutations/useTahfizMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
@@ -25,15 +25,13 @@ import { defaultTahlilRequestField } from "@/utils/defaultformfields";
 import { trimEmptyArray } from "@/utils/helpers";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
-import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { translate } from "@/utils/translations";
 import { userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
 
 const CUSTOM_SERVICE_KEY = "custom";
-const SAVED_PHONE_KEY = "userphoneno";
 
 function Section({ title, icon: Icon, accent = "emerald", children }) {
   const colors = {
@@ -61,13 +59,12 @@ function Section({ title, icon: Icon, accent = "emerald", children }) {
 export default function QuickTahlil() {
   const { googleUser } = userGoogleAccess();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tahfizId = searchParams.get("tahfizId")
     ? Number(searchParams.get("tahfizId"))
     : null;
 
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [submittedDeceasedNames, setSubmittedDeceasedNames] = useState([]);
   const [showSavePhoneDialog, setShowSavePhoneDialog] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [pendingPhone, setPendingPhone] = useState("");
@@ -107,7 +104,7 @@ export default function QuickTahlil() {
   }, [googleUser]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved && !watch("requestorphoneno"))
       setValue("requestorphoneno", saved);
   }, []);
@@ -265,7 +262,24 @@ export default function QuickTahlil() {
         returnTo: "tahfiz",
       });
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        // On native, this page has no local resume logic of its own — like on
+        // web (where ToyyibPay's returnUrl points at TahlilRequestPage), hand
+        // the result off to TahlilRequestPage, which already knows how to
+        // finish creating the request from the shared "tahlilRequestPending"
+        // payload.
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (!statusText) {
+              setLoadingPayment(false);
+              return;
+            }
+            const statusId = statusText === "Success" ? "1" : "3";
+            navigate(
+              `${createPageUrl("TahlilRequestPage")}?status_id=${statusId}&order_id=${runningNo}`,
+            );
+          },
+        });
         setLoadingPayment(false);
         return true;
       }
@@ -324,7 +338,7 @@ export default function QuickTahlil() {
     };
 
     const phone = formData.requestorphoneno?.trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
     if (phone && phone !== savedPhone) {
       setPendingPayload(tahlilRequest);
       setPendingPhone(phone);
@@ -333,31 +347,6 @@ export default function QuickTahlil() {
     }
     await proceedToPayment(tahlilRequest);
   };
-
-  if (submitted) {
-    return (
-      <PaymentSuccessfulComponent
-        shouldRedirect={false}
-        extraContent={
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {translate("Tahlil application for the deceased")}{" "}
-            <span className="font-bold text-emerald-600">
-              {submittedDeceasedNames.filter((n) => n).join(", ")}
-            </span>{" "}
-            {translate("has been sent to the tahfiz center.")}
-          </p>
-        }
-        actionButton={
-          <Button
-            onClick={() => setSubmitted(false)}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            {translate("Submit Another Application")}
-          </Button>
-        }
-      />
-    );
-  }
 
   if (isTahfizLoading || loadingPayment) return <PageLoadingComponent />;
 
@@ -758,7 +747,7 @@ export default function QuickTahlil() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

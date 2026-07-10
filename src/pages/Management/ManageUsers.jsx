@@ -40,25 +40,13 @@ import { ROLE_TYPE } from "@/utils/enums";
 import {
   useGetUserPaginated,
   useUserMutations,
-} from "@/hooks/useUserMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
+} from "@/mutations/useUserMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useGetTahfizPaginated } from "@/mutations/useTahfizMutations";
 import { hashPassword } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import { createPageUrl } from "@/utils";
-
-const DEFAULT_USER_FORM = {
-  fullname: "",
-  username: "",
-  email: "",
-  phoneno: "",
-  password: "",
-  role: "employee",
-  roletype: "",
-  organisation: "",
-  tahfizcenter: "",
-  states: [],
-};
+import { defaultUserField } from "@/utils/defaultformfields";
 
 export default function ManageUsers() {
   const isNarrow = useIsNarrow();
@@ -81,7 +69,7 @@ function ManageUsersDesktop() {
   const [search, setSearch] = useState("");
   const [filterEmail, setFilterEmail] = useState("");
   const [filterUsername, setFilterUsername] = useState("");
-  const [filterOrganisationId, setFilterOrganisationId] = useState("all");
+  const [filterOrganisationId, setFilterOrganisationId] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -95,7 +83,7 @@ function ManageUsersDesktop() {
     setValue,
     reset,
     formState: { errors },
-  } = useForm({ defaultValues: DEFAULT_USER_FORM });
+  } = useForm({ defaultValues: defaultUserField });
 
   const formOrganisation = watch("organisation");
   const formRole = watch("role");
@@ -116,13 +104,14 @@ function ManageUsersDesktop() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: search,
+    fullname: search,
     email: filterEmail,
     username: filterUsername,
-    organisationId:
-      isSuperAdmin && filterOrganisationId !== "all"
+    organisationId: isSuperAdmin
+      ? filterOrganisationId
         ? Number(filterOrganisationId)
-        : null,
+        : null
+      : null,
   });
 
   const { organisationsList: organisations } = useGetOrganisationPaginated({});
@@ -130,6 +119,7 @@ function ManageUsersDesktop() {
   const { tahfizCenterList: tahfizCenters } = useGetTahfizPaginated({});
 
   const { createUser, updateUser, deleteUser } = useUserMutations();
+
   const navigate = useNavigate();
 
   const isCurrentUserOrgParent = Boolean(
@@ -157,7 +147,7 @@ function ManageUsersDesktop() {
       isAdmin && !isSuperAdmin ? currentUser.tahfizcenter?.id : null;
 
     reset({
-      ...DEFAULT_USER_FORM,
+      ...defaultUserField,
       organisation: defaultOrgId ? String(defaultOrgId) : "",
       tahfizcenter: defaultTahfizId ? String(defaultTahfizId) : "",
       states: defaultState,
@@ -291,7 +281,7 @@ function ManageUsersDesktop() {
     setSearch("");
     setFilterEmail("");
     setFilterUsername("");
-    setFilterOrganisationId("all");
+    setFilterOrganisationId("");
     setPage(1);
   };
 
@@ -407,13 +397,10 @@ function ManageUsersDesktop() {
               setPage(1);
             },
             label: translate("Organisation"),
-            options: [
-              { value: "all", label: translate("All Organisations") },
-              ...organisations.items.map((org) => ({
-                value: String(org.id),
-                label: org.name,
-              })),
-            ],
+            options: organisations.items.map((org) => ({
+              value: String(org.id),
+              label: org.name,
+            })),
           },
         ]}
       />

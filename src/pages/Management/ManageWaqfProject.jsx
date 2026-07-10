@@ -22,7 +22,7 @@ import WaqfForm from "@/components/waqf/WaqfForm";
 import {
   useGetWaqfProjectPaginated,
   useWaqfProjectMutations,
-} from "@/hooks/useWaqfProjectMutations";
+} from "@/mutations/useWaqfProjectMutations";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import Pagination from "@/components/Pagination";
@@ -99,21 +99,21 @@ export default function ManageWaqfProject() {
 
   const quickStats = [
     {
-      label: "Total Projects",
+      label: translate("Total Projects"),
       value: stats.total,
       icon: Building2,
       cardGradient: "from-blue-500 to-blue-600",
       textColor: "text-blue-100",
     },
     {
-      label: "Active Projects",
+      label: translate("Active Projects"),
       value: stats.active,
       icon: TrendingUp,
       cardGradient: "from-emerald-500 to-emerald-600",
       textColor: "text-emerald-100",
     },
     {
-      label: "Completed",
+      label: translate("Completed"),
       value: stats.completed,
       icon: CheckCircle,
       cardGradient: "from-green-500 to-green-600",
@@ -193,13 +193,13 @@ export default function ManageWaqfProject() {
               <div>
                 <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-white/90 text-sm mb-4">
                   <Building2 className="w-4 h-4" />
-                  <span>Islamic Endowments</span>
+                  <span>{translate("Islamic Endowments")}</span>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-                  Waqf Project Management
+                  {translate("Waqf Project Management")}
                 </h1>
                 <p className="text-white/80 text-sm sm:text-base">
-                  Track and manage charitable endowment initiatives
+                  {translate("Track and manage charitable endowment initiatives")}
                 </p>
               </div>
               <Button
@@ -210,7 +210,7 @@ export default function ManageWaqfProject() {
                 className="bg-white text-emerald-600 hover:bg-white/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                New Waqf Project
+                {translate("New Waqf Project")}
               </Button>
             </div>
           </div>
@@ -332,8 +332,8 @@ export default function ManageWaqfProject() {
             <DialogHeader>
               <DialogTitle>
                 {editingProject
-                  ? "Edit Waqf Project"
-                  : "Create New Waqf Project"}
+                  ? translate("Edit Waqf Project")
+                  : translate("Create New Waqf Project")}
               </DialogTitle>
             </DialogHeader>
             <WaqfForm

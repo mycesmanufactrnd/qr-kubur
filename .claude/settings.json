@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node -e \"require\\('c:/Users/zahir/Documents/GitHub/qr-kubur/src/i18n/en.json'\\)\")"
+    ]
+  }
+}

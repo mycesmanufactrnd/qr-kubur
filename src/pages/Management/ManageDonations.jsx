@@ -29,14 +29,14 @@ import { resolveFileUrl } from "@/utils";
 import {
   useGetDonationPaginated,
   useUpdateDonation,
-} from "@/hooks/useDonationMutations";
+} from "@/mutations/useDonationMutations";
 import { VerificationStatus } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
-import { useGetOnlineTransaction } from "@/hooks/usePaymentDistributionMutation";
+import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 import { formatRM } from "@/utils/helpers";
 
 export default function ManageDonations() {

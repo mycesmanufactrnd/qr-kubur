@@ -292,6 +292,7 @@ export const defaultJenazahRequestField = {
   fullname: "",
   icnumber: "",
   phone: "",
+  causeofdeath: "",
   heirname: "",
   heirphoneno: "",
   userremarks: "",
@@ -319,4 +320,17 @@ export const defaultManageJenazahCaseField = {
   deathconfirmationphotourl: "",
   policereportphotourl: "",
   supportingphotourl: "",
+};
+
+export const defaultUserField = {
+  fullname: "",
+  username: "",
+  email: "",
+  phoneno: "",
+  password: "",
+  role: "employee",
+  roletype: "",
+  organisation: "",
+  tahfizcenter: "",
+  states: [],
 };

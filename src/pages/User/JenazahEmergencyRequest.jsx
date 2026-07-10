@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-import { CARE_SCENARIOS, STATES_MY } from "@/utils/enums";
+import { CARE_SCENARIOS, STATES_MY, JenazahCaseStatus } from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultJenazahRequestField } from "@/utils/defaultformfields";
 import { translate } from "@/utils/translations";
@@ -73,12 +73,27 @@ export default function JenazahEmergencyRequest() {
     if (picked) setMosque(picked);
   }, [pickerMosqueId, pickerMosques]);
 
+  const handleChangeMosque = () => {
+    setMosque(null);
+    setPickerValue("mosqueId", "");
+    setPageStep(1);
+    setIsOutOfArea(null);
+    setCareScenario(null);
+    setSearchedIc("");
+    setCurrentCoords(null);
+    setMemberResult(undefined);
+    setExistingCase(null);
+    setProceedDespitePending(false);
+    reset(defaultJenazahRequestField);
+  };
+
   const {
     control,
     handleSubmit,
     setValue,
     watch,
     trigger,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: defaultJenazahRequestField,
@@ -87,8 +102,15 @@ export default function JenazahEmergencyRequest() {
   const icSearch = watch("icSearch");
   const burialdate = watch("burialdate");
 
+  useEffect(() => {
+    const saved = localStorage.getItem("userphoneno");
+    if (saved && !watch("heirphoneno")) {
+      setValue("heirphoneno", saved);
+    }
+  }, []);
+
   const [pageStep, setPageStep] = useState(1);
-  const [isOutOfArea, setIsOutOfArea] = useState(null); // null=not answered yet
+  const [isOutOfArea, setIsOutOfArea] = useState(null);
   const [careScenario, setCareScenario] = useState(null);
   const [searchedIc, setSearchedIc] = useState("");
   const [currentCoords, setCurrentCoords] = useState(null);
@@ -98,7 +120,7 @@ export default function JenazahEmergencyRequest() {
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
       showApiError({
-        message: "Peranti ini tidak menyokong perkongsian lokasi.",
+        message: translate("This device does not support location sharing."),
       });
       return;
     }
@@ -110,11 +132,13 @@ export default function JenazahEmergencyRequest() {
           lng: pos.coords.longitude,
         });
         setFetchingLocation(false);
-        showSuccess("Lokasi GPS berjaya dikongsikan.");
+        showSuccess(translate("GPS location shared successfully."));
       },
       () => {
         setFetchingLocation(false);
-        showApiError({ message: "Tidak dapat mendapatkan lokasi semasa." });
+        showApiError({
+          message: translate("Unable to get current location."),
+        });
       },
     );
   };
@@ -129,28 +153,36 @@ export default function JenazahEmergencyRequest() {
         body: formDataUpload,
       });
       if (!res.ok) {
-        showApiError({ message: "Gagal memuat naik fail" });
+        showApiError({ message: translate("Failed to upload file") });
         return null;
       }
       const data = await res.json();
-      showSuccess("Fail berjaya dimuat naik");
+      showSuccess(translate("File uploaded successfully"));
       return data.file_url;
     } catch {
-      showApiError({ message: "Gagal memuat naik fail" });
+      showApiError({ message: translate("Failed to upload file") });
       return null;
     }
   };
 
   const [memberResult, setMemberResult] = useState(undefined);
+  const [existingCase, setExistingCase] = useState(null);
+  const [proceedDespitePending, setProceedDespitePending] = useState(false);
 
   const searchQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
-    { icnumber: searchedIc, mosqueId: mosque?.id },
+    { icnumber: searchedIc, mosqueId: mosque?.id, searchCase: true },
     { enabled: !!searchedIc, staleTime: 0 },
   );
 
+  const isCaseApproved =
+    existingCase?.status === JenazahCaseStatus.ONGOING ||
+    existingCase?.status === JenazahCaseStatus.CLOSED;
+  const isCaseBlocking =
+    !!existingCase && !isCaseApproved && !proceedDespitePending;
+
   const createCase = trpc.jenazahCase.create.useMutation({
     onSuccess: () => {
-      showSuccess("Permohonan jenazah telah dihantar.");
+      showSuccess(translate("Funeral case application has been submitted."));
     },
     onError: (err) => showApiError(err),
   });
@@ -158,11 +190,16 @@ export default function JenazahEmergencyRequest() {
   useEffect(() => {
     if (!searchedIc) return;
     if (searchQuery.isFetching) return;
-    if (searchQuery.data) {
-      const m = searchQuery.data;
-      setMemberResult(m);
-      setValue("fullname", m.fullname ?? "");
-      setValue("icnumber", m.icnumber ?? "");
+
+    const result = searchQuery.data;
+    const member = result?.member ?? null;
+
+    setExistingCase(result?.existingCase ?? null);
+
+    if (member) {
+      setMemberResult(member);
+      setValue("fullname", member.fullname ?? "");
+      setValue("icnumber", member.icnumber ?? "");
       setValue("phone", "");
     } else {
       setMemberResult(null);
@@ -172,74 +209,138 @@ export default function JenazahEmergencyRequest() {
     }
   }, [searchQuery.data, searchQuery.isFetching, searchedIc]);
 
+  const didMountIcSearch = useRef(false);
+  useEffect(() => {
+    if (!didMountIcSearch.current) {
+      didMountIcSearch.current = true;
+      return;
+    }
+    setMemberResult(undefined);
+    setExistingCase(null);
+    setProceedDespitePending(false);
+    setSearchedIc("");
+    setValue("fullname", "");
+    setValue("icnumber", "");
+    setValue("phone", "");
+    setValue("heirname", "");
+    setValue("heirphoneno", localStorage.getItem("userphoneno") || "");
+    setValue("causeofdeath", "");
+    setValue("userremarks", "");
+    setValue("deathconfirmationphotourl", "");
+    setValue("policereportphotourl", "");
+    setValue("supportingphotourl", "");
+  }, [icSearch]);
+
+  const handleContinueDespitePending = () => {
+    setProceedDespitePending(true);
+    if (!memberResult) {
+      setValue("fullname", existingCase?.details?.deceasedFullname ?? "");
+      setValue("heirname", existingCase?.details?.heirname ?? "");
+      setValue("causeofdeath", existingCase?.details?.causeofdeath ?? "");
+    }
+  };
+
   const handleSearch = () => {
     const ic = (icSearch ?? "").replace(/-/g, "").trim();
     if (!ic) return;
     setMemberResult(undefined);
+    setExistingCase(null);
+    setProceedDespitePending(false);
     setSearchedIc(ic);
   };
 
   const handleNextStep = async () => {
     if (isOutOfArea === null) {
-      showApiError({ message: "Sila jawab soalan lokasi kejadian." });
+      showApiError({
+        message: translate("Please answer the incident location question."),
+      });
       return;
     }
     if (!careScenario) {
-      showApiError({ message: "Sila pilih lokasi pengurusan jenazah." });
+      showApiError({
+        message: translate("Please select the funeral management location."),
+      });
       return;
     }
     if (careScenario === "other") {
       const valid = await trigger("careScenarioOther");
       if (!valid) {
-        showApiError({ message: "Sila nyatakan cara pengurusan jenazah." });
+        showApiError({
+          message: translate(
+            "Please specify the funeral management procedure.",
+          ),
+        });
         return;
       }
     }
     if (!currentCoords) {
-      showApiError({ message: "Sila kongsikan lokasi GPS anda." });
+      showApiError({ message: translate("Please share your GPS location.") });
       return;
     }
     const validDate = await trigger("burialdate");
     if (!validDate) {
-      showApiError({ message: "Sila nyatakan tarikh pengebumian." });
+      showApiError({ message: translate("Please specify the burial date.") });
       return;
     }
     setPageStep(2);
   };
 
-  // If required page-1 fields (burialdate, careScenarioOther) are invalid,
-  // react-hook-form blocks onSubmit before it runs — since those fields
-  // aren't rendered on page 2, send the user back so they can see why.
   const onInvalid = (formErrors) => {
     if (formErrors.burialdate || formErrors.careScenarioOther) {
-      showApiError({ message: "Sila lengkapkan maklumat lokasi & prosedur." });
+      showApiError({
+        message: translate(
+          "Please complete the location & procedure information.",
+        ),
+      });
       setPageStep(1);
     }
   };
 
   const onSubmit = (data) => {
+    if (isCaseApproved) {
+      showApiError({
+        message: translate(
+          "This IC number already has an approved funeral case. A new application cannot be submitted.",
+        ),
+      });
+      return;
+    }
+    if (isCaseBlocking) {
+      showApiError({
+        message: translate(
+          "An application for this IC number has already been submitted and is awaiting approval.",
+        ),
+      });
+      return;
+    }
     if (isOutOfArea === null) {
-      showApiError({ message: "Sila jawab soalan lokasi kejadian." });
+      showApiError({
+        message: translate("Please answer the incident location question."),
+      });
       setPageStep(1);
       return;
     }
     if (!careScenario) {
-      showApiError({ message: "Sila pilih lokasi pengurusan jenazah." });
+      showApiError({
+        message: translate("Please select the funeral management location."),
+      });
       setPageStep(1);
       return;
     }
     if (careScenario === "other" && !data.careScenarioOther?.trim()) {
-      showApiError({ message: "Sila nyatakan cara pengurusan jenazah." });
+      showApiError({
+        message: translate("Please specify the funeral management procedure."),
+      });
       setPageStep(1);
       return;
     }
     if (!currentCoords) {
-      showApiError({ message: "Sila kongsikan lokasi GPS anda." });
+      showApiError({ message: translate("Please share your GPS location.") });
       setPageStep(1);
       return;
     }
     if (!data.burialdate) {
-      showApiError({ message: "Sila nyatakan tarikh pengebumian." });
+      showApiError({ message: translate("Please specify the burial date.") });
       setPageStep(1);
       return;
     }
@@ -248,6 +349,7 @@ export default function JenazahEmergencyRequest() {
       deceasedFullname: data.fullname,
       deceasedIcnumber: data.icnumber,
       deceasedPhone: data.phone,
+      causeofdeath: data.causeofdeath?.trim() || null,
       isQariahMember: !!memberResult,
       isOutOfArea: !!isOutOfArea,
       careScenario,
@@ -299,7 +401,7 @@ export default function JenazahEmergencyRequest() {
     try {
       await generateJenazahCasePdf(submittedCase);
     } catch {
-      showApiError({ message: "Gagal menjana PDF." });
+      showApiError({ message: translate("Failed to generate PDF.") });
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -311,22 +413,23 @@ export default function JenazahEmergencyRequest() {
   if (submittedCase) {
     return (
       <div className="min-h-screen space-y-3 pb-2">
-        <BackNavigation title="Permohonan Pengurusan Jenazah" />
+        <BackNavigation title={translate("Funeral Management Application")} />
         <div className="px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-6 pb-10">
           <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
             <CheckCircle2 className="w-8 h-8 text-emerald-500" />
           </div>
           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-            Permohonan Berjaya Dihantar
+            {translate("Application Submitted Successfully")}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">
-            Permohonan pengurusan jenazah anda telah diterima dan sedang
-            diproses oleh pihak masjid.
+            {translate(
+              "Your funeral management application has been received and is being processed by the mosque.",
+            )}
           </p>
 
           <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              No. Rujukan
+              {translate("Reference No")}
             </p>
             <p className="text-lg font-bold font-mono tracking-widest text-emerald-600 dark:text-emerald-400">
               {submittedCase.referenceno}
@@ -334,7 +437,9 @@ export default function JenazahEmergencyRequest() {
           </div>
 
           <p className="text-xs text-slate-400 dark:text-slate-500">
-            Sila simpan no. rujukan ini untuk semakan status permohonan anda.
+            {translate(
+              "Please save this reference number to check your application status.",
+            )}
           </p>
 
           <div className="w-full flex flex-col gap-2 pt-2">
@@ -349,7 +454,7 @@ export default function JenazahEmergencyRequest() {
               ) : (
                 <Download className="w-4 h-4 mr-2" />
               )}
-              Muat Turun PDF
+              {translate("Download PDF")}
             </Button>
             <Button
               type="button"
@@ -357,7 +462,7 @@ export default function JenazahEmergencyRequest() {
               className="w-full"
               onClick={() => navigate(createPageUrl("JenazahEmergency"))}
             >
-              Kembali
+              {translate("Back")}
             </Button>
           </div>
         </div>
@@ -367,7 +472,7 @@ export default function JenazahEmergencyRequest() {
 
   return (
     <div className="min-h-screen space-y-3 pb-2">
-      <BackNavigation title="Permohonan Pengurusan Jenazah" />
+      <BackNavigation title={translate("Funeral Management Application")} />
 
       <form
         onSubmit={handleSubmit(onSubmit, onInvalid)}
@@ -376,7 +481,7 @@ export default function JenazahEmergencyRequest() {
         {isMosqueLocked ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
             <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
-              <Building2 className="w-3 h-3" /> Masjid Dipilih
+              <Building2 className="w-3 h-3" /> {translate("Selected Mosque")}
             </p>
             <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
               {mosque.name}
@@ -387,45 +492,13 @@ export default function JenazahEmergencyRequest() {
               </p>
             )}
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-amber-700 dark:text-amber-400">
-                Pilih negeri dan masjid yang menyediakan perkhidmatan pengurusan
-                jenazah untuk meneruskan permohonan.
-              </p>
-            </div>
-
-            <SelectForm
-              name="state"
-              control={pickerControl}
-              label="Negeri"
-              placeholder="Pilih negeri"
-              options={STATES_MY}
-              onValueChange={() => setPickerValue("mosqueId", "")}
-            />
-
-            <Select2Form
-              name="mosqueId"
-              control={pickerControl}
-              label="Masjid"
-              options={pickerMosques.map((m) => ({
-                value: String(m.id),
-                label: m.name,
-              }))}
-              disabled={!pickerState}
-              loading={pickerMosqueLoading}
-              disabledMessage="Pilih negeri dahulu"
-              placeholder="Cari masjid..."
-              searchPlaceholder="Cari masjid..."
-              emptyMessage="Tiada masjid tersedia untuk pengurusan jenazah di negeri ini"
-            />
-
-            {mosque && (
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
+        ) : mosque ? (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 space-y-0.5">
                 <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
-                  <Building2 className="w-3 h-3" /> Masjid Dipilih
+                  <Building2 className="w-3 h-3" />{" "}
+                  {translate("Selected Mosque")}
                 </p>
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                   {mosque.name}
@@ -436,24 +509,70 @@ export default function JenazahEmergencyRequest() {
                   </p>
                 )}
               </div>
-            )}
+              <button
+                type="button"
+                onClick={handleChangeMosque}
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 shrink-0"
+              >
+                {translate("Change")}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                {translate(
+                  "Select a state and mosque that provides funeral management services to proceed with the application.",
+                )}
+              </p>
+            </div>
+
+            <SelectForm
+              name="state"
+              control={pickerControl}
+              label={translate("State")}
+              placeholder={translate("Select state")}
+              options={STATES_MY}
+              onValueChange={() => setPickerValue("mosqueId", "")}
+            />
+
+            <Select2Form
+              name="mosqueId"
+              control={pickerControl}
+              label={translate("Mosque")}
+              options={pickerMosques.map((m) => ({
+                value: String(m.id),
+                label: m.name,
+              }))}
+              disabled={!pickerState}
+              loading={pickerMosqueLoading}
+              disabledMessage={translate("Select state first")}
+              placeholder={translate("Search mosque...")}
+              searchPlaceholder={translate("Search mosque...")}
+              emptyMessage={translate(
+                "No mosque available for funeral management in this state",
+              )}
+            />
           </div>
         )}
 
         {mosque && pageStep === 1 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-              Lokasi & Prosedur
+              {translate("Location & Procedure")}
             </h3>
 
-            {/* Out-of-area check — must be answered before the rest of the procedure */}
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
-                Lokasi Kejadian
+                {translate("Incident Location")}
                 <span className="text-red-500 ml-1">*</span>
               </p>
               <p className="text-sm text-slate-700 dark:text-slate-300">
-                Adakah kematian berlaku di luar negeri atau daerah masjid ini?
+                {translate(
+                  "Did the death occur outside the state or district of this mosque?",
+                )}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -465,7 +584,7 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  Dalam Kawasan Qariah
+                  {translate("Within Qariah Area")}
                 </button>
                 <button
                   type="button"
@@ -476,22 +595,22 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  Luar Negeri/Daerah
+                  {translate("Outside state/district")}
                 </button>
               </div>
             </div>
 
             {isOutOfArea !== null && (
               <>
-                {/* Share GPS location to help the mosque locate the deceased */}
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
-                    Lokasi GPS
+                    {translate("GPS Location")}
                     <span className="text-red-500 ml-1">*</span>
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Kongsikan lokasi GPS anda supaya masjid dapat mencari lokasi
-                    jenazah dengan lebih tepat.
+                    {translate(
+                      "Share your GPS location so the mosque can locate the deceased more accurately.",
+                    )}
                   </p>
                   <Button
                     type="button"
@@ -506,38 +625,41 @@ export default function JenazahEmergencyRequest() {
                       <MapPin className="w-4 h-4 mr-2" />
                     )}
                     {fetchingLocation
-                      ? "Mendapatkan lokasi..."
+                      ? translate("Getting location...")
                       : currentCoords
-                        ? "Kongsi Semula Lokasi Semasa"
-                        : "Kongsi Lokasi Semasa"}
+                        ? translate("Share Current Location Again")
+                        : translate("Share Current Location")}
                   </Button>
                   {currentCoords && (
                     <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                       <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                        Lokasi dikongsikan: {currentCoords.lat.toFixed(5)},{" "}
+                        {translate("Location shared:")}{" "}
+                        {currentCoords.lat.toFixed(5)},{" "}
                         {currentCoords.lng.toFixed(5)}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Where is the deceased, and where will mandi/solat happen */}
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
-                    Pengurusan Jenazah
+                    {translate("Funeral Management")}
                     <span className="text-red-500 ml-1">*</span>
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    Di manakah jenazah kini, dan di manakah mandi jenazah &
-                    solat akan dilakukan?
+                    {translate(
+                      "Where is the deceased currently, and where will the bathing and prayer take place?",
+                    )}
                   </p>
                   <Select
                     value={careScenario ?? ""}
                     onValueChange={setCareScenario}
                   >
                     <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700">
-                      <SelectValue placeholder="Pilih pengurusan jenazah" />
+                      <SelectValue
+                        placeholder={translate("Select funeral management")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {CARE_SCENARIOS.map((s) => (
@@ -551,20 +673,21 @@ export default function JenazahEmergencyRequest() {
                     <TextInputForm
                       name="careScenarioOther"
                       control={control}
-                      label="Nyatakan cara pengurusan"
+                      label={translate("Specify the procedure")}
                       isTextArea
                       rows={2}
                       required
                       errors={errors}
-                      placeholder="Terangkan lokasi jenazah, mandi, dan solat"
+                      placeholder={translate(
+                        "Describe the location, bathing, and prayer arrangements",
+                      )}
                     />
                   )}
                 </div>
 
-                {/* Burial date */}
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
-                    Tarikh Pengebumian
+                    {translate("Burial Date")}
                   </p>
                   <div className="flex gap-2">
                     <Button
@@ -576,7 +699,7 @@ export default function JenazahEmergencyRequest() {
                       }
                       className={`flex-1 ${burialdate === toDateInputValue(new Date()) ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" : ""}`}
                     >
-                      Hari Ini
+                      {translate("Today")}
                     </Button>
                     <Button
                       type="button"
@@ -590,13 +713,13 @@ export default function JenazahEmergencyRequest() {
                       }
                       className={`flex-1 ${burialdate === toDateInputValue(new Date(Date.now() + 86400000)) ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" : ""}`}
                     >
-                      Esok
+                      {translate("Tomorrow")}
                     </Button>
                   </div>
                   <TextInputForm
                     name="burialdate"
                     control={control}
-                    label="Atau pilih tarikh lain"
+                    label={translate("Or pick another date")}
                     isDate
                     required
                     errors={errors}
@@ -610,7 +733,7 @@ export default function JenazahEmergencyRequest() {
         {mosque && pageStep === 2 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-              Maklumat Jenazah
+              {translate("Maklumat Jenazah")}
             </h3>
 
             <div className="space-y-1.5">
@@ -619,7 +742,7 @@ export default function JenazahEmergencyRequest() {
                   <TextInputForm
                     name="icSearch"
                     control={control}
-                    label="Cari Ahli Qariah (No. IC)"
+                    label={translate("Search Qariah Member (IC No.)")}
                     isICNumber
                   />
                 </div>
@@ -641,114 +764,190 @@ export default function JenazahEmergencyRequest() {
                 </Button>
               </div>
 
-              {hasSearched && !isSearching && memberResult && (
-                <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2 mt-1">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+              {hasSearched && !isSearching && isCaseApproved && (
+                <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg px-3 py-2 mt-1">
+                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                      Ahli Qariah Dijumpai
+                    <p className="text-xs font-semibold text-red-700 dark:text-red-400">
+                      {translate("Funeral Case Already Approved")}
                     </p>
-                    <p className="text-sm text-slate-700 dark:text-slate-200">
-                      {memberResult.fullname}
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                      {translate(
+                        "This IC number already has an approved funeral case. A new application cannot be submitted.",
+                      )}
                     </p>
-                    {memberResult.mosque?.name && (
-                      <p className="text-xs text-slate-500">
-                        {memberResult.mosque.name}
+                    {existingCase?.referenceno && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-mono font-semibold">
+                        {existingCase.referenceno}
                       </p>
                     )}
                   </div>
                 </div>
               )}
-              {hasSearched && !isSearching && memberResult === null && (
-                <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2 mt-1">
-                  <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Tiada ahli qariah dijumpai. Sila isi maklumat di bawah.
-                  </p>
+              {hasSearched && !isSearching && isCaseBlocking && (
+                <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2 mt-1">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <div>
+                      <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                        {translate("Existing Application")}
+                      </p>
+                      <p className="text-xs text-amber-700 dark:text-amber-400">
+                        {translate(
+                          "An application for this IC number has already been submitted and is awaiting approval.",
+                        )}
+                      </p>
+                      {existingCase?.referenceno && (
+                        <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 font-mono font-semibold">
+                          {existingCase.referenceno}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleContinueDespitePending}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      {translate("Continue to Submit Application")}
+                    </Button>
+                  </div>
                 </div>
               )}
+              {hasSearched &&
+                !isSearching &&
+                !isCaseApproved &&
+                !isCaseBlocking &&
+                memberResult && (
+                  <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                        {translate("Qariah Member Found")}
+                      </p>
+                      <p className="text-sm text-slate-700 dark:text-slate-200">
+                        {memberResult.fullname}
+                      </p>
+                      {memberResult.mosque?.name && (
+                        <p className="text-xs text-slate-500">
+                          {memberResult.mosque.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              {hasSearched &&
+                !isSearching &&
+                !isCaseApproved &&
+                !isCaseBlocking &&
+                memberResult === null && (
+                  <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2 mt-1">
+                    <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      {translate(
+                        "No Qariah member found. Please fill in the details below.",
+                      )}
+                    </p>
+                  </div>
+                )}
             </div>
 
-            {hasSearched && !isSearching && (
-              <>
-                <TextInputForm
-                  name="fullname"
-                  control={control}
-                  label="Nama Penuh Jenazah"
-                  required
-                  errors={errors}
-                  placeholder="Nama penuh"
-                />
-                <div className="grid grid-cols-2 gap-3">
+            {hasSearched &&
+              !isSearching &&
+              !isCaseApproved &&
+              !isCaseBlocking && (
+                <>
                   <TextInputForm
-                    name="heirname"
+                    name="fullname"
                     control={control}
-                    label={translate("Nama Waris")}
+                    label={translate("Deceased Full Name")}
                     required
-                    placeholder="Nama penuh waris"
+                    errors={errors}
+                    placeholder={translate("Full name")}
                   />
-                  <TextInputForm
-                    name="heirphoneno"
-                    control={control}
-                    label={translate("No. Tel. Waris")}
-                    isPhone
-                    required
-                    placeholder="0123456789"
-                  />
-                </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                  No. telefon yang boleh dihubungi berkenaan permohonan ini
-                </p>
-
-                <TextInputForm
-                  name="userremarks"
-                  control={control}
-                  label="Catatan Tambahan (opsional)"
-                  isTextArea
-                  rows={2}
-                  placeholder="Sebarang maklumat tambahan untuk masjid"
-                />
-
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
-                    Dokumen
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextInputForm
+                      name="heirname"
+                      control={control}
+                      label={translate("Nama Waris")}
+                      required
+                      placeholder={translate("Next of kin full name")}
+                    />
+                    <TextInputForm
+                      name="heirphoneno"
+                      control={control}
+                      label={translate("No. Tel. Waris")}
+                      isPhone
+                      required
+                      placeholder="0123456789"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0">
+                    {translate(
+                      "Contact phone number for this application",
+                    )}
                   </p>
-                  <FileUploadForm
-                    name="deathconfirmationphotourl"
+
+                  <TextInputForm
+                    name="causeofdeath"
                     control={control}
-                    label="Pengesahan Kematian"
                     required
                     errors={errors}
-                    accept="image/*,application/pdf"
-                    isNeedPasteURL={false}
-                    isShowList
-                    bucketName="bucket-death-confirmation"
-                    handleFileUpload={handleFileUpload}
+                    label={translate("Cause of Death")}
+                    placeholder={translate("Cause of death, if known")}
                   />
-                  <FileUploadForm
-                    name="policereportphotourl"
+
+                  <TextInputForm
+                    name="userremarks"
                     control={control}
-                    label="Laporan Polis"
-                    required
-                    errors={errors}
-                    accept="image/*,application/pdf"
-                    isNeedPasteURL={false}
-                    isShowList
-                    bucketName="bucket-police-report"
-                    handleFileUpload={handleFileUpload}
+                    label={`${translate("Additional notes")} (${translate("Optional")})`}
+                    isTextArea
+                    rows={2}
+                    placeholder={translate(
+                      "Any additional information for the mosque",
+                    )}
                   />
-                  <MultipleFileUploadForm
-                    name="supportingphotourl"
-                    control={control}
-                    label="Dokumen Sokongan (opsional)"
-                    errors={errors}
-                    accept="image/*,application/pdf"
-                    bucketName="supporting-doc-jenazah-case"
-                    handleFileUpload={handleFileUpload}
-                  />
-                </div>
-              </>
-            )}
+
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
+                      {translate("Documents")}
+                    </p>
+                    <FileUploadForm
+                      name="deathconfirmationphotourl"
+                      control={control}
+                      label={translate("Death Confirmation")}
+                      required
+                      errors={errors}
+                      accept="image/*,application/pdf"
+                      isNeedPasteURL={false}
+                      isShowList
+                      bucketName="bucket-death-confirmation"
+                      handleFileUpload={handleFileUpload}
+                    />
+                    <FileUploadForm
+                      name="policereportphotourl"
+                      control={control}
+                      label={translate("Police Report")}
+                      required
+                      errors={errors}
+                      accept="image/*,application/pdf"
+                      isNeedPasteURL={false}
+                      isShowList
+                      bucketName="bucket-police-report"
+                      handleFileUpload={handleFileUpload}
+                    />
+                    <MultipleFileUploadForm
+                      name="supportingphotourl"
+                      control={control}
+                      label={`${translate("Supporting Documents")} (${translate("Optional")})`}
+                      errors={errors}
+                      accept="image/*,application/pdf"
+                      bucketName="supporting-doc-jenazah-case"
+                      handleFileUpload={handleFileUpload}
+                    />
+                  </div>
+                </>
+              )}
           </>
         )}
 
@@ -762,14 +961,14 @@ export default function JenazahEmergencyRequest() {
                   onClick={() => navigate(createPageUrl("JenazahEmergency"))}
                   className="flex-1"
                 >
-                  Batal
+                  {translate("Cancel")}
                 </Button>
                 <Button
                   type="button"
                   onClick={handleNextStep}
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                 >
-                  Seterusnya
+                  {translate("Next")}
                 </Button>
               </>
             ) : (
@@ -780,17 +979,23 @@ export default function JenazahEmergencyRequest() {
                   onClick={() => setPageStep(1)}
                   className="flex-1"
                 >
-                  Kembali
+                  {translate("Back")}
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createCase.isPending || !hasSearched || isSearching}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
+                  disabled={
+                    createCase.isPending ||
+                    !hasSearched ||
+                    isSearching ||
+                    isCaseApproved ||
+                    isCaseBlocking
+                  }
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                 >
                   {createCase.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : null}
-                  Hantar Permohonan
+                  {translate("Submit")}
                 </Button>
               </>
             )}

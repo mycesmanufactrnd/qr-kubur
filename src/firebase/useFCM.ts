@@ -10,7 +10,7 @@ const saveToken = (token: string) => {
   const googleUser = getStoredGoogleUser();
   if (googleUser?.id) {
     trpcClient.google.saveDeviceToken
-      .mutate({ googleUserId: googleUser.id, fcmToken: token })
+      .mutate({ googleUserId: googleUser.id, fcmGoogleToken: token })
       .catch((e) => console.error("[FCM] saveDeviceToken (google) failed:", e));
   }
 

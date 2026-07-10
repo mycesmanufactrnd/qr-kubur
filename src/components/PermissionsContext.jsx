@@ -50,6 +50,7 @@ export function PermissionsProvider({ children }) {
     setPermissions([]);
     setUser(null);
     sessionStorage.removeItem('appUserAuth');
+    localStorage.removeItem('appUserAuth');
   };
 
   const hasPermission = (permissionSlug) => {

@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import MapBox from "@/components/MapBox";
 import ActivityPostsCard from "@/components/ActivityPostsCard";
-import { useGetMosqueById } from "@/hooks/useMosqueMutations";
-import { useGetActivityPostsByRelationId } from "@/hooks/useActivityPostMutations";
+import { useGetMosqueById } from "@/mutations/useMosqueMutations";
+import { useGetActivityPostsByRelationId } from "@/mutations/useActivityPostMutations";
 import DirectionButton from "@/components/DirectionButton";
 import { useLocationContext } from "@/providers/LocationProvider";
 import NoDataCardComponent from "@/components/NoDataCardComponent";

@@ -12,7 +12,7 @@ import { showError, showSuccess } from './ToastrNotification';
 import { translate } from '@/utils/translations';
 import { appendCurrentUserToFormData, resolveFileUrl } from '@/utils';
 import { trpc } from '@/utils/trpc';
-import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/hooks/usePaymentConfigMutations';
+import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/mutations/usePaymentConfigMutations';
 
 export default function PaymentConfigDialog({ 
   open, 

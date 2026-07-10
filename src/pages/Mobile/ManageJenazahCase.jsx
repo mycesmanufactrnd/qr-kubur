@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
-import { useGetGravePaginated } from "@/hooks/useGraveMutations";
+import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
@@ -55,11 +55,17 @@ const STATUS_CONFIG = {
       "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
     icon: Clock,
   },
-  approved: {
-    label: translate("Approved"),
+  ongoing: {
+    label: translate("Ongoing"),
     className:
       "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     icon: CheckCircle2,
+  },
+  closed: {
+    label: translate("Closed"),
+    className:
+      "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    icon: BadgeCheck,
   },
   rejected: {
     label: translate("Rejected"),
@@ -172,6 +178,10 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (userOrgId) setValue("selectedOrgId", userOrgId);
+  }, [userOrgId, setValue]);
+
   const handleFileUpload = async (file, bucketName) => {
     try {
       const formDataUpload = new FormData();
@@ -251,7 +261,17 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     setSearchedIc((prev) => (prev.trim() === ic ? ic + "​" : ic));
   };
 
+  const onFormInvalid = () => {
+    showApiError({
+      message: translate("Please complete the required fields before proceeding."),
+    });
+  };
+
   const handleFormSubmit = (data) => {
+    if (!data.selectedMosqueId) {
+      showApiError({ message: translate("Please select a mosque first.") });
+      return;
+    }
     if (isOutOfArea === null) {
       showApiError({
         message: translate("Please answer the incident location question."),
@@ -361,6 +381,8 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             }))}
             disabled={!selectedOrgId}
             loading={mosquesLoading}
+            required
+            errors={errors}
           />
         </FormSection>
 
@@ -379,14 +401,21 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
               type="button"
               onClick={handleSearch}
               disabled={
-                !(icSearch ?? "").replace(/-/g, "").trim() || memberSearching
+                !selectedMosqueId ||
+                !(icSearch ?? "").replace(/-/g, "").trim() ||
+                memberSearching
               }
               className="shrink-0 h-9 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-40"
             >
               {memberSearching ? translate("Searching...") : translate("Search")}
             </button>
           </div>
-          {searchAttempted ? (
+          {!selectedMosqueId ? (
+            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <Info className="w-3.5 h-3.5" />{" "}
+              {translate("Please select a mosque first.")}
+            </p>
+          ) : searchAttempted ? (
             memberResult ? (
               <p className="text-xs text-emerald-600 flex items-center gap-1">
                 <BadgeCheck className="w-3.5 h-3.5" />{" "}
@@ -610,7 +639,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
       <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         <button
           type="button"
-          onClick={handleSubmit(handleFormSubmit)}
+          onClick={handleSubmit(handleFormSubmit, onFormInvalid)}
           disabled={isSubmitting}
           className="w-full h-12 rounded-2xl bg-rose-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
@@ -656,8 +685,8 @@ function CaseDetailSheet({
     defaultValues: {
       grave: "",
       gravelot: "",
-      causeofdeath: "",
-      dateofdeath: "",
+      causeofdeath: d.causeofdeath ?? "",
+      dateofdeath: toDateInputValue(new Date()),
       dateofbirth: parsedDob,
       heirname: d.heirname ?? "",
       heirphoneno: d.heirphoneno ?? "",
@@ -668,6 +697,11 @@ function CaseDetailSheet({
     pageSize: 1000,
   });
   const graves = gravesList.items;
+
+  const { data: deadPersonRecord } = trpc.deadperson.getByIcNumber.useQuery(
+    { icnumber: icRaw },
+    { enabled: !!icRaw && !!caseItem?.isapproved },
+  );
 
   const upsertDeadPerson = trpc.deadperson.upsertForQariah.useMutation({
     onError: (err) => showApiError(err),
@@ -701,7 +735,7 @@ function CaseDetailSheet({
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,
         gravelot: formData.gravelot?.trim() || null,
       });
-      handleAction("approved");
+      handleAction("ongoing");
     } catch {
       // error shown by onError
     }
@@ -761,6 +795,12 @@ function CaseDetailSheet({
           {d.deceasedAddress && (
             <DetailRow label={translate("Address")} value={d.deceasedAddress} />
           )}
+          {d.causeofdeath && (
+            <DetailRow
+              label={translate("Cause of Death")}
+              value={d.causeofdeath}
+            />
+          )}
           <DetailRow label={translate("Qariah Member Status")}>
             {d.isQariahMember ? (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
@@ -809,6 +849,55 @@ function CaseDetailSheet({
             }
           />
         </FormSection>
+
+        {caseItem?.isapproved && deadPersonRecord && (
+          <FormSection title={translate("Deceased Information")}>
+            <div className="grid grid-cols-2 gap-3">
+              <DetailRow
+                label={translate("Grave")}
+                value={deadPersonRecord.grave?.name}
+              />
+              <DetailRow
+                label={translate("Grave Lot")}
+                value={deadPersonRecord.gravelot}
+              />
+              <DetailRow
+                label={translate("Cause of Death")}
+                value={deadPersonRecord.causeofdeath}
+              />
+              <DetailRow
+                label={translate("Date of Birth")}
+                value={
+                  deadPersonRecord.dateofbirth
+                    ? new Date(deadPersonRecord.dateofbirth).toLocaleDateString(
+                        "ms-MY",
+                        { dateStyle: "medium" },
+                      )
+                    : null
+                }
+              />
+              <DetailRow
+                label={translate("Date of Death")}
+                value={
+                  deadPersonRecord.dateofdeath
+                    ? new Date(deadPersonRecord.dateofdeath).toLocaleDateString(
+                        "ms-MY",
+                        { dateStyle: "medium" },
+                      )
+                    : null
+                }
+              />
+              <DetailRow
+                label={translate("Nama Waris")}
+                value={deadPersonRecord.heirname}
+              />
+              <DetailRow
+                label={translate("No. Tel. Waris")}
+                value={deadPersonRecord.heirphoneno}
+              />
+            </div>
+          </FormSection>
+        )}
 
         {mapsUrl && (
           <FormSection title={translate("Pickup Location")}>
@@ -1025,6 +1114,18 @@ function CaseDetailSheet({
           </div>
         )}
 
+        {caseItem?.status === "ongoing" && (
+          <button
+            type="button"
+            onClick={() => handleAction("closed")}
+            disabled={isBusy}
+            className="w-full h-11 rounded-2xl bg-blue-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-80 disabled:opacity-50"
+          >
+            <CheckCircle className="w-4 h-4" />
+            {translate("Close Case")}
+          </button>
+        )}
+
         {caseItem?.status !== "pending" && (
           <button
             type="button"
@@ -1055,7 +1156,7 @@ function CaseDetailSheet({
 }
 
 export default function MobileManageJenazahCase() {
-  const { hasAdminAccess, loadingUser } = useAdminAccess();
+  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } = useAdminAccess();
   const [statusFilter, setStatusFilter] = useState("pending");
   const [page, setPage] = useState(1);
   const [selectedCase, setSelectedCase] = useState(null);
@@ -1065,7 +1166,13 @@ export default function MobileManageJenazahCase() {
   const itemsPerPage = 10;
 
   const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
-    { page, pageSize: itemsPerPage, status: statusFilter || undefined },
+    {
+      page,
+      pageSize: itemsPerPage,
+      status: statusFilter || undefined,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin,
+    },
     { enabled: !loadingUser && hasAdminAccess },
   );
 
@@ -1125,9 +1232,9 @@ export default function MobileManageJenazahCase() {
   };
 
   const STATUS_TABS = [
-    { label: translate("All"), value: "" },
     { label: translate("Pending"), value: "pending" },
-    { label: translate("Approved"), value: "approved" },
+    { label: translate("Ongoing"), value: "ongoing" },
+    { label: translate("Closed"), value: "closed" },
     { label: translate("Rejected"), value: "rejected" },
   ];
 

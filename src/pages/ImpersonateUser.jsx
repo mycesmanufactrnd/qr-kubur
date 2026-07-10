@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Search, UserX, UserSearch, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { impersonateUser } from "@/utils/auth";
-import { useGetUserPaginated } from "@/hooks/useUserMutations";
+import { useGetUserPaginated } from "@/mutations/useUserMutations";
 import Pagination from "@/components/Pagination";
 import { translate } from "@/utils/translations";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
@@ -35,7 +35,7 @@ export default function ImpersonateUser() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: searchQuery,
+    fullname: searchQuery,
   });
 
   if (loadingUsers) {

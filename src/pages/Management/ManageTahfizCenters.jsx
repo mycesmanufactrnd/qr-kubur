@@ -55,9 +55,9 @@ import { translate } from "@/utils/translations";
 import {
   useGetTahfizPaginated,
   useTahfizMutations,
-} from "@/hooks/useTahfizMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useUserMutations } from "@/hooks/useUserMutations";
+} from "@/mutations/useTahfizMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useUserMutations } from "@/mutations/useUserMutations";
 import { useAdminAccess } from "@/utils/auth";
 import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
@@ -69,7 +69,7 @@ import { trpc } from "@/utils/trpc";
 import {
   useGetConfigByEntity,
   useUpsertConfigByEntity,
-} from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/usePaymentConfigMutations";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -101,7 +101,7 @@ function ManageTahfizCentersDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlName = searchParams.get("name") || "";
-  const urlState = searchParams.get("state") || "all";
+  const urlState = searchParams.get("state") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
@@ -211,7 +211,7 @@ function ManageTahfizCentersDesktop() {
     page: urlPage,
     pageSize: itemsPerPage,
     filterName: urlName,
-    filterState: urlState === "all" ? undefined : urlState,
+    filterState: urlState || undefined,
   });
 
   const { createTahfiz, updateTahfiz, deleteTahfiz } = useTahfizMutations();
@@ -714,7 +714,7 @@ function ManageTahfizCentersDesktop() {
   const handleSearch = () => {
     const params = { page: "1", name: "", state: "" };
     if (tempName) params.name = tempName;
-    if (tempState !== "all") params.state = tempState;
+    if (tempState) params.state = tempState;
     setSearchParams(params);
   };
 
@@ -1065,7 +1065,6 @@ function ManageTahfizCentersDesktop() {
                   <SelectValue placeholder={translate("All States")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translate("All States")}</SelectItem>
                   {STATES_MY.map((state) => (
                     <SelectItem key={state} value={state}>
                       {state}

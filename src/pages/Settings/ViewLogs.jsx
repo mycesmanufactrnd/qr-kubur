@@ -24,7 +24,7 @@ import {
 import Breadcrumb from "@/components/Breadcrumb";
 import Pagination from "@/components/Pagination";
 import { useAdminAccess } from "@/utils/auth";
-import { useGetActivityLogPaginated } from "@/hooks/useActivityLogMutations";
+import { useGetActivityLogPaginated } from "@/mutations/useActivityLogMutations";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -37,7 +37,7 @@ export default function ViewLogs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlSearch = searchParams.get("search") || "";
-  const urlLevel = searchParams.get("level") || "all";
+  const urlLevel = searchParams.get("level") || "";
 
   const [tempSearch, setTempSearch] = useState(urlSearch);
   const [tempLevel, setTempLevel] = useState(urlLevel);
@@ -56,13 +56,13 @@ export default function ViewLogs() {
     page: urlPage,
     pageSize: itemsPerPage,
     search: urlSearch,
-    level: urlLevel === "all" ? undefined : urlLevel,
+    level: urlLevel || undefined,
   });
 
   const handleSearch = () => {
     const params = { page: "1", search: "", level: "" };
     if (tempSearch) params.search = tempSearch;
-    if (tempLevel !== "all") params.level = tempLevel;
+    if (tempLevel) params.level = tempLevel;
     setSearchParams(params);
   };
 
@@ -125,7 +125,6 @@ export default function ViewLogs() {
                 <SelectValue placeholder={translate("Filter by Level")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translate("All Levels")}</SelectItem>
                 <SelectItem value="info">Info</SelectItem>
                 <SelectItem value="warn">Warning</SelectItem>
                 <SelectItem value="error">Error</SelectItem>

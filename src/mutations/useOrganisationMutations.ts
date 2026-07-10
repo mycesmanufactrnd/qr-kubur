@@ -82,6 +82,7 @@ export function useGetOrganisationCoordinates(
   filterName?: string,
   filterCanBeDonated?: boolean,
   filterHasPaymentConfig?: boolean,
+  limit?: number,
 ) {
   const { data = [], isLoading, error, refetch } = trpc.organisation.getOrganisationByCoordinates.useQuery(
     {
@@ -90,6 +91,7 @@ export function useGetOrganisationCoordinates(
       filterName,
       filterCanBeDonated,
       filterHasPaymentConfig,
+      limit,
     },
     {
       enabled: !!coordinates,

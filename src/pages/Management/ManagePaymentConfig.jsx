@@ -9,7 +9,7 @@ import MobileManagePaymentConfig from "@/pages/Mobile/ManagePaymentConfig";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import PaymentConfigDialog from "@/components/PaymentConfigDialog";
 import { useAdminAccess } from "@/utils/auth";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { translate } from "@/utils/translations";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import Breadcrumb from "@/components/Breadcrumb";

@@ -20,9 +20,9 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetUserPaginated,
   useUserMutations,
-} from "@/hooks/useUserMutations";
-import { useGetOrganisationPaginated } from "@/hooks/useOrganisationMutations";
-import { useGetTahfizPaginated } from "@/hooks/useTahfizMutations";
+} from "@/mutations/useUserMutations";
+import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
+import { useGetTahfizPaginated } from "@/mutations/useTahfizMutations";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 const roleColors = {
@@ -47,7 +47,12 @@ function UserCard({
   onDelete,
   onManagePermissions,
 }) {
-  const initial = (user.fullname?.[0] ?? user.username?.[0] ?? user.email?.[0] ?? "?").toUpperCase();
+  const initial = (
+    user.fullname?.[0] ??
+    user.username?.[0] ??
+    user.email?.[0] ??
+    "?"
+  ).toUpperCase();
   const affiliation = user.organisation?.name ?? user.tahfizcenter?.name ?? "";
 
   return (
@@ -62,7 +67,7 @@ function UserCard({
         </div>
         <div className="flex-1 min-w-0 space-y-1">
           <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
-            {user.fullname || user.username}
+            {user.fullname}
           </p>
           <p className="text-xs text-slate-400 truncate">{user.username}</p>
           <div className="flex flex-wrap gap-1.5 items-center">
@@ -199,9 +204,9 @@ function UserFormSheet({
   const showTahfizSelect = isSuperAdmin || !!currentUser?.tahfizcenter?.id;
   const isCurrentUserOrgParent = Boolean(
     currentUser?.organisation?.id &&
-      (currentUser.organisation.parentorganisation == null ||
-        currentUser.organisation.parentorganisation?.id == null ||
-        currentUser.organisation.parentorganisationId == null),
+    (currentUser.organisation.parentorganisation == null ||
+      currentUser.organisation.parentorganisation?.id == null ||
+      currentUser.organisation.parentorganisationId == null),
   );
   const orgDisabled =
     isAdmin &&
@@ -217,8 +222,8 @@ function UserFormSheet({
   );
   const showRoleTypeSelect = Boolean(
     local.organisation &&
-      local.role === "employee" &&
-      !!selectedOrganisation?.canmanagemosque,
+    local.role === "employee" &&
+    !!selectedOrganisation?.canmanagemosque,
   );
 
   const handleRoleChange = (value) => {
@@ -278,7 +283,9 @@ function UserFormSheet({
           />
         </Field>
 
-        <Field label={`${translate("Email")} (${translate("Notification email")})`}>
+        <Field
+          label={`${translate("Email")} (${translate("Notification email")})`}
+        >
           <input
             className={inputCls}
             value={local.email ?? ""}
@@ -310,7 +317,7 @@ function UserFormSheet({
           />
         </Field>
 
-                {showOrgSelect && (
+        {showOrgSelect && (
           <Field label={translate("Organisation")}>
             <select
               className={inputCls}
@@ -447,7 +454,9 @@ export default function MobileManageUsers() {
   const [itemsPerPage] = useState(10);
 
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [appliedOrgId, setAppliedOrgId] = useState("all");
+  const [appliedEmail, setAppliedEmail] = useState("");
+  const [appliedUsername, setAppliedUsername] = useState("");
+  const [appliedOrgId, setAppliedOrgId] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -463,9 +472,11 @@ export default function MobileManageUsers() {
   } = useGetUserPaginated({
     page,
     pageSize: itemsPerPage,
-    search: appliedSearch,
+    fullname: appliedSearch,
+    email: appliedEmail,
+    username: appliedUsername,
     organisationId:
-      isSuperAdmin && appliedOrgId !== "all" ? Number(appliedOrgId) : null,
+      isSuperAdmin && appliedOrgId !== "" ? Number(appliedOrgId) : null,
   });
 
   const { organisationsList: organisations } = useGetOrganisationPaginated({});
@@ -569,9 +580,19 @@ export default function MobileManageUsers() {
             <AdvancedFilters
               parameter={[
                 {
-                  label: translate("Search"),
+                  label: translate("Search User"),
                   type: "text",
                   searchColumn: "search",
+                },
+                {
+                  label: translate("Search Email"),
+                  type: "text",
+                  searchColumn: "email",
+                },
+                {
+                  label: translate("Search Username"),
+                  type: "text",
+                  searchColumn: "username",
                 },
                 ...(isSuperAdmin
                   ? [
@@ -589,7 +610,9 @@ export default function MobileManageUsers() {
               ]}
               onApplyFilter={(f) => {
                 setAppliedSearch(f.search || "");
-                setAppliedOrgId(f.orgId || "all");
+                setAppliedEmail(f.email || "");
+                setAppliedUsername(f.username || "");
+                setAppliedOrgId(f.orgId || "");
                 setPage(1);
               }}
             />

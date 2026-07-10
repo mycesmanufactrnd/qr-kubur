@@ -30,17 +30,17 @@ import NoDataCardComponent from "@/components/NoDataCardComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { createPageUrl } from "@/utils";
 import { showError, showSuccess } from "@/components/ToastrNotification";
-import { useGetDeathCharityByMosque } from "@/hooks/useDeathCharityMutations";
-import { useGetMosqueById } from "@/hooks/useMosqueMutations";
+import { useGetDeathCharityByMosque } from "@/mutations/useDeathCharityMutations";
+import { useGetMosqueById } from "@/mutations/useMosqueMutations";
 import {
   useDeathCharityMemberMutations,
   useSearchMemberByDeathCharity,
-} from "@/hooks/useDeathCharityMemberMutations";
+} from "@/mutations/useDeathCharityMemberMutations";
 import {
   useDeathCharityPaymentMutations,
   useGetPaymentByMemberId,
-} from "@/hooks/useDeathCharityPaymentMutations";
-import { useGetConfigByEntity } from "@/hooks/usePaymentConfigMutations";
+} from "@/mutations/useDeathCharityPaymentMutations";
+import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus, PLATFORM_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
@@ -53,8 +53,6 @@ const PAYMENT_PLAN = {
   REGISTER_AND_YEARLY: "register_and_yearly",
   YEARLY_ONLY: "yearly_only",
 };
-
-const SAVED_PHONE_KEY = "userphoneno";
 
 function formatCoverage(payment) {
   const fromYear = Number(payment.coversfromyear || 0);
@@ -87,6 +85,7 @@ export default function DeathCharityUserPayment() {
     : createPageUrl("SearchMosque");
 
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [paymentSucceeded, setPaymentSucceeded] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -126,7 +125,7 @@ export default function DeathCharityUserPayment() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_PHONE_KEY);
+    const saved = localStorage.getItem("userphoneno");
     if (saved) {
       setRegistrationForm((prev) => ({ ...prev, phone: prev.phone || saved }));
     }
@@ -292,13 +291,10 @@ export default function DeathCharityUserPayment() {
     paymentPlan === PAYMENT_PLAN.YEARLY_ONLY ||
     paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
 
-  useEffect(() => {
-    const statusText = status_id
-      ? paymentToyyibStatus[status_id] || "Unknown"
-      : "Unknown";
-
-    if (!status_id) return;
-
+  // Handles a terminal ToyyibPay result, whether it came from the web
+  // redirect (`?status_id=...` in the URL, see effect below) or from native
+  // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
+  const handlePaymentResult = (statusText, orderId) => {
     const pendingPaymentRaw = localStorage.getItem("charityPaymentPending");
     if (!pendingPaymentRaw) return;
 
@@ -318,11 +314,12 @@ export default function DeathCharityUserPayment() {
       localStorage.removeItem("charityPaymentPending");
       setLoadingPayment(false);
 
-      window.location.href = url.toString();
+      window.history.replaceState({}, document.title, url.toString());
     };
 
     if (statusText === "Success") {
       setLoadingPayment(true);
+      setPaymentSucceeded(true);
       showSuccess(translate("Payment successful!"));
 
       const storedUser =
@@ -360,7 +357,7 @@ export default function DeathCharityUserPayment() {
           throw new Error("Member information is missing.");
         }
 
-        const referenceNo = order_id || pendingPayment.referenceno || null;
+        const referenceNo = orderId || pendingPayment.referenceno || null;
 
         if (pendingPayment.createRegistrationPayment) {
           await createDeathCharityPayment.mutateAsync({
@@ -388,7 +385,7 @@ export default function DeathCharityUserPayment() {
           });
         }
 
-        const orderNo = String(order_id || "");
+        const orderNo = String(orderId || "");
         if (
           orderNo &&
           pendingPayment?.selectedAccount?.accountno &&
@@ -423,7 +420,7 @@ export default function DeathCharityUserPayment() {
           setSubmitError(message);
           showError(message);
 
-          createLogMutation.mutateAsync({
+          return createLogMutation.mutateAsync({
             activitytype: "Create Death Charity Payment",
             functionname: "createDeathCharityPayment.mutateAsync",
             useremail: "",
@@ -442,9 +439,12 @@ export default function DeathCharityUserPayment() {
       showError(translate("Payment failed."));
       setLoadingPayment(false);
     }
-  }, [searchParams]);
+  };
 
-  // ── IC PHOTO SCAN FUNCTIONS ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!status_id) return;
+    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
+  }, [searchParams]);
 
   // Malaysian IC number patterns:
   //  formatted : 900101-01-1234  (YYMMDD-SS-NNNN)
@@ -640,7 +640,13 @@ export default function DeathCharityUserPayment() {
       });
 
       if (bill?.paymentUrl) {
-        openPaymentUrl(bill.paymentUrl);
+        openPaymentUrl(bill.paymentUrl, {
+          orderNo: runningNo,
+          onStatus: (statusText) => {
+            if (statusText) handlePaymentResult(statusText, runningNo);
+            else setLoadingPayment(false);
+          },
+        });
         setLoadingPayment(false);
         return true;
       }
@@ -747,7 +753,7 @@ export default function DeathCharityUserPayment() {
     };
 
     const phone = (selectedMember?.phone || registrationForm.phone)?.trim();
-    const savedPhone = localStorage.getItem(SAVED_PHONE_KEY);
+    const savedPhone = localStorage.getItem("userphoneno");
 
     if (phone && phone !== savedPhone) {
       setPendingPayload(paymentData);
@@ -771,7 +777,7 @@ export default function DeathCharityUserPayment() {
     return <PageLoadingComponent />;
   }
 
-  if (status_id) {
+  if (status_id || paymentSucceeded) {
     return <PaymentSuccessfulComponent />;
   }
 
@@ -1383,7 +1389,7 @@ export default function DeathCharityUserPayment() {
         confirmText={translate("Save")}
         cancelText={translate("No")}
         onConfirm={() => {
-          localStorage.setItem(SAVED_PHONE_KEY, pendingPhone);
+          localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
     </div>

@@ -82,7 +82,7 @@ export const deadPersonRouter = router({
         });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere("grave.state = :state", { state: filterState });
       }
 

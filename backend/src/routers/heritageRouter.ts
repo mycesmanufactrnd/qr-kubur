@@ -28,7 +28,7 @@ export const heritageRouter = router({
         });
       }
 
-      if (filterState && filterState !== "all") {
+      if (filterState) {
         query.andWhere("heritage.state = :state", { state: filterState });
       }
 
