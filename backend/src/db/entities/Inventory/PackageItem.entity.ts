@@ -25,7 +25,7 @@ export class PackageItem {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "packageId" })
-  package!: InventoryPackage;
+  package!: any;
 
   @Index()
   @Column("integer", { nullable: true })
@@ -36,7 +36,7 @@ export class PackageItem {
     onDelete: "RESTRICT",
   })
   @JoinColumn({ name: "itemId" })
-  item?: InventoryItem | null;
+  item?: any;
 
   // Set instead of itemId for reusable lines picked by group — the
   // fulfilling item is resolved at dispatch time from the group's members.
@@ -46,7 +46,7 @@ export class PackageItem {
 
   @ManyToOne(() => ReusableItemGroup, { nullable: true, onDelete: "CASCADE" })
   @JoinColumn({ name: "groupId" })
-  group?: ReusableItemGroup | null;
+  group?: any;
 
   @Column("int", { default: 1 })
   quantity_required!: number;
