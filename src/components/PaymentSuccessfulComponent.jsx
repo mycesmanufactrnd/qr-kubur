@@ -1,23 +1,17 @@
 import { useState, useEffect } from "react";
 import { translate } from "@/utils/translations";
 
-// Payment gateways redirect back to us inside whatever browser context sent
-// the user there — on native that's the Capacitor in-app browser overlay
-// (@capacitor/browser), not the app's own WebView, so this page cannot reach
-// the Capacitor bridge to dismiss it. `window.close()` is the only lever
-// available from inside that context: browsers silently ignore it for a
-// normally-navigated tab (safe no-op on web), but Android Custom Tabs and
-// popups opened via script do honor it, which is what actually dismisses the
-// overlay instead of just navigating it to `redirectUrl` in place.
+// On native, payment gateways redirect back inside the Capacitor in-app
+// browser overlay (@capacitor/browser) — a separate native browser (Safari
+// View Controller / Custom Tabs), not the app's own WebView. This page has no
+// bridge back to Capacitor from in there, so it cannot dismiss that overlay
+// itself (window.close() is a no-op — confirmed on device, it's not a
+// script-opened window). Closing the overlay is entirely handled by the app
+// polling the payment status and calling Browser.close() (see payment.ts).
+// This redirect only matters for the plain web case, where there's no
+// overlay to begin with — just the current tab moving on.
 function finishAndRedirect(redirectUrl) {
-  try {
-    window.close();
-  } catch {
-    // ignore — some browsers throw instead of silently ignoring
-  }
-  setTimeout(() => {
-    window.location.href = redirectUrl;
-  }, 200);
+  window.location.href = redirectUrl;
 }
 
 export default function PaymentSuccessfulComponent({
@@ -232,7 +226,7 @@ export default function PaymentSuccessfulComponent({
               transition: "opacity 0.5s ease 1s",
             }}
           >
-            {translate("Close")}
+            {translate("Continue")}
           </button>
         )}
 

@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { trpcClient } from '@/utils/trpc';
 import { showError } from '@/components/ToastrNotification';
 
-const POLL_INTERVAL_MS = 3000;
+const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 10 * 60 * 1000; // give up after 10 minutes
 
 // Maps OnlineTransaction.gatewaystatus (set from ToyyibPay's server-to-server
