@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useEffect, useState, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
 import { trpc } from "@/utils/trpc";
 import { getCurrentLanguage, translate } from "@/utils/translations";
 import { SURAH_DATA, SURAH_LIST, RECITERS } from "@/utils/enums";
@@ -71,6 +72,45 @@ function IframeWithLoader({ src, title }) {
   );
 }
 
+// Native (Capacitor) blocks the docs.google.com iframe used below via
+// capacitor.config.json's allowNavigation host whitelist, so PDFs there are
+// opened in the native browser overlay instead — see NativePdfOpener.
+function NativePdfOpener({ url, title }) {
+  const [opening, setOpening] = useState(false);
+
+  const handleOpen = async () => {
+    setOpening(true);
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.open({ url });
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  return (
+    <div className="w-full h-[40vh] flex flex-col items-center justify-center gap-3 px-6 text-center">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        {translate("Tap below to view the PDF")}
+      </p>
+      <button
+        onClick={handleOpen}
+        disabled={opening}
+        className="px-5 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold disabled:opacity-60"
+      >
+        {opening ? translate("Opening...") : translate("Open PDF")}
+      </button>
+    </div>
+  );
+}
+
+function PdfPanel({ nativeUrl, iframeSrc, title }) {
+  if (Capacitor.isNativePlatform()) {
+    return <NativePdfOpener url={nativeUrl} title={title} />;
+  }
+  return <IframeWithLoader src={iframeSrc} title={title} />;
+}
+
 const BASE = 'https://qubur.mycesgroup.com';
 const toViewer = (path) => `https://docs.google.com/viewer?url=${encodeURIComponent(BASE + path)}&embedded=true`;
 
@@ -90,9 +130,10 @@ export default function SurahPage() {
   let lang = getCurrentLanguage() === "ms" ? "en" : getCurrentLanguage();
   const surahQuery = trpc.surah.getSurah.useQuery({ surahId, lang });
 
-  const tahlilFile = usePdfCache("/Tahlil.pdf");
-  const doaFile = usePdfCache("/DoaTahlil.pdf");
-  const talqinFile = usePdfCache("/Talqin.pdf");
+  const isNative = Capacitor.isNativePlatform();
+  const tahlilFile = usePdfCache(isNative ? null : "/Tahlil.pdf");
+  const doaFile = usePdfCache(isNative ? null : "/DoaTahlil.pdf");
+  const talqinFile = usePdfCache(isNative ? null : "/Talqin.pdf");
 
   useEffect(() => {
     if (!SURAH_DATA[surahId]?.audio?.[reciterId]) setReciterId(1);
@@ -220,7 +261,11 @@ export default function SurahPage() {
                 {translate("Doa Tahlil")}
               </p>
             </div>
-            <IframeWithLoader src={doaFile.objectUrl ?? DoaTahlilViewer} title="Doa Tahlil PDF" />
+            <PdfPanel
+              nativeUrl={BASE + "/DoaTahlil.pdf"}
+              iframeSrc={doaFile.objectUrl ?? DoaTahlilViewer}
+              title="Doa Tahlil PDF"
+            />
           </div>
         )}
 
@@ -231,7 +276,11 @@ export default function SurahPage() {
                 {translate("Tahlil")}
               </p>
             </div>
-            <IframeWithLoader src={tahlilFile.objectUrl ?? TahlilViewer} title="Tahlil PDF" />
+            <PdfPanel
+              nativeUrl={BASE + "/Tahlil.pdf"}
+              iframeSrc={tahlilFile.objectUrl ?? TahlilViewer}
+              title="Tahlil PDF"
+            />
           </div>
         )}
 
@@ -242,7 +291,11 @@ export default function SurahPage() {
                 {translate("Talqin")}
               </p>
             </div>
-            <IframeWithLoader src={talqinFile.objectUrl ?? TalqinViewer} title="Talqin PDF" />
+            <PdfPanel
+              nativeUrl={BASE + "/Talqin.pdf"}
+              iframeSrc={talqinFile.objectUrl ?? TalqinViewer}
+              title="Talqin PDF"
+            />
           </div>
         )}
 

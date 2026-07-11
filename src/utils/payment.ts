@@ -69,7 +69,7 @@ export async function openPaymentUrl(
 
     if (orderNo && onStatus) {
       const startedAt = Date.now();
-      pollTimer = setInterval(async () => {
+      const checkStatus = async () => {
         if (settled) return;
         if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
           finish(null);
@@ -88,7 +88,14 @@ export async function openPaymentUrl(
         } catch {
           // transient network error while polling — keep trying until timeout
         }
-      }, POLL_INTERVAL_MS);
+      };
+
+      // Check immediately too — the return redirect can beat the first
+      // interval tick, and every second the overlay stays open after that is
+      // a second the user is stuck looking at a "closed" payment page instead
+      // of being back in the app.
+      checkStatus();
+      pollTimer = setInterval(checkStatus, POLL_INTERVAL_MS);
     }
   } catch (err: any) {
     // Surfaces failures that were previously silent, e.g. the native

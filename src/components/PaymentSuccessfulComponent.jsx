@@ -1,4 +1,24 @@
 import { useState, useEffect } from "react";
+import { translate } from "@/utils/translations";
+
+// Payment gateways redirect back to us inside whatever browser context sent
+// the user there — on native that's the Capacitor in-app browser overlay
+// (@capacitor/browser), not the app's own WebView, so this page cannot reach
+// the Capacitor bridge to dismiss it. `window.close()` is the only lever
+// available from inside that context: browsers silently ignore it for a
+// normally-navigated tab (safe no-op on web), but Android Custom Tabs and
+// popups opened via script do honor it, which is what actually dismisses the
+// overlay instead of just navigating it to `redirectUrl` in place.
+function finishAndRedirect(redirectUrl) {
+  try {
+    window.close();
+  } catch {
+    // ignore — some browsers throw instead of silently ignoring
+  }
+  setTimeout(() => {
+    window.location.href = redirectUrl;
+  }, 200);
+}
 
 export default function PaymentSuccessfulComponent({
   shouldRedirect = true,
@@ -18,7 +38,7 @@ export default function PaymentSuccessfulComponent({
       setCount((c) => {
         if (c <= 1) {
           clearInterval(interval);
-          window.location.href = redirectUrl;
+          finishAndRedirect(redirectUrl);
           return 0;
         }
         return c - 1;
@@ -190,6 +210,30 @@ export default function PaymentSuccessfulComponent({
               }
             </p>
           </div>
+        )}
+
+        {shouldRedirect && (
+          <button
+            onClick={() => finishAndRedirect(redirectUrl)}
+            style={{
+              marginTop: "1.25rem",
+              width: "100%",
+              padding: "0.75rem 1.5rem",
+              borderRadius: "0.75rem",
+              border: "1px solid rgba(16,185,129,0.3)",
+              background: "transparent",
+              color: "#10b981",
+              fontFamily: "inherit",
+              fontSize: "0.85rem",
+              fontWeight: "600",
+              letterSpacing: "0.02em",
+              cursor: "pointer",
+              opacity: animateIn ? 1 : 0,
+              transition: "opacity 0.5s ease 1s",
+            }}
+          >
+            {translate("Close")}
+          </button>
         )}
 
         {actionButton && (
