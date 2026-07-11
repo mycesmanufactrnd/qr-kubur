@@ -98,7 +98,7 @@ export class InventoryItem {
   transactions?: InventoryTransaction[];
 
   @OneToMany(() => PackageItem, (packageItem) => packageItem.item)
-  packageItems?: PackageItem[];
+  packageItems?: any[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

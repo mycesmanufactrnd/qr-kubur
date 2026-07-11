@@ -67,7 +67,7 @@ export class InventoryPackage {
   @OneToMany(() => PackageItem, (packageItem) => packageItem.package, {
     cascade: ["insert", "update"],
   })
-  packageItems?: PackageItem[];
+  packageItems?: any[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
