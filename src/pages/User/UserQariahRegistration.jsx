@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { CheckCircle2, Users, Loader2, Search, RotateCcw } from "lucide-react";
+import { CheckCircle2, Clock, Users, Loader2, Search, RotateCcw } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
 import { Button } from "@/components/ui/button";
 import TextInputForm from "@/components/forms/TextInputForm";
@@ -85,7 +85,7 @@ export default function UserQariahRegistration() {
   });
 
   const saveQariahDeviceToken = trpc.qariahDevice.saveToken.useMutation();
-
+ 
   const searchQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
     { icnumber: searchedIc, mosqueId: searchMosqueId },
     { enabled: !!searchedIc, staleTime: 0 },
@@ -160,6 +160,7 @@ export default function UserQariahRegistration() {
       fullname: foundMember.fullname ?? "",
       icnumber: foundMember.icnumber ?? searchedIc,
       mosqueName: foundMember.mosque?.name ?? "",
+      isApproved: !!foundMember.isapproved,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
     setSavedRegistration(record);
@@ -210,14 +211,22 @@ export default function UserQariahRegistration() {
       <div className="min-h-screen flex flex-col">
         <BackNavigation title={translate("Qariah Registration")} />
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-16 gap-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center ${savedRegistration.isApproved ? "bg-emerald-50 dark:bg-emerald-900/30" : "bg-amber-50 dark:bg-amber-900/30"}`}>
+            {savedRegistration.isApproved ? (
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            ) : (
+              <Clock className="w-8 h-8 text-amber-500" />
+            )}
           </div>
           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 text-center">
-            {translate("You're Already Registered")}
+            {savedRegistration.isApproved
+              ? translate("You're Already Registered")
+              : translate("Registration Pending Approval")}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
-            {translate("This IC number is already registered as a Qariah member.")}
+            {savedRegistration.isApproved
+              ? translate("This IC number is already registered as a Qariah member.")
+              : translate("Your Qariah registration has been submitted and is pending approval.")}
           </p>
 
           <div className="w-full max-w-xs bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 space-y-2">
@@ -341,15 +350,23 @@ export default function UserQariahRegistration() {
         </div>
 
         {hasSearched && foundMember && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-emerald-100 dark:border-emerald-800 p-4 space-y-3">
+          <div className={`bg-white dark:bg-slate-800 rounded-2xl border p-4 space-y-3 ${foundMember.isapproved ? "border-emerald-100 dark:border-emerald-800" : "border-amber-100 dark:border-amber-800"}`}>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              {foundMember.isapproved ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              ) : (
+                <Clock className="w-5 h-5 text-amber-500" />
+              )}
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                {translate("You're Already Registered")}
+                {foundMember.isapproved
+                  ? translate("You're Already Registered")
+                  : translate("Registration Pending Approval")}
               </p>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {translate("This IC number is already registered as a Qariah member.")}
+              {foundMember.isapproved
+                ? translate("This IC number is already registered as a Qariah member.")
+                : translate("Your Qariah registration has been submitted and is pending approval.")}
             </p>
 
             <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
