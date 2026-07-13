@@ -13,6 +13,7 @@ import { STATES_MY } from "@/utils/enums";
 import { showApiError } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { initFCM } from "@/firebase/firebase";
+import { defaultQariahRegistration } from "@/utils/defaultformfields";
 
 const STORAGE_KEY = "qariahRegisteredMember";
 
@@ -63,6 +64,7 @@ export default function UserQariahRegistration() {
   const { data: mosques = [], isLoading: mosqueLoading } =
     trpc.deathCharityMember.getMosquesByState.useQuery({
       state: selectedState || null,
+      hasDeathCharity: true,
     });
 
   const {
@@ -74,15 +76,7 @@ export default function UserQariahRegistration() {
     trigger,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: {
-      fullname: "",
-      icnumber: "",
-      phone: "",
-      email: "",
-      address: "",
-      state: "",
-      mosqueId: "",
-    },
+    defaultValues: defaultQariahRegistration
   });
 
   const registerMutation = trpc.deathCharityMember.registerQariah.useMutation({

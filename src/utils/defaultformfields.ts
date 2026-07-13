@@ -334,3 +334,13 @@ export const defaultUserField = {
   tahfizcenter: "",
   states: [],
 };
+
+export const defaultQariahRegistration = {
+  fullname: "",
+  icnumber: "",
+  phone: "",
+  email: "",
+  address: "",
+  state: "",
+  mosqueId: "",
+};

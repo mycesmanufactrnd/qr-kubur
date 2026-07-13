@@ -276,6 +276,7 @@ export const deathCharityMemberRouter = router({
         state: z.string().optional().nullable(),
         organisationId: z.number().optional().nullable(),
         canArrangeFuneral: z.boolean().optional(),
+        hasDeathCharity: z.boolean().optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -284,14 +285,21 @@ export const deathCharityMemberRouter = router({
       if (input.state) {
         query.where("mosque.state = :state", { state: input.state });
       }
+
       if (input.organisationId) {
         query.andWhere("mosque.organisationId = :orgId", {
           orgId: input.organisationId,
         });
       }
+      
       if (input.canArrangeFuneral) {
         query.andWhere("mosque.canarrangefuneral = true");
       }
+
+      if (input.hasDeathCharity) {
+        query.andWhere("mosque.hasdeathcharity = true");
+      }
+       
       return query
         .select(["mosque.id", "mosque.name", "mosque.state", "mosque.address"])
         .orderBy("mosque.name", "ASC")
