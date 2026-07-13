@@ -266,7 +266,7 @@ function MosqueFormSheet({
           <CheckboxForm
             name="hasdeathcharity"
             control={control}
-            label={translate("Has Death Charity")}
+            label={translate("Has Qariah & Death Charity")}
           />
         </div>
         <FileUploadForm

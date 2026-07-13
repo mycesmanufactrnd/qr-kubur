@@ -50,7 +50,6 @@ export class Mosque {
   @Column("varchar", { nullable: true })
   picphoneno?: string;
 
-  // ni untuk user tgk je
   @Column("boolean", { default: false })
   canarrangefuneral!: boolean;
 
