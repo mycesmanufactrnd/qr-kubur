@@ -46,14 +46,14 @@ export class InventoryTransaction {
     onDelete: "RESTRICT",
   })
   @JoinColumn({ name: "itemId" })
-  item!: InventoryItem;
+  item!: any;
 
   @Column("integer", { nullable: true })
   packageId?: number | null;
 
   @ManyToOne(() => InventoryPackage, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "packageId" })
-  package?: InventoryPackage | null;  
+  package?: any;
 
   // Signed quantity: positive = stock in, negative = stock out.
   @Column("int")

@@ -55,7 +55,7 @@ export class CheckSession {
   @OneToMany(() => CheckDetail, (detail) => detail.session, {
     cascade: true,
   })
-  details?: CheckDetail[];
+  details?: any[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

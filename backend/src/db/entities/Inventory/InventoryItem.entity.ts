@@ -92,10 +92,10 @@ export class InventoryItem {
 
   @ManyToOne(() => ReusableItemGroup, (group) => group.items, { nullable: true, onDelete: "SET NULL", eager: false })
   @JoinColumn({ name: "groupId" })
-  group?: ReusableItemGroup | null;
+  group?: any;
 
   @OneToMany(() => InventoryTransaction, (transaction) => transaction.item)
-  transactions?: InventoryTransaction[];
+  transactions?: any[];
 
   @OneToMany(() => PackageItem, (packageItem) => packageItem.item)
   packageItems?: any[];

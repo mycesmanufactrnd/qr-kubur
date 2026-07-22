@@ -24,7 +24,7 @@ export class CheckDetail {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "sessionId" })
-  session!: CheckSession;
+  session!: any;
 
   @Column("integer")
   itemId!: number;

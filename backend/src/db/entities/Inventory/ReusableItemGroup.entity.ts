@@ -17,7 +17,7 @@ export class ReusableItemGroup {
   name!: string;
 
   @OneToMany(() => InventoryItem, (item) => item.group)
-  items?: InventoryItem[];
+  items?: any[];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;

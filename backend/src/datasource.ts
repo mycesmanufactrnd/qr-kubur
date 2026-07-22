@@ -7,7 +7,7 @@ const get = (key: string) => {
   return value;
 };
 
-const databaseUrl = `postgres://${get("POSTGRES_USER")}:${get("POSTGRES_PASSWORD")}@${get("POSTGRES_HOST")}:${get("POSTGRES_PORT")}/${get("POSTGRES_DB")}`;
+const databaseUrl = `postgres://${encodeURIComponent(get("POSTGRES_USER"))}:${encodeURIComponent(get("POSTGRES_PASSWORD"))}@${get("POSTGRES_HOST")}:${get("POSTGRES_PORT")}/${get("POSTGRES_DB")}`;
 
 console.log("\n🛢️ Checking Database URL:", databaseUrl ? "FOUND" : "MISSING");
 
