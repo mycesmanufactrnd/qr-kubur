@@ -25,7 +25,11 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
+import {
+  appendCurrentUserToFormData,
+  resolveFileUrl,
+  createPageUrl,
+} from "@/utils";
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { showError, showSuccess } from "@/components/ToastrNotification";
@@ -42,7 +46,15 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 import { parseDobFromIcNumber } from "@/utils/helpers";
 
-function PersonCard({ person, canEdit, canDelete, onEdit, onDelete, onQR, onDetail }) {
+function PersonCard({
+  person,
+  canEdit,
+  canDelete,
+  onEdit,
+  onDelete,
+  onQR,
+  onDetail,
+}) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="flex gap-3 p-4">
@@ -198,6 +210,7 @@ function PersonFormSheet({
         />
         <TextInputForm
           name="icnumber"
+          isICNumber
           control={control}
           label={translate("IC No.")}
           errors={errors}
@@ -315,7 +328,6 @@ function PersonFormSheet({
           name="photourl"
           control={control}
           label={translate("Photo")}
-          required
           errors={errors}
           bucketName="bucket-dead-person"
           uploading={uploading}
@@ -427,11 +439,27 @@ export default function MobileManageDeadPersons() {
   };
 
   const onSubmit = async (formData) => {
+    const selectedGrave = gravesList.items.find(
+      (grave) => Number(grave.id) === Number(formData.grave),
+    );
+
+    let latitude = formData.latitude ? parseFloat(formData.latitude) : null;
+
+    let longitude = formData.longitude ? parseFloat(formData.longitude) : null;
+
+    if ((!latitude || latitude === 0) && selectedGrave?.latitude != null) {
+      latitude = parseFloat(selectedGrave.latitude);
+    }
+
+    if ((!longitude || longitude === 0) && selectedGrave?.longitude != null) {
+      longitude = parseFloat(selectedGrave.longitude);
+    }
+
     setIsSubmitting(true);
     const submitData = {
       ...formData,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      latitude,
+      longitude,
       grave: formData.grave ? { id: Number(formData.grave) } : null,
       gravelot: formData.gravelot?.trim() || null,
     };
@@ -517,7 +545,9 @@ export default function MobileManageDeadPersons() {
                   person={person}
                   canEdit={canEdit}
                   canDelete={canDelete}
-                  onDetail={(p) => navigate(`${createPageUrl("DetailJenazah")}?id=${p.id}`)}
+                  onDetail={(p) =>
+                    navigate(`${createPageUrl("DetailJenazah")}?id=${p.id}`)
+                  }
                   onEdit={(p) => {
                     setEditingPerson(p);
                     setFormOpen(true);

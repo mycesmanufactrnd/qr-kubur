@@ -6,6 +6,7 @@ import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
 import StatisticDashboard from '@/pages/Dashboards/StatisticDashboard';
 import JenazahCaseDashboard from '@/pages/Dashboards/JenazahCaseDashboard';
 // import JenazahCaseDashboardMobile from '@/pages/Dashboards/JenazahCaseDashboardMobile';
+import QRCodeQuickAccess from '@/pages/User/QRCodeQuickAccess';
 
 import AppUserLogin from '@/pages/AppUserLogin';
 import ImpersonateUser from '@/pages/ImpersonateUser';
@@ -117,6 +118,7 @@ export const PAGES = {
     "SuperadminDashboard": SuperadminDashboard,
     "StatisticDashboard": StatisticDashboard,
     "JenazahCaseDashboard": JenazahCaseDashboard,
+    "QRCodeQuickAccess": QRCodeQuickAccess,
     // "JenazahCaseDashboardMobile": JenazahCaseDashboardMobile,
 
     "AppUserLogin": AppUserLogin,

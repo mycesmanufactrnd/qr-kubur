@@ -417,7 +417,7 @@ function AdminDashboardDesktop() {
             <div className="flex items-center gap-3 mb-4">
               <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full" />
               <h2 className="text-base font-semibold text-slate-700 dark:text-slate-300">
-                {translate("Qariah")}
+                {translate("Qariah & Funeral Management")}
               </h2>
               <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
             </div>

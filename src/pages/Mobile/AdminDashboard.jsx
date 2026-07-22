@@ -390,7 +390,7 @@ export default function MobileAdminDashboard() {
         {/* Qariah */}
         {isOrgCanManageMosque && (
           <>
-            <SectionLabel label={translate("Qariah")} />
+            <SectionLabel label={translate("Qariah & Funeral Management")} />
             <div className="grid grid-cols-2 gap-2.5 mb-5">
               {qariahStats.map((s, i) => (
                 <StatCard key={i} {...s} />

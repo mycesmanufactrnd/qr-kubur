@@ -71,6 +71,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { parseDobFromIcNumber } from "@/utils/helpers";
+import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
@@ -235,16 +236,8 @@ function ManageDeadPersonsDesktop() {
     useDeadPersonMutations();
 
   const handleSearch = () => {
-    const params = {
-      page: "1",
-      name: "",
-      ic: "",
-      grave: "",
-      gravelot: "",
-      state: "",
-      dateFrom: "",
-      dateTo: "",
-    };
+    const params = defaultDeadPersonFilter;
+
     if (tempName) params.name = tempName;
     if (tempIC) params.ic = tempIC;
     if (tempGrave) params.grave = tempGrave;
@@ -298,11 +291,27 @@ function ManageDeadPersonsDesktop() {
   };
 
   const onSubmit = async (formData) => {
+    const selectedGrave = gravesList.items.find(
+      (grave) => Number(grave.id) === Number(formData.grave),
+    );
+
+    let latitude = formData.latitude ? parseFloat(formData.latitude) : null;
+
+    let longitude = formData.longitude ? parseFloat(formData.longitude) : null;
+
+    if ((!latitude || latitude === 0) && selectedGrave?.latitude != null) {
+      latitude = parseFloat(selectedGrave.latitude);
+    }
+
+    if ((!longitude || longitude === 0) && selectedGrave?.longitude != null) {
+      longitude = parseFloat(selectedGrave.longitude);
+    }
+
     const submitData = {
       ...formData,
       icnumber: formData.icnumber?.replace(/-/g, "") || null,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      latitude,
+      longitude,
       grave: formData.grave ? { id: Number(formData.grave) } : null,
       gravelot: formData.gravelot?.trim() || null,
     };
@@ -861,7 +870,6 @@ function ManageDeadPersonsDesktop() {
                   name="photourl"
                   control={control}
                   label={translate("Grave Image")}
-                  required
                   errors={errors}
                   bucketName="bucket-dead-person"
                   uploading={uploading}
@@ -875,7 +883,6 @@ function ManageDeadPersonsDesktop() {
                     control={control}
                     label={translate("Latitude")}
                     isNumber
-                    required
                     errors={errors}
                   />
                   <TextInputForm
@@ -883,7 +890,6 @@ function ManageDeadPersonsDesktop() {
                     control={control}
                     label={translate("Longitude")}
                     isNumber
-                    required
                     errors={errors}
                   />
                 </div>

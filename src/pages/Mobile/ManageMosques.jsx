@@ -280,7 +280,6 @@ function MosqueFormSheet({
         />
       </div>
 
-      {/* Fixed save bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
         <button
           onClick={handleSubmit(onSubmit)}

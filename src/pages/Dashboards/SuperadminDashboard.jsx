@@ -24,6 +24,7 @@ import {
   ChevronRight,
   DollarSign,
   Landmark,
+  QrCode,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -151,6 +152,12 @@ export default function SuperadminDashboard() {
           page: "ManagePermissions",
           icon: UserCheck,
           color: "indigo",
+        },
+        {
+          name: translate("QR Code"),
+          page: "QRCodeQuickAccess",
+          icon: QrCode,
+          color: "emerald",
         },
       ],
     },

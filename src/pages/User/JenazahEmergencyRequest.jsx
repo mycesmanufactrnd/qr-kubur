@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
@@ -26,6 +26,7 @@ import {
   AlertTriangle,
   MapPin,
   Download,
+  Smartphone,
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
@@ -38,13 +39,94 @@ import { generateJenazahCasePdf } from "@/components/PDF/JenazahCase";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
 
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.myces.qubur&pcampaignid=web_share";
+const APP_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.myces.qubur&pcampaignid=web_share";
+
+function QrHeader({ subtitle }) {
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-emerald-50/50 to-transparent dark:from-emerald-950/40 dark:via-emerald-950/10 pt-8 pb-6">
+      <div className="pointer-events-none absolute left-1/2 top-[-90px] -translate-x-1/2 w-72 h-72 rounded-full bg-emerald-200/40 dark:bg-emerald-800/20 blur-3xl" />
+      <div className="relative px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-2.5">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/25">
+          <Building2 className="w-6 h-6 text-white" />
+        </div>
+        <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+          {translate("Funeral Management Application")}
+        </h1>
+        {subtitle && (
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+            {subtitle}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AppDownloadBanner() {
+  return (
+    <div className="px-4 max-w-lg mx-auto w-full">
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-800 shadow-sm shadow-emerald-900/5">
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3.5">
+          <div className="w-11 h-11 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-md shadow-emerald-600/20">
+            <Smartphone className="w-5 h-5 text-white" />
+          </div>
+          <div className="min-w-0 flex-1 text-left">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              {translate("Get the Qubur App")}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {translate("Track your application status anytime")}
+            </p>
+          </div>
+        </div>
+        <div className="h-px bg-slate-100 dark:bg-slate-700" />
+        <div className="flex items-center gap-2 px-4 py-3">
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Download on the App Store"
+            className="flex-1 transition-transform active:scale-95"
+          >
+            <img
+              src="/applestore.png"
+              alt="Download on the App Store"
+              className="h-10 w-full object-contain"
+            />
+          </a>
+          <div className="w-px h-8 bg-slate-100 dark:bg-slate-700" />
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Get it on Google Play"
+            className="flex-1 transition-transform active:scale-95"
+          >
+            <img
+              src="/playstore.png"
+              alt="Get it on Google Play"
+              className="h-10 w-full object-contain"
+            />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function JenazahEmergencyRequest() {
+  const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
   const mosqueFromNav = location.state?.mosque ?? null;
   const isMosqueLocked = !!mosqueFromNav;
   const [mosque, setMosque] = useState(mosqueFromNav);
   const { userState } = useLocationContext();
+  const urlParamType = searchParams.get("type");
+  const isQrView = urlParamType === "qr";
 
   const {
     control: pickerControl,
@@ -412,10 +494,21 @@ export default function JenazahEmergencyRequest() {
 
   if (submittedCase) {
     return (
-      <div className="min-h-screen space-y-3 pb-2">
-        <BackNavigation title={translate("Funeral Management Application")} />
-        <div className="px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-6 pb-10">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+      <div
+        className={` ${
+          isQrView
+            ? "bg-gradient-to-b from-emerald-50/40 via-white to-white dark:from-emerald-950/10 dark:via-slate-900 dark:to-slate-900"
+            : ""
+        }`}
+      >
+        {isQrView ? (
+          <QrHeader />
+        ) : (
+          <BackNavigation title={translate("Funeral Management Application")} />
+        )}
+
+        <div className="px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-4 pb-10">
+          <div className="relative w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center ring-8 ring-emerald-50/60 dark:ring-emerald-900/10">
             <CheckCircle2 className="w-8 h-8 text-emerald-500" />
           </div>
           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
@@ -427,7 +520,7 @@ export default function JenazahEmergencyRequest() {
             )}
           </p>
 
-          <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3">
+          <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3.5">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
               {translate("Reference No")}
             </p>
@@ -456,23 +549,47 @@ export default function JenazahEmergencyRequest() {
               )}
               {translate("Download PDF")}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate(createPageUrl("JenazahEmergency"))}
-            >
-              {translate("Back")}
-            </Button>
+            {!isQrView && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+              >
+                {translate("Back")}
+              </Button>
+            )}
           </div>
         </div>
+
+        {isQrView && (
+          <div className="pt-2">
+            <AppDownloadBanner />
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen space-y-3 pb-2">
-      <BackNavigation title={translate("Funeral Management Application")} />
+    <div
+      className={`min-h-screen space-y-3 pb-2 ${
+        isQrView
+          ? "bg-gradient-to-b from-emerald-50/40 via-white to-white dark:from-emerald-950/10 dark:via-slate-900 dark:to-slate-900"
+          : ""
+      }`}
+    >
+      {isQrView ? (
+        <QrHeader
+          subtitle={translate(
+            "Submit an emergency funeral request to the mosque in a few steps.",
+          )}
+        />
+      ) : (
+        <BackNavigation title={translate("Funeral Management Application")} />
+      )}
+
+      {isQrView && <AppDownloadBanner />}
 
       <form
         onSubmit={handleSubmit(onSubmit, onInvalid)}
@@ -883,9 +1000,7 @@ export default function JenazahEmergencyRequest() {
                     />
                   </div>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-0">
-                    {translate(
-                      "Contact phone number for this application",
-                    )}
+                    {translate("Contact phone number for this application")}
                   </p>
 
                   <TextInputForm
@@ -955,14 +1070,16 @@ export default function JenazahEmergencyRequest() {
           <div className="flex gap-2 pt-2 pb-6">
             {pageStep === 1 ? (
               <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(createPageUrl("JenazahEmergency"))}
-                  className="flex-1"
-                >
-                  {translate("Cancel")}
-                </Button>
+                {!isQrView && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+                    className="flex-1"
+                  >
+                    {translate("Cancel")}
+                  </Button>
+                )}
                 <Button
                   type="button"
                   onClick={handleNextStep}
