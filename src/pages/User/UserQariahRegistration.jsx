@@ -9,7 +9,6 @@ import {
   Loader2,
   Search,
   RotateCcw,
-  Smartphone,
 } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
 import { Button } from "@/components/ui/button";
@@ -52,50 +51,41 @@ function QrHeader({ title, subtitle }) {
   );
 }
 
-function AppDownloadBanner() {
+// ---- App download footer ----
+// Plain, quiet, no card/background — a hairline divider, muted copy, and the
+// store badges. Sits at the very bottom of the page, after everything else.
+function AppDownloadFooter() {
   return (
-    <div className="px-4 max-w-lg mx-auto w-full">
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-800 shadow-sm shadow-emerald-900/5">
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3.5">
-          <div className="w-11 h-11 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-md shadow-emerald-600/20">
-            <Smartphone className="w-5 h-5 text-white" />
-          </div>
-          <div className="min-w-0 flex-1 text-left">
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              {translate("Get the Qubur App")}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {translate("Manage your Qariah membership anytime")}
-            </p>
-          </div>
-        </div>
-        <div className="h-px bg-slate-100 dark:bg-slate-700" />
-        <div className="flex items-center gap-2 px-4 py-3">
+    <div className="border-t border-slate-100 dark:border-slate-800">
+      <div className="max-w-lg mx-auto w-full px-4 pt-5 pb-8 flex flex-col items-center text-center gap-3">
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          {translate("Get the Qubur App for faster access")}
+        </p>
+        <div className="flex items-center gap-3">
           <a
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Download on the App Store"
-            className="flex-1 transition-transform active:scale-95"
+            className="transition-transform active:scale-95"
           >
             <img
               src="/applestore.png"
               alt="Download on the App Store"
-              className="h-10 w-full object-contain"
+              className="h-9 w-auto object-contain"
             />
           </a>
-          <div className="w-px h-8 bg-slate-100 dark:bg-slate-700" />
           <a
             href={PLAY_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Get it on Google Play"
-            className="flex-1 transition-transform active:scale-95"
+            className="transition-transform active:scale-95"
           >
             <img
               src="/playstore.png"
               alt="Get it on Google Play"
-              className="h-10 w-full object-contain"
+              className="h-9 w-auto object-contain"
             />
           </a>
         </div>
@@ -304,11 +294,7 @@ export default function UserQariahRegistration() {
           </Button>
         </div>
 
-        {isQrView && (
-          <div className="pb-6">
-            <AppDownloadBanner />
-          </div>
-        )}
+        {isQrView && <AppDownloadFooter />}
       </div>
     );
   }
@@ -377,18 +363,14 @@ export default function UserQariahRegistration() {
           </Button>
         </div>
 
-        {isQrView && (
-          <div className="pb-6">
-            <AppDownloadBanner />
-          </div>
-        )}
+        {isQrView && <AppDownloadFooter />}
       </div>
     );
   }
 
   return (
     <div
-      className={`min-h-screen pb-16 ${
+      className={`min-h-screen flex flex-col ${
         isQrView
           ? "bg-gradient-to-b from-emerald-50/40 via-white to-white dark:from-emerald-950/10 dark:via-slate-900 dark:to-slate-900"
           : ""
@@ -405,13 +387,7 @@ export default function UserQariahRegistration() {
         <BackNavigation title={translate("Qariah Registration")} />
       )}
 
-      {isQrView && (
-        <div className="pt-4 pb-1">
-          <AppDownloadBanner />
-        </div>
-      )}
-
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-6">
+      <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-4 space-y-6">
         {!isQrView && (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center">
@@ -647,6 +623,8 @@ export default function UserQariahRegistration() {
           </form>
         )}
       </div>
+
+      {isQrView && <AppDownloadFooter />}
     </div>
   );
 }

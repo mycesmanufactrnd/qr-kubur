@@ -26,7 +26,6 @@ import {
   AlertTriangle,
   MapPin,
   Download,
-  Smartphone,
 } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
@@ -65,50 +64,41 @@ function QrHeader({ subtitle }) {
   );
 }
 
-function AppDownloadBanner() {
+// ---- App download footer ----
+// Plain, quiet, no card/background — a hairline divider, muted copy, and the
+// store badges. Sits at the very bottom of the page, after everything else.
+function AppDownloadFooter() {
   return (
-    <div className="px-4 max-w-lg mx-auto w-full">
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-800 shadow-sm shadow-emerald-900/5">
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3.5">
-          <div className="w-11 h-11 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0 shadow-md shadow-emerald-600/20">
-            <Smartphone className="w-5 h-5 text-white" />
-          </div>
-          <div className="min-w-0 flex-1 text-left">
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-              {translate("Get the Qubur App")}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {translate("Track your application status anytime")}
-            </p>
-          </div>
-        </div>
-        <div className="h-px bg-slate-100 dark:bg-slate-700" />
-        <div className="flex items-center gap-2 px-4 py-3">
+    <div className="border-t border-slate-100 dark:border-slate-800">
+      <div className="max-w-lg mx-auto w-full px-4 pt-5 pb-8 flex flex-col items-center text-center gap-3">
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          {translate("Get the Qubur App for faster access")}
+        </p>
+        <div className="flex items-center gap-3">
           <a
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Download on the App Store"
-            className="flex-1 transition-transform active:scale-95"
+            className="transition-transform active:scale-95"
           >
             <img
               src="/applestore.png"
               alt="Download on the App Store"
-              className="h-10 w-full object-contain"
+              className="h-9 w-auto object-contain"
             />
           </a>
-          <div className="w-px h-8 bg-slate-100 dark:bg-slate-700" />
           <a
             href={PLAY_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Get it on Google Play"
-            className="flex-1 transition-transform active:scale-95"
+            className="transition-transform active:scale-95"
           >
             <img
               src="/playstore.png"
               alt="Get it on Google Play"
-              className="h-10 w-full object-contain"
+              className="h-9 w-auto object-contain"
             />
           </a>
         </div>
@@ -495,7 +485,7 @@ export default function JenazahEmergencyRequest() {
   if (submittedCase) {
     return (
       <div
-        className={` ${
+        className={`min-h-screen flex flex-col ${
           isQrView
             ? "bg-gradient-to-b from-emerald-50/40 via-white to-white dark:from-emerald-950/10 dark:via-slate-900 dark:to-slate-900"
             : ""
@@ -507,7 +497,7 @@ export default function JenazahEmergencyRequest() {
           <BackNavigation title={translate("Funeral Management Application")} />
         )}
 
-        <div className="px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-4 pb-10">
+        <div className="flex-1 px-4 max-w-lg mx-auto w-full flex flex-col items-center text-center gap-4 pt-4 pb-10">
           <div className="relative w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center ring-8 ring-emerald-50/60 dark:ring-emerald-900/10">
             <CheckCircle2 className="w-8 h-8 text-emerald-500" />
           </div>
@@ -562,18 +552,14 @@ export default function JenazahEmergencyRequest() {
           </div>
         </div>
 
-        {isQrView && (
-          <div className="pt-2">
-            <AppDownloadBanner />
-          </div>
-        )}
+        {isQrView && <AppDownloadFooter />}
       </div>
     );
   }
 
   return (
     <div
-      className={`min-h-screen space-y-3 pb-2 ${
+      className={`min-h-screen flex flex-col pb-2 ${
         isQrView
           ? "bg-gradient-to-b from-emerald-50/40 via-white to-white dark:from-emerald-950/10 dark:via-slate-900 dark:to-slate-900"
           : ""
@@ -589,11 +575,9 @@ export default function JenazahEmergencyRequest() {
         <BackNavigation title={translate("Funeral Management Application")} />
       )}
 
-      {isQrView && <AppDownloadBanner />}
-
       <form
         onSubmit={handleSubmit(onSubmit, onInvalid)}
-        className="px-4 space-y-5 max-w-lg mx-auto w-full"
+        className="flex-1 px-4 space-y-5 max-w-lg mx-auto w-full pt-3"
       >
         {isMosqueLocked ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5 space-y-0.5">
@@ -1119,6 +1103,8 @@ export default function JenazahEmergencyRequest() {
           </div>
         )}
       </form>
+
+      {isQrView && <AppDownloadFooter />}
     </div>
   );
 }
