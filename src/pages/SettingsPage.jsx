@@ -44,7 +44,7 @@ import {
 import { trpcClient } from "@/utils/trpc";
 import { usePermissions } from "@/components/PermissionsContext";
 import { useLocationContext } from "@/providers/LocationProvider";
-import { showSuccess } from "@/components/ToastrNotification";
+import { showSuccess, showError } from "@/components/ToastrNotification";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import SettingsPageMobile from "@/pages/Mobile/SettingsPage";
 
@@ -118,10 +118,17 @@ function SettingsPageDesktop() {
       } else {
         const { checkNotifPermission } = await import("@/firebase/firebase");
         const perm = await checkNotifPermission();
-        setNotifPermission(perm === "granted" ? "granted" : perm === "denied" ? "denied" : "default");
+        const resolved = perm === "granted" ? "granted" : perm === "denied" ? "denied" : "default";
+        setNotifPermission(resolved);
+        showError(
+          resolved === "denied"
+            ? translate("Allow notifications in your browser or system settings")
+            : translate("Could not enable notifications. Please try again."),
+        );
       }
     } catch (e) {
       console.error("[FCM] Notification refresh failed:", e);
+      showError(translate("Could not enable notifications. Please try again."));
     } finally {
       setNotifRefreshing(false);
     }
@@ -145,6 +152,19 @@ function SettingsPageDesktop() {
       setIsSigningIn(false);
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { checkNotifPermission } = await import("@/firebase/firebase");
+      const perm = await checkNotifPermission();
+      if (cancelled) return;
+      setNotifPermission(perm === "granted" ? "granted" : perm === "denied" ? "denied" : "default");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let permissionStatus;
