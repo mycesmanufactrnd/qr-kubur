@@ -19,6 +19,8 @@ const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 export const auth = getAuth(app);
 
+export type FCMResult = { token: string | null; reason?: string };
+
 /**
  * Requests push notification permission and returns the device/FCM token.
  * - Native (Capacitor): uses @capacitor/push-notifications (no service worker needed).
@@ -26,6 +28,12 @@ export const auth = getAuth(app);
  * Returns null if permission denied or any step fails.
  */
 export const initFCM = async (): Promise<string | null> => {
+  const { token } = await initFCMDetailed();
+  return token;
+};
+
+/** Same as initFCM(), but also reports *why* it failed — for surfacing to the user/logs. */
+export const initFCMDetailed = async (): Promise<FCMResult> => {
   try {
     if (Capacitor.isNativePlatform()) {
       return await initFCMNative();
@@ -33,41 +41,41 @@ export const initFCM = async (): Promise<string | null> => {
     return await initFCMWeb();
   } catch (e) {
     console.error("[FCM] initFCM error:", e);
-    return null;
+    return { token: null, reason: e?.message || String(e) };
   }
 };
 
-async function initFCMNative(): Promise<string | null> {
+async function initFCMNative(): Promise<FCMResult> {
   const { PushNotifications } = await import("@capacitor/push-notifications");
 
   const permResult = await PushNotifications.requestPermissions();
   if (permResult.receive !== "granted") {
     console.log("[FCM] Native push permission not granted:", permResult.receive);
-    return null;
+    return { token: null, reason: `Permission not granted (${permResult.receive})` };
   }
 
-  return new Promise<string | null>((resolve) => {
+  return new Promise<FCMResult>((resolve) => {
     // Attach listeners BEFORE calling register() — on a refresh, register()
     // can resolve with an already-cached token almost instantly, and if the
     // listeners aren't attached yet the "registration" event is missed.
     const timer = setTimeout(() => {
       PushNotifications.removeAllListeners();
       console.warn("[FCM] Native registration timed out");
-      resolve(null);
+      resolve({ token: null, reason: "Registration timed out after 10s (no response from FCM/APNs)" });
     }, 10_000);
 
     PushNotifications.addListener("registration", (token) => {
       clearTimeout(timer);
       PushNotifications.removeAllListeners();
       localStorage.setItem("fcmToken", token.value);
-      resolve(token.value);
+      resolve({ token: token.value });
     });
 
     PushNotifications.addListener("registrationError", (err) => {
       clearTimeout(timer);
       PushNotifications.removeAllListeners();
       console.error("[FCM] Native registration error:", err);
-      resolve(null);
+      resolve({ token: null, reason: err?.error || JSON.stringify(err) });
     });
 
     PushNotifications.register();
@@ -94,37 +102,42 @@ export const checkNotifPermission = async (): Promise<string> => {
   return "Notification" in window ? Notification.permission : "default";
 };
 
-async function initFCMWeb(): Promise<string | null> {
+async function initFCMWeb(): Promise<FCMResult> {
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
   if (!vapidKey) {
     console.warn("[FCM] VITE_FIREBASE_VAPID_KEY is not set");
-    return null;
+    return { token: null, reason: "VITE_FIREBASE_VAPID_KEY is not set" };
   }
 
   if (!("serviceWorker" in navigator) || !("Notification" in window)) {
     console.warn("[FCM] Service workers or Notifications not supported");
-    return null;
+    return { token: null, reason: "Service workers or Notifications API not supported in this browser" };
   }
 
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
     console.log("[FCM] Notification permission:", permission);
-    return null;
+    return { token: null, reason: `Permission not granted (${permission})` };
   }
 
-  await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
-  const registration = await navigator.serviceWorker.ready;
+  try {
+    await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+    const registration = await navigator.serviceWorker.ready;
 
-  const token = await getToken(messaging, {
-    vapidKey,
-    serviceWorkerRegistration: registration,
-  });
+    const token = await getToken(messaging, {
+      vapidKey,
+      serviceWorkerRegistration: registration,
+    });
 
-  if (token) {
-    localStorage.setItem("fcmToken", token);
-    return token;
+    if (token) {
+      localStorage.setItem("fcmToken", token);
+      return { token };
+    }
+
+    console.warn("[FCM] No token returned — check VAPID key and Firebase Console settings");
+    return { token: null, reason: "No token returned by Firebase (check VAPID key / Firebase Console settings)" };
+  } catch (e) {
+    console.error("[FCM] initFCMWeb error:", e);
+    return { token: null, reason: e?.message || String(e) };
   }
-
-  console.warn("[FCM] No token returned — check VAPID key and Firebase Console settings");
-  return null;
 }

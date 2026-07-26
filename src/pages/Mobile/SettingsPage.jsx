@@ -147,8 +147,8 @@ export default function SettingsPageMobile() {
   const handleNotificationRefresh = async () => {
     setNotifRefreshing(true);
     try {
-      const { initFCM } = await import("@/firebase/firebase");
-      const token = await initFCM();
+      const { initFCMDetailed } = await import("@/firebase/firebase");
+      const { token, reason } = await initFCMDetailed();
       if (token) {
         // Native Capacitor push token — set granted directly (Notification API won't reflect it)
         setNotifPermission("granted");
@@ -170,19 +170,20 @@ export default function SettingsPageMobile() {
         }
         showSuccess(translate("Notifications"), "enabled");
       } else {
+        console.error("[FCM] Notification refresh failed:", reason);
         const { checkNotifPermission } = await import("@/firebase/firebase");
         const perm = await checkNotifPermission();
         const resolved = perm === "granted" ? "granted" : perm === "denied" ? "denied" : "default";
         setNotifPermission(resolved);
-        showError(
+        const baseMessage =
           resolved === "denied"
             ? translate("Allow notifications in your browser or system settings")
-            : translate("Could not enable notifications. Please try again."),
-        );
+            : translate("Could not enable notifications. Please try again.");
+        showError(reason ? `${baseMessage} (${reason})` : baseMessage);
       }
     } catch (e) {
       console.error("[FCM] Notification refresh failed:", e);
-      showError(translate("Could not enable notifications. Please try again."));
+      showError(`${translate("Could not enable notifications. Please try again.")} (${e?.message || String(e)})`);
     } finally {
       setNotifRefreshing(false);
     }
