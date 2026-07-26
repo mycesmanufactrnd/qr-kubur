@@ -51,9 +51,6 @@ function QrHeader({ title, subtitle }) {
   );
 }
 
-// ---- App download footer ----
-// Plain, quiet, no card/background — a hairline divider, muted copy, and the
-// store badges. Sits at the very bottom of the page, after everything else.
 function AppDownloadFooter() {
   return (
     <div className="border-t border-slate-100 dark:border-slate-800">

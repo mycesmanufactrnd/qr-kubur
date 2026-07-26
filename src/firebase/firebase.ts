@@ -46,10 +46,10 @@ async function initFCMNative(): Promise<string | null> {
     return null;
   }
 
-  await PushNotifications.register();
-
   return new Promise<string | null>((resolve) => {
-    // Timeout so we don't hang forever if the OS never fires the event
+    // Attach listeners BEFORE calling register() — on a refresh, register()
+    // can resolve with an already-cached token almost instantly, and if the
+    // listeners aren't attached yet the "registration" event is missed.
     const timer = setTimeout(() => {
       PushNotifications.removeAllListeners();
       console.warn("[FCM] Native registration timed out");
@@ -69,8 +69,30 @@ async function initFCMNative(): Promise<string | null> {
       console.error("[FCM] Native registration error:", err);
       resolve(null);
     });
+
+    PushNotifications.register();
   });
 }
+
+/**
+ * Best-effort read of the *actual* current notification permission.
+ * - Native (Capacitor): queries the OS permission directly, since a failed/timed-out
+ *   registration round-trip doesn't mean the permission itself was revoked.
+ * - Web: falls back to the Notification API.
+ */
+export const checkNotifPermission = async (): Promise<string> => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { PushNotifications } = await import("@capacitor/push-notifications");
+      const result = await PushNotifications.checkPermissions();
+      return result.receive;
+    } catch (e) {
+      console.error("[FCM] checkPermissions failed:", e);
+      return "default";
+    }
+  }
+  return "Notification" in window ? Notification.permission : "default";
+};
 
 async function initFCMWeb(): Promise<string | null> {
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;

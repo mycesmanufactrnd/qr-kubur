@@ -116,7 +116,9 @@ function SettingsPageDesktop() {
         }
         showSuccess(translate("Notifications"), "enabled");
       } else {
-        setNotifPermission("Notification" in window ? Notification.permission : "denied");
+        const { checkNotifPermission } = await import("@/firebase/firebase");
+        const perm = await checkNotifPermission();
+        setNotifPermission(perm === "granted" ? "granted" : perm === "denied" ? "denied" : "default");
       }
     } catch (e) {
       console.error("[FCM] Notification refresh failed:", e);
