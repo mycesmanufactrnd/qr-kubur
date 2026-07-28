@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Search,
-  QrCode,
   BookOpen,
-  Heart,
   Star,
+  Users,
+  Building2,
   MapPin,
   Landmark,
   MoonStar,
@@ -15,6 +14,7 @@ import {
   HelpCircle,
   Newspaper,
   Map,
+  Calendar,
   BadgeCheck,
   Loader2,
   AlertTriangle,
@@ -355,21 +355,15 @@ export default function UserDashboard() {
         <div className="db-quick-grid">
           {[
             {
-              icon: Search,
-              label: translate("Search Grave"),
-              page: "SearchGrave",
-              g: G.ocean,
-            },
-            {
               icon: BookOpen,
               label: translate("Book Tahlil"),
               page: "SearchTahlil",
               g: G.indigo,
             },
             {
-              icon: QrCode,
-              label: translate("Scan QR"),
-              page: "ScanQR",
+              icon: Building2,
+              label: translate("Grave Service"),
+              page: "GraveService",
               g: G.forest,
             },
             {
@@ -379,9 +373,9 @@ export default function UserDashboard() {
               g: G.violet,
             },
             {
-              icon: Heart,
-              label: translate("Donation"),
-              page: "DonationPage",
+              icon: Users,
+              label: translate("Qariah Registration"),
+              page: "UserQariahRegistration",
               g: G.sunset,
             },            
             {
@@ -395,6 +389,12 @@ export default function UserDashboard() {
               label: translate("Map"),
               page: "MapView",
               g: G.sapphire,
+            },
+            {
+              icon: Calendar,
+              label: translate("Islamic Calendar"),
+              page: "IslamicCalendar",
+              g: G.ocean,
             },
             {
               icon: BadgeCheck,

@@ -98,7 +98,12 @@ export default function SearchTahlil() {
     return (
       <div className="space-y-3 pb-6 px-3">
         <BackNavigation title={translate('Request Tahlil')} />
-        <NoDataCardComponent isPage title={translate('No Favorited Tahfiz Found')} />
+        <NoDataCardComponent
+          isPage
+          title={translate('No Favorited Tahfiz Found')}
+          redirectTo="SearchTahfiz"
+          redirectLabel={translate('Search Tahfiz')}
+        />
       </div>
     );
   }
@@ -138,7 +143,11 @@ export default function SearchTahlil() {
       ) : locationDenied ? (
         <NoDataCardComponent isNoGPS isPage/>
       ) : !visibleList.length ? (
-        <NoDataCardComponent isPage />
+        <NoDataCardComponent
+          isPage
+          redirectTo="SearchTahfiz"
+          redirectLabel={translate('Search Tahfiz')}
+        />
       ) : (
         <div className="space-y-3">
           {visibleList.slice(0, displayedCount).map((tahfiz) => (

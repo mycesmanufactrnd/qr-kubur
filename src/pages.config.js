@@ -16,6 +16,7 @@ import Favorites from '@/pages/User/Favorites';
 import SearchGrave from '@/pages/User/SearchGrave';
 import UserQariahRegistration from '@/pages/User/UserQariahRegistration';
 import GraveDetails from '@/pages/GraveDetails';
+import GraveService from '@/pages/GraveService';
 import DeadPersonDetails from '@/pages/DeadPersonDetails';
 import SearchTahfiz from '@/pages/SearchTahfiz';
 import TahfizDetails from '@/pages/TahfizDetails';
@@ -130,6 +131,7 @@ export const PAGES = {
     "SearchGrave": SearchGrave,
     "UserQariahRegistration": UserQariahRegistration,
     "GraveDetails": GraveDetails,
+    "GraveService": GraveService,
     "DeadPersonDetails": DeadPersonDetails,
     "SearchTahfiz": SearchTahfiz,
     "TahfizDetails": TahfizDetails,

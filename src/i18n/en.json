@@ -1052,6 +1052,9 @@
   "Can Be Donated": "Can Be Donated",
   "config": "config",
   "Grave Service": "Grave Service",
+  "Available Grave Services": "Available Grave Services",
+  "Nearest": "Nearest",
+  "No graves found in this state": "No graves found in this state",
   "Grave Services": "Grave Services",
   "Add Service": "Add Service",
   "No grave service": "No grave service",
@@ -1062,6 +1065,7 @@
   "Select type": "Select type",
   "Select parent": "Select parent",
   "Select state": "Select state",
+  "Select Location": "Select Location",
   "Organsiation Details": "Organisation Details",
   "Confirm delete": "Confirm delete",
 
