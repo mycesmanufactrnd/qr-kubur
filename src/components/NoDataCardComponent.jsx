@@ -9,12 +9,14 @@ import {
   WifiOff,
   LocateFixed,
   Loader2,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { translate } from "@/utils/translations";
 import { useLocationContext } from "@/providers/LocationProvider";
+import { createPageUrl } from "@/utils";
 
 function GPSPulse() {
   return (
@@ -64,6 +66,8 @@ export default function NoDataCardComponent({
   description = translate("No results match your search"),
   isPage = false,
   isNoGPS = false,
+  redirectTo,
+  redirectLabel,
 }) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
@@ -186,6 +190,15 @@ export default function NoDataCardComponent({
                     : isGpsConnected
                       ? translate("Refresh GPS")
                       : translate("Enable GPS")}
+                </Button>
+              ) : redirectTo ? (
+                <Button
+                  size="sm"
+                  onClick={() => navigate(createPageUrl(redirectTo))}
+                  className="gap-1.5 rounded-xl text-xs font-medium border-0 bg-slate-800 dark:bg-slate-600 hover:bg-slate-700 dark:hover:bg-slate-500 text-white"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  {redirectLabel || translate("Browse")}
                 </Button>
               ) : (
                 <Button

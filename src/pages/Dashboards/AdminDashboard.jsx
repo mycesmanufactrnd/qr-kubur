@@ -28,6 +28,7 @@ import {
   Package,
   Bell,
   RefreshCw,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,12 @@ function AdminDashboardDesktop() {
     if (isOrgGraveService) arr.push("QUO");
 
     return arr;
-  }, [isOrgCanManageGrave, isOrgCanBeDonated, isOrgCanManageMosque, isOrgGraveService]);
+  }, [
+    isOrgCanManageGrave,
+    isOrgCanBeDonated,
+    isOrgCanManageMosque,
+    isOrgGraveService,
+  ]);
 
   const isReady = !!currentUser?.organisation?.id;
 
@@ -111,7 +117,8 @@ function AdminDashboardDesktop() {
   const qariahNotificationCount = CQNStats?.qariahNotificationCount ?? 0;
   const jenazahCaseCount = CQNStats?.jenazahCaseCount ?? 0;
   const jenazahCasePendingCount = CQNStats?.jenazahCasePendingCount ?? 0;
-  const deathCharityMemberPendingCount = CQNStats?.deathCharityMemberPendingCount ?? 0;
+  const deathCharityMemberPendingCount =
+    CQNStats?.deathCharityMemberPendingCount ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
   const deathCharityTotalPayout = CMCStats?.deathCharityTotalPayout ?? 0;
@@ -299,7 +306,7 @@ function AdminDashboardDesktop() {
   }
 
   if (!hasAdminAccess || isTahfizAdmin) {
-    return <AccessDeniedComponent isPage/>;
+    return <AccessDeniedComponent isPage />;
   }
 
   return (
@@ -330,7 +337,9 @@ function AdminDashboardDesktop() {
                 title={translate("Refresh")}
                 className="border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
               >
-                <RefreshCw className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
+                />
               </Button>
               {isSuperAdmin ? (
                 <>
@@ -392,16 +401,30 @@ function AdminDashboardDesktop() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {quickStats.map((stat, i) => (
             <Link key={i} to={createPageUrl(stat.page)} className="block group">
-              <Card className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}>
+              <Card
+                className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}
+              >
                 <CardContent className="p-6">
                   <div className="flex justify-between">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
+                    <div
+                      className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}
+                    >
                       <stat.icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>{stat.label}</p>
-                      <p className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}>
-                        {stat.loading ? "—" : stat.key === "money" ? `${formatRM(stat.value)}` : stat.value.toLocaleString()}
+                      <p
+                        className={`text-sm font-medium mb-1 ${stat.textColor}`}
+                      >
+                        {stat.label}
+                      </p>
+                      <p
+                        className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}
+                      >
+                        {stat.loading
+                          ? "—"
+                          : stat.key === "money"
+                            ? `${formatRM(stat.value)}`
+                            : stat.value.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -422,7 +445,10 @@ function AdminDashboardDesktop() {
               <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Link to={createPageUrl("ManageQariahMember")} className="block group">
+              <Link
+                to={createPageUrl("ManageQariahMember")}
+                className="block group"
+              >
                 <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 hover:scale-105">
                   <CardContent className="p-6">
                     <div className="flex justify-between">
@@ -434,14 +460,19 @@ function AdminDashboardDesktop() {
                           {translate("Total Ahli Qariah")}
                         </p>
                         <p className="text-right text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                          {isCQNLoading ? "—" : qariahMemberCount.toLocaleString()}
+                          {isCQNLoading
+                            ? "—"
+                            : qariahMemberCount.toLocaleString()}
                         </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </Link>
-              <Link to={createPageUrl("ManageNotifyDeathQariah")} className="block group">
+              <Link
+                to={createPageUrl("ManageNotifyDeathQariah")}
+                className="block group"
+              >
                 <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 hover:scale-105">
                   <CardContent className="p-6">
                     <div className="flex justify-between">
@@ -453,14 +484,19 @@ function AdminDashboardDesktop() {
                           {translate("Notifikasi Kematian")}
                         </p>
                         <p className="text-right text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                          {isCQNLoading ? "—" : qariahNotificationCount.toLocaleString()}
+                          {isCQNLoading
+                            ? "—"
+                            : qariahNotificationCount.toLocaleString()}
                         </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </Link>
-              <Link to={createPageUrl("ManageJenazahCase")} className="block group">
+              <Link
+                to={createPageUrl("ManageJenazahCase")}
+                className="block group"
+              >
                 <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/20 dark:to-orange-900/20 hover:scale-105">
                   <CardContent className="p-6">
                     <div className="flex justify-between">
@@ -472,7 +508,9 @@ function AdminDashboardDesktop() {
                           {translate("Kes Jenazah")}
                         </p>
                         <p className="text-right text-3xl font-bold bg-gradient-to-r from-rose-600 to-orange-600 dark:from-rose-400 dark:to-orange-400 bg-clip-text text-transparent">
-                          {isCQNLoading ? "—" : jenazahCaseCount.toLocaleString()}
+                          {isCQNLoading
+                            ? "—"
+                            : jenazahCaseCount.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -495,17 +533,35 @@ function AdminDashboardDesktop() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {deathCharity.map((stat, i) => (
-                <Link key={i} to={createPageUrl(stat.page)} className="block group">
-                  <Card className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}>
+                <Link
+                  key={i}
+                  to={createPageUrl(stat.page)}
+                  className="block group"
+                >
+                  <Card
+                    className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}
+                  >
                     <CardContent className="p-6">
                       <div className="flex justify-between">
-                        <div className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
+                        <div
+                          className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}
+                        >
                           <stat.icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>{stat.label}</p>
-                          <p className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}>
-                            {stat.loading ? "—" : stat.key === "money" ? `${formatRM(stat.value)}` : stat.value.toLocaleString()}
+                          <p
+                            className={`text-sm font-medium mb-1 ${stat.textColor}`}
+                          >
+                            {stat.label}
+                          </p>
+                          <p
+                            className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}
+                          >
+                            {stat.loading
+                              ? "—"
+                              : stat.key === "money"
+                                ? `${formatRM(stat.value)}`
+                                : stat.value.toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -529,17 +585,35 @@ function AdminDashboardDesktop() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {quotations.map((stat, i) => (
-                <Link key={i} to={createPageUrl(stat.page)} className="block group">
-                  <Card className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}>
+                <Link
+                  key={i}
+                  to={createPageUrl(stat.page)}
+                  className="block group"
+                >
+                  <Card
+                    className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}
+                  >
                     <CardContent className="p-6">
                       <div className="flex justify-between">
-                        <div className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>
+                        <div
+                          className={`w-12 h-12 bg-gradient-to-br ${stat.iconGradient} rounded-xl flex items-center justify-center mb-4 shadow-lg`}
+                        >
                           <stat.icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className={`text-sm font-medium mb-1 ${stat.textColor}`}>{stat.label}</p>
-                          <p className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}>
-                            {stat.loading ? "—" : stat.key === "money" ? `${formatRM(stat.value)}` : stat.value.toLocaleString()}
+                          <p
+                            className={`text-sm font-medium mb-1 ${stat.textColor}`}
+                          >
+                            {stat.label}
+                          </p>
+                          <p
+                            className={`text-right text-3xl font-bold bg-gradient-to-r ${stat.textGradient} bg-clip-text text-transparent`}
+                          >
+                            {stat.loading
+                              ? "—"
+                              : stat.key === "money"
+                                ? `${formatRM(stat.value)}`
+                                : stat.value.toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -575,11 +649,19 @@ function AdminDashboardDesktop() {
                   <Card className="border-2 dark:border-slate-700 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300 hover:shadow-md">
                     <CardContent className="p-5">
                       <div className="flex items-center justify-between mb-3">
-                        <div className={`p-2.5 rounded-lg bg-${item.color}-100`}>
-                          <item.icon className={`w-5 h-5 text-${item.color}-600`} />
+                        <div
+                          className={`p-2.5 rounded-lg bg-${item.color}-100`}
+                        >
+                          <item.icon
+                            className={`w-5 h-5 text-${item.color}-600`}
+                          />
                         </div>
                         <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                          {item.loading ? <InlineLoadingComponent /> : item.value}
+                          {item.loading ? (
+                            <InlineLoadingComponent />
+                          ) : (
+                            item.value
+                          )}
                         </p>
                       </div>
                       <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -600,7 +682,11 @@ function AdminDashboardDesktop() {
                         {translate("Verified Donation")}
                       </p>
                       <p className="text-3xl font-bold text-green-900 dark:text-green-300">
-                        {isDDVLoading ? <InlineLoadingComponent /> : `${formatRM(donationVerified)}`}
+                        {isDDVLoading ? (
+                          <InlineLoadingComponent />
+                        ) : (
+                          `${formatRM(donationVerified)}`
+                        )}
                       </p>
                     </div>
                     <Badge
@@ -631,25 +717,85 @@ function AdminDashboardDesktop() {
                   {[
                     ...(isOrgCanManageGrave
                       ? [
-                          { label: translate("Manage Graves"), page: "ManageGraves", icon: MapPin, color: "emerald" },
-                          { label: translate("Manage Deceased"), page: "ManageDeadPersons", icon: Users, color: "blue" },
+                          {
+                            label: translate("Manage Graves"),
+                            page: "ManageGraves",
+                            icon: MapPin,
+                            color: "emerald",
+                          },
+                          {
+                            label: translate("Manage Deceased"),
+                            page: "ManageDeadPersons",
+                            icon: Users,
+                            color: "blue",
+                          },
                         ]
                       : []),
-                    { label: translate("Manage Organisations"), page: "ManageOrganisations", icon: Building2, color: "violet" },
-                    { label: translate("Payment Config"), page: "ManagePaymentConfig", icon: CreditCard, color: "emerald" },
+                    {
+                      label: translate("Manage Organisations"),
+                      page: "ManageOrganisations",
+                      icon: Building2,
+                      color: "violet",
+                    },
+                    {
+                      label: translate("Payment Config"),
+                      page: "ManagePaymentConfig",
+                      icon: CreditCard,
+                      color: "emerald",
+                    },
                     ...(isOrgCanBeDonated
-                      ? [{ label: translate("Manage Donations"), page: "ManageDonations", icon: Heart, color: "red" }]
+                      ? [
+                          {
+                            label: translate("Manage Donations"),
+                            page: "ManageDonations",
+                            icon: Heart,
+                            color: "red",
+                          },
+                        ]
                       : []),
-                    { label: translate("Manage Users"), page: "ManageUsers", icon: Users, color: "indigo" },
-                    { label: translate("Manage Permissions"), page: "ManagePermissions", icon: UserCheck, color: "purple" },
+                    {
+                      label: translate("Manage Users"),
+                      page: "ManageUsers",
+                      icon: Users,
+                      color: "indigo",
+                    },
+                    {
+                      label: translate("Manage Permissions"),
+                      page: "ManagePermissions",
+                      icon: UserCheck,
+                      color: "purple",
+                    },
                     ...(isOrgCanManageMosque
                       ? [
-                          { label: translate("Manage Mosque"), page: "ManageMosques", icon: Landmark, color: "stone" },
-                          { label: translate("Manage Activity Posts"), page: "ManageActivityPosts", icon: List, color: "amber" },
+                          {
+                            label: translate("Manage Mosque"),
+                            page: "ManageMosques",
+                            icon: Landmark,
+                            color: "stone",
+                          },
+                          {
+                            label: translate("Manage Activity Posts"),
+                            page: "ManageActivityPosts",
+                            icon: List,
+                            color: "amber",
+                          },
+                          {
+                            label: translate("Manage Inventory"),
+                            page: "InventoryDashboard",
+                            icon: BarChart3,
+                            color: "emerald",
+                          },
                         ]
                       : []),
                     ...(isOrgGraveService
-                      ? [{ label: translate("Manage Quotations"), page: "ManageQuotations", icon: ClipboardList, color: "sky" }]
+                      ? [
+                          {
+                            label: translate("Manage Quotations"),
+                            page: "ManageQuotations",
+                            icon: ClipboardList,
+                            color: "sky",
+                          },
+                        ]
                       : []),
                   ].map((action, i) => (
                     <Link key={i} to={createPageUrl(action.page)}>
@@ -657,7 +803,9 @@ function AdminDashboardDesktop() {
                         variant="ghost"
                         className="w-full justify-start hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
                       >
-                        <action.icon className={`w-4 h-4 mr-3 text-${action.color}-600 group-hover:scale-110 transition-transform`} />
+                        <action.icon
+                          className={`w-4 h-4 mr-3 text-${action.color}-600 group-hover:scale-110 transition-transform`}
+                        />
                         <span className="text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
                           {action.label}
                         </span>

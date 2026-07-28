@@ -25,6 +25,7 @@ import {
   Bell,
   ChevronRight,
   RefreshCw,
+  BarChart3,
 } from "lucide-react";
 import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
@@ -58,9 +59,14 @@ export default function MobileAdminDashboard() {
     if (isOrgCanBeDonated) arr.push("DDV");
     if (isOrgCanManageMosque) arr.push("CMC", "CQN");
     if (isOrgGraveService) arr.push("QUO");
-    
+
     return arr;
-  }, [isOrgCanManageGrave, isOrgCanBeDonated, isOrgCanManageMosque, isOrgGraveService]);
+  }, [
+    isOrgCanManageGrave,
+    isOrgCanBeDonated,
+    isOrgCanManageMosque,
+    isOrgGraveService,
+  ]);
 
   const isReady = !!currentUser?.organisation?.id;
 
@@ -300,6 +306,12 @@ export default function MobileAdminDashboard() {
             icon: List,
             color: "amber",
           },
+          {
+            label: translate("Manage Inventory"),
+            page: "InventoryDashboard",
+            icon: BarChart3,
+            color: "emerald",
+          },
         ]
       : []),
     ...(isOrgGraveService
@@ -341,7 +353,10 @@ export default function MobileAdminDashboard() {
               title={translate("Refresh")}
               className="w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 disabled:opacity-50"
             >
-              <RefreshCw size={13} className={isRefetching ? "animate-spin" : ""} />
+              <RefreshCw
+                size={13}
+                className={isRefetching ? "animate-spin" : ""}
+              />
             </button>
             {isSuperAdmin && (
               <>
@@ -350,14 +365,14 @@ export default function MobileAdminDashboard() {
                   className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600 no-underline"
                 >
                   <Sparkles size={11} />
-                  Super
+                  {translate("Super Admin")}
                 </Link>
                 <Link
                   to={createPageUrl("TahfizDashboard")}
                   className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 no-underline"
                 >
                   <BookOpen size={11} />
-                  Tahfiz
+                  {translate("Tahfiz")}
                 </Link>
               </>
             )}
@@ -372,8 +387,8 @@ export default function MobileAdminDashboard() {
             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
             <span className="text-[13px] text-amber-800 dark:text-amber-300 flex-1">
               {totalPendingQuo > 0
-                ? `${totalPendingQuo} quotation${totalPendingQuo > 1 ? "s" : ""} pending review`
-                : "All quotations are up to date"}
+                ? `${totalPendingQuo} ${translate("quotation(s) pending review")}`
+                : translate("All quotations are up to date")}
             </span>
             <Bell size={14} className="text-amber-600 dark:text-amber-400" />
           </div>

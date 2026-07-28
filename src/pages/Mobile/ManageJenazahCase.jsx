@@ -720,6 +720,12 @@ function CaseDetailSheet({
 
   const onApproveSubmit = handleDeceasedSubmit(async (formData) => {
     try {
+      const selectedGrave = graves.find(
+        (grave) => Number(grave.id) === Number(formData.grave),
+      );
+      const latitude = selectedGrave?.latitude != null ? parseFloat(selectedGrave.latitude) : null;
+      const longitude = selectedGrave?.longitude != null ? parseFloat(selectedGrave.longitude) : null;
+
       await upsertDeadPerson.mutateAsync({
         name: d.deceasedFullname ?? "",
         icnumber: icRaw,
@@ -728,8 +734,8 @@ function CaseDetailSheet({
         causeofdeath: formData.causeofdeath || null,
         biography: null,
         photourl: null,
-        latitude: null,
-        longitude: null,
+        latitude,
+        longitude,
         heirname: formData.heirname || null,
         heirphoneno: formData.heirphoneno || null,
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,

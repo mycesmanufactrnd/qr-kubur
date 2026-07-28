@@ -1,7 +1,8 @@
 //@ts-nocheck
 import * as XLSX from "xlsx";
+import { In } from "typeorm";
 import { AppDataSource } from "../datasource.js";
-import { Grave, Mosque, Organisation, TahfizCenter, User } from "../db/entities.js";
+import { DeadPerson, Grave, Mosque, Organisation, TahfizCenter, User } from "../db/entities.js";
 import { GraveStatus } from "../db/enums.js";
 
 /**
@@ -237,4 +238,79 @@ export async function bulkImportTahfiz(
   }
 
   return { count: centers.length, errors };
+}
+
+function mapRowToDeadPerson(
+  row: Record<string, any>,
+  createdbyId: number | null | undefined,
+  grave: Grave | null,
+) {
+  let latitude = safeFloat(row.latitude);
+  let longitude = safeFloat(row.longitude);
+
+  // No coordinates supplied — fall back to the grave/cemetery's own coordinates.
+  if (latitude == null && grave?.latitude != null) latitude = grave.latitude;
+  if (longitude == null && grave?.longitude != null) longitude = grave.longitude;
+
+  return {
+    name: String(row.name || "").trim() || null,
+    icnumber: row.icnumber ? String(row.icnumber).replace(/-/g, "").trim() : null,
+    dateofbirth: String(row.dateofbirth).trim(),
+    dateofdeath: String(row.dateofdeath).trim(),
+    causeofdeath: row.causeofdeath ? String(row.causeofdeath).trim() : null,
+    grave: grave ?? null,
+    gravelot: row.gravelot ? String(row.gravelot).trim() : null,
+    biography: row.biography ? String(row.biography).trim() : null,
+    latitude,
+    longitude,
+    createdbyId: createdbyId ?? null,
+  };
+}
+
+export async function bulkImportDeadPersons(
+  buffer: Buffer,
+  createdbyId?: number | null,
+): Promise<BulkImportResult> {
+  const rows = parseSpreadsheet(buffer);
+  const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
+  const graveRepo = AppDataSource.getRepository(Grave);
+
+  const graveIds = [...new Set(rows.map((row) => safeInt(row.grave_id, 0)).filter((id) => id > 0))];
+  const graves = graveIds.length > 0 ? await graveRepo.findBy({ id: In(graveIds) }) : [];
+  const gravesById = new Map(graves.map((g) => [g.id, g]));
+
+  const errors: string[] = [];
+  const people: Partial<DeadPerson>[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNum = i + 2;
+
+    if (!row.name || String(row.name).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "name"`);
+      continue;
+    }
+    if (!row.dateofbirth || String(row.dateofbirth).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "dateofbirth"`);
+      continue;
+    }
+    if (!row.dateofdeath || String(row.dateofdeath).trim() === "") {
+      errors.push(`Row ${rowNum}: missing required field "dateofdeath"`);
+      continue;
+    }
+
+    const graveId = safeInt(row.grave_id, 0);
+    if (graveId > 0 && !gravesById.has(graveId)) {
+      errors.push(`Row ${rowNum}: grave_id ${graveId} not found`);
+      continue;
+    }
+
+    people.push(mapRowToDeadPerson(row, createdbyId, graveId > 0 ? gravesById.get(graveId) : null));
+  }
+
+  if (people.length > 0) {
+    await deadPersonRepo.save(people as DeadPerson[]);
+  }
+
+  return { count: people.length, errors };
 }

@@ -940,6 +940,12 @@ export default function MobileManageQariahMember() {
         return;
       }
 
+      const selectedGrave = deceasedGraves.items.find(
+        (grave) => Number(grave.id) === Number(formData.grave),
+      );
+      const latitude = selectedGrave?.latitude != null ? parseFloat(selectedGrave.latitude) : null;
+      const longitude = selectedGrave?.longitude != null ? parseFloat(selectedGrave.longitude) : null;
+
       await upsertDeadPersonMutation.mutateAsync({
         name: formData.fullname,
         icnumber: formData.icnumber,
@@ -948,8 +954,8 @@ export default function MobileManageQariahMember() {
         causeofdeath: formData.causeofdeath,
         biography: null,
         photourl: null,
-        latitude: null,
-        longitude: null,
+        latitude,
+        longitude,
         heirname: formData.heirname,
         heirphoneno: formData.heirphoneno,
         grave: { id: Number(formData.grave) },

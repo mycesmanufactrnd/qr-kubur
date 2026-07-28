@@ -166,44 +166,9 @@ function LayoutContent({ children, currentPageName }) {
             page: "ManageDeadPersons",
           },
           {
-            name: translate("Inventory"),
+            name: translate("Manage Inventory"),
             icon: BarChart3,
             page: "InventoryDashboard",
-          },
-          {
-            name: translate("Inventory Items"),
-            icon: Package,
-            page: "ManageInventoryItems",
-          },
-          {
-            name: translate("Inventory Packages"),
-            icon: Boxes,
-            page: "ManageInventoryPackages",
-          },
-          {
-            name: translate("Stock In"),
-            icon: TrendingUp,
-            page: "InventoryStockIn",
-          },
-          {
-            name: translate("Stock Out"),
-            icon: TrendingDown,
-            page: "InventoryStockOut",
-          },
-          {
-            name: translate("Tx History"),
-            icon: History,
-            page: "InventoryHistory",
-          },
-          {
-            name: translate("Stock Audit"),
-            icon: ClipboardCheck,
-            page: "InventoryAudit",
-          },
-          {
-            name: translate("Inv. Reports"),
-            icon: FileBarChart2,
-            page: "InventoryReports",
           },
         ]
       : []),
@@ -350,7 +315,7 @@ function LayoutContent({ children, currentPageName }) {
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-3 py-2 border-b">
                   <p className="text-sm font-medium">
-                    {currentUser?.fullname || "User"}
+                    {currentUser?.fullname || translate("User")}
                   </p>
                   <p className="text-xs text-gray-500">{currentUser?.email}</p>
                   <p className="text-xs text-emerald-600 capitalize">
@@ -388,7 +353,7 @@ function LayoutContent({ children, currentPageName }) {
           >
             <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
               <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                Menu
+                {translate("Menu")}
               </h2>
               <Button
                 variant="ghost"
@@ -499,7 +464,7 @@ function LayoutContent({ children, currentPageName }) {
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-3 py-2 border-b">
                       <p className="text-sm font-medium">
-                        {currentUser.fullname || "User"}
+                        {currentUser.fullname || translate("User")}
                       </p>
                       <p className="text-xs text-gray-500">
                         {currentUser.email}

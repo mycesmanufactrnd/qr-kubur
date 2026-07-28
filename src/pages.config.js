@@ -12,6 +12,7 @@ import AppUserLogin from '@/pages/AppUserLogin';
 import ImpersonateUser from '@/pages/ImpersonateUser';
 
 import ScanQR from '@/pages/ScanQR';
+import Favorites from '@/pages/User/Favorites';
 import SearchGrave from '@/pages/User/SearchGrave';
 import UserQariahRegistration from '@/pages/User/UserQariahRegistration';
 import GraveDetails from '@/pages/GraveDetails';
@@ -125,6 +126,7 @@ export const PAGES = {
     "ImpersonateUser": ImpersonateUser,
 
     "ScanQR": ScanQR,
+    "Favorites": Favorites,
     "SearchGrave": SearchGrave,
     "UserQariahRegistration": UserQariahRegistration,
     "GraveDetails": GraveDetails,

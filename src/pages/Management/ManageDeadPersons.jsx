@@ -162,6 +162,8 @@ function ManageDeadPersonsDesktop() {
     URL.revokeObjectURL(url);
   };
 
+  const [bulkUploading, setBulkUploading] = useState(false);
+
   const handleUploadFileDrop = (e) => {
     e.preventDefault();
     setUploadDragOver(false);
@@ -169,8 +171,48 @@ function ManageDeadPersonsDesktop() {
     if (file) setUploadFile(file);
   };
 
-  const handleSaveUpload = () => {
-    console.log("Uploaded file:", uploadFile);
+  const handleSaveUpload = async () => {
+    if (!uploadFile) return;
+    setBulkUploading(true);
+    try {
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        localStorage.getItem("accessToken");
+
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const res = await fetch("/api/upload/deadpersons/bulk", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showError(data.error || translate("Import failed"));
+        return;
+      }
+
+      const { count, errors } = data;
+      if (errors?.length > 0) {
+        showError(
+          `${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`,
+        );
+      } else {
+        showSuccess(`${count} ${translate("deceased records imported successfully")}`);
+      }
+
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      refetchDeadPersons();
+    } catch (err) {
+      console.error(err);
+      showError(translate("Import failed"));
+    } finally {
+      setBulkUploading(false);
+    }
   };
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
 
@@ -210,6 +252,7 @@ function ManageDeadPersonsDesktop() {
     deadPersonsList,
     totalPages,
     isLoading: isLoadingDeadPerson,
+    refetch: refetchDeadPersons,
   } = useGetDeadPersonPaginated({
     page: urlPage,
     pageSize: itemsPerPage,
@@ -757,11 +800,11 @@ function ManageDeadPersonsDesktop() {
             <Button
               type="button"
               className="bg-amber-600 hover:bg-amber-700 text-white"
-              disabled={!uploadFile}
+              disabled={!uploadFile || bulkUploading}
               onClick={handleSaveUpload}
             >
               <Save className="w-4 h-4 mr-2" />
-              {translate("Save")}
+              {bulkUploading ? translate("Uploading...") : translate("Save")}
             </Button>
           </DialogFooter>
         </DialogContent>

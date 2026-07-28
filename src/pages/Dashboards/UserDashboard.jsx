@@ -5,7 +5,9 @@ import {
   QrCode,
   BookOpen,
   Heart,
+  Star,
   MapPin,
+  Landmark,
   MoonStar,
   Sun,
   Globe,
@@ -19,7 +21,7 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
-import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton";
+// import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton"; // no longer needed — favorites now live on their own page
 import doaBanners from "./DailyDoaBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
@@ -360,7 +362,7 @@ export default function UserDashboard() {
             },
             {
               icon: BookOpen,
-              label: translate("Tahlil"),
+              label: translate("Book Tahlil"),
               page: "SearchTahlil",
               g: G.indigo,
             },
@@ -371,9 +373,9 @@ export default function UserDashboard() {
               g: G.forest,
             },
             {
-              icon: MapPin,
-              label: translate("Search Tahfiz"),
-              page: "SearchTahfiz",
+              icon: Star,
+              label: translate("Favorites"),
+              page: "Favorites",
               g: G.violet,
             },
             {
@@ -514,6 +516,15 @@ export default function UserDashboard() {
               accent: "#14a07a",
             },
             {
+              icon: Landmark,
+              name: translate("Search Tahfiz"),
+              desc: translate("Nearby tahfiz centers"),
+              page: "SearchTahfiz",
+              iconColor: "#5e2ced",
+              iconBg: "#f3ecfd",
+              accent: "#5e2ced",
+            },
+            {
               icon: Globe,
               name: translate("Heritage Site"),
               desc: translate("Islamic heritage & history sites"),
@@ -543,7 +554,7 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      <DraggableFloatingButton />
+      {/* <DraggableFloatingButton /> */}
     </div>
   );
 }
