@@ -238,6 +238,8 @@
   "Donation Verified": "Donation Verified",
   "Awaiting Verification": "Awaiting Verification",
   "Payment Method": "Payment Method",
+  "Payment method not yet configured": "Payment method not yet configured",
+  "Not yet configured": "Not yet configured",
   "Receipt": "Receipt",
   "View Receipt": "View Receipt",
   "Anonymous": "Anonymous",
@@ -375,6 +377,8 @@
   "years":"years",
 
   "Donation Recipient":"Donation Recipient",
+  "Choose Recipient": "Choose Recipient",
+  "No recipient found nearby": "No recipient found nearby",
   "Other amount":"Other amount",
   "Donor Information (Optional)":"Donor Information (Optional)",
   "Email for confirmation":"Email for confirmation",

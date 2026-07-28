@@ -1,33 +1,17 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo, useRef } from "react";
 import { openPaymentUrl } from "@/utils/payment";
-import {
-  Heart,
-  Building2,
-  CreditCard,
-  Search,
-  MapPin,
-  User,
-  Info,
-  XCircle,
-  ChevronRight,
-} from "lucide-react";
+import { Heart, Building2, CreditCard, User, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   showError,
   showSuccess,
   showWarning,
 } from "@/components/ToastrNotification";
 import BackNavigation from "@/components/BackNavigation";
+import DonationFilter from "@/components/DonationFilter";
 import {
   DONATION_AMOUNTS,
   normalizeState,
@@ -51,8 +35,6 @@ import { activityLogError, clearQueryParams } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { userGoogleAccess } from "@/utils/auth";
-
-const MAX_VISIBLE_RECIPIENTS = 3;
 
 function Section({
   title,
@@ -86,47 +68,12 @@ function Section({
   );
 }
 
-function TypeToggle({ value, onChange }) {
-  const options = [
-    {
-      value: "organisation",
-      label: translate("Organisation"),
-      icon: Building2,
-    },
-    { value: "tahfiz", label: translate("Tahfiz Center"), icon: Heart },
-  ];
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      {options.map((opt) => {
-        const isActive = value === opt.value;
-        const Icon = opt.icon;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all active:scale-95 ${
-              isActive
-                ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
-                : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-emerald-300 hover:bg-emerald-50"
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function DonationPage() {
   const { googleUser } = userGoogleAccess();
   const hasAppliedUrlRecipient = useRef(false);
-  const searchDebounceRef = useRef(null);
+  const hasAutoSelectedNearest = useRef(false);
   const [searchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterName, setFilterName] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
   const [selectedState, setSelectedState] = useState(() => {
     const rawState = searchParams.get("state");
     if (!rawState || rawState === "nearby") return "nearby";
@@ -197,14 +144,6 @@ export default function DonationPage() {
   useEffect(() => {
     if (locationDenied) showWarning(translate("Location not available"));
   }, [locationDenied]);
-
-  useEffect(() => {
-    clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      setFilterName(searchQuery);
-    }, 350);
-    return () => clearTimeout(searchDebounceRef.current);
-  }, [searchQuery]);
 
   const baseAmount = useMemo(
     () => Number(customAmount || amount) || 0,
@@ -331,10 +270,9 @@ export default function DonationPage() {
         ? { latitude: userLocation.lat, longitude: userLocation.lng }
         : null,
       selectedState === "nearby" ? userState : selectedState,
-      filterName,
+      undefined,
       true,
       true,
-      MAX_VISIBLE_RECIPIENTS,
     );
 
   const { data: tahfizCenters = [], isLoading: isTahfizLoading } =
@@ -345,10 +283,17 @@ export default function DonationPage() {
           : null,
       filterState: selectedState === "nearby" ? userState : selectedState,
       isTahlilServiceOnly: false,
-      filterName,
       filterHasPaymentConfig: true,
-      limit: MAX_VISIBLE_RECIPIENTS,
     });
+
+  const isPreselected = !!urlParamId && !!urlParamType;
+  const isListLoading = isOrgLoading || isTahfizLoading;
+  const recipientList =
+    recipientType === "organisation" ? organisations : tahfizCenters;
+
+  const selectedRecipientObj = recipientList.find(
+    (r) => String(r.id) === String(selectedRecipient),
+  );
 
   useEffect(() => {
     if (!urlParamType || !["tahfiz", "organisation"].includes(urlParamType))
@@ -356,6 +301,16 @@ export default function DonationPage() {
     setValue("recipientType", urlParamType);
     setValue("paymentMethod", "");
   }, [urlParamType, setValue]);
+
+  // Auto-pick the nearest recipient (list is already sorted nearest-first by
+  // the backend) once, on first load — after that the user is in control via
+  // the DonationFilter sheet.
+  useEffect(() => {
+    if (isPreselected || hasAutoSelectedNearest.current) return;
+    if (isListLoading || recipientList.length === 0) return;
+    setValue("selectedRecipient", String(recipientList[0].id));
+    hasAutoSelectedNearest.current = true;
+  }, [isPreselected, isListLoading, recipientList, setValue]);
 
   useEffect(() => {
     if (hasAppliedUrlRecipient.current || !urlParamId || !urlParamType) return;
@@ -516,15 +471,6 @@ export default function DonationPage() {
   if (loadingPayment) return <PageLoadingComponent />;
   if (status_id || paymentSucceeded) return <PaymentSuccessfulComponent />;
 
-  const isPreselected = !!urlParamId && !!urlParamType;
-  const isListLoading = isOrgLoading || isTahfizLoading;
-  const recipientList =
-    recipientType === "organisation" ? organisations : tahfizCenters;
-
-  const selectedRecipientObj = recipientList.find(
-    (r) => String(r.id) === String(selectedRecipient),
-  );
-
   const clearDonorInfo = () => {
     setValue("donorname", "");
     setValue("donoremail", "");
@@ -580,123 +526,33 @@ export default function DonationPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setValue("selectedRecipient", "");
-                    setValue("paymentMethod", "");
-                  }}
+                  onClick={() => setFilterOpen(true)}
                   className="text-xs font-semibold text-rose-500 hover:text-rose-700 shrink-0"
                 >
                   {translate("Change")}
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
-                <TypeToggle
-                  value={recipientType}
-                  onChange={(v) => {
-                    setValue("recipientType", v);
-                    setValue("selectedRecipient", "");
-                    setValue("paymentMethod", "");
-                    setSearchQuery("");
-                    setFilterName("");
-                  }}
-                />
-
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                  <Input
-                    placeholder={translate("Search by name")}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 pr-8 h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500 text-sm"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setFilterName("");
-                      }}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <Select
-                    value={selectedState}
-                    onValueChange={(v) => {
-                      setSelectedState(v);
-                      setValue("selectedRecipient", "");
-                      setValue("paymentMethod", "");
-                    }}
-                  >
-                    <SelectTrigger className="h-10 rounded-xl border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 text-sm flex-1">
-                      <SelectValue placeholder={translate("State")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="nearby">
-                        {translate("Nearby")}
-                      </SelectItem>
-                      {STATES_MY.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="max-h-72 overflow-y-auto space-y-1 rounded-xl border border-slate-100 dark:border-slate-700 p-1.5">
-                  {isListLoading ? (
-                    <p className="text-center text-xs text-slate-400 py-6">
-                      {translate("Searching...")}
-                    </p>
-                  ) : recipientList.length > 0 ? (
-                    recipientList.map((r) => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => {
-                          setValue("selectedRecipient", String(r.id));
-                          setValue("paymentMethod", "");
-                        }}
-                        className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:bg-rose-50 hover:border-rose-200 dark:hover:bg-rose-900/20 dark:hover:border-rose-800 active:bg-rose-100 active:scale-[0.98] dark:active:bg-rose-900/30 transition-all"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shrink-0">
-                          <Building2 className="w-3.5 h-3.5 text-rose-500" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
-                            {r.name}
-                          </p>
-                          {r.address && (
-                            <p className="text-xs text-slate-400 truncate">
-                              {r.address}
-                            </p>
-                          )}
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-center text-xs text-slate-400 py-6">
-                      {recipientType === "organisation"
-                        ? translate("No organisation found")
-                        : translate("No tahfiz centers found")}
-                    </p>
-                  )}
-                </div>
+              <div className="text-center py-6 space-y-2">
+                <p className="text-xs text-slate-400">
+                  {isListLoading
+                    ? translate("Searching...")
+                    : translate("No recipient found nearby")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                  className="text-xs font-semibold text-rose-500 hover:text-rose-700"
+                >
+                  {translate("Choose Recipient")}
+                </button>
               </div>
             )}
           </Section>
 
           <Section title={translate("Total Donations")} accent="amber">
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {DONATION_AMOUNTS.map((amt) => {
                   const isActive = amount === String(amt);
                   return (
@@ -926,6 +782,30 @@ export default function DonationPage() {
         cancelText={translate("No")}
         onConfirm={() => {
           localStorage.setItem("userphoneno", pendingPhone);
+        }}
+      />
+
+      <DonationFilter
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        recipientType={recipientType}
+        onRecipientTypeChange={(v) => {
+          setValue("recipientType", v);
+          setValue("selectedRecipient", "");
+          setValue("paymentMethod", "");
+        }}
+        recipients={recipientList}
+        isLoading={isListLoading}
+        selectedState={selectedState}
+        onStateChange={(v) => {
+          setSelectedState(v);
+          setValue("selectedRecipient", "");
+          setValue("paymentMethod", "");
+        }}
+        selectedRecipientId={selectedRecipient}
+        onSelectRecipient={(id) => {
+          setValue("selectedRecipient", String(id));
+          setValue("paymentMethod", "");
         }}
       />
     </div>

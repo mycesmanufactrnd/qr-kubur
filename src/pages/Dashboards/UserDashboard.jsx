@@ -394,7 +394,7 @@ export default function UserDashboard() {
           {[
             {
               icon: BookOpen,
-              label: translate("Book Tahlil"),
+              label: translate("Request Tahlil"),
               page: "SearchTahlil",
               g: G.indigo,
             },

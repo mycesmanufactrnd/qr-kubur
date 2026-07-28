@@ -48,7 +48,7 @@ export const PIE_COLORS = [
   "#f97316",
 ];
 
-export const DONATION_AMOUNTS = [10, 20, 50, 100, 200, 500];
+export const DONATION_AMOUNTS = [5, 10, 20, 50];
 
 export const HIJRI_MONTHS = [
   "Muharram",
