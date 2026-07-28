@@ -1,5 +1,6 @@
 import { trpc } from '@/utils/trpc';
 import { showSuccess, showApiError } from '@/components/ToastrNotification';
+import { translate } from '@/utils/translations';
 
 const titleMessage = 'Islamic Events';
 
@@ -27,13 +28,22 @@ export function useIslamicEventMutations() {
   });
 
   const deleteEvent = trpc.islamicEvent.delete.useMutation({
-    onSuccess: () => { 
-      showSuccess(titleMessage, 'delete'); 
-      invalidateAll(); 
+    onSuccess: () => {
+      showSuccess(titleMessage, 'delete');
+      invalidateAll();
     },
     onError: (err) => showApiError(err),
   });
 
+  const syncEvents = trpc.islamicEvent.syncFromAladhan.useMutation({
+    onSuccess: (data) => {
+      showSuccess(
+        `${translate("Sync completed")}: ${data.created} ${translate("New")}, ${data.updated} ${translate("Updated")}`,
+      );
+      invalidateAll();
+    },
+    onError: (err) => showApiError(err),
+  });
 
-  return { createEvent, updateEvent, deleteEvent }
+  return { createEvent, updateEvent, deleteEvent, syncEvents }
 }

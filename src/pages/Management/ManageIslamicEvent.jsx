@@ -8,11 +8,11 @@ import {
   Trash2,
   Save,
   X,
-  Calendar,
   Loader2,
   Calendar1,
+  RefreshCw,
 } from "lucide-react";
-import { HIJRI_MONTHS, ISLAMIC_EVENTS_CATEGORIES } from "@/utils/enums";
+import { HIJRI_MONTHS } from "@/utils/enums";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -39,6 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import Breadcrumb from "@/components/Breadcrumb";
 import { translate } from "@/utils/translations";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
@@ -63,10 +64,10 @@ export default function ManageIslamicEvent() {
   } = useCrudPermissions("islamic_events");
 
   const [showDialog, setShowDialog] = useState(false);
+  const [showSyncConfirm, setShowSyncConfirm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    category: "Event",
     hijrimonth: 1,
     hijriday: 1,
     description: "",
@@ -81,15 +82,28 @@ export default function ManageIslamicEvent() {
   const [amalInput, setAmalInput] = useState("");
 
   const trpcUtils = trpc.useContext();
-  const { createEvent, updateEvent, deleteEvent } = useIslamicEventMutations();
+  const { createEvent, updateEvent, deleteEvent, syncEvents } =
+    useIslamicEventMutations();
 
   const { data: events = [], isLoading } =
     trpc.islamicEvent.getEventsByHijriYear.useQuery();
 
+  const handleSyncClick = () => {
+    if (events.length > 0) {
+      setShowSyncConfirm(true);
+    } else {
+      syncEvents.mutate();
+    }
+  };
+
+  const handleConfirmSync = () => {
+    setShowSyncConfirm(false);
+    syncEvents.mutate();
+  };
+
   const resetForm = () => {
     setFormData({
       title: "",
-      category: "Event",
       hijrimonth: 1,
       hijriday: 1,
       description: "",
@@ -116,7 +130,6 @@ export default function ManageIslamicEvent() {
     setEditingEvent(event);
     setFormData({
       title: event.title || "",
-      category: event.category || "Event",
       hijrimonth: event.hijrimonth || 1,
       hijriday: event.hijriday || 1,
       description: event.description || "",
@@ -158,15 +171,6 @@ export default function ManageIslamicEvent() {
       ...formData,
       recommendedamal: formData.recommendedamal.filter((_, i) => i !== index),
     });
-  };
-
-  const categoryColors = {
-    Event: "emerald",
-    Fasting: "purple",
-    Prayer: "blue",
-    Hajj: "amber",
-    Umrah: "orange",
-    Education: "teal",
   };
 
   if (loadingUser || permissionsLoading) {
@@ -219,6 +223,20 @@ export default function ManageIslamicEvent() {
         </h1>
         <div className="flex gap-2">
           <Button
+            variant="outline"
+            onClick={handleSyncClick}
+            disabled={syncEvents.isPending}
+          >
+            {syncEvents.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            {syncEvents.isPending
+              ? translate("Syncing...")
+              : translate("Sync Islamic Events")}
+          </Button>
+          <Button
             onClick={openAddDialog}
             className="bg-emerald-600 hover:bg-emerald-700"
           >
@@ -239,7 +257,7 @@ export default function ManageIslamicEvent() {
               key={event.id}
               className={`border-0 shadow-md ${!event.isactive && "opacity-50"}`}
             >
-              <div className={`h-1 bg-${categoryColors[event.category]}-500`} />
+              <div className="h-1 bg-emerald-500" />
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -247,11 +265,6 @@ export default function ManageIslamicEvent() {
                       {event.title}
                     </CardTitle>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge
-                        className={`bg-${categoryColors[event.category]}-100 text-${categoryColors[event.category]}-700`}
-                      >
-                        {event.category}
-                      </Badge>
                       <Badge variant="outline" className="text-xs">
                         {event.hijriday}{" "}
                         {HIJRI_MONTHS[event.hijrimonth - 1]?.slice(0, 8)}
@@ -316,32 +329,14 @@ export default function ManageIslamicEvent() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Title (English) *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Category *</Label>
-                <select
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                  className="w-full border rounded px-2 py-1"
-                >
-                  {ISLAMIC_EVENTS_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="space-y-2">
+              <Label>Title (English) *</Label>
+              <Input
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -525,6 +520,17 @@ export default function ManageIslamicEvent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={showSyncConfirm}
+        onOpenChange={setShowSyncConfirm}
+        title={translate("Sync Islamic Events")}
+        description={translate(
+          "Islamic events have already been synced. Do you want to sync again?",
+        )}
+        onConfirm={handleConfirmSync}
+        confirmText={translate("Sync Again")}
+      />
     </div>
   );
 }

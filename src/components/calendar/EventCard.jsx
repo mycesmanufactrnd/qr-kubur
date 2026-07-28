@@ -1,32 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Moon, Sun, BookOpen, MapPin, CheckCircle2, Clock } from 'lucide-react';
-
-const CATEGORY_CONFIG = {
-  Event: { icon: Calendar, color: 'emerald', label: 'Event' },
-  Fasting: { icon: Moon, color: 'purple', label: 'Puasa' },
-  Prayer: { icon: Sun, color: 'blue', label: 'Solat' },
-  Hajj: { icon: MapPin, color: 'amber', label: 'Hajj' },
-};
+import { Calendar, BookOpen, CheckCircle2, Clock } from 'lucide-react';
 
 export default function EventCard({ event, compact = false }) {
-  const config = CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.Event;
-  const Icon = config.icon;
-  
   if (compact) {
     return (
       <div className="p-4 bg-gradient-to-r from-white to-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all">
         <div className="flex items-start gap-3">
-          <div className={`w-10 h-10 rounded-lg bg-${config.color}-100 flex items-center justify-center flex-shrink-0`}>
-            <Icon className={`w-5 h-5 text-${config.color}-600`} />
+          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <Calendar className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-slate-800 line-clamp-1">{event.title}</h4>
-              <Badge className={`bg-${config.color}-100 text-${config.color}-700 border-${config.color}-200`}>
-                {config.label}
-              </Badge>
-            </div>
+            <h4 className="font-semibold text-slate-800 line-clamp-1">{event.title}</h4>
             {event.virtue && (
               <p className="text-sm text-slate-500 line-clamp-2 mt-1">{event.virtue}</p>
             )}
@@ -35,21 +19,18 @@ export default function EventCard({ event, compact = false }) {
       </div>
     );
   }
-  
+
   return (
     <Card className="border-0 shadow-md hover:shadow-lg transition-all overflow-hidden group">
-      <div className={`h-1 bg-gradient-to-r from-${config.color}-400 to-${config.color}-600`} />
+      <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl bg-${config.color}-100 flex items-center justify-center`}>
-              <Icon className={`w-6 h-6 text-${config.color}-600`} />
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
               <CardTitle className="text-lg">{event.title}</CardTitle>
-              <Badge variant="secondary" className={`mt-1 bg-${config.color}-50 text-${config.color}-700`}>
-                {config.label}
-              </Badge>
             </div>
           </div>
         </div>

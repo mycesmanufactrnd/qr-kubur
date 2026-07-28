@@ -65,8 +65,6 @@ export const HIJRI_MONTHS = [
   "Dhul-Hijjah",
 ];
 
-export const ISLAMIC_EVENTS_CATEGORIES = ["Event", "Fasting", "Prayer", "Hajj"];
-
 export const STATES_MY = [
   "Johor",
   "Kedah",

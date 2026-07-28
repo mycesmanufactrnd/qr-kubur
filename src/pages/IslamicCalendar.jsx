@@ -1,16 +1,10 @@
 // @ts-nocheck
 import { useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Moon, Star, Info } from "lucide-react";
 import HijriCalendar from "@/components/calendar/HijriCalendar";
 import EventCard from "@/components/calendar/EventCard";
-import EventFilters from "@/components/calendar/EventFilters";
 import { HIJRI_MONTHS } from "@/utils/enums";
 import { trpc } from "@/utils/trpc";
 import BackNavigation from "@/components/BackNavigation";
@@ -23,12 +17,6 @@ const TABS = [
 ];
 
 export default function IslamicCalendar() {
-  const [selectedCategories, setSelectedCategories] = useState([
-    "Event",
-    "Fasting",
-    "Prayer",
-    "Hajj",
-  ]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHijri, setSelectedHijri] = useState(null);
   const [dayEvents, setDayEvents] = useState([]);
@@ -38,11 +26,6 @@ export default function IslamicCalendar() {
   const { data: events = [], isLoading } =
     trpc.islamicEvent.getEventsByHijriYear.useQuery();
 
-  const filteredEvents = useMemo(
-    () => events.filter((event) => selectedCategories.includes(event.category)),
-    [events, selectedCategories],
-  );
-
   const upcomingEvents = useMemo(() => {
     const today = new Date();
     const currentHijriMonth =
@@ -51,7 +34,7 @@ export default function IslamicCalendar() {
       ) %
         12) +
       1;
-    return filteredEvents
+    return events
       .filter((event) => {
         const monthDiff = event.hijrimonth - currentHijriMonth;
         return monthDiff >= 0 && monthDiff <= 2;
@@ -62,7 +45,7 @@ export default function IslamicCalendar() {
           : a.hijriday - b.hijriday,
       )
       .slice(0, 5);
-  }, [filteredEvents]);
+  }, [events]);
 
   const handleDateClick = (date, hijri, events) => {
     setSelectedDate(date);
@@ -70,17 +53,6 @@ export default function IslamicCalendar() {
     setDayEvents(events);
     if (events.length > 0) setShowEventDialog(true);
   };
-
-  const toggleCategory = (category) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category],
-    );
-  };
-
-  const clearFilters = () =>
-    setSelectedCategories(["Event", "Fasting", "Prayer", "Hajj"]);
 
   return (
     <div className="min-h-screen pb-12">
@@ -107,12 +79,6 @@ export default function IslamicCalendar() {
           })}
         </div>
 
-        <EventFilters
-          selectedCategories={selectedCategories}
-          onToggleCategory={toggleCategory}
-          onClearAll={clearFilters}
-        />
-
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-96 rounded-2xl" />
@@ -123,7 +89,7 @@ export default function IslamicCalendar() {
           <div className="grid lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
               <HijriCalendar
-                events={filteredEvents}
+                events={events}
                 onDateClick={handleDateClick}
                 selectedDate={selectedDate}
               />
@@ -167,22 +133,14 @@ export default function IslamicCalendar() {
               ))}
             </div>
           )
-        ) : filteredEvents.length === 0 ? (
+        ) : events.length === 0 ? (
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center py-16 gap-3">
             <Info className="w-10 h-10 text-slate-200 dark:text-slate-600" />
-            <p className="text-sm text-slate-400 mb-1">
-              No events found with current filters
-            </p>
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold active:opacity-75 transition-opacity"
-            >
-              Clear Filters
-            </button>
+            <p className="text-sm text-slate-400 mb-1">No events found</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredEvents
+            {events
               .sort((a, b) =>
                 a.hijrimonth !== b.hijrimonth
                   ? a.hijrimonth - b.hijrimonth

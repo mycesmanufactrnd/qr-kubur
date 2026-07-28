@@ -9,9 +9,6 @@ export class IslamicEvent {
   @Column({ type: "varchar", length: 255 })
   title!: string;
 
-  @Column({ type: "enum", enum: ["Event", "Fasting", "Prayer", "Hajj"] })
-  category!: "Event" | "Fasting" | "Prayer" | "Hajj";
-
   @Column({ type: "int" })
   hijrimonth!: number;
 

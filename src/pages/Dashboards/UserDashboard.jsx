@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -8,6 +9,7 @@ import {
   MapPin,
   Landmark,
   MoonStar,
+  Moon,
   Sun,
   Globe,
   ChevronRight,
@@ -21,12 +23,25 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
+import { HIJRI_MONTHS } from "@/utils/enums";
 // import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton"; // no longer needed — favorites now live on their own page
 import doaBanners from "./DailyDoaBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 const todayDoa =
   doaBanners[Math.floor(Date.now() / 86400000) % doaBanners.length];
+
+function getHijriDate(gregorianDate) {
+  const islamicEpoch = 1948440;
+  const julianDay = Math.floor(gregorianDate.getTime() / 86400000) + 2440588;
+  const islamicYear =
+    Math.floor(((julianDay - islamicEpoch) * 30) / 10631) + 1;
+  const temp =
+    julianDay - Math.floor(((islamicYear - 1) * 10631) / 30) - islamicEpoch;
+  const islamicMonth = Math.min(12, Math.ceil(temp / 29.5));
+  const islamicDay = Math.max(1, Math.ceil(temp - (islamicMonth - 1) * 29.5));
+  return { year: islamicYear, month: islamicMonth, day: islamicDay };
+}
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap');
@@ -283,8 +298,12 @@ const G = {
 };
 
 export default function UserDashboard() {
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light",
+  );
   const { pullY, refreshing, threshold } = usePullToRefresh();
+  const todayDate = new Date();
+  const todayHijri = getHijriDate(todayDate);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -309,10 +328,24 @@ export default function UserDashboard() {
           }}
         >
           {refreshing ? (
-            <Loader2 style={{ width: 18, height: 18, color: "#10b981" }} className="animate-spin" />
+            <Loader2
+              style={{ width: 18, height: 18, color: "#10b981" }}
+              className="animate-spin"
+            />
           ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-              style={{ width: 18, height: 18, transform: `rotate(${Math.min(pullY / threshold, 1) * 360}deg)` }}>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#64748b"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{
+                width: 18,
+                height: 18,
+                transform: `rotate(${Math.min(pullY / threshold, 1) * 360}deg)`,
+              }}
+            >
               <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
               <path d="M21 3v5h-5" />
               <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
@@ -335,11 +368,16 @@ export default function UserDashboard() {
               {translate("Funeral Guide & Management")}
             </div>
           </div>
-          <button className="db-moonbtn" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === "dark"
-              ? <Sun style={{ width: 22, height: 22, color: "#fff" }} />
-              : <MoonStar style={{ width: 22, height: 22, color: "#fff" }} />
-            }
+          <button
+            className="db-moonbtn"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun style={{ width: 22, height: 22, color: "#fff" }} />
+            ) : (
+              <MoonStar style={{ width: 22, height: 22, color: "#fff" }} />
+            )}
           </button>
         </div>
 
@@ -377,7 +415,7 @@ export default function UserDashboard() {
               label: translate("Qariah Registration"),
               page: "UserQariahRegistration",
               g: G.sunset,
-            },            
+            },
             {
               icon: HelpCircle,
               label: translate("Suggestion"),
@@ -411,6 +449,46 @@ export default function UserDashboard() {
             </Link>
           ))}
         </div>
+      </div>
+
+      <div className="mx-4 mt-4">
+        <Link
+          to={createPageUrl("IslamicCalendar")}
+          className="flex items-center bg-white dark:bg-slate-800 rounded-[22px] border border-slate-100 dark:border-slate-700 shadow-sm p-4 no-underline"
+        >
+          <div className="flex-1 flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                {translate("Gregorian")}
+              </p>
+              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                {todayDate.toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+          </div>
+          <div className="w-px h-9 bg-slate-100 dark:bg-slate-700 mx-3 shrink-0" />
+          <div className="flex-1 flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+              <Moon className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                {translate("Hijri")}
+              </p>
+              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                {todayHijri.day} {HIJRI_MONTHS[todayHijri.month - 1]}{" "}
+                {todayHijri.year}H
+              </p>
+            </div>
+          </div>
+        </Link>
       </div>
 
       <div className="mx-4 mt-4">

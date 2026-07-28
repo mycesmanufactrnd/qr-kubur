@@ -4,7 +4,8 @@
       "Bash(node -e ' *)",
       "Bash(node -e \"require\\('c:/Users/zahir/Documents/GitHub/qr-kubur/src/i18n/en.json'\\)\")",
       "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_grave_service.js\")",
-      "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_tahlil.js\")"
+      "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_tahlil.js\")",
+      "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_islamic_event.js\")"
     ]
   }
 }
