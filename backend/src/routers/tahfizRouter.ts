@@ -3,7 +3,11 @@ import z from "zod";
 import { In, Repository } from "typeorm";
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
-import { TahfizCenter, ServiceOffered } from "../db/entities.js";
+import {
+  TahfizCenter,
+  ServiceOffered,
+  TahfizPaymentConfig,
+} from "../db/entities.js";
 import { tahfizSchema } from "../schemas/tahfizSchema.js";
 
 type TahfizServicePayload = NonNullable<
@@ -70,6 +74,23 @@ const loadServicesMap = async (tahfizIds: number[]) => {
   }
 
   return serviceMap;
+};
+
+const loadPaymentConfigIds = async (tahfizIds: number[]) => {
+  const configuredIds = new Set<number>();
+  if (!tahfizIds.length) return configuredIds;
+
+  const configs = await AppDataSource.getRepository(TahfizPaymentConfig).find({
+    where: { tahfizcenter: { id: In(tahfizIds) } },
+    relations: ["tahfizcenter"],
+  });
+
+  for (const config of configs) {
+    const tahfizId = config.tahfizcenter?.id;
+    if (tahfizId) configuredIds.add(tahfizId);
+  }
+
+  return configuredIds;
 };
 
 export const tahfizRouter = router({
@@ -238,9 +259,11 @@ export const tahfizRouter = router({
 
       const { entities, raw } = await query.getRawAndEntities();
 
-      const serviceMap = await loadServicesMap(
-        entities.map((entity) => entity.id),
-      );
+      const ids = entities.map((entity) => entity.id);
+      const [serviceMap, paymentConfigIds] = await Promise.all([
+        loadServicesMap(ids),
+        loadPaymentConfigIds(ids),
+      ]);
 
       return entities.map((entity, index) => ({
         ...serializeTahfizWithServices(
@@ -249,6 +272,7 @@ export const tahfizRouter = router({
           true,
         ),
         distance: Number(raw[index].distance),
+        haspaymentconfig: paymentConfigIds.has(entity.id),
       }));
     }),
 

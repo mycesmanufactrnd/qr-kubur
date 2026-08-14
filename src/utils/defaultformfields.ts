@@ -248,6 +248,22 @@ export const defaultDeathCharityField = {
   mosqueid: null,
 };
 
+export const defaultMosqueDeathCharityEmbeddedField = {
+  dcname: "",
+  dcstate: "",
+  dcdescription: "",
+  dccontactperson: "",
+  dccontactphone: "",
+  dcregistrationfee: 0,
+  dcyearlyfee: 0,
+  dcdeathbenefitamount: 0,
+  dccoversspouse: true,
+  dccoverschildren: true,
+  dcmaxdependents: 0,
+  dcisselfregister: true,
+  dcisactive: true,
+};
+
 export const defaultDeathCharityMemberField = {
   fullname: "",
   icnumber: "",

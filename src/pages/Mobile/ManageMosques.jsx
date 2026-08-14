@@ -33,8 +33,21 @@ import {
   useMosqueMutations,
 } from "@/mutations/useMosqueMutations";
 import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
-import { defaultMosqueField } from "@/utils/defaultformfields";
+import {
+  useGetDeathCharityByMosque,
+  useDeathCharityMutations,
+} from "@/mutations/useDeathCharityMutations";
+import {
+  defaultMosqueField,
+  defaultMosqueDeathCharityEmbeddedField,
+} from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import {
+  DeathCharityBasicContactFields,
+  DeathCharityFeeCoverageStatusFields,
+  mapDeathCharityFormToPayload,
+  mapDeathCharityToFormFields,
+} from "@/components/forms/DeathCharityEmbeddedFields";
 
 function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
   return (
@@ -122,11 +135,13 @@ function MosqueFormSheet({
   isSuperAdmin,
   currentUserStates,
   orgOptions,
+  existingDeathCharity,
 }) {
   const {
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: editing
@@ -135,9 +150,21 @@ function MosqueFormSheet({
           organisation: editing.organisation?.id?.toString() ?? null,
           latitude: editing.latitude?.toString() || "",
           longitude: editing.longitude?.toString() || "",
+          ...defaultMosqueDeathCharityEmbeddedField,
+          ...mapDeathCharityToFormFields(existingDeathCharity),
         }
-      : defaultMosqueField,
+      : { ...defaultMosqueField, ...defaultMosqueDeathCharityEmbeddedField },
   });
+
+  const hasdeathcharity = watch("hasdeathcharity");
+
+  useEffect(() => {
+    if (editing && existingDeathCharity) {
+      Object.entries(mapDeathCharityToFormFields(existingDeathCharity)).forEach(
+        ([key, value]) => setValue(key, value),
+      );
+    }
+  }, [existingDeathCharity, editing, setValue]);
 
   const [isLocating, setIsLocating] = useState(false);
 
@@ -170,22 +197,24 @@ function MosqueFormSheet({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
-        <TextInputForm
-          name="name"
-          control={control}
-          label={translate("Mosque name")}
-          required
-          errors={errors}
-        />
-        <SelectForm
-          name="state"
-          control={control}
-          label={translate("State")}
-          placeholder={translate("Select states")}
-          options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-          required
-          errors={errors}
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <TextInputForm
+            name="name"
+            control={control}
+            label={translate("Mosque Name")}
+            required
+            errors={errors}
+          />
+          <SelectForm
+            name="state"
+            control={control}
+            label={translate("State")}
+            placeholder={translate("Select states")}
+            options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+            required
+            errors={errors}
+          />
+        </div>
         <TextInputForm
           name="address"
           control={control}
@@ -269,6 +298,22 @@ function MosqueFormSheet({
             label={translate("Has Qariah & Death Charity")}
           />
         </div>
+
+        {hasdeathcharity && (
+          <div className="space-y-6 pt-2 border-t border-slate-100 dark:border-slate-700">
+            <DeathCharityBasicContactFields
+              control={control}
+              errors={errors}
+              isSuperAdmin={isSuperAdmin}
+              currentUserStates={currentUserStates}
+            />
+            <DeathCharityFeeCoverageStatusFields
+              control={control}
+              errors={errors}
+            />
+          </div>
+        )}
+
         <FileUploadForm
           name="photourl"
           control={control}
@@ -343,6 +388,12 @@ export default function MobileManageMosques() {
 
   const { createMosque, updateMosque, deleteMosque } = useMosqueMutations();
 
+  const { data: existingDeathCharity } = useGetDeathCharityByMosque(
+    editingMosque?.id ?? null,
+  );
+  const { createDeathCharity, updateDeathCharity } =
+    useDeathCharityMutations();
+
   const effectiveTotalPages = totalPages;
   const effectiveTotalItems = mosquesList.total;
   const listItems = mosquesList.items;
@@ -396,20 +447,62 @@ export default function MobileManageMosques() {
 
   const onSubmit = async (formData) => {
     setIsSubmitting(true);
+    const {
+      dcname: _dcname,
+      dcstate: _dcstate,
+      dcdescription: _dcdescription,
+      dccontactperson: _dccontactperson,
+      dccontactphone: _dccontactphone,
+      dcregistrationfee: _dcregistrationfee,
+      dcyearlyfee: _dcyearlyfee,
+      dcdeathbenefitamount: _dcdeathbenefitamount,
+      dccoversspouse: _dccoversspouse,
+      dccoverschildren: _dccoverschildren,
+      dcmaxdependents: _dcmaxdependents,
+      dcisselfregister: _dcisselfregister,
+      dcisactive: _dcisactive,
+      ...mosqueFormData
+    } = formData;
+
     const payload = {
-      ...formData,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-      organisation: formData.organisation
-        ? { id: Number(formData.organisation) }
+      ...mosqueFormData,
+      latitude: mosqueFormData.latitude
+        ? parseFloat(mosqueFormData.latitude)
+        : null,
+      longitude: mosqueFormData.longitude
+        ? parseFloat(mosqueFormData.longitude)
+        : null,
+      organisation: mosqueFormData.organisation
+        ? { id: Number(mosqueFormData.organisation) }
         : null,
     };
     try {
+      let savedMosque;
       if (editingMosque) {
-        await updateMosque.mutateAsync({ id: editingMosque.id, data: payload });
+        savedMosque = await updateMosque.mutateAsync({
+          id: editingMosque.id,
+          data: payload,
+        });
       } else {
-        await createMosque.mutateAsync(payload);
+        savedMosque = await createMosque.mutateAsync(payload);
       }
+
+      if (formData.hasdeathcharity) {
+        const dcPayload = mapDeathCharityFormToPayload(formData, {
+          mosqueId: savedMosque?.id ?? editingMosque?.id ?? null,
+          organisation: payload.organisation,
+        });
+
+        if (existingDeathCharity?.id) {
+          await updateDeathCharity.mutateAsync({
+            id: existingDeathCharity.id,
+            data: dcPayload,
+          });
+        } else {
+          await createDeathCharity.mutateAsync(dcPayload);
+        }
+      }
+
       setFormOpen(false);
     } catch (error) {
       console.error(error);
@@ -544,6 +637,7 @@ export default function MobileManageMosques() {
           isSuperAdmin={isSuperAdmin}
           currentUserStates={currentUserStates}
           orgOptions={orgOptions}
+          existingDeathCharity={existingDeathCharity}
         />
       )}
 

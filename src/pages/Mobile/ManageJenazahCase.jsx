@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import IcConflictDialog from "@/components/IcConflictDialog";
 import { translate } from "@/utils/translations";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import Pagination from "@/components/Pagination";
@@ -1169,6 +1170,7 @@ export default function MobileManageJenazahCase() {
   const [formOpen, setFormOpen] = useState(false);
   const [caseToDelete, setCaseToDelete] = useState(null);
   const [addToQariahId, setAddToQariahId] = useState(null);
+  const [icConflict, setIcConflict] = useState(null);
   const itemsPerPage = 10;
 
   const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
@@ -1210,13 +1212,24 @@ export default function MobileManageJenazahCase() {
   });
 
   const addToQariahMutation = trpc.jenazahCase.addToQariah.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Member successfully registered to Qariah."));
-      setSelectedCase(null);
-      refetch();
-    },
     onError: (err) => showApiError(err),
   });
+
+  const runAddToQariah = async (payload) => {
+    try {
+      const result = await addToQariahMutation.mutateAsync(payload);
+      if (result?.status === "conflict") {
+        setIcConflict({ caseId: payload.id, ...result });
+        return;
+      }
+      showSuccess(translate("Member successfully registered to Qariah."));
+      setIcConflict(null);
+      setSelectedCase(null);
+      refetch();
+    } catch {
+      // error already shown via onError
+    }
+  };
 
   const handleFormSubmit = async ({
     mosqueId,
@@ -1433,8 +1446,24 @@ export default function MobileManageJenazahCase() {
           "Are you sure you want to register this deceased person as a Qariah member? A record will be created in the member list.",
         )}
         confirmText={translate("Yes, Add")}
-        onConfirm={() => addToQariahMutation.mutate({ id: addToQariahId })}
+        onConfirm={() => runAddToQariah({ id: addToQariahId })}
         isMobile
+      />
+
+      <IcConflictDialog
+        open={!!icConflict}
+        onOpenChange={(v) => {
+          if (!v) setIcConflict(null);
+        }}
+        conflict={icConflict}
+        isSubmitting={addToQariahMutation.isPending}
+        isMobile
+        onReplace={() =>
+          runAddToQariah({ id: icConflict.caseId, resolution: "replace" })
+        }
+        onChangeIc={(newIc) =>
+          runAddToQariah({ id: icConflict.caseId, icnumberOverride: newIc })
+        }
       />
     </div>
   );

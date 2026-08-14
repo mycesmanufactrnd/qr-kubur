@@ -105,7 +105,9 @@ export default function TahfizCardList({ tahfiz, onFavoriteChange }) {
               {translate('Details') || 'View Details'}
             </button>
           </Link>
-          <DonationButton recipientId={tahfiz.id} recipientType="tahfiz" state={tahfiz.state} />
+          {tahfiz.haspaymentconfig && (
+            <DonationButton recipientId={tahfiz.id} recipientType="tahfiz" state={tahfiz.state} />
+          )}
           <Button
             onClick={(e) => { e.stopPropagation(); openDirections(tahfiz.latitude, tahfiz.longitude); }}
             className="h-9 w-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm active:opacity-75 transition-opacity shrink-0"

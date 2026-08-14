@@ -8,6 +8,7 @@ import { createPageUrl, resolveFileUrl } from '@/utils';
 import MapBox from '@/components/MapBox';
 import ActivityPostsCard from '@/components/ActivityPostsCard';
 import { useGetTahfizById } from '@/mutations/useTahfizMutations';
+import { useGetConfigByEntity } from '@/mutations/usePaymentConfigMutations';
 import DirectionButton from '@/components/DirectionButton';
 import DonationButton from '@/components/DonationButton';
 import { useLocationContext } from '@/providers/LocationProvider';
@@ -40,6 +41,12 @@ export default function TahfizDetails() {
 
   const pending = tahlilCount?.pending ?? 0;
   const completed = tahlilCount?.completed ?? 0;
+
+  const { data: paymentConfigs = [] } = useGetConfigByEntity({
+    entityId: tahfizId,
+    entityType: 'tahfiz',
+    enabled: !!tahfizId,
+  });
 
   if (isTahfizLoading) return <PageLoadingComponent />;
 
@@ -109,7 +116,9 @@ export default function TahfizDetails() {
 
       <div className="px-4 -mt-4 mb-5 relative z-10 flex gap-2">
         <DirectionButton latitude={tahfizDetails.latitude} longitude={tahfizDetails.longitude} />
-        <DonationButton recipientId={String(tahfizDetails.id)} recipientType={'tahfiz'} state={tahfizDetails.state} />
+        {paymentConfigs.length > 0 && (
+          <DonationButton recipientId={String(tahfizDetails.id)} recipientType={'tahfiz'} state={tahfizDetails.state} />
+        )}
       </div>
 
       <div className="px-2 pb-10 space-y-4 max-w-2xl mx-auto">

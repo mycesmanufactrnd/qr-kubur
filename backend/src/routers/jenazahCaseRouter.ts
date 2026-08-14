@@ -219,14 +219,23 @@ export const jenazahCaseRouter = router({
     }),
 
   addToQariah: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(
+      z.object({
+        id: z.number(),
+        icnumberOverride: z.string().optional(),
+        resolution: z.enum(["replace"]).optional(),
+      }),
+    )
     .mutation(async ({ input }) => {
       const caseRepo = AppDataSource.getRepository(JenazahCase);
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
 
       const c = await caseRepo.findOneByOrFail({ id: input.id });
       const d = c.details ?? {};
-      const icRaw = (d.deceasedIcnumber ?? "").replace(/-/g, "");
+      const icRaw = (input.icnumberOverride ?? d.deceasedIcnumber ?? "")
+        .replace(/-/g, "")
+        .trim();
+      const incomingFullname = (d.deceasedFullname ?? "").trim();
 
       // Resolve organisation through the mosque relation
       let organisation = null;
@@ -242,9 +251,43 @@ export const jenazahCaseRouter = router({
         ? await memberRepo.findOneBy({ icnumber: icRaw })
         : null;
 
-      if (!existingMember) {
-        const member = memberRepo.create({
-          fullname: d.deceasedFullname ?? "",
+      if (existingMember && input.resolution !== "replace") {
+        const sameName =
+          existingMember.fullname?.trim().toLowerCase() ===
+          incomingFullname.toLowerCase();
+        if (!sameName) {
+          return {
+            status: "conflict" as const,
+            existingMember: {
+              id: existingMember.id,
+              fullname: existingMember.fullname,
+              icnumber: existingMember.icnumber,
+            },
+            incomingFullname,
+            icnumber: icRaw,
+          };
+        }
+      }
+
+      let member = existingMember;
+      if (existingMember) {
+        if (input.resolution === "replace") {
+          memberRepo.merge(existingMember, {
+            fullname: incomingFullname,
+            icnumber: icRaw,
+            phone: d.deceasedPhone || null,
+            email: d.deceasedEmail || null,
+            address: d.deceasedAddress || null,
+            isdeceased: true,
+            mosqueId: c.mosqueId ?? null,
+            organisation: organisation ?? null,
+            isapproved: true,
+          });
+          member = await memberRepo.save(existingMember);
+        }
+      } else {
+        const newMember = memberRepo.create({
+          fullname: incomingFullname,
           icnumber: icRaw,
           phone: d.deceasedPhone || null,
           email: d.deceasedEmail || null,
@@ -254,11 +297,16 @@ export const jenazahCaseRouter = router({
           organisation: organisation ?? undefined,
           isapproved: true,
         });
-        await memberRepo.save(member);
+        member = await memberRepo.save(newMember);
       }
 
+      if (input.icnumberOverride) {
+        c.details = { ...d, deceasedIcnumber: icRaw };
+      }
+      c.qariahmemberid = member?.id ?? null;
       c.addedtoqariah = true;
-      return await caseRepo.save(c);
+      const savedCase = await caseRepo.save(c);
+      return { status: "success" as const, case: savedCase };
     }),
 
   delete: protectedProcedure

@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { X, Filter, RotateCcw, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -15,18 +16,37 @@ import { Button } from "@/components/ui/button";
  * ]
  */
 
-export default function AdvancedFilters({ parameter, onApplyFilter }) {
+export default function AdvancedFilters({ parameter, onApplyFilter, storageKey }) {
   const { userState } = useLocationContext();
+  const routerLocation = useLocation();
+  const persistKey = `advancedFilters:${storageKey || routerLocation.pathname}`;
   const [open, setOpen] = useState(false);
   const touchStartYRef = useRef(0);
   const movedRef = useRef(false);
   const blockClickUntilRef = useRef(0);
+  const hasRestoredRef = useRef(false);
 
-  const [filterValues, setFilterValues] = useState(
-    () => parameter.reduce((acc, curr) => { acc[curr.searchColumn] = ""; return acc; }, {})
-  );
+  const [filterValues, setFilterValues] = useState(() => {
+    const defaults = parameter.reduce((acc, curr) => { acc[curr.searchColumn] = ""; return acc; }, {});
+    try {
+      const saved = sessionStorage.getItem(persistKey);
+      if (saved) return { ...defaults, ...JSON.parse(saved) };
+    } catch {
+      // ignore malformed/unavailable storage
+    }
+    return defaults;
+  });
 
   const activeCount = Object.values(filterValues).filter(v => v !== "" && v !== false).length;
+
+  // Filters were restored from a previous visit to this page (e.g. the user
+  // opened a detail page and navigated back) — re-apply them once so the
+  // underlying list reflects the same filters without the sheet being reopened.
+  useEffect(() => {
+    if (hasRestoredRef.current) return;
+    hasRestoredRef.current = true;
+    if (activeCount > 0) onApplyFilter(filterValues);
+  }, []);
 
   const handleChange = (column, value) => {
     setFilterValues(prev => ({ ...prev, [column]: value }));
@@ -34,6 +54,11 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
 
   const handleApply = () => {
     onApplyFilter(filterValues);
+    try {
+      sessionStorage.setItem(persistKey, JSON.stringify(filterValues));
+    } catch {
+      // ignore storage write failures (e.g. private mode quota)
+    }
     setOpen(false);
   };
 
@@ -176,10 +201,10 @@ export default function AdvancedFilters({ parameter, onApplyFilter }) {
                   <Button
                     type="button"
                     onClick={() => handleChange(p.searchColumn, !filterValues[p.searchColumn])}
-                    className={`flex items-center gap-3 w-full p-3.5 rounded-xl border text-sm font-medium transition-all ${
+                    className={`flex items-center gap-3 w-full p-3.5 rounded-xl border text-sm font-medium shadow-none transition-all ${
                       filterValues[p.searchColumn]
-                        ? 'border-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400'
-                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        ? 'border-emerald-400 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 focus:bg-emerald-50 dark:focus:bg-emerald-900/20 focus-visible:bg-emerald-50 dark:focus-visible:bg-emerald-900/20 active:bg-emerald-50 dark:active:bg-emerald-900/20'
+                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:bg-slate-50 dark:focus:bg-slate-800 focus-visible:bg-slate-50 dark:focus-visible:bg-slate-800 active:bg-slate-50 dark:active:bg-slate-800'
                     }`}
                   >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${

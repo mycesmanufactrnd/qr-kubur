@@ -64,9 +64,22 @@ import {
 } from "@/mutations/useMosqueMutations";
 
 import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
-import { defaultMosqueField } from "@/utils/defaultformfields";
+import {
+  useGetDeathCharityByMosque,
+  useDeathCharityMutations,
+} from "@/mutations/useDeathCharityMutations";
+import {
+  defaultMosqueField,
+  defaultMosqueDeathCharityEmbeddedField,
+} from "@/utils/defaultformfields";
 import { useForm } from "react-hook-form";
 import CheckboxForm from "@/components/forms/CheckboxForm";
+import {
+  DeathCharityBasicContactFields,
+  DeathCharityFeeCoverageStatusFields,
+  mapDeathCharityFormToPayload,
+  mapDeathCharityToFormFields,
+} from "@/components/forms/DeathCharityEmbeddedFields";
 
 export default function ManageMosques() {
   const isNarrow = useIsNarrow();
@@ -200,9 +213,29 @@ function ManageMosquesDesktop() {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: defaultMosqueField });
+  } = useForm({
+    defaultValues: {
+      ...defaultMosqueField,
+      ...defaultMosqueDeathCharityEmbeddedField,
+    },
+  });
 
   const photourl = watch("photourl") || "";
+  const hasdeathcharity = watch("hasdeathcharity");
+
+  const { data: existingDeathCharity } = useGetDeathCharityByMosque(
+    editingMosque?.id ?? null,
+  );
+  const { createDeathCharity, updateDeathCharity } =
+    useDeathCharityMutations();
+
+  useEffect(() => {
+    if (editingMosque && existingDeathCharity) {
+      Object.entries(mapDeathCharityToFormFields(existingDeathCharity)).forEach(
+        ([key, value]) => setValue(key, value),
+      );
+    }
+  }, [existingDeathCharity, editingMosque, setValue]);
 
   useEffect(() => {
     if (!photourl) {
@@ -303,6 +336,7 @@ function ManageMosquesDesktop() {
       organisation: mosque.organisation?.id?.toString() ?? null,
       latitude: mosque.latitude?.toString() || "",
       longitude: mosque.longitude?.toString() || "",
+      ...defaultMosqueDeathCharityEmbeddedField,
     });
     setIsDialogOpen(true);
   };
@@ -313,29 +347,75 @@ function ManageMosquesDesktop() {
     setEditingMosque(null);
     reset({
       ...defaultMosqueField,
+      ...defaultMosqueDeathCharityEmbeddedField,
       organisation: defaultOrganisation ? String(defaultOrganisation) : "",
     });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (formData) => {
+    const {
+      dcname: _dcname,
+      dcstate: _dcstate,
+      dcdescription: _dcdescription,
+      dccontactperson: _dccontactperson,
+      dccontactphone: _dccontactphone,
+      dcregistrationfee: _dcregistrationfee,
+      dcyearlyfee: _dcyearlyfee,
+      dcdeathbenefitamount: _dcdeathbenefitamount,
+      dccoversspouse: _dccoversspouse,
+      dccoverschildren: _dccoverschildren,
+      dcmaxdependents: _dcmaxdependents,
+      dcisselfregister: _dcisselfregister,
+      dcisactive: _dcisactive,
+      ...mosqueFormData
+    } = formData;
+
     const payload = {
-      ...formData,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-      organisation: formData.organisation
-        ? { id: Number(formData.organisation) }
+      ...mosqueFormData,
+      latitude: mosqueFormData.latitude
+        ? parseFloat(mosqueFormData.latitude)
+        : null,
+      longitude: mosqueFormData.longitude
+        ? parseFloat(mosqueFormData.longitude)
+        : null,
+      organisation: mosqueFormData.organisation
+        ? { id: Number(mosqueFormData.organisation) }
         : null,
     };
 
     try {
+      let savedMosque;
       if (editingMosque) {
-        await updateMosque.mutateAsync({ id: editingMosque.id, data: payload });
+        savedMosque = await updateMosque.mutateAsync({
+          id: editingMosque.id,
+          data: payload,
+        });
       } else {
-        await createMosque.mutateAsync(payload);
+        savedMosque = await createMosque.mutateAsync(payload);
       }
+
+      if (formData.hasdeathcharity) {
+        const dcPayload = mapDeathCharityFormToPayload(formData, {
+          mosqueId: savedMosque?.id ?? editingMosque?.id ?? null,
+          organisation: payload.organisation,
+        });
+
+        if (existingDeathCharity?.id) {
+          await updateDeathCharity.mutateAsync({
+            id: existingDeathCharity.id,
+            data: dcPayload,
+          });
+        } else {
+          await createDeathCharity.mutateAsync(dcPayload);
+        }
+      }
+
       setIsDialogOpen(false);
-      reset(defaultMosqueField);
+      reset({
+        ...defaultMosqueField,
+        ...defaultMosqueDeathCharityEmbeddedField,
+      });
     } catch (e) {
       console.error(e);
     }
@@ -690,7 +770,9 @@ function ManageMosquesDesktop() {
       </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className={`${hasdeathcharity ? "max-w-6xl" : "max-w-3xl"} max-h-[90vh] overflow-y-auto`}
+        >
           <DialogHeader>
             <DialogTitle>
               {editingMosque
@@ -699,175 +781,201 @@ function ManageMosquesDesktop() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextInputForm
-              name="name"
-              control={control}
-              label={translate("Mosque name")}
-              required
-            />
-            <SelectForm
-              name="state"
-              control={control}
-              label={translate("State")}
-              placeholder={translate("Select states")}
-              options={isSuperAdmin ? STATES_MY : currentUserStates || []}
-              required
-              errors={errors}
-            />
-            <TextInputForm
-              name="address"
-              control={control}
-              label={translate("Address")}
-              isTextArea
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="email"
-                control={control}
-                label={translate("Email")}
-              />
-              <TextInputForm
-                name="url"
-                control={control}
-                label={translate("Website / URL")}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="latitude"
-                control={control}
-                label={translate("Latitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="longitude"
-                control={control}
-                label={translate("Longitude")}
-                isNumber
-                required
-                errors={errors}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                if (!navigator.geolocation) return;
-                setIsLocating(true);
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => {
-                    setValue("latitude", pos.coords.latitude.toFixed(16));
-                    setValue("longitude", pos.coords.longitude.toFixed(16));
-                    setIsLocating(false);
-                  },
-                  () => {
-                    setIsLocating(false);
-                  },
-                );
-              }}
-              disabled={isLocating}
+            <div
+              className={`grid gap-6 ${hasdeathcharity ? "grid-cols-3" : "grid-cols-1"}`}
             >
-              <MapPin className="w-4 h-4 mr-2" />
-              {isLocating
-                ? translate("Getting location...")
-                : translate("Get Current Location")}
-            </Button>
-
-            <SelectForm
-              name="organisation"
-              control={control}
-              placeholder={translate("Select Organisation")}
-              label={translate("Organisation")}
-              options={(organisationsList?.items || []).map((org) => ({
-                label: org.name,
-                value: org.id,
-              }))}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <TextInputForm
-                name="picname"
-                control={control}
-                label={translate("PIC Name")}
-                required
-                errors={errors}
-              />
-              <TextInputForm
-                name="picphoneno"
-                control={control}
-                label={translate("PIC Phone No.")}
-                required
-                errors={errors}
-              />
-            </div>
-
-            <CheckboxForm
-              name="canarrangefuneral"
-              control={control}
-              label={translate("Can Arrange Funeral")}
-            />
-
-            <CheckboxForm
-              name="hasdeathcharity"
-              control={control}
-              label={translate("Has Qariah & Death Charity")}
-            />
-
-            <div className="space-y-2">
-              <Label>{translate("Photo")}</Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  key={photoFileKey}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
-                  disabled={uploading}
-                  className="cursor-pointer"
-                />
-                {uploading && (
-                  <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
-                    <span>{translate("Uploading...")}</span>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-stone-500 dark:text-slate-400">
-                  {translate("Or paste image URL")}
-                </Label>
-                <Input
-                  type="url"
-                  placeholder="https://"
-                  value={photoUrlInput}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setPhotoUrlInput(value);
-                    setValue("photourl", value);
-                    if (value) {
-                      setPhotoFileKey((prev) => prev + 1);
-                    }
-                  }}
-                />
-              </div>
-
-              {photourl && (
-                <div className="mt-3 relative w-40 h-40 group">
-                  <img
-                    src={
-                      photoUrlInput
-                        ? photoUrlInput
-                        : resolveFileUrl(photourl, "bucket-mosque")
-                    }
-                    alt="Mosque preview"
-                    className="w-full h-full object-cover rounded-lg border-2 border-stone-100 dark:border-slate-700 shadow-sm"
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="name"
+                    control={control}
+                    label={translate("Mosque name")}
+                    required
                   />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <ImageIcon className="text-white w-8 h-8" />
+                  <SelectForm
+                    name="state"
+                    control={control}
+                    label={translate("State")}
+                    placeholder={translate("Select states")}
+                    options={isSuperAdmin ? STATES_MY : currentUserStates || []}
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <TextInputForm
+                  name="address"
+                  control={control}
+                  label={translate("Address")}
+                  isTextArea
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="email"
+                    control={control}
+                    label={translate("Email")}
+                  />
+                  <TextInputForm
+                    name="url"
+                    control={control}
+                    label={translate("Website / URL")}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="latitude"
+                    control={control}
+                    label={translate("Latitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="longitude"
+                    control={control}
+                    label={translate("Longitude")}
+                    isNumber
+                    required
+                    errors={errors}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    if (!navigator.geolocation) return;
+                    setIsLocating(true);
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        setValue("latitude", pos.coords.latitude.toFixed(16));
+                        setValue(
+                          "longitude",
+                          pos.coords.longitude.toFixed(16),
+                        );
+                        setIsLocating(false);
+                      },
+                      () => {
+                        setIsLocating(false);
+                      },
+                    );
+                  }}
+                  disabled={isLocating}
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {isLocating
+                    ? translate("Getting location...")
+                    : translate("Get Current Location")}
+                </Button>
+
+                <SelectForm
+                  name="organisation"
+                  control={control}
+                  placeholder={translate("Select Organisation")}
+                  label={translate("Organisation")}
+                  options={(organisationsList?.items || []).map((org) => ({
+                    label: org.name,
+                    value: org.id,
+                  }))}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <TextInputForm
+                    name="picname"
+                    control={control}
+                    label={translate("PIC Name")}
+                    required
+                    errors={errors}
+                  />
+                  <TextInputForm
+                    name="picphoneno"
+                    control={control}
+                    label={translate("PIC Phone No.")}
+                    required
+                    errors={errors}
+                  />
+                </div>
+
+                <CheckboxForm
+                  name="canarrangefuneral"
+                  control={control}
+                  label={translate("Can Arrange Funeral")}
+                />
+
+                <CheckboxForm
+                  name="hasdeathcharity"
+                  control={control}
+                  label={translate("Has Qariah & Death Charity")}
+                />
+
+                <div className="space-y-2">
+                  <Label>{translate("Photo")}</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      key={photoFileKey}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePhotoUpload(e.target.files?.[0])}
+                      disabled={uploading}
+                      className="cursor-pointer"
+                    />
+                    {uploading && (
+                      <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
+                        <span>{translate("Uploading...")}</span>
+                      </div>
+                    )}
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-stone-500 dark:text-slate-400">
+                      {translate("Or paste image URL")}
+                    </Label>
+                    <Input
+                      type="url"
+                      placeholder="https://"
+                      value={photoUrlInput}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setPhotoUrlInput(value);
+                        setValue("photourl", value);
+                        if (value) {
+                          setPhotoFileKey((prev) => prev + 1);
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {photourl && (
+                    <div className="mt-3 relative w-40 h-40 group">
+                      <img
+                        src={
+                          photoUrlInput
+                            ? photoUrlInput
+                            : resolveFileUrl(photourl, "bucket-mosque")
+                        }
+                        alt="Mosque preview"
+                        className="w-full h-full object-cover rounded-lg border-2 border-stone-100 dark:border-slate-700 shadow-sm"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                        <ImageIcon className="text-white w-8 h-8" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {hasdeathcharity && (
+                <div className="col-span-2 grid grid-cols-2 gap-6 border-l pl-6 dark:border-slate-600">
+                  <DeathCharityBasicContactFields
+                    control={control}
+                    errors={errors}
+                    isSuperAdmin={isSuperAdmin}
+                    currentUserStates={currentUserStates}
+                  />
+                  <DeathCharityFeeCoverageStatusFields
+                    control={control}
+                    errors={errors}
+                  />
                 </div>
               )}
             </div>
