@@ -771,7 +771,7 @@ function ManageMosquesDesktop() {
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent
-          className={`${hasdeathcharity ? "max-w-6xl" : "max-w-3xl"} max-h-[90vh] overflow-y-auto`}
+          className={`${hasdeathcharity ? "max-w-[80vw]" : "max-w-3xl"} max-h-[90vh] overflow-y-auto`}
         >
           <DialogHeader>
             <DialogTitle>

@@ -726,14 +726,14 @@ export default function OrganisationDetails() {
                 <TextInputForm
                   name="payername"
                   control={control}
-                  label="Name"
+                  label={translate("Name")}
                   required
                   errors={errors}
                 />
                 <TextInputForm
                   name="payeremail"
                   control={control}
-                  label="Email"
+                  label={translate("Email")}
                   isEmail
                   required
                   errors={errors}
@@ -741,7 +741,7 @@ export default function OrganisationDetails() {
                 <TextInputForm
                   name="payerphone"
                   control={control}
-                  label="Phone"
+                  label={translate("Phone")}
                   isPhone
                   required
                   errors={errors}

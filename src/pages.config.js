@@ -64,6 +64,7 @@ import ManagePaymentConfig from '@/pages/Management/ManagePaymentConfig.jsx';
 import ManageUsers from '@/pages/Management/ManageUsers';
 import ManageCollectionTree from '@/pages/Management/ManageCollectionTree';
 import ManageDeadPersons from '@/pages/Management/ManageDeadPersons';
+import ManageGraveMapping from '@/pages/Management/ManageGraveMapping';
 import ManageDonations from '@/pages/Management/ManageDonations';
 import ManageGraves from '@/pages/Management/ManageGraves';
 import ManageOrganisationTypes from '@/pages/Management/ManageOrganisationTypes';
@@ -179,6 +180,7 @@ export const PAGES = {
     "ManageUsers": ManageUsers,
     "ManageCollectionTree": ManageCollectionTree,
     "ManageDeadPersons": ManageDeadPersons,
+    "ManageGraveMapping": ManageGraveMapping,
     "ManageDonations": ManageDonations,
     "ManageGraves": ManageGraves,
     "ManageOrganisationTypes": ManageOrganisationTypes,

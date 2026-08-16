@@ -29,6 +29,7 @@ import {
   Bell,
   RefreshCw,
   BarChart3,
+  Map,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,49 @@ import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
 import JenazahCaseOngoingAlert from "@/components/PopUpAlert/JenazahCaseOngoingAlert";
 import QariahRegistrationAlert from "@/components/PopUpAlert/QariahRegistrationAlert";
 import MobileAdminDashboard from "@/pages/Mobile/AdminDashboard";
+
+const QUICK_ACTION_COLOR_MAP = {
+  emerald: {
+    icon: "bg-emerald-100 dark:bg-emerald-900/30",
+    iconText: "text-emerald-600 dark:text-emerald-400",
+  },
+  blue: {
+    icon: "bg-blue-100 dark:bg-blue-900/30",
+    iconText: "text-blue-600 dark:text-blue-400",
+  },
+  teal: {
+    icon: "bg-teal-100 dark:bg-teal-900/30",
+    iconText: "text-teal-600 dark:text-teal-400",
+  },
+  violet: {
+    icon: "bg-violet-100 dark:bg-violet-900/30",
+    iconText: "text-violet-600 dark:text-violet-400",
+  },
+  red: {
+    icon: "bg-red-100 dark:bg-red-900/30",
+    iconText: "text-red-600 dark:text-red-400",
+  },
+  indigo: {
+    icon: "bg-indigo-100 dark:bg-indigo-900/30",
+    iconText: "text-indigo-600 dark:text-indigo-400",
+  },
+  purple: {
+    icon: "bg-purple-100 dark:bg-purple-900/30",
+    iconText: "text-purple-600 dark:text-purple-400",
+  },
+  stone: {
+    icon: "bg-stone-100 dark:bg-stone-900/30",
+    iconText: "text-stone-600 dark:text-stone-400",
+  },
+  amber: {
+    icon: "bg-amber-100 dark:bg-amber-900/30",
+    iconText: "text-amber-600 dark:text-amber-400",
+  },
+  sky: {
+    icon: "bg-sky-100 dark:bg-sky-900/30",
+    iconText: "text-sky-600 dark:text-sky-400",
+  },
+};
 
 export default function AdminDashboard() {
   const isNarrow = useIsNarrow();
@@ -311,7 +355,7 @@ function AdminDashboardDesktop() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-8 max-w-screen-2xl">
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
@@ -713,7 +757,7 @@ function AdminDashboardDesktop() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
                   {[
                     ...(isOrgCanManageGrave
                       ? [
@@ -728,6 +772,12 @@ function AdminDashboardDesktop() {
                             page: "ManageDeadPersons",
                             icon: Users,
                             color: "blue",
+                          },
+                          {
+                            label: translate("Grave Slot Mapping"),
+                            page: "ManageGraveMapping",
+                            icon: Map,
+                            color: "teal",
                           },
                         ]
                       : []),
@@ -797,22 +847,26 @@ function AdminDashboardDesktop() {
                           },
                         ]
                       : []),
-                  ].map((action, i) => (
-                    <Link key={i} to={createPageUrl(action.page)}>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
-                      >
-                        <action.icon
-                          className={`w-4 h-4 mr-3 text-${action.color}-600 group-hover:scale-110 transition-transform`}
-                        />
-                        <span className="text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
-                          {action.label}
-                        </span>
-                        <ArrowUpRight className="w-4 h-4 ml-auto text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Button>
-                    </Link>
-                  ))}
+                  ].map((action, i) => {
+                    const colors =
+                      QUICK_ACTION_COLOR_MAP[action.color] ||
+                      QUICK_ACTION_COLOR_MAP.emerald;
+                    return (
+                      <Link key={i} to={createPageUrl(action.page)} className="group">
+                        <div className="h-full flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all">
+                          <div
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform ${colors.icon}`}
+                          >
+                            <action.icon className={`w-4.5 h-4.5 ${colors.iconText}`} />
+                          </div>
+                          <span className="flex-1 min-w-0 text-xs font-medium leading-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
+                            {action.label}
+                          </span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

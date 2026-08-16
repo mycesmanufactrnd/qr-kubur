@@ -200,3 +200,19 @@ export function parseDobFromIcNumber(icnumber: string) {
   return `${year}-${pad(month)}-${pad(day)}`;
 }
 
+export function formatICNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 12);
+  const trailingHyphen = value.endsWith("-");
+  if (digits.length <= 6)
+    return digits.length === 6 && trailingHyphen ? `${digits}-` : digits;
+  if (digits.length <= 8) {
+    const base = `${digits.slice(0, 6)}-${digits.slice(6)}`;
+    return digits.length === 8 && trailingHyphen ? `${base}-` : base;
+  }
+  return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
+}
+
+export function isCompleteICNumber(value: string) {
+  return (value || "").replace(/\D/g, "").length === 12;
+}
+
