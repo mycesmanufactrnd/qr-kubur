@@ -8,6 +8,7 @@ import { compressImage } from "@/utils/fileCompression";
 import { FileText, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { showApiError } from "@/components/ToastrNotification";
 import FilePreviewDialog from "@/components/forms/FilePreviewDialog";
+import { translate } from "@/utils/translations";
 
 const DEFAULT_ACCEPT = "image/*,application/pdf";
 
@@ -26,7 +27,6 @@ export default function MultipleFileUploadForm({
   handleFileUpload,
   // accept = DEFAULT_ACCEPT,
   accept = "image/*",
-  translate = (v) => v,
 }) {
   const errorMessage = errors?.[name]?.message;
   const [busy, setBusy] = useState(false);
@@ -48,7 +48,7 @@ export default function MultipleFileUploadForm({
             ? {
                 validate: (v) =>
                   (v ?? "").split(",").filter(Boolean).length > 0 ||
-                  `${label} is required`,
+                  translate("{label} is required").replace("{label}", label),
               }
             : undefined
         }
@@ -66,7 +66,7 @@ export default function MultipleFileUploadForm({
             const invalid = files.filter((f) => !isAllowedFile(f));
             if (invalid.length) {
               showApiError({
-                message: "Hanya fail imej atau PDF dibenarkan.",
+                message: translate("Only image or PDF files are allowed."),
               });
               setFileInputKey((prev) => prev + 1);
               return;

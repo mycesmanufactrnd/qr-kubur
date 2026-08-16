@@ -1,6 +1,7 @@
 import { Controller } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { translate } from "@/utils/translations";
 
 export default function CheckboxForm({
   name,
@@ -20,7 +21,9 @@ export default function CheckboxForm({
         rules={
           required
             ? {
-                validate: (v) => v === true || `${label} is required`,
+                validate: (v) =>
+                  v === true ||
+                  translate("{label} is required").replace("{label}", label),
               }
             : undefined
         }

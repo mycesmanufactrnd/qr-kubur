@@ -4,18 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { validateFields } from "@/utils/validations";
-
-const formatIC = (value) => {
-  const digits = value.replace(/\D/g, "").slice(0, 12);
-  const trailingHyphen = value.endsWith("-");
-  if (digits.length <= 6)
-    return digits.length === 6 && trailingHyphen ? `${digits}-` : digits;
-  if (digits.length <= 8) {
-    const base = `${digits.slice(0, 6)}-${digits.slice(6)}`;
-    return digits.length === 8 && trailingHyphen ? `${base}-` : base;
-  }
-  return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
-};
+import { formatICNumber } from "@/utils/helpers";
+import { translate } from "@/utils/translations";
 
 export default function TextInputForm({
   name,
@@ -49,7 +39,9 @@ export default function TextInputForm({
         name={name}
         control={control}
         rules={{
-          required: required ? `${label} is required` : false,
+          required: required
+            ? translate("{label} is required").replace("{label}", label)
+            : false,
           validate: (value) => {
             if (isEmail && value) {
               const isValid = validateFields(
@@ -104,7 +96,7 @@ export default function TextInputForm({
                   if (isNumber || isMoney) {
                     field.onChange(Number(e.target.value) || 0);
                   } else if (isICNumber) {
-                    field.onChange(formatIC(e.target.value));
+                    field.onChange(formatICNumber(e.target.value));
                   } else {
                     field.onChange(e.target.value);
                   }

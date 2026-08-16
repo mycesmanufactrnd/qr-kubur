@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { translate } from "@/utils/translations";
 
 export default function SelectForm({
   name,
@@ -34,7 +35,12 @@ export default function SelectForm({
         disabled={disabled}
         rules={
           required
-            ? { required: `${label} is required` }
+            ? {
+                required: translate("{label} is required").replace(
+                  "{label}",
+                  label,
+                ),
+              }
             : undefined
         }
         render={({ field }) => (

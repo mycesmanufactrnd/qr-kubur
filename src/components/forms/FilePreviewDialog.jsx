@@ -5,14 +5,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { translate } from "@/utils/translations";
 
 export default function FilePreviewDialog({
   open,
   onClose,
   src,
   isPdf,
-  title = "Pratonton Fail",
+  title,
 }) {
+  const resolvedTitle = title ?? translate("Preview File");
   return (
     <Dialog
       open={open}
@@ -22,15 +24,15 @@ export default function FilePreviewDialog({
     >
       <DialogContent className="max-w-[80vw] max-h-[90vh] overflow-y-auto dark:bg-slate-800">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{resolvedTitle}</DialogTitle>
         </DialogHeader>
         {src &&
           (isPdf ? (
-            <iframe src={src} title={title} className="w-full h-[75vh] rounded border" />
+            <iframe src={src} title={resolvedTitle} className="w-full h-[75vh] rounded border" />
           ) : (
             <img
               src={src}
-              alt={title}
+              alt={resolvedTitle}
               referrerPolicy={
                 !src.startsWith("blob:") &&
                 !src.startsWith("data:") &&

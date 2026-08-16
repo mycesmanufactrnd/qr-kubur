@@ -2,6 +2,7 @@ import { Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { translate } from "@/utils/translations";
 
 export default function RichTextEditorForm({
   name,
@@ -9,7 +10,6 @@ export default function RichTextEditorForm({
   label,
   required = false,
   errors = {},
-  translate = (v) => v,
 }) {
   const errorMessage = errors?.[name]?.message;
 
@@ -25,7 +25,12 @@ export default function RichTextEditorForm({
         control={control}
         rules={
           required
-            ? { required: `${label} is required` }
+            ? {
+                required: translate("{label} is required").replace(
+                  "{label}",
+                  label,
+                ),
+              }
             : undefined
         }
         render={({ field }) => (

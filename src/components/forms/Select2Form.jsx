@@ -16,6 +16,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { translate } from "@/utils/translations";
 
 export default function Select2Form({
   name,
@@ -29,7 +30,7 @@ export default function Select2Form({
   placeholder,
   disabledMessage,
   searchPlaceholder,
-  emptyMessage = "No results found",
+  emptyMessage,
   noSelectionMessage,
   onValueChange,
 }) {
@@ -49,7 +50,16 @@ export default function Select2Form({
       <Controller
         name={name}
         control={control}
-        rules={required ? { required: `${label} is required` } : undefined}
+        rules={
+          required
+            ? {
+                required: translate("{label} is required").replace(
+                  "{label}",
+                  label,
+                ),
+              }
+            : undefined
+        }
         render={({ field }) => {
           const selected = normalized.find((o) => o.value === field.value);
           const [open, setOpen] = useState(false);
@@ -59,10 +69,10 @@ export default function Select2Form({
             isDisabled && disabledMessage
               ? disabledMessage
               : loading
-                ? "Loading..."
+                ? translate("Loading...")
                 : selected
                   ? selected.label
-                  : (placeholder ?? "Select...");
+                  : (placeholder ?? translate("Select..."));
 
           return (
             <Popover
@@ -86,9 +96,13 @@ export default function Select2Form({
                 align="start"
               >
                 <Command>
-                  <CommandInput placeholder={searchPlaceholder ?? "Search..."} />
+                  <CommandInput
+                    placeholder={searchPlaceholder ?? translate("Search...")}
+                  />
                   <CommandList>
-                    <CommandEmpty>{emptyMessage}</CommandEmpty>
+                    <CommandEmpty>
+                      {emptyMessage ?? translate("No results found")}
+                    </CommandEmpty>
                     <CommandGroup>
                       {normalized.map((o) => (
                         <CommandItem

@@ -8,6 +8,7 @@ import { compressImage } from "@/utils/fileCompression";
 import { FileText, Image as ImageIcon, X } from "lucide-react";
 import { showApiError } from "@/components/ToastrNotification";
 import FilePreviewDialog from "@/components/forms/FilePreviewDialog";
+import { translate } from "@/utils/translations";
 
 const isAllowedFile = (file, accept) => {
   const types = (accept || "image/*").split(",").map((t) => t.trim());
@@ -30,7 +31,6 @@ export default function FileUploadForm({
   isNeedPasteURL = true,
   isShowList = false,
   accept = "image/*",
-  translate = (v) => v,
 }) {
   const errorMessage = errors?.[name]?.message;
   const fieldValue = useWatch({ control, name });
@@ -73,7 +73,16 @@ export default function FileUploadForm({
       <Controller
         name={name}
         control={control}
-        rules={required ? { required: `${label} is required` } : undefined}
+        rules={
+          required
+            ? {
+                required: translate("{label} is required").replace(
+                  "{label}",
+                  label,
+                ),
+              }
+            : undefined
+        }
         render={({ field }) => {
           const storedPreviewValue = isUrlMode ? urlInput : field.value;
           const storedPreviewSrc = storedPreviewValue
@@ -106,7 +115,9 @@ export default function FileUploadForm({
                     if (!file) return;
 
                     if (!isAllowedFile(file, accept)) {
-                      showApiError({ message: "Jenis fail tidak dibenarkan." });
+                      showApiError({
+                        message: translate("File type not allowed."),
+                      });
                       setFileInputKey((prev) => prev + 1);
                       return;
                     }
