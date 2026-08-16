@@ -49,6 +49,7 @@ import { reusableItemGroupRouter } from "./reusableItemGroupRouter.js";
 import { qariahNotificationRouter } from "./qariahNotificationRouter.js";
 import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
 import { qariahDeviceRouter } from "./qariahDeviceRouter.js";
+import { graveMappingRouter } from "./graveMappingRouter.js";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -100,6 +101,7 @@ export const appRouter = trpcRouter({
   qariahNotification: qariahNotificationRouter,
   jenazahCase: jenazahCaseRouter,
   qariahDevice: qariahDeviceRouter,
+  graveMapping: graveMappingRouter,
 });
 
 export type AppRouter = typeof appRouter;

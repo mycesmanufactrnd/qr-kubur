@@ -50,3 +50,5 @@ export * from "./entities/Inventory/CheckDetail.entity.js";
 export * from "./entities/Inventory/ReusableItemGroup.entity.js";
 export * from "./entities/QariahDeathNotification.entity.js";
 export * from "./entities/JenazahCase.entity.js";
+export * from "./entities/GraveBlock.entity.js";
+export * from "./entities/GraveSlot.entity.js";

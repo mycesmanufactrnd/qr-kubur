@@ -14,6 +14,7 @@ import { Suggestion } from "./Suggestion.entity.js";
 import { Quotation } from "./Quotation.entity.js";
 import { User } from "./User.entity.js";
 import { DeathCharityMember } from "./DeathCharity/DeathCharityMember.entity.js";
+import { GraveSlot } from "./GraveSlot.entity.js";
 
 @Entity("deadperson")
 export class DeadPerson {
@@ -43,6 +44,13 @@ export class DeadPerson {
 
   @Column("varchar", { length: 255, nullable: true })
   gravelot!: string | null;
+
+  @Column("integer", { nullable: true })
+  graveslotId?: number | null;
+
+  @OneToOne(() => GraveSlot, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "graveslotId" })
+  graveslot?: GraveSlot | null;
 
   @Column("varchar", { length: 255, nullable: true })
   biography?: string | null;

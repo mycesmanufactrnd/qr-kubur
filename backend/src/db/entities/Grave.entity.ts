@@ -22,6 +22,9 @@ export class Grave {
   @Column("varchar", { nullable: true })
   photourl?: string;
 
+  @Column("varchar", { nullable: true })
+  gravemappingphotourl?: string;
+
   @Column("varchar", { length: 255, nullable: true })
   name?: string;
 
