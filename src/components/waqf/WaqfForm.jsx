@@ -177,7 +177,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           <TextInputForm
             name="startdate"
             control={control}
-            label="Start Date"
+            label={translate("Start Date")}
             isDate
             required
             errors={errors}
@@ -187,7 +187,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           <TextInputForm
             name="enddate"
             control={control}
-            label="End Date"
+            label={translate("End Date")}
             isDate
             required
             errors={errors}
@@ -213,7 +213,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           <TextInputForm
             name="totalrequired"
             control={control}
-            label="Total Required"
+            label={translate("Total Required")}
             required
             isMoney
           />
@@ -222,7 +222,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           <TextInputForm
             name="amountcollected"
             control={control}
-            label="Amount Collected"
+            label={translate("Amount Collected")}
             required
             isMoney
           />
@@ -231,7 +231,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
           <TextInputForm
             name="progresspercentage"
             control={control}
-            label="Progress (%)"
+            label={translate("Progress (%)")}
             isNumber
             step="0.1"
           />

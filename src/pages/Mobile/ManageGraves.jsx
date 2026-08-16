@@ -161,6 +161,7 @@ function GraveFormSheet({
           status: editing.status ?? GraveStatus.ACTIVE,
           totalgraves: editing.totalgraves ?? 0,
           photourl: editing.photourl ?? "",
+          gravemappingphotourl: editing.gravemappingphotourl ?? "",
         }
       : defaultGraveField,
   });
@@ -336,6 +337,16 @@ function GraveFormSheet({
           label={translate("Photo")}
           errors={errors}
           bucketName="bucket-grave"
+          uploading={uploading}
+          handleFileUpload={handleFileUpload}
+          translate={translate}
+        />
+        <FileUploadForm
+          name="gravemappingphotourl"
+          control={control}
+          label={translate("Grave Mapping Aerial Photo")}
+          errors={errors}
+          bucketName="bucket-grave-mapping"
           uploading={uploading}
           handleFileUpload={handleFileUpload}
           translate={translate}

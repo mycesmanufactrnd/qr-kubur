@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, Repeat, UserCog } from "lucide-react";
 import { translate } from "@/utils/translations";
+import { formatICNumber, isCompleteICNumber } from "@/utils/helpers";
 
 export default function IcConflictDialog({
   open,
@@ -35,9 +36,11 @@ export default function IcConflictDialog({
   if (!conflict) return null;
 
   const cleanedNewIc = newIc.replace(/-/g, "").trim();
+  const hasChangedIc = cleanedNewIc !== conflict.icnumber;
+  const canContinue = hasChangedIc && isCompleteICNumber(cleanedNewIc);
 
   const handleContinueWithNewIc = () => {
-    if (!cleanedNewIc || cleanedNewIc === conflict.icnumber) return;
+    if (!canContinue) return;
     onChangeIc?.(cleanedNewIc);
   };
 
@@ -45,9 +48,7 @@ export default function IcConflictDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={
-          isMobile
-            ? "w-[95vw] sm:max-w-md rounded-2xl"
-            : "max-w-md rounded-2xl"
+          !isMobile ? "w-[95vw] rounded-2xl" : "rounded-2xl"
         }
       >
         <DialogHeader>
@@ -95,71 +96,61 @@ export default function IcConflictDialog({
               </Label>
               <Input
                 value={newIc}
-                onChange={(e) => setNewIc(e.target.value)}
+                onChange={(e) => setNewIc(formatICNumber(e.target.value))}
+                maxLength={14}
                 placeholder={translate("Enter IC number")}
               />
             </div>
           )}
         </div>
 
-        <DialogFooter
-          className={
-            isMobile
-              ? "flex flex-col gap-2"
-              : "flex flex-col sm:flex-row gap-2"
-          }
-        >
+        <DialogFooter className="flex flex-col gap-2">
           {mode === "choose" ? (
             <>
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => onOpenChange?.(false)}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                {translate("Close")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setMode("changeIc")}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                <UserCog className="w-4 h-4 mr-1.5" />
-                {translate("Different Person — Fix IC Number")}
-              </Button>
-              <Button
-                type="button"
                 onClick={onReplace}
                 disabled={isSubmitting}
-                className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white"
+                className="w-full min-w-0 h-auto py-2.5 whitespace-normal text-center leading-snug bg-amber-600 hover:bg-amber-700 text-white"
               >
                 <Repeat className="w-4 h-4 mr-1.5" />
                 {isSubmitting
                   ? translate("Saving...")
                   : translate("Replace Existing Record")}
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMode("changeIc")}
+                disabled={isSubmitting}
+                className="w-full min-w-0 h-auto py-2.5 whitespace-normal text-center leading-snug"
+              >
+                <UserCog className="w-4 h-4 mr-1.5 shrink-0" />
+                {translate("Different Person — Fix IC Number")}
+              </Button>
             </>
           ) : (
             <>
+              {canContinue && (
+                <Button
+                  type="button"
+                  onClick={handleContinueWithNewIc}
+                  disabled={isSubmitting}
+                  className="w-full min-w-0 h-auto py-2.5 whitespace-normal text-center leading-snug bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {isSubmitting
+                    ? translate("Saving...")
+                    : translate("Continue")}
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setMode("choose")}
                 disabled={isSubmitting}
-                className="w-full sm:w-auto"
+                className="w-full min-w-0 h-auto py-2.5 whitespace-normal text-center leading-snug"
               >
                 {translate("Back")}
-              </Button>
-              <Button
-                type="button"
-                onClick={handleContinueWithNewIc}
-                disabled={isSubmitting || !cleanedNewIc}
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                {isSubmitting ? translate("Saving...") : translate("Continue")}
               </Button>
             </>
           )}

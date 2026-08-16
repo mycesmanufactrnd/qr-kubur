@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   Bell,
@@ -9,6 +9,11 @@ import {
   Save,
   Send,
   BookTemplate,
+  BadgeCheck,
+  Info,
+  User,
+  MapPin,
+  Pencil,
   X,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -44,6 +49,41 @@ function FormSection({ title, children }) {
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function TemplateStatusCard({ org, canEdit, onEdit }) {
+  const hasCustom = !!org.deathnotificationtemplate;
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-3 flex items-start gap-2">
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
+            {org.name}
+          </p>
+          <span
+            className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+              hasCustom
+                ? "text-emerald-600 border-emerald-300"
+                : "text-slate-500 border-slate-300"
+            }`}
+          >
+            {hasCustom ? translate("Custom") : translate("Default")}
+          </span>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+          {org.deathnotificationtemplate || DEFAULT_TEMPLATE}
+        </p>
+      </div>
+      {canEdit && (
+        <button
+          onClick={() => onEdit(org.id)}
+          className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full active:bg-slate-100 dark:active:bg-slate-700"
+        >
+          <Pencil className="w-4 h-4 text-amber-500" />
+        </button>
+      )}
     </div>
   );
 }
@@ -332,12 +372,17 @@ function NotifySheet({
   );
 }
 
-function TemplateSheet({ onClose, allOrganisations }) {
+function TemplateSheet({ onClose, allOrganisations, initialOrgId = null }) {
   const { control, watch } = useForm({
-    defaultValues: { templateOrgId: null },
+    defaultValues: { templateOrgId: initialOrgId },
   });
   const templateOrgId = watch("templateOrgId");
   const [templateText, setTemplateText] = useState("");
+  const [savedTemplateText, setSavedTemplateText] = useState("");
+  const hasCustomTemplate = !!savedTemplateText;
+  const templateBaselineText = savedTemplateText || DEFAULT_TEMPLATE;
+  const isTemplateDirty = templateText !== templateBaselineText;
+  const templateTextareaRef = useRef(null);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -355,14 +400,15 @@ function TemplateSheet({ onClose, allOrganisations }) {
     );
 
   useEffect(() => {
-    setTemplateText("");
+    setTemplateText(DEFAULT_TEMPLATE);
+    setSavedTemplateText("");
   }, [templateOrgId]);
 
   useEffect(() => {
     if (templateData) {
-      setTemplateText(
-        templateData.organisation?.deathnotificationtemplate ?? "",
-      );
+      const saved = templateData.organisation?.deathnotificationtemplate ?? "";
+      setTemplateText(saved || DEFAULT_TEMPLATE);
+      setSavedTemplateText(saved);
     }
   }, [templateData]);
 
@@ -371,19 +417,39 @@ function TemplateSheet({ onClose, allOrganisations }) {
       onSuccess: () => {
         showSuccess(translate("Message template saved."), "success");
         refetchTemplate();
+        onClose();
       },
       onError: (err) => showApiError(err),
     });
 
   const handleSaveTemplate = async () => {
     if (!templateOrgId) return;
+    const trimmed = templateText?.trim() || "";
+    const isSameAsDefault = trimmed === DEFAULT_TEMPLATE.trim();
     await saveTemplateMutation.mutateAsync({
       organisationId: templateOrgId,
-      template: templateText?.trim() || null,
+      template: !trimmed || isSameAsDefault ? null : trimmed,
     });
   };
 
-  const handleResetTemplate = () => setTemplateText("");
+  const handleResetTemplate = () => setTemplateText(DEFAULT_TEMPLATE);
+
+  const insertTemplateVariable = (variable) => {
+    const el = templateTextareaRef.current;
+    if (!el) {
+      setTemplateText((prev) => `${prev}${variable}`);
+      return;
+    }
+    const start = el.selectionStart ?? templateText.length;
+    const end = el.selectionEnd ?? templateText.length;
+    const next = templateText.slice(0, start) + variable + templateText.slice(end);
+    setTemplateText(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + variable.length;
+      el.setSelectionRange(pos, pos);
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
@@ -420,7 +486,51 @@ function TemplateSheet({ onClose, allOrganisations }) {
 
         {templateOrgId && (
           <FormSection title={translate("Message Template")}>
+            <div
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium ${
+                hasCustomTemplate
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
+                  : "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              }`}
+            >
+              {hasCustomTemplate ? (
+                <BadgeCheck className="w-4 h-4 shrink-0" />
+              ) : (
+                <Info className="w-4 h-4 shrink-0" />
+              )}
+              {hasCustomTemplate
+                ? translate("This organisation has a custom message saved.")
+                : translate("This organisation is using the default message — no custom template saved yet.")}
+            </div>
+
+            {isTemplateDirty && (
+              <span className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                {translate("Unsaved changes")}
+              </span>
+            )}
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => insertTemplateVariable("{name}")}
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 active:opacity-70"
+              >
+                <User className="w-3 h-3" />
+                {translate("Insert Name")}
+              </button>
+              <button
+                type="button"
+                onClick={() => insertTemplateVariable("{address}")}
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 active:opacity-70"
+              >
+                <MapPin className="w-3 h-3" />
+                {translate("Insert Address")}
+              </button>
+            </div>
+
             <Textarea
+              ref={templateTextareaRef}
               rows={6}
               placeholder={DEFAULT_TEMPLATE}
               value={templateText}
@@ -428,15 +538,7 @@ function TemplateSheet({ onClose, allOrganisations }) {
               className="dark:bg-slate-800 dark:border-slate-700"
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {translate("Variables")}:{" "}
-              <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">
-                {"{name}"}
-              </code>{" "}
-              {translate("for deceased member's name,")}{" "}
-              <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">
-                {"{address}"}
-              </code>{" "}
-              {translate("for address. Leave empty to use the default template.")}
+              {translate("Use the buttons above to insert the deceased member's name or address. Leave empty to use the default template.")}
             </p>
 
             <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
@@ -460,16 +562,17 @@ function TemplateSheet({ onClose, allOrganisations }) {
           <button
             type="button"
             onClick={handleResetTemplate}
-            title={translate("Delete template — will use default template")}
-            className="flex items-center justify-center gap-1.5 h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 shrink-0"
+            disabled={templateText.trim() === DEFAULT_TEMPLATE.trim()}
+            className="flex items-center justify-center gap-1.5 h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 shrink-0 disabled:opacity-50"
           >
             <RotateCcw className="w-4 h-4" />
+            {translate("Use Default")}
           </button>
         )}
         <button
           type="button"
           onClick={handleSaveTemplate}
-          disabled={!templateOrgId || saveTemplateMutation.isPending}
+          disabled={!templateOrgId || !isTemplateDirty || saveTemplateMutation.isPending}
           className="flex-1 h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
@@ -496,6 +599,7 @@ export default function MobileManageNotifyDeathQariah() {
 
   const [notifySheetOpen, setNotifySheetOpen] = useState(false);
   const [templateSheetOpen, setTemplateSheetOpen] = useState(false);
+  const [templateEditOrgId, setTemplateEditOrgId] = useState(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [notifToDelete, setNotifToDelete] = useState(null);
@@ -586,7 +690,10 @@ export default function MobileManageNotifyDeathQariah() {
         <div className="flex gap-2">
           {canEdit && (
             <button
-              onClick={() => setTemplateSheetOpen(true)}
+              onClick={() => {
+                setTemplateEditOrgId(null);
+                setTemplateSheetOpen(true);
+              }}
               className="flex items-center justify-center gap-2 h-11 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 shrink-0"
             >
               <BookTemplate className="w-4 h-4 text-amber-500" />
@@ -603,6 +710,22 @@ export default function MobileManageNotifyDeathQariah() {
             </button>
           )}
         </div>
+
+        {allOrganisations.length > 0 && (
+          <FormSection title={translate("Message Templates by Organisation")}>
+            {allOrganisations.map((org) => (
+              <TemplateStatusCard
+                key={org.id}
+                org={org}
+                canEdit={canEdit}
+                onEdit={(orgId) => {
+                  setTemplateEditOrgId(orgId);
+                  setTemplateSheetOpen(true);
+                }}
+              />
+            ))}
+          </FormSection>
+        )}
 
         <div className="space-y-2">
           {notifLoading ? (
@@ -660,6 +783,7 @@ export default function MobileManageNotifyDeathQariah() {
         <TemplateSheet
           onClose={() => setTemplateSheetOpen(false)}
           allOrganisations={allOrganisations}
+          initialOrgId={templateEditOrgId}
         />
       )}
 

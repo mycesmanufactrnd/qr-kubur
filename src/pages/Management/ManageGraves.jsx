@@ -2,7 +2,7 @@
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import React, { useCallback, useEffect, useState } from "react";
 import MobileManageGraves from "@/pages/Mobile/ManageGraves";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { translate } from "@/utils/translations";
 import {
   MapPin,
@@ -17,6 +17,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  Map,
 } from "lucide-react";
 import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -65,7 +66,7 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 
 export default function ManageGraves() {
@@ -74,6 +75,7 @@ export default function ManageGraves() {
 }
 
 function ManageGravesDesktop() {
+  const navigate = useNavigate();
   const {
     currentUser,
     loadingUser,
@@ -366,6 +368,7 @@ function ManageGravesDesktop() {
       status: grave.status ?? GraveStatus.ACTIVE,
       totalgraves: grave.totalgraves ?? 0,
       photourl: grave.photourl ?? "",
+      gravemappingphotourl: grave.gravemappingphotourl ?? "",
     });
     setShowMap(false);
     setIsDialogOpen(true);
@@ -673,6 +676,18 @@ function ManageGravesDesktop() {
                         }}
                       >
                         <QrCode className="w-4 h-4 text-green-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title={translate("Grave Slot Mapping")}
+                        onClick={() =>
+                          navigate(
+                            `${createPageUrl("ManageGraveMapping")}?graveId=${grave.id}`,
+                          )
+                        }
+                      >
+                        <Map className="w-4 h-4 text-emerald-600" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -1004,6 +1019,16 @@ function ManageGravesDesktop() {
                   label={translate("Photo")}
                   errors={errors}
                   bucketName="bucket-grave"
+                  uploading={uploading}
+                  handleFileUpload={handleFileUpload}
+                  translate={translate}
+                />
+                <FileUploadForm
+                  name="gravemappingphotourl"
+                  control={control}
+                  label={translate("Grave Mapping Aerial Photo")}
+                  errors={errors}
+                  bucketName="bucket-grave-mapping"
                   uploading={uploading}
                   handleFileUpload={handleFileUpload}
                   translate={translate}

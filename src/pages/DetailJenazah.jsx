@@ -5,7 +5,16 @@ import { trpc } from "@/utils/trpc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Calendar, Users, MapPin, Phone, FileText, ArrowLeft, Printer } from "lucide-react";
+import {
+  User,
+  Calendar,
+  Users,
+  MapPin,
+  Phone,
+  FileText,
+  ArrowLeft,
+  Printer,
+} from "lucide-react";
 import InfoCard from "@/jenazah/InfoCard";
 import Field from "@/jenazah/Field";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
@@ -18,29 +27,39 @@ export default function DetailJenazah() {
   const navigate = useNavigate();
   const personId = Number(searchParams.get("id"));
 
-  const { data: person, isLoading } = trpc.deadperson.getDeadPersonById.useQuery(
-    { id: personId },
-    { enabled: !!personId }
-  );
+  const { data: person, isLoading } =
+    trpc.deadperson.getDeadPersonById.useQuery(
+      { id: personId },
+      { enabled: !!personId },
+    );
 
   if (isLoading) return <PageLoadingComponent />;
 
   if (!person) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-gray-500 dark:text-gray-400">Rekod tidak dijumpai.</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Rekod tidak dijumpai.
+        </p>
       </div>
     );
   }
 
   const isBuried = !!person.gravelot;
   const status = isBuried ? "Sudah Dikebumikan" : "Belum Dikebumikan";
-  const lokasi = [person.grave?.name, person.gravelot ? `Lot ${person.gravelot}` : null]
-    .filter(Boolean).join(", ") || null;
+  const lokasi =
+    [person.grave?.name, person.gravelot ? `Lot ${person.gravelot}` : null]
+      .filter(Boolean)
+      .join(", ") || null;
 
-  const cleanName = (person.name || "").replace(/^(Allahyarhamah|Allahyarham)\s+/i, "");
+  const cleanName = (person.name || "").replace(
+    /^(Allahyarhamah|Allahyarham)\s+/i,
+    "",
+  );
   const nameParts = cleanName.split(/\s+/).filter(Boolean);
-  const initials = ((nameParts[0]?.[0] || "") + (nameParts[1]?.[0] || "")).toUpperCase() || "?";
+  const initials =
+    ((nameParts[0]?.[0] || "") + (nameParts[1]?.[0] || "")).toUpperCase() ||
+    "?";
 
   let age = null;
   if (person.dateofbirth && person.dateofdeath) {
@@ -62,22 +81,8 @@ export default function DetailJenazah() {
         ]}
       />
 
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(createPageUrl("ManageDeadPersons"))}
-            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            {translate("Back")}
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Detail Jenazah
-          </h1>
-        </div>
+        <div></div>
         <div className="flex items-center gap-2">
           <Badge
             className={
@@ -91,7 +96,6 @@ export default function DetailJenazah() {
         </div>
       </div>
 
-      {/* Hero Card */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-5">
           <div className="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shrink-0 shadow-sm">
@@ -117,7 +121,9 @@ export default function DetailJenazah() {
               <p className="text-[11px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-1">
                 {label}
               </p>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">{value}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                {value}
+              </p>
             </div>
           ))}
         </div>
@@ -164,7 +170,10 @@ export default function DetailJenazah() {
           <InfoCard title="Maklumat Peribadi" icon={User}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
               <Field label="Nama Lengkap" value={person.name} />
-              <Field label="No. Kad Pengenalan (MyKad)" value={person.icnumber} />
+              <Field
+                label="No. Kad Pengenalan (MyKad)"
+                value={person.icnumber}
+              />
               <Field label="Tarikh Lahir" value={person.dateofbirth} />
               <Field label="Sebab Meninggal" value={person.causeofdeath} />
             </div>
@@ -192,7 +201,9 @@ export default function DetailJenazah() {
                   <p className="text-emerald-700 dark:text-emerald-400 text-xs uppercase tracking-widest font-semibold mb-1">
                     No. Telefon
                   </p>
-                  <p className={`text-sm ${person.heirphoneno ? "text-gray-900 dark:text-white font-medium" : "text-gray-400"}`}>
+                  <p
+                    className={`text-sm ${person.heirphoneno ? "text-gray-900 dark:text-white font-medium" : "text-gray-400"}`}
+                  >
                     {person.heirphoneno || "—"}
                   </p>
                 </div>

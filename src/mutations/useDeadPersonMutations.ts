@@ -73,6 +73,9 @@ export function useDeadPersonMutations() {
   const invalidateAll = () => {
     trpcUtils.deadperson.getPaginated.invalidate();
     trpcUtils.deadperson.getDeadPersonByGraveId.invalidate();
+    // invalidate slot
+    trpcUtils.graveMapping.getBlocksByGrave.invalidate();
+    trpcUtils.graveMapping.getSlotOptionsByGrave.invalidate();
   };
 
   const createDeadPerson = trpc.deadperson.create.useMutation({

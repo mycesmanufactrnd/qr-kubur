@@ -15,4 +15,5 @@ export const deadPersonSchema = z.object({
   longitude: z.number().nullable(),
   grave: z.object({ id: z.number() }).optional(),
   gravelot: z.string().min(1, "Lot kubur diperlukan").nullable().optional(),
+  graveslot: z.object({ id: z.number() }).nullable().optional(),
 });

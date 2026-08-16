@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import IcConflictDialog from "@/components/IcConflictDialog";
+import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { translate } from "@/utils/translations";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import Pagination from "@/components/Pagination";
@@ -681,11 +682,14 @@ function CaseDetailSheet({
   const {
     control: dc,
     handleSubmit: handleDeceasedSubmit,
+    watch: watchDc,
+    setValue: setValueDc,
     formState: { errors: de },
   } = useForm({
     defaultValues: {
       grave: "",
       gravelot: "",
+      graveslotId: null,
       causeofdeath: d.causeofdeath ?? "",
       dateofdeath: toDateInputValue(new Date()),
       dateofbirth: parsedDob,
@@ -741,6 +745,9 @@ function CaseDetailSheet({
         heirphoneno: formData.heirphoneno || null,
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,
         gravelot: formData.gravelot?.trim() || null,
+        graveslot: formData.graveslotId
+          ? { id: Number(formData.graveslotId) }
+          : undefined,
       });
       handleAction("ongoing");
     } catch {
@@ -1025,11 +1032,15 @@ function CaseDetailSheet({
               required
               errors={de}
             />
-            <TextInputForm
-              name="gravelot"
-              control={dc}
-              label={translate("Grave Lot")}
-              errors={de}
+            <GraveLotPickerField
+              graveId={watchDc("grave") ? Number(watchDc("grave")) : null}
+              gravelotLabel={watchDc("gravelot")}
+              currentDeadPersonId={deadPersonRecord?.id ?? null}
+              onPick={(slot) => {
+                setValueDc("gravelot", slot?.label ?? "");
+                setValueDc("graveslotId", slot?.id ?? null);
+              }}
+              isMobile
               required
             />
             <TextInputForm

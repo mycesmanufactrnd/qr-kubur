@@ -32,6 +32,7 @@ import {
 } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
+import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -158,7 +159,11 @@ function PersonFormSheet({
     formState: { errors },
   } = useForm({
     defaultValues: editing
-      ? { ...editing, grave: editing.grave?.id?.toString() ?? "" }
+      ? {
+          ...editing,
+          grave: editing.grave?.id?.toString() ?? "",
+          graveslotId: editing.graveslot?.id ?? null,
+        }
       : defaultDeadPersonField,
   });
 
@@ -247,12 +252,16 @@ function PersonFormSheet({
           required
           errors={errors}
         />
-        <TextInputForm
-          name="gravelot"
-          control={control}
-          label={translate("Grave Lot")}
+        <GraveLotPickerField
+          graveId={watch("grave") ? Number(watch("grave")) : null}
+          gravelotLabel={watch("gravelot")}
+          currentDeadPersonId={editing?.id ?? null}
+          onPick={(slot) => {
+            setValue("gravelot", slot?.label ?? "");
+            setValue("graveslotId", slot?.id ?? null);
+          }}
+          isMobile
           required
-          errors={errors}
         />
         <div className="grid grid-cols-2 gap-3">
           <TextInputForm
@@ -439,13 +448,14 @@ export default function MobileManageDeadPersons() {
   };
 
   const onSubmit = async (formData) => {
+    const { graveslotId, ...rest } = formData;
     const selectedGrave = gravesList.items.find(
-      (grave) => Number(grave.id) === Number(formData.grave),
+      (grave) => Number(grave.id) === Number(rest.grave),
     );
 
-    let latitude = formData.latitude ? parseFloat(formData.latitude) : null;
+    let latitude = rest.latitude ? parseFloat(rest.latitude) : null;
 
-    let longitude = formData.longitude ? parseFloat(formData.longitude) : null;
+    let longitude = rest.longitude ? parseFloat(rest.longitude) : null;
 
     if ((!latitude || latitude === 0) && selectedGrave?.latitude != null) {
       latitude = parseFloat(selectedGrave.latitude);
@@ -457,11 +467,12 @@ export default function MobileManageDeadPersons() {
 
     setIsSubmitting(true);
     const submitData = {
-      ...formData,
+      ...rest,
       latitude,
       longitude,
-      grave: formData.grave ? { id: Number(formData.grave) } : null,
-      gravelot: formData.gravelot?.trim() || null,
+      grave: rest.grave ? { id: Number(rest.grave) } : null,
+      gravelot: rest.gravelot?.trim() || null,
+      graveslot: graveslotId ? { id: Number(graveslotId) } : null,
     };
     try {
       if (editingPerson) {

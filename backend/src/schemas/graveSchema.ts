@@ -11,6 +11,7 @@ export const graveSchema = z.object({
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   photourl: z.string().optional().nullable(),
+  gravemappingphotourl: z.string().optional().nullable(),
   picname: z.string().optional().nullable(),
   picphoneno: z.string().optional().nullable(),
   totalgraves: z.number().int().nonnegative().optional().nullable(),

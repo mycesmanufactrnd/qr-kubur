@@ -40,6 +40,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import IcConflictDialog from "@/components/IcConflictDialog";
+import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { translate } from "@/utils/translations";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -231,11 +232,14 @@ function CaseDetailDialog({
   const {
     control: dc,
     handleSubmit: handleDeceasedSubmit,
+    watch: watchDc,
+    setValue: setValueDc,
     formState: { errors: de },
   } = useForm({
     defaultValues: {
       grave: "",
       gravelot: "",
+      graveslotId: null,
       causeofdeath: d.causeofdeath ?? "",
       dateofdeath: toDateInputValue(new Date()),
       dateofbirth: parsedDob,
@@ -406,6 +410,9 @@ function CaseDetailDialog({
         heirphoneno: formData.heirphoneno || null,
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,
         gravelot: formData.gravelot?.trim() || null,
+        graveslot: formData.graveslotId
+          ? { id: Number(formData.graveslotId) }
+          : undefined,
       });
       handleAction("ongoing");
     } catch {
@@ -435,6 +442,9 @@ function CaseDetailDialog({
         heirphoneno: formData.heirphoneno || null,
         grave: formData.grave ? { id: Number(formData.grave) } : undefined,
         gravelot: formData.gravelot?.trim() || null,
+        graveslot: formData.graveslotId
+          ? { id: Number(formData.graveslotId) }
+          : undefined,
       });
       // Stock out checked consumables
       for (const pi of consumableItems) {
@@ -461,7 +471,7 @@ function CaseDetailDialog({
           });
         }
       }
-      handleAction("approved");
+      handleAction("ongoing");
     } catch {
       // errors shown by onError handlers
     }
@@ -831,11 +841,14 @@ function CaseDetailDialog({
                 errors={de}
               />
 
-              <TextInputForm
-                name="gravelot"
-                control={dc}
-                label={translate("Grave Lot")}
-                errors={de}
+              <GraveLotPickerField
+                graveId={watchDc("grave") ? Number(watchDc("grave")) : null}
+                gravelotLabel={watchDc("gravelot")}
+                currentDeadPersonId={deadPersonRecord?.id ?? null}
+                onPick={(slot) => {
+                  setValueDc("gravelot", slot?.label ?? "");
+                  setValueDc("graveslotId", slot?.id ?? null);
+                }}
                 required={showDeceasedForm}
               />
 

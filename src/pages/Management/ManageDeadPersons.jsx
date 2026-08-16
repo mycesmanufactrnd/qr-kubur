@@ -70,6 +70,7 @@ import {
 } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
+import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { parseDobFromIcNumber } from "@/utils/helpers";
 import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
 
@@ -328,19 +329,21 @@ function ManageDeadPersonsDesktop() {
     reset({
       ...person,
       grave: person.grave?.id.toString() || "",
+      graveslotId: person.graveslot?.id ?? null,
     });
     setShowMap(false);
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (formData) => {
+    const { graveslotId, ...rest } = formData;
     const selectedGrave = gravesList.items.find(
-      (grave) => Number(grave.id) === Number(formData.grave),
+      (grave) => Number(grave.id) === Number(rest.grave),
     );
 
-    let latitude = formData.latitude ? parseFloat(formData.latitude) : null;
+    let latitude = rest.latitude ? parseFloat(rest.latitude) : null;
 
-    let longitude = formData.longitude ? parseFloat(formData.longitude) : null;
+    let longitude = rest.longitude ? parseFloat(rest.longitude) : null;
 
     if ((!latitude || latitude === 0) && selectedGrave?.latitude != null) {
       latitude = parseFloat(selectedGrave.latitude);
@@ -351,12 +354,13 @@ function ManageDeadPersonsDesktop() {
     }
 
     const submitData = {
-      ...formData,
-      icnumber: formData.icnumber?.replace(/-/g, "") || null,
+      ...rest,
+      icnumber: rest.icnumber?.replace(/-/g, "") || null,
       latitude,
       longitude,
-      grave: formData.grave ? { id: Number(formData.grave) } : null,
-      gravelot: formData.gravelot?.trim() || null,
+      grave: rest.grave ? { id: Number(rest.grave) } : null,
+      gravelot: rest.gravelot?.trim() || null,
+      graveslot: graveslotId ? { id: Number(graveslotId) } : null,
     };
 
     try {
@@ -901,12 +905,15 @@ function ManageDeadPersonsDesktop() {
                     required
                     errors={errors}
                   />
-                  <TextInputForm
-                    name="gravelot"
-                    control={control}
-                    label={translate("Grave Lot")}
+                  <GraveLotPickerField
+                    graveId={watch("grave") ? Number(watch("grave")) : null}
+                    gravelotLabel={watch("gravelot")}
+                    currentDeadPersonId={editingPerson?.id ?? null}
+                    onPick={(slot) => {
+                      setValue("gravelot", slot?.label ?? "");
+                      setValue("graveslotId", slot?.id ?? null);
+                    }}
                     required
-                    errors={errors}
                   />
                 </div>
                 <FileUploadForm

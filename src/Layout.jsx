@@ -40,6 +40,7 @@ import {
   History,
   ClipboardCheck,
   FileBarChart2,
+  Map,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -164,6 +165,11 @@ function LayoutContent({ children, currentPageName }) {
             name: translate("Manage Dead Person"),
             icon: UserCheck,
             page: "ManageDeadPersons",
+          },
+          {
+            name: translate("Grave Slot Mapping"),
+            icon: Map,
+            page: "ManageGraveMapping",
           },
           {
             name: translate("Manage Inventory"),
@@ -540,7 +546,7 @@ function LayoutContent({ children, currentPageName }) {
       </header>
 
       <main
-        className={`flex-1 max-w-7xl mx-auto w-full
+        className={`flex-1 max-w-screen-2xl mx-auto w-full
           ${isUserDashboard ? "pb-10" : "px-3 sm:px-6 py-3 pb-20 lg:pt-6 lg:pb-6"}          
         `}
       >

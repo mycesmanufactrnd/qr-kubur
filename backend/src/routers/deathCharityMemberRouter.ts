@@ -352,6 +352,7 @@ export const deathCharityMemberRouter = router({
           "organisation.name",
           "organisation.states",
           "organisation.address",
+          "organisation.deathnotificationtemplate",
         ])
         .orderBy("organisation.name", "ASC")
         .getMany();

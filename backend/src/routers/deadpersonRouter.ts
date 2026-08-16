@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
-import { DeadPerson, DeathCharityMember } from "../db/entities.js";
+import { DeadPerson, DeathCharityMember, GraveSlot } from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { deadPersonSchema } from "../schemas/deadpersonSchema.js";
@@ -11,6 +11,29 @@ const upsertForQariahSchema = deadPersonSchema.extend({
 
 const stripIcDashes = (value) =>
   typeof value === "string" ? value.replace(/-/g, "").trim() : value;
+
+const resolveGraveSlotAssignment = async (data, currentDeadPersonId) => {
+  if (data.graveslot === undefined) return data;
+
+  if (data.graveslot === null) {
+    return { ...data, graveslot: null };
+  }
+
+  const slot = await AppDataSource.getRepository(GraveSlot).findOne({
+    where: { id: data.graveslot.id },
+    relations: ["deadperson"],
+  });
+
+  if (!slot) throw new Error("Selected grave slot not found");
+
+  if (slot.deadperson && slot.deadperson.id !== currentDeadPersonId) {
+    throw new Error(
+      `This slot is already occupied by ${slot.deadperson.name}`,
+    );
+  }
+
+  return { ...data, graveslot: { id: slot.id }, gravelot: slot.label };
+};
 
 export const deadPersonRouter = router({
   getPaginated: protectedProcedure
@@ -50,7 +73,8 @@ export const deadPersonRouter = router({
 
       const query = repo
         .createQueryBuilder("deadperson")
-        .leftJoinAndSelect("deadperson.grave", "grave");
+        .leftJoinAndSelect("deadperson.grave", "grave")
+        .leftJoinAndSelect("deadperson.graveslot", "graveslot");
 
       if (organisationIds && organisationIds.length > 0) {
         query.andWhere("grave.organisationId IN (:...ids)", {
@@ -124,10 +148,11 @@ export const deadPersonRouter = router({
       }
 
       const deadPersonRepo = AppDataSource.getRepository(DeadPerson);
+      const resolvedInput = await resolveGraveSlotAssignment(input, null);
 
       const person = deadPersonRepo.create({
-        ...input,
-        icnumber: stripIcDashes(input.icnumber),
+        ...resolvedInput,
+        icnumber: stripIcDashes(resolvedInput.icnumber),
         createdbyId: Number(ctx.user.id),
       });
 
@@ -148,11 +173,16 @@ export const deadPersonRouter = router({
         existing = await repo.findOne({ where: { icnumber } });
       }
 
+      const resolvedData = await resolveGraveSlotAssignment(
+        data,
+        existing?.id ?? null,
+      );
+
       const savedPerson = existing
-        ? await repo.save(repo.merge(existing, { ...data, icnumber }))
+        ? await repo.save(repo.merge(existing, { ...resolvedData, icnumber }))
         : await repo.save(
             repo.create({
-              ...data,
+              ...resolvedData,
               icnumber,
               createdbyId: Number(ctx.user.id),
             }),
@@ -182,7 +212,12 @@ export const deadPersonRouter = router({
         cleanedInput.icnumber = stripIcDashes(cleanedInput.icnumber);
       }
 
-      deadPersonRepo.merge(person, cleanedInput);
+      const resolvedInput = await resolveGraveSlotAssignment(
+        cleanedInput,
+        person.id,
+      );
+
+      deadPersonRepo.merge(person, resolvedInput);
 
       return await deadPersonRepo.save(person);
     }),
@@ -198,7 +233,7 @@ export const deadPersonRouter = router({
       if (!input.icnumber) return null;
       return await AppDataSource.getRepository(DeadPerson).findOne({
         where: { icnumber: stripIcDashes(input.icnumber) },
-        relations: ["grave"],
+        relations: ["grave", "graveslot"],
       });
     }),
 
@@ -209,7 +244,7 @@ export const deadPersonRouter = router({
 
       return await AppDataSource.getRepository(DeadPerson).findOne({
         where: { id: input.id },
-        relations: ["grave", "grave.organisation"],
+        relations: ["grave", "grave.organisation", "graveslot"],
       });
     }),
 
