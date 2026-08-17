@@ -14,11 +14,13 @@ import {
   FileText,
   ArrowLeft,
   Printer,
+  Paperclip,
 } from "lucide-react";
 import InfoCard from "@/jenazah/InfoCard";
 import Field from "@/jenazah/Field";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
+import DocumentLinks from "@/components/DocumentLinks";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 
@@ -131,7 +133,7 @@ export default function DetailJenazah() {
 
       {/* Tabs */}
       <Tabs defaultValue="peribadi" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1 rounded-lg shadow-sm">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1 rounded-lg shadow-sm">
           <TabsTrigger
             value="peribadi"
             className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white flex items-center gap-2 py-2.5 text-sm font-medium"
@@ -163,6 +165,14 @@ export default function DetailJenazah() {
             <MapPin className="w-4 h-4" />
             <span className="hidden sm:inline">Maklumat Pemakaman</span>
             <span className="sm:hidden">Pemakaman</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="dokumen"
+            className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white flex items-center gap-2 py-2.5 text-sm font-medium"
+          >
+            <Paperclip className="w-4 h-4" />
+            <span className="hidden sm:inline">{translate("Documents")}</span>
+            <span className="sm:hidden">{translate("Documents")}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -240,6 +250,36 @@ export default function DetailJenazah() {
                 </div>
               </div>
             </div>
+          </InfoCard>
+        </TabsContent>
+
+        <TabsContent value="dokumen" className="mt-5">
+          <InfoCard title={translate("Documents")} icon={Paperclip}>
+            {person.deathconfirmationphotourl ||
+            person.policereportphotourl ||
+            person.supportingdocphotourl ? (
+              <div className="space-y-4">
+                <DocumentLinks
+                  label={translate("Death Confirmation")}
+                  value={person.deathconfirmationphotourl}
+                  bucket="bucket-death-confirmation"
+                />
+                <DocumentLinks
+                  label={translate("Police Report")}
+                  value={person.policereportphotourl}
+                  bucket="bucket-police-report"
+                />
+                <DocumentLinks
+                  label={translate("Supporting Documents")}
+                  value={person.supportingdocphotourl}
+                  bucket="supporting-doc-jenazah-case"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+                {translate("No documents available.")}
+              </p>
+            )}
           </InfoCard>
         </TabsContent>
       </Tabs>

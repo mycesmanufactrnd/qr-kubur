@@ -419,7 +419,7 @@ export default function JenazahEmergencyRequest() {
       deceasedIcnumber: data.icnumber,
       deceasedPhone: data.phone,
       causeofdeath: data.causeofdeath?.trim() || null,
-      isQariahMember: !!memberResult,
+      isKariahMember: !!memberResult,
       isOutOfArea: !!isOutOfArea,
       careScenario,
       careScenarioOther:
@@ -436,7 +436,7 @@ export default function JenazahEmergencyRequest() {
     createCase.mutate(
       {
         mosqueId: mosque?.id ?? null,
-        qariahmemberid: memberResult?.id ?? null,
+        kariahmemberid: memberResult?.id ?? null,
         details,
         userremarks: data.userremarks?.trim() || null,
         deathconfirmationphotourl: data.deathconfirmationphotourl || null,
@@ -682,7 +682,7 @@ export default function JenazahEmergencyRequest() {
                       : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  {translate("Within Qariah Area")}
+                  {translate("Within Kariah Area")}
                 </button>
                 <button
                   type="button"
@@ -840,7 +840,7 @@ export default function JenazahEmergencyRequest() {
                   <TextInputForm
                     name="icSearch"
                     control={control}
-                    label={translate("Search Qariah Member (IC No.)")}
+                    label={translate("Search Kariah Member (IC No.)")}
                     isICNumber
                   />
                 </div>
@@ -921,7 +921,7 @@ export default function JenazahEmergencyRequest() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                        {translate("Qariah Member Found")}
+                        {translate("Kariah Member Found")}
                       </p>
                       <p className="text-sm text-slate-700 dark:text-slate-200">
                         {memberResult.fullname}
@@ -943,7 +943,7 @@ export default function JenazahEmergencyRequest() {
                     <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                     <p className="text-xs text-amber-700 dark:text-amber-400">
                       {translate(
-                        "No Qariah member found. Please fill in the details below.",
+                        "No Kariah member found. Please fill in the details below.",
                       )}
                     </p>
                   </div>

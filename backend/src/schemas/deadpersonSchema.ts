@@ -16,4 +16,7 @@ export const deadPersonSchema = z.object({
   grave: z.object({ id: z.number() }).optional(),
   gravelot: z.string().min(1, "Lot kubur diperlukan").nullable().optional(),
   graveslot: z.object({ id: z.number() }).nullable().optional(),
+  deathconfirmationphotourl: z.string().nullable().optional(),
+  policereportphotourl: z.string().nullable().optional(),
+  supportingdocphotourl: z.string().nullable().optional(),
 });

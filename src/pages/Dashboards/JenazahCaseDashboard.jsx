@@ -323,16 +323,16 @@ function JenazahCaseDashboardDesktop() {
                     value={d.causeofdeath}
                   />
                 )}
-                <DetailRow label={translate("Qariah Member Status")}>
-                  {d.isQariahMember ? (
+                <DetailRow label={translate("Kariah Member Status")}>
+                  {caseItem?.addedtokariah || d.isKariahMember ? (
                     <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
                       <BadgeCheck className="w-3.5 h-3.5" />
-                      {translate("Registered Qariah Member")}
+                      {translate("Registered Kariah Member")}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs text-slate-500">
                       <Info className="w-3.5 h-3.5" />
-                      {translate("Not a Qariah Member")}
+                      {translate("Not a Kariah Member")}
                     </span>
                   )}
                 </DetailRow>

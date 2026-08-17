@@ -6,13 +6,13 @@ import { AppDataSource } from "../datasource.js";
 import {
   DeathCharityMember,
   Organisation,
-  QariahDeathNotification,
-  QariahDevice,
+  KariahDeathNotification,
+  KariahDevice,
 } from "../db/entities.js";
 import { sendPushNotifications } from "../services/firebase.service.js";
 
 const DEFAULT_TEMPLATE =
-  "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli qariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
+  "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli kariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
 
 function buildMessage(
   template: string,
@@ -31,9 +31,9 @@ async function doSendNotification(
   message: string,
 ): Promise<number> {
   const memberRepo = AppDataSource.getRepository(DeathCharityMember);
-  const deviceRepo = AppDataSource.getRepository(QariahDevice);
+  const deviceRepo = AppDataSource.getRepository(KariahDevice);
 
-  const qariahMembers = await memberRepo.find({
+  const kariahMembers = await memberRepo.find({
     where: {
       organisation: { id: organisationId },
       isapproved: true,
@@ -42,7 +42,7 @@ async function doSendNotification(
     select: ["id", "icnumber"],
   });
 
-  const icnumbers = qariahMembers
+  const icnumbers = kariahMembers
     .filter((m) => m.id !== excludeMemberId)
     .map((m) => m.icnumber);
 
@@ -52,25 +52,25 @@ async function doSendNotification(
     where: { icnumber: In(icnumbers), isapproved: true },
   });
 
-  const tokens = devices.map((d) => d.fcmQariahToken).filter(Boolean);
+  const tokens = devices.map((d) => d.fcmKariahToken).filter(Boolean);
   if (tokens.length === 0) return 0;
 
   const staleTokens = await sendPushNotifications(
     tokens,
-    { title: "Takziah — Kematian Ahli Qariah", body: message },
-    { organisationId: String(organisationId), event: "qariahDeath" },
+    { title: "Takziah — Kematian Ahli Kariah", body: message },
+    { organisationId: String(organisationId), event: "kariahDeath" },
   );
 
   if (staleTokens.length > 0) {
     await deviceRepo.delete(
-      staleTokens.map((t) => ({ fcmQariahToken: t })) as any,
+      staleTokens.map((t) => ({ fcmKariahToken: t })) as any,
     );
   }
 
   return tokens.length - staleTokens.length;
 }
 
-export const qariahNotificationRouter = router({
+export const kariahNotificationRouter = router({
   getPagedNotifications: protectedProcedure
     .input(
       z.object({
@@ -80,7 +80,7 @@ export const qariahNotificationRouter = router({
     )
     .query(async ({ input }) => {
       const { page, pageSize } = input;
-      const repo = AppDataSource.getRepository(QariahDeathNotification);
+      const repo = AppDataSource.getRepository(KariahDeathNotification);
       const [items, total] = await repo
         .createQueryBuilder("n")
         .leftJoinAndSelect("n.deceasedMember", "member")
@@ -103,7 +103,7 @@ export const qariahNotificationRouter = router({
       const { deceasedMemberId, customMessage } = input;
 
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
-      const notifRepo = AppDataSource.getRepository(QariahDeathNotification);
+      const notifRepo = AppDataSource.getRepository(KariahDeathNotification);
 
       const deceased = await memberRepo.findOne({
         where: { id: deceasedMemberId },
@@ -112,7 +112,7 @@ export const qariahNotificationRouter = router({
 
       if (!deceased?.organisation) {
         throw new Error(
-          "Ahli qariah atau organisasi tidak dijumpai.",
+          "Ahli kariah atau organisasi tidak dijumpai.",
         );
       }
 
@@ -144,7 +144,7 @@ export const qariahNotificationRouter = router({
   resendNotification: protectedProcedure
     .input(z.number())
     .mutation(async ({ input: notificationId }) => {
-      const notifRepo = AppDataSource.getRepository(QariahDeathNotification);
+      const notifRepo = AppDataSource.getRepository(KariahDeathNotification);
 
       const notif = await notifRepo.findOne({
         where: { id: notificationId },
@@ -172,7 +172,7 @@ export const qariahNotificationRouter = router({
   deleteNotification: protectedProcedure
     .input(z.number())
     .mutation(async ({ input: id }) => {
-      const repo = AppDataSource.getRepository(QariahDeathNotification);
+      const repo = AppDataSource.getRepository(KariahDeathNotification);
       return await repo.delete(id);
     }),
 

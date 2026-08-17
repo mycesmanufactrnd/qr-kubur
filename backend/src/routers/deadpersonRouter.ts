@@ -5,7 +5,7 @@ import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { deadPersonSchema } from "../schemas/deadpersonSchema.js";
 
-const upsertForQariahSchema = deadPersonSchema.extend({
+const upsertForKariahSchema = deadPersonSchema.extend({
   deathCharityMemberId: z.number().optional().nullable(),
 });
 
@@ -159,8 +159,8 @@ export const deadPersonRouter = router({
       return await deadPersonRepo.save(person);
     }),
 
-  upsertForQariah: protectedProcedure
-    .input(upsertForQariahSchema)
+  upsertForKariah: protectedProcedure
+    .input(upsertForKariahSchema)
     .mutation(async ({ input, ctx }) => {
       if (!ctx.user?.id) throw new Error("Unauthorized");
       const repo = AppDataSource.getRepository(DeadPerson);

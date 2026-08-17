@@ -2,21 +2,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils/index";
-import { CheckCircle, MapPin } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ImageTextCaptcha from "@/components/ImageTextCaptcha";
 import { showError, showWarning } from "@/components/ToastrNotification";
 import BackNavigation from "@/components/BackNavigation";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { validateFields } from "@/utils/validations";
 import { trpc } from "@/utils/trpc";
 import {
@@ -30,7 +22,10 @@ import { useLocationContext } from "@/providers/LocationProvider";
 import { ipAddressQueryOptions } from "@/utils/queryOptions";
 import { useAdminAccess, getStoredGoogleUser } from "@/utils/auth";
 import { translate } from "@/utils/translations";
+import { STATES_MY } from "@/utils/enums";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
+import SelectForm from "@/components/forms/SelectForm";
+import Select2Form from "@/components/forms/Select2Form";
 
 const PHONE_STORAGE_KEY = "suggestion_phoneno";
 
@@ -89,15 +84,37 @@ export default function SubmitSuggestion() {
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
   const watchType = watch("type");
+  const watchState = watch("state");
   const watchSelectedGrave = watch("watchSelectedGrave");
 
   const createMutation = useCreateSuggestion();
 
-  const { data: nearbyGraves = [] } = useGetGravesCoordinates(
-    userLocation
-      ? { latitude: userLocation.lat, longitude: userLocation.lng }
-      : null,
-    userState,
+  useEffect(() => {
+    if (userState && STATES_MY.includes(userState) && !watchState) {
+      setValue("state", userState);
+    }
+  }, [userState, setValue]);
+
+  const coordinates = userLocation
+    ? { latitude: userLocation.lat, longitude: userLocation.lng }
+    : null;
+
+  const { data: graves = [], isLoading: isGravesLoading } =
+    useGetGravesCoordinates(
+      coordinates,
+      watchState ? { state: watchState } : {},
+    );
+
+  const graveOptions = useMemo(
+    () =>
+      graves.map((g) => ({
+        value: String(g.id),
+        label:
+          g.distance != null
+            ? `${g.name} (${showEarthDistance(g.distance)})`
+            : g.name,
+      })),
+    [graves],
   );
 
   const { data: persons, isLoading: isPersonLoading } =
@@ -106,11 +123,17 @@ export default function SubmitSuggestion() {
       { enabled: !!watchSelectedGrave },
     );
 
+  const personOptions = useMemo(
+    () => (persons ?? []).map((p) => ({ value: String(p.id), label: p.name })),
+    [persons],
+  );
+
   const onSubmit = async (formData) => {
     const isValid = validateFields(formData, [
       { field: "name", label: "Name", type: "text" },
       { field: "phoneno", label: "Phone No.", type: "phone" },
       { field: "type", label: "Record Type", type: "select" },
+      { field: "state", label: "State", type: "select" },
       { field: "entityId", label: "Record", type: "select" },
       { field: "suggestedchanges", label: "Suggested Changes", type: "text" },
       { field: "reason", label: "Reason", type: "text" },
@@ -119,7 +142,9 @@ export default function SubmitSuggestion() {
     if (!isValid) return;
 
     if (recentCount >= 3) {
-      showWarning(translate("You have reached the limit of 3 suggestions per hour"));
+      showWarning(
+        translate("You have reached the limit of 3 suggestions per hour"),
+      );
       return;
     }
 
@@ -146,13 +171,9 @@ export default function SubmitSuggestion() {
     };
 
     const graveId =
-      type === "person"
-        ? selectedGraveId
-        : type === "grave"
-          ? entityId
-          : null;
+      type === "person" ? selectedGraveId : type === "grave" ? entityId : null;
     const selectedGrave = graveId
-      ? nearbyGraves.find((g) => String(g.id) === String(graveId))
+      ? graves.find((g) => String(g.id) === String(graveId))
       : null;
     if (selectedGrave?.organisation?.id) {
       suggestionData.organisation = { id: selectedGrave.organisation.id };
@@ -203,7 +224,9 @@ export default function SubmitSuggestion() {
               {translate("Suggestion Submitted!")}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              {translate("Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.")}
+              {translate(
+                "Your suggestion has been submitted to the admin for review. We will notify you after the review is complete.",
+              )}
             </p>
             <Link to={createPageUrl("UserDashboard")}>
               <Button className="bg-emerald-600 hover:bg-emerald-700">
@@ -223,7 +246,6 @@ export default function SubmitSuggestion() {
       <form onSubmit={handleFormSubmit(onSubmit)}>
         <Card className="border-0 shadow-sm dark:bg-gray-800">
           <CardContent className="p-4 space-y-4">
-
             <TextInputForm
               name="name"
               control={control}
@@ -252,126 +274,101 @@ export default function SubmitSuggestion() {
               errors={errors}
             />
 
-            <div className="space-y-2">
-              <Label className="dark:text-gray-300">
-                {translate("Record Type")} <span className="text-red-500">*</span>
-              </Label>
-              <Controller
-                name="type"
+            <SelectForm
+              name="type"
+              control={control}
+              label={translate("Record Type")}
+              placeholder={translate("Select Record Type")}
+              options={[
+                { value: "person", label: translate("Record Person") },
+                { value: "grave", label: translate("Record Grave") },
+              ]}
+              required
+              errors={errors}
+              onValueChange={() => {
+                setValue("watchSelectedGrave", "");
+                setValue("entityId", "");
+              }}
+            />
+
+            {watchType && (
+              <SelectForm
+                name="state"
                 control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={(val) => {
-                      field.onChange(val);
-                      setValue("watchSelectedGrave", "");
-                      setValue("entityId", "");
-                    }}
-                  >
-                    <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
-                      <SelectValue placeholder={translate("Select Record Type")} />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
-                      <SelectItem value="person">{translate("Record Person")}</SelectItem>
-                      <SelectItem value="grave">{translate("Record Grave")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+                label={translate("State")}
+                placeholder={translate("Select state")}
+                options={STATES_MY}
+                required
+                errors={errors}
+                onValueChange={() => {
+                  setValue("watchSelectedGrave", "");
+                  setValue("entityId", "");
+                }}
               />
-            </div>
+            )}
 
             {watchType === "person" && (
-              <div className="space-y-2">
-                <Label className="dark:text-gray-300">
-                  {translate("Select Grave")} <span className="text-red-500">*</span>
-                </Label>
-                <Controller
-                  name="watchSelectedGrave"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
-                        <SelectValue placeholder={translate("Select nearby grave")} />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
-                        {nearbyGraves.map((grave) => (
-                          <SelectItem key={grave.id} value={String(grave.id)}>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-3 h-3" />
-                              {grave.name}
-                              {showEarthDistance(grave.distance)}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+              <Select2Form
+                name="watchSelectedGrave"
+                control={control}
+                label={translate("Select Grave")}
+                required
+                errors={errors}
+                options={graveOptions}
+                disabled={!watchState}
+                loading={isGravesLoading}
+                disabledMessage={
+                  !watchState ? translate("Select state first") : undefined
+                }
+                noSelectionMessage={
+                  !watchState
+                    ? translate("Please select a state to see available graves")
+                    : undefined
+                }
+                placeholder={translate("Select nearby grave")}
+                searchPlaceholder={translate("Search grave...")}
+                emptyMessage={translate("No grave found")}
+                onValueChange={() => setValue("entityId", "")}
+              />
             )}
 
             {watchType === "person" && watchSelectedGrave && (
-              <div className="space-y-2">
-                <Label className="dark:text-gray-300">
-                  {translate("Select Deceased")} <span className="text-red-500">*</span>
-                </Label>
-                <Controller
-                  name="entityId"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
-                        <SelectValue placeholder={translate("Select Deceased")} />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
-                        {!isPersonLoading &&
-                          persons?.map((p) => (
-                            <SelectItem key={p.id} value={String(p.id)}>
-                              {p.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+              <Select2Form
+                name="entityId"
+                control={control}
+                label={translate("Select Deceased")}
+                required
+                errors={errors}
+                options={personOptions}
+                loading={isPersonLoading}
+                placeholder={translate("Select Deceased")}
+                searchPlaceholder={translate("Search deceased...")}
+                emptyMessage={translate("No deceased found")}
+              />
             )}
 
             {watchType === "grave" && (
-              <div className="space-y-2">
-                <Label className="dark:text-gray-300">
-                  {translate("Select Grave")} <span className="text-red-500">*</span>
-                </Label>
-                <Controller
-                  name="entityId"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200">
-                        <SelectValue placeholder={translate("Select nearby grave")} />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-slate-700 dark:border-slate-600">
-                        {nearbyGraves.slice(0, 20).map((grave) => (
-                          <SelectItem key={grave.id} value={String(grave.id)}>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-3 h-3" />
-                              {grave.name}
-                              {showEarthDistance(grave.distance)}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+              <Select2Form
+                name="entityId"
+                control={control}
+                label={translate("Select Grave")}
+                required
+                errors={errors}
+                options={graveOptions}
+                disabled={!watchState}
+                loading={isGravesLoading}
+                disabledMessage={
+                  !watchState ? translate("Select state first") : undefined
+                }
+                noSelectionMessage={
+                  !watchState
+                    ? translate("Please select a state to see available graves")
+                    : undefined
+                }
+                placeholder={translate("Select nearby grave")}
+                searchPlaceholder={translate("Search grave...")}
+                emptyMessage={translate("No grave found")}
+              />
             )}
 
             <div>
@@ -386,7 +383,9 @@ export default function SubmitSuggestion() {
                 errors={errors}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {translate("Example: 'The name should be Ahmad bin Abu, not Ahmad bin Bakar'")}
+                {translate(
+                  "Example: 'The name should be Ahmad bin Abu, not Ahmad bin Bakar'",
+                )}
               </p>
             </div>
 

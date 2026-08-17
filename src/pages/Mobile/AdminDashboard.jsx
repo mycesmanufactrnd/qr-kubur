@@ -31,13 +31,14 @@ import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import { useGetAdminDashboardStats } from "@/mutations/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 import { useMemo } from "react";
 import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert";
 import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
 import JenazahCaseOngoingAlert from "@/components/PopUpAlert/JenazahCaseOngoingAlert";
-import QariahRegistrationAlert from "@/components/PopUpAlert/QariahRegistrationAlert";
+import KariahRegistrationAlert from "@/components/PopUpAlert/KariahRegistrationAlert";
 
 export default function MobileAdminDashboard() {
   const {
@@ -52,12 +53,19 @@ export default function MobileAdminDashboard() {
     isOrgCanManageGrave,
   } = useAdminAccess();
 
+  const { loading: kariahPermissionsLoading, canView: canViewKariah } =
+    useCrudPermissions("kariah");
+  const { loading: jenazahPermissionsLoading, canView: canViewJenazahCase } =
+    useCrudPermissions("jenazah_case");
+
   const statsNeeded = useMemo(() => {
     const arr = ["OS"];
 
     if (isOrgCanManageGrave) arr.push("GD");
     if (isOrgCanBeDonated) arr.push("DDV");
-    if (isOrgCanManageMosque) arr.push("CMC", "CQN");
+    if (isOrgCanManageMosque) arr.push("CMC");
+    if (isOrgCanManageMosque && (canViewKariah || canViewJenazahCase))
+      arr.push("CQN");
     if (isOrgGraveService) arr.push("QUO");
 
     return arr;
@@ -66,6 +74,8 @@ export default function MobileAdminDashboard() {
     isOrgCanBeDonated,
     isOrgCanManageMosque,
     isOrgGraveService,
+    canViewKariah,
+    canViewJenazahCase,
   ]);
 
   const isReady = !!currentUser?.organisation?.id;
@@ -98,8 +108,8 @@ export default function MobileAdminDashboard() {
   const deadPersonCount = GDStats?.deadPersonCount ?? 0;
   const donationCount = DDVStats?.donationCount ?? 0;
   const donationVerified = DDVStats?.donationVerified ?? 0;
-  const qariahMemberCount = CQNStats?.qariahMemberCount ?? 0;
-  const qariahNotificationCount = CQNStats?.qariahNotificationCount ?? 0;
+  const kariahMemberCount = CQNStats?.kariahMemberCount ?? 0;
+  const kariahNotificationCount = CQNStats?.kariahNotificationCount ?? 0;
   const jenazahCaseCount = CQNStats?.jenazahCaseCount ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
@@ -108,7 +118,8 @@ export default function MobileAdminDashboard() {
   const totalCompleteQuo = QUOStats?.totalCompleteQuo ?? 0;
   const totalPayoutQuo = QUOStats?.totalPayoutQuo ?? 0;
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || kariahPermissionsLoading || jenazahPermissionsLoading)
+    return <PageLoadingComponent />;
   if (!hasAdminAccess || isTahfizAdmin) return <AccessDeniedComponent />;
 
   const today = new Date().toLocaleDateString("en-MY", {
@@ -149,32 +160,40 @@ export default function MobileAdminDashboard() {
     },
   ];
 
-  const qariahStats = [
-    {
-      label: translate("Total Ahli Qariah"),
-      value: qariahMemberCount,
-      icon: Users,
-      page: "ManageQariahMember",
-      loading: isCQNLoading,
-      color: "green",
-    },
-    {
-      label: translate("Notifikasi Kematian"),
-      value: qariahNotificationCount,
-      icon: Bell,
-      page: "ManageNotifyDeathQariah",
-      loading: isCQNLoading,
-      color: "blue",
-    },
-    {
-      label: translate("Kes Jenazah"),
-      value: jenazahCaseCount,
-      icon: ClipboardList,
-      page: "ManageJenazahCase",
-      loading: isCQNLoading,
-      color: "rose",
-      wide: true,
-    },
+  const kariahStats = [
+    ...(canViewKariah
+      ? [
+          {
+            label: translate("Total Ahli Kariah"),
+            value: kariahMemberCount,
+            icon: Users,
+            page: "ManageKariahMember",
+            loading: isCQNLoading,
+            color: "green",
+          },
+          {
+            label: translate("Notifikasi Kematian"),
+            value: kariahNotificationCount,
+            icon: Bell,
+            page: "ManageNotifyDeathKariah",
+            loading: isCQNLoading,
+            color: "blue",
+          },
+        ]
+      : []),
+    ...(canViewJenazahCase
+      ? [
+          {
+            label: translate("Kes Jenazah"),
+            value: jenazahCaseCount,
+            icon: ClipboardList,
+            page: "ManageJenazahCase",
+            loading: isCQNLoading,
+            color: "rose",
+            wide: true,
+          },
+        ]
+      : []),
   ];
 
   const charityStats = [
@@ -402,12 +421,12 @@ export default function MobileAdminDashboard() {
           ))}
         </div>
 
-        {/* Qariah */}
-        {isOrgCanManageMosque && (
+        {/* Kariah */}
+        {isOrgCanManageMosque && (canViewKariah || canViewJenazahCase) && (
           <>
-            <SectionLabel label={translate("Qariah & Funeral Management")} />
+            <SectionLabel label={translate("Kariah & Funeral Management")} />
             <div className="grid grid-cols-2 gap-2.5 mb-5">
-              {qariahStats.map((s, i) => (
+              {kariahStats.map((s, i) => (
                 <StatCard key={i} {...s} />
               ))}
             </div>
@@ -527,9 +546,11 @@ export default function MobileAdminDashboard() {
 
       <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3">
         {isOrgGraveService && <QuotationOverdueAlert />}
-        {isOrgCanManageMosque && <JenazahCaseAlert />}
-        {isOrgCanManageMosque && <JenazahCaseOngoingAlert />}
-        {isOrgCanManageMosque && <QariahRegistrationAlert />}
+        {isOrgCanManageMosque && canViewJenazahCase && <JenazahCaseAlert />}
+        {isOrgCanManageMosque && canViewJenazahCase && (
+          <JenazahCaseOngoingAlert />
+        )}
+        {isOrgCanManageMosque && canViewKariah && <KariahRegistrationAlert />}
       </div>
     </div>
   );

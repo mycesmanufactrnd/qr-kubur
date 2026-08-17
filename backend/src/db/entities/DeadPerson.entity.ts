@@ -70,6 +70,15 @@ export class DeadPerson {
   @Column("varchar", { length: 255, nullable: true })
   heirphoneno?: string;
 
+  @Column("text", { nullable: true })
+  deathconfirmationphotourl?: string | null;
+
+  @Column("text", { nullable: true })
+  policereportphotourl?: string | null;
+
+  @Column("text", { nullable: true })
+  supportingdocphotourl?: string | null;
+
   @OneToMany(() => Suggestion, (suggestions) => suggestions.deadperson)
   suggestions?: Suggestion[] | [];
 

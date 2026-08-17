@@ -56,6 +56,9 @@ export class Mosque {
   @Column("boolean", { default: false })
   hasdeathcharity!: boolean;
 
+  @Column("boolean", { default: false })
+  haskariahregistration!: boolean;
+
   @OneToMany(() => ActivityPost, (activitypost) => activitypost.mosque)
   activityposts?: ActivityPost[] | [];
 

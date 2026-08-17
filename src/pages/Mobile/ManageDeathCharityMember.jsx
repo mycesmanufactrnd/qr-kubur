@@ -12,8 +12,17 @@ import {
   DiamondPlus,
   CreditCard,
   Users,
+  Search,
+  Loader2,
+  BadgeCheck,
+  Info,
+  XCircle,
+  CheckCircle,
+  Phone,
+  Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
@@ -27,6 +36,8 @@ import CheckboxForm from "@/components/forms/CheckboxForm";
 import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
+import { trpc } from "@/utils/trpc";
+import { formatICNumber } from "@/utils/helpers";
 import { ClaimStatus } from "@/utils/enums";
 import { createPageUrl } from "@/utils";
 import {
@@ -160,6 +171,7 @@ function MemberFormSheet({
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: editing
@@ -169,6 +181,36 @@ function MemberFormSheet({
         }
       : defaultDeathCharityMemberField,
   });
+
+  const [icSearch, setIcSearch] = useState("");
+  const [searchedIc, setSearchedIc] = useState("");
+  const [icDecision, setIcDecision] = useState(null); // null | "approved"
+
+  const { data: icConflictResults, isFetching: isIcSearching } =
+    trpc.deathCharityMember.searchByIcNumber.useQuery(
+      { icnumber: searchedIc, searchMany: true },
+      { enabled: !!searchedIc && !editing },
+    );
+
+  const hasIcConflict =
+    !!searchedIc && !isIcSearching && (icConflictResults?.length ?? 0) > 0;
+  const icClear =
+    !!searchedIc && !isIcSearching && (icConflictResults?.length ?? 0) === 0;
+  const isFormUnlocked =
+    !!editing || icClear || (hasIcConflict && icDecision === "approved");
+
+  useEffect(() => {
+    if (editing) return;
+    if (icClear || (hasIcConflict && icDecision === "approved")) {
+      setValue("icnumber", searchedIc);
+    }
+  }, [icClear, hasIcConflict, icDecision, searchedIc]);
+
+  const handleCheckIc = () => {
+    if (!icSearch.trim()) return;
+    setIcDecision(null);
+    setSearchedIc(icSearch.trim());
+  };
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -196,69 +238,196 @@ function MemberFormSheet({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
-        <FormSection title={translate("Death Charity")}>
-          <SelectForm
-            name="deathcharity"
-            control={control}
-            label={translate("Death Charity")}
-            placeholder={translate("Select Death Charity")}
-            options={deathCharityOptions}
-          />
-        </FormSection>
+        {!editing && (
+          <FormSection title={translate("Step 1: Check IC Number")}>
+            <div className="flex gap-2">
+              <Input
+                placeholder={translate("Enter member's IC number...")}
+                value={icSearch}
+                disabled={isFormUnlocked}
+                maxLength={14}
+                onChange={(e) => setIcSearch(formatICNumber(e.target.value))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCheckIc();
+                  }
+                }}
+                className="dark:border-slate-600"
+              />
+              <button
+                type="button"
+                onClick={handleCheckIc}
+                disabled={isIcSearching || !icSearch.trim() || isFormUnlocked}
+                className="shrink-0 flex items-center gap-1.5 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+              >
+                {isIcSearching ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                {translate("Check")}
+              </button>
+              {isFormUnlocked && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIcSearch("");
+                    setSearchedIc("");
+                    setIcDecision(null);
+                    setValue("icnumber", "");
+                  }}
+                  className="shrink-0 h-10 px-3 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 active:opacity-70"
+                >
+                  {translate("Change")}
+                </button>
+              )}
+            </div>
 
-        <FormSection title={translate("Member Information")}>
-          <TextInputForm
-            name="fullname"
-            control={control}
-            label={translate("Full Name")}
-            required
-            errors={errors}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <TextInputForm
-              name="icnumber"
-              control={control}
-              label={translate("IC No.")}
-              required
-              errors={errors}
-            />
-            <TextInputForm
-              name="phone"
-              control={control}
-              label={translate("Phone")}
-              required
-              errors={errors}
-            />
-          </div>
-          <TextInputForm
-            name="email"
-            control={control}
-            label={translate("Email")}
-            isEmail
-            errors={errors}
-          />
-          <TextInputForm
-            name="address"
-            control={control}
-            label={translate("Address")}
-            isTextArea
-          />
-        </FormSection>
+            {icClear && (
+              <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2">
+                <BadgeCheck className="w-4 h-4 shrink-0" />
+                <span>{translate("No existing record found. You may fill in the details below.")}</span>
+              </div>
+            )}
 
-        <FormSection title={translate("Status")}>
-          <CheckboxForm
-            name="isactive"
-            control={control}
-            label={translate("Active")}
-          />
-        </FormSection>
+            {hasIcConflict && icDecision !== "approved" && (
+              <div className="space-y-3 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-3">
+                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold text-xs">
+                  <Info className="w-4 h-4 shrink-0" />
+                  {translate("This IC number is already registered elsewhere")}
+                </div>
+                <div className="space-y-2">
+                  {icConflictResults.map((rec) => (
+                    <div
+                      key={rec.id}
+                      className="rounded-lg border border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-800 p-3 text-xs space-y-1"
+                    >
+                      <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                        {rec.fullname}
+                      </p>
+                      <p className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <Building2 className="w-3.5 h-3.5 shrink-0" />
+                        {translate("Mosque")}: {rec.mosque?.name || "—"}
+                        {" · "}
+                        {translate("Organisation")}:{" "}
+                        {rec.organisation?.name ||
+                          rec.deathcharity?.organisation?.name ||
+                          "—"}
+                      </p>
+                      {(rec.mosque?.picname || rec.mosque?.picphoneno) && (
+                        <p className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                          <Phone className="w-3.5 h-3.5 shrink-0" />
+                          {translate("PIC")}: {rec.mosque?.picname || "—"}
+                          {rec.mosque?.picphoneno
+                            ? ` (${rec.mosque.picphoneno})`
+                            : ""}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-semibold active:opacity-70"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    {translate("Reject")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIcDecision("approved")}
+                    className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl bg-emerald-600 text-white text-xs font-semibold active:opacity-80"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    {translate("Approve & Continue")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {hasIcConflict && icDecision === "approved" && (
+              <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2">
+                <BadgeCheck className="w-4 h-4 shrink-0" />
+                <span>{translate("Approved. You may fill in the details below.")}</span>
+              </div>
+            )}
+          </FormSection>
+        )}
+
+        {isFormUnlocked && (
+          <>
+            <FormSection title={translate("Death Charity")}>
+              <SelectForm
+                name="deathcharity"
+                control={control}
+                label={translate("Death Charity")}
+                placeholder={translate("Select Death Charity")}
+                options={deathCharityOptions}
+              />
+            </FormSection>
+
+            <FormSection title={translate("Member Information")}>
+              <TextInputForm
+                name="fullname"
+                control={control}
+                label={translate("Full Name")}
+                required
+                errors={errors}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <TextInputForm
+                  name="icnumber"
+                  control={control}
+                  label={translate("IC No.")}
+                  required
+                  isICNumber
+                  disabled={!editing}
+                  errors={errors}
+                />
+                <TextInputForm
+                  name="phone"
+                  control={control}
+                  label={translate("Phone")}
+                  required
+                  errors={errors}
+                />
+              </div>
+              <TextInputForm
+                name="email"
+                control={control}
+                label={translate("Email")}
+                isEmail
+                errors={errors}
+              />
+              <TextInputForm
+                name="address"
+                control={control}
+                label={translate("Address")}
+                isTextArea
+              />
+            </FormSection>
+
+            <FormSection title={translate("Status")}>
+              <CheckboxForm
+                name="isactive"
+                control={control}
+                label={translate("Active")}
+              />
+            </FormSection>
+          </>
+        )}
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         <button
           type="button"
-          onClick={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
+          onClick={handleSubmit((data) =>
+            onSubmit({ ...data, allowDuplicateIc: icDecision === "approved" }),
+          )}
+          disabled={isSubmitting || !isFormUnlocked}
           className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
@@ -365,8 +534,12 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                 <input
                   className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   value={spouseForm.icnumber}
+                  maxLength={14}
                   onChange={(e) =>
-                    setSpouseForm({ ...spouseForm, icnumber: e.target.value })
+                    setSpouseForm({
+                      ...spouseForm,
+                      icnumber: formatICNumber(e.target.value),
+                    })
                   }
                   placeholder={translate("IC No")}
                 />
@@ -403,11 +576,12 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                     <input
                       className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={s.icnumber}
+                      maxLength={14}
                       onChange={(e) => {
                         const updated = [...spouses];
                         updated[i] = {
                           ...updated[i],
-                          icnumber: e.target.value,
+                          icnumber: formatICNumber(e.target.value),
                         };
                         setSpouses(updated);
                       }}
@@ -449,8 +623,12 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                 <input
                   className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   value={childForm.icnumber}
+                  maxLength={14}
                   onChange={(e) =>
-                    setChildForm({ ...childForm, icnumber: e.target.value })
+                    setChildForm({
+                      ...childForm,
+                      icnumber: formatICNumber(e.target.value),
+                    })
                   }
                   placeholder={translate("IC No")}
                 />
@@ -486,11 +664,12 @@ function CoverageSheet({ member, onClose, onSave, isSaving }) {
                     <input
                       className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       value={c.icnumber}
+                      maxLength={14}
                       onChange={(e) => {
                         const updated = [...children];
                         updated[i] = {
                           ...updated[i],
-                          icnumber: e.target.value,
+                          icnumber: formatICNumber(e.target.value),
                         };
                         setChildren(updated);
                       }}

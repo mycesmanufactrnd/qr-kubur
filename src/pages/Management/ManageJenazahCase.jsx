@@ -6,6 +6,7 @@ import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import Breadcrumb from "@/components/Breadcrumb";
 import SearchBar from "@/components/forms/SearchBar";
 import TextInputForm from "@/components/forms/TextInputForm";
@@ -13,9 +14,9 @@ import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import MultipleFileUploadForm from "@/components/forms/MultipleFileUploadForm";
-import FilePreviewDialog from "@/components/forms/FilePreviewDialog";
 import MapLocationPicker from "@/components/MapLocationPicker";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import DocumentLinks from "@/components/DocumentLinks";
+import { appendCurrentUserToFormData } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -161,48 +162,16 @@ function DetailRow({ label, value, children }) {
   );
 }
 
-const isPdfKey = (key) => /\.pdf$/i.test(key || "");
-
-function DocumentLinks({ label, value, bucket }) {
-  const [previewKey, setPreviewKey] = useState(null);
-  const keys = (value ?? "").split(",").filter(Boolean);
-  if (!keys.length) return null;
-  return (
-    <div className="space-y-1">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-        {label}
-      </p>
-      <ul className="space-y-0.5">
-        {keys.map((key) => (
-          <li key={key}>
-            <button
-              type="button"
-              onClick={() => setPreviewKey(key)}
-              className="text-xs text-blue-600 dark:text-blue-400 underline break-all text-left"
-            >
-              {key.replace(/^[0-9a-f-]{36}-/i, "")}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <FilePreviewDialog
-        open={!!previewKey}
-        onClose={() => setPreviewKey(null)}
-        src={previewKey ? resolveFileUrl(previewKey, bucket) : null}
-        isPdf={isPdfKey(previewKey)}
-        title={label}
-      />
-    </div>
-  );
-}
-
 function CaseDetailDialog({
   caseItem,
   onClose,
   onStatusChange,
   isUpdating,
-  onAddToQariah,
-  isAddingToQariah,
+  onAddToKariah,
+  isAddingToKariah,
+  canApprove,
+  canReject,
+  canEdit,
 }) {
   const [adminRemarks, setAdminRemarks] = useState(
     caseItem?.adminremarks ?? "",
@@ -258,7 +227,7 @@ function CaseDetailDialog({
     { enabled: !!icRaw && !!caseItem?.isapproved },
   );
 
-  const upsertDeadPerson = trpc.deadperson.upsertForQariah.useMutation({
+  const upsertDeadPerson = trpc.deadperson.upsertForKariah.useMutation({
     onError: (err) => showApiError(err),
   });
 
@@ -413,6 +382,9 @@ function CaseDetailDialog({
         graveslot: formData.graveslotId
           ? { id: Number(formData.graveslotId) }
           : undefined,
+        deathconfirmationphotourl: caseItem?.deathconfirmationphotourl || null,
+        policereportphotourl: caseItem?.policereportphotourl || null,
+        supportingdocphotourl: caseItem?.supportingdocphotourl || null,
       });
       handleAction("ongoing");
     } catch {
@@ -445,6 +417,9 @@ function CaseDetailDialog({
         graveslot: formData.graveslotId
           ? { id: Number(formData.graveslotId) }
           : undefined,
+        deathconfirmationphotourl: caseItem?.deathconfirmationphotourl || null,
+        policereportphotourl: caseItem?.policereportphotourl || null,
+        supportingdocphotourl: caseItem?.supportingdocphotourl || null,
       });
       // Stock out checked consumables
       for (const pi of consumableItems) {
@@ -490,7 +465,11 @@ function CaseDetailDialog({
         </DialogHeader>
 
         <div
-          className={showDeceasedForm ? "grid grid-cols-3 gap-6" : undefined}
+          className={
+            showDeceasedForm
+              ? "grid grid-cols-3 gap-6"
+              : "grid grid-cols-1 md:grid-cols-2 gap-6"
+          }
         >
           <div className="space-y-4 py-1">
             {caseItem?.mosque && (
@@ -537,16 +516,16 @@ function CaseDetailDialog({
                   value={d.causeofdeath}
                 />
               )}
-              <DetailRow label={translate("Qariah Member Status")}>
-                {d.isQariahMember ? (
+              <DetailRow label={translate("Kariah Member Status")}>
+                {caseItem?.addedtokariah || d.isKariahMember ? (
                   <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
                     <BadgeCheck className="w-3.5 h-3.5" />{" "}
-                    {translate("Registered Qariah Member")}
+                    {translate("Registered Kariah Member")}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs text-slate-500">
                     <Info className="w-3.5 h-3.5" />{" "}
-                    {translate("Not a Qariah Member")}
+                    {translate("Not a Kariah Member")}
                   </span>
                 )}
               </DetailRow>
@@ -660,7 +639,9 @@ function CaseDetailDialog({
                 </a>
               </div>
             )}
+          </div>
 
+          <div className="space-y-4 py-1">
             <DetailRow label={translate("Application Date")}>
               <p className="text-sm text-slate-700 dark:text-slate-300">
                 {caseItem?.createdat
@@ -687,7 +668,7 @@ function CaseDetailDialog({
                 />
                 <DocumentLinks
                   label={translate("Supporting Documents")}
-                  value={caseItem?.supportingphotourl}
+                  value={caseItem?.supportingdocphotourl}
                   bucket="supporting-doc-jenazah-case"
                 />
               </>
@@ -732,39 +713,42 @@ function CaseDetailDialog({
               )}
             </div>
 
-            {caseItem?.status === "pending" && (
+            {caseItem?.status === "pending" && (canReject || canApprove) && (
               <div className="flex justify-end gap-2 pt-1">
-                <Button
-                  onClick={() => {
-                    handleAction("rejected");
-                    setShowDeceasedForm(false);
-                  }}
-                  disabled={isBusy}
-                  variant="destructive"
-                >
-                  <XCircle className="w-4 h-4 mr-1.5" /> {translate("Reject")}
-                </Button>
-                {showDeceasedForm ? (
+                {canReject && (
                   <Button
-                    onClick={() => setShowDeceasedForm(false)}
-                    variant="outline"
+                    onClick={() => {
+                      handleAction("rejected");
+                      setShowDeceasedForm(false);
+                    }}
                     disabled={isBusy}
+                    variant="destructive"
                   >
-                    {translate("Cancel")}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => setShowDeceasedForm(true)}
-                    disabled={isBusy}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    {translate("Verify")}
+                    <XCircle className="w-4 h-4 mr-1.5" /> {translate("Reject")}
                   </Button>
                 )}
+                {canApprove &&
+                  (showDeceasedForm ? (
+                    <Button
+                      onClick={() => setShowDeceasedForm(false)}
+                      variant="outline"
+                      disabled={isBusy}
+                    >
+                      {translate("Cancel")}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setShowDeceasedForm(true)}
+                      disabled={isBusy}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      {translate("Verify")}
+                    </Button>
+                  ))}
               </div>
             )}
-            {caseItem?.status === "ongoing" && (
+            {caseItem?.status === "ongoing" && canEdit && (
               <div className="flex justify-end pt-1">
                 <Button
                   onClick={() => handleAction("closed")}
@@ -776,7 +760,7 @@ function CaseDetailDialog({
                 </Button>
               </div>
             )}
-            {caseItem?.status !== "pending" && (
+            {caseItem?.status !== "pending" && canEdit && (
               <Button
                 onClick={() => handleAction("pending")}
                 disabled={isBusy}
@@ -787,24 +771,25 @@ function CaseDetailDialog({
               </Button>
             )}
 
-            {caseItem?.isapproved &&
-              !caseItem?.qariahmemberid &&
-              !caseItem?.addedtoqariah && (
+            {canEdit &&
+              caseItem?.isapproved &&
+              !caseItem?.kariahmemberid &&
+              !caseItem?.addedtokariah && (
                 <Button
-                  onClick={() => onAddToQariah(caseItem.id)}
-                  disabled={isAddingToQariah}
+                  onClick={() => onAddToKariah(caseItem.id)}
+                  disabled={isAddingToKariah}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   <UserPlus className="w-4 h-4 mr-1.5" />
-                  {isAddingToQariah
+                  {isAddingToKariah
                     ? translate("Registering...")
-                    : translate("Add to Qariah")}
+                    : translate("Add to Kariah")}
                 </Button>
               )}
-            {caseItem?.addedtoqariah && (
+            {caseItem?.addedtokariah && (
               <p className="text-xs text-center text-emerald-600 flex items-center justify-center gap-1">
                 <BadgeCheck className="w-3.5 h-3.5" />{" "}
-                {translate("Already registered as a Qariah member")}
+                {translate("Already registered as a Kariah member")}
               </p>
             )}
           </div>
@@ -1063,7 +1048,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
   const [searchedIc, setSearchedIc] = useState("");
   const [searchAttempted, setSearchAttempted] = useState(false);
-  const [isQariahMember, setIsQariahMember] = useState(false);
+  const [isKariahMember, setIsKariahMember] = useState(false);
   const [isOutOfArea, setIsOutOfArea] = useState(null);
   const [showMap, setShowMap] = useState(true);
   const [activeTab, setActiveTab] = useState("deceased");
@@ -1108,7 +1093,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
   const { data: mosques = [], isLoading: mosquesLoading } =
     trpc.deathCharityMember.getMosquesByState.useQuery(
-      { organisationId: selectedOrgId },
+      { organisationId: selectedOrgId, canArrangeFuneral: true },
       { enabled: open && !!selectedOrgId },
     );
 
@@ -1242,7 +1227,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     if (memberResult) {
       setValue("deceasedFullname", memberResult.fullname ?? "");
       setValue("deceasedIcnumber", memberResult.icnumber ?? searchedIc);
-      setIsQariahMember(true);
+      setIsKariahMember(true);
       if (memberResult.mosque?.id) {
         setValue("selectedMosqueId", memberResult.mosque.id);
       }
@@ -1253,7 +1238,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     } else {
       setValue("deceasedFullname", "");
       setValue("deceasedIcnumber", searchedIc.trim());
-      setIsQariahMember(false);
+      setIsKariahMember(false);
     }
     setSearchAttempted(true);
   }, [memberResult, memberSearching, searchedIc, setValue]);
@@ -1264,7 +1249,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
       ...defaultManageJenazahCaseField,
       selectedOrgId: userOrgId ?? null,
     });
-    setIsQariahMember(false);
+    setIsKariahMember(false);
     setSearchedIc("");
     setSearchAttempted(false);
     setIsOutOfArea(null);
@@ -1388,7 +1373,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
       supportingphotourl: supportingphotourl || null,
       details: {
         ...formDetails,
-        isQariahMember,
+        isKariahMember,
         isOutOfArea: !!isOutOfArea,
         careScenarioOther:
           formDetails.careScenario === "other"
@@ -1547,7 +1532,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                   memberResult ? (
                     <p className="text-xs text-emerald-600 flex items-center gap-1">
                       <BadgeCheck className="w-3.5 h-3.5" />{" "}
-                      {translate("Registered Qariah Member")}
+                      {translate("Registered Kariah Member")}
                     </p>
                   ) : (
                     <p className="text-xs text-slate-400 flex items-center gap-1">
@@ -1613,7 +1598,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                         : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >
-                    {translate("Within Qariah Area")}
+                    {translate("Within Kariah Area")}
                   </button>
                   <button
                     type="button"
@@ -1978,11 +1963,20 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
 function ManageJenazahCaseDesktop() {
   const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } = useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canApprove,
+    canReject,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("jenazah_case");
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCase, setSelectedCase] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-  const [addToQariahId, setAddToQariahId] = useState(null);
+  const [addToKariahId, setAddToKariahId] = useState(null);
   const [icConflict, setIcConflict] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -2041,18 +2035,18 @@ function ManageJenazahCaseDesktop() {
     onError: (err) => showApiError(err),
   });
 
-  const addToQariahMutation = trpc.jenazahCase.addToQariah.useMutation({
+  const addToKariahMutation = trpc.jenazahCase.addToKariah.useMutation({
     onError: (err) => showApiError(err),
   });
 
-  const runAddToQariah = async (payload) => {
+  const runAddToKariah = async (payload) => {
     try {
-      const result = await addToQariahMutation.mutateAsync(payload);
+      const result = await addToKariahMutation.mutateAsync(payload);
       if (result?.status === "conflict") {
         setIcConflict({ caseId: payload.id, ...result });
         return;
       }
-      showSuccess(translate("Member successfully registered to Qariah."));
+      showSuccess(translate("Member successfully registered to Kariah."));
       setIcConflict(null);
       setSelectedCase(null);
       refetch();
@@ -2108,8 +2102,24 @@ function ManageJenazahCaseDesktop() {
     setSearchParams({ page: "1" });
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb
+          items={[
+            { label: translate("Admin Dashboard"), page: "AdminDashboard" },
+            {
+              label: translate("Funeral Case Management"),
+              page: "ManageJenazahCase",
+            },
+          ]}
+        />
+        <AccessDeniedComponent />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -2128,13 +2138,15 @@ function ManageJenazahCaseDesktop() {
           <ClipboardList className="w-6 h-6 text-rose-600" />
           {translate("Funeral Case Management")}
         </h1>
-        <Button
-          onClick={() => setFormOpen(true)}
-          className="bg-rose-600 hover:bg-rose-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          {translate("Add Case")}
-        </Button>
+        {canCreate && (
+          <Button
+            onClick={() => setFormOpen(true)}
+            className="bg-rose-600 hover:bg-rose-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {translate("Add Case")}
+          </Button>
+        )}
       </div>
 
       <SearchBar
@@ -2182,7 +2194,7 @@ function ManageJenazahCaseDesktop() {
                 <TableHead>{translate("IC No.")}</TableHead>
                 <TableHead>{translate("Mosque")}</TableHead>
                 <TableHead className="text-center">
-                  {translate("Qariah Member")}
+                  {translate("Kariah Member")}
                 </TableHead>
                 <TableHead className="text-center">
                   {translate("Date")}
@@ -2227,7 +2239,7 @@ function ManageJenazahCaseDesktop() {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {d.isQariahMember ? (
+                        {c.addedtokariah || d.isKariahMember ? (
                           <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 hover:bg-emerald-100 text-xs">
                             <BadgeCheck className="w-3 h-3 mr-1" />{" "}
                             {translate("Yes")}
@@ -2248,16 +2260,17 @@ function ManageJenazahCaseDesktop() {
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
-                          {c.isapproved &&
-                            !c.qariahmemberid &&
-                            !c.addedtoqariah && (
+                          {canEdit &&
+                            c.isapproved &&
+                            !c.kariahmemberid &&
+                            !c.addedtokariah && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setAddToQariahId(c.id)}
-                                disabled={addToQariahMutation.isPending}
+                                onClick={() => setAddToKariahId(c.id)}
+                                disabled={addToKariahMutation.isPending}
                                 className="h-7 px-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                title={translate("Add to Qariah")}
+                                title={translate("Add to Kariah")}
                               >
                                 <UserPlus className="w-4 h-4" />
                               </Button>
@@ -2270,14 +2283,16 @@ function ManageJenazahCaseDesktop() {
                           >
                             <CheckCircle className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteId(c.id)}
-                            className="h-7 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteId(c.id)}
+                              className="h-7 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -2314,8 +2329,11 @@ function ManageJenazahCaseDesktop() {
             })
           }
           isUpdating={updateStatus.isPending}
-          onAddToQariah={(id) => setAddToQariahId(id)}
-          isAddingToQariah={addToQariahMutation.isPending}
+          onAddToKariah={(id) => setAddToKariahId(id)}
+          isAddingToKariah={addToKariahMutation.isPending}
+          canApprove={canApprove}
+          canReject={canReject}
+          canEdit={canEdit}
         />
       )}
 
@@ -2334,16 +2352,16 @@ function ManageJenazahCaseDesktop() {
       />
 
       <ConfirmDialog
-        open={!!addToQariahId}
+        open={!!addToKariahId}
         onOpenChange={(v) => {
-          if (!v) setAddToQariahId(null);
+          if (!v) setAddToKariahId(null);
         }}
-        title={translate("Add to Qariah")}
+        title={translate("Add to Kariah")}
         description={translate(
-          "Are you sure you want to register this deceased person as a Qariah member? A record will be created in the member list.",
+          "Are you sure you want to register this deceased person as a Kariah member? A record will be created in the member list.",
         )}
         confirmText={translate("Yes, Add")}
-        onConfirm={() => runAddToQariah({ id: addToQariahId })}
+        onConfirm={() => runAddToKariah({ id: addToKariahId })}
       />
 
       <IcConflictDialog
@@ -2352,12 +2370,12 @@ function ManageJenazahCaseDesktop() {
           if (!v) setIcConflict(null);
         }}
         conflict={icConflict}
-        isSubmitting={addToQariahMutation.isPending}
+        isSubmitting={addToKariahMutation.isPending}
         onReplace={() =>
-          runAddToQariah({ id: icConflict.caseId, resolution: "replace" })
+          runAddToKariah({ id: icConflict.caseId, resolution: "replace" })
         }
         onChangeIc={(newIc) =>
-          runAddToQariah({ id: icConflict.caseId, icnumberOverride: newIc })
+          runAddToKariah({ id: icConflict.caseId, icnumberOverride: newIc })
         }
       />
     </div>

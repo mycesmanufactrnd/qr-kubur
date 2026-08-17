@@ -644,8 +644,8 @@ export default function SettingsPageMobile() {
           />
           <NavRow
             icon={Users}
-            label={translate("Qariah Registration")}
-            action={() => navigate(createPageUrl("UserQariahRegistration"))}
+            label={translate("Kariah Registration")}
+            action={() => navigate(createPageUrl("UserKariahRegistration"))}
           />
           <NavRow
             icon={FileText}

@@ -109,6 +109,8 @@ function ManageMosquesDesktop() {
   const urlState = searchParams.get("state") || "";
   const urlCanArrangeFuneral = searchParams.get("canarrangefuneral") || "";
   const urlHasDeathCharity = searchParams.get("hasdeathcharity") || "";
+  const urlHasKariahRegistration =
+    searchParams.get("haskariahregistration") || "";
 
   const [tempName, setTempName] = useState(urlName);
   const [tempState, setTempState] = useState(urlState);
@@ -116,13 +118,23 @@ function ManageMosquesDesktop() {
     useState(urlCanArrangeFuneral);
   const [tempHasDeathCharity, setTempHasDeathCharity] =
     useState(urlHasDeathCharity);
+  const [tempHasKariahRegistration, setTempHasKariahRegistration] = useState(
+    urlHasKariahRegistration,
+  );
 
   useEffect(() => {
     setTempName(urlName);
     setTempState(urlState);
     setTempCanArrangeFuneral(urlCanArrangeFuneral);
     setTempHasDeathCharity(urlHasDeathCharity);
-  }, [urlName, urlState, urlCanArrangeFuneral, urlHasDeathCharity]);
+    setTempHasKariahRegistration(urlHasKariahRegistration);
+  }, [
+    urlName,
+    urlState,
+    urlCanArrangeFuneral,
+    urlHasDeathCharity,
+    urlHasKariahRegistration,
+  ]);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -226,8 +238,7 @@ function ManageMosquesDesktop() {
   const { data: existingDeathCharity } = useGetDeathCharityByMosque(
     editingMosque?.id ?? null,
   );
-  const { createDeathCharity, updateDeathCharity } =
-    useDeathCharityMutations();
+  const { createDeathCharity, updateDeathCharity } = useDeathCharityMutations();
 
   useEffect(() => {
     if (editingMosque && existingDeathCharity) {
@@ -268,6 +279,7 @@ function ManageMosquesDesktop() {
     filterOrganisationId: isOrgScoped ? currentOrganisationId : undefined,
     filterCanArrangeFuneral: urlCanArrangeFuneral || undefined,
     filterHasDeathCharity: urlHasDeathCharity || undefined,
+    filterHasKariahRegistration: urlHasKariahRegistration || undefined,
   });
 
   const { organisationsList, isLoading: orgLoading } =
@@ -318,6 +330,8 @@ function ManageMosquesDesktop() {
     if (tempState) params.state = tempState;
     if (tempCanArrangeFuneral) params.canarrangefuneral = tempCanArrangeFuneral;
     if (tempHasDeathCharity) params.hasdeathcharity = tempHasDeathCharity;
+    if (tempHasKariahRegistration)
+      params.haskariahregistration = tempHasKariahRegistration;
     setSearchParams(params);
   };
 
@@ -326,6 +340,7 @@ function ManageMosquesDesktop() {
     setTempState("");
     setTempCanArrangeFuneral("");
     setTempHasDeathCharity("");
+    setTempHasKariahRegistration("");
     setSearchParams({ page: "1" });
   };
 
@@ -539,6 +554,17 @@ function ManageMosquesDesktop() {
             value: tempHasDeathCharity,
             onChange: setTempHasDeathCharity,
             label: translate("Has Death Charity"),
+            options: [
+              { value: "true", label: translate("Yes") },
+              { value: "false", label: translate("No") },
+            ],
+          },
+          {
+            type: "select",
+            key: "haskariahregistration",
+            value: tempHasKariahRegistration,
+            onChange: setTempHasKariahRegistration,
+            label: translate("Has Kariah Registration"),
             options: [
               { value: "true", label: translate("Yes") },
               { value: "false", label: translate("No") },
@@ -850,10 +876,7 @@ function ManageMosquesDesktop() {
                     navigator.geolocation.getCurrentPosition(
                       (pos) => {
                         setValue("latitude", pos.coords.latitude.toFixed(16));
-                        setValue(
-                          "longitude",
-                          pos.coords.longitude.toFixed(16),
-                        );
+                        setValue("longitude", pos.coords.longitude.toFixed(16));
                         setIsLocating(false);
                       },
                       () => {
@@ -902,11 +925,17 @@ function ManageMosquesDesktop() {
                   control={control}
                   label={translate("Can Arrange Funeral")}
                 />
+                
+                <CheckboxForm
+                  name="haskariahregistration"
+                  control={control}
+                  label={translate("Has Kariah Registration")}
+                />
 
                 <CheckboxForm
                   name="hasdeathcharity"
                   control={control}
-                  label={translate("Has Qariah & Death Charity")}
+                  label={translate("Has Death Charity")}
                 />
 
                 <div className="space-y-2">

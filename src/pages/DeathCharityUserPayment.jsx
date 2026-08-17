@@ -44,7 +44,12 @@ import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
 import { paymentToyyibStatus, PLATFORM_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
-import { activityLogError, clearQueryParams, formatRM } from "@/utils/helpers";
+import {
+  activityLogError,
+  clearQueryParams,
+  formatRM,
+  formatICNumber,
+} from "@/utils/helpers";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { translate } from "@/utils/translations";
 
@@ -1034,10 +1039,11 @@ export default function DeathCharityUserPayment() {
               <Label>{translate("IC No")}</Label>
               <Input
                 value={registrationForm.icnumber}
+                maxLength={14}
                 onChange={(event) =>
                   setRegistrationForm((prev) => ({
                     ...prev,
-                    icnumber: event.target.value,
+                    icnumber: formatICNumber(event.target.value),
                   }))
                 }
                 placeholder={translate("Enter IC number")}

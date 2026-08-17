@@ -176,6 +176,12 @@ export default function ManageGraveMapping() {
     organisationIds: isSuperAdmin ? undefined : accessibleOrgIds,
   });
   const grave = gravesList.items.find((g) => String(g.id) === String(graveId));
+
+  useEffect(() => {
+    if (!graveId && gravesList.items.length > 0) {
+      setSearchParams({ graveId: String(gravesList.items[0].id) });
+    }
+  }, [graveId, gravesList.items]);
   const photoUrl = grave?.gravemappingphotourl
     ? resolveFileUrl(grave.gravemappingphotourl, "bucket-grave-mapping")
     : null;
@@ -499,9 +505,17 @@ export default function ManageGraveMapping() {
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Map className="w-6 h-6 text-emerald-600" />
-          {translate("Grave Slot Mapping")}
+        <h1 className="text-2xl font-bold flex items-center gap-2 min-w-0">
+          <Map className="w-6 h-6 text-emerald-600 shrink-0" />
+          <span className="truncate">
+            {translate("Grave Slot Mapping")}
+            {grave?.name && (
+              <span className="text-slate-400 dark:text-slate-500 font-normal">
+                {" "}
+                — {grave.name}
+              </span>
+            )}
+          </span>
         </h1>
 
         <div className="w-full sm:w-72 space-y-1">
@@ -626,10 +640,10 @@ export default function ManageGraveMapping() {
                   {drawPoints.length < 4
                     ? `${translate("Click the")} ${
                         [
-                          "top-left",
-                          "top-right",
-                          "bottom-right",
-                          "bottom-left",
+                          translate("top-left"),
+                          translate("top-right"),
+                          translate("bottom-right"),
+                          translate("bottom-left"),
                         ][drawPoints.length]
                       } ${translate("corner of the new block")} (${drawPoints.length}/4)`
                     : translate(

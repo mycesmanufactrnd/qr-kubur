@@ -21,6 +21,10 @@ import {
   Loader2,
   BadgeCheck,
   Info,
+  XCircle,
+  CheckCircle,
+  Phone,
+  Building2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,6 +70,7 @@ import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMut
 import { useDeathCharityClaimMutations } from "@/mutations/useDeathCharityClaimMutations";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { trpc } from "@/utils/trpc";
+import { formatICNumber } from "@/utils/helpers";
 
 export default function ManageDeathCharityMember() {
   const isNarrow = useIsNarrow();
@@ -111,9 +116,10 @@ function ManageDeathCharityMemberDesktop() {
   const [isCoverChildren, setIsCoverChildren] = useState(false);
   const [deathBenefitAmount, setDeathBenefitAmount] = useState(0);
 
-  // IC search for create dialog
+  // IC check gate for create dialog
   const [icSearch, setIcSearch] = useState("");
   const [searchedIc, setSearchedIc] = useState("");
+  const [icDecision, setIcDecision] = useState(null); // null | "approved"
 
   const {
     loading: permissionsLoading,
@@ -159,21 +165,37 @@ function ManageDeathCharityMemberDesktop() {
 
   const isactive = watch("isactive");
 
-  const { data: icSearchResult, isFetching: isIcSearching } =
+  const { data: icConflictResults, isFetching: isIcSearching } =
     trpc.deathCharityMember.searchByIcNumber.useQuery(
-      { icnumber: searchedIc },
-      { enabled: !!searchedIc },
+      { icnumber: searchedIc, searchMany: true },
+      { enabled: !!searchedIc && !editingDeathCharityMember },
     );
 
+  const hasIcConflict =
+    !!searchedIc && !isIcSearching && (icConflictResults?.length ?? 0) > 0;
+  const icClear =
+    !!searchedIc && !isIcSearching && (icConflictResults?.length ?? 0) === 0;
+  const isFormUnlocked =
+    !!editingDeathCharityMember ||
+    icClear ||
+    (hasIcConflict && icDecision === "approved");
+
   useEffect(() => {
-    if (!icSearchResult || editingDeathCharityMember) return;
-    setValue("fullname", icSearchResult.fullname ?? "");
-    setValue("icnumber", icSearchResult.icnumber ?? "");
-    setValue("phone", icSearchResult.phone ?? "");
-    setValue("email", icSearchResult.email ?? "");
-    setValue("address", icSearchResult.address ?? "");
-    setValue("isactive", icSearchResult.isactive ?? true);
-  }, [icSearchResult]);
+    if (editingDeathCharityMember) return;
+    if (icClear || (hasIcConflict && icDecision === "approved")) {
+      setValue("icnumber", searchedIc);
+    }
+  }, [icClear, hasIcConflict, icDecision, searchedIc]);
+
+  const handleCheckIc = () => {
+    if (!icSearch.trim()) return;
+    setIcDecision(null);
+    setSearchedIc(icSearch.trim());
+  };
+
+  const handleApproveIcConflict = () => setIcDecision("approved");
+
+  const handleRejectIcConflict = () => setIsDialogOpen(false);
 
   useEffect(() => {
     setTempFullName(urlFullName);
@@ -213,6 +235,7 @@ function ManageDeathCharityMemberDesktop() {
     reset(defaultDeathCharityMemberField);
     setIcSearch("");
     setSearchedIc("");
+    setIcDecision(null);
     setIsDialogOpen(true);
   };
 
@@ -242,7 +265,10 @@ function ManageDeathCharityMemberDesktop() {
           data: submitData,
         });
       } else {
-        await createDeathCharityMember.mutateAsync(submitData);
+        await createDeathCharityMember.mutateAsync({
+          ...submitData,
+          allowDuplicateIc: icDecision === "approved",
+        });
       }
 
       setIsDialogOpen(false);
@@ -685,21 +711,23 @@ function ManageDeathCharityMemberDesktop() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* IC search — only shown in create mode */}
+            {/* IC check gate — only shown in create mode */}
             {!editingDeathCharityMember && (
               <div className="space-y-2 rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/40">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Cari Ahli Sedia Ada (Opsional)
+                  {translate("Step 1: Check IC Number")}
                 </p>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Masukkan No. IC ahli..."
+                    placeholder={translate("Enter member's IC number...")}
                     value={icSearch}
-                    onChange={(e) => setIcSearch(e.target.value)}
+                    disabled={isFormUnlocked}
+                    maxLength={14}
+                    onChange={(e) => setIcSearch(formatICNumber(e.target.value))}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        if (icSearch.trim()) setSearchedIc(icSearch.trim());
+                        handleCheckIc();
                       }
                     }}
                     className="dark:border-slate-600"
@@ -707,106 +735,186 @@ function ManageDeathCharityMemberDesktop() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => { if (icSearch.trim()) setSearchedIc(icSearch.trim()); }}
-                    disabled={isIcSearching || !icSearch.trim()}
+                    onClick={handleCheckIc}
+                    disabled={isIcSearching || !icSearch.trim() || isFormUnlocked}
                     className="shrink-0"
                   >
                     {isIcSearching
                       ? <Loader2 className="w-4 h-4 animate-spin" />
                       : <Search className="w-4 h-4" />}
-                    <span className="ml-1.5">Cari</span>
+                    <span className="ml-1.5">{translate("Check")}</span>
                   </Button>
+                  {isFormUnlocked && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setIcSearch("");
+                        setSearchedIc("");
+                        setIcDecision(null);
+                        setValue("icnumber", "");
+                      }}
+                      className="shrink-0"
+                    >
+                      {translate("Change")}
+                    </Button>
+                  )}
                 </div>
-                {searchedIc && !isIcSearching && icSearchResult && (
+
+                {icClear && (
                   <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded px-3 py-2">
                     <BadgeCheck className="w-4 h-4 shrink-0" />
-                    <span>
-                      Ahli dijumpai: <strong>{icSearchResult.fullname}</strong> — maklumat telah diisi secara automatik.
-                    </span>
+                    <span>{translate("No existing record found. You may fill in the details below.")}</span>
                   </div>
                 )}
-                {searchedIc && !isIcSearching && icSearchResult === null && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-3 py-2">
-                    <Info className="w-4 h-4 shrink-0" />
-                    <span>Tiada ahli dijumpai dengan No. IC tersebut. Sila isi maklumat secara manual.</span>
+
+                {hasIcConflict && icDecision !== "approved" && (
+                  <div className="space-y-3 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-3">
+                    <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold text-sm">
+                      <Info className="w-4 h-4 shrink-0" />
+                      {translate("This IC number is already registered elsewhere")}
+                    </div>
+                    <div className="space-y-2">
+                      {icConflictResults.map((rec) => (
+                        <div
+                          key={rec.id}
+                          className="rounded-md border border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-800 p-3 text-xs space-y-1"
+                        >
+                          <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                            {rec.fullname}
+                          </p>
+                          <p className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                            <Building2 className="w-3.5 h-3.5 shrink-0" />
+                            {translate("Mosque")}: {rec.mosque?.name || "—"}
+                            {" · "}
+                            {translate("Organisation")}:{" "}
+                            {rec.organisation?.name ||
+                              rec.deathcharity?.organisation?.name ||
+                              "—"}
+                          </p>
+                          {(rec.mosque?.picname || rec.mosque?.picphoneno) && (
+                            <p className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                              <Phone className="w-3.5 h-3.5 shrink-0" />
+                              {translate("PIC")}: {rec.mosque?.picname || "—"}
+                              {rec.mosque?.picphoneno
+                                ? ` (${rec.mosque.picphoneno})`
+                                : ""}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-end gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleRejectIcConflict}
+                      >
+                        <XCircle className="w-4 h-4 mr-1.5" />
+                        {translate("Reject")}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={handleApproveIcConflict}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1.5" />
+                        {translate("Approve & Continue")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {hasIcConflict && icDecision === "approved" && (
+                  <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded px-3 py-2">
+                    <BadgeCheck className="w-4 h-4 shrink-0" />
+                    <span>{translate("Approved. You may fill in the details below.")}</span>
                   </div>
                 )}
               </div>
             )}
 
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Death Charity Details")}
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                <SelectForm
-                  required
-                  name="deathcharity"
-                  control={control}
-                  label={translate("Death Charity")}
-                  placeholder={translate("All Managing Death Charity")}
-                  options={deathCharityList.map((deathCharity) => ({
-                    value: deathCharity.id,
-                    label: deathCharity.name,
-                  }))}
-                />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Member Information")}
-              </h3>
-              <TextInputForm
-                name="fullname"
-                control={control}
-                label={translate("Full Name")}
-                required
-                errors={errors}
-              />
-              <div className="grid grid-cols-3 gap-4">
-                <TextInputForm
-                  name="icnumber"
-                  control={control}
-                  label={translate("IC No.")}
-                  required
-                  errors={errors}
-                />
-                <TextInputForm
-                  name="phone"
-                  control={control}
-                  label={translate("Phone")}
-                  required
-                  errors={errors}
-                />
-                <TextInputForm
-                  name="email"
-                  control={control}
-                  label={translate("Email")}
-                  isEmail
-                  errors={errors}
-                />
-              </div>
-              <TextInputForm
-                name="address"
-                control={control}
-                label={translate("Address")}
-                isTextArea
-              />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                {translate("Status")}
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={isactive}
-                    onCheckedChange={(v) => setValue("isactive", v)}
-                  />
-                  <Label>{translate("Active")}</Label>
+            {isFormUnlocked && (
+              <>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Death Charity Details")}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <SelectForm
+                      required
+                      name="deathcharity"
+                      control={control}
+                      label={translate("Death Charity")}
+                      placeholder={translate("All Managing Death Charity")}
+                      options={deathCharityList.map((deathCharity) => ({
+                        value: deathCharity.id,
+                        label: deathCharity.name,
+                      }))}
+                    />
+                  </div>
                 </div>
-              </div>
-            </div>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Member Information")}
+                  </h3>
+                  <TextInputForm
+                    name="fullname"
+                    control={control}
+                    label={translate("Full Name")}
+                    required
+                    errors={errors}
+                  />
+                  <div className="grid grid-cols-3 gap-4">
+                    <TextInputForm
+                      name="icnumber"
+                      control={control}
+                      label={translate("IC No.")}
+                      required
+                      isICNumber
+                      disabled={!editingDeathCharityMember}
+                      errors={errors}
+                    />
+                    <TextInputForm
+                      name="phone"
+                      control={control}
+                      label={translate("Phone")}
+                      required
+                      errors={errors}
+                    />
+                    <TextInputForm
+                      name="email"
+                      control={control}
+                      label={translate("Email")}
+                      isEmail
+                      errors={errors}
+                    />
+                  </div>
+                  <TextInputForm
+                    name="address"
+                    control={control}
+                    label={translate("Address")}
+                    isTextArea
+                  />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+                    {translate("Status")}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={isactive}
+                        onCheckedChange={(v) => setValue("isactive", v)}
+                      />
+                      <Label>{translate("Active")}</Label>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -818,6 +926,7 @@ function ManageDeathCharityMemberDesktop() {
               <Button
                 type="submit"
                 disabled={
+                  !isFormUnlocked ||
                   createDeathCharityMember.isPending ||
                   updateDeathCharityMember.isPending
                 }
@@ -856,8 +965,12 @@ function ManageDeathCharityMemberDesktop() {
                   <Input
                     placeholder={translate("IC No")}
                     value={spouseForm.icnumber}
+                    maxLength={14}
                     onChange={(e) =>
-                      setSpouseForm({ ...spouseForm, icnumber: e.target.value })
+                      setSpouseForm({
+                        ...spouseForm,
+                        icnumber: formatICNumber(e.target.value),
+                      })
                     }
                   />
                 </div>
@@ -899,9 +1012,12 @@ function ManageDeathCharityMemberDesktop() {
                           <TableCell>
                             <Input
                               value={s.icnumber}
+                              maxLength={14}
                               onChange={(e) => {
                                 const newSpouses = [...spouses];
-                                newSpouses[index].icnumber = e.target.value;
+                                newSpouses[index].icnumber = formatICNumber(
+                                  e.target.value,
+                                );
                                 setSpouses(newSpouses);
                               }}
                             />
@@ -940,8 +1056,12 @@ function ManageDeathCharityMemberDesktop() {
                   <Input
                     placeholder={translate("IC No")}
                     value={childForm.icnumber}
+                    maxLength={14}
                     onChange={(e) =>
-                      setChildForm({ ...childForm, icnumber: e.target.value })
+                      setChildForm({
+                        ...childForm,
+                        icnumber: formatICNumber(e.target.value),
+                      })
                     }
                   />
                 </div>
@@ -978,9 +1098,12 @@ function ManageDeathCharityMemberDesktop() {
                           <TableCell>
                             <Input
                               value={c.icnumber}
+                              maxLength={14}
                               onChange={(e) => {
                                 const newChildren = [...children];
-                                newChildren[index].icnumber = e.target.value;
+                                newChildren[index].icnumber = formatICNumber(
+                                  e.target.value,
+                                );
                                 setChildren(newChildren);
                               }}
                             />

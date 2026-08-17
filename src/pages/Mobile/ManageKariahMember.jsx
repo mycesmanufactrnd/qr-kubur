@@ -71,6 +71,7 @@ function FormSection({ title, children }) {
 
 function MemberCard({
   member,
+  canApprove,
   canEdit,
   canDelete,
   onEdit,
@@ -113,7 +114,7 @@ function MemberCard({
         )}
 
         <div className="flex items-center gap-2 flex-wrap pt-1">
-          {canEdit && !member.isapproved && (
+          {canApprove && !member.isapproved && (
             <button
               onClick={() => onApprove(member)}
               className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg px-2.5 py-1.5 active:opacity-70"
@@ -161,6 +162,7 @@ function MemberFormSheet({
   onClose,
   onSubmit,
   onApprove,
+  canApprove,
   isSubmitting,
   isApproving,
   userOrgId,
@@ -290,8 +292,8 @@ function MemberFormSheet({
         <div className="flex-1 min-w-0 flex items-center gap-2">
           <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
             {editing
-              ? translate("Edit Qariah Member")
-              : translate("Add Qariah Member")}
+              ? translate("Edit Kariah Member")
+              : translate("Add Kariah Member")}
           </h2>
           {editing && (
             <span
@@ -515,15 +517,17 @@ function MemberFormSheet({
 
       <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
         {formDisabled ? (
-          <button
-            type="button"
-            onClick={handleApproveClick}
-            disabled={isApproving}
-            className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
-          >
-            <CheckCircle className="w-4 h-4" />
-            {translate("Approve Member")}
-          </button>
+          canApprove && (
+            <button
+              type="button"
+              onClick={handleApproveClick}
+              disabled={isApproving}
+              className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
+            >
+              <CheckCircle className="w-4 h-4" />
+              {translate("Approve Member")}
+            </button>
+          )
         ) : (
           <button
             type="button"
@@ -582,7 +586,7 @@ function IcCheckSheet({ onClose, onContinue }) {
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          {translate("Check Qariah Membership")}
+          {translate("Check Kariah Membership")}
         </h2>
       </div>
 
@@ -615,7 +619,7 @@ function IcCheckSheet({ onClose, onContinue }) {
           <div className="border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 space-y-1">
             <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
               <CheckCircle className="w-3.5 h-3.5" />
-              {translate("Registered Qariah Member")}
+              {translate("Registered Kariah Member")}
             </p>
             <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
               {result.fullname}
@@ -694,7 +698,7 @@ function ApproveCheckSheet({ member, onClose, onApprove, isApproving }) {
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          {translate("Approve Qariah Member")}
+          {translate("Approve Kariah Member")}
         </h2>
       </div>
 
@@ -791,7 +795,7 @@ function ApproveCheckSheet({ member, onClose, onApprove, isApproving }) {
   );
 }
 
-export default function MobileManageQariahMember() {
+export default function MobileManageKariahMember() {
   const {
     currentUser,
     loadingUser,
@@ -804,9 +808,10 @@ export default function MobileManageQariahMember() {
     loading: permissionsLoading,
     canView,
     canCreate,
+    canApprove,
     canEdit,
     canDelete,
-  } = useCrudPermissions("death_charity");
+  } = useCrudPermissions("kariah");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(20);
@@ -827,7 +832,7 @@ export default function MobileManageQariahMember() {
   const [unmarkConfirmOpen, setUnmarkConfirmOpen] = useState(false);
 
   const { data, isLoading, refetch } =
-    trpc.deathCharityMember.getQariahPaginated.useQuery({
+    trpc.deathCharityMember.getKariahPaginated.useQuery({
       page,
       pageSize: itemsPerPage,
       filterFullName: appliedFilters.fullname || null,
@@ -845,7 +850,7 @@ export default function MobileManageQariahMember() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / itemsPerPage);
 
-  const upsertDeadPersonMutation = trpc.deadperson.upsertForQariah.useMutation({
+  const upsertDeadPersonMutation = trpc.deadperson.upsertForKariah.useMutation({
     onSuccess: () => showSuccess(translate("Dead person recorded"), "success"),
     onError: (err) => showApiError(err),
   });
@@ -873,7 +878,7 @@ export default function MobileManageQariahMember() {
     onError: (err) => showApiError(err),
   });
 
-  const notifyDeathMutation = trpc.qariahNotification.notifyDeath.useMutation({
+  const notifyDeathMutation = trpc.kariahNotification.notifyDeath.useMutation({
     onSuccess: () => showSuccess(translate("Notification sent"), "success"),
     onError: (err) => showApiError(err),
   });
@@ -1066,7 +1071,7 @@ export default function MobileManageQariahMember() {
 
   return (
     <div className="min-h-screen pb-6">
-      <BackNavigation title={translate("Manage Qariah Members")} />
+      <BackNavigation title={translate("Manage Kariah Members")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-3">
         <div className="flex items-center gap-2 pt-1">
@@ -1134,6 +1139,7 @@ export default function MobileManageQariahMember() {
               <MemberCard
                 key={member.id}
                 member={member}
+                canApprove={canApprove}
                 canEdit={canEdit}
                 canDelete={canDelete}
                 onEdit={(m) => setFormSheet({ mode: "edit", member: m })}
@@ -1166,6 +1172,7 @@ export default function MobileManageQariahMember() {
           onClose={() => setFormSheet(null)}
           onSubmit={handleFormSubmit}
           onApprove={(member) => setMemberToApprove(member)}
+          canApprove={canApprove}
           isSubmitting={isSubmitting}
           isApproving={approveMutation.isPending}
           userOrgId={userOrgId}
@@ -1200,7 +1207,7 @@ export default function MobileManageQariahMember() {
       <ConfirmDialog
         open={!!deleteDialog}
         onOpenChange={(open) => !open && setDeleteDialog(null)}
-        title={translate("Delete Qariah Member")}
+        title={translate("Delete Kariah Member")}
         isDelete
         itemToDelete={deleteDialog?.fullname}
         description={
@@ -1245,15 +1252,15 @@ export default function MobileManageQariahMember() {
         title={
           notifyConfirmMode === "reminder"
             ? translate("Send Reminder Notification")
-            : translate("Notify Death of Qariah Member")
+            : translate("Notify Death of Kariah Member")
         }
         description={
           notifyConfirmMode === "reminder"
             ? translate(
-                "Ingin hantar notifikasi semula kepada ahli waris dan pihak berkuasa (JKR) bagi qariah ini?",
+                "Ingin hantar notifikasi semula kepada ahli waris dan pihak berkuasa (JKR) bagi kariah ini?",
               )
             : translate(
-                "Ingin hantar notifikasi kepada ahli waris dan pihak berkuasa (JKR) bagi qariah ini?",
+                "Ingin hantar notifikasi kepada ahli waris dan pihak berkuasa (JKR) bagi kariah ini?",
               )
         }
         onConfirm={() => handleNotifyConfirmation(true)}

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import z from "zod";
+import { Brackets } from "typeorm";
 import { protectedProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
 import {
@@ -11,7 +12,7 @@ import {
   Grave,
   JenazahCase,
   Organisation,
-  QariahDeathNotification,
+  KariahDeathNotification,
   Quotation,
   Suggestion,
   TahfizCenter,
@@ -247,19 +248,25 @@ export const dashboardRouter = router({
 
       const query = donationRepo
         .createQueryBuilder("donation")
-        .select("donation.id", "id");
+        .select("donation.id", "id")
+        .where("donation.status = :status", {
+          status: VerificationStatus.PENDING,
+        })
+        .andWhere(
+          new Brackets((qb) => {
+            if (currentUserTahfiz) {
+              qb.orWhere("donation.tahfizcenterId = :tahfizId", {
+                tahfizId: currentUserTahfiz,
+              });
+            }
 
-      if (currentUserTahfiz) {
-        query.orWhere("donation.tahfizcenterId = :tahfizId", {
-          tahfizId: currentUserTahfiz,
-        });
-      }
-
-      if (currentUserOrganisation) {
-        query.orWhere("donation.organisationId = :orgId", {
-          orgId: currentUserOrganisation,
-        });
-      }
+            if (currentUserOrganisation) {
+              qb.orWhere("donation.organisationId = :orgId", {
+                orgId: currentUserOrganisation,
+              });
+            }
+          }),
+        );
 
       const donationIds = await query.getRawMany();
       const donationIdArr = donationIds.map((donation) => donation.id);
@@ -284,7 +291,7 @@ export const dashboardRouter = router({
       };
     }),
 
-  // CQN: Case, Qariah, Notifications
+  // CQN: Case, Kariah, Notifications
   getCQNAdminStates: protectedProcedure
     .input(
       z.object({
@@ -294,7 +301,7 @@ export const dashboardRouter = router({
     )
     .query(async ({ input }) => {
       const { isSuperAdmin, currentUserOrganisation } = input;
-      const notifRepo = AppDataSource.getRepository(QariahDeathNotification);
+      const notifRepo = AppDataSource.getRepository(KariahDeathNotification);
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
       const jenazahCaseRepo = AppDataSource.getRepository(JenazahCase);
 
@@ -317,8 +324,8 @@ export const dashboardRouter = router({
         ]);
 
         return {
-          qariahNotificationCount: notificationCount,
-          qariahMemberCount: memberCount,
+          kariahNotificationCount: notificationCount,
+          kariahMemberCount: memberCount,
           jenazahCaseCount,
           jenazahCasePendingCount,
           deathCharityMemberPendingCount,
@@ -327,8 +334,8 @@ export const dashboardRouter = router({
 
       if (!currentUserOrganisation) {
         return {
-          qariahNotificationCount: 0,
-          qariahMemberCount: 0,
+          kariahNotificationCount: 0,
+          kariahMemberCount: 0,
           jenazahCaseCount: 0,
           jenazahCasePendingCount: 0,
           deathCharityMemberPendingCount: 0,
@@ -376,8 +383,8 @@ export const dashboardRouter = router({
       ]);
 
       return {
-        qariahNotificationCount: notificationCount,
-        qariahMemberCount: memberCount,
+        kariahNotificationCount: notificationCount,
+        kariahMemberCount: memberCount,
         jenazahCaseCount,
         jenazahCasePendingCount,
         deathCharityMemberPendingCount,

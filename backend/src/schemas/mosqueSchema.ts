@@ -15,4 +15,5 @@ export const mosqueSchema = z.object({
   picphoneno: z.string().optional().nullable(),
   canarrangefuneral: z.boolean().default(false),
   hasdeathcharity: z.boolean().default(false),
+  haskariahregistration: z.boolean().default(false),
 });

@@ -7,7 +7,7 @@ import { showSuccess } from '@/components/ToastrNotification';
 
 const LINKS = {
   jenazah: 'https://qubur.mycesgroup.com/jenazahemergencyrequest?type=qr',
-  qariah: 'https://qubur.mycesgroup.com/userqariahregistration?type=qr',
+  kariah: 'https://qubur.mycesgroup.com/userkariahregistration?type=qr',
 };
 
 const qrUrl = (data, size = 240) =>
@@ -106,10 +106,10 @@ export default function QRQuickAccess() {
           icon={UserPlus}
           iconBg="bg-purple-50"
           iconColor="text-purple-600"
-          title="Qariah Registration"
-          description="Register as a qariah member"
-          link={LINKS.qariah}
-          copied={copiedLink === LINKS.qariah}
+          title="Kariah Registration"
+          description="Register as a kariah member"
+          link={LINKS.kariah}
+          copied={copiedLink === LINKS.kariah}
           onCopy={handleCopy}
         />
       </div>

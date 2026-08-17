@@ -26,7 +26,7 @@ export class JenazahCase {
   mosque?: Mosque | null;
 
   @Column("integer", { nullable: true })
-  qariahmemberid?: number | null;
+  kariahmemberid?: number | null;
 
   @Column("jsonb")
   details!: Record<string, any>;
@@ -57,7 +57,7 @@ export class JenazahCase {
   supportingdocphotourl?: string | null;
 
   @Column("boolean", { default: false })
-  addedtoqariah!: boolean;
+  addedtokariah!: boolean;
 
   @CreateDateColumn()
   createdat!: Date;

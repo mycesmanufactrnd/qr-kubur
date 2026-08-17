@@ -11,4 +11,5 @@ export const deathCharityMemberSchema = z.object({
     deathcharity: z.object({ id: z.number() }).nullable().optional(),
     mosque: z.object({ id: z.number() }).nullable().optional(),
     organisation: z.object({ id: z.number() }).nullable().optional(),
+    allowDuplicateIc: z.boolean().optional(),
 });

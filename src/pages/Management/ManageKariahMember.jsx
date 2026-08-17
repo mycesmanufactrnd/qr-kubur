@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import MobileManageQariahMember from "@/pages/Mobile/ManageQariahMember";
+import MobileManageKariahMember from "@/pages/Mobile/ManageKariahMember";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -77,27 +77,28 @@ import { translate } from "@/utils/translations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { STATES_MY } from "@/utils/enums";
 import { parseDobFromIcNumber } from "@/utils/helpers";
-import { defaultQariahMemberField } from "@/utils/defaultformfields";
+import { defaultKariahMemberField } from "@/utils/defaultformfields";
 
-export default function ManageQariahMember() {
+export default function ManageKariahMember() {
   const isNarrow = useIsNarrow();
   return isNarrow ? (
-    <MobileManageQariahMember />
+    <MobileManageKariahMember />
   ) : (
-    <ManageQariahMemberDesktop />
+    <ManageKariahMemberDesktop />
   );
 }
 
-function ManageQariahMemberDesktop() {
+function ManageKariahMemberDesktop() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
   const {
     loading: permissionsLoading,
     canView,
     canCreate,
+    canApprove,
     canEdit,
     canDelete,
-  } = useCrudPermissions("death_charity");
+  } = useCrudPermissions("kariah");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
@@ -153,7 +154,7 @@ function ManageQariahMemberDesktop() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm({ defaultValues: defaultQariahMemberField });
+  } = useForm({ defaultValues: defaultKariahMemberField });
 
   const isdeceased = watch("isdeceased");
   const createOrgIdValue = watch("createOrgId");
@@ -187,7 +188,7 @@ function ManageQariahMemberDesktop() {
   }, [urlFullName]);
 
   const { data, isLoading, refetch } =
-    trpc.deathCharityMember.getQariahPaginated.useQuery({
+    trpc.deathCharityMember.getKariahPaginated.useQuery({
       page: urlPage,
       pageSize: itemsPerPage,
       filterFullName: urlFullName || null,
@@ -263,7 +264,7 @@ function ManageQariahMemberDesktop() {
     }
   }, [editingMember, isDialogOpen]);
 
-  const upsertDeadPersonMutation = trpc.deadperson.upsertForQariah.useMutation({
+  const upsertDeadPersonMutation = trpc.deadperson.upsertForKariah.useMutation({
     onSuccess: () => {
       showSuccess(translate("Dead person recorded"), "success");
     },
@@ -333,7 +334,7 @@ function ManageQariahMemberDesktop() {
     onError: (err) => showApiError(err),
   });
 
-  const notifyDeathMutation = trpc.qariahNotification.notifyDeath.useMutation({
+  const notifyDeathMutation = trpc.kariahNotification.notifyDeath.useMutation({
     onSuccess: () => {
       showSuccess(translate("Notification sent"), "success");
     },
@@ -371,7 +372,7 @@ function ManageQariahMemberDesktop() {
   const openCreateDialog = (icnumber = "") => {
     setEditingMember(null);
     setIsApprovedLocal(true);
-    reset({ ...defaultQariahMemberField, icnumber });
+    reset({ ...defaultKariahMemberField, icnumber });
     setIsDialogOpen(true);
   };
 
@@ -610,8 +611,8 @@ function ManageQariahMemberDesktop() {
           items={[
             { label: translate("Admin Dashboard"), page: "AdminDashboard" },
             {
-              label: translate("Manage Qariah Members"),
-              page: "ManageQariahMember",
+              label: translate("Manage Kariah Members"),
+              page: "ManageKariahMember",
             },
           ]}
         />
@@ -625,8 +626,8 @@ function ManageQariahMemberDesktop() {
         items={[
           { label: translate("Admin Dashboard"), page: "AdminDashboard" },
           {
-            label: translate("Manage Qariah Members"),
-            page: "ManageQariahMember",
+            label: translate("Manage Kariah Members"),
+            page: "ManageKariahMember",
           },
         ]}
       />
@@ -634,7 +635,7 @@ function ManageQariahMemberDesktop() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Users className="w-6 h-6 text-emerald-600" />
-          {translate("Manage Qariah Members")}
+          {translate("Manage Kariah Members")}
         </h1>
         <div className="flex items-center gap-2">
           {canCreate && (
@@ -723,7 +724,7 @@ function ManageQariahMemberDesktop() {
                 <TableHead className="text-center">
                   {translate("Status")}
                 </TableHead>
-                {(canEdit || canDelete) && (
+                {(canEdit || canDelete || canApprove) && (
                   <TableHead className="text-center">
                     {translate("Action")}
                   </TableHead>
@@ -777,19 +778,19 @@ function ManageQariahMemberDesktop() {
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
+                        {canApprove && !member.isapproved && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openApproveCheck(member)}
+                            title={translate("Approve Member")}
+                            disabled={approveMutation.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                          </Button>
+                        )}
                         {canEdit && (
                           <>
-                            {!member.isapproved && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openApproveCheck(member)}
-                                title={translate("Approve Member")}
-                                disabled={approveMutation.isPending}
-                              >
-                                <CheckCircle className="w-4 h-4 text-emerald-500" />
-                              </Button>
-                            )}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -863,8 +864,8 @@ function ManageQariahMemberDesktop() {
             <div className="flex items-center gap-3 pr-8">
               <DialogTitle>
                 {editingMember
-                  ? translate("Edit Qariah Member")
-                  : translate("Add Qariah Member")}
+                  ? translate("Edit Kariah Member")
+                  : translate("Add Kariah Member")}
               </DialogTitle>
               {editingMember && (
                 <span
@@ -1214,15 +1215,17 @@ function ManageQariahMemberDesktop() {
                 {translate("Close")}
               </Button>
               {formDisabled ? (
-                <Button
-                  type="button"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={() => openApproveCheck(editingMember)}
-                  disabled={isPending}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {translate("Approve Member")}
-                </Button>
+                canApprove && (
+                  <Button
+                    type="button"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => openApproveCheck(editingMember)}
+                    disabled={isPending}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {translate("Approve Member")}
+                  </Button>
+                )
               ) : (
                 <Button
                   type="submit"
@@ -1241,7 +1244,7 @@ function ManageQariahMemberDesktop() {
       <Dialog open={icCheckOpen} onOpenChange={setIcCheckOpen}>
         <DialogContent className="max-w-md dark:bg-slate-800">
           <DialogHeader>
-            <DialogTitle>{translate("Check Qariah Membership")}</DialogTitle>
+            <DialogTitle>{translate("Check Kariah Membership")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3">
@@ -1273,7 +1276,7 @@ function ManageQariahMemberDesktop() {
               <div className="border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 space-y-1">
                 <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                   <CheckCircle className="w-3.5 h-3.5" />
-                  {translate("Registered Qariah Member")}
+                  {translate("Registered Kariah Member")}
                 </p>
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                   {icCheckResult.fullname}
@@ -1336,7 +1339,7 @@ function ManageQariahMemberDesktop() {
       >
         <DialogContent className="max-w-md dark:bg-slate-800">
           <DialogHeader>
-            <DialogTitle>{translate("Approve Qariah Member")}</DialogTitle>
+            <DialogTitle>{translate("Approve Kariah Member")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3">
@@ -1436,7 +1439,7 @@ function ManageQariahMemberDesktop() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={translate("Delete Qariah Member")}
+        title={translate("Delete Kariah Member")}
         description={
           memberToDelete?.deadperson?.id
             ? `${translate("Delete")} "${memberToDelete?.fullname}"? ${translate("This member has recorded arwah/grave information (shown publicly at the grave) that will also be permanently deleted.")}`
@@ -1480,15 +1483,15 @@ function ManageQariahMemberDesktop() {
         title={
           notifyConfirmMode === "reminder"
             ? translate("Send Reminder Notification")
-            : translate("Notify Death of Qariah Member")
+            : translate("Notify Death of Kariah Member")
         }
         description={
           notifyConfirmMode === "reminder"
             ? translate(
-                "Ingin hantar notifikasi semula kepada ahli waris dan pihak berkuasa (JKR) bagi qariah ini?",
+                "Ingin hantar notifikasi semula kepada ahli waris dan pihak berkuasa (JKR) bagi kariah ini?",
               )
             : translate(
-                "Ingin hantar notifikasi kepada ahli waris dan pihak berkuasa (JKR) bagi qariah ini?",
+                "Ingin hantar notifikasi kepada ahli waris dan pihak berkuasa (JKR) bagi kariah ini?",
               )
         }
         onConfirm={() => handleNotifyConfirmation(true)}

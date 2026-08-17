@@ -7,7 +7,7 @@ import { trpc } from "@/utils/trpc";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 
-export default function QariahRegistrationAlert() {
+export default function KariahRegistrationAlert() {
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [translateX, setTranslateX] = useState(0);
@@ -15,7 +15,7 @@ export default function QariahRegistrationAlert() {
   const { currentUser, hasAdminAccess } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
 
-  const { data } = trpc.deathCharityMember.getQariahPaginated.useQuery(
+  const { data } = trpc.deathCharityMember.getKariahPaginated.useQuery(
     {
       page: 1,
       pageSize: 500,
@@ -66,7 +66,7 @@ export default function QariahRegistrationAlert() {
         <div className="flex items-center gap-2 text-white">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span className="text-sm font-semibold">
-            {pendingItems.length} {translate("Pending Qariah Registration(s)")}
+            {pendingItems.length} {translate("Pending Kariah Registration(s)")}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -91,13 +91,13 @@ export default function QariahRegistrationAlert() {
       {!collapsed && (
         <div className="bg-white dark:bg-slate-800 max-h-64 overflow-y-auto">
           <p className="px-4 pt-3 pb-1 text-xs text-gray-500 dark:text-gray-400">
-            {translate("Qariah members awaiting approval")}
+            {translate("Kariah members awaiting approval")}
           </p>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {pendingItems.map((m) => (
               <Link
                 key={m.id}
-                to={`${createPageUrl("ManageQariahMember")}?fullname=${encodeURIComponent(m.fullname)}`}
+                to={`${createPageUrl("ManageKariahMember")}?fullname=${encodeURIComponent(m.fullname)}`}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"
               >
                 <Users className="w-4 h-4 text-violet-500 shrink-0" />

@@ -14,7 +14,7 @@ import ImpersonateUser from '@/pages/ImpersonateUser';
 import ScanQR from '@/pages/ScanQR';
 import Favorites from '@/pages/User/Favorites';
 import SearchGrave from '@/pages/User/SearchGrave';
-import UserQariahRegistration from '@/pages/User/UserQariahRegistration';
+import UserKariahRegistration from '@/pages/User/UserKariahRegistration';
 import GraveDetails from '@/pages/GraveDetails';
 import GraveService from '@/pages/GraveService';
 import DeadPersonDetails from '@/pages/DeadPersonDetails';
@@ -80,9 +80,9 @@ import ManageIslamicEvent from '@/pages/Management/ManageIslamicEvent';
 import ManageWaqfProject from '@/pages/Management/ManageWaqfProject';
 import ManageMosques from '@/pages/Management/ManageMosques.jsx';
 import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
-import ManageNotifyDeathQariah from '@/pages/Management/ManageNotifyDeathQariah.jsx';
+import ManageNotifyDeathKariah from '@/pages/Management/ManageNotifyDeathKariah.jsx';
 import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
-import ManageQariahMember from '@/pages/Management/ManageQariahMember.jsx';
+import ManageKariahMember from '@/pages/Management/ManageKariahMember.jsx';
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
@@ -130,7 +130,7 @@ export const PAGES = {
     "ScanQR": ScanQR,
     "Favorites": Favorites,
     "SearchGrave": SearchGrave,
-    "UserQariahRegistration": UserQariahRegistration,
+    "UserKariahRegistration": UserKariahRegistration,
     "GraveDetails": GraveDetails,
     "GraveService": GraveService,
     "DeadPersonDetails": DeadPersonDetails,
@@ -196,9 +196,9 @@ export const PAGES = {
     "ManageWaqfProject": ManageWaqfProject,
     "ManageMosques": ManageMosques,
     "ManageDeathCharity": ManageDeathCharity,
-    "ManageNotifyDeathQariah": ManageNotifyDeathQariah,
+    "ManageNotifyDeathKariah": ManageNotifyDeathKariah,
     "ManageDeathCharityMember": ManageDeathCharityMember,
-    "ManageQariahMember": ManageQariahMember,
+    "ManageKariahMember": ManageKariahMember,
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ManageQuotations": ManageQuotations,

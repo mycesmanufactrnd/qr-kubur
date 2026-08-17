@@ -19,6 +19,7 @@ type PermissionSeedOrg =
   | undefined;
 type PermissionSeedTahfiz = { id?: number } | null | undefined;
 
+// default permission need to adjust ASAP
 export function buildDefaultPermissions({
   user,
   role,
@@ -100,6 +101,19 @@ export function buildDefaultPermissions({
         { slug: "death_charity_create", enabled: true, user },
         { slug: "death_charity_edit", enabled: true, user },
         { slug: "death_charity_delete", enabled: true, user },
+        // kariah
+        { slug: "kariah_view", enabled: true, user },
+        { slug: "kariah_create", enabled: true, user },
+        { slug: "kariah_approve", enabled: true, user },
+        { slug: "kariah_edit", enabled: true, user },
+        { slug: "kariah_delete", enabled: true, user },
+        // jenazah case
+        { slug: "jenazah_case_view", enabled: true, user },
+        { slug: "jenazah_case_create", enabled: true, user },
+        { slug: "jenazah_case_approve", enabled: true, user },
+        { slug: "jenazah_case_reject", enabled: true, user },
+        { slug: "jenazah_case_edit", enabled: true, user },
+        { slug: "jenazah_case_delete", enabled: true, user },
       );
     }
 

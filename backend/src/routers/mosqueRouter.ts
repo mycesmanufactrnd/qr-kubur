@@ -121,6 +121,7 @@ export const mosqueRouter = router({
         filterOrganisationId: z.number().optional(),
         filterCanArrangeFuneral: z.enum(["true", "false"]).optional(),
         filterHasDeathCharity: z.enum(["true", "false"]).optional(),
+        filterHasKariahRegistration: z.enum(["true", "false"]).optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -132,6 +133,7 @@ export const mosqueRouter = router({
         filterOrganisationId,
         filterCanArrangeFuneral,
         filterHasDeathCharity,
+        filterHasKariahRegistration,
       } = input;
 
       const mosqueRepo = AppDataSource.getRepository(Mosque);
@@ -165,6 +167,15 @@ export const mosqueRouter = router({
         query.andWhere("mosque.hasdeathcharity = :hasDeathCharity", {
           hasDeathCharity: filterHasDeathCharity === "true",
         });
+      }
+
+      if (filterHasKariahRegistration) {
+        query.andWhere(
+          "mosque.haskariahregistration = :hasKariahRegistration",
+          {
+            hasKariahRegistration: filterHasKariahRegistration === "true",
+          },
+        );
       }
 
       if (page && pageSize) {

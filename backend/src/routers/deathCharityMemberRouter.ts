@@ -9,13 +9,13 @@ import {
   JenazahCase,
   Mosque,
   Organisation,
-  QariahDevice,
+  KariahDevice,
 } from "../db/entities.js";
 import { deathCharityMemberSchema } from "../schemas/deathCharityMemberSchema.js";
 import { claimFromMemberSchema } from "../schemas/deathCharityClaimSchema.js";
 import {
   sendNotificationFCMToOrganisation,
-  sendNotificationToQariahDevices,
+  sendNotificationToKariahDevices,
 } from "../services/firebase.service.js";
 
 const stripIcDashes = (value) =>
@@ -81,12 +81,14 @@ export const deathCharityMemberRouter = router({
         where: { icnumber },
       });
 
-      if (existing) {
+      if (existing && !input.allowDuplicateIc) {
         throw new Error("IC number is already registered.");
       }
 
+      const { allowDuplicateIc, ...memberInput } = input;
+
       const deathCharity = deathCharityMemberRepo.create({
-        ...input,
+        ...memberInput,
         icnumber,
         isapproved: true,
       });
@@ -140,14 +142,14 @@ export const deathCharityMemberRouter = router({
 
     if (member && !member.isapproved) {
       // A still-pending registration is being deleted — this is a rejection.
-      await sendNotificationToQariahDevices({
+      await sendNotificationToKariahDevices({
         icnumber: member.icnumber,
         notification: {
-          title: "Pendaftaran Qariah Ditolak",
-          body: `Pendaftaran anda sebagai ahli qariah ${member.mosque?.name ?? ""} tidak diluluskan.`,
+          title: "Pendaftaran Kariah Ditolak",
+          body: `Pendaftaran anda sebagai ahli kariah ${member.mosque?.name ?? ""} tidak diluluskan.`,
         },
       });
-      await AppDataSource.getRepository(QariahDevice).delete({
+      await AppDataSource.getRepository(KariahDevice).delete({
         icnumber: member.icnumber,
       });
     }
@@ -205,7 +207,7 @@ export const deathCharityMemberRouter = router({
         .getMany();
     }),
 
-  getQariahPaginated: protectedProcedure
+  getKariahPaginated: protectedProcedure
     .input(
       z.object({
         page: z.number().min(1).default(1),
@@ -277,6 +279,7 @@ export const deathCharityMemberRouter = router({
         organisationId: z.number().optional().nullable(),
         canArrangeFuneral: z.boolean().optional(),
         hasDeathCharity: z.boolean().optional(),
+        hasKariahRegistration: z.boolean().optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -291,7 +294,7 @@ export const deathCharityMemberRouter = router({
           orgId: input.organisationId,
         });
       }
-      
+
       if (input.canArrangeFuneral) {
         query.andWhere("mosque.canarrangefuneral = true");
       }
@@ -299,7 +302,11 @@ export const deathCharityMemberRouter = router({
       if (input.hasDeathCharity) {
         query.andWhere("mosque.hasdeathcharity = true");
       }
-       
+
+      if (input.hasKariahRegistration) {
+        query.andWhere("mosque.haskariahregistration = true");
+      }
+
       return query
         .select(["mosque.id", "mosque.name", "mosque.state", "mosque.address"])
         .orderBy("mosque.name", "ASC")
@@ -358,7 +365,7 @@ export const deathCharityMemberRouter = router({
         .getMany();
     }),
 
-  registerQariah: publicProcedure
+  registerKariah: publicProcedure
     .input(
       z.object({
         fullname: z.string().min(1),
@@ -408,7 +415,7 @@ export const deathCharityMemberRouter = router({
       if (organisation?.id) {
         await sendNotificationFCMToOrganisation({
           organisationId: organisation.id,
-          event: "qariah_registered",
+          event: "kariah_registered",
           inputData: { fullname: input.fullname },
           roles: ["admin"],
         });
@@ -568,15 +575,15 @@ export const deathCharityMemberRouter = router({
       member.isapproved = true;
       const savedMember = await repo.save(member);
 
-      await AppDataSource.getRepository(QariahDevice).update(
+      await AppDataSource.getRepository(KariahDevice).update(
         { icnumber: member.icnumber },
         { isapproved: true },
       );
-      await sendNotificationToQariahDevices({
+      await sendNotificationToKariahDevices({
         icnumber: member.icnumber,
         notification: {
-          title: "Pendaftaran Qariah Diluluskan",
-          body: `Pendaftaran anda sebagai ahli qariah ${member.mosque?.name ?? ""} telah diluluskan.`,
+          title: "Pendaftaran Kariah Diluluskan",
+          body: `Pendaftaran anda sebagai ahli kariah ${member.mosque?.name ?? ""} telah diluluskan.`,
         },
       });
 
@@ -600,7 +607,13 @@ export const deathCharityMemberRouter = router({
       if (input.searchMany) {
         return await AppDataSource.getRepository(DeathCharityMember).find({
           where: { icnumber },
-          relations: ["mosque", "organisation", "deadperson"],
+          relations: [
+            "mosque",
+            "organisation",
+            "deadperson",
+            "deathcharity",
+            "deathcharity.organisation",
+          ],
         });
       }
 

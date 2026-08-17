@@ -185,10 +185,6 @@ export const graveRouter = router({
     .query(async ({ input }) => {
       const graveRepo = AppDataSource.getRepository(Grave);
 
-      if (!input.coordinates) return [];
-
-      const { latitude, longitude } = input.coordinates;
-
       const query = graveRepo
         .createQueryBuilder("grave")
         .leftJoinAndSelect("grave.organisation", "organisation")
@@ -219,35 +215,41 @@ export const graveRouter = router({
         }
       }
 
-      // if no extension created in psql
-      // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
-      // CREATE EXTENSION IF NOT EXISTS cube;
-      // CREATE EXTENSION IF NOT EXISTS earthdistance;
+      if (input.coordinates) {
+        const { latitude, longitude } = input.coordinates;
 
-      query
-        .addSelect(
-          `
-      earth_distance(
-        ll_to_earth(grave.latitude, grave.longitude),
-        ll_to_earth(:lat, :lng)
-      )`,
-          "distance",
-        )
-        .orderBy(
-          `
+        // if no extension created in psql
+        // docker exec -it <container_name_or_id> psql -U <db_user> -d <db_name>
+        // CREATE EXTENSION IF NOT EXISTS cube;
+        // CREATE EXTENSION IF NOT EXISTS earthdistance;
+
+        query
+          .addSelect(
+            `
         earth_distance(
           ll_to_earth(grave.latitude, grave.longitude),
           ll_to_earth(:lat, :lng)
         )`,
-          "ASC",
-        )
-        .setParameters({ lat: latitude, lng: longitude });
+            "distance",
+          )
+          .orderBy(
+            `
+          earth_distance(
+            ll_to_earth(grave.latitude, grave.longitude),
+            ll_to_earth(:lat, :lng)
+          )`,
+            "ASC",
+          )
+          .setParameters({ lat: latitude, lng: longitude });
 
-      const { entities, raw } = await query.getRawAndEntities();
+        const { entities, raw } = await query.getRawAndEntities();
 
-      return entities.map((entity, index) => ({
-        ...entity,
-        distance: Number(raw[index].distance),
-      }));
+        return entities.map((entity, index) => ({
+          ...entity,
+          distance: raw[index].distance ? Number(raw[index].distance) : null,
+        }));
+      }
+
+      return await query.orderBy("grave.name", "ASC").getMany();
     }),
 });

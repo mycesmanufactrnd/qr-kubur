@@ -21,9 +21,9 @@ import { STATES_MY } from "@/utils/enums";
 import { showApiError } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { initFCM } from "@/firebase/firebase";
-import { defaultQariahRegistration } from "@/utils/defaultformfields";
+import { defaultKariahRegistration } from "@/utils/defaultformfields";
 
-const STORAGE_KEY = "qariahRegisteredMember";
+const STORAGE_KEY = "kariahRegisteredMember";
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.myces.qubur&pcampaignid=web_share";
@@ -113,7 +113,7 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-export default function UserQariahRegistration() {
+export default function UserKariahRegistration() {
   const [searchParams] = useSearchParams();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedState, setSelectedState] = useState("");
@@ -142,7 +142,7 @@ export default function UserQariahRegistration() {
   const { data: mosques = [], isLoading: mosqueLoading } =
     trpc.deathCharityMember.getMosquesByState.useQuery({
       state: selectedState || null,
-      hasDeathCharity: true,
+      hasKariahRegistration: true,
     });
 
   const {
@@ -154,15 +154,15 @@ export default function UserQariahRegistration() {
     trigger,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: defaultQariahRegistration,
+    defaultValues: defaultKariahRegistration,
   });
 
-  const registerMutation = trpc.deathCharityMember.registerQariah.useMutation({
+  const registerMutation = trpc.deathCharityMember.registerKariah.useMutation({
     onSuccess: () => setIsSubmitted(true),
     onError: (err) => showApiError(err),
   });
 
-  const saveQariahDeviceToken = trpc.qariahDevice.saveToken.useMutation();
+  const saveKariahDeviceToken = trpc.kariahDevice.saveToken.useMutation();
 
   const searchQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
     { icnumber: searchedIc, mosqueId: searchMosqueId },
@@ -191,8 +191,8 @@ export default function UserQariahRegistration() {
     });
 
     if (token) {
-      saveQariahDeviceToken.mutate({
-        fcmQariahToken: token,
+      saveKariahDeviceToken.mutate({
+        fcmKariahToken: token,
         icnumber,
         mosqueId,
       });
@@ -262,9 +262,9 @@ export default function UserQariahRegistration() {
         }`}
       >
         {isQrView ? (
-          <QrHeader title={translate("Qariah Registration")} />
+          <QrHeader title={translate("Kariah Registration")} />
         ) : (
-          <BackNavigation title={translate("Qariah Registration")} />
+          <BackNavigation title={translate("Kariah Registration")} />
         )}
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-10 gap-4">
           <div className="relative w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center ring-8 ring-emerald-50/60 dark:ring-emerald-900/10">
@@ -275,7 +275,7 @@ export default function UserQariahRegistration() {
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
             {translate(
-              "Your Qariah registration has been submitted and is pending approval.",
+              "Your Kariah registration has been submitted and is pending approval.",
             )}
           </p>
           <Button
@@ -306,9 +306,9 @@ export default function UserQariahRegistration() {
         }`}
       >
         {isQrView ? (
-          <QrHeader title={translate("Qariah Registration")} />
+          <QrHeader title={translate("Kariah Registration")} />
         ) : (
-          <BackNavigation title={translate("Qariah Registration")} />
+          <BackNavigation title={translate("Kariah Registration")} />
         )}
         <div className="flex-1 flex flex-col items-center justify-center px-6 pb-10 gap-4">
           <div
@@ -328,10 +328,10 @@ export default function UserQariahRegistration() {
           <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
             {savedRegistration.isApproved
               ? translate(
-                  "This IC number is already registered as a Qariah member.",
+                  "This IC number is already registered as a Kariah member.",
                 )
               : translate(
-                  "Your Qariah registration has been submitted and is pending approval.",
+                  "Your Kariah registration has been submitted and is pending approval.",
                 )}
           </p>
 
@@ -375,13 +375,13 @@ export default function UserQariahRegistration() {
     >
       {isQrView ? (
         <QrHeader
-          title={translate("Qariah Registration")}
+          title={translate("Kariah Registration")}
           subtitle={translate(
-            "Register or check your membership status with your local mosque Qariah.",
+            "Register or check your membership status with your local mosque Kariah.",
           )}
         />
       ) : (
-        <BackNavigation title={translate("Qariah Registration")} />
+        <BackNavigation title={translate("Kariah Registration")} />
       )}
 
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-4 space-y-6">
@@ -392,10 +392,10 @@ export default function UserQariahRegistration() {
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                {translate("Qariah Registration")}
+                {translate("Kariah Registration")}
               </p>
               <p className="text-xs text-slate-400">
-                {translate("Register as a member of your local mosque Qariah")}
+                {translate("Register as a member of your local mosque Kariah")}
               </p>
             </div>
           </div>
@@ -436,13 +436,17 @@ export default function UserQariahRegistration() {
             errors={errors}
             disabled={!selectedState || hasSearched}
             loading={mosqueLoading}
-            disabledMessage={translate("Select state first")}
+            disabledMessage={
+              !selectedState ? translate("Select state first") : undefined
+            }
             placeholder={translate("Search mosque...")}
             searchPlaceholder={translate("Search mosque...")}
             emptyMessage={translate("No mosque found")}
-            noSelectionMessage={translate(
-              "Please select a state to see available mosques",
-            )}
+            noSelectionMessage={
+              !selectedState
+                ? translate("Please select a state to see available mosques")
+                : undefined
+            }
           />
 
           <TextInputForm
@@ -504,10 +508,10 @@ export default function UserQariahRegistration() {
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {foundMember.isapproved
                 ? translate(
-                    "This IC number is already registered as a Qariah member.",
+                    "This IC number is already registered as a Kariah member.",
                   )
                 : translate(
-                    "Your Qariah registration has been submitted and is pending approval.",
+                    "Your Kariah registration has been submitted and is pending approval.",
                   )}
             </p>
 

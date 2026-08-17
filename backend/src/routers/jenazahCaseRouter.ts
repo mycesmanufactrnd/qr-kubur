@@ -59,7 +59,7 @@ export const jenazahCaseRouter = router({
     .input(
       z.object({
         mosqueId: z.number().optional().nullable(),
-        qariahmemberid: z.number().optional().nullable(),
+        kariahmemberid: z.number().optional().nullable(),
         details: z.record(z.string(), z.any()),
         userremarks: z.string().optional().nullable(),
         adminremarks: z.string().optional().nullable(),
@@ -75,7 +75,7 @@ export const jenazahCaseRouter = router({
       const approved = input.autoApprove === true;
       const c = repo.create({
         mosqueId: input.mosqueId ?? null,
-        qariahmemberid: input.qariahmemberid ?? null,
+        kariahmemberid: input.kariahmemberid ?? null,
         details: sanitizeDetails(input.details),
         status: approved ? JenazahCaseStatus.ONGOING : JenazahCaseStatus.PENDING,
         isapproved: approved,
@@ -84,7 +84,7 @@ export const jenazahCaseRouter = router({
         adminremarks: input.adminremarks ?? null,
         deathconfirmationphotourl: input.deathconfirmationphotourl ?? null,
         policereportphotourl: input.policereportphotourl ?? null,
-        supportingphotourl: input.supportingphotourl ?? null,
+        supportingdocphotourl: input.supportingphotourl ?? null,
       });
       const savedCase = await repo.save(c);
 
@@ -214,11 +214,11 @@ export const jenazahCaseRouter = router({
       if (input.policereportphotourl !== undefined)
         c.policereportphotourl = input.policereportphotourl ?? null;
       if (input.supportingphotourl !== undefined)
-        c.supportingphotourl = input.supportingphotourl ?? null;
+        c.supportingdocphotourl = input.supportingphotourl ?? null;
       return await repo.save(c);
     }),
 
-  addToQariah: protectedProcedure
+  addToKariah: protectedProcedure
     .input(
       z.object({
         id: z.number(),
@@ -303,8 +303,8 @@ export const jenazahCaseRouter = router({
       if (input.icnumberOverride) {
         c.details = { ...d, deceasedIcnumber: icRaw };
       }
-      c.qariahmemberid = member?.id ?? null;
-      c.addedtoqariah = true;
+      c.kariahmemberid = member?.id ?? null;
+      c.addedtokariah = true;
       const savedCase = await caseRepo.save(c);
       return { status: "success" as const, case: savedCase };
     }),

@@ -46,9 +46,9 @@ import { inventoryPackageRouter } from "./inventoryPackageRouter.js";
 import { inventoryTransactionRouter } from "./inventoryTransactionRouter.js";
 import { inventoryAuditRouter } from "./inventoryAuditRouter.js";
 import { reusableItemGroupRouter } from "./reusableItemGroupRouter.js";
-import { qariahNotificationRouter } from "./qariahNotificationRouter.js";
+import { kariahNotificationRouter } from "./kariahNotificationRouter.js";
 import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
-import { qariahDeviceRouter } from "./qariahDeviceRouter.js";
+import { kariahDeviceRouter } from "./kariahDeviceRouter.js";
 import { graveMappingRouter } from "./graveMappingRouter.js";
 
 export const appRouter = trpcRouter({
@@ -98,9 +98,9 @@ export const appRouter = trpcRouter({
   inventoryTransaction: inventoryTransactionRouter,
   inventoryAudit: inventoryAuditRouter,
   reusableItemGroup: reusableItemGroupRouter,
-  qariahNotification: qariahNotificationRouter,
+  kariahNotification: kariahNotificationRouter,
   jenazahCase: jenazahCaseRouter,
-  qariahDevice: qariahDeviceRouter,
+  kariahDevice: kariahDeviceRouter,
   graveMapping: graveMappingRouter,
 });
 

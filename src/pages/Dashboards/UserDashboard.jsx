@@ -412,8 +412,8 @@ export default function UserDashboard() {
             },
             {
               icon: Users,
-              label: translate("Qariah Registration"),
-              page: "UserQariahRegistration",
+              label: translate("Kariah Registration"),
+              page: "UserKariahRegistration",
               g: G.sunset,
             },
             {

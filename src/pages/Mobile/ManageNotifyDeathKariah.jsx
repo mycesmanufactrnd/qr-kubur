@@ -34,7 +34,7 @@ import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 
 const DEFAULT_TEMPLATE =
-  "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli qariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
+  "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli kariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
 
 function buildPreview(template, name, address) {
   return (template || DEFAULT_TEMPLATE)
@@ -190,7 +190,7 @@ function NotifySheet({
     );
 
   const { data: memberData } =
-    trpc.deathCharityMember.getQariahPaginated.useQuery(
+    trpc.deathCharityMember.getKariahPaginated.useQuery(
       {
         page: 1,
         pageSize: 50,
@@ -215,7 +215,7 @@ function NotifySheet({
   }, [notifyMosqueId]);
 
   const { data: memberOrgTemplate } =
-    trpc.qariahNotification.getOrganisationTemplate.useQuery(
+    trpc.kariahNotification.getOrganisationTemplate.useQuery(
       { organisationId: selectedMember?.organisationId ?? 0 },
       { enabled: !!selectedMember?.organisationId },
     );
@@ -249,7 +249,7 @@ function NotifySheet({
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
         <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-          {translate("Send Qariah Death Notification")}
+          {translate("Send Kariah Death Notification")}
         </h2>
       </div>
 
@@ -298,8 +298,8 @@ function NotifySheet({
           <Select2Form
             name="selectedMemberId"
             control={control}
-            label={translate("Deceased Qariah Member")}
-            placeholder={translate("Search qariah member...")}
+            label={translate("Deceased Kariah Member")}
+            placeholder={translate("Search kariah member...")}
             searchPlaceholder={translate("Search member name...")}
             emptyMessage={translate("No members found")}
             options={members.map((m) => ({
@@ -352,7 +352,7 @@ function NotifySheet({
             className="dark:bg-slate-800 dark:border-slate-700"
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {translate("This message will be sent as a push notification to all qariah members under the same organisation.")}
+            {translate("This message will be sent as a push notification to all kariah members under the same organisation.")}
           </p>
         </FormSection>
       </div>
@@ -394,7 +394,7 @@ function TemplateSheet({ onClose, allOrganisations, initialOrgId = null }) {
   }, []);
 
   const { data: templateData, refetch: refetchTemplate } =
-    trpc.qariahNotification.getOrganisationTemplate.useQuery(
+    trpc.kariahNotification.getOrganisationTemplate.useQuery(
       { organisationId: templateOrgId ?? 0 },
       { enabled: !!templateOrgId },
     );
@@ -413,7 +413,7 @@ function TemplateSheet({ onClose, allOrganisations, initialOrgId = null }) {
   }, [templateData]);
 
   const saveTemplateMutation =
-    trpc.qariahNotification.saveOrganisationTemplate.useMutation({
+    trpc.kariahNotification.saveOrganisationTemplate.useMutation({
       onSuccess: () => {
         showSuccess(translate("Message template saved."), "success");
         refetchTemplate();
@@ -583,7 +583,7 @@ function TemplateSheet({ onClose, allOrganisations, initialOrgId = null }) {
   );
 }
 
-export default function MobileManageNotifyDeathQariah() {
+export default function MobileManageNotifyDeathKariah() {
   const { loadingUser, hasAdminAccess, currentUser, isSuperAdmin } =
     useAdminAccess();
   const {
@@ -592,7 +592,7 @@ export default function MobileManageNotifyDeathQariah() {
     canCreate,
     canEdit,
     canDelete,
-  } = useCrudPermissions("death_charity");
+  } = useCrudPermissions("kariah");
 
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(20);
@@ -610,7 +610,7 @@ export default function MobileManageNotifyDeathQariah() {
     data: notifData,
     isLoading: notifLoading,
     refetch,
-  } = trpc.qariahNotification.getPagedNotifications.useQuery({
+  } = trpc.kariahNotification.getPagedNotifications.useQuery({
     page,
     pageSize: itemsPerPage,
   });
@@ -629,10 +629,10 @@ export default function MobileManageNotifyDeathQariah() {
         : (currentUser?.organisation?.id ?? null),
     });
 
-  const notifyMutation = trpc.qariahNotification.notifyDeath.useMutation({
+  const notifyMutation = trpc.kariahNotification.notifyDeath.useMutation({
     onSuccess: (data) => {
       showSuccess(
-        translate("Notification sent to {count} qariah members.").replace(
+        translate("Notification sent to {count} kariah members.").replace(
           "{count}",
           data.notifiedcount,
         ),
@@ -644,11 +644,11 @@ export default function MobileManageNotifyDeathQariah() {
     onError: (err) => showApiError(err),
   });
 
-  const resendMutation = trpc.qariahNotification.resendNotification.useMutation(
+  const resendMutation = trpc.kariahNotification.resendNotification.useMutation(
     {
       onSuccess: (data) => {
         showSuccess(
-          translate("Notification resent to {count} qariah members.").replace(
+          translate("Notification resent to {count} kariah members.").replace(
             "{count}",
             data.notifiedcount,
           ),
@@ -662,7 +662,7 @@ export default function MobileManageNotifyDeathQariah() {
     },
   );
 
-  const deleteMutation = trpc.qariahNotification.deleteNotification.useMutation(
+  const deleteMutation = trpc.kariahNotification.deleteNotification.useMutation(
     {
       onSuccess: () => {
         showSuccess(translate("Deleted"), "success");
@@ -684,7 +684,7 @@ export default function MobileManageNotifyDeathQariah() {
 
   return (
     <div className="min-h-screen pb-6">
-      <BackNavigation title={translate("Qariah Death Notifications")} />
+      <BackNavigation title={translate("Kariah Death Notifications")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-4 pt-1">
         <div className="flex gap-2">
@@ -792,7 +792,7 @@ export default function MobileManageNotifyDeathQariah() {
         onOpenChange={setRenotifyDialogOpen}
         title={translate("Resend Notification")}
         description={translate(
-          'Resend the death notification for "{name}" to all qariah members of organisation {org}?',
+          'Resend the death notification for "{name}" to all kariah members of organisation {org}?',
         )
           .replace("{name}", notifToResend?.deceasedMember?.fullname ?? "")
           .replace("{org}", notifToResend?.organisation?.name ?? "")}

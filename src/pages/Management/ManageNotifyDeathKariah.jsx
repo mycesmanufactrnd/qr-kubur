@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import MobileManageNotifyDeathQariah from "@/pages/Mobile/ManageNotifyDeathQariah";
+import MobileManageNotifyDeathKariah from "@/pages/Mobile/ManageNotifyDeathKariah";
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
@@ -34,7 +34,7 @@ import { translate } from "@/utils/translations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 
 const DEFAULT_TEMPLATE =
-  "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli qariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
+  "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli kariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
 
 function buildPreview(template, name, address) {
   return (template || DEFAULT_TEMPLATE)
@@ -42,19 +42,19 @@ function buildPreview(template, name, address) {
     .replace(/{address}/g, address || "");
 }
 
-export default function ManageNotifyDeathQariah() {
+export default function ManageNotifyDeathKariah() {
   const isNarrow = useIsNarrow();
   return isNarrow ? (
-    <MobileManageNotifyDeathQariah />
+    <MobileManageNotifyDeathKariah />
   ) : (
-    <ManageNotifyDeathQariahDesktop />
+    <ManageNotifyDeathKariahDesktop />
   );
 }
 
-function ManageNotifyDeathQariahDesktop() {
+function ManageNotifyDeathKariahDesktop() {
   const { loadingUser, hasAdminAccess, currentUser, isSuperAdmin } = useAdminAccess();
   const { loading: permissionsLoading, canView, canCreate, canEdit, canDelete } =
-    useCrudPermissions("death_charity");
+    useCrudPermissions("kariah");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
@@ -95,7 +95,7 @@ function ManageNotifyDeathQariahDesktop() {
   const [notifToResend, setNotifToResend] = useState(null);
 
   const { data: notifData, isLoading: notifLoading, refetch } =
-    trpc.qariahNotification.getPagedNotifications.useQuery({
+    trpc.kariahNotification.getPagedNotifications.useQuery({
       page: urlPage,
       pageSize: itemsPerPage,
     });
@@ -106,7 +106,7 @@ function ManageNotifyDeathQariahDesktop() {
       currentUser.organisation.parentorganisationId == null);
 
   // Members for the deceased selector (filtered by selected org/mosque)
-  const { data: memberData } = trpc.deathCharityMember.getQariahPaginated.useQuery(
+  const { data: memberData } = trpc.deathCharityMember.getKariahPaginated.useQuery(
     {
       page: 1,
       pageSize: 50,
@@ -133,7 +133,7 @@ function ManageNotifyDeathQariahDesktop() {
 
   // Template for selected organisation in editor
   const { data: templateData, refetch: refetchTemplate } =
-    trpc.qariahNotification.getOrganisationTemplate.useQuery(
+    trpc.kariahNotification.getOrganisationTemplate.useQuery(
       { organisationId: templateOrgId ?? 0 },
       { enabled: !!templateOrgId },
     );
@@ -157,7 +157,7 @@ function ManageNotifyDeathQariahDesktop() {
 
   // Template for selected member's organisation (for notify dialog preview)
   const { data: memberOrgTemplate } =
-    trpc.qariahNotification.getOrganisationTemplate.useQuery(
+    trpc.kariahNotification.getOrganisationTemplate.useQuery(
       { organisationId: selectedMember?.organisationId ?? 0 },
       { enabled: !!selectedMember?.organisationId && notifyDialogOpen },
     );
@@ -186,10 +186,10 @@ function ManageNotifyDeathQariahDesktop() {
     );
   }, [memberOrgTemplate, selectedMember]);
 
-  const notifyMutation = trpc.qariahNotification.notifyDeath.useMutation({
+  const notifyMutation = trpc.kariahNotification.notifyDeath.useMutation({
     onSuccess: (data) => {
       showSuccess(
-        translate("Notification sent to {count} qariah members.").replace(
+        translate("Notification sent to {count} kariah members.").replace(
           "{count}",
           data.notifiedcount,
         ),
@@ -203,10 +203,10 @@ function ManageNotifyDeathQariahDesktop() {
     onError: (err) => showApiError(err),
   });
 
-  const resendMutation = trpc.qariahNotification.resendNotification.useMutation({
+  const resendMutation = trpc.kariahNotification.resendNotification.useMutation({
     onSuccess: (data) => {
       showSuccess(
-        translate("Notification resent to {count} qariah members.").replace(
+        translate("Notification resent to {count} kariah members.").replace(
           "{count}",
           data.notifiedcount,
         ),
@@ -219,7 +219,7 @@ function ManageNotifyDeathQariahDesktop() {
     onError: (err) => showApiError(err),
   });
 
-  const deleteMutation = trpc.qariahNotification.deleteNotification.useMutation({
+  const deleteMutation = trpc.kariahNotification.deleteNotification.useMutation({
     onSuccess: () => {
       showSuccess(translate("Deleted"), "success");
       refetch();
@@ -229,7 +229,7 @@ function ManageNotifyDeathQariahDesktop() {
     onError: (err) => showApiError(err),
   });
 
-  const saveTemplateMutation = trpc.qariahNotification.saveOrganisationTemplate.useMutation({
+  const saveTemplateMutation = trpc.kariahNotification.saveOrganisationTemplate.useMutation({
     onSuccess: () => {
       showSuccess(translate("Message template saved."), "success");
       refetchTemplate();
@@ -305,7 +305,7 @@ function ManageNotifyDeathQariahDesktop() {
     <div className="space-y-6">
       <Breadcrumb items={[
         { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: translate("Qariah Death Notifications"), page: "ManageNotifyDeathQariah" },
+        { label: translate("Kariah Death Notifications"), page: "ManageNotifyDeathKariah" },
       ]} />
       <AccessDeniedComponent />
     </div>
@@ -315,13 +315,13 @@ function ManageNotifyDeathQariahDesktop() {
     <div className="space-y-6">
       <Breadcrumb items={[
         { label: translate("Admin Dashboard"), page: "AdminDashboard" },
-        { label: translate("Qariah Death Notifications"), page: "ManageNotifyDeathQariah" },
+        { label: translate("Kariah Death Notifications"), page: "ManageNotifyDeathKariah" },
       ]} />
 
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Bell className="w-6 h-6 text-emerald-600" />
-          {translate("Qariah Death Notifications")}
+          {translate("Kariah Death Notifications")}
         </h1>
         <div className="flex items-center gap-2">
           {canEdit && (
@@ -519,7 +519,7 @@ function ManageNotifyDeathQariahDesktop() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Send className="w-5 h-5 text-emerald-600" />
-              {translate("Send Qariah Death Notification")}
+              {translate("Send Kariah Death Notification")}
             </DialogTitle>
           </DialogHeader>
 
@@ -569,8 +569,8 @@ function ManageNotifyDeathQariahDesktop() {
             <Select2Form
               name="selectedMemberId"
               control={control}
-              label={translate("Deceased Qariah Member")}
-              placeholder={translate("Search qariah member...")}
+              label={translate("Deceased Kariah Member")}
+              placeholder={translate("Search kariah member...")}
               searchPlaceholder={translate("Search member name...")}
               emptyMessage={translate("No members found")}
               options={members.map((m) => ({
@@ -613,7 +613,7 @@ function ManageNotifyDeathQariahDesktop() {
                 className="dark:bg-slate-700 dark:border-slate-600"
               />
               <p className="text-xs text-slate-500">
-                {translate("This message will be sent as a push notification to all qariah members under the same organisation.")}
+                {translate("This message will be sent as a push notification to all kariah members under the same organisation.")}
               </p>
             </div>
           </div>
@@ -783,7 +783,7 @@ function ManageNotifyDeathQariahDesktop() {
         onOpenChange={setRenotifyDialogOpen}
         title={translate("Resend Notification")}
         description={translate(
-          'Resend the death notification for "{name}" to all qariah members of organisation {org}?',
+          'Resend the death notification for "{name}" to all kariah members of organisation {org}?',
         )
           .replace("{name}", notifToResend?.deceasedMember?.fullname ?? "")
           .replace("{org}", notifToResend?.organisation?.name ?? "")}

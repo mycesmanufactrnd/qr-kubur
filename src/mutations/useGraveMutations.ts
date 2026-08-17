@@ -109,7 +109,7 @@ export function useGetGravesCoordinates(
       filters: filters ?? {},
     },
     {
-      enabled: !!coordinates,
+      enabled: !!coordinates || !!filters?.name || !!filters?.state,
       ...coordinatesQueryOptions,
     }
   );

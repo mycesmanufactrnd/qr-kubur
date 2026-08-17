@@ -85,7 +85,9 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
           {mosque.picphoneno && <span>{mosque.picphoneno}</span>}
         </div>
 
-        {(mosque.canarrangefuneral || mosque.hasdeathcharity) && (
+        {(mosque.canarrangefuneral ||
+          mosque.hasdeathcharity ||
+          mosque.haskariahregistration) && (
           <div className="flex flex-wrap gap-1.5">
             {mosque.canarrangefuneral && (
               <span className="text-xs bg-stone-100 dark:bg-stone-800/50 text-stone-700 dark:text-stone-300 rounded-lg px-2 py-0.5">
@@ -95,6 +97,11 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
             {mosque.hasdeathcharity && (
               <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg px-2 py-0.5">
                 {translate("Has Death Charity")}
+              </span>
+            )}
+            {mosque.haskariahregistration && (
+              <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-lg px-2 py-0.5">
+                {translate("Has Kariah Registration")}
               </span>
             )}
           </div>
@@ -293,9 +300,14 @@ function MosqueFormSheet({
             label={translate("Can Arrange Funeral")}
           />
           <CheckboxForm
+            name="haskariahregistration"
+            control={control}
+            label={translate("Has Kariah Registration")}
+          />
+          <CheckboxForm
             name="hasdeathcharity"
             control={control}
-            label={translate("Has Qariah & Death Charity")}
+            label={translate("Has Death Charity")}
           />
         </div>
 
@@ -362,6 +374,8 @@ export default function MobileManageMosques() {
   const [appliedState, setAppliedState] = useState("");
   const [appliedCanArrangeFuneral, setAppliedCanArrangeFuneral] = useState("");
   const [appliedHasDeathCharity, setAppliedHasDeathCharity] = useState("");
+  const [appliedHasKariahRegistration, setAppliedHasKariahRegistration] =
+    useState("");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingMosque, setEditingMosque] = useState(null);
@@ -381,6 +395,7 @@ export default function MobileManageMosques() {
     filterOrganisationId: isOrgScoped ? currentOrganisationId : undefined,
     filterCanArrangeFuneral: appliedCanArrangeFuneral || undefined,
     filterHasDeathCharity: appliedHasDeathCharity || undefined,
+    filterHasKariahRegistration: appliedHasKariahRegistration || undefined,
   });
 
   const { organisationsList, isLoading: orgLoading } =
@@ -391,8 +406,7 @@ export default function MobileManageMosques() {
   const { data: existingDeathCharity } = useGetDeathCharityByMosque(
     editingMosque?.id ?? null,
   );
-  const { createDeathCharity, updateDeathCharity } =
-    useDeathCharityMutations();
+  const { createDeathCharity, updateDeathCharity } = useDeathCharityMutations();
 
   const effectiveTotalPages = totalPages;
   const effectiveTotalItems = mosquesList.total;
@@ -570,12 +584,22 @@ export default function MobileManageMosques() {
                     { id: "false", name: translate("No") },
                   ],
                 },
+                {
+                  label: translate("Has Kariah Registration"),
+                  type: "select",
+                  searchColumn: "haskariahregistration",
+                  options: [
+                    { id: "true", name: translate("Yes") },
+                    { id: "false", name: translate("No") },
+                  ],
+                },
               ]}
               onApplyFilter={(f) => {
                 setAppliedName(f.name || "");
                 setAppliedState(f.state);
                 setAppliedCanArrangeFuneral(f.canarrangefuneral);
                 setAppliedHasDeathCharity(f.hasdeathcharity);
+                setAppliedHasKariahRegistration(f.haskariahregistration);
                 setPage(1);
               }}
             />

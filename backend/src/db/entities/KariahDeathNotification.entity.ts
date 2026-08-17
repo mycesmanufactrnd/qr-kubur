@@ -10,8 +10,8 @@ import {
 import { DeathCharityMember } from "./DeathCharity/DeathCharityMember.entity.js";
 import { Organisation } from "./Organisation.entity.js";
 
-@Entity("qariahdeathnotification")
-export class QariahDeathNotification {
+@Entity("kariahdeathnotification")
+export class KariahDeathNotification {
   @PrimaryGeneratedColumn()
   id!: number;
 

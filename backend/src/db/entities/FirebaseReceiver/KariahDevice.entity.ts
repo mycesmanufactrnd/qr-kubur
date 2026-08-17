@@ -9,13 +9,13 @@ import {
 } from "typeorm";
 import { Mosque } from "../Mosque.entity.js";
 
-@Entity("qariahdevice")
-export class QariahDevice {
+@Entity("kariahdevice")
+export class KariahDevice {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column("varchar", { unique: true })
-  fcmQariahToken!: string;
+  fcmKariahToken!: string;
 
   @Column("varchar", { length: 255 })
   icnumber!: string;

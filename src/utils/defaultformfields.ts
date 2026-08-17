@@ -52,6 +52,7 @@ export const defaultSuggestionField = {
   phoneno: "",
   email: "",
   type: "",
+  state: "",
   watchSelectedGrave: "",
   entityId: "",
   suggestedchanges: "",
@@ -230,6 +231,7 @@ export const defaultMosqueField = {
   picphoneno: "",
   canarrangefuneral: false,
   hasdeathcharity: false,
+  haskariahregistration: false,
 };
 
 export const defaultDeathCharityField = {
@@ -287,7 +289,7 @@ export const defaultDeathCharityClaimField = {
   status: ClaimStatus.PENDING,
 };
 
-export const defaultQariahMemberField = {
+export const defaultKariahMemberField = {
   fullname: "",
   icnumber: "",
   phone: "",
@@ -353,7 +355,7 @@ export const defaultUserField = {
   states: [],
 };
 
-export const defaultQariahRegistration = {
+export const defaultKariahRegistration = {
   fullname: "",
   icnumber: "",
   phone: "",

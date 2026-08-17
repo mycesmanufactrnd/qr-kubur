@@ -5,7 +5,7 @@ import { In } from "typeorm";
 import {
   GoogleUserDevice,
   GoogleUserRecord,
-  QariahDevice,
+  KariahDevice,
   User,
   UserDevice,
 } from "../db/entities.js";
@@ -334,10 +334,10 @@ export const sendNotificationFCMToOrganisation = async ({
         : "Permohonan perkhidmatan baru telah diterima.";
     }
 
-    if (event === "qariah_registered") {
+    if (event === "kariah_registered") {
       const fullname = inputData.fullname ?? "Seseorang";
-      title = "Pendaftaran Qariah Baru";
-      body = `${fullname} telah mendaftar sebagai ahli qariah baru. Sila semak dan luluskan.`;
+      title = "Pendaftaran Kariah Baru";
+      body = `${fullname} telah mendaftar sebagai ahli kariah baru. Sila semak dan luluskan.`;
     }
 
     if (event === "jenazahcase_created") {
@@ -379,7 +379,7 @@ export const sendNotificationFCMToOrganisation = async ({
 };
 
 // by icnumber.
-export const sendNotificationToQariahDevices = async ({
+export const sendNotificationToKariahDevices = async ({
   icnumber,
   notification,
 }: {
@@ -387,24 +387,24 @@ export const sendNotificationToQariahDevices = async ({
   notification: { title: string; body: string };
 }): Promise<void> => {
   try {
-    const deviceRepo = AppDataSource.getRepository(QariahDevice);
+    const deviceRepo = AppDataSource.getRepository(KariahDevice);
 
     const devices = await deviceRepo.findBy({ icnumber });
-    const tokens = devices.map((d) => d.fcmQariahToken).filter(Boolean);
+    const tokens = devices.map((d) => d.fcmKariahToken).filter(Boolean);
     if (tokens.length === 0) return;
 
     const staleTokens = await sendPushNotifications(tokens, notification, {
       icnumber,
-      event: "qariahRegistrationStatus",
+      event: "kariahRegistrationStatus",
     });
 
     if (staleTokens.length > 0) {
       await deviceRepo.delete(
-        staleTokens.map((t) => ({ fcmQariahToken: t })) as any,
+        staleTokens.map((t) => ({ fcmKariahToken: t })) as any,
       );
       console.log(`[FCM] Removed ${staleTokens.length} stale token(s) from DB`);
     }
   } catch (error) {
-    console.error("[FCM] Failed to notify qariah device:", error);
+    console.error("[FCM] Failed to notify kariah device:", error);
   }
 };

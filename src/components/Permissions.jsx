@@ -94,8 +94,20 @@ export const PERMISSIONS = {
   // Financial Reports
   FINANCIAL_REPORTS_VIEW: "financial_reports_view",
 
-  // Qariah
+  // Kariah
+  KARIAH_VIEW: "kariah_view",
+  KARIAH_CREATE: "kariah_create",
+  KARIAH_APPROVE: "kariah_approve",
+  KARIAH_EDIT: "kariah_edit",
+  KARIAH_DELETE: "kariah_delete",
+
   // Jenazah Case
+  JENAZAH_CASE_VIEW: "jenazah_case_view",
+  JENAZAH_CASE_CREATE: "jenazah_case_create",
+  JENAZAH_CASE_APPROVE: "jenazah_case_approve",
+  JENAZAH_CASE_REJECT: "jenazah_case_reject",
+  JENAZAH_CASE_EDIT: "jenazah_case_edit",
+  JENAZAH_CASE_DELETE: "jenazah_case_delete",
 };
 
 export const PERMISSION_CATEGORIES = {
@@ -240,6 +252,29 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.DEATH_CHARITY_CREATE, label: "Create" },
       { slug: PERMISSIONS.DEATH_CHARITY_EDIT, label: "Edit" },
       { slug: PERMISSIONS.DEATH_CHARITY_DELETE, label: "Delete" },
+    ],
+  },
+
+  kariah: {
+    label: "Kariah",
+    permissions: [
+      { slug: PERMISSIONS.KARIAH_VIEW, label: "View" },
+      { slug: PERMISSIONS.KARIAH_CREATE, label: "Create" },
+      { slug: PERMISSIONS.KARIAH_APPROVE, label: "Approve" },
+      { slug: PERMISSIONS.KARIAH_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.KARIAH_DELETE, label: "Delete" },
+    ],
+  },
+
+  jenazah_case: {
+    label: "Jenazah Case",
+    permissions: [
+      { slug: PERMISSIONS.JENAZAH_CASE_VIEW, label: "View" },
+      { slug: PERMISSIONS.JENAZAH_CASE_CREATE, label: "Create" },
+      { slug: PERMISSIONS.JENAZAH_CASE_APPROVE, label: "Approve" },
+      { slug: PERMISSIONS.JENAZAH_CASE_REJECT, label: "Reject" },
+      { slug: PERMISSIONS.JENAZAH_CASE_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.JENAZAH_CASE_DELETE, label: "Delete" },
     ],
   },
 
