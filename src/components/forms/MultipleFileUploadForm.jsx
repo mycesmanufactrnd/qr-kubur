@@ -1,13 +1,15 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Controller } from "react-hook-form";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { resolveFileUrl } from "@/utils";
 import { compressImage } from "@/utils/fileCompression";
-import { FileText, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { FileText, Image as ImageIcon, Upload, X, Loader2 } from "lucide-react";
 import { showApiError } from "@/components/ToastrNotification";
 import FilePreviewDialog from "@/components/forms/FilePreviewDialog";
+import FileSourceDialog from "@/components/forms/FileSourceDialog";
+import CameraCaptureDialog from "@/components/forms/CameraCaptureDialog";
 import { translate } from "@/utils/translations";
 
 const DEFAULT_ACCEPT = "image/*,application/pdf";
@@ -32,6 +34,10 @@ export default function MultipleFileUploadForm({
   const [busy, setBusy] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [previewKey, setPreviewKey] = useState(null);
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const allowCamera = accept.includes("image");
 
   return (
     <div className="space-y-2">
@@ -59,8 +65,7 @@ export default function MultipleFileUploadForm({
             field.onChange(keys.filter((k) => k !== key).join(","));
           };
 
-          const onFilesSelected = async (e) => {
-            const files = Array.from(e.target.files ?? []);
+          const uploadFiles = async (files) => {
             if (!files.length) return;
 
             const invalid = files.filter((f) => !isAllowedFile(f));
@@ -92,15 +97,26 @@ export default function MultipleFileUploadForm({
           return (
             <>
               <div className="flex items-center gap-3">
-                <Input
+                <input
                   key={fileInputKey}
+                  ref={fileInputRef}
                   type="file"
                   accept={accept}
                   multiple
-                  className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                  className="hidden"
                   disabled={busy}
-                  onChange={onFilesSelected}
+                  onChange={(e) => uploadFiles(Array.from(e.target.files ?? []))}
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => setChooserOpen(true)}
+                  className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {translate("Upload File")}
+                </Button>
                 {busy && (
                   <span className="flex items-center gap-1.5 text-sm text-slate-500 whitespace-nowrap">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -108,6 +124,25 @@ export default function MultipleFileUploadForm({
                   </span>
                 )}
               </div>
+
+              <FileSourceDialog
+                open={chooserOpen}
+                onOpenChange={setChooserOpen}
+                allowCamera={allowCamera}
+                onSelectFile={() => {
+                  setChooserOpen(false);
+                  fileInputRef.current?.click();
+                }}
+                onSelectCamera={() => {
+                  setChooserOpen(false);
+                  setCameraOpen(true);
+                }}
+              />
+              <CameraCaptureDialog
+                open={cameraOpen}
+                onOpenChange={setCameraOpen}
+                onCapture={(file) => uploadFiles([file])}
+              />
 
               {keys.length > 0 && (
                 <ul className="space-y-1.5">

@@ -1,13 +1,16 @@
 // @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { resolveFileUrl } from "@/utils";
 import { compressImage } from "@/utils/fileCompression";
-import { FileText, Image as ImageIcon, X } from "lucide-react";
+import { FileText, Image as ImageIcon, Upload, X } from "lucide-react";
 import { showApiError } from "@/components/ToastrNotification";
 import FilePreviewDialog from "@/components/forms/FilePreviewDialog";
+import FileSourceDialog from "@/components/forms/FileSourceDialog";
+import CameraCaptureDialog from "@/components/forms/CameraCaptureDialog";
 import { translate } from "@/utils/translations";
 
 const isAllowedFile = (file, accept) => {
@@ -41,6 +44,10 @@ export default function FileUploadForm({
   const [localIsPdf, setLocalIsPdf] = useState(false);
   const [compressing, setCompressing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const allowCamera = accept.includes("image");
 
   // Sync URL mode when field value changes externally
   useEffect(() => {
@@ -101,51 +108,61 @@ export default function FileUploadForm({
             ? localIsPdf
             : !isUrlMode && /\.pdf$/i.test(storedPreviewValue || "");
 
+          const processFile = async (file) => {
+            if (!isAllowedFile(file, accept)) {
+              showApiError({
+                message: translate("File type not allowed."),
+              });
+              setFileInputKey((prev) => prev + 1);
+              return;
+            }
+
+            // Show preview from original immediately — user sees it at once
+            const objectUrl = URL.createObjectURL(file);
+            setLocalIsPdf(file.type === "application/pdf");
+            setLocalPreviewSrc(objectUrl);
+
+            // Compress off-thread, show indicator while waiting
+            setCompressing(true);
+            const compressed = await compressImage(file);
+            setCompressing(false);
+
+            const fileName = await handleFileUpload(compressed, bucketName);
+
+            if (fileName) {
+              setIsUrlMode(false);
+              setUrlInput("");
+              field.onChange(fileName);
+            } else {
+              setLocalPreviewSrc("");
+            }
+          };
+
           return (
             <>
               <div className="flex items-center gap-3">
-                <Input
+                <input
                   key={fileInputKey}
+                  ref={fileInputRef}
                   type="file"
                   accept={accept}
-                  className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                  className="hidden"
                   disabled={busy}
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (!file) return;
-
-                    if (!isAllowedFile(file, accept)) {
-                      showApiError({
-                        message: translate("File type not allowed."),
-                      });
-                      setFileInputKey((prev) => prev + 1);
-                      return;
-                    }
-
-                    // Show preview from original immediately — user sees it at once
-                    const objectUrl = URL.createObjectURL(file);
-                    setLocalIsPdf(file.type === "application/pdf");
-                    setLocalPreviewSrc(objectUrl);
-
-                    // Compress off-thread, show indicator while waiting
-                    setCompressing(true);
-                    const compressed = await compressImage(file);
-                    setCompressing(false);
-
-                    const fileName = await handleFileUpload(
-                      compressed,
-                      bucketName,
-                    );
-
-                    if (fileName) {
-                      setIsUrlMode(false);
-                      setUrlInput("");
-                      field.onChange(fileName);
-                    } else {
-                      setLocalPreviewSrc("");
-                    }
+                    if (file) processFile(file);
                   }}
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => setChooserOpen(true)}
+                  className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {translate("Upload File")}
+                </Button>
 
                 {compressing && (
                   <span className="text-sm text-slate-500 whitespace-nowrap">
@@ -158,6 +175,25 @@ export default function FileUploadForm({
                   </span>
                 )}
               </div>
+
+              <FileSourceDialog
+                open={chooserOpen}
+                onOpenChange={setChooserOpen}
+                allowCamera={allowCamera}
+                onSelectFile={() => {
+                  setChooserOpen(false);
+                  fileInputRef.current?.click();
+                }}
+                onSelectCamera={() => {
+                  setChooserOpen(false);
+                  setCameraOpen(true);
+                }}
+              />
+              <CameraCaptureDialog
+                open={cameraOpen}
+                onOpenChange={setCameraOpen}
+                onCapture={(file) => processFile(file)}
+              />
 
               {isNeedPasteURL && (
                 <div className="space-y-2">
