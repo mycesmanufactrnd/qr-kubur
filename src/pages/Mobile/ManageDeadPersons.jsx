@@ -24,6 +24,7 @@ import QRCodeDialog from "@/components/QRCodeDialog";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
+import { Checkbox } from "@/components/ui/checkbox";
 import { translate } from "@/utils/translations";
 import {
   appendCurrentUserToFormData,
@@ -147,6 +148,7 @@ function PersonFormSheet({
   onClose,
   onSubmit,
   graveOptions,
+  graves,
   isSubmitting,
   uploading,
   handleFileUpload,
@@ -169,14 +171,27 @@ function PersonFormSheet({
 
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [followGraveLocation, setFollowGraveLocation] = useState(false);
 
   const icnumberValue = watch("icnumber");
+  const graveValue = watch("grave");
 
   useEffect(() => {
     if (editing) return;
     const dob = parseDobFromIcNumber(icnumberValue);
     if (dob) setValue("dateofbirth", dob);
   }, [icnumberValue, editing]);
+
+  useEffect(() => {
+    if (!followGraveLocation || !graveValue) return;
+    const selectedGrave = graves.find(
+      (g) => String(g.id) === String(graveValue),
+    );
+    if (selectedGrave?.latitude != null && selectedGrave?.longitude != null) {
+      setValue("latitude", String(selectedGrave.latitude));
+      setValue("longitude", String(selectedGrave.longitude));
+    }
+  }, [followGraveLocation, graveValue, graves]);
 
   const getLocation = () => {
     if (!navigator.geolocation) return;
@@ -263,6 +278,18 @@ function PersonFormSheet({
           isMobile
           required
         />
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={followGraveLocation}
+            onCheckedChange={(v) => setFollowGraveLocation(v === true)}
+          />
+          <span
+            className="text-sm text-slate-600 dark:text-slate-300"
+            onClick={() => setFollowGraveLocation((v) => !v)}
+          >
+            {translate("Follow cemetery's coordinates")}
+          </span>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <TextInputForm
             name="latitude"
@@ -270,6 +297,7 @@ function PersonFormSheet({
             label={translate("Latitude")}
             isNumber
             required
+            disabled={followGraveLocation}
             errors={errors}
           />
           <TextInputForm
@@ -278,6 +306,7 @@ function PersonFormSheet({
             label={translate("Longitude")}
             isNumber
             required
+            disabled={followGraveLocation}
             errors={errors}
           />
         </div>
@@ -285,7 +314,7 @@ function PersonFormSheet({
           <button
             type="button"
             onClick={getLocation}
-            disabled={isLocating}
+            disabled={isLocating || followGraveLocation}
             className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
           >
             <Navigation className="w-4 h-4" />
@@ -296,13 +325,14 @@ function PersonFormSheet({
           <button
             type="button"
             onClick={() => setShowMap((v) => !v)}
-            className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-400 active:opacity-70"
+            disabled={followGraveLocation}
+            className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-400 active:opacity-70 disabled:opacity-50"
           >
             <MapPin className="w-4 h-4" />
             {showMap ? translate("Hide Map") : translate("Pick on Map")}
           </button>
         </div>
-        {showMap && (
+        {showMap && !followGraveLocation && (
           <MapLocationPicker
             lat={watch("latitude")}
             lng={watch("longitude")}
@@ -597,6 +627,7 @@ export default function MobileManageDeadPersons() {
           onClose={() => setFormOpen(false)}
           onSubmit={onSubmit}
           graveOptions={graveOptions}
+          graves={gravesList.items}
           isSubmitting={isSubmitting}
           uploading={uploading}
           handleFileUpload={handleFileUpload}

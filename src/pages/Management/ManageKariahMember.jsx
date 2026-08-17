@@ -69,6 +69,7 @@ import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
+import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
@@ -262,6 +263,9 @@ function ManageKariahMemberDesktop() {
     if (existingDeadPerson.grave?.id) {
       setValue("grave", String(existingDeadPerson.grave.id));
     }
+    if (existingDeadPerson.graveslot?.id) {
+      setValue("graveslotId", existingDeadPerson.graveslot.id);
+    }
   }, [editingMember, isDialogOpen]);
 
   const upsertDeadPersonMutation = trpc.deadperson.upsertForKariah.useMutation({
@@ -406,6 +410,7 @@ function ManageKariahMemberDesktop() {
       createOrgId: null,
       createMosqueId: null,
       grave: "",
+      graveslotId: null,
     });
     setDialogState(member.mosque?.state ?? "");
     setSelectedMosqueId(member.mosque?.id ?? null);
@@ -435,6 +440,7 @@ function ManageKariahMemberDesktop() {
 
   const submitMember = async (formData, shouldNotify = false) => {
     let savedMember;
+    const { graveslotId, ...memberFormData } = formData;
 
     if (editingMember) {
       if (!selectedMosqueId) {
@@ -444,7 +450,7 @@ function ManageKariahMemberDesktop() {
       savedMember = await updateMutation.mutateAsync({
         id: editingMember.id,
         data: {
-          ...formData,
+          ...memberFormData,
           mosque: { id: selectedMosqueId },
         },
       });
@@ -458,7 +464,7 @@ function ManageKariahMemberDesktop() {
         return;
       }
       savedMember = await createMutation.mutateAsync({
-        ...formData,
+        ...memberFormData,
         mosque: { id: formData.createMosqueId },
         organisation: { id: formData.createOrgId },
       });
@@ -507,6 +513,7 @@ function ManageKariahMemberDesktop() {
         heirphoneno: formData.heirphoneno,
         grave: { id: Number(formData.grave) },
         gravelot: formData.gravelot?.trim() || null,
+        graveslot: graveslotId ? { id: Number(graveslotId) } : null,
         deathCharityMemberId: savedMember?.id ?? null,
       });
     } else if (editingMember?.deadperson?.id) {
@@ -1141,12 +1148,15 @@ function ManageKariahMemberDesktop() {
                       required
                       errors={errors}
                     />
-                    <TextInputForm
-                      name="gravelot"
-                      control={control}
-                      label={translate("Grave Lot")}
+                    <GraveLotPickerField
+                      graveId={watch("grave") ? Number(watch("grave")) : null}
+                      gravelotLabel={watch("gravelot")}
+                      currentDeadPersonId={editingMember?.deadperson?.id ?? null}
+                      onPick={(slot) => {
+                        setValue("gravelot", slot?.label ?? "");
+                        setValue("graveslotId", slot?.id ?? null);
+                      }}
                       required
-                      errors={errors}
                     />
                   </div>
 

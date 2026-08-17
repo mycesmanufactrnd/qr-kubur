@@ -28,6 +28,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
+import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -51,6 +52,7 @@ const DEFAULT_FORM = {
   mosque: "",
   grave: "",
   gravelot: "",
+  graveslotId: null,
   causeofdeath: "",
   dateofdeath: "",
   dateofbirth: "",
@@ -265,6 +267,9 @@ function MemberFormSheet({
     if (existingDeadPerson.grave?.id) {
       setValue("grave", String(existingDeadPerson.grave.id));
     }
+    if (existingDeadPerson.graveslot?.id) {
+      setValue("graveslotId", existingDeadPerson.graveslot.id);
+    }
   }, [editing]);
 
   const stateOptions = isSuperAdmin ? STATES_MY : currentUserStates || [];
@@ -465,12 +470,16 @@ function MemberFormSheet({
               required
               errors={errors}
             />
-            <TextInputForm
-              name="gravelot"
-              control={control}
-              label={translate("Grave Lot")}
+            <GraveLotPickerField
+              graveId={watch("grave") ? Number(watch("grave")) : null}
+              gravelotLabel={watch("gravelot")}
+              currentDeadPersonId={editing?.deadperson?.id ?? null}
+              onPick={(slot) => {
+                setValue("gravelot", slot?.label ?? "");
+                setValue("graveslotId", slot?.id ?? null);
+              }}
+              isMobile
               required
-              errors={errors}
             />
             <TextInputForm
               name="causeofdeath"
