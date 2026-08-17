@@ -84,7 +84,7 @@ function DeleteConfirmDialog({ open, onClose, onConfirm, isDeleting }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
             <Trash2 className="w-4 h-4" /> {translate("Delete Case?")}
-          </DialogTitle>
+          </DialogTitle>  
         </DialogHeader>
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {translate(
@@ -455,7 +455,7 @@ function CaseDetailDialog({
   return (
     <Dialog open={!!caseItem} onOpenChange={onClose}>
       <DialogContent
-        className={`${showDeceasedForm ? "max-w-[95vw]" : "max-w-xl"} max-h-[90vh] overflow-y-auto dark:bg-slate-800`}
+        className={`${showDeceasedForm ? "max-w-[95vw]" : "max-w-[70vw]"} max-h-[90vh] overflow-y-auto dark:bg-slate-800`}
       >
         <DialogHeader>
           <DialogTitle className="text-base flex items-center gap-2">

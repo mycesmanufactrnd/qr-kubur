@@ -63,6 +63,8 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   appendCurrentUserToFormData,
   resolveFileUrl,
@@ -121,6 +123,7 @@ function ManageDeadPersonsDesktop() {
   });
 
   const icnumberValue = watch("icnumber");
+  const graveValue = watch("grave");
 
   useEffect(() => {
     if (editingPerson) return;
@@ -131,6 +134,7 @@ function ManageDeadPersonsDesktop() {
   const [uploading, setUploading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [followGraveLocation, setFollowGraveLocation] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
@@ -276,6 +280,17 @@ function ManageDeadPersonsDesktop() {
     organisationIds: accessibleOrgIds,
   });
 
+  useEffect(() => {
+    if (!followGraveLocation || !graveValue) return;
+    const selectedGrave = gravesList.items.find(
+      (g) => String(g.id) === String(graveValue),
+    );
+    if (selectedGrave?.latitude != null && selectedGrave?.longitude != null) {
+      setValue("latitude", String(selectedGrave.latitude));
+      setValue("longitude", String(selectedGrave.longitude));
+    }
+  }, [followGraveLocation, graveValue, gravesList.items]);
+
   const { createDeadPerson, updateDeadPerson, deleteDeadPerson } =
     useDeadPersonMutations();
 
@@ -321,6 +336,7 @@ function ManageDeadPersonsDesktop() {
     setEditingPerson(null);
     reset(defaultDeadPersonField);
     setShowMap(false);
+    setFollowGraveLocation(false);
     setIsDialogOpen(true);
   };
 
@@ -332,6 +348,7 @@ function ManageDeadPersonsDesktop() {
       graveslotId: person.graveslot?.id ?? null,
     });
     setShowMap(false);
+    setFollowGraveLocation(false);
     setIsDialogOpen(true);
   };
 
@@ -927,12 +944,26 @@ function ManageDeadPersonsDesktop() {
                   translate={translate}
                 />
 
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={followGraveLocation}
+                    onCheckedChange={(v) => setFollowGraveLocation(v === true)}
+                  />
+                  <Label
+                    className="text-sm font-normal cursor-pointer"
+                    onClick={() => setFollowGraveLocation((v) => !v)}
+                  >
+                    {translate("Follow cemetery's coordinates")}
+                  </Label>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
                     name="latitude"
                     control={control}
                     label={translate("Latitude")}
                     isNumber
+                    disabled={followGraveLocation}
                     errors={errors}
                   />
                   <TextInputForm
@@ -940,6 +971,7 @@ function ManageDeadPersonsDesktop() {
                     control={control}
                     label={translate("Longitude")}
                     isNumber
+                    disabled={followGraveLocation}
                     errors={errors}
                   />
                 </div>
@@ -965,7 +997,7 @@ function ManageDeadPersonsDesktop() {
                         },
                       );
                     }}
-                    disabled={isLocating}
+                    disabled={isLocating || followGraveLocation}
                   >
                     <MapPin className="w-4 h-4 mr-2" />
                     {isLocating
@@ -977,12 +1009,13 @@ function ManageDeadPersonsDesktop() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => setShowMap((v) => !v)}
+                    disabled={followGraveLocation}
                   >
                     <MapPin className="w-4 h-4 mr-2" />
                     {showMap ? translate("Hide Map") : translate("Pick on Map")}
                   </Button>
                 </div>
-                {showMap && (
+                {showMap && !followGraveLocation && (
                   <MapLocationPicker
                     lat={watch("latitude")}
                     lng={watch("longitude")}

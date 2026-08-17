@@ -146,14 +146,15 @@ export default function JenazahEmergencyRequest() {
     setMosque(null);
     setPickerValue("mosqueId", "");
     setPageStep(1);
-    setIsOutOfArea(null);
-    setCareScenario(null);
     setSearchedIc("");
-    setCurrentCoords(null);
     setMemberResult(undefined);
     setExistingCase(null);
     setProceedDespitePending(false);
-    reset(defaultJenazahRequestField);
+    reset({
+      ...defaultJenazahRequestField,
+      burialdate: watch("burialdate"),
+      careScenarioOther: watch("careScenarioOther"),
+    });
   };
 
   const {

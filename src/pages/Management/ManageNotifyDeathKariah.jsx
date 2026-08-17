@@ -158,8 +158,8 @@ function ManageNotifyDeathKariahDesktop() {
   // Template for selected member's organisation (for notify dialog preview)
   const { data: memberOrgTemplate } =
     trpc.kariahNotification.getOrganisationTemplate.useQuery(
-      { organisationId: selectedMember?.organisationId ?? 0 },
-      { enabled: !!selectedMember?.organisationId && notifyDialogOpen },
+      { organisationId: selectedMember?.organisation?.id ?? 0 },
+      { enabled: !!selectedMember?.organisation?.id && notifyDialogOpen },
     );
 
   useEffect(() => {

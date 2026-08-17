@@ -216,8 +216,8 @@ function NotifySheet({
 
   const { data: memberOrgTemplate } =
     trpc.kariahNotification.getOrganisationTemplate.useQuery(
-      { organisationId: selectedMember?.organisationId ?? 0 },
-      { enabled: !!selectedMember?.organisationId },
+      { organisationId: selectedMember?.organisation?.id ?? 0 },
+      { enabled: !!selectedMember?.organisation?.id },
     );
 
   useEffect(() => {

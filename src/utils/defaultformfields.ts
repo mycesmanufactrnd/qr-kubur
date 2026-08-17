@@ -300,6 +300,7 @@ export const defaultKariahMemberField = {
   createMosqueId: null,
   grave: "",
   gravelot: "",
+  graveslotId: null,
   causeofdeath: "",
   dateofdeath: "",
   dateofbirth: "",

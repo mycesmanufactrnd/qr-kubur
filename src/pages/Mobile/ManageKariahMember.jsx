@@ -904,6 +904,7 @@ export default function MobileManageKariahMember() {
 
   const submitMember = async (formData, shouldNotify = false) => {
     let savedMember;
+    const { graveslotId, ...memberFormData } = formData;
 
     if (formSheet?.mode === "edit") {
       if (!formData.selectedMosqueId) {
@@ -912,7 +913,7 @@ export default function MobileManageKariahMember() {
       }
       savedMember = await updateMutation.mutateAsync({
         id: formSheet.member.id,
-        data: { ...formData, mosque: { id: formData.selectedMosqueId } },
+        data: { ...memberFormData, mosque: { id: formData.selectedMosqueId } },
       });
     } else {
       if (!formData.createOrgId) {
@@ -924,7 +925,7 @@ export default function MobileManageKariahMember() {
         return;
       }
       savedMember = await createMutation.mutateAsync({
-        ...formData,
+        ...memberFormData,
         mosque: { id: formData.createMosqueId },
         organisation: { id: formData.createOrgId },
       });
@@ -974,6 +975,7 @@ export default function MobileManageKariahMember() {
         heirphoneno: formData.heirphoneno,
         grave: { id: Number(formData.grave) },
         gravelot: formData.gravelot?.trim() || null,
+        graveslot: graveslotId ? { id: Number(graveslotId) } : null,
         deathCharityMemberId: savedMember?.id ?? null,
       });
     } else if (formSheet?.member?.deadperson?.id) {
