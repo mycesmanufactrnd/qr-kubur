@@ -20,11 +20,10 @@ export class GraveSlot {
   blockId!: number;
 
   @ManyToOne(() => GraveBlock, (block) => block.slots, {
-    nullable: false,
-    onDelete: "CASCADE",
+    nullable: true,
+    onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "blockId" })
-  block!: GraveBlock;
+  block?: GraveBlock | null;
 
   @Column("int")
   rowIndex!: number;

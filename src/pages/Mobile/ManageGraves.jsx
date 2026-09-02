@@ -10,6 +10,7 @@ import {
   Save,
   QrCode,
   Navigation,
+  FileSpreadsheet
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";

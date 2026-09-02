@@ -19,9 +19,11 @@ export class GraveBlock {
   @Column("integer")
   graveId!: number;
 
-  @ManyToOne(() => Grave, { nullable: false, onDelete: "CASCADE" })
-  @JoinColumn({ name: "graveId" })
-  grave!: Grave;
+  @ManyToOne(() => Grave, (grave) => grave.blocks, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  grave?: Grave | null;
 
   @Column("varchar", { length: 50 })
   label!: string;

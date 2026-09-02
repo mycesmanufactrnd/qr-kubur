@@ -14,6 +14,7 @@ import { GraveStatus } from "../enums.js";
 import { DeadPerson } from "./DeadPerson.entity.js";
 import { Suggestion } from "./Suggestion.entity.js";
 import { User } from "./User.entity.js";
+import { GraveBlock } from "./GraveBlock.entity.js";
 @Entity("grave")
 export class Grave {
   @PrimaryGeneratedColumn()
@@ -73,6 +74,9 @@ export class Grave {
 
   @OneToMany(() => Suggestion, (suggestions) => suggestions.grave)
   suggestions?: Suggestion[] | [];
+
+  @OneToMany(() => GraveBlock, (block) => block.grave)
+  blocks?: GraveBlock[] | [];
 
   @CreateDateColumn({ name: "createdat" })
   createdat!: Date;
