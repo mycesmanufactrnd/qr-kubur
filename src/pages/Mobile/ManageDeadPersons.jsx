@@ -13,6 +13,10 @@ import {
   Navigation,
   User,
   Eye,
+  ScanText,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import BackNavigation from "@/components/BackNavigation";
@@ -47,6 +51,38 @@ import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 import { parseDobFromIcNumber } from "@/utils/helpers";
+import DeadPersonOcrDialog from "@/components/DeadPersonOcrDialog";
+import { trpcClient } from "@/utils/trpc";
+import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
+
+const deadPersonExportColumns = [
+  {
+    key: "name",
+    label: translate("Full Name"),
+    value: (p) => p.name || "-",
+  },
+  {
+    key: "icnumber",
+    label: translate("IC No."),
+    value: (p) => p.icnumber || "-",
+  },
+  {
+    key: "dateofdeath",
+    label: translate("Date of Death"),
+    value: (p) =>
+      p.dateofdeath ? new Date(p.dateofdeath).toLocaleDateString("ms-MY") : "-",
+  },
+  {
+    key: "gravelot",
+    label: translate("Grave Lot"),
+    value: (p) => p.gravelot || "-",
+  },
+  {
+    key: "gravename",
+    label: translate("Cemetery Name"),
+    value: (p) => p.grave?.name || "-",
+  },
+];
 
 function PersonCard({
   person,
@@ -405,8 +441,10 @@ export default function MobileManageDeadPersons() {
   const [itemsPerPage] = useState(10);
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedGraveLot, setAppliedGraveLot] = useState("");
+  const [exporting, setExporting] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -427,7 +465,12 @@ export default function MobileManageDeadPersons() {
     if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
   }, [parentAndChildQuery.data]);
 
-  const { deadPersonsList, totalPages, isLoading } = useGetDeadPersonPaginated({
+  const {
+    deadPersonsList,
+    totalPages,
+    isLoading,
+    refetch: refetchDeadPersons,
+  } = useGetDeadPersonPaginated({
     page,
     pageSize: itemsPerPage,
     filterName: appliedSearch,
@@ -531,6 +574,42 @@ export default function MobileManageDeadPersons() {
     label: g.name,
   }));
 
+  const handleExport = async (type) => {
+    setExporting(type);
+    try {
+      const data = await trpcClient.deadperson.getPaginated.query({
+        page: 1,
+        pageSize: 100000,
+        filterName: appliedSearch,
+        filterGraveLot: appliedGraveLot,
+        organisationIds: accessibleOrgIds,
+      });
+      const rows = data?.items ?? [];
+      if (type === "xlsx") {
+        exportRowsToExcel({
+          filename: "deceased-records",
+          columns: deadPersonExportColumns,
+          rows,
+        });
+      } else {
+        await exportRowsToPdf({
+          filename: "deceased-records",
+          title: translate("Manage Deceased"),
+          subtitle: currentUser?.organisation?.name
+            ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+            : undefined,
+          columns: deadPersonExportColumns,
+          rows,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to export data"));
+    } finally {
+      setExporting(null);
+    }
+  };
+
   if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess || !canView) return <AccessDeniedComponent />;
 
@@ -561,16 +640,51 @@ export default function MobileManageDeadPersons() {
                 setPage(1);
               }}
             />
-            {canCreate && (
+            <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => {
-                  setEditingPerson(null);
-                  setFormOpen(true);
-                }}
-                className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600 text-white active:opacity-80 shrink-0"
+                onClick={() => handleExport("xlsx")}
+                disabled={!!exporting}
+                title={translate("Export Excel")}
+                className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
               >
-                <Plus className="w-5 h-5" />
+                {exporting === "xlsx" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="w-4 h-4" />
+                )}
               </button>
+              <button
+                onClick={() => handleExport("pdf")}
+                disabled={!!exporting}
+                title={translate("Export PDF")}
+                className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+              >
+                {exporting === "pdf" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {canCreate && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setOcrDialogOpen(true)}
+                  title={translate("Add by Photo")}
+                  className="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-600 text-white active:opacity-80"
+                >
+                  <ScanText className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingPerson(null);
+                    setFormOpen(true);
+                  }}
+                  className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600 text-white active:opacity-80"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
             )}
           </div>
 
@@ -647,6 +761,12 @@ export default function MobileManageDeadPersons() {
         open={qrDialogOpen}
         onOpenChange={setQRDialogOpen}
         data={qrPerson}
+      />
+
+      <DeadPersonOcrDialog
+        open={ocrDialogOpen}
+        onOpenChange={setOcrDialogOpen}
+        onSaved={refetchDeadPersons}
       />
     </>
   );

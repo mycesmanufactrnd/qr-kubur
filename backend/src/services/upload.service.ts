@@ -130,8 +130,6 @@ function mapRowToMosque(
     url: row.url ? String(row.url).trim() : null,
     latitude: safeFloat(row.latitude),
     longitude: safeFloat(row.longitude),
-    picname: row.picname ? String(row.picname).trim() : null,
-    picphoneno: row.picphoneno ? String(row.picphoneno).trim() : null,
     photourl: row.photourl ? String(row.photourl).trim() : null,
     canarrangefuneral: parseBool(row.canarrangefuneral),
     hasdeathcharity: parseBool(row.hasdeathcharity),

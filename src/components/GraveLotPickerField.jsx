@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import GraveSlotPickerDialog from "@/components/GraveSlotPickerDialog";
@@ -36,13 +37,15 @@ export default function GraveLotPickerField({
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-9 px-3 flex items-center rounded-md border border-input bg-slate-50 dark:bg-slate-800 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-300 truncate">
-          {gravelotLabel || (
-            <span className="text-slate-400">
-              {translate("No slot selected")}
-            </span>
-          )}
-        </div>
+        <Input
+          value={gravelotLabel ?? ""}
+          onChange={(e) => {
+            const value = e.target.value;
+            onPick?.(value ? { id: null, label: value } : null);
+          }}
+          placeholder={translate("Type lot number or pick on map")}
+          className="flex-1 h-9 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+        />
         <Button
           type="button"
           variant="outline"

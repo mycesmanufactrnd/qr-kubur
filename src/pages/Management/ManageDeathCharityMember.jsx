@@ -23,7 +23,6 @@ import {
   Info,
   XCircle,
   CheckCircle,
-  Phone,
   Building2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,14 +68,43 @@ import { createPageUrl } from "@/utils";
 import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMutations";
 import { useDeathCharityClaimMutations } from "@/mutations/useDeathCharityClaimMutations";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 import { formatICNumber } from "@/utils/helpers";
+import TableExportButtons from "@/components/TableExportButtons";
 
 export default function ManageDeathCharityMember() {
   const isNarrow = useIsNarrow();
   if (isNarrow) return <ManageDeathCharityMemberMobile />;
   return <ManageDeathCharityMemberDesktop />;
 }
+
+const deathCharityMemberExportColumns = [
+  {
+    key: "fullname",
+    label: translate("Full Name"),
+    value: (m) => m.fullname || "-",
+  },
+  {
+    key: "icnumber",
+    label: translate("IC No."),
+    value: (m) => m.icnumber || "-",
+  },
+  {
+    key: "phone",
+    label: translate("Phone"),
+    value: (m) => m.phone || "-",
+  },
+  {
+    key: "deathcharity",
+    label: translate("Death Charity"),
+    value: (m) => m.deathcharity?.name || "-",
+  },
+  {
+    key: "status",
+    label: translate("Status"),
+    value: (m) => (m.isactive ? translate("Active") : translate("Inactive")),
+  },
+];
 
 function ManageDeathCharityMemberDesktop() {
   const navigate = useNavigate();
@@ -140,6 +168,20 @@ function ManageDeathCharityMemberDesktop() {
           ? urlSortOrder
           : undefined,
     });
+
+  const fetchAllDeathCharityMembers = async () => {
+    const data = await trpcClient.deathCharityMember.getPaginated.query({
+      page: 1,
+      pageSize: 100000,
+      filterFullName: urlFullName,
+      sortField: urlSortField || undefined,
+      sortOrder:
+        urlSortOrder === "ASC" || urlSortOrder === "DESC"
+          ? urlSortOrder
+          : undefined,
+    });
+    return data?.items ?? [];
+  };
 
   const { data: deathCharityList = [] } = useGetDeathCharityByOrganisation();
 
@@ -524,6 +566,17 @@ function ManageDeathCharityMemberDesktop() {
           {translate("Manage Death Charity Member")}
         </h1>
         <div className="flex gap-2">
+          <TableExportButtons
+            fetchRows={fetchAllDeathCharityMembers}
+            columns={deathCharityMemberExportColumns}
+            filename="death-charity-members"
+            pdfTitle={translate("Manage Death Charity Member")}
+            pdfSubtitle={
+              currentUser?.organisation?.name
+                ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+                : undefined
+            }
+          />
           {canCreate && (
             <Button
               onClick={openAddDialog}
@@ -792,15 +845,6 @@ function ManageDeathCharityMemberDesktop() {
                               rec.deathcharity?.organisation?.name ||
                               "—"}
                           </p>
-                          {(rec.mosque?.picname || rec.mosque?.picphoneno) && (
-                            <p className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                              <Phone className="w-3.5 h-3.5 shrink-0" />
-                              {translate("PIC")}: {rec.mosque?.picname || "—"}
-                              {rec.mosque?.picphoneno
-                                ? ` (${rec.mosque.picphoneno})`
-                                : ""}
-                            </p>
-                          )}
                         </div>
                       ))}
                     </div>

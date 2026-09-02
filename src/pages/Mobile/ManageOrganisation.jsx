@@ -768,7 +768,24 @@ function OrgFormSheet({
 }) {
   const latValue = useWatch({ control, name: "latitude" });
   const lngValue = useWatch({ control, name: "longitude" });
+  const canManageGrave = useWatch({ control, name: "canmanagegrave" });
+  const graveRules = useWatch({ control, name: "graverules" }) || [];
   const [showMap, setShowMap] = useState(false);
+  const [newGraveRule, setNewGraveRule] = useState("");
+
+  const handleAddGraveRule = () => {
+    const rule = newGraveRule.trim();
+    if (!rule) return;
+    setValue("graverules", [...graveRules, rule]);
+    setNewGraveRule("");
+  };
+
+  const handleRemoveGraveRule = (index) => {
+    setValue(
+      "graverules",
+      graveRules.filter((_, i) => i !== index),
+    );
+  };
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
@@ -948,6 +965,53 @@ function OrgFormSheet({
                 control={control}
                 label={translate("Can Be Donated")}
               />
+            </div>
+          )}
+
+          {canManageGrave && (
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                {translate("Grave Placement Rules")}
+              </p>
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 h-9 px-3 text-sm border dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
+                  placeholder={translate(
+                    "e.g. Batu nisan tidak boleh berwarna",
+                  )}
+                  value={newGraveRule}
+                  onChange={(e) => setNewGraveRule(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  className="bg-violet-600 hover:bg-violet-700 shrink-0"
+                  onClick={handleAddGraveRule}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {graveRules.length > 0 && (
+                <div className="space-y-1.5">
+                  {graveRules.map((rule, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start justify-between gap-2 text-sm bg-slate-50 dark:bg-slate-800 rounded-md px-2.5 py-1.5"
+                    >
+                      <span className="text-slate-700 dark:text-slate-200">
+                        {index + 1}. {rule}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGraveRule(index)}
+                        className="shrink-0 text-red-500"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </FormSection>

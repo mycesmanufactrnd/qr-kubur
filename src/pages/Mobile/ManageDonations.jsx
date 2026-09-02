@@ -7,6 +7,9 @@ import {
   Clock,
   ChevronRight,
   X,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +30,39 @@ import { VerificationStatus } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import { trpcClient } from "@/utils/trpc";
+import { showError } from "@/components/ToastrNotification";
+import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
+
+const donationExportColumns = [
+  {
+    key: "donorname",
+    label: translate("Donor"),
+    value: (d) => d.donorname || translate("No Name"),
+  },
+  {
+    key: "recipient",
+    label: translate("Recipient"),
+    value: (d) => d.organisation?.name ?? d.tahfizcenter?.name ?? "-",
+  },
+  {
+    key: "amount",
+    label: translate("Amount"),
+    value: (d) => formatRM(d.amount),
+  },
+  { key: "status", label: translate("Status") },
+  {
+    key: "date",
+    label: translate("Date"),
+    value: (d) =>
+      d.createdat ? new Date(d.createdat).toLocaleDateString("ms-MY") : "-",
+  },
+  {
+    key: "referenceno",
+    label: translate("Reference No"),
+    value: (d) => d.referenceno || "-",
+  },
+];
 
 function StatusBadge({ status }) {
   switch (status) {
@@ -340,7 +376,8 @@ function Row({ label, value }) {
 }
 
 export default function MobileManageDonations() {
-  const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, checkRole } =
+    useAdminAccess();
   const {
     loading: permissionsLoading,
     canView,
@@ -350,6 +387,7 @@ export default function MobileManageDonations() {
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [selected, setSelected] = useState(null);
+  const [exporting, setExporting] = useState(null);
 
   const [appliedStatus, setAppliedStatus] = useState("");
   const [appliedDateFrom, setAppliedDateFrom] = useState("");
@@ -362,6 +400,44 @@ export default function MobileManageDonations() {
     filterDateFrom: appliedDateFrom || null,
     filterDateTo: appliedDateTo || null,
   });
+
+  const handleExport = async (type) => {
+    setExporting(type);
+    try {
+      const data = await trpcClient.donation.getPaginated.query({
+        page: 1,
+        pageSize: 100000,
+        currentUser,
+        checkRole,
+        filterStatus: appliedStatus || null,
+        filterDateFrom: appliedDateFrom || null,
+        filterDateTo: appliedDateTo || null,
+      });
+      const rows = data?.items ?? [];
+      if (type === "xlsx") {
+        exportRowsToExcel({
+          filename: "donations",
+          columns: donationExportColumns,
+          rows,
+        });
+      } else {
+        await exportRowsToPdf({
+          filename: "donations",
+          title: translate("Manage Donations"),
+          subtitle: currentUser?.organisation?.name
+            ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+            : undefined,
+          columns: donationExportColumns,
+          rows,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to export data"));
+    } finally {
+      setExporting(null);
+    }
+  };
 
   useEffect(() => {
     if (selected) {
@@ -386,7 +462,31 @@ export default function MobileManageDonations() {
         <BackNavigation title={translate("Manage Donations")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleExport("xlsx")}
+              disabled={!!exporting}
+              title={translate("Export Excel")}
+              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+            >
+              {exporting === "xlsx" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="w-4 h-4" />
+              )}
+            </button>
+            <button
+              onClick={() => handleExport("pdf")}
+              disabled={!!exporting}
+              title={translate("Export PDF")}
+              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+            >
+              {exporting === "pdf" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+            </button>
             <AdvancedFilters
               parameter={[
                 {

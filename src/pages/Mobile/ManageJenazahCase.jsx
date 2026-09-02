@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import BackNavigation from "@/components/BackNavigation";
@@ -15,7 +15,12 @@ import DocumentLinks from "@/components/DocumentLinks";
 import { appendCurrentUserToFormData } from "@/utils";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { showApiError, showSuccess } from "@/components/ToastrNotification";
+import {
+  showApiError,
+  showSuccess,
+  showError,
+} from "@/components/ToastrNotification";
+import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import IcConflictDialog from "@/components/IcConflictDialog";
 import GraveLotPickerField from "@/components/GraveLotPickerField";
@@ -44,12 +49,57 @@ import {
   UserPlus,
   MapPin,
   X,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
 } from "lucide-react";
 import { CARE_SCENARIOS } from "@/utils/enums";
-import { parseDobFromIcNumber } from "@/utils/helpers";
+import { parseDobFromIcNumber, formatRM, getNextGraveLotLabel } from "@/utils/helpers";
 import { defaultManageJenazahCaseField } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
+
+const jenazahCaseExportColumns = [
+  {
+    key: "referenceno",
+    label: translate("Reference No"),
+    value: (c) => c.referenceno || "-",
+  },
+  {
+    key: "deceasedFullname",
+    label: translate("Deceased Name"),
+    value: (c) => c.details?.deceasedFullname || "-",
+  },
+  {
+    key: "deceasedIcnumber",
+    label: translate("IC No."),
+    value: (c) => c.details?.deceasedIcnumber || "-",
+  },
+  {
+    key: "mosque",
+    label: translate("Mosque"),
+    value: (c) => c.mosque?.name || "-",
+  },
+  {
+    key: "kariahMember",
+    label: translate("Kariah Member"),
+    value: (c) =>
+      c.addedtokariah || c.details?.isKariahMember
+        ? translate("Yes")
+        : translate("No"),
+  },
+  {
+    key: "date",
+    label: translate("Date"),
+    value: (c) =>
+      c.createdat
+        ? new Date(c.createdat).toLocaleDateString("ms-MY", {
+            dateStyle: "medium",
+          })
+        : "-",
+  },
+  { key: "status", label: translate("Status"), value: (c) => c.status },
+];
 
 const STATUS_CONFIG = {
   pending: {
@@ -275,6 +325,8 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
       supportingphotourl,
       careScenarioOther,
       burialdate: submittedBurialdate,
+      burialtime: submittedBurialtime,
+      burialtimenote: submittedBurialtimenote,
       ...formDetails
     } = data;
     onSubmit({
@@ -292,6 +344,8 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             ? careScenarioOther?.trim()
             : null,
         burialDate: submittedBurialdate,
+        burialTime: submittedBurialtime || null,
+        burialTimeNote: submittedBurialtimenote?.trim() || null,
         pickupLat:
           formDetails.pickupLat !== "" && formDetails.pickupLat != null
             ? parseFloat(String(formDetails.pickupLat))
@@ -531,6 +585,22 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             required
             errors={errors}
           />
+          <div className="grid grid-cols-2 gap-3">
+            <TextInputForm
+              name="burialtime"
+              control={control}
+              label={translate("Burial Time")}
+              isTime
+              errors={errors}
+            />
+            <TextInputForm
+              name="burialtimenote"
+              control={control}
+              label={translate("Or Describe the Time")}
+              placeholder={translate("e.g. Selepas Maghrib, Selepas Isyak")}
+              errors={errors}
+            />
+          </div>
         </FormSection>
 
         <FormSection
@@ -681,6 +751,84 @@ function CaseDetailSheet({
     onError: (err) => showApiError(err),
   });
 
+  const trpcUtils = trpc.useUtils();
+
+  const updateDeadPersonGraveLot = trpc.deadperson.update.useMutation({
+    onSuccess: () => {
+      showSuccess(translate("Grave lot updated"), "success");
+      trpcUtils.deadperson.getByIcNumber.invalidate({ icnumber: icRaw });
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  const handleGraveLotPick = async (slot) => {
+    if (!deadPersonRecord) return;
+    await updateDeadPersonGraveLot.mutateAsync({
+      id: deadPersonRecord.id,
+      data: {
+        name: deadPersonRecord.name,
+        icnumber: deadPersonRecord.icnumber ?? null,
+        dateofbirth: deadPersonRecord.dateofbirth,
+        dateofdeath: deadPersonRecord.dateofdeath,
+        causeofdeath: deadPersonRecord.causeofdeath ?? null,
+        biography: deadPersonRecord.biography ?? null,
+        heirname: deadPersonRecord.heirname,
+        heirphoneno: deadPersonRecord.heirphoneno,
+        photourl: deadPersonRecord.photourl ?? null,
+        latitude: deadPersonRecord.latitude ?? null,
+        longitude: deadPersonRecord.longitude ?? null,
+        grave: deadPersonRecord.grave?.id
+          ? { id: deadPersonRecord.grave.id }
+          : undefined,
+        gravelot: slot?.label ?? null,
+        graveslot: slot?.id ? { id: slot.id } : null,
+      },
+    });
+  };
+
+  // Auto-assign the next lot number for an already-approved deceased record
+  // that has no lot yet, based on the highest numbered lot used in that grave.
+  const approveGraveId = deadPersonRecord?.grave?.id ?? null;
+  const { data: approveGraveDeadPersons } =
+    trpc.deadperson.getDeadPersonByGraveId.useQuery(
+      { graveId: approveGraveId },
+      { enabled: !!approveGraveId },
+    );
+  const autoAssignedLotRef = useRef(null);
+  useEffect(() => {
+    if (!deadPersonRecord || deadPersonRecord.gravelot) return;
+    if (!approveGraveId || !approveGraveDeadPersons) return;
+    if (autoAssignedLotRef.current === deadPersonRecord.id) return;
+
+    const nextLot = getNextGraveLotLabel(
+      approveGraveDeadPersons
+        .filter((p) => p.id !== deadPersonRecord.id)
+        .map((p) => p.gravelot),
+    );
+    if (!nextLot) return;
+
+    autoAssignedLotRef.current = deadPersonRecord.id;
+    handleGraveLotPick({ id: null, label: nextLot });
+  }, [deadPersonRecord, approveGraveId, approveGraveDeadPersons]);
+
+  // Auto-fill the suggested next lot number when a grave is chosen in the
+  // deceased-creation form, based on the highest numbered lot in that grave.
+  const dcGraveId = watchDc("grave") ? Number(watchDc("grave")) : null;
+  const { data: dcGraveDeadPersons } =
+    trpc.deadperson.getDeadPersonByGraveId.useQuery(
+      { graveId: dcGraveId },
+      { enabled: !!dcGraveId },
+    );
+  useEffect(() => {
+    if (!dcGraveId || !dcGraveDeadPersons) return;
+    if (watchDc("gravelot")) return;
+
+    const nextLot = getNextGraveLotLabel(
+      dcGraveDeadPersons.map((p) => p.gravelot),
+    );
+    if (nextLot) setValueDc("gravelot", nextLot);
+  }, [dcGraveId, dcGraveDeadPersons]);
+
   const isBusy = isUpdating || upsertDeadPerson.isPending;
 
   useEffect(() => {
@@ -771,6 +919,42 @@ function CaseDetailSheet({
           </div>
         )}
 
+        {caseItem?.mosque?.jenazahmanagementpayment?.length > 0 && (
+          <div className="border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-3 pt-2.5">
+              {translate("Jenazah Management Payment")}
+            </p>
+            <div className="divide-y divide-slate-100 dark:divide-slate-700 mt-2">
+              {caseItem.mosque.jenazahmanagementpayment.map((p, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between px-3 py-1.5 text-sm"
+                >
+                  <span className="text-slate-600 dark:text-slate-300">
+                    {p.item}
+                  </span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">
+                    {formatRM(p.price)}
+                  </span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between px-3 py-2 text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20">
+                <span className="text-emerald-700 dark:text-emerald-400">
+                  {translate("Total")}
+                </span>
+                <span className="text-emerald-700 dark:text-emerald-400">
+                  {formatRM(
+                    caseItem.mosque.jenazahmanagementpayment.reduce(
+                      (sum, p) => sum + (Number(p.price) || 0),
+                      0,
+                    ),
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <FormSection title={translate("Maklumat Jenazah")}>
           <div className="grid grid-cols-2 gap-3">
             <DetailRow label={translate("Name")} value={d.deceasedFullname} />
@@ -800,6 +984,20 @@ function CaseDetailSheet({
               </span>
             )}
           </DetailRow>
+          {d.isFamilyOfKariah && (
+            <DetailRow
+              label={translate("Family Member of Registered Kariah")}
+            >
+              <p className="text-sm text-slate-700 dark:text-slate-200">
+                {d.familyKariahMemberName || "—"}
+              </p>
+              {d.familyKariahMemberIc && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                  {d.familyKariahMemberIc}
+                </p>
+              )}
+            </DetailRow>
+          )}
         </FormSection>
 
         <FormSection title={translate("Funeral Procedure")}>
@@ -824,6 +1022,13 @@ function CaseDetailSheet({
                   : null
               }
             />
+            <DetailRow
+              label={translate("Burial Time")}
+              value={
+                [d.burialTime, d.burialTimeNote].filter(Boolean).join(" — ") ||
+                null
+              }
+            />
           </div>
           <DetailRow
             label={translate("Bathing & Prayer Management")}
@@ -843,10 +1048,15 @@ function CaseDetailSheet({
                 label={translate("Grave")}
                 value={deadPersonRecord.grave?.name}
               />
-              <DetailRow
-                label={translate("Grave Lot")}
-                value={deadPersonRecord.gravelot}
-              />
+              <div className="col-span-2">
+                <GraveLotPickerField
+                  graveId={deadPersonRecord.grave?.id ?? null}
+                  gravelotLabel={deadPersonRecord.gravelot}
+                  currentDeadPersonId={deadPersonRecord.id}
+                  onPick={handleGraveLotPick}
+                  isMobile
+                />
+              </div>
               <DetailRow
                 label={translate("Cause of Death")}
                 value={deadPersonRecord.causeofdeath}
@@ -1167,6 +1377,7 @@ export default function MobileManageJenazahCase() {
   const [caseToDelete, setCaseToDelete] = useState(null);
   const [addToKariahId, setAddToKariahId] = useState(null);
   const [icConflict, setIcConflict] = useState(null);
+  const [exporting, setExporting] = useState(null);
   const itemsPerPage = 10;
 
   const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
@@ -1210,6 +1421,42 @@ export default function MobileManageJenazahCase() {
   const addToKariahMutation = trpc.jenazahCase.addToKariah.useMutation({
     onError: (err) => showApiError(err),
   });
+
+  const handleExport = async (type) => {
+    setExporting(type);
+    try {
+      const data = await trpcClient.jenazahCase.getPaginated.query({
+        page: 1,
+        pageSize: 100000,
+        status: statusFilter || undefined,
+        currentUserOrganisation: currentUser?.organisation?.id ?? null,
+        isSuperAdmin,
+      });
+      const rows = data?.items ?? [];
+      if (type === "xlsx") {
+        exportRowsToExcel({
+          filename: "jenazah-cases",
+          columns: jenazahCaseExportColumns,
+          rows,
+        });
+      } else {
+        await exportRowsToPdf({
+          filename: "jenazah-cases",
+          title: translate("Funeral Case Management"),
+          subtitle: currentUser?.organisation?.name
+            ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+            : undefined,
+          columns: jenazahCaseExportColumns,
+          rows,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to export data"));
+    } finally {
+      setExporting(null);
+    }
+  };
 
   const runAddToKariah = async (payload) => {
     try {
@@ -1265,15 +1512,41 @@ export default function MobileManageJenazahCase() {
       <BackNavigation title={translate("Funeral Case Management")} />
 
       <div className="max-w-2xl mx-auto px-3 space-y-3 pt-1">
-        {canCreate && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setFormOpen(true)}
-            className="w-full h-11 rounded-2xl bg-rose-600 text-white text-sm font-semibold flex items-center justify-center gap-2 active:opacity-80 shadow-sm"
+            onClick={() => handleExport("xlsx")}
+            disabled={!!exporting}
+            title={translate("Export Excel")}
+            className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
           >
-            <Plus className="w-4 h-4" />
-            {translate("Add Funeral Case")}
+            {exporting === "xlsx" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="w-4 h-4" />
+            )}
           </button>
-        )}
+          <button
+            onClick={() => handleExport("pdf")}
+            disabled={!!exporting}
+            title={translate("Export PDF")}
+            className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+          >
+            {exporting === "pdf" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+          </button>
+          {canCreate && (
+            <button
+              onClick={() => setFormOpen(true)}
+              className="flex-1 h-11 rounded-2xl bg-rose-600 text-white text-sm font-semibold flex items-center justify-center gap-2 active:opacity-80 shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              {translate("Add Funeral Case")}
+            </button>
+          )}
+        </div>
 
         <div className="flex gap-1 overflow-x-auto pb-0.5">
           {STATUS_TABS.map((tab) => (

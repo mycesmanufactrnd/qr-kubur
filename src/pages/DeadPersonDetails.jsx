@@ -1,9 +1,10 @@
 ﻿// @ts-nocheck
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { trpc } from "@/utils/trpc";
-import { Building2, ChevronRight, MapPin } from "lucide-react";
+import { Building2, ChevronRight, MapPin, HandHeart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import BackNavigation from "@/components/BackNavigation";
 import { calculateAge } from "@/utils/helpers";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
@@ -14,8 +15,10 @@ import { translate } from "@/utils/translations";
 import { createPageUrl, resolveFileUrl } from "@/utils";
 import InitialAvatarImage from "@/components/InitialAvatarImage";
 import { ImageViewer } from "@/components/ImageViewer";
+import AddFamilyMemberButton from "@/components/AddFamilyMemberButton";
 
 export default function DeadPersonDetails() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get("id"));
 
@@ -148,6 +151,23 @@ export default function DeadPersonDetails() {
               />
             </div>
           )}
+
+          <div className="flex flex-col gap-2 pt-2 border-t dark:border-gray-700">
+            <AddFamilyMemberButton deadPersonId={deadPersonDetails.id} />
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() =>
+                navigate(
+                  `${createPageUrl("ChooseTahfizForTahlil")}?deadpersonId=${deadPersonDetails.id}`,
+                )
+              }
+            >
+              <HandHeart className="w-4 h-4 mr-2" />
+              {translate("Request Tahlil")}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

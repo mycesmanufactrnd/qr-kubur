@@ -203,14 +203,13 @@ export const tahfizRouter = router({
         filterName: z.string().optional().nullable(),
         filterAddress: z.string().optional().nullable(),
         filterHasPaymentConfig: z.boolean().default(false),
+        filterIds: z.array(z.number()).optional(),
         limit: z.number().int().positive().optional(),
       }),
     )
     .query(async ({ input }) => {
       const tahfizRepo = AppDataSource.getRepository(TahfizCenter);
-      if (!input.coordinates) return [];
 
-      const { latitude, longitude } = input.coordinates;
       const query = tahfizRepo
         .createQueryBuilder("tahfiz")
         .where("tahfiz.latitude IS NOT NULL AND tahfiz.longitude IS NOT NULL");
@@ -243,21 +242,37 @@ export const tahfizRouter = router({
         query.innerJoin("tahfiz.tahfizpaymentconfigs", "paymentconfig");
       }
 
-      query
-        .addSelect(
-          `
+      if (input.filterIds?.length) {
+        query.andWhere("tahfiz.id IN (:...filterIds)", {
+          filterIds: input.filterIds,
+        });
+      }
+
+      if (input.limit) query.take(input.limit);
+
+      let entities;
+      let raw;
+
+      if (input.coordinates) {
+        const { latitude, longitude } = input.coordinates;
+
+        query
+          .addSelect(
+            `
           earth_distance(
             ll_to_earth(tahfiz.latitude, tahfiz.longitude),
             ll_to_earth(:lat, :lng)
           )`,
-          "distance",
-        )
-        .orderBy("distance", "ASC")
-        .setParameters({ lat: latitude, lng: longitude });
+            "distance",
+          )
+          .orderBy("distance", "ASC")
+          .setParameters({ lat: latitude, lng: longitude });
 
-      if (input.limit) query.take(input.limit);
-
-      const { entities, raw } = await query.getRawAndEntities();
+        ({ entities, raw } = await query.getRawAndEntities());
+      } else {
+        entities = await query.orderBy("tahfiz.name", "ASC").getMany();
+        raw = [];
+      }
 
       const ids = entities.map((entity) => entity.id);
       const [serviceMap, paymentConfigIds] = await Promise.all([
@@ -271,7 +286,7 @@ export const tahfizRouter = router({
           serviceMap.get(entity.id) ?? [],
           true,
         ),
-        distance: Number(raw[index].distance),
+        distance: raw[index]?.distance ? Number(raw[index].distance) : null,
         haspaymentconfig: paymentConfigIds.has(entity.id),
       }));
     }),

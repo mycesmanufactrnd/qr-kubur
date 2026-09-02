@@ -115,6 +115,7 @@ export const defaultOrganisationField = {
   canmanagemosque: false,
   canmanagegrave: false,
   isgraveservices: false,
+  graverules: [],
   status: ActiveInactiveStatus.ACTIVE,
   user_fullname: "",
   user_username: "",
@@ -227,11 +228,10 @@ export const defaultMosqueField = {
   longitude: "",
   organisation: "",
   photourl: "",
-  picname: "",
-  picphoneno: "",
   canarrangefuneral: false,
   hasdeathcharity: false,
   haskariahregistration: false,
+  jenazahmanagementpayment: [],
 };
 
 export const defaultDeathCharityField = {
@@ -321,7 +321,10 @@ export const defaultJenazahRequestField = {
   policereportphotourl: "",
   supportingphotourl: "",
   burialdate: "",
+  burialtime: "",
+  burialtimenote: "",
   careScenarioOther: "",
+  familyKariahIcSearch: "",
 };
 
 export const defaultManageJenazahCaseField = {
@@ -337,6 +340,8 @@ export const defaultManageJenazahCaseField = {
   careScenario: "",
   careScenarioOther: "",
   burialdate: "",
+  burialtime: "",
+  burialtimenote: "",
   adminremarks: "",
   deathconfirmationphotourl: "",
   policereportphotourl: "",

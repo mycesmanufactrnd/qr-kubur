@@ -80,6 +80,20 @@ export enum JenazahCaseStatus {
   REJECTED = "rejected",
 }
 
+export enum FamilyRelation {
+  FATHER = "father",
+  MOTHER = "mother",
+  GRANDFATHER = "grandfather",
+  GRANDMOTHER = "grandmother",
+  SPOUSE = "spouse",
+  SIBLING = "sibling",
+  SON = "son",
+  DAUGHTER = "daughter",
+  UNCLE = "uncle",
+  AUNT = "aunt",
+  OTHER = "other",
+}
+
 export enum OnlineTransactionStatus {
   PENDING = "Pending", // User initiated payment, waiting confirmation
   PAID = "Paid", // Payment successful, money received by platform

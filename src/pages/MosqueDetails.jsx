@@ -10,6 +10,8 @@ import {
   BookOpen,
   CreditCard,
   ChevronRight,
+  ListChecks,
+  Users,
 } from "lucide-react";
 import MapBox from "@/components/MapBox";
 import ActivityPostsCard from "@/components/ActivityPostsCard";
@@ -23,6 +25,7 @@ import { shareLink } from "@/utils/helpers";
 import DonationButton from "@/components/DonationButton";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { createPageUrl, resolveFileUrl } from "@/utils";
+import { formatRM } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
 
 export default function MosqueDetailsPage() {
@@ -157,50 +160,135 @@ export default function MosqueDetailsPage() {
                     `${translate("Welcome to")} ${mosque.name}. ${translate("This mosque serves as a spiritual hub.")}`}
                 </p>
 
-                {(mosque.picphoneno || mosque.email) && (
-                  <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden divide-y divide-slate-100 dark:divide-slate-700">
-                    {mosque.picphoneno && (
-                      <a
-                        href={`tel:${mosque.picphoneno}`}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center shrink-0">
-                          <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] text-slate-400 uppercase tracking-wide">
-                            {translate("Phone No.")}
-                          </p>
-                          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                            {mosque.picphoneno}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
-                      </a>
-                    )}
-                    {mosque.email && (
-                      <a
-                        href={`mailto:${mosque.email}`}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center shrink-0">
-                          <Mail className="w-3.5 h-3.5 text-emerald-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] text-slate-400 uppercase tracking-wide">
-                            {translate("Email")}
-                          </p>
-                          <p className="text-sm font-semibold text-slate-700 truncate">
-                            {mosque.email}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
-                      </a>
-                    )}
+                {mosque.email && (
+                  <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                    <a
+                      href={`mailto:${mosque.email}`}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center shrink-0">
+                        <Mail className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wide">
+                          {translate("Email")}
+                        </p>
+                        <p className="text-sm font-semibold text-slate-700 truncate">
+                          {mosque.email}
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                    </a>
                   </div>
                 )}
               </div>
             </div>
+
+            {mosque.organisationcharts?.length > 0 && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                    {translate("Organisation Chart")}
+                  </p>
+                </div>
+                <div className="p-4 space-y-4">
+                  {Object.entries(
+                    mosque.organisationcharts.reduce((acc, entry) => {
+                      if (!acc[entry.team]) acc[entry.team] = [];
+                      acc[entry.team].push(entry);
+                      return acc;
+                    }, {}),
+                  ).map(([team, members]) => (
+                    <div key={team} className="space-y-1.5">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {team}
+                      </p>
+                      <div className="space-y-1.5">
+                        {members.map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center justify-between gap-2 text-sm bg-slate-50 dark:bg-slate-700/40 rounded-lg px-3 py-2"
+                          >
+                            <div className="min-w-0">
+                              <p className="font-medium text-slate-800 dark:text-slate-100 truncate">
+                                {member.name}
+                              </p>
+                              {member.designation && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  {member.designation}
+                                </p>
+                              )}
+                            </div>
+                            {member.phoneno && (
+                              <a
+                                href={`tel:${member.phoneno}`}
+                                className="flex items-center gap-1 text-xs font-semibold text-emerald-600 shrink-0"
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                                {member.phoneno}
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mosque.organisation?.canmanagegrave &&
+              mosque.organisation?.graverules?.length > 0 && (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                    <ListChecks className="w-4 h-4 text-emerald-600" />
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                      {translate("Grave Placement Rules")}
+                    </p>
+                  </div>
+                  <ul className="p-4 space-y-2">
+                    {mosque.organisation.graverules.map((rule, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400"
+                      >
+                        <span className="text-emerald-600 font-semibold shrink-0">
+                          {i + 1}.
+                        </span>
+                        <span>{rule}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+            {mosque.canarrangefuneral &&
+              mosque.jenazahmanagementpayment?.length > 0 && (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                    <CreditCard className="w-4 h-4 text-emerald-600" />
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                      {translate("Jenazah Management Payment")}
+                    </p>
+                  </div>
+                  <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {mosque.jenazahmanagementpayment.map((p, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between px-4 py-2.5 text-sm"
+                      >
+                        <span className="text-slate-600 dark:text-slate-400">
+                          {p.item}
+                        </span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">
+                          {formatRM(p.price)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             {mosque.latitude != null && mosque.longitude != null && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">

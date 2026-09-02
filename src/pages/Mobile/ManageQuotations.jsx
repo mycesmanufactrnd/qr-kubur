@@ -11,6 +11,8 @@ import {
   X,
   Upload,
   Image,
+  FileSpreadsheet,
+  Loader2,
 } from "lucide-react";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +34,48 @@ import { showError } from "@/components/ToastrNotification";
 import DirectionButton from "@/components/DirectionButton";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
+import { trpcClient } from "@/utils/trpc";
+import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
+
+const quotationExportColumns = [
+  {
+    key: "payername",
+    label: translate("Payer"),
+    value: (q) => q.payername || translate("No Name"),
+  },
+  {
+    key: "referenceno",
+    label: translate("Reference No"),
+    value: (q) => q.referenceno || "-",
+  },
+  {
+    key: "organisation",
+    label: translate("Organisation"),
+    value: (q) => q.organisation?.name || "-",
+  },
+  {
+    key: "services",
+    label: translate("Services"),
+    value: (q) => (q.selectedservices || []).length,
+  },
+  {
+    key: "totalamount",
+    label: translate("Total Amount"),
+    value: (q) =>
+      formatRM(
+        q.serviceamount != null
+          ? Number(q.serviceamount) * ORG_SHARE
+          : q.totalamount,
+      ),
+  },
+  { key: "status", label: translate("Status"), value: (q) => q.status },
+  {
+    key: "date",
+    label: translate("Date"),
+    value: (q) =>
+      q.createdat ? new Date(q.createdat).toLocaleDateString("ms-MY") : "-",
+  },
+];
 
 function StatusBadge({ status }) {
   switch (status) {
@@ -411,7 +455,8 @@ function AmountRow({ label, value, valueClass = "", bold = false }) {
 }
 
 export default function MobileManageQuotations() {
-  const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
+    useAdminAccess();
   const {
     loading: permissionsLoading,
     canView,
@@ -422,6 +467,7 @@ export default function MobileManageQuotations() {
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [selected, setSelected] = useState(null);
+  const [exporting, setExporting] = useState(null);
 
   const [appliedService, setAppliedService] = useState("");
   const [appliedStatus, setAppliedStatus] = useState("");
@@ -436,6 +482,45 @@ export default function MobileManageQuotations() {
     dateFrom: appliedDateFrom || null,
     dateTo: appliedDateTo || null,
   });
+
+  const handleExport = async (type) => {
+    setExporting(type);
+    try {
+      const data = await trpcClient.quotation.getPaginated.query({
+        page: 1,
+        pageSize: 100000,
+        currentUserOrganisation: currentUser?.organisation?.id ?? null,
+        isSuperAdmin,
+        filterStatus: appliedStatus || null,
+        filterService: appliedService || null,
+        dateFrom: appliedDateFrom || null,
+        dateTo: appliedDateTo || null,
+      });
+      const rows = data?.items ?? [];
+      if (type === "xlsx") {
+        exportRowsToExcel({
+          filename: "quotations",
+          columns: quotationExportColumns,
+          rows,
+        });
+      } else {
+        await exportRowsToPdf({
+          filename: "quotations",
+          title: translate("Manage Quotations"),
+          subtitle: currentUser?.organisation?.name
+            ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+            : undefined,
+          columns: quotationExportColumns,
+          rows,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to export data"));
+    } finally {
+      setExporting(null);
+    }
+  };
 
   useEffect(() => {
     if (selected) {
@@ -460,7 +545,31 @@ export default function MobileManageQuotations() {
         <BackNavigation title={translate("Manage Quotations")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleExport("xlsx")}
+              disabled={!!exporting}
+              title={translate("Export Excel")}
+              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+            >
+              {exporting === "xlsx" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="w-4 h-4" />
+              )}
+            </button>
+            <button
+              onClick={() => handleExport("pdf")}
+              disabled={!!exporting}
+              title={translate("Export PDF")}
+              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+            >
+              {exporting === "pdf" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+            </button>
             <AdvancedFilters
               parameter={[
                 {

@@ -156,6 +156,28 @@ export function formatDate(d: Date | string | null | undefined): string {
   return new Date(d).toLocaleDateString("en-MY");
 }
 
+export function getNextGraveLotLabel(
+  existingLabels: (string | null | undefined)[],
+): string | null {
+  const parsed = existingLabels
+    .map((label) => {
+      const match = String(label ?? "").match(/^(.*?)(\d+)\s*$/);
+      if (!match) return null;
+      return { prefix: match[1], numStr: match[2], num: parseInt(match[2], 10) };
+    })
+    .filter((entry): entry is { prefix: string; numStr: string; num: number } => !!entry);
+
+  if (parsed.length === 0) return null;
+
+  const last = parsed.reduce((max, entry) => (entry.num > max.num ? entry : max));
+  const nextNum = last.num + 1;
+  const nextNumStr = last.numStr.startsWith("0")
+    ? String(nextNum).padStart(last.numStr.length, "0")
+    : String(nextNum);
+
+  return `${last.prefix}${nextNumStr}`;
+}
+
 const GPS_STATE_MAP: Record<string, string> = {
   "penang": "Pulau Pinang",
   "federal territory of kuala lumpur": "Kuala Lumpur",

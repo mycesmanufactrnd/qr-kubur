@@ -44,6 +44,9 @@ import { shareLink } from "@/utils/helpers";
 import DonationButton from "@/components/DonationButton";
 import { trpc } from "@/utils/trpc";
 import { ImageViewer } from "@/components/ImageViewer";
+import AddFamilyMemberButton from "@/components/AddFamilyMemberButton";
+import { getStoredGoogleUser } from "@/utils/auth";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function GraveDetails() {
   const navigate = useNavigate();
@@ -69,6 +72,16 @@ export default function GraveDetails() {
   const [displayedCount, setDisplayedCount] = useState(10);
   const [isSearching, setIsSearching] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
+  const [familyOnly, setFamilyOnly] = useState(false);
+  const [googleUser] = useState(() => getStoredGoogleUser());
+
+  const { data: familyMembers = [] } = trpc.familyTree.getByGoogleUser.useQuery(
+    { googleUserId: googleUser?.id ?? null },
+    { enabled: !!googleUser?.id },
+  );
+  const familyDeadPersonIds = new Set(
+    familyMembers.map((m) => m.deadperson?.id).filter(Boolean),
+  );
 
   const {
     data: grave,
@@ -113,7 +126,8 @@ export default function GraveDetails() {
       const matchesDate =
         !filterDate ||
         (p.dateofdeath && String(p.dateofdeath).startsWith(filterDate));
-      return matchesName && matchesDate;
+      const matchesFamily = !familyOnly || familyDeadPersonIds.has(p.id);
+      return matchesName && matchesDate && matchesFamily;
     });
 
   const displayedPersons = filtered && filtered.slice(0, displayedCount);
@@ -392,6 +406,18 @@ export default function GraveDetails() {
                     </div>
                   </div>
                 </div>
+
+                {!!googleUser?.id && (
+                  <label className="flex items-center gap-2 pt-1 cursor-pointer">
+                    <Checkbox
+                      checked={familyOnly}
+                      onCheckedChange={(v) => setFamilyOnly(v === true)}
+                    />
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      {translate("Show only my family members")}
+                    </span>
+                  </label>
+                )}
               </CardContent>
             </Card>
             <div className="space-y-4">
@@ -463,6 +489,10 @@ export default function GraveDetails() {
                             <ShareButton
                               title={person.name}
                               textMessage={`${translate("Grave Location")} ${person.name}`}
+                            />
+                            <AddFamilyMemberButton
+                              deadPersonId={person.id}
+                              compact
                             />
                           </div>
                         </div>

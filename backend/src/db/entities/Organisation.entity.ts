@@ -92,6 +92,9 @@ export class Organisation {
   @Column({ type: "boolean", default: false })
   isgraveservices!: boolean;
 
+  @Column("text", { array: true, nullable: true })
+  graverules?: string[] | null;
+
   @Column({
     type: "enum",
     enum: ActiveInactiveStatus,

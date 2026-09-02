@@ -12,6 +12,7 @@ import AppUserLogin from '@/pages/AppUserLogin';
 import ImpersonateUser from '@/pages/ImpersonateUser';
 
 import ScanQR from '@/pages/ScanQR';
+import FamilyTree from '@/pages/User/FamilyTree';
 import Favorites from '@/pages/User/Favorites';
 import SearchGrave from '@/pages/User/SearchGrave';
 import UserKariahRegistration from '@/pages/User/UserKariahRegistration';
@@ -37,6 +38,7 @@ import CheckServiceStatus from '@/pages/User/CheckServiceStatus';
 import StatusCheck from '@/pages/User/StatusCheck';
 
 import TahlilRequestPage from '@/pages/TahlilRequestPage';
+import ChooseTahfizForTahlil from '@/pages/User/ChooseTahfizForTahlil';
 import SearchTahlil from '@/pages/SearchTahlil';
 import CheckTahlilStatus from '@/pages/User/CheckTahlilStatus';
 
@@ -153,9 +155,11 @@ export const PAGES = {
     "StatusCheck": StatusCheck,
 
     "TahlilRequestPage": TahlilRequestPage,
+    "ChooseTahfizForTahlil": ChooseTahfizForTahlil,
     "SearchTahlil": SearchTahlil,
     "CheckTahlilStatus": CheckTahlilStatus,
 
+    "FamilyTree": FamilyTree,
     "SurahPage": SurahPage,
     "SolatJenazah": SolatJenazah,
     "JenazahEmergency": JenazahEmergency,

@@ -180,7 +180,7 @@ function AdminDashboardDesktop() {
   const totalCompleteQuo = QUOStats?.totalCompleteQuo ?? 0;
   const totalPayoutQuo = QUOStats?.totalPayoutQuo ?? 0;
 
-  const quickStats = [
+  const gravesAndOrganisations = [
     ...(isOrgCanManageGrave
       ? [
           {
@@ -455,9 +455,9 @@ function AdminDashboardDesktop() {
           </div>
         </div>
 
-        {/* Overview Stats */}
+        {/* Graves & Organisations Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {quickStats.map((stat, i) => (
+          {gravesAndOrganisations.map((stat, i) => (
             <Link key={i} to={createPageUrl(stat.page)} className="block group">
               <Card
                 className={`hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br ${stat.cardGradient} hover:scale-105`}
@@ -581,6 +581,20 @@ function AdminDashboardDesktop() {
                   </Card>
                 </Link>
               )}
+              <Link to={createPageUrl("ManageMosques")} className="block group">
+                <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-stone-50 to-amber-50 dark:from-stone-900/20 dark:to-amber-900/20 hover:scale-105">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-stone-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                        <CreditCard className="w-6 h-6 text-white" />
+                      </div>
+                      <p className="text-sm font-medium text-stone-700 dark:text-stone-400">
+                        {translate("Jenazah Management Payment")}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </div>
         )}
@@ -872,12 +886,18 @@ function AdminDashboardDesktop() {
                       QUICK_ACTION_COLOR_MAP[action.color] ||
                       QUICK_ACTION_COLOR_MAP.emerald;
                     return (
-                      <Link key={i} to={createPageUrl(action.page)} className="group">
+                      <Link
+                        key={i}
+                        to={createPageUrl(action.page)}
+                        className="group"
+                      >
                         <div className="h-full flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-all">
                           <div
                             className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform ${colors.icon}`}
                           >
-                            <action.icon className={`w-4.5 h-4.5 ${colors.iconText}`} />
+                            <action.icon
+                              className={`w-4.5 h-4.5 ${colors.iconText}`}
+                            />
                           </div>
                           <span className="flex-1 min-w-0 text-xs font-medium leading-tight text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
                             {action.label}

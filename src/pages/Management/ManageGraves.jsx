@@ -68,11 +68,30 @@ import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
+import { trpcClient } from "@/utils/trpc";
+import TableExportButtons from "@/components/TableExportButtons";
 
 export default function ManageGraves() {
   const isNarrow = useIsNarrow();
   return isNarrow ? <MobileManageGraves /> : <ManageGravesDesktop />;
 }
+
+const graveExportColumns = [
+  {
+    key: "name",
+    label: translate("Cemetery Name"),
+    value: (g) => g.name || "-",
+  },
+  {
+    key: "totalgraves",
+    label: translate("Total Graves"),
+    value: (g) => g.totalgraves ?? "-",
+  },
+  { key: "state", label: translate("State"), value: (g) => g.state || "-" },
+  { key: "block", label: translate("Block"), value: (g) => g.block || "-" },
+  { key: "lot", label: translate("Lot"), value: (g) => g.lot || "-" },
+  { key: "status", label: translate("Status"), value: (g) => g.status },
+];
 
 function ManageGravesDesktop() {
   const navigate = useNavigate();
@@ -246,6 +265,25 @@ function ManageGravesDesktop() {
         ? urlSortOrder
         : undefined,
   });
+
+  const fetchAllGraves = async () => {
+    const data = await trpcClient.grave.getPaginated.query({
+      page: 1,
+      pageSize: 100000,
+      filterName: urlName,
+      filterState: urlState || undefined,
+      filterStatus: urlStatus || undefined,
+      filterBlock: urlBlock || undefined,
+      filterLot: urlLot || undefined,
+      organisationIds: accessibleOrgIds,
+      sortField: urlSortField || undefined,
+      sortOrder:
+        urlSortOrder === "ASC" || urlSortOrder === "DESC"
+          ? urlSortOrder
+          : undefined,
+    });
+    return data?.items ?? [];
+  };
 
   const handleSort = (field) => {
     const newOrder =
@@ -443,6 +481,17 @@ function ManageGravesDesktop() {
           {translate("Manage Cemetery")}
         </h1>
         <div className="flex items-center gap-2">
+          <TableExportButtons
+            fetchRows={fetchAllGraves}
+            columns={graveExportColumns}
+            filename="cemeteries"
+            pdfTitle={translate("Manage Cemetery")}
+            pdfSubtitle={
+              currentUser?.organisation?.name
+                ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+                : undefined
+            }
+          />
           {canDelete && selectedIds.length > 0 && (
             <Button
               onClick={() => setBulkDeleteDialogOpen(true)}

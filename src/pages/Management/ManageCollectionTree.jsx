@@ -36,7 +36,7 @@ import {
 import { trpc } from "@/utils/trpc";
 import { useAdminAccess } from "@/utils/auth";
 import { showSuccess, showApiError } from "@/components/ToastrNotification";
-import FamilyTree from "@/components/collectiontree/FamilyTree";
+import OrganisationFamilyTree from "@/components/collectiontree/OrganisationFamilyTree";
 import { translate } from "@/utils/translations";
 import Breadcrumb from "@/components/Breadcrumb";
 
@@ -444,7 +444,7 @@ export default function ManageCollectionTree() {
               <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
             </div>
           ) : (
-            <FamilyTree
+            <OrganisationFamilyTree
               collection={selectedCollection}
               items={transformedItems}
               typeConfig={TYPE_CONFIG}

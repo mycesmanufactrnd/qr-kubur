@@ -18,6 +18,7 @@ type UseGetTahfizCoordinatesParams = {
   filterName?: string;
   filterAddress?: string;
   filterHasPaymentConfig?: boolean;
+  filterIds?: number[];
   limit?: number;
 };
 
@@ -65,6 +66,7 @@ export function useGetTahfizCoordinates({
   filterName,
   filterAddress,
   filterHasPaymentConfig,
+  filterIds,
   limit,
 }: UseGetTahfizCoordinatesParams) {
   return trpc.tahfiz.getTahfizByCoordinates.useQuery(
@@ -75,10 +77,11 @@ export function useGetTahfizCoordinates({
       filterName,
       filterAddress,
       filterHasPaymentConfig,
+      filterIds,
       limit,
     },
     {
-      enabled: !!coordinates,
+      enabled: !!coordinates || !!filterState || !!filterName || !!filterIds?.length,
       ...coordinatesQueryOptions,
     }
   );

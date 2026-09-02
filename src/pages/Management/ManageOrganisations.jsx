@@ -16,6 +16,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  X,
 } from "lucide-react";
 import SearchBar from "@/components/forms/SearchBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -152,6 +153,23 @@ function ManageOrganisationsDesktop() {
 
   const isGraveServicesChecked = watch("isgraveservices");
   const isPaymentUploading = Object.values(paymentUploadingFiles).some(Boolean);
+  const canManageGrave = watch("canmanagegrave");
+  const graveRules = watch("graverules") || [];
+  const [newGraveRule, setNewGraveRule] = useState("");
+
+  const handleAddGraveRule = () => {
+    const rule = newGraveRule.trim();
+    if (!rule) return;
+    setValue("graverules", [...graveRules, rule]);
+    setNewGraveRule("");
+  };
+
+  const handleRemoveGraveRule = (index) => {
+    setValue(
+      "graverules",
+      graveRules.filter((_, i) => i !== index),
+    );
+  };
 
   const tableColSpan = canEdit || canDelete ? 5 : 4;
   const canAddOrgUsers = isSuperAdmin || isAdmin;
@@ -788,6 +806,7 @@ function ManageOrganisationsDesktop() {
     setUserEntries([]);
     resetUserFields();
     resetPaymentConfig();
+    setNewGraveRule("");
     setShowMap(false);
     setIsDialogOpen(true);
   };
@@ -847,6 +866,7 @@ function ManageOrganisationsDesktop() {
     setServiceEntries(nextEntries);
     setUserEntries([]);
     resetUserFields();
+    setNewGraveRule("");
     setShowMap(false);
     setIsDialogOpen(true);
   };
@@ -1416,6 +1436,58 @@ function ManageOrganisationsDesktop() {
                       label={translate("Can Be Donated")}
                     />
                   </>
+                )}
+
+                {canManageGrave && (
+                  <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-slate-700">
+                    <Label className="text-sm font-medium">
+                      {translate("Grave Placement Rules")}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newGraveRule}
+                        onChange={(e) => setNewGraveRule(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddGraveRule();
+                          }
+                        }}
+                        placeholder={translate(
+                          "e.g. Batu nisan tidak boleh berwarna",
+                        )}
+                        className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddGraveRule}
+                        className="bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {graveRules.length > 0 && (
+                      <ul className="space-y-1.5 mt-1">
+                        {graveRules.map((rule, index) => (
+                          <li
+                            key={index}
+                            className="flex items-start justify-between gap-2 text-sm bg-gray-50 dark:bg-slate-700/50 rounded px-3 py-1.5"
+                          >
+                            <span className="text-gray-700 dark:text-slate-200">
+                              {index + 1}. {rule}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveGraveRule(index)}
+                              className="text-red-500 hover:text-red-700 shrink-0"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )}
               </div>
 

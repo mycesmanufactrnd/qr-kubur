@@ -37,6 +37,25 @@ import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutation
 import { trpc } from "@/utils/trpc";
 import { defaultGraveField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import { trpcClient } from "@/utils/trpc";
+import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
+
+const graveExportColumns = [
+  {
+    key: "name",
+    label: translate("Cemetery Name"),
+    value: (g) => g.name || "-",
+  },
+  {
+    key: "totalgraves",
+    label: translate("Total Graves"),
+    value: (g) => g.totalgraves ?? "-",
+  },
+  { key: "state", label: translate("State"), value: (g) => g.state || "-" },
+  { key: "block", label: translate("Block"), value: (g) => g.block || "-" },
+  { key: "lot", label: translate("Lot"), value: (g) => g.lot || "-" },
+  { key: "status", label: translate("Status"), value: (g) => g.status },
+];
 
 function GraveStatusBadge({ status }) {
   const map = {
@@ -389,6 +408,7 @@ export default function MobileManageGraves() {
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [exporting, setExporting] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingGrave, setEditingGrave] = useState(null);
@@ -420,6 +440,41 @@ export default function MobileManageGraves() {
 
   const { organisationsList } = useGetOrganisationPaginated({});
   const { createGrave, updateGrave, deleteGrave } = useGraveMutations();
+
+  const handleExport = async (type) => {
+    setExporting(type);
+    try {
+      const data = await trpcClient.grave.getPaginated.query({
+        page: 1,
+        pageSize: 100000,
+        filterName: appliedSearch,
+        organisationIds: accessibleOrgIds,
+      });
+      const rows = data?.items ?? [];
+      if (type === "xlsx") {
+        exportRowsToExcel({
+          filename: "cemeteries",
+          columns: graveExportColumns,
+          rows,
+        });
+      } else {
+        await exportRowsToPdf({
+          filename: "cemeteries",
+          title: translate("Manage Cemetery"),
+          subtitle: currentUser?.organisation?.name
+            ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+            : undefined,
+          columns: graveExportColumns,
+          rows,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to export data"));
+    } finally {
+      setExporting(null);
+    }
+  };
 
   // Lock body scroll when form sheet or dialogs open
   useEffect(() => {
@@ -530,14 +585,40 @@ export default function MobileManageGraves() {
                 setPage(1);
               }}
             />
-            {canCreate && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={openAdd}
-                className="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-600 text-white active:opacity-80 shrink-0"
+                onClick={() => handleExport("xlsx")}
+                disabled={!!exporting}
+                title={translate("Export Excel")}
+                className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
               >
-                <Plus className="w-5 h-5" />
+                {exporting === "xlsx" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="w-4 h-4" />
+                )}
               </button>
-            )}
+              <button
+                onClick={() => handleExport("pdf")}
+                disabled={!!exporting}
+                title={translate("Export PDF")}
+                className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+              >
+                {exporting === "pdf" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+              </button>
+              {canCreate && (
+                <button
+                  onClick={openAdd}
+                  className="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-600 text-white active:opacity-80 shrink-0"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {isLoading ? (

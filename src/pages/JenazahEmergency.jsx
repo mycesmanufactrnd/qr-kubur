@@ -14,6 +14,8 @@ import BackNavigation from "@/components/BackNavigation";
 const EmergencyMosqueCard = ({ mosque, onRequest }) => {
   if (!mosque) return null;
 
+  const primaryContact = mosque.organisationcharts?.[0];
+
   return (
     <div className="bg-white dark:bg-slate-800 border border-red-100 dark:border-red-900/30 rounded-xl p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
@@ -21,10 +23,10 @@ const EmergencyMosqueCard = ({ mosque, onRequest }) => {
           <p className="font-semibold text-sm text-gray-900 dark:text-slate-100 leading-tight truncate">
             {mosque.name}
           </p>
-          {mosque.picname && (
+          {primaryContact && (
             <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
               <User className="w-3 h-3 flex-shrink-0" />
-              {mosque.picname}
+              {primaryContact.name}
             </p>
           )}
         </div>
@@ -44,9 +46,9 @@ const EmergencyMosqueCard = ({ mosque, onRequest }) => {
 
       <div className="flex gap-2 pt-1">
         <a
-          href={mosque.picphoneno ? `tel:${mosque.picphoneno}` : undefined}
+          href={primaryContact?.phoneno ? `tel:${primaryContact.phoneno}` : undefined}
           className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg ${
-            mosque.picphoneno
+            primaryContact?.phoneno
               ? "bg-green-600 hover:bg-green-700 text-white"
               : "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 pointer-events-none"
           }`}

@@ -15,6 +15,7 @@ import {
   Upload,
   Download,
   FileText,
+  X,
 } from "lucide-react";
 
 import Breadcrumb from "@/components/Breadcrumb";
@@ -74,6 +75,7 @@ import {
 } from "@/utils/defaultformfields";
 import { useForm } from "react-hook-form";
 import CheckboxForm from "@/components/forms/CheckboxForm";
+import MosqueOrganisationChartSection from "@/components/MosqueOrganisationChartSection";
 import {
   DeathCharityBasicContactFields,
   DeathCharityFeeCoverageStatusFields,
@@ -234,6 +236,30 @@ function ManageMosquesDesktop() {
 
   const photourl = watch("photourl") || "";
   const hasdeathcharity = watch("hasdeathcharity");
+  const canarrangefuneral = watch("canarrangefuneral");
+  const jenazahPaymentItems = watch("jenazahmanagementpayment") || [];
+
+  const [newPaymentItem, setNewPaymentItem] = useState("");
+  const [newPaymentPrice, setNewPaymentPrice] = useState("");
+
+  const handleAddPaymentItem = () => {
+    const item = newPaymentItem.trim();
+    const price = parseFloat(newPaymentPrice);
+    if (!item || isNaN(price) || price < 0) return;
+    setValue("jenazahmanagementpayment", [
+      ...jenazahPaymentItems,
+      { item, price },
+    ]);
+    setNewPaymentItem("");
+    setNewPaymentPrice("");
+  };
+
+  const handleRemovePaymentItem = (index) => {
+    setValue(
+      "jenazahmanagementpayment",
+      jenazahPaymentItems.filter((_, i) => i !== index),
+    );
+  };
 
   const { data: existingDeathCharity } = useGetDeathCharityByMosque(
     editingMosque?.id ?? null,
@@ -580,9 +606,6 @@ function ManageMosquesDesktop() {
               <TableRow>
                 <TableHead>{translate("Mosque name")}</TableHead>
                 <TableHead className="text-center">
-                  {translate("PIC Name")}
-                </TableHead>
-                <TableHead className="text-center">
                   {translate("State")}
                 </TableHead>
                 <TableHead className="text-center">
@@ -595,16 +618,13 @@ function ManageMosquesDesktop() {
             </TableHeader>
             <TableBody>
               {tableLoading ? (
-                <InlineLoadingComponent isTable colSpan={5} />
+                <InlineLoadingComponent isTable colSpan={4} />
               ) : tableItems.length === 0 ? (
-                <NoDataTableComponent colSpan={5} />
+                <NoDataTableComponent colSpan={4} />
               ) : (
                 tableItems.map((mosque) => (
                   <TableRow key={mosque.id}>
                     <TableCell className="font-medium">{mosque.name}</TableCell>
-                    <TableCell className="text-center">
-                      {mosque.picname}
-                    </TableCell>
                     <TableCell className="text-center">
                       {mosque.state}
                     </TableCell>
@@ -903,20 +923,10 @@ function ManageMosquesDesktop() {
                   }))}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <TextInputForm
-                    name="picname"
-                    control={control}
-                    label={translate("PIC Name")}
-                    required
-                    errors={errors}
-                  />
-                  <TextInputForm
-                    name="picphoneno"
-                    control={control}
-                    label={translate("PIC Phone No.")}
-                    required
-                    errors={errors}
+                <div className="space-y-2">
+                  <Label>{translate("Organisation Chart")}</Label>
+                  <MosqueOrganisationChartSection
+                    mosqueId={editingMosque?.id ?? null}
                   />
                 </div>
 
@@ -925,7 +935,72 @@ function ManageMosquesDesktop() {
                   control={control}
                   label={translate("Can Arrange Funeral")}
                 />
-                
+
+                {canarrangefuneral && (
+                  <div className="space-y-2 border rounded-lg p-3 dark:border-slate-600">
+                    <Label>{translate("Jenazah Management Payment")}</Label>
+                    <div className="grid grid-cols-[1fr_120px_auto] gap-2 items-end">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-stone-500 dark:text-slate-400">
+                          {translate("Item")}
+                        </Label>
+                        <Input
+                          value={newPaymentItem}
+                          onChange={(e) => setNewPaymentItem(e.target.value)}
+                          placeholder={translate("e.g. Kain Kapan")}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-stone-500 dark:text-slate-400">
+                          {translate("Price (RM)")}
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={newPaymentPrice}
+                          onChange={(e) => setNewPaymentPrice(e.target.value)}
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        onClick={handleAddPaymentItem}
+                        className="bg-stone-600 hover:bg-stone-700 text-white"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {jenazahPaymentItems.length > 0 && (
+                      <ul className="space-y-1.5 pt-1">
+                        {jenazahPaymentItems.map((p, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-center justify-between text-sm bg-stone-50 dark:bg-slate-700/50 border border-stone-100 dark:border-slate-600 rounded-lg px-3 py-1.5"
+                          >
+                            <span className="text-stone-700 dark:text-slate-200">
+                              {p.item}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-stone-800 dark:text-slate-100">
+                                RM{Number(p.price).toFixed(2)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePaymentItem(idx)}
+                                className="text-stone-400 hover:text-red-500"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
                 <CheckboxForm
                   name="haskariahregistration"
                   control={control}

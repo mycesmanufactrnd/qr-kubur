@@ -38,6 +38,8 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 import { formatRM } from "@/utils/helpers";
+import { trpcClient } from "@/utils/trpc";
+import TableExportButtons from "@/components/TableExportButtons";
 
 export default function ManageDonations() {
   const isNarrow = useIsNarrow();
@@ -45,8 +47,49 @@ export default function ManageDonations() {
   return <ManageDonationsDesktop />;
 }
 
+const donationExportColumns = [
+  {
+    key: "donorname",
+    label: translate("Donor"),
+    value: (d) => d.donorname || translate("No Name"),
+  },
+  {
+    key: "recipient",
+    label: translate("Recipient"),
+    value: (d) => d.organisation?.name ?? d.tahfizcenter?.name ?? "-",
+  },
+  {
+    key: "amount",
+    label: translate("Amount"),
+    value: (d) => formatRM(d.amount),
+  },
+  { key: "status", label: translate("Status") },
+  {
+    key: "date",
+    label: translate("Date"),
+    value: (d) =>
+      d.createdat ? new Date(d.createdat).toLocaleDateString("ms-MY") : "-",
+  },
+  {
+    key: "referenceno",
+    label: translate("Reference No"),
+    value: (d) => d.referenceno || "-",
+  },
+];
+
 function ManageDonationsDesktop() {
-  const { loadingUser, hasAdminAccess, isTahfizAdmin } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isTahfizAdmin, checkRole } =
+    useAdminAccess();
+
+  const fetchAllDonations = async () => {
+    const data = await trpcClient.donation.getPaginated.query({
+      page: 1,
+      pageSize: 100000,
+      currentUser,
+      checkRole,
+    });
+    return data?.items ?? [];
+  };
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedDonation, setSelectedDonation] = useState(null);
@@ -263,6 +306,17 @@ function ManageDonationsDesktop() {
             {translate("Manage Donations")}
           </h1>
         </div>
+        <TableExportButtons
+          fetchRows={fetchAllDonations}
+          columns={donationExportColumns}
+          filename="donations"
+          pdfTitle={translate("Manage Donations")}
+          pdfSubtitle={
+            currentUser?.organisation?.name
+              ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+              : undefined
+          }
+        />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

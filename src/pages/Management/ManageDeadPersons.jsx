@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Eye,
+  ScanText,
 } from "lucide-react";
 import { ImageViewer } from "@/components/ImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,12 +76,44 @@ import MapLocationPicker from "@/components/MapLocationPicker";
 import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { parseDobFromIcNumber } from "@/utils/helpers";
 import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
+import DeadPersonOcrDialog from "@/components/DeadPersonOcrDialog";
+import { trpcClient } from "@/utils/trpc";
+import TableExportButtons from "@/components/TableExportButtons";
 
 export default function ManageDeadPersons() {
   const isNarrow = useIsNarrow();
   if (isNarrow) return <MobileManageDeadPersons />;
   return <ManageDeadPersonsDesktop />;
 }
+
+const deadPersonExportColumns = [
+  {
+    key: "name",
+    label: translate("Full Name"),
+    value: (p) => p.name || "-",
+  },
+  {
+    key: "icnumber",
+    label: translate("IC No."),
+    value: (p) => p.icnumber || "-",
+  },
+  {
+    key: "dateofdeath",
+    label: translate("Date of Death"),
+    value: (p) =>
+      p.dateofdeath ? new Date(p.dateofdeath).toLocaleDateString("ms-MY") : "-",
+  },
+  {
+    key: "gravelot",
+    label: translate("Grave Lot"),
+    value: (p) => p.gravelot || "-",
+  },
+  {
+    key: "gravename",
+    label: translate("Cemetery Name"),
+    value: (p) => p.grave?.name || "-",
+  },
+];
 
 function ManageDeadPersonsDesktop() {
   const navigate = useNavigate();
@@ -142,6 +175,7 @@ function ManageDeadPersonsDesktop() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadDragOver, setUploadDragOver] = useState(false);
+  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
 
   const DEAD_PERSON_TEMPLATE_HEADERS = [
     "name",
@@ -279,6 +313,27 @@ function ManageDeadPersonsDesktop() {
   const { gravesList } = useGetGravePaginated({
     organisationIds: accessibleOrgIds,
   });
+
+  const fetchAllDeadPersons = async () => {
+    const data = await trpcClient.deadperson.getPaginated.query({
+      page: 1,
+      pageSize: 100000,
+      filterName: urlName,
+      filterIC: urlIC,
+      filterGrave: Number(urlGrave) || undefined,
+      filterGraveLot: urlGraveLot || undefined,
+      filterState: urlState || undefined,
+      dateFrom: urlDateFrom,
+      dateTo: urlDateTo,
+      organisationIds: accessibleOrgIds,
+      sortField: urlSortField || undefined,
+      sortOrder:
+        urlSortOrder === "ASC" || urlSortOrder === "DESC"
+          ? urlSortOrder
+          : undefined,
+    });
+    return data?.items ?? [];
+  };
 
   useEffect(() => {
     if (!followGraveLocation || !graveValue) return;
@@ -470,6 +525,18 @@ function ManageDeadPersonsDesktop() {
           {translate("Manage Deceased")}
         </h1>
 
+        <TableExportButtons
+          fetchRows={fetchAllDeadPersons}
+          columns={deadPersonExportColumns}
+          filename="deceased-records"
+          pdfTitle={translate("Manage Deceased")}
+          pdfSubtitle={
+            currentUser?.organisation?.name
+              ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+              : undefined
+          }
+        />
+
         {canCreate && (
           <div>
             <Button
@@ -481,6 +548,13 @@ function ManageDeadPersonsDesktop() {
             >
               <Upload className="w-4 h-4 mr-2" />
               {translate("Upload New")}
+            </Button>
+            <Button
+              onClick={() => setOcrDialogOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 mr-2 text-white"
+            >
+              <ScanText className="w-4 h-4 mr-2" />
+              {translate("Add by Photo")}
             </Button>
             <Button
               onClick={openAddDialog}
@@ -1066,6 +1140,12 @@ function ManageDeadPersonsDesktop() {
         open={qrDialogOpen}
         onOpenChange={setQRDialogOpen}
         data={qrPerson}
+      />
+
+      <DeadPersonOcrDialog
+        open={ocrDialogOpen}
+        onOpenChange={setOcrDialogOpen}
+        onSaved={refetchDeadPersons}
       />
     </div>
   );

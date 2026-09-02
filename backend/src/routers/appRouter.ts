@@ -25,6 +25,7 @@ import { toyyibPayRouter } from "./toyyibPayRouter.js";
 import { runningNoRouter } from "./runningNoRouter.js";
 import { billplzRouter } from "./billplzRouter.js";
 import { mosqueRouter } from "./mosqueRouter.js";
+import { mosqueOrganisationChartRouter } from "./mosqueOrganisationChartRouter.js";
 import { activityPostRouter } from "./activityPostRouter.js";
 import { islamicEventRouter } from "./islamicEventRouter.js";
 import { waqfProjectRouter } from "./waqfProjectRouter.js";
@@ -50,6 +51,7 @@ import { kariahNotificationRouter } from "./kariahNotificationRouter.js";
 import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
 import { kariahDeviceRouter } from "./kariahDeviceRouter.js";
 import { graveMappingRouter } from "./graveMappingRouter.js";
+import { familyTreeRouter } from "./familyTreeRouter.js";
 
 export const appRouter = trpcRouter({
   ollama: ollamaRouter,
@@ -79,8 +81,10 @@ export const appRouter = trpcRouter({
   visitLogs: visitLogsRouter,
   notification: notificationRouter,
   deadperson: deadPersonRouter,
+  familyTree: familyTreeRouter,
   billplz: billplzRouter,
   mosque: mosqueRouter,
+  mosqueOrganisationChart: mosqueOrganisationChartRouter,
   activityPost: activityPostRouter,
   islamicEvent: islamicEventRouter,
   waqfProject: waqfProjectRouter,

@@ -9,6 +9,7 @@ import {
   Trash2,
   Info,
   CheckCircle2,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,14 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import BackNavigation from "@/components/BackNavigation";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
@@ -108,6 +117,16 @@ export default function TahlilRequestPage() {
     return params.get("tahfiz") || "";
   }, []);
 
+  const preSelectedDeadPersonId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("deadpersonId") || "";
+  }, []);
+
+  const { data: preSelectedDeadPerson } = trpc.deadperson.getDeadPersonById.useQuery(
+    { id: Number(preSelectedDeadPersonId) },
+    { enabled: !!preSelectedDeadPersonId },
+  );
+
   const hasPreselectedTahfiz = !!preSelectedTahfiz;
 
   const { data: tahfizById } = useGetTahfizById(
@@ -156,6 +175,13 @@ export default function TahlilRequestPage() {
       setValue("requestoremail", googleUser?.email ?? "");
     }
   }, [googleUser]);
+
+  useEffect(() => {
+    if (!preSelectedDeadPerson?.name) return;
+    const current = (watch("deceasednames") || []).filter((n) => n.trim());
+    if (current.includes(preSelectedDeadPerson.name)) return;
+    setValue("deceasednames", [...current, preSelectedDeadPerson.name]);
+  }, [preSelectedDeadPerson]);
 
   useEffect(() => {
     const saved = localStorage.getItem("userphoneno");
@@ -384,6 +410,35 @@ export default function TahlilRequestPage() {
     );
     if (value === CUSTOM_SERVICE_KEY && isSelected)
       setValue("customservice", "");
+  };
+
+  const [familyPickerOpen, setFamilyPickerOpen] = useState(false);
+  const [selectedFamilyIds, setSelectedFamilyIds] = useState([]);
+
+  const { data: familyMembers = [] } = trpc.familyTree.getByGoogleUser.useQuery(
+    { googleUserId: googleUser?.id ?? null },
+    { enabled: !!googleUser?.id && familyPickerOpen },
+  );
+
+  const toggleFamilyId = (id) => {
+    setSelectedFamilyIds((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
+    );
+  };
+
+  const handleConfirmFamilyPicker = () => {
+    const namesToAdd = familyMembers
+      .filter((m) => selectedFamilyIds.includes(m.id))
+      .map((m) => m.deadperson?.name)
+      .filter(Boolean);
+    const current = (watch("deceasednames") || []).filter((n) => n.trim());
+    const merged = [
+      ...current,
+      ...namesToAdd.filter((n) => !current.includes(n)),
+    ];
+    setValue("deceasednames", merged.length ? merged : [""]);
+    setSelectedFamilyIds([]);
+    setFamilyPickerOpen(false);
   };
 
   const handleAddDeceased = () =>
@@ -636,13 +691,24 @@ export default function TahlilRequestPage() {
               <p className="text-[11px] font-semibold uppercase tracking-widest text-rose-500">
                 {translate("Deceased Information")}
               </p>
-              <button
-                type="button"
-                onClick={handleAddDeceased}
-                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 active:opacity-70 transition-opacity"
-              >
-                <Plus className="w-3 h-3" /> {translate("Add")}
-              </button>
+              <div className="flex items-center gap-1.5">
+                {!!googleUser?.id && (
+                  <button
+                    type="button"
+                    onClick={() => setFamilyPickerOpen(true)}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 active:opacity-70 transition-opacity"
+                  >
+                    <Users className="w-3 h-3" /> {translate("Family Tree")}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleAddDeceased}
+                  className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 active:opacity-70 transition-opacity"
+                >
+                  <Plus className="w-3 h-3" /> {translate("Add")}
+                </button>
+              </div>
             </div>
             <div className="p-4 space-y-2">
               {deceasedNames && deceasedNames.length === 0 ? (
@@ -921,6 +987,69 @@ export default function TahlilRequestPage() {
           localStorage.setItem("userphoneno", pendingPhone);
         }}
       />
+
+      <Dialog
+        open={familyPickerOpen}
+        onOpenChange={(v) => {
+          if (!v) setSelectedFamilyIds([]);
+          setFamilyPickerOpen(v);
+        }}
+      >
+        <DialogContent className="max-w-sm dark:bg-slate-800">
+          <DialogHeader>
+            <DialogTitle>{translate("Select from Family Tree")}</DialogTitle>
+          </DialogHeader>
+          {familyMembers.length === 0 ? (
+            <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">
+              {translate("No family members saved yet")}
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {familyMembers.map((member) => (
+                <label
+                  key={member.id}
+                  className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                >
+                  <Checkbox
+                    checked={selectedFamilyIds.includes(member.id)}
+                    onCheckedChange={() => toggleFamilyId(member.id)}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
+                      {member.deadperson?.name ?? "-"}
+                    </p>
+                    {member.deadperson?.grave?.name && (
+                      <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                        {member.deadperson.grave.name}
+                      </p>
+                    )}
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSelectedFamilyIds([]);
+                setFamilyPickerOpen(false);
+              }}
+            >
+              {translate("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={selectedFamilyIds.length === 0}
+              onClick={handleConfirmFamilyPicker}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              {translate("Add Selected")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -9,7 +9,6 @@ import {
   X,
   Save,
   Navigation,
-  MapPin,
 } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
 import Pagination from "@/components/Pagination";
@@ -42,6 +41,7 @@ import {
   defaultMosqueDeathCharityEmbeddedField,
 } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import MosqueOrganisationChartSection from "@/components/MosqueOrganisationChartSection";
 import {
   DeathCharityBasicContactFields,
   DeathCharityFeeCoverageStatusFields,
@@ -73,16 +73,6 @@ function MosqueCard({ mosque, canEdit, canDelete, onEdit, onDelete }) {
               {mosque.state}
             </span>
           )}
-        </div>
-
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-          {mosque.picname && (
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {mosque.picname}
-            </span>
-          )}
-          {mosque.picphoneno && <span>{mosque.picphoneno}</span>}
         </div>
 
         {(mosque.canarrangefuneral ||
@@ -164,6 +154,30 @@ function MosqueFormSheet({
   });
 
   const hasdeathcharity = watch("hasdeathcharity");
+  const canarrangefuneral = watch("canarrangefuneral");
+  const jenazahPaymentItems = watch("jenazahmanagementpayment") || [];
+
+  const [newPaymentItem, setNewPaymentItem] = useState("");
+  const [newPaymentPrice, setNewPaymentPrice] = useState("");
+
+  const handleAddPaymentItem = () => {
+    const item = newPaymentItem.trim();
+    const price = parseFloat(newPaymentPrice);
+    if (!item || isNaN(price) || price < 0) return;
+    setValue("jenazahmanagementpayment", [
+      ...jenazahPaymentItems,
+      { item, price },
+    ]);
+    setNewPaymentItem("");
+    setNewPaymentPrice("");
+  };
+
+  const handleRemovePaymentItem = (index) => {
+    setValue(
+      "jenazahmanagementpayment",
+      jenazahPaymentItems.filter((_, i) => i !== index),
+    );
+  };
 
   useEffect(() => {
     if (editing && existingDeathCharity) {
@@ -277,21 +291,11 @@ function MosqueFormSheet({
           placeholder={translate("Select Organisation")}
           options={orgOptions}
         />
-        <div className="grid grid-cols-2 gap-3">
-          <TextInputForm
-            name="picname"
-            control={control}
-            label={translate("PIC Name")}
-            required
-            errors={errors}
-          />
-          <TextInputForm
-            name="picphoneno"
-            control={control}
-            label={translate("PIC Phone No.")}
-            required
-            errors={errors}
-          />
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            {translate("Organisation Chart")}
+          </p>
+          <MosqueOrganisationChartSection mosqueId={editing?.id ?? null} />
         </div>
         <div className="space-y-2">
           <CheckboxForm
@@ -299,6 +303,65 @@ function MosqueFormSheet({
             control={control}
             label={translate("Can Arrange Funeral")}
           />
+
+          {canarrangefuneral && (
+            <div className="space-y-2 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                {translate("Jenazah Management Payment")}
+              </p>
+              <div className="flex items-end gap-2">
+                <input
+                  value={newPaymentItem}
+                  onChange={(e) => setNewPaymentItem(e.target.value)}
+                  placeholder={translate("e.g. Kain Kapan")}
+                  className="flex-1 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 text-sm"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newPaymentPrice}
+                  onChange={(e) => setNewPaymentPrice(e.target.value)}
+                  placeholder="0.00"
+                  className="w-24 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddPaymentItem}
+                  className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-stone-600 text-white active:opacity-80"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              {jenazahPaymentItems.length > 0 && (
+                <ul className="space-y-1.5 pt-1">
+                  {jenazahPaymentItems.map((p, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center justify-between text-sm bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg px-3 py-1.5"
+                    >
+                      <span className="text-slate-700 dark:text-slate-200">
+                        {p.item}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">
+                          RM{Number(p.price).toFixed(2)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePaymentItem(idx)}
+                          className="text-slate-400 hover:text-red-500"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           <CheckboxForm
             name="haskariahregistration"
             control={control}

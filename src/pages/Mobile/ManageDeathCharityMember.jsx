@@ -18,8 +18,9 @@ import {
   Info,
   XCircle,
   CheckCircle,
-  Phone,
   Building2,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ import CheckboxForm from "@/components/forms/CheckboxForm";
 import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 import { formatICNumber } from "@/utils/helpers";
 import { ClaimStatus } from "@/utils/enums";
 import { createPageUrl } from "@/utils";
@@ -48,6 +49,36 @@ import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMut
 import { useDeathCharityClaimMutations } from "@/mutations/useDeathCharityClaimMutations";
 import { defaultDeathCharityMemberField } from "@/utils/defaultformfields";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import { showError } from "@/components/ToastrNotification";
+import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
+
+const deathCharityMemberExportColumns = [
+  {
+    key: "fullname",
+    label: translate("Full Name"),
+    value: (m) => m.fullname || "-",
+  },
+  {
+    key: "icnumber",
+    label: translate("IC No."),
+    value: (m) => m.icnumber || "-",
+  },
+  {
+    key: "phone",
+    label: translate("Phone"),
+    value: (m) => m.phone || "-",
+  },
+  {
+    key: "deathcharity",
+    label: translate("Death Charity"),
+    value: (m) => m.deathcharity?.name || "-",
+  },
+  {
+    key: "status",
+    label: translate("Status"),
+    value: (m) => (m.isactive ? translate("Active") : translate("Inactive")),
+  },
+];
 
 function MemberCard({
   item,
@@ -315,15 +346,6 @@ function MemberFormSheet({
                           rec.deathcharity?.organisation?.name ||
                           "—"}
                       </p>
-                      {(rec.mosque?.picname || rec.mosque?.picphoneno) && (
-                        <p className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                          <Phone className="w-3.5 h-3.5 shrink-0" />
-                          {translate("PIC")}: {rec.mosque?.picname || "—"}
-                          {rec.mosque?.picphoneno
-                            ? ` (${rec.mosque.picphoneno})`
-                            : ""}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -872,7 +894,7 @@ function ClaimSheet({
 
 export default function ManageDeathCharityMember() {
   const navigate = useNavigate();
-  const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess } = useAdminAccess();
   const {
     loading: permissionsLoading,
     canView,
@@ -885,6 +907,7 @@ export default function ManageDeathCharityMember() {
   const [itemsPerPage] = useState(10);
 
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [exporting, setExporting] = useState(null);
 
   const [formSheet, setFormSheet] = useState(null);
   const [coverageSheet, setCoverageSheet] = useState(null);
@@ -897,6 +920,40 @@ export default function ManageDeathCharityMember() {
       pageSize: itemsPerPage,
       filterFullName: appliedSearch,
     });
+
+  const handleExport = async (type) => {
+    setExporting(type);
+    try {
+      const data = await trpcClient.deathCharityMember.getPaginated.query({
+        page: 1,
+        pageSize: 100000,
+        filterFullName: appliedSearch,
+      });
+      const rows = data?.items ?? [];
+      if (type === "xlsx") {
+        exportRowsToExcel({
+          filename: "death-charity-members",
+          columns: deathCharityMemberExportColumns,
+          rows,
+        });
+      } else {
+        await exportRowsToPdf({
+          filename: "death-charity-members",
+          title: translate("Death Charity Member"),
+          subtitle: currentUser?.organisation?.name
+            ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+            : undefined,
+          columns: deathCharityMemberExportColumns,
+          rows,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to export data"));
+    } finally {
+      setExporting(null);
+    }
+  };
 
   const { data: deathCharityList = [] } = useGetDeathCharityByOrganisation();
 
@@ -1046,6 +1103,30 @@ export default function ManageDeathCharityMember() {
 
       <div className="max-w-2xl mx-auto px-3 space-y-3">
         <div className="flex items-center gap-2 pt-1">
+          <button
+            onClick={() => handleExport("xlsx")}
+            disabled={!!exporting}
+            title={translate("Export Excel")}
+            className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+          >
+            {exporting === "xlsx" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            onClick={() => handleExport("pdf")}
+            disabled={!!exporting}
+            title={translate("Export PDF")}
+            className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+          >
+            {exporting === "pdf" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+          </button>
           <AdvancedFilters
             parameter={[
               {

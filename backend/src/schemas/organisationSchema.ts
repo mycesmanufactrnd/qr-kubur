@@ -41,5 +41,6 @@ export const organisationSchema = z.object({
   canmanagegrave: z.boolean().default(false),
   canmanagemosque: z.boolean().default(false),
   isgraveservices: z.boolean().default(false),
+  graverules: z.array(z.string()).nullable().optional(),
   status: z.enum(ActiveInactiveStatus).optional(),
 });

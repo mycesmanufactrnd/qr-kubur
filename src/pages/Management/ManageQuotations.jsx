@@ -53,9 +53,52 @@ import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { formatRM } from "@/utils/helpers";
 import { useGetOnlineTransaction } from "@/mutations/usePaymentDistributionMutation";
 import { showError } from "@/components/ToastrNotification";
+import { trpcClient } from "@/utils/trpc";
+import TableExportButtons from "@/components/TableExportButtons";
+
+const quotationExportColumns = [
+  {
+    key: "payername",
+    label: translate("Payer"),
+    value: (q) => q.payername || translate("No Name"),
+  },
+  {
+    key: "referenceno",
+    label: translate("Reference No"),
+    value: (q) => q.referenceno || "-",
+  },
+  {
+    key: "organisation",
+    label: translate("Organisation"),
+    value: (q) => q.organisation?.name || "-",
+  },
+  {
+    key: "services",
+    label: translate("Services"),
+    value: (q) => (q.selectedservices || []).length,
+  },
+  {
+    key: "totalamount",
+    label: translate("Total Amount"),
+    value: (q) =>
+      formatRM(
+        q.serviceamount != null
+          ? Number(q.serviceamount) * ORG_SHARE
+          : q.totalamount,
+      ),
+  },
+  { key: "status", label: translate("Status") },
+  {
+    key: "date",
+    label: translate("Date"),
+    value: (q) =>
+      q.createdat ? new Date(q.createdat).toLocaleDateString("ms-MY") : "-",
+  },
+];
 
 function ManageQuotationsDesktop() {
-  const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
+    useAdminAccess();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
@@ -123,6 +166,20 @@ function ManageQuotationsDesktop() {
     dateFrom: urlDateFrom || null,
     dateTo: urlDateTo || null,
   });
+
+  const fetchAllQuotations = async () => {
+    const data = await trpcClient.quotation.getPaginated.query({
+      page: 1,
+      pageSize: 100000,
+      currentUserOrganisation: currentUser?.organisation?.id ?? null,
+      isSuperAdmin,
+      filterStatus: urlStatus || null,
+      filterService: urlService || null,
+      dateFrom: urlDateFrom || null,
+      dateTo: urlDateTo || null,
+    });
+    return data?.items ?? [];
+  };
 
   const updateMutation = useUpdateQuotation();
 
@@ -421,6 +478,17 @@ function ManageQuotationsDesktop() {
           <FileText className="w-6 h-6 text-sky-600" />
           {translate("Manage Quotations")}
         </h1>
+        <TableExportButtons
+          fetchRows={fetchAllQuotations}
+          columns={quotationExportColumns}
+          filename="quotations"
+          pdfTitle={translate("Manage Quotations")}
+          pdfSubtitle={
+            currentUser?.organisation?.name
+              ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+              : undefined
+          }
+        />
       </div>
 
       <SearchBar

@@ -17,6 +17,7 @@ export default function TextInputForm({
   rows = 3,
   isNumber = false,
   isDate = false,
+  isTime = false,
   isPhone = false,
   isEmail = false,
   isMoney = false,
@@ -80,7 +81,9 @@ export default function TextInputForm({
             <div className="relative">
               <Input
                 {...field}
-                type={isNumber ? "number" : isDate ? "date" : "text"}
+                type={
+                  isNumber ? "number" : isDate ? "date" : isTime ? "time" : "text"
+                }
                 disabled={disabled}
                 step={isNumber ? step || "any" : undefined}
                 placeholder={placeholder}

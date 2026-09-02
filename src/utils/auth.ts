@@ -430,7 +430,11 @@ export function userGoogleAccess() {
   };
 }
 
-export function useLoginGoogle() {
+export function useLoginGoogle(options?: {
+  redirectOnSuccess?: boolean;
+  onLoginSuccess?: (user: any) => void;
+}) {
+  const { redirectOnSuccess = true, onLoginSuccess } = options ?? {};
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -441,9 +445,9 @@ export function useLoginGoogle() {
       setStoredGoogleAuth(data.user);
       try {
         const { initFCM } = await import("@/firebase/firebase");
-        
+
         const fcmGoogleToken = await initFCM();
-        
+
         if (fcmGoogleToken && data.user?.id) {
           trpcClient.google.saveDeviceToken
             .mutate({ googleUserId: Number(data.user.id), fcmGoogleToken })
@@ -452,7 +456,10 @@ export function useLoginGoogle() {
       } catch (e) {
         console.error("[FCM] FCM registration after login failed:", e);
       }
-      navigate(createPageUrl("UserDashboard"));
+      onLoginSuccess?.(data.user);
+      if (redirectOnSuccess) {
+        navigate(createPageUrl("UserDashboard"));
+      }
     },
     onError: (err) => {
       setLoading(false);

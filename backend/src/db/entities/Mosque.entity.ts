@@ -11,6 +11,7 @@ import {
 import { Organisation } from "./Organisation.entity.js";
 import { User } from "./User.entity.js";
 import { ActivityPost } from "./ActivityPosts.entity.js";
+import { MosqueOrganisationChart } from "./MosqueOrganisationChart.entity.js";
 
 @Entity("mosque")
 export class Mosque {
@@ -44,11 +45,11 @@ export class Mosque {
   })
   organisation?: Organisation | null;
 
-  @Column("varchar", { length: 255, nullable: true })
-  picname?: string;
-
-  @Column("varchar", { nullable: true })
-  picphoneno?: string;
+  @OneToMany(
+    () => MosqueOrganisationChart,
+    (organisationchart) => organisationchart.mosque,
+  )
+  organisationcharts?: MosqueOrganisationChart[];
 
   @Column("boolean", { default: false })
   canarrangefuneral!: boolean;
@@ -68,6 +69,9 @@ export class Mosque {
   @Column("varchar", { length: 255, nullable: true })
   photourl?: string;
 
+  @Column("jsonb", { nullable: true })
+  jenazahmanagementpayment?: { item: string; price: number }[] | null;
+  
   @Column("integer", { nullable: true })
   createdbyId?: number | null;
 

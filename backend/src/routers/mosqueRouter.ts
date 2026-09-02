@@ -12,7 +12,7 @@ export const mosqueRouter = router({
       if (!input.id) return null;
       return await AppDataSource.getRepository(Mosque).findOne({
         where: { id: input.id },
-        relations: ["organisation"],
+        relations: ["organisation", "organisationcharts"],
       });
     }),
 
@@ -48,7 +48,8 @@ export const mosqueRouter = router({
       const mosqueRepo = AppDataSource.getRepository(Mosque);
       const query = mosqueRepo
         .createQueryBuilder("mosque")
-        .leftJoinAndSelect("mosque.organisation", "organisation");
+        .leftJoinAndSelect("mosque.organisation", "organisation")
+        .leftJoinAndSelect("mosque.organisationcharts", "organisationcharts");
 
       if (input.filters) {
         for (const [key, value] of Object.entries(input.filters)) {

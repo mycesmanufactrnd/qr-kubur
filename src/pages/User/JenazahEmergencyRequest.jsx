@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import TextInputForm from "@/components/forms/TextInputForm";
 import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
@@ -26,14 +28,17 @@ import {
   AlertTriangle,
   MapPin,
   Download,
+  CreditCard,
+  ListChecks,
 } from "lucide-react";
-import { trpc } from "@/utils/trpc";
+import { trpc, trpcClient } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import { CARE_SCENARIOS, STATES_MY, JenazahCaseStatus } from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultJenazahRequestField } from "@/utils/defaultformfields";
 import { translate } from "@/utils/translations";
 import { getStoredGoogleUser } from "@/utils/auth";
+import { formatRM } from "@/utils/helpers";
 import { generateJenazahCasePdf } from "@/components/PDF/JenazahCase";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
@@ -142,6 +147,26 @@ export default function JenazahEmergencyRequest() {
     if (picked) setMosque(picked);
   }, [pickerMosqueId, pickerMosques]);
 
+  const [fullMosque, setFullMosque] = useState(null);
+  useEffect(() => {
+    if (!mosque?.id) {
+      setFullMosque(null);
+      return;
+    }
+    let cancelled = false;
+    trpcClient.mosque.getMosqueById
+      .query({ id: mosque.id })
+      .then((data) => {
+        if (!cancelled) setFullMosque(data);
+      })
+      .catch(() => {
+        if (!cancelled) setFullMosque(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mosque?.id]);
+
   const handleChangeMosque = () => {
     setMosque(null);
     setPickerValue("mosqueId", "");
@@ -186,6 +211,38 @@ export default function JenazahEmergencyRequest() {
   const [currentCoords, setCurrentCoords] = useState(null);
   const [fetchingLocation, setFetchingLocation] = useState(false);
   const [submittedCase, setSubmittedCase] = useState(null);
+
+  const [isFamilyOfKariah, setIsFamilyOfKariah] = useState(false);
+  const [searchedFamilyKariahIc, setSearchedFamilyKariahIc] = useState("");
+  const [familyKariahManualName, setFamilyKariahManualName] = useState("");
+
+  const familyKariahIcSearch = watch("familyKariahIcSearch");
+
+  const familyKariahQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
+    { icnumber: searchedFamilyKariahIc, mosqueId: mosque?.id },
+    { enabled: !!searchedFamilyKariahIc, staleTime: 0 },
+  );
+  const familyKariahMember = familyKariahQuery.data ?? null;
+  const isFamilyKariahSearching = familyKariahQuery.isFetching;
+  const hasFamilyKariahSearched = !!searchedFamilyKariahIc;
+
+  const handleSearchFamilyKariahIc = () => {
+    const ic = (familyKariahIcSearch ?? "").replace(/-/g, "").trim();
+    if (!ic) return;
+    setSearchedFamilyKariahIc(ic);
+  };
+
+  const handleToggleFamilyOfKariah = () => {
+    setIsFamilyOfKariah((prev) => {
+      const next = !prev;
+      if (!next) {
+        setValue("familyKariahIcSearch", "");
+        setSearchedFamilyKariahIc("");
+        setFamilyKariahManualName("");
+      }
+      return next;
+    });
+  };
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
@@ -355,6 +412,19 @@ export default function JenazahEmergencyRequest() {
     setPageStep(2);
   };
 
+  const handleNextFromStep2 = async () => {
+    const valid = await trigger([
+      "fullname",
+      "heirname",
+      "heirphoneno",
+      "causeofdeath",
+      "deathconfirmationphotourl",
+      "policereportphotourl",
+    ]);
+    if (!valid) return;
+    setPageStep(3);
+  };
+
   const onInvalid = (formErrors) => {
     if (formErrors.burialdate || formErrors.careScenarioOther) {
       showApiError({
@@ -363,6 +433,13 @@ export default function JenazahEmergencyRequest() {
         ),
       });
       setPageStep(1);
+      return;
+    }
+    if (Object.keys(formErrors).length > 0) {
+      showApiError({
+        message: translate("Please complete the required fields."),
+      });
+      setPageStep(2);
     }
   };
 
@@ -426,10 +503,19 @@ export default function JenazahEmergencyRequest() {
       careScenarioOther:
         careScenario === "other" ? data.careScenarioOther?.trim() : null,
       burialDate: data.burialdate,
+      burialTime: data.burialtime || null,
+      burialTimeNote: data.burialtimenote?.trim() || null,
       pickupLat: currentCoords?.lat ?? null,
       pickupLng: currentCoords?.lng ?? null,
       heirname: data.heirname?.trim() || null,
       heirphoneno: data.heirphoneno?.trim() || null,
+      isFamilyOfKariah,
+      familyKariahMemberName: isFamilyOfKariah
+        ? familyKariahMember?.fullname || familyKariahManualName?.trim() || null
+        : null,
+      familyKariahMemberIc: isFamilyOfKariah
+        ? familyKariahMember?.icnumber || searchedFamilyKariahIc || null
+        : null,
     };
 
     const googleUser = getStoredGoogleUser();
@@ -455,8 +541,14 @@ export default function JenazahEmergencyRequest() {
             heirname: data.heirname,
             heirphoneno: data.heirphoneno,
             burialdate: data.burialdate,
+            burialtime: data.burialtime,
+            burialtimenote: data.burialtimenote,
             mosqueName: mosque?.name,
             mosqueAddress: mosque?.address,
+            jenazahPayment: fullMosque?.jenazahmanagementpayment ?? null,
+            graveRules: fullMosque?.organisation?.canmanagegrave
+              ? (fullMosque?.organisation?.graverules ?? null)
+              : null,
           });
         },
       },
@@ -522,6 +614,78 @@ export default function JenazahEmergencyRequest() {
               "Please save this reference number to check your application status.",
             )}
           </p>
+
+          <div className="w-full flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 text-left">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {translate(
+                "Please bring a softcopy of the Death Confirmation letter and Police Report, along with any related supporting documents, when you go to the mosque.",
+              )}
+            </p>
+          </div>
+
+          {submittedCase.jenazahPayment?.length > 0 && (
+            <div className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden text-left">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/40">
+                <CreditCard className="w-4 h-4 text-emerald-600" />
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                  {translate("Jenazah Management Payment")}
+                </p>
+              </div>
+              <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                {submittedCase.jenazahPayment.map((p, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between px-4 py-2 text-sm"
+                  >
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {p.item}
+                    </span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">
+                      {formatRM(p.price)}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between px-4 py-2.5 text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20">
+                  <span className="text-emerald-700 dark:text-emerald-400">
+                    {translate("Total")}
+                  </span>
+                  <span className="text-emerald-700 dark:text-emerald-400">
+                    {formatRM(
+                      submittedCase.jenazahPayment.reduce(
+                        (sum, p) => sum + (Number(p.price) || 0),
+                        0,
+                      ),
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {submittedCase.graveRules?.length > 0 && (
+            <div className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden text-left">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/40">
+                <ListChecks className="w-4 h-4 text-emerald-600" />
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                  {translate("Grave Placement Rules")}
+                </p>
+              </div>
+              <ul className="p-4 space-y-2">
+                {submittedCase.graveRules.map((rule, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"
+                  >
+                    <span className="text-emerald-600 font-semibold shrink-0">
+                      {i + 1}.
+                    </span>
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="w-full flex flex-col gap-2 pt-2">
             <Button
@@ -823,6 +987,24 @@ export default function JenazahEmergencyRequest() {
                     required
                     errors={errors}
                   />
+                  <div className="grid grid-cols-2 gap-3">
+                    <TextInputForm
+                      name="burialtime"
+                      control={control}
+                      label={translate("Burial Time")}
+                      isTime
+                      errors={errors}
+                    />
+                    <TextInputForm
+                      name="burialtimenote"
+                      control={control}
+                      label={translate("Or Describe the Time")}
+                      placeholder={translate(
+                        "e.g. Selepas Maghrib, Selepas Isyak",
+                      )}
+                      errors={errors}
+                    />
+                  </div>
                 </div>
               </>
             )}
@@ -994,6 +1176,89 @@ export default function JenazahEmergencyRequest() {
                     placeholder={translate("Cause of death, if known")}
                   />
 
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={isFamilyOfKariah}
+                        onCheckedChange={handleToggleFamilyOfKariah}
+                        className="mt-0.5"
+                      />
+                      <span className="text-sm text-slate-700 dark:text-slate-300">
+                        {translate(
+                          "This jenazah is a family member of a registered Kariah member",
+                        )}
+                      </span>
+                    </label>
+
+                    {isFamilyOfKariah && (
+                      <div className="pl-6 space-y-2">
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <TextInputForm
+                              name="familyKariahIcSearch"
+                              control={control}
+                              label={translate("Registered Kariah Member's IC No.")}
+                              isICNumber
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={handleSearchFamilyKariahIc}
+                            disabled={
+                              isFamilyKariahSearching ||
+                              !familyKariahIcSearch.replace(/-/g, "").trim()
+                            }
+                            size="sm"
+                            variant="outline"
+                            className="h-10 px-3 mb-0.5"
+                          >
+                            {isFamilyKariahSearching ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Search className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+
+                        {hasFamilyKariahSearched &&
+                          !isFamilyKariahSearching &&
+                          familyKariahMember && (
+                            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                              <p className="text-sm text-slate-700 dark:text-slate-200">
+                                {familyKariahMember.fullname}
+                              </p>
+                            </div>
+                          )}
+
+                        {hasFamilyKariahSearched &&
+                          !isFamilyKariahSearching &&
+                          !familyKariahMember && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2">
+                                <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                <p className="text-xs text-amber-700 dark:text-amber-400">
+                                  {translate(
+                                    "No registered Kariah member found with this IC number.",
+                                  )}
+                                </p>
+                              </div>
+                              <Input
+                                value={familyKariahManualName}
+                                onChange={(e) =>
+                                  setFamilyKariahManualName(e.target.value)
+                                }
+                                placeholder={translate(
+                                  "Registered Kariah Member's Name",
+                                )}
+                                className="h-10"
+                              />
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </div>
+
                   <TextInputForm
                     name="userremarks"
                     control={control}
@@ -1048,6 +1313,93 @@ export default function JenazahEmergencyRequest() {
           </>
         )}
 
+        {mosque && pageStep === 3 && (
+          <>
+            <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
+              {translate("Review & Confirmation")}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {translate(
+                "Please review the funeral management payment and grave placement rules before submitting your application.",
+              )}
+            </p>
+
+            {fullMosque?.jenazahmanagementpayment?.length > 0 && (
+              <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/40">
+                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                    {translate("Jenazah Management Payment")}
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {fullMosque.jenazahmanagementpayment.map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between px-4 py-2 text-sm"
+                    >
+                      <span className="text-slate-600 dark:text-slate-300">
+                        {p.item}
+                      </span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-100">
+                        {formatRM(p.price)}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between px-4 py-2.5 text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20">
+                    <span className="text-emerald-700 dark:text-emerald-400">
+                      {translate("Total")}
+                    </span>
+                    <span className="text-emerald-700 dark:text-emerald-400">
+                      {formatRM(
+                        fullMosque.jenazahmanagementpayment.reduce(
+                          (sum, p) => sum + (Number(p.price) || 0),
+                          0,
+                        ),
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {fullMosque?.organisation?.canmanagegrave &&
+              fullMosque?.organisation?.graverules?.length > 0 && (
+                <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/40">
+                    <ListChecks className="w-4 h-4 text-emerald-600" />
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                      {translate("Grave Placement Rules")}
+                    </p>
+                  </div>
+                  <ul className="p-4 space-y-2">
+                    {fullMosque.organisation.graverules.map((rule, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"
+                      >
+                        <span className="text-emerald-600 font-semibold shrink-0">
+                          {i + 1}.
+                        </span>
+                        <span>{rule}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+            {!(fullMosque?.jenazahmanagementpayment?.length > 0) &&
+              !(
+                fullMosque?.organisation?.canmanagegrave &&
+                fullMosque?.organisation?.graverules?.length > 0
+              ) && (
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">
+                  {translate("No additional payment or rules to display.")}
+                </p>
+              )}
+          </>
+        )}
+
         {mosque && (
           <div className="flex gap-2 pt-2 pb-6">
             {pageStep === 1 ? (
@@ -1070,12 +1422,36 @@ export default function JenazahEmergencyRequest() {
                   {translate("Next")}
                 </Button>
               </>
-            ) : (
+            ) : pageStep === 2 ? (
               <>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setPageStep(1)}
+                  className="flex-1"
+                >
+                  {translate("Back")}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleNextFromStep2}
+                  disabled={
+                    !hasSearched ||
+                    isSearching ||
+                    isCaseApproved ||
+                    isCaseBlocking
+                  }
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                >
+                  {translate("Next")}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPageStep(2)}
                   className="flex-1"
                 >
                   {translate("Back")}

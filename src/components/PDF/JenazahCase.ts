@@ -156,6 +156,10 @@ export async function generateJenazahCasePdf(data) {
     { label: "No. Kad Pengenalan", value: data.icnumber },
     { label: "No. Telefon", value: data.phone },
     { label: "Tarikh Pengebumian", value: data.burialdate },
+    {
+      label: "Masa Pengebumian",
+      value: [data.burialtime, data.burialtimenote].filter(Boolean).join(" — ") || null,
+    },
   ]);
 
   drawSection("Maklumat Masjid", [
@@ -167,6 +171,112 @@ export async function generateJenazahCasePdf(data) {
     { label: "Nama Waris", value: data.heirname },
     { label: "No. Tel. Waris", value: data.heirphoneno },
   ]);
+
+  if (data.jenazahPayment?.length > 0) {
+    ensureSpace(14);
+    doc.setFillColor(...PRIMARY);
+    doc.rect(marginX, y, contentWidth, 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text("BAYARAN PENGURUSAN JENAZAH", marginX + 3, y + 5.5);
+    y += 8;
+
+    const priceColWidth = 35;
+    const itemColWidth = contentWidth - priceColWidth;
+    const rowHeight = 8;
+
+    let total = 0;
+    data.jenazahPayment.forEach((p, i) => {
+      const price = Number(p.price) || 0;
+      total += price;
+
+      ensureSpace(rowHeight);
+      const bg = i % 2 === 0 ? [255, 255, 255] : ROW_ALT_BG;
+      doc.setFillColor(...bg);
+      doc.rect(marginX, y, contentWidth, rowHeight, "F");
+      doc.setDrawColor(...BORDER);
+      doc.rect(marginX, y, contentWidth, rowHeight);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...TEXT_DARK);
+      doc.text(String(p.item ?? "-"), marginX + 3, y + 5.5, {
+        maxWidth: itemColWidth - 6,
+      });
+      doc.text(
+        `RM ${price.toFixed(2)}`,
+        marginX + itemColWidth + priceColWidth - 3,
+        y + 5.5,
+        { align: "right" },
+      );
+
+      y += rowHeight;
+    });
+
+    ensureSpace(rowHeight);
+    doc.setFillColor(240, 253, 244);
+    doc.rect(marginX, y, contentWidth, rowHeight, "F");
+    doc.setDrawColor(...PRIMARY);
+    doc.rect(marginX, y, contentWidth, rowHeight);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...PRIMARY_DARK);
+    doc.text("JUMLAH", marginX + 3, y + 5.5);
+    doc.text(
+      `RM ${total.toFixed(2)}`,
+      marginX + itemColWidth + priceColWidth - 3,
+      y + 5.5,
+      { align: "right" },
+    );
+    y += rowHeight + 8;
+  }
+
+  if (data.graveRules?.length > 0) {
+    ensureSpace(14);
+    doc.setFillColor(...PRIMARY);
+    doc.rect(marginX, y, contentWidth, 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text("SYARAT PENEMPATAN TANAH PERKUBURAN", marginX + 3, y + 5.5);
+    y += 8;
+
+    const ruleLineHeight = 5;
+    data.graveRules.forEach((rule, i) => {
+      const lines = doc.splitTextToSize(`${i + 1}. ${rule}`, contentWidth - 6);
+      const rowHeight = Math.max(7, lines.length * ruleLineHeight + 3);
+
+      ensureSpace(rowHeight);
+      const bg = i % 2 === 0 ? [255, 255, 255] : ROW_ALT_BG;
+      doc.setFillColor(...bg);
+      doc.rect(marginX, y, contentWidth, rowHeight, "F");
+      doc.setDrawColor(...BORDER);
+      doc.rect(marginX, y, contentWidth, rowHeight);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...TEXT_DARK);
+      doc.text(lines, marginX + 3, y + ruleLineHeight - 0.5);
+
+      y += rowHeight;
+    });
+    y += 8;
+  }
+
+  const reminderText =
+    "PENTING: Sila bawa softcopy Surat Pengesahan Kematian dan Laporan Polis, serta sebarang dokumen sokongan berkaitan, semasa ke masjid.";
+  const reminderLines = doc.splitTextToSize(reminderText, contentWidth - 8);
+  const reminderHeight = reminderLines.length * 5 + 8;
+  ensureSpace(reminderHeight);
+  doc.setDrawColor(217, 119, 6);
+  doc.setFillColor(255, 251, 235);
+  doc.roundedRect(marginX, y, contentWidth, reminderHeight, 2, 2, "FD");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(146, 64, 14);
+  doc.text(reminderLines, marginX + 4, y + 6);
+  y += reminderHeight + 8;
 
   const pageCount = doc.internal.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {

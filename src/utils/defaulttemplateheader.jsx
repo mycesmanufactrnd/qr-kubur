@@ -32,8 +32,6 @@ export const defaultMosqueTemplateHeaders = [
   "url",
   "latitude",
   "longitude",
-  "picname",
-  "picphoneno",
   "photourl",
   "canarrangefuneral",
   "hasdeathcharity",
