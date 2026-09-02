@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'r
 import QuickDonation from '@/pages/QuickLink/QuickDonation';
 import QuickTahlil from '@/pages/QuickLink/QuickTahlil';
 import { LocationProvider } from './providers/LocationProvider';
+import { AudioPlayerProvider } from './providers/AudioPlayerProvider';
+import AudioMiniPlayer from './components/AudioMiniPlayer';
 import { useFCM } from './firebase/useFCM';
 import { useLoginGoogle } from './utils/auth';
 import { useNativeBackButton } from './hooks/useNativeBackButton';
@@ -70,10 +72,13 @@ function App() {
 
   return (
     <LocationProvider>
-      <Router>
-        <ScrollToTop />
-        <AuthenticatedApp />
-      </Router>
+      <AudioPlayerProvider>
+        <Router>
+          <ScrollToTop />
+          <AuthenticatedApp />
+          <AudioMiniPlayer />
+        </Router>
+      </AudioPlayerProvider>
     </LocationProvider>
   )
 }
