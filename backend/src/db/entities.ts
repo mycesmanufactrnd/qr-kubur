@@ -52,3 +52,5 @@ export * from "./entities/KariahDeathNotification.entity.js";
 export * from "./entities/JenazahCase.entity.js";
 export * from "./entities/GraveBlock.entity.js";
 export * from "./entities/GraveSlot.entity.js";
+export * from "./entities/FamilyTree.entity.js";
+export * from "./entities/MosqueOrganisationChart.entity.js";
