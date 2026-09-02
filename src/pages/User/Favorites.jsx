@@ -6,13 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { useGetGravesCoordinates } from "@/mutations/useGraveMutations";
 import { useGetMosqueCoordinates } from "@/mutations/useMosqueMutations";
+import { useGetTahfizCoordinates } from "@/mutations/useTahfizMutations";
+import TahfizCardList from "@/components/TahfizCardList";
 import GraveCardList from "@/components/GraveCardList";
 import MosqueCardList from "@/components/MosqueCardList";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 
 export default function Favorites() {
-  const [activeTab, setActiveTab] = useState("mosques");
+  const [activeTab, setActiveTab] = useState("graves");
   const [favoriteVersion, setFavoriteVersion] = useState(0);
   const { userLocation } = useLocationContext();
 
@@ -24,10 +26,11 @@ export default function Favorites() {
     () => JSON.parse(localStorage.getItem("favoritedgrave") || "[]"),
     [favoriteVersion],
   );
+  const favoritedTahfizIds = useMemo(
+    () => JSON.parse(localStorage.getItem("favoritedtahfiz") || "[]"),
+    [favoriteVersion],
+  );
 
-  // Favorites are filtered by ID, not location — but the coordinates endpoints
-  // require *some* coordinate to run at all, so fall back to a dummy one when
-  // GPS isn't available rather than blocking the favorites list on location access.
   const coordinates = userLocation
     ? { latitude: userLocation.lat, longitude: userLocation.lng }
     : { latitude: 0, longitude: 0 };
@@ -48,6 +51,15 @@ export default function Favorites() {
       graveFilters ?? {},
     );
 
+  const hasFavoritedTahfiz = favoritedTahfizIds.length > 0;
+  const { data: tahfiz = [], isLoading: isTahfizLoading } =
+    useGetTahfizCoordinates({
+      coordinates: hasFavoritedTahfiz ? coordinates : null,
+      filterIds: hasFavoritedTahfiz
+        ? favoritedTahfizIds.map((f) => f.id)
+        : undefined,
+    });
+
   const onFavoriteChange = () => setFavoriteVersion((prev) => prev + 1);
 
   return (
@@ -59,7 +71,13 @@ export default function Favorites() {
         onValueChange={setActiveTab}
         className="w-full px-1"
       >
-        <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
+        <TabsList className="grid w-full grid-cols-3 dark:bg-gray-800">
+          <TabsTrigger
+            value="graves"
+            className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700"
+          >
+            {translate("Graves")}
+          </TabsTrigger>
           <TabsTrigger
             value="mosques"
             className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700"
@@ -67,10 +85,10 @@ export default function Favorites() {
             {translate("Mosques")}
           </TabsTrigger>
           <TabsTrigger
-            value="graves"
+            value="tahfiz"
             className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700"
           >
-            {translate("Graves")}
+            {translate("Tahfiz")}
           </TabsTrigger>
         </TabsList>
 
@@ -110,6 +128,27 @@ export default function Favorites() {
               <GraveCardList
                 key={grave.id}
                 grave={{ ...grave, distance: null }}
+                onFavoriteChange={onFavoriteChange}
+              />
+            ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="tahfiz" className="mt-4 space-y-4">
+          {isTahfizLoading ? (
+            <ListCardSkeletonComponent />
+          ) : tahfiz.length === 0 ? (
+            <NoDataCardComponent
+              isPage
+              title={translate("No Favorited Tahfiz Found")}
+              redirectTo="SearchTahfiz"
+              redirectLabel={translate("Browse Tahfiz")}
+            />
+          ) : (
+            tahfiz.map((center) => (
+              <TahfizCardList
+                key={center.id}
+                tahfiz={{ ...center, distance: null }}
                 onFavoriteChange={onFavoriteChange}
               />
             ))
