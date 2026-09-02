@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  type Relation,
 } from "typeorm";
 import { Mosque } from "./Mosque.entity.js";
 
@@ -15,10 +16,10 @@ export class MosqueOrganisationChart {
   id!: number;
 
   @ManyToOne(() => Mosque, (mosque) => mosque.organisationcharts, {
-    onDelete: "CASCADE",
+    nullable: true,
+    onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "mosqueId" })
-  mosque!: Mosque;
+  mosque?: Mosque | null;
 
   @Column("varchar", { length: 255 })
   team!: string;
