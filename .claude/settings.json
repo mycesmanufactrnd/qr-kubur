@@ -8,7 +8,11 @@
       "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_islamic_event.js\")",
       "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_donation.js\")",
       "Bash(git -C c:/Users/zahir/Documents/GitHub/qr-kubur diff --stat -- src/pages/MosqueDetails.jsx)",
-      "Bash(git -C c:/Users/zahir/Documents/GitHub/qr-kubur status --short -- src/pages/MosqueDetails.jsx)"
+      "Bash(git -C c:/Users/zahir/Documents/GitHub/qr-kubur status --short -- src/pages/MosqueDetails.jsx)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/en.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ms.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ar.json','utf8'\\)\\); console.log\\('JSON OK'\\)\")",
+      "Bash(node \"C:\\\\Users\\\\zahir\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-zahir-Documents-GitHub-qr-kubur\\\\4363f8ce-23ac-41e0-84c2-d5434f9009f2\\\\scratchpad\\\\check_dup2.js\")",
+      "Bash(node \"C:\\\\Users\\\\zahir\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-zahir-Documents-GitHub-qr-kubur\\\\4363f8ce-23ac-41e0-84c2-d5434f9009f2\\\\scratchpad\\\\check_i18n_jenazah2.js\")"
     ]
   }
 }

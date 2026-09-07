@@ -1237,6 +1237,7 @@ function CaseDetailSheet({
                 control={dc}
                 label={translate("Date of Birth")}
                 isDate
+                required
                 errors={de}
               />
               <TextInputForm

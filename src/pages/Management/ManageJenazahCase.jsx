@@ -68,10 +68,18 @@ import {
   MapPin,
 } from "lucide-react";
 import { CARE_SCENARIOS } from "@/utils/enums";
-import { parseDobFromIcNumber, formatRM, getNextGraveLotLabel } from "@/utils/helpers";
+import {
+  parseDobFromIcNumber,
+  formatRM,
+  getNextGraveLotLabel,
+} from "@/utils/helpers";
 import { defaultManageJenazahCaseField } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
+
+// Temporarily disabled — not needed for now, but keep the implementation
+// intact so it can be switched back on by flipping this flag.
+const ENABLE_BARANG_PENGURUSAN_JENAZAH = false;
 
 function DeleteConfirmDialog({ open, onClose, onConfirm, isDeleting }) {
   return (
@@ -85,7 +93,7 @@ function DeleteConfirmDialog({ open, onClose, onConfirm, isDeleting }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
             <Trash2 className="w-4 h-4" /> {translate("Delete Case?")}
-          </DialogTitle>  
+          </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {translate(
@@ -177,13 +185,7 @@ function CaseDetailDialog({
   const [adminRemarks, setAdminRemarks] = useState(
     caseItem?.adminremarks ?? "",
   );
-  const [showDeceasedForm, setShowDeceasedForm] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [selectedPackageId, setSelectedPackageId] = useState(null);
-  // consumables: Set of packageItem.id that are checked
-  const [checkedConsumables, setCheckedConsumables] = useState(new Set());
-  // reusables: Map of packageItem.id → chosen itemId at that slot
-  const [selectedReusables, setSelectedReusables] = useState(new Map());
+  const [activeTab, setActiveTab] = useState("info");
 
   const d = caseItem?.details ?? {};
 
@@ -204,6 +206,7 @@ function CaseDetailDialog({
     handleSubmit: handleDeceasedSubmit,
     watch: watchDc,
     setValue: setValueDc,
+    reset: resetDc,
     formState: { errors: de },
   } = useForm({
     defaultValues: {
@@ -234,63 +237,29 @@ function CaseDetailDialog({
 
   const trpcUtils = trpc.useUtils();
 
-  const updateDeadPersonGraveLot = trpc.deadperson.update.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Grave lot updated"), "success");
-      trpcUtils.deadperson.getByIcNumber.invalidate({ icnumber: icRaw });
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const handleGraveLotPick = async (slot) => {
-    if (!deadPersonRecord) return;
-    await updateDeadPersonGraveLot.mutateAsync({
-      id: deadPersonRecord.id,
-      data: {
-        name: deadPersonRecord.name,
-        icnumber: deadPersonRecord.icnumber ?? null,
-        dateofbirth: deadPersonRecord.dateofbirth,
-        dateofdeath: deadPersonRecord.dateofdeath,
-        causeofdeath: deadPersonRecord.causeofdeath ?? null,
-        biography: deadPersonRecord.biography ?? null,
-        heirname: deadPersonRecord.heirname,
-        heirphoneno: deadPersonRecord.heirphoneno,
-        photourl: deadPersonRecord.photourl ?? null,
-        latitude: deadPersonRecord.latitude ?? null,
-        longitude: deadPersonRecord.longitude ?? null,
-        grave: deadPersonRecord.grave?.id
-          ? { id: deadPersonRecord.grave.id }
-          : undefined,
-        gravelot: slot?.label ?? null,
-        graveslot: slot?.id ? { id: slot.id } : null,
-      },
-    });
-  };
-
-  // Auto-assign the next lot number for an already-approved deceased record
-  // that has no lot yet, based on the highest numbered lot used in that grave.
-  const approveGraveId = deadPersonRecord?.grave?.id ?? null;
-  const { data: approveGraveDeadPersons } =
-    trpc.deadperson.getDeadPersonByGraveId.useQuery(
-      { graveId: approveGraveId },
-      { enabled: !!approveGraveId },
-    );
-  const autoAssignedLotRef = useRef(null);
+  // Once an existing deadperson record loads, populate the deceased/grave
+  // form with its real saved values instead of leaving it on blank defaults.
+  const dcResetKeyRef = useRef(null);
   useEffect(() => {
-    if (!deadPersonRecord || deadPersonRecord.gravelot) return;
-    if (!approveGraveId || !approveGraveDeadPersons) return;
-    if (autoAssignedLotRef.current === deadPersonRecord.id) return;
+    if (!deadPersonRecord) return;
+    if (dcResetKeyRef.current === deadPersonRecord.id) return;
+    dcResetKeyRef.current = deadPersonRecord.id;
 
-    const nextLot = getNextGraveLotLabel(
-      approveGraveDeadPersons
-        .filter((p) => p.id !== deadPersonRecord.id)
-        .map((p) => p.gravelot),
-    );
-    if (!nextLot) return;
-
-    autoAssignedLotRef.current = deadPersonRecord.id;
-    handleGraveLotPick({ id: null, label: nextLot });
-  }, [deadPersonRecord, approveGraveId, approveGraveDeadPersons]);
+    resetDc({
+      grave: deadPersonRecord.grave?.id ? String(deadPersonRecord.grave.id) : "",
+      gravelot: deadPersonRecord.gravelot ?? "",
+      graveslotId: deadPersonRecord.graveslot?.id ?? null,
+      causeofdeath: deadPersonRecord.causeofdeath ?? "",
+      dateofbirth: deadPersonRecord.dateofbirth
+        ? toDateInputValue(new Date(deadPersonRecord.dateofbirth))
+        : parsedDob,
+      dateofdeath: deadPersonRecord.dateofdeath
+        ? toDateInputValue(new Date(deadPersonRecord.dateofdeath))
+        : toDateInputValue(new Date()),
+      heirname: deadPersonRecord.heirname ?? "",
+      heirphoneno: deadPersonRecord.heirphoneno ?? "",
+    });
+  }, [deadPersonRecord, parsedDob, resetDc]);
 
   // Auto-fill the suggested next lot number when a grave is chosen in the
   // deceased-creation form, based on the highest numbered lot in that grave.
@@ -310,230 +279,70 @@ function CaseDetailDialog({
     if (nextLot) setValueDc("gravelot", nextLot);
   }, [dcGraveId, dcGraveDeadPersons]);
 
-  const stockOut = trpc.inventoryTransaction.stockOut.useMutation({
-    onSuccess: () => {
-      trpcUtils.inventoryTransaction.getPaginated.invalidate();
-      trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
-      trpcUtils.inventoryItem.getPaginated.invalidate();
-      trpcUtils.inventoryItem.getAll.invalidate();
-      trpcUtils.inventoryItem.getLowStock.invalidate();
-    },
-    onError: (err) => showApiError(err),
-  });
+  const isBusy = isUpdating || upsertDeadPerson.isPending;
 
-  const { data: rawPackages = [] } = trpc.inventoryPackage.getAll.useQuery(undefined, {
-    enabled: !!caseItem,
-  });
-  const packagesList = rawPackages.filter((p) => p.status === "active");
+  const isPendingCase = caseItem?.status === "pending";
 
-  const { data: allItems = [] } = trpc.inventoryItem.getAll.useQuery(undefined, {
-    enabled: !!caseItem,
-  });
+  const handleSaveDeceasedInfo = handleDeceasedSubmit(
+    async (formData) => {
+      if (!formData.gravelot?.trim()) {
+        showApiError({ message: translate("Please pick a grave lot.") });
+        setActiveTab("deceased");
+        return;
+      }
+      try {
+        const selectedGrave = graves.find(
+          (grave) => Number(grave.id) === Number(formData.grave),
+        );
+        const latitude =
+          selectedGrave?.latitude != null
+            ? parseFloat(selectedGrave.latitude)
+            : null;
+        const longitude =
+          selectedGrave?.longitude != null
+            ? parseFloat(selectedGrave.longitude)
+            : null;
 
-  // Locations derived from each package's own location field.
-  const locations = [
-    ...new Set(packagesList.map((p) => p.location).filter(Boolean)),
-  ].sort();
-
-  const filteredPackages = selectedLocation
-    ? packagesList.filter((p) => p.location === selectedLocation)
-    : packagesList;
-
-  const selectedPackage = packagesList.find((p) => p.id === selectedPackageId) ?? null;
-  const packageItems = selectedPackage?.packageItems ?? [];
-  const consumableItems = packageItems.filter((pi) => pi.item_type === "CONSUMABLE");
-  const reusableItems = packageItems.filter((pi) => pi.item_type === "REUSABLE");
-
-  // All REUSABLE items at the selected location (used as swap options per reusable slot)
-  const reusableItemsAtLocation = allItems.filter(
-    (item) => item.item_type === "REUSABLE" && item.location === selectedLocation,
-  );
-
-  const handlePackageSelect = (pkgId) => {
-    const numId = pkgId ? Number(pkgId) : null;
-    setSelectedPackageId(numId);
-    const pkg = packagesList.find((p) => p.id === numId);
-    if (pkg) {
-      // Consumables: check those with sufficient stock, uncheck out-of-stock
-      const newChecked = new Set(
-        (pkg.packageItems ?? [])
-          .filter(
-            (pi) =>
-              pi.item_type === "CONSUMABLE" &&
-              (pi.item?.current_quantity ?? 0) >= pi.quantity_required,
-          )
-          .map((pi) => pi.id),
-      );
-      setCheckedConsumables(newChecked);
-
-      // Reusables: auto-select an AVAILABLE item at the chosen location, matched by
-      // group (when the package line references a ReusableItemGroup) or by the
-      // package's own itemId, never assigning the same physical item to two slots.
-      const newReusables = new Map();
-      const usedItemIds = new Set();
-      for (const pi of (pkg.packageItems ?? []).filter((pi) => pi.item_type === "REUSABLE")) {
-        const candidates = allItems.filter((i) => {
-          if (i.status !== "AVAILABLE" || usedItemIds.has(i.id)) return false;
-          if (pi.groupId) return i.groupId === pi.groupId && i.location === selectedLocation;
-          if (i.id === pi.itemId) return true;
-          return (
-            i.item_type === "REUSABLE" &&
-            i.location === selectedLocation &&
-            i.item_name === pi.item?.item_name
-          );
+        await upsertDeadPerson.mutateAsync({
+          name: d.deceasedFullname ?? "",
+          icnumber: icRaw,
+          dateofbirth: formData.dateofbirth || null,
+          dateofdeath: formData.dateofdeath || null,
+          causeofdeath: formData.causeofdeath || null,
+          biography: deadPersonRecord?.biography ?? null,
+          photourl: deadPersonRecord?.photourl ?? null,
+          latitude,
+          longitude,
+          heirname: formData.heirname || null,
+          heirphoneno: formData.heirphoneno || null,
+          grave: formData.grave ? { id: Number(formData.grave) } : undefined,
+          gravelot: formData.gravelot?.trim() || null,
+          graveslot: formData.graveslotId
+            ? { id: Number(formData.graveslotId) }
+            : undefined,
+          deathconfirmationphotourl:
+            caseItem?.deathconfirmationphotourl || null,
+          policereportphotourl: caseItem?.policereportphotourl || null,
+          supportingdocphotourl: caseItem?.supportingdocphotourl || null,
         });
-        const chosen = candidates[0];
-        if (chosen) {
-          newReusables.set(pi.id, chosen.id);
-          usedItemIds.add(chosen.id);
+        if (isPendingCase) {
+          handleAction("ongoing");
+        } else {
+          showSuccess(translate("Deceased & grave information updated."));
+          trpcUtils.deadperson.getByIcNumber.invalidate({ icnumber: icRaw });
         }
+      } catch {
+        // errors shown by onError handlers
       }
-      setSelectedReusables(newReusables);
-    } else {
-      setCheckedConsumables(new Set());
-      setSelectedReusables(new Map());
-    }
-  };
-
-  const toggleConsumable = (packageItemId) => {
-    setCheckedConsumables((prev) => {
-      const next = new Set(prev);
-      next.has(packageItemId) ? next.delete(packageItemId) : next.add(packageItemId);
-      return next;
-    });
-  };
-
-  const selectReusable = (packageItemId, itemId) => {
-    setSelectedReusables((prev) => new Map(prev).set(packageItemId, itemId));
-  };
-
-  // Toggle a physical reusable item on/off from the location's full item list.
-  // Checking assigns it to the first unfilled package requirement it matches
-  // (by group, or by direct itemId/name); unchecking clears whichever slot it fills.
-  const toggleReusableItem = (item) => {
-    const assignedEntry = [...selectedReusables.entries()].find(
-      ([, itemId]) => itemId === item.id,
-    );
-    if (assignedEntry) {
-      setSelectedReusables((prev) => {
-        const next = new Map(prev);
-        next.delete(assignedEntry[0]);
-        return next;
-      });
-      return;
-    }
-
-    const slot = reusableItems.find((pi) => {
-      if (selectedReusables.has(pi.id)) return false;
-      if (pi.groupId) return item.groupId === pi.groupId;
-      if (pi.itemId === item.id) return true;
-      return item.item_name === pi.item?.item_name;
-    });
-    if (slot) selectReusable(slot.id, item.id);
-  };
-
-  const isBusy = isUpdating || upsertDeadPerson.isPending || stockOut.isPending;
-
-  const onApproveSubmit = handleDeceasedSubmit(async (formData) => {
-    try {
-      const selectedGrave = graves.find(
-        (grave) => Number(grave.id) === Number(formData.grave),
-      );
-      const latitude = selectedGrave?.latitude != null ? parseFloat(selectedGrave.latitude) : null;
-      const longitude = selectedGrave?.longitude != null ? parseFloat(selectedGrave.longitude) : null;
-
-      await upsertDeadPerson.mutateAsync({
-        name: d.deceasedFullname ?? "",
-        icnumber: icRaw,
-        dateofbirth: formData.dateofbirth || null,
-        dateofdeath: formData.dateofdeath || null,
-        causeofdeath: formData.causeofdeath || null,
-        biography: null,
-        photourl: null,
-        latitude,
-        longitude,
-        heirname: formData.heirname || null,
-        heirphoneno: formData.heirphoneno || null,
-        grave: formData.grave ? { id: Number(formData.grave) } : undefined,
-        gravelot: formData.gravelot?.trim() || null,
-        graveslot: formData.graveslotId
-          ? { id: Number(formData.graveslotId) }
-          : undefined,
-        deathconfirmationphotourl: caseItem?.deathconfirmationphotourl || null,
-        policereportphotourl: caseItem?.policereportphotourl || null,
-        supportingdocphotourl: caseItem?.supportingdocphotourl || null,
-      });
-      handleAction("ongoing");
-    } catch {
-      // error shown by onError
-    }
-  });
-
-  const handleLuluskanSimpan = handleDeceasedSubmit(async (formData) => {
-    try {
-      const selectedGrave = graves.find(
-        (grave) => Number(grave.id) === Number(formData.grave),
-      );
-      const latitude = selectedGrave?.latitude != null ? parseFloat(selectedGrave.latitude) : null;
-      const longitude = selectedGrave?.longitude != null ? parseFloat(selectedGrave.longitude) : null;
-
-      await upsertDeadPerson.mutateAsync({
-        name: d.deceasedFullname ?? "",
-        icnumber: icRaw,
-        dateofbirth: formData.dateofbirth || null,
-        dateofdeath: formData.dateofdeath || null,
-        causeofdeath: formData.causeofdeath || null,
-        biography: null,
-        photourl: null,
-        latitude,
-        longitude,
-        heirname: formData.heirname || null,
-        heirphoneno: formData.heirphoneno || null,
-        grave: formData.grave ? { id: Number(formData.grave) } : undefined,
-        gravelot: formData.gravelot?.trim() || null,
-        graveslot: formData.graveslotId
-          ? { id: Number(formData.graveslotId) }
-          : undefined,
-        deathconfirmationphotourl: caseItem?.deathconfirmationphotourl || null,
-        policereportphotourl: caseItem?.policereportphotourl || null,
-        supportingdocphotourl: caseItem?.supportingdocphotourl || null,
-      });
-      // Stock out checked consumables
-      for (const pi of consumableItems) {
-        if (checkedConsumables.has(pi.id)) {
-          await stockOut.mutateAsync({
-            itemId: pi.itemId,
-            quantity: pi.quantity_required,
-            jenazahCaseId: caseItem.id,
-            packageId: selectedPackageId,
-            source: "KES",
-          });
-        }
-      }
-      // Stock out selected reusable items (qty 1→0; backend falls back to qty deduction if no asset record)
-      for (const pi of reusableItems) {
-        const chosenItemId = selectedReusables.get(pi.id);
-        if (chosenItemId) {
-          await stockOut.mutateAsync({
-            itemId: chosenItemId,
-            quantity: 1,
-            jenazahCaseId: caseItem.id,
-            packageId: selectedPackageId,
-            source: "KES",
-          });
-        }
-      }
-      handleAction("ongoing");
-    } catch {
-      // errors shown by onError handlers
-    }
-  });
+    },
+    () => {
+      setActiveTab("deceased");
+    },
+  );
 
   return (
     <Dialog open={!!caseItem} onOpenChange={onClose}>
-      <DialogContent
-        className={`${showDeceasedForm ? "max-w-[95vw]" : "max-w-[70vw]"} max-h-[90vh] overflow-y-auto dark:bg-slate-800`}
-      >
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
         <DialogHeader>
           <DialogTitle className="text-base flex items-center gap-2">
             {translate("Funeral Case Details")}
@@ -541,14 +350,15 @@ function CaseDetailDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div
-          className={
-            showDeceasedForm
-              ? "grid grid-cols-3 gap-6"
-              : "grid grid-cols-1 md:grid-cols-2 gap-6"
-          }
-        >
-          <div className="space-y-4 py-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="info">{translate("Case Overview")}</TabsTrigger>
+            <TabsTrigger value="deceased">
+              {translate("Deceased & Grave Info")}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="info" className="space-y-4 mt-4">
             {caseItem?.mosque && (
               <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2.5">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-0.5">
@@ -601,65 +411,6 @@ function CaseDetailDialog({
               </div>
             )}
 
-            <div className="space-y-3 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                {translate("Maklumat Jenazah")}
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <DetailRow
-                  label={translate("Name")}
-                  value={d.deceasedFullname}
-                />
-                <DetailRow
-                  label={translate("IC No.")}
-                  value={d.deceasedIcnumber}
-                />
-                <DetailRow label={translate("Phone")} value={d.deceasedPhone} />
-                <DetailRow label={translate("Email")} value={d.deceasedEmail} />
-              </div>
-              {d.deceasedAddress && (
-                <DetailRow
-                  label={translate("Address")}
-                  value={d.deceasedAddress}
-                />
-              )}
-              {d.causeofdeath && (
-                <DetailRow
-                  label={translate("Cause of Death")}
-                  value={d.causeofdeath}
-                />
-              )}
-              <DetailRow label={translate("Kariah Member Status")}>
-                {caseItem?.addedtokariah || d.isKariahMember ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
-                    <BadgeCheck className="w-3.5 h-3.5" />{" "}
-                    {translate("Registered Kariah Member")}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                    <Info className="w-3.5 h-3.5" />{" "}
-                    {translate("Not a Kariah Member")}
-                  </span>
-                )}
-              </DetailRow>
-              {d.isFamilyOfKariah && (
-                <DetailRow
-                  label={translate(
-                    "Family Member of Registered Kariah",
-                  )}
-                >
-                  <p className="text-sm text-slate-700 dark:text-slate-200">
-                    {d.familyKariahMemberName || "—"}
-                  </p>
-                  {d.familyKariahMemberIc && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                      {d.familyKariahMemberIc}
-                    </p>
-                  )}
-                </DetailRow>
-              )}
-            </div>
-
             <div className="space-y-2 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 {translate("Funeral Procedure")}
@@ -688,8 +439,9 @@ function CaseDetailDialog({
                 <DetailRow
                   label={translate("Burial Time")}
                   value={
-                    [d.burialTime, d.burialTimeNote].filter(Boolean).join(" — ") ||
-                    null
+                    [d.burialTime, d.burialTimeNote]
+                      .filter(Boolean)
+                      .join(" — ") || null
                   }
                 />
               </div>
@@ -703,60 +455,6 @@ function CaseDetailDialog({
                 }
               />
             </div>
-
-            {caseItem?.isapproved && deadPersonRecord && (
-              <div className="space-y-2 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {translate("Deceased Information")}
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <DetailRow
-                    label={translate("Grave")}
-                    value={deadPersonRecord.grave?.name}
-                  />
-                  <div className="col-span-2">
-                    <GraveLotPickerField
-                      graveId={deadPersonRecord.grave?.id ?? null}
-                      gravelotLabel={deadPersonRecord.gravelot}
-                      currentDeadPersonId={deadPersonRecord.id}
-                      onPick={handleGraveLotPick}
-                    />
-                  </div>
-                  <DetailRow
-                    label={translate("Cause of Death")}
-                    value={deadPersonRecord.causeofdeath}
-                  />
-                  <DetailRow
-                    label={translate("Date of Birth")}
-                    value={
-                      deadPersonRecord.dateofbirth
-                        ? new Date(
-                            deadPersonRecord.dateofbirth,
-                          ).toLocaleDateString("ms-MY", { dateStyle: "medium" })
-                        : null
-                    }
-                  />
-                  <DetailRow
-                    label={translate("Date of Death")}
-                    value={
-                      deadPersonRecord.dateofdeath
-                        ? new Date(
-                            deadPersonRecord.dateofdeath,
-                          ).toLocaleDateString("ms-MY", { dateStyle: "medium" })
-                        : null
-                    }
-                  />
-                  <DetailRow
-                    label={translate("Nama Waris")}
-                    value={deadPersonRecord.heirname}
-                  />
-                  <DetailRow
-                    label={translate("No. Tel. Waris")}
-                    value={deadPersonRecord.heirphoneno}
-                  />
-                </div>
-              </div>
-            )}
 
             {mapsUrl && (
               <div className="space-y-1.5 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
@@ -779,9 +477,7 @@ function CaseDetailDialog({
                 </a>
               </div>
             )}
-          </div>
 
-          <div className="space-y-4 py-1">
             <DetailRow label={translate("Application Date")}>
               <p className="text-sm text-slate-700 dark:text-slate-300">
                 {caseItem?.createdat
@@ -793,26 +489,21 @@ function CaseDetailDialog({
               </p>
             </DetailRow>
 
-            {/* Documents — only shown here when the deceased form is not open */}
-            {!showDeceasedForm && (
-              <>
-                <DocumentLinks
-                  label={translate("Death Confirmation")}
-                  value={caseItem?.deathconfirmationphotourl}
-                  bucket="bucket-death-confirmation"
-                />
-                <DocumentLinks
-                  label={translate("Police Report")}
-                  value={caseItem?.policereportphotourl}
-                  bucket="bucket-police-report"
-                />
-                <DocumentLinks
-                  label={translate("Supporting Documents")}
-                  value={caseItem?.supportingdocphotourl}
-                  bucket="supporting-doc-jenazah-case"
-                />
-              </>
-            )}
+            <DocumentLinks
+              label={translate("Death Confirmation")}
+              value={caseItem?.deathconfirmationphotourl}
+              bucket="bucket-death-confirmation"
+            />
+            <DocumentLinks
+              label={translate("Police Report")}
+              value={caseItem?.policereportphotourl}
+              bucket="bucket-police-report"
+            />
+            <DocumentLinks
+              label={translate("Supporting Documents")}
+              value={caseItem?.supportingdocphotourl}
+              bucket="supporting-doc-jenazah-case"
+            />
 
             {/* User remarks — read-only, show if set */}
             {caseItem?.userremarks && (
@@ -852,109 +543,94 @@ function CaseDetailDialog({
                 </p>
               )}
             </div>
+          </TabsContent>
 
-            {caseItem?.status === "pending" && (canReject || canApprove) && (
-              <div className="flex justify-end gap-2 pt-1">
-                {canReject && (
-                  <Button
-                    onClick={() => {
-                      handleAction("rejected");
-                      setShowDeceasedForm(false);
-                    }}
-                    disabled={isBusy}
-                    variant="destructive"
+          <TabsContent value="deceased" className="space-y-4 mt-4">
+            <>
+              <div className="space-y-3 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {translate("Maklumat Jenazah")}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <DetailRow
+                    label={translate("Name")}
+                    value={d.deceasedFullname}
+                  />
+                  <DetailRow
+                    label={translate("IC No.")}
+                    value={d.deceasedIcnumber}
+                  />
+                  <DetailRow
+                    label={translate("Phone")}
+                    value={d.deceasedPhone}
+                  />
+                  <DetailRow
+                    label={translate("Email")}
+                    value={d.deceasedEmail}
+                  />
+                </div>
+                {d.deceasedAddress && (
+                  <DetailRow
+                    label={translate("Address")}
+                    value={d.deceasedAddress}
+                  />
+                )}
+                {d.causeofdeath && (
+                  <DetailRow
+                    label={translate("Cause of Death")}
+                    value={d.causeofdeath}
+                  />
+                )}
+                <DetailRow label={translate("Kariah Member Status")}>
+                  {caseItem?.addedtokariah || d.isKariahMember ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
+                      <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                      {translate("Registered Kariah Member")}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                      <Info className="w-3.5 h-3.5" />{" "}
+                      {translate("Not a Kariah Member")}
+                    </span>
+                  )}
+                </DetailRow>
+                {d.isFamilyOfKariah && (
+                  <DetailRow
+                    label={translate("Family Member of Registered Kariah")}
                   >
-                    <XCircle className="w-4 h-4 mr-1.5" /> {translate("Reject")}
+                    <p className="text-sm text-slate-700 dark:text-slate-200">
+                      {d.familyKariahMemberName || "—"}
+                    </p>
+                    {d.familyKariahMemberIc && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        {d.familyKariahMemberIc}
+                      </p>
+                    )}
+                  </DetailRow>
+                )}
+              </div>
+
+              {canEdit &&
+                caseItem?.isapproved &&
+                !caseItem?.kariahmemberid &&
+                !caseItem?.addedtokariah && (
+                  <Button
+                    onClick={() => onAddToKariah(caseItem.id)}
+                    disabled={isAddingToKariah}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <UserPlus className="w-4 h-4 mr-1.5" />
+                    {isAddingToKariah
+                      ? translate("Registering...")
+                      : translate("Add to Kariah")}
                   </Button>
                 )}
-                {canApprove &&
-                  (showDeceasedForm ? (
-                    <Button
-                      onClick={() => setShowDeceasedForm(false)}
-                      variant="outline"
-                      disabled={isBusy}
-                    >
-                      {translate("Cancel")}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setShowDeceasedForm(true)}
-                      disabled={isBusy}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      {translate("Verify")}
-                    </Button>
-                  ))}
-              </div>
-            )}
-            {caseItem?.status === "ongoing" && canEdit && (
-              <div className="flex justify-end pt-1">
-                <Button
-                  onClick={() => handleAction("closed")}
-                  disabled={isBusy}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1.5" />
-                  {translate("Close Case")}
-                </Button>
-              </div>
-            )}
-            {caseItem?.status !== "pending" && canEdit && (
-              <Button
-                onClick={() => handleAction("pending")}
-                disabled={isBusy}
-                variant="outline"
-                className="w-full"
-              >
-                {translate("Reset to Pending")}
-              </Button>
-            )}
-
-            {canEdit &&
-              caseItem?.isapproved &&
-              !caseItem?.kariahmemberid &&
-              !caseItem?.addedtokariah && (
-                <Button
-                  onClick={() => onAddToKariah(caseItem.id)}
-                  disabled={isAddingToKariah}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <UserPlus className="w-4 h-4 mr-1.5" />
-                  {isAddingToKariah
-                    ? translate("Registering...")
-                    : translate("Add to Kariah")}
-                </Button>
+              {caseItem?.addedtokariah && (
+                <p className="text-xs text-center text-emerald-600 flex items-center justify-center gap-1">
+                  <BadgeCheck className="w-3.5 h-3.5" />{" "}
+                  {translate("Already registered as a Kariah member")}
+                </p>
               )}
-            {caseItem?.addedtokariah && (
-              <p className="text-xs text-center text-emerald-600 flex items-center justify-center gap-1">
-                <BadgeCheck className="w-3.5 h-3.5" />{" "}
-                {translate("Already registered as a Kariah member")}
-              </p>
-            )}
-          </div>
-
-          {showDeceasedForm && (
-            <div className="space-y-4 border-l pl-6 dark:border-slate-600">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b pb-2 dark:border-slate-600">
-                {translate("Deceased Information")}
-              </h3>
-
-              <DocumentLinks
-                label={translate("Death Confirmation")}
-                value={caseItem?.deathconfirmationphotourl}
-                bucket="bucket-death-confirmation"
-              />
-              <DocumentLinks
-                label={translate("Police Report")}
-                value={caseItem?.policereportphotourl}
-                bucket="bucket-police-report"
-              />
-              <DocumentLinks
-                label={translate("Supporting Documents")}
-                value={caseItem?.supportingphotourl}
-                bucket="supporting-doc-jenazah-case"
-              />
 
               <SelectForm
                 name="grave"
@@ -962,7 +638,7 @@ function CaseDetailDialog({
                 label={translate("Grave")}
                 placeholder={translate("Select Grave")}
                 options={graves.map((g) => ({ value: g.id, label: g.name }))}
-                required={showDeceasedForm}
+                required
                 errors={de}
               />
 
@@ -974,7 +650,7 @@ function CaseDetailDialog({
                   setValueDc("gravelot", slot?.label ?? "");
                   setValueDc("graveslotId", slot?.id ?? null);
                 }}
-                required={showDeceasedForm}
+                required
               />
 
               <TextInputForm
@@ -991,6 +667,7 @@ function CaseDetailDialog({
                   label={translate("Date of Birth")}
                   isDate
                   errors={de}
+                  required
                 />
                 <TextInputForm
                   name="dateofdeath"
@@ -998,7 +675,7 @@ function CaseDetailDialog({
                   label={translate("Date of Death")}
                   isDate
                   errors={de}
-                  required={showDeceasedForm}
+                  required
                 />
               </div>
 
@@ -1021,148 +698,69 @@ function CaseDetailDialog({
                 />
               </div>
 
-            </div>
-          )}
-
-          {showDeceasedForm && (
-            <div className="space-y-4 border-l pl-6 dark:border-slate-600 flex flex-col">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b pb-2 dark:border-slate-600">
-                {translate("Barang Pengurusan Jenazah")}
-              </h3>
-
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Lokasi")}</Label>
-                  <select
-                    value={selectedLocation ?? ""}
-                    onChange={(e) => {
-                      setSelectedLocation(e.target.value || null);
-                      setSelectedPackageId(null);
-                      setCheckedConsumables(new Set());
-                      setSelectedReusables(new Map());
-                    }}
-                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="">{translate("Semua Lokasi")}</option>
-                    {locations.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Pakej")}</Label>
-                  <select
-                    value={selectedPackageId ?? ""}
-                    onChange={(e) => handlePackageSelect(e.target.value || null)}
-                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="">{translate("Pilih pakej")}</option>
-                    {filteredPackages.map((pkg) => (
-                      <option key={pkg.id} value={pkg.id}>{pkg.package_name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {selectedPackage && (
-                <div className="flex-1 space-y-4 overflow-y-auto max-h-[45vh] pr-1">
-                  {/* Consumable items — checkbox, greyed if out of stock */}
-                  {consumableItems.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {translate("Barangan Guna Habis")}
-                      </p>
-                      {consumableItems.map((pi) => {
-                        const outOfStock = (pi.item?.current_quantity ?? 0) < pi.quantity_required;
-                        return (
-                          <label
-                            key={pi.id}
-                            className={`flex items-center gap-2.5 ${outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
-                          >
-                            <Checkbox
-                              checked={!outOfStock && checkedConsumables.has(pi.id)}
-                              onCheckedChange={() => !outOfStock && toggleConsumable(pi.id)}
-                              disabled={outOfStock}
-                            />
-                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                              {pi.item?.item_name ?? `Item #${pi.itemId}`}
-                            </span>
-                            <span className={`text-xs ${outOfStock ? "text-red-400" : "text-slate-400"}`}>
-                              {outOfStock
-                                ? translate("Stok habis")
-                                : `x${pi.quantity_required}`}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Reusable items — checkbox list of every reusable item at the location,
-                      same style as consumables. Checking assigns it to a matching package
-                      requirement; greyed out when not AVAILABLE (e.g. already in use). */}
-                  {reusableItems.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {translate("Aset / Boleh Guna Semula")}
-                      </p>
-                      {reusableItemsAtLocation.length === 0 && (
-                        <p className="text-xs text-slate-400 italic">
-                          {translate("Tiada item boleh guna semula di lokasi ini.")}
-                        </p>
-                      )}
-                      {reusableItemsAtLocation.map((item) => {
-                        const available = item.status === "AVAILABLE";
-                        const checked = [...selectedReusables.values()].includes(item.id);
-                        return (
-                          <label
-                            key={item.id}
-                            className={`flex items-center gap-2.5 ${!available ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={() => available && toggleReusableItem(item)}
-                              disabled={!available}
-                            />
-                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                              {item.item_name}
-                              {item.item_code && (
-                                <span className="ml-1 text-slate-400">({item.item_code})</span>
-                              )}
-                            </span>
-                            <span className={`text-xs ${!available ? "text-red-400" : "text-slate-400"}`}>
-                              {!available
-                                ? item.status === "IN_USE"
-                                  ? translate("Dalam Guna")
-                                  : item.status
-                                : translate("Tersedia")}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {consumableItems.length === 0 && reusableItems.length === 0 && (
-                    <p className="text-xs text-slate-400 italic">{translate("Tiada item dalam pakej ini.")}</p>
-                  )}
-                </div>
+              {isPendingCase ? (
+                (canReject || canApprove) && (
+                  <div className="flex flex-wrap justify-end gap-2 pt-2">
+                    {canReject && (
+                      <Button
+                        onClick={() => handleAction("rejected")}
+                        disabled={isBusy}
+                        variant="destructive"
+                      >
+                        <XCircle className="w-4 h-4 mr-1.5" />{" "}
+                        {translate("Reject")}
+                      </Button>
+                    )}
+                    {canApprove && (
+                      <Button
+                        onClick={handleSaveDeceasedInfo}
+                        disabled={isBusy}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1.5" />
+                        {isBusy
+                          ? translate("Saving...")
+                          : translate("Approve & Save")}
+                      </Button>
+                    )}
+                  </div>
+                )
+              ) : (
+                canEdit && (
+                  <div className="flex flex-wrap justify-end gap-2 pt-2">
+                    {caseItem?.status === "ongoing" && (
+                      <Button
+                        onClick={() => handleAction("closed")}
+                        disabled={isBusy}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1.5" />
+                        {translate("Close Case")}
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => handleAction("pending")}
+                      disabled={isBusy}
+                      variant="outline"
+                    >
+                      {translate("Reset to Pending")}
+                    </Button>
+                    <Button
+                      onClick={handleSaveDeceasedInfo}
+                      disabled={isBusy}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1.5" />
+                      {isBusy
+                        ? translate("Saving...")
+                        : translate("Save Changes")}
+                    </Button>
+                  </div>
+                )
               )}
-
-              <div className="flex justify-end pt-2 mt-auto">
-                <Button
-                  onClick={handleLuluskanSimpan}
-                  disabled={isBusy}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1.5" />
-                  {isBusy ? translate("Menyimpan...") : translate("Luluskan & Simpan")}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+            </>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
@@ -1256,14 +854,20 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     onError: (err) => showApiError(err),
   });
 
-  const { data: rawPackages = [] } = trpc.inventoryPackage.getAll.useQuery(undefined, {
-    enabled: open,
-  });
+  const { data: rawPackages = [] } = trpc.inventoryPackage.getAll.useQuery(
+    undefined,
+    {
+      enabled: open,
+    },
+  );
   const packagesList = rawPackages.filter((p) => p.status === "active");
 
-  const { data: allItems = [] } = trpc.inventoryItem.getAll.useQuery(undefined, {
-    enabled: open,
-  });
+  const { data: allItems = [] } = trpc.inventoryItem.getAll.useQuery(
+    undefined,
+    {
+      enabled: open,
+    },
+  );
 
   // Locations derived from each package's own location field.
   const locations = [
@@ -1274,14 +878,20 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
     ? packagesList.filter((p) => p.location === selectedLocation)
     : packagesList;
 
-  const selectedPackage = packagesList.find((p) => p.id === selectedPackageId) ?? null;
+  const selectedPackage =
+    packagesList.find((p) => p.id === selectedPackageId) ?? null;
   const packageItems = selectedPackage?.packageItems ?? [];
-  const consumableItems = packageItems.filter((pi) => pi.item_type === "CONSUMABLE");
-  const reusableItems = packageItems.filter((pi) => pi.item_type === "REUSABLE");
+  const consumableItems = packageItems.filter(
+    (pi) => pi.item_type === "CONSUMABLE",
+  );
+  const reusableItems = packageItems.filter(
+    (pi) => pi.item_type === "REUSABLE",
+  );
 
   // All REUSABLE items at the selected location (used as swap options per reusable slot)
   const reusableItemsAtLocation = allItems.filter(
-    (item) => item.item_type === "REUSABLE" && item.location === selectedLocation,
+    (item) =>
+      item.item_type === "REUSABLE" && item.location === selectedLocation,
   );
 
   const handlePackageSelect = (pkgId) => {
@@ -1302,10 +912,13 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
       const newReusables = new Map();
       const usedItemIds = new Set();
-      for (const pi of (pkg.packageItems ?? []).filter((pi) => pi.item_type === "REUSABLE")) {
+      for (const pi of (pkg.packageItems ?? []).filter(
+        (pi) => pi.item_type === "REUSABLE",
+      )) {
         const candidates = allItems.filter((i) => {
           if (i.status !== "AVAILABLE" || usedItemIds.has(i.id)) return false;
-          if (pi.groupId) return i.groupId === pi.groupId && i.location === selectedLocation;
+          if (pi.groupId)
+            return i.groupId === pi.groupId && i.location === selectedLocation;
           if (i.id === pi.itemId) return true;
           return (
             i.item_type === "REUSABLE" &&
@@ -1329,7 +942,9 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   const toggleConsumable = (packageItemId) => {
     setCheckedConsumables((prev) => {
       const next = new Set(prev);
-      next.has(packageItemId) ? next.delete(packageItemId) : next.add(packageItemId);
+      next.has(packageItemId)
+        ? next.delete(packageItemId)
+        : next.add(packageItemId);
       return next;
     });
   };
@@ -1577,7 +1192,9 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsList
+              className={`grid w-full h-auto ${ENABLE_BARANG_PENGURUSAN_JENAZAH ? "grid-cols-4" : "grid-cols-3"}`}
+            >
               <TabsTrigger
                 value="deceased"
                 className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
@@ -1596,12 +1213,14 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
               >
                 {translate("Notes & Documents")}
               </TabsTrigger>
-              <TabsTrigger
-                value="items"
-                className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
-              >
-                {translate("Barang Pengurusan Jenazah")}
-              </TabsTrigger>
+              {ENABLE_BARANG_PENGURUSAN_JENAZAH && (
+                <TabsTrigger
+                  value="items"
+                  className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
+                >
+                  {translate("Barang Pengurusan Jenazah")}
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="deceased" className="space-y-5 mt-4">
@@ -1926,123 +1545,156 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
               </div>
             </TabsContent>
 
-            <TabsContent value="items" className="space-y-4 mt-4">
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Lokasi")}</Label>
-                  <select
-                    value={selectedLocation ?? ""}
-                    onChange={(e) => {
-                      setSelectedLocation(e.target.value || null);
-                      setSelectedPackageId(null);
-                      setCheckedConsumables(new Set());
-                      setSelectedReusables(new Map());
-                    }}
-                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="">{translate("Semua Lokasi")}</option>
-                    {locations.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
+            {ENABLE_BARANG_PENGURUSAN_JENAZAH && (
+              <TabsContent value="items" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-1 block">
+                      {translate("Lokasi")}
+                    </Label>
+                    <select
+                      value={selectedLocation ?? ""}
+                      onChange={(e) => {
+                        setSelectedLocation(e.target.value || null);
+                        setSelectedPackageId(null);
+                        setCheckedConsumables(new Set());
+                        setSelectedReusables(new Map());
+                      }}
+                      className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="">{translate("Semua Lokasi")}</option>
+                      {locations.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-1 block">
+                      {translate("Pakej")}
+                    </Label>
+                    <select
+                      value={selectedPackageId ?? ""}
+                      onChange={(e) =>
+                        handlePackageSelect(e.target.value || null)
+                      }
+                      className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="">{translate("Pilih pakej")}</option>
+                      {filteredPackages.map((pkg) => (
+                        <option key={pkg.id} value={pkg.id}>
+                          {pkg.package_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label className="text-xs text-slate-500 mb-1 block">{translate("Pakej")}</Label>
-                  <select
-                    value={selectedPackageId ?? ""}
-                    onChange={(e) => handlePackageSelect(e.target.value || null)}
-                    className="w-full border border-slate-200 dark:border-slate-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-slate-700 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <option value="">{translate("Pilih pakej")}</option>
-                    {filteredPackages.map((pkg) => (
-                      <option key={pkg.id} value={pkg.id}>{pkg.package_name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                {selectedPackage && (
+                  <div className="space-y-4">
+                    {consumableItems.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {translate("Barangan Guna Habis")}
+                        </p>
+                        {consumableItems.map((pi) => {
+                          const outOfStock =
+                            (pi.item?.current_quantity ?? 0) <
+                            pi.quantity_required;
+                          return (
+                            <label
+                              key={pi.id}
+                              className={`flex items-center gap-2.5 ${outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
+                            >
+                              <Checkbox
+                                checked={
+                                  !outOfStock && checkedConsumables.has(pi.id)
+                                }
+                                onCheckedChange={() =>
+                                  !outOfStock && toggleConsumable(pi.id)
+                                }
+                                disabled={outOfStock}
+                              />
+                              <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                                {pi.item?.item_name ?? `Item #${pi.itemId}`}
+                              </span>
+                              <span
+                                className={`text-xs ${outOfStock ? "text-red-400" : "text-slate-400"}`}
+                              >
+                                {outOfStock
+                                  ? translate("Stok habis")
+                                  : `x${pi.quantity_required}`}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
 
-              {selectedPackage && (
-                <div className="space-y-4">
-                  {consumableItems.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {translate("Barangan Guna Habis")}
-                      </p>
-                      {consumableItems.map((pi) => {
-                        const outOfStock = (pi.item?.current_quantity ?? 0) < pi.quantity_required;
-                        return (
-                          <label
-                            key={pi.id}
-                            className={`flex items-center gap-2.5 ${outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
-                          >
-                            <Checkbox
-                              checked={!outOfStock && checkedConsumables.has(pi.id)}
-                              onCheckedChange={() => !outOfStock && toggleConsumable(pi.id)}
-                              disabled={outOfStock}
-                            />
-                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                              {pi.item?.item_name ?? `Item #${pi.itemId}`}
-                            </span>
-                            <span className={`text-xs ${outOfStock ? "text-red-400" : "text-slate-400"}`}>
-                              {outOfStock
-                                ? translate("Stok habis")
-                                : `x${pi.quantity_required}`}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
+                    {reusableItems.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {translate("Aset / Boleh Guna Semula")}
+                        </p>
+                        {reusableItemsAtLocation.length === 0 && (
+                          <p className="text-xs text-slate-400 italic">
+                            {translate(
+                              "Tiada item boleh guna semula di lokasi ini.",
+                            )}
+                          </p>
+                        )}
+                        {reusableItemsAtLocation.map((item) => {
+                          const available = item.status === "AVAILABLE";
+                          const checked = [
+                            ...selectedReusables.values(),
+                          ].includes(item.id);
+                          return (
+                            <label
+                              key={item.id}
+                              className={`flex items-center gap-2.5 ${!available ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() =>
+                                  available && toggleReusableItem(item)
+                                }
+                                disabled={!available}
+                              />
+                              <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                                {item.item_name}
+                                {item.item_code && (
+                                  <span className="ml-1 text-slate-400">
+                                    ({item.item_code})
+                                  </span>
+                                )}
+                              </span>
+                              <span
+                                className={`text-xs ${!available ? "text-red-400" : "text-slate-400"}`}
+                              >
+                                {!available
+                                  ? item.status === "IN_USE"
+                                    ? translate("Dalam Guna")
+                                    : item.status
+                                  : translate("Tersedia")}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
 
-                  {reusableItems.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {translate("Aset / Boleh Guna Semula")}
-                      </p>
-                      {reusableItemsAtLocation.length === 0 && (
+                    {consumableItems.length === 0 &&
+                      reusableItems.length === 0 && (
                         <p className="text-xs text-slate-400 italic">
-                          {translate("Tiada item boleh guna semula di lokasi ini.")}
+                          {translate("Tiada item dalam pakej ini.")}
                         </p>
                       )}
-                      {reusableItemsAtLocation.map((item) => {
-                        const available = item.status === "AVAILABLE";
-                        const checked = [...selectedReusables.values()].includes(item.id);
-                        return (
-                          <label
-                            key={item.id}
-                            className={`flex items-center gap-2.5 ${!available ? "opacity-40 cursor-not-allowed" : "cursor-pointer group"}`}
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={() => available && toggleReusableItem(item)}
-                              disabled={!available}
-                            />
-                            <span className="text-sm text-slate-700 dark:text-slate-200 flex-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                              {item.item_name}
-                              {item.item_code && (
-                                <span className="ml-1 text-slate-400">({item.item_code})</span>
-                              )}
-                            </span>
-                            <span className={`text-xs ${!available ? "text-red-400" : "text-slate-400"}`}>
-                              {!available
-                                ? item.status === "IN_USE"
-                                  ? translate("Dalam Guna")
-                                  : item.status
-                                : translate("Tersedia")}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {consumableItems.length === 0 && reusableItems.length === 0 && (
-                    <p className="text-xs text-slate-400 italic">{translate("Tiada item dalam pakej ini.")}</p>
-                  )}
-                </div>
-              )}
-            </TabsContent>
+                  </div>
+                )}
+              </TabsContent>
+            )}
           </Tabs>
 
           <DialogFooter>
@@ -2088,16 +1740,27 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                 >
                   {translate("Back")}
                 </Button>
-                <Button
-                  type="button"
-                  onClick={() => setActiveTab("items")}
-                  className="bg-rose-600 hover:bg-rose-700 text-white"
-                >
-                  {translate("Next")}
-                </Button>
+                {ENABLE_BARANG_PENGURUSAN_JENAZAH ? (
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab("items")}
+                    className="bg-rose-600 hover:bg-rose-700 text-white"
+                  >
+                    {translate("Next")}
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-rose-600 hover:bg-rose-700 text-white"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {translate("Add Case")}
+                  </Button>
+                )}
               </>
             )}
-            {activeTab === "items" && (
+            {ENABLE_BARANG_PENGURUSAN_JENAZAH && activeTab === "items" && (
               <>
                 <Button
                   type="button"
@@ -2166,7 +1829,8 @@ const jenazahCaseExportColumns = [
 ];
 
 function ManageJenazahCaseDesktop() {
-  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } = useAdminAccess();
+  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } =
+    useAdminAccess();
   const {
     loading: permissionsLoading,
     canView,
