@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { trpc, trpcClient } from "@/utils/trpc";
 import { useAdminAccess } from "@/utils/auth";
@@ -165,7 +166,13 @@ function DetailRow({ label, value, children }) {
   );
 }
 
-function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
+function CaseFormSheet({
+  onClose,
+  onSubmit,
+  isSubmitting,
+  initialOrgId,
+  initialMosqueId,
+}) {
   const { currentUser } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
 
@@ -199,6 +206,15 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
   useEffect(() => {
     if (userOrgId) setValue("selectedOrgId", userOrgId);
   }, [userOrgId, setValue]);
+
+  useEffect(() => {
+    if (initialOrgId) {
+      skipMosqueResetRef.current = true;
+      setValue("selectedOrgId", initialOrgId);
+    }
+  }, [initialOrgId, setValue]);
+
+  const initialMosqueAppliedRef = useRef(false);
 
   const handleFileUpload = async (file, bucketName) => {
     try {
@@ -236,6 +252,15 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
       { organisationId: selectedOrgId, canArrangeFuneral: true },
       { enabled: !!selectedOrgId },
     );
+
+  useEffect(() => {
+    if (!initialMosqueId || initialMosqueAppliedRef.current) return;
+    if (!selectedOrgId || mosquesLoading) return;
+    if (mosques.some((m) => m.id === initialMosqueId)) {
+      setValue("selectedMosqueId", initialMosqueId);
+      initialMosqueAppliedRef.current = true;
+    }
+  }, [initialMosqueId, selectedOrgId, mosques, mosquesLoading, setValue]);
 
   const { data: memberResult, isFetching: memberSearching } =
     trpc.deathCharityMember.searchByIcNumber.useQuery(
@@ -1370,6 +1395,13 @@ export default function MobileManageJenazahCase() {
     canEdit,
     canDelete,
   } = useCrudPermissions("jenazah_case");
+  const [searchParams] = useSearchParams();
+  const prefillMosqueId = searchParams.get("mosqueId")
+    ? Number(searchParams.get("mosqueId"))
+    : null;
+  const prefillOrgId = searchParams.get("organisationId")
+    ? Number(searchParams.get("organisationId"))
+    : null;
   const [statusFilter, setStatusFilter] = useState("pending");
   const [page, setPage] = useState(1);
   const [selectedCase, setSelectedCase] = useState(null);
@@ -1379,6 +1411,14 @@ export default function MobileManageJenazahCase() {
   const [icConflict, setIcConflict] = useState(null);
   const [exporting, setExporting] = useState(null);
   const itemsPerPage = 10;
+  const autoOpenedFormRef = useRef(false);
+
+  useEffect(() => {
+    if (prefillMosqueId && canCreate && !autoOpenedFormRef.current) {
+      autoOpenedFormRef.current = true;
+      setFormOpen(true);
+    }
+  }, [prefillMosqueId, canCreate]);
 
   const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
     {
@@ -1698,6 +1738,8 @@ export default function MobileManageJenazahCase() {
           onClose={() => setFormOpen(false)}
           onSubmit={handleFormSubmit}
           isSubmitting={createMutation.isPending}
+          initialOrgId={prefillOrgId}
+          initialMosqueId={prefillMosqueId}
         />
       )}
 

@@ -581,20 +581,6 @@ function AdminDashboardDesktop() {
                   </Card>
                 </Link>
               )}
-              <Link to={createPageUrl("ManageMosques")} className="block group">
-                <Card className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-stone-50 to-amber-50 dark:from-stone-900/20 dark:to-amber-900/20 hover:scale-105">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-stone-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shrink-0">
-                        <CreditCard className="w-6 h-6 text-white" />
-                      </div>
-                      <p className="text-sm font-medium text-stone-700 dark:text-stone-400">
-                        {translate("Jenazah Management Payment")}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
             </div>
           </div>
         )}

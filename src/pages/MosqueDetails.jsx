@@ -12,6 +12,7 @@ import {
   ChevronRight,
   ListChecks,
   Users,
+  ClipboardPlus,
 } from "lucide-react";
 import MapBox from "@/components/MapBox";
 import ActivityPostsCard from "@/components/ActivityPostsCard";
@@ -27,6 +28,8 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { createPageUrl, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
+import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
@@ -35,6 +38,8 @@ export default function MosqueDetailsPage() {
   const mosqueId = searchParams.get("id")
     ? Number(searchParams.get("id"))
     : null;
+  const { hasAdminAccess } = useAdminAccess();
+  const { canCreate: canCreateJenazahCase } = useCrudPermissions("jenazah_case");
 
   const {
     data: mosque,
@@ -123,6 +128,25 @@ export default function MosqueDetailsPage() {
             state={mosque.organisation?.state}
           />
         </div>
+
+        {mosque.canarrangefuneral && hasAdminAccess && canCreateJenazahCase && (
+          <Link
+            to={`${createPageUrl("ManageJenazahCase")}?mosqueId=${mosque.id}${
+              mosque.organisation?.id
+                ? `&organisationId=${mosque.organisation.id}`
+                : ""
+            }`}
+            className="block"
+          >
+            <Button
+              className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-md"
+              size="sm"
+            >
+              <ClipboardPlus className="w-4 h-4 mr-2" />
+              {translate("Add Funeral Case for This Mosque")}
+            </Button>
+          </Link>
+        )}
 
         {mosque.hasdeathcharity ? (
           <Link

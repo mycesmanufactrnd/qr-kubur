@@ -429,22 +429,6 @@ export default function MobileAdminDashboard() {
               {kariahStats.map((s, i) => (
                 <StatCard key={i} {...s} />
               ))}
-              <Link
-                to={createPageUrl("ManageMosques")}
-                className="block no-underline col-span-2"
-              >
-                <div className="rounded-2xl p-3.5 bg-amber-50 dark:bg-amber-900/20 border border-slate-100 dark:border-slate-600/5 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-amber-100 dark:bg-amber-800/60 shrink-0">
-                    <CreditCard
-                      size={14}
-                      className="text-amber-600 dark:text-amber-400"
-                    />
-                  </div>
-                  <p className="text-[13px] font-medium text-slate-700 dark:text-slate-300">
-                    {translate("Jenazah Management Payment")}
-                  </p>
-                </div>
-              </Link>
             </div>
           </>
         )}
