@@ -28,8 +28,6 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { createPageUrl, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
-import { useAdminAccess } from "@/utils/auth";
-import { useCrudPermissions } from "@/components/PermissionsContext";
 
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
@@ -38,8 +36,6 @@ export default function MosqueDetailsPage() {
   const mosqueId = searchParams.get("id")
     ? Number(searchParams.get("id"))
     : null;
-  const { hasAdminAccess } = useAdminAccess();
-  const { canCreate: canCreateJenazahCase } = useCrudPermissions("jenazah_case");
 
   const {
     data: mosque,
@@ -129,23 +125,19 @@ export default function MosqueDetailsPage() {
           />
         </div>
 
-        {mosque.canarrangefuneral && hasAdminAccess && canCreateJenazahCase && (
-          <Link
-            to={`${createPageUrl("ManageJenazahCase")}?mosqueId=${mosque.id}${
-              mosque.organisation?.id
-                ? `&organisationId=${mosque.organisation.id}`
-                : ""
-            }`}
-            className="block"
+        {mosque.canarrangefuneral && (
+          <Button
+            className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-md"
+            size="sm"
+            onClick={() =>
+              navigate(createPageUrl("JenazahEmergencyRequest"), {
+                state: { mosque },
+              })
+            }
           >
-            <Button
-              className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-md"
-              size="sm"
-            >
-              <ClipboardPlus className="w-4 h-4 mr-2" />
-              {translate("Add Funeral Case for This Mosque")}
-            </Button>
-          </Link>
+            <ClipboardPlus className="w-4 h-4 mr-2" />
+            {translate("Request Funeral Management for This Mosque")}
+          </Button>
         )}
 
         {mosque.hasdeathcharity ? (

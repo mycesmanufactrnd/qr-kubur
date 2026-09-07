@@ -6,7 +6,9 @@
       "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_grave_service.js\")",
       "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_tahlil.js\")",
       "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_islamic_event.js\")",
-      "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_donation.js\")"
+      "Bash(node \"C:/Users/zahir/AppData/Local/Temp/claude/c--Users-zahir-Documents-GitHub-qr-kubur/4363f8ce-23ac-41e0-84c2-d5434f9009f2/scratchpad/check_donation.js\")",
+      "Bash(git -C c:/Users/zahir/Documents/GitHub/qr-kubur diff --stat -- src/pages/MosqueDetails.jsx)",
+      "Bash(git -C c:/Users/zahir/Documents/GitHub/qr-kubur status --short -- src/pages/MosqueDetails.jsx)"
     ]
   }
 }
