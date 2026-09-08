@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useRef, useState } from "react";
+import { useId, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,7 @@ export default function MultipleFileUploadForm({
   const [previewKey, setPreviewKey] = useState(null);
   const [chooserOpen, setChooserOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputId = useId();
   const allowCamera = accept.includes("image");
 
   return (
@@ -99,7 +99,7 @@ export default function MultipleFileUploadForm({
               <div className="flex items-center gap-3">
                 <input
                   key={fileInputKey}
-                  ref={fileInputRef}
+                  id={fileInputId}
                   type="file"
                   accept={accept}
                   multiple
@@ -129,10 +129,8 @@ export default function MultipleFileUploadForm({
                 open={chooserOpen}
                 onOpenChange={setChooserOpen}
                 allowCamera={allowCamera}
-                onSelectFile={() => {
-                  setChooserOpen(false);
-                  fileInputRef.current?.click();
-                }}
+                fileInputId={fileInputId}
+                onSelectFile={() => setChooserOpen(false)}
                 onSelectCamera={() => {
                   setChooserOpen(false);
                   setCameraOpen(true);

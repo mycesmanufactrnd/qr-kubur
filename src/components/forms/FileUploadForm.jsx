@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ export default function FileUploadForm({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [chooserOpen, setChooserOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputId = useId();
   const allowCamera = accept.includes("image");
 
   // Sync URL mode when field value changes externally
@@ -143,7 +143,7 @@ export default function FileUploadForm({
               <div className="flex items-center gap-3">
                 <input
                   key={fileInputKey}
-                  ref={fileInputRef}
+                  id={fileInputId}
                   type="file"
                   accept={accept}
                   className="hidden"
@@ -180,16 +180,11 @@ export default function FileUploadForm({
                 open={chooserOpen}
                 onOpenChange={setChooserOpen}
                 allowCamera={allowCamera}
-                onSelectFile={() => {
-                  setChooserOpen(false);
-                  // Defer past the closing dialog's focus-restore/cleanup —
-                  // triggering the native file/camera chooser in the same
-                  // tick as the dialog unmount can silently no-op on Android.
-                  setTimeout(() => fileInputRef.current?.click(), 0);
-                }}
+                fileInputId={fileInputId}
+                onSelectFile={() => setChooserOpen(false)}
                 onSelectCamera={() => {
                   setChooserOpen(false);
-                  setTimeout(() => setCameraOpen(true), 0);
+                  setCameraOpen(true);
                 }}
               />
               <CameraCaptureDialog

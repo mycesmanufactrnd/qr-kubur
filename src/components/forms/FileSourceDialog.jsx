@@ -13,6 +13,7 @@ export default function FileSourceDialog({
   onOpenChange,
   onSelectCamera,
   onSelectFile,
+  fileInputId,
   allowCamera = true,
 }) {
   return (
@@ -32,14 +33,23 @@ export default function FileSourceDialog({
               {translate("Take Photo")}
             </button>
           )}
-          <button
-            type="button"
+          {/*
+            A <label> directly wired to the hidden file input via htmlFor —
+            the browser opens the native file/gallery chooser as the direct
+            result of this click, in the same gesture. Closing this dialog
+            via onSelectFile is just a state update alongside it, not a
+            prerequisite — so there's no race with Radix's ~200ms dialog
+            close animation like a JS-triggered input.click() from a
+            separate callback would have.
+          */}
+          <label
+            htmlFor={fileInputId}
             onClick={onSelectFile}
-            className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 active:opacity-70"
+            className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 active:opacity-70 cursor-pointer"
           >
             <FolderOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             {translate("Choose File")}
-          </button>
+          </label>
         </div>
       </DialogContent>
     </Dialog>

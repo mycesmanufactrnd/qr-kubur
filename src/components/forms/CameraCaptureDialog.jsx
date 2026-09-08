@@ -1,8 +1,6 @@
 // @ts-nocheck
 import { useEffect, useRef, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 import { Camera as CameraIcon } from "lucide-react";
-import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import {
   Dialog,
   DialogContent,
@@ -12,60 +10,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { translate } from "@/utils/translations";
-import { showError } from "@/components/ToastrNotification";
 
-const isNative = Capacitor.isNativePlatform();
-
+// Uses getUserMedia directly rather than the @capacitor/camera plugin —
+// this is the same approach ScanQR.jsx already relies on and is what
+// reliably opens the camera inside the Capacitor WebView; the native
+// Camera plugin bridge has proven unreliable there.
 export default function CameraCaptureDialog({ open, onOpenChange, onCapture }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [starting, setStarting] = useState(false);
   const [captureError, setCaptureError] = useState(false);
 
-  // Native platforms: hand off straight to the OS camera app via Capacitor.
   useEffect(() => {
-    if (!open || !isNative) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const photo = await Camera.getPhoto({
-          quality: 80,
-          allowEditing: false,
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Camera,
-        });
-        if (cancelled) return;
-
-        const res = await fetch(photo.webPath);
-        const blob = await res.blob();
-        const file = new File(
-          [blob],
-          `capture-${Date.now()}.${photo.format || "jpeg"}`,
-          { type: blob.type || `image/${photo.format || "jpeg"}` },
-        );
-        onCapture(file);
-      } catch (err) {
-        // "User cancelled photos app" is thrown by the plugin when the user
-        // backs out of the camera — not a real error, nothing to report.
-        const message = String(err?.message || err || "");
-        if (!/cancel/i.test(message)) {
-          console.error("Camera capture failed:", err);
-          showError(translate("Could not open the camera. Please try again."));
-        }
-      } finally {
-        if (!cancelled) onOpenChange(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
-
-  // Web/desktop: show a live preview via getUserMedia and let the user capture a frame.
-  useEffect(() => {
-    if (!open || isNative) return;
+    if (!open) return;
     let cancelled = false;
     setStarting(true);
     setCaptureError(false);
@@ -117,8 +74,6 @@ export default function CameraCaptureDialog({ open, onOpenChange, onCapture }) {
       0.9,
     );
   };
-
-  if (isNative) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
