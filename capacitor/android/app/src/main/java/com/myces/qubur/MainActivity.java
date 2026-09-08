@@ -40,6 +40,13 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    // Camera permission is intentionally NOT requested here — it's requested by
+    // the Capacitor Camera plugin itself, at the moment the user actually taps
+    // "Take Photo". Asking for it eagerly at launch (before the user has any
+    // context) trains people to reflexively tap "Deny", and Android then
+    // silently blocks every later re-prompt — so Camera.getPhoto() fails
+    // forever with "User denied access to camera" and there's no way back
+    // short of the user manually re-enabling it in system Settings.
     private void requestLocationPermissionIfNeeded() {
         java.util.List<String> needed = new java.util.ArrayList<>();
 
@@ -47,11 +54,6 @@ public class MainActivity extends BridgeActivity {
                 != PackageManager.PERMISSION_GRANTED) {
             needed.add(Manifest.permission.ACCESS_FINE_LOCATION);
             needed.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            needed.add(Manifest.permission.CAMERA);
         }
 
         if (!needed.isEmpty()) {

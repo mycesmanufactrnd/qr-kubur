@@ -51,7 +51,13 @@ export default function CameraCaptureDialog({ open, onOpenChange, onCapture }) {
         onCapture(file);
       } catch (err) {
         const message = String(err?.message || err || "");
-        if (!/cancel/i.test(message)) {
+        if (/denied/i.test(message)) {
+          showError(
+            translate(
+              "Camera access is turned off for this app. Please enable Camera permission in your phone's Settings.",
+            ),
+          );
+        } else if (!/cancel/i.test(message)) {
           console.error("Camera capture failed:", err);
           showError(translate("Could not open the camera. Please try again."));
         }
