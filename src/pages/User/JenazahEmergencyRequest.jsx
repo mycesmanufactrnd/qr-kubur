@@ -1290,7 +1290,6 @@ export default function JenazahEmergencyRequest() {
                       name="policereportphotourl"
                       control={control}
                       label={translate("Police Report")}
-                      required
                       errors={errors}
                       accept="image/*,application/pdf"
                       isNeedPasteURL={false}

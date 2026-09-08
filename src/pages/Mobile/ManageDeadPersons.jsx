@@ -13,7 +13,6 @@ import {
   Navigation,
   User,
   Eye,
-  ScanText,
   FileSpreadsheet,
   FileText,
   Loader2,
@@ -50,10 +49,6 @@ import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 import { parseDobFromIcNumber } from "@/utils/helpers";
-import {
-  recognizeDocumentText,
-  extractDeadPersonFields,
-} from "@/utils/deadPersonOcr";
 import { trpcClient } from "@/utils/trpc";
 import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
 
@@ -209,7 +204,6 @@ function PersonFormSheet({
 
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const [ocrRunning, setOcrRunning] = useState(false);
   const lastGraveRef = useRef(editing?.grave?.id?.toString() ?? "");
 
   const icnumberValue = watch("icnumber");
@@ -251,57 +245,6 @@ function PersonFormSheet({
     );
   };
 
-  const runOcr = async (file) => {
-    setOcrRunning(true);
-    try {
-      const text = await recognizeDocumentText(file);
-      const fields = extractDeadPersonFields(text);
-
-      if (fields.name && !watch("name")) setValue("name", fields.name);
-      if (fields.icnumber && !watch("icnumber")) {
-        setValue("icnumber", fields.icnumber);
-        if (!watch("dateofbirth")) {
-          const dob = parseDobFromIcNumber(fields.icnumber);
-          if (dob) setValue("dateofbirth", dob);
-        }
-      }
-      if (fields.dateofbirth && !watch("dateofbirth")) {
-        setValue("dateofbirth", fields.dateofbirth);
-      }
-      if (fields.dateofdeath && !watch("dateofdeath")) {
-        setValue("dateofdeath", fields.dateofdeath);
-      }
-      if (fields.causeofdeath && !watch("causeofdeath")) {
-        setValue("causeofdeath", fields.causeofdeath);
-      }
-      if (fields.gravelot && !watch("gravelot")) {
-        setValue("gravelot", fields.gravelot);
-      }
-
-      if (!Object.keys(fields).length) {
-        showError(
-          translate(
-            "Could not read any details from the photo. Please fill in the details manually.",
-          ),
-        );
-      }
-    } catch (e) {
-      console.error(e);
-      showError(
-        translate(
-          "Could not read any details from the photo. Please fill in the details manually.",
-        ),
-      );
-    } finally {
-      setOcrRunning(false);
-    }
-  };
-
-  const handleFileUploadWithOcr = async (file, bucketName) => {
-    runOcr(file);
-    return await handleFileUpload(file, bucketName);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
@@ -317,44 +260,27 @@ function PersonFormSheet({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
-        <div className="rounded-xl border border-emerald-100 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 space-y-2">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-            <ScanText className="w-3.5 h-3.5" />
-            {translate("Import from Photo (OCR)")}
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {translate(
-              "Upload or take a photo of the death confirmation letter or police report — details will be read automatically and can be edited before saving.",
-            )}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <FileUploadForm
-              name="deathconfirmationphotourl"
-              control={control}
-              label={translate("Death Confirmation")}
-              accept="image/*"
-              isNeedPasteURL={false}
-              bucketName="bucket-death-confirmation"
-              uploading={uploading}
-              handleFileUpload={handleFileUploadWithOcr}
-            />
-            <FileUploadForm
-              name="policereportphotourl"
-              control={control}
-              label={translate("Police Report")}
-              accept="image/*"
-              isNeedPasteURL={false}
-              bucketName="bucket-police-report"
-              uploading={uploading}
-              handleFileUpload={handleFileUploadWithOcr}
-            />
-          </div>
-          {ocrRunning && (
-            <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              {translate("Reading details from photo...")}
-            </div>
-          )}
+        <div className="grid grid-cols-2 gap-3">
+          <FileUploadForm
+            name="deathconfirmationphotourl"
+            control={control}
+            label={translate("Death Confirmation")}
+            accept="image/*"
+            isNeedPasteURL={false}
+            bucketName="bucket-death-confirmation"
+            uploading={uploading}
+            handleFileUpload={handleFileUpload}
+          />
+          <FileUploadForm
+            name="policereportphotourl"
+            control={control}
+            label={translate("Police Report")}
+            accept="image/*"
+            isNeedPasteURL={false}
+            bucketName="bucket-police-report"
+            uploading={uploading}
+            handleFileUpload={handleFileUpload}
+          />
         </div>
 
         <TextInputForm
