@@ -391,8 +391,22 @@ function ManageDeadPersonsDesktop() {
 
   const openAddDialog = () => {
     setEditingPerson(null);
-    reset(defaultDeadPersonField);
-    lastGraveRef.current = defaultDeadPersonField.grave;
+    const soleGrave =
+      gravesList.items.length === 1 ? gravesList.items[0] : null;
+    const graveId = soleGrave ? String(soleGrave.id) : defaultDeadPersonField.grave;
+    reset({
+      ...defaultDeadPersonField,
+      grave: graveId,
+      latitude:
+        soleGrave?.latitude != null
+          ? String(soleGrave.latitude)
+          : defaultDeadPersonField.latitude,
+      longitude:
+        soleGrave?.longitude != null
+          ? String(soleGrave.longitude)
+          : defaultDeadPersonField.longitude,
+    });
+    lastGraveRef.current = graveId;
     setShowMap(false);
     setIsDialogOpen(true);
   };
@@ -975,7 +989,6 @@ function ManageDeadPersonsDesktop() {
                 <TextInputForm
                   name="causeofdeath"
                   control={control}
-                  required
                   label={translate("Cause of Death")}
                 />
                 <TextInputForm

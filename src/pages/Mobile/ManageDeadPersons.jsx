@@ -186,6 +186,8 @@ function PersonFormSheet({
   uploading,
   handleFileUpload,
 }) {
+  const soleGrave = !editing && graves.length === 1 ? graves[0] : null;
+
   const {
     control,
     handleSubmit,
@@ -199,12 +201,25 @@ function PersonFormSheet({
           grave: editing.grave?.id?.toString() ?? "",
           graveslotId: editing.graveslot?.id ?? null,
         }
-      : defaultDeadPersonField,
+      : {
+          ...defaultDeadPersonField,
+          grave: soleGrave ? String(soleGrave.id) : defaultDeadPersonField.grave,
+          latitude:
+            soleGrave?.latitude != null
+              ? String(soleGrave.latitude)
+              : defaultDeadPersonField.latitude,
+          longitude:
+            soleGrave?.longitude != null
+              ? String(soleGrave.longitude)
+              : defaultDeadPersonField.longitude,
+        },
   });
 
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const lastGraveRef = useRef(editing?.grave?.id?.toString() ?? "");
+  const lastGraveRef = useRef(
+    editing?.grave?.id?.toString() ?? (soleGrave ? String(soleGrave.id) : ""),
+  );
 
   const icnumberValue = watch("icnumber");
   const graveValue = watch("grave");
