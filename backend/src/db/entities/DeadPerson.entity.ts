@@ -27,11 +27,11 @@ export class DeadPerson {
   @Column("varchar", { length: 255, nullable: true })
   icnumber?: string | null;
 
-  @Column({ type: "date" })
-  dateofbirth!: Date;
+  @Column({ type: "date", nullable: true })
+  dateofbirth?: Date | null;
 
-  @Column({ type: "date" })
-  dateofdeath!: Date;
+  @Column({ type: "date", nullable: true })
+  dateofdeath?: Date | null;
 
   @Column("varchar", { length: 255, nullable: true })
   causeofdeath?: string | null;

@@ -318,7 +318,6 @@ function PersonFormSheet({
             control={control}
             label={translate("Date of Birth")}
             isDate
-            required
             errors={errors}
           />
           <TextInputForm
@@ -326,7 +325,6 @@ function PersonFormSheet({
             control={control}
             label={translate("Date of Death")}
             isDate
-            required
             errors={errors}
           />
         </div>
@@ -568,6 +566,8 @@ export default function MobileManageDeadPersons() {
       ...rest,
       latitude,
       longitude,
+      dateofbirth: rest.dateofbirth || null,
+      dateofdeath: rest.dateofdeath || null,
       grave: rest.grave ? { id: Number(rest.grave) } : null,
       gravelot: rest.gravelot?.trim() || null,
       graveslot: graveslotId ? { id: Number(graveslotId) } : null,
