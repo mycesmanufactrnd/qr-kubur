@@ -5,11 +5,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebChromeClient;
 
 public class MainActivity extends BridgeActivity {
 
@@ -20,7 +20,13 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         requestLocationPermissionIfNeeded();
 
-        getBridge().getWebView().setWebChromeClient(new WebChromeClient() {
+        // Extend Capacitor's own BridgeWebChromeClient (not the bare Android
+        // WebChromeClient) — it already implements onShowFileChooser() to
+        // hand <input type="file"> off to a native picker/camera intent.
+        // Subclassing the plain WebChromeClient here silently no-ops every
+        // file input in the app, since the default onShowFileChooser()
+        // implementation just returns false.
+        getBridge().getWebView().setWebChromeClient(new BridgeWebChromeClient(getBridge()) {
             @Override
             public void onGeolocationPermissionsShowPrompt(
                     String origin, GeolocationPermissions.Callback callback) {
