@@ -164,6 +164,8 @@ export const defaultDeadPersonField = {
   photourl: "",
   latitude: "",
   longitude: "",
+  deathconfirmationphotourl: "",
+  policereportphotourl: "",
 };
 
 export const defaultPaymentField = {

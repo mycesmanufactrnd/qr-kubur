@@ -1,5 +1,5 @@
 ﻿// @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Users,
@@ -28,7 +28,6 @@ import QRCodeDialog from "@/components/QRCodeDialog";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { Checkbox } from "@/components/ui/checkbox";
 import { translate } from "@/utils/translations";
 import {
   appendCurrentUserToFormData,
@@ -51,7 +50,10 @@ import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
 import { parseDobFromIcNumber } from "@/utils/helpers";
-import DeadPersonOcrDialog from "@/components/DeadPersonOcrDialog";
+import {
+  recognizeDocumentText,
+  extractDeadPersonFields,
+} from "@/utils/deadPersonOcr";
 import { trpcClient } from "@/utils/trpc";
 import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
 
@@ -207,7 +209,8 @@ function PersonFormSheet({
 
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const [followGraveLocation, setFollowGraveLocation] = useState(false);
+  const [ocrRunning, setOcrRunning] = useState(false);
+  const lastGraveRef = useRef(editing?.grave?.id?.toString() ?? "");
 
   const icnumberValue = watch("icnumber");
   const graveValue = watch("grave");
@@ -218,8 +221,14 @@ function PersonFormSheet({
     if (dob) setValue("dateofbirth", dob);
   }, [icnumberValue, editing]);
 
+  // Auto-fill latitude/longitude from the selected cemetery whenever the
+  // admin actually changes the grave dropdown — skipped on the first render
+  // so it never clobbers an already saved custom location when editing.
   useEffect(() => {
-    if (!followGraveLocation || !graveValue) return;
+    if (graveValue === lastGraveRef.current) return;
+    lastGraveRef.current = graveValue;
+    if (!graveValue) return;
+
     const selectedGrave = graves.find(
       (g) => String(g.id) === String(graveValue),
     );
@@ -227,7 +236,7 @@ function PersonFormSheet({
       setValue("latitude", String(selectedGrave.latitude));
       setValue("longitude", String(selectedGrave.longitude));
     }
-  }, [followGraveLocation, graveValue, graves]);
+  }, [graveValue, graves]);
 
   const getLocation = () => {
     if (!navigator.geolocation) return;
@@ -240,6 +249,57 @@ function PersonFormSheet({
       },
       () => setIsLocating(false),
     );
+  };
+
+  const runOcr = async (file) => {
+    setOcrRunning(true);
+    try {
+      const text = await recognizeDocumentText(file);
+      const fields = extractDeadPersonFields(text);
+
+      if (fields.name && !watch("name")) setValue("name", fields.name);
+      if (fields.icnumber && !watch("icnumber")) {
+        setValue("icnumber", fields.icnumber);
+        if (!watch("dateofbirth")) {
+          const dob = parseDobFromIcNumber(fields.icnumber);
+          if (dob) setValue("dateofbirth", dob);
+        }
+      }
+      if (fields.dateofbirth && !watch("dateofbirth")) {
+        setValue("dateofbirth", fields.dateofbirth);
+      }
+      if (fields.dateofdeath && !watch("dateofdeath")) {
+        setValue("dateofdeath", fields.dateofdeath);
+      }
+      if (fields.causeofdeath && !watch("causeofdeath")) {
+        setValue("causeofdeath", fields.causeofdeath);
+      }
+      if (fields.gravelot && !watch("gravelot")) {
+        setValue("gravelot", fields.gravelot);
+      }
+
+      if (!Object.keys(fields).length) {
+        showError(
+          translate(
+            "Could not read any details from the photo. Please fill in the details manually.",
+          ),
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      showError(
+        translate(
+          "Could not read any details from the photo. Please fill in the details manually.",
+        ),
+      );
+    } finally {
+      setOcrRunning(false);
+    }
+  };
+
+  const handleFileUploadWithOcr = async (file, bucketName) => {
+    runOcr(file);
+    return await handleFileUpload(file, bucketName);
   };
 
   return (
@@ -257,6 +317,46 @@ function PersonFormSheet({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
+        <div className="rounded-xl border border-emerald-100 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 space-y-2">
+          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+            <ScanText className="w-3.5 h-3.5" />
+            {translate("Import from Photo (OCR)")}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {translate(
+              "Upload or take a photo of the death confirmation letter or police report — details will be read automatically and can be edited before saving.",
+            )}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <FileUploadForm
+              name="deathconfirmationphotourl"
+              control={control}
+              label={translate("Death Confirmation")}
+              accept="image/*"
+              isNeedPasteURL={false}
+              bucketName="bucket-death-confirmation"
+              uploading={uploading}
+              handleFileUpload={handleFileUploadWithOcr}
+            />
+            <FileUploadForm
+              name="policereportphotourl"
+              control={control}
+              label={translate("Police Report")}
+              accept="image/*"
+              isNeedPasteURL={false}
+              bucketName="bucket-police-report"
+              uploading={uploading}
+              handleFileUpload={handleFileUploadWithOcr}
+            />
+          </div>
+          {ocrRunning && (
+            <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {translate("Reading details from photo...")}
+            </div>
+          )}
+        </div>
+
         <TextInputForm
           name="name"
           control={control}
@@ -314,18 +414,11 @@ function PersonFormSheet({
           isMobile
           required
         />
-        <div className="flex items-center gap-2">
-          <Checkbox
-            checked={followGraveLocation}
-            onCheckedChange={(v) => setFollowGraveLocation(v === true)}
-          />
-          <span
-            className="text-sm text-slate-600 dark:text-slate-300"
-            onClick={() => setFollowGraveLocation((v) => !v)}
-          >
-            {translate("Follow cemetery's coordinates")}
-          </span>
-        </div>
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          {translate(
+            "Latitude & longitude are filled in automatically from the selected cemetery — adjust below if this grave needs a more precise location.",
+          )}
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <TextInputForm
             name="latitude"
@@ -333,7 +426,6 @@ function PersonFormSheet({
             label={translate("Latitude")}
             isNumber
             required
-            disabled={followGraveLocation}
             errors={errors}
           />
           <TextInputForm
@@ -342,7 +434,6 @@ function PersonFormSheet({
             label={translate("Longitude")}
             isNumber
             required
-            disabled={followGraveLocation}
             errors={errors}
           />
         </div>
@@ -350,7 +441,7 @@ function PersonFormSheet({
           <button
             type="button"
             onClick={getLocation}
-            disabled={isLocating || followGraveLocation}
+            disabled={isLocating}
             className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
           >
             <Navigation className="w-4 h-4" />
@@ -361,14 +452,13 @@ function PersonFormSheet({
           <button
             type="button"
             onClick={() => setShowMap((v) => !v)}
-            disabled={followGraveLocation}
             className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-400 active:opacity-70 disabled:opacity-50"
           >
             <MapPin className="w-4 h-4" />
             {showMap ? translate("Hide Map") : translate("Pick on Map")}
           </button>
         </div>
-        {showMap && !followGraveLocation && (
+        {showMap && (
           <MapLocationPicker
             lat={watch("latitude")}
             lng={watch("longitude")}
@@ -389,20 +479,20 @@ function PersonFormSheet({
           <TextInputForm
             name="heirname"
             control={control}
-            label={translate("Nama Waris")}
+            label={translate("Next of Kin Name")}
             errors={errors}
           />
           <TextInputForm
             name="heirphoneno"
             control={control}
-            label={translate("No. Tel. Waris")}
+            label={translate("Next of Kin Phone")}
             errors={errors}
           />
         </div>
         <FileUploadForm
           name="photourl"
           control={control}
-          label={translate("Photo")}
+          label={translate("Grave Image")}
           errors={errors}
           bucketName="bucket-dead-person"
           uploading={uploading}
@@ -444,7 +534,6 @@ export default function MobileManageDeadPersons() {
   const [exporting, setExporting] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -465,12 +554,7 @@ export default function MobileManageDeadPersons() {
     if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
   }, [parentAndChildQuery.data]);
 
-  const {
-    deadPersonsList,
-    totalPages,
-    isLoading,
-    refetch: refetchDeadPersons,
-  } = useGetDeadPersonPaginated({
+  const { deadPersonsList, totalPages, isLoading } = useGetDeadPersonPaginated({
     page,
     pageSize: itemsPerPage,
     filterName: appliedSearch,
@@ -669,13 +753,6 @@ export default function MobileManageDeadPersons() {
             {canCreate && (
               <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => setOcrDialogOpen(true)}
-                  title={translate("Add by Photo")}
-                  className="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-600 text-white active:opacity-80"
-                >
-                  <ScanText className="w-5 h-5" />
-                </button>
-                <button
                   onClick={() => {
                     setEditingPerson(null);
                     setFormOpen(true);
@@ -761,12 +838,6 @@ export default function MobileManageDeadPersons() {
         open={qrDialogOpen}
         onOpenChange={setQRDialogOpen}
         data={qrPerson}
-      />
-
-      <DeadPersonOcrDialog
-        open={ocrDialogOpen}
-        onOpenChange={setOcrDialogOpen}
-        onSaved={refetchDeadPersons}
       />
     </>
   );

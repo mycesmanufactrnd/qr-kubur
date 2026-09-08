@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { translate } from "@/utils/translations";
+import { showError } from "@/components/ToastrNotification";
 
 const isNative = Capacitor.isNativePlatform();
 
@@ -44,8 +45,14 @@ export default function CameraCaptureDialog({ open, onOpenChange, onCapture }) {
           { type: blob.type || `image/${photo.format || "jpeg"}` },
         );
         onCapture(file);
-      } catch {
-        // user cancelled the native camera — nothing to report
+      } catch (err) {
+        // "User cancelled photos app" is thrown by the plugin when the user
+        // backs out of the camera — not a real error, nothing to report.
+        const message = String(err?.message || err || "");
+        if (!/cancel/i.test(message)) {
+          console.error("Camera capture failed:", err);
+          showError(translate("Could not open the camera. Please try again."));
+        }
       } finally {
         if (!cancelled) onOpenChange(false);
       }

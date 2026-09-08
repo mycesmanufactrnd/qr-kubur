@@ -1,6 +1,6 @@
 ﻿// @ts-nocheck
 import { useIsNarrow } from "@/hooks/useIsNarrow";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MobileManageDeadPersons from "@/pages/Mobile/ManageDeadPersons";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -19,6 +19,7 @@ import {
   ChevronsUpDown,
   Eye,
   ScanText,
+  Loader2,
 } from "lucide-react";
 import { ImageViewer } from "@/components/ImageViewer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -64,8 +65,6 @@ import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { useForm } from "react-hook-form";
 import SelectForm from "@/components/forms/SelectForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   appendCurrentUserToFormData,
   resolveFileUrl,
@@ -75,8 +74,11 @@ import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { parseDobFromIcNumber } from "@/utils/helpers";
+import {
+  recognizeDocumentText,
+  extractDeadPersonFields,
+} from "@/utils/deadPersonOcr";
 import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
-import DeadPersonOcrDialog from "@/components/DeadPersonOcrDialog";
 import { trpcClient } from "@/utils/trpc";
 import TableExportButtons from "@/components/TableExportButtons";
 
@@ -165,9 +167,10 @@ function ManageDeadPersonsDesktop() {
   }, [icnumberValue, editingPerson]);
 
   const [uploading, setUploading] = useState(false);
+  const [ocrRunning, setOcrRunning] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const [followGraveLocation, setFollowGraveLocation] = useState(false);
+  const lastGraveRef = useRef("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [personToDelete, setPersonToDelete] = useState(null);
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
@@ -175,7 +178,6 @@ function ManageDeadPersonsDesktop() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadDragOver, setUploadDragOver] = useState(false);
-  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
 
   const DEAD_PERSON_TEMPLATE_HEADERS = [
     "name",
@@ -335,8 +337,15 @@ function ManageDeadPersonsDesktop() {
     return data?.items ?? [];
   };
 
+  // Auto-fill latitude/longitude from the selected cemetery whenever the
+  // admin actually changes the grave dropdown — skipped on the render right
+  // after opening the dialog (add or edit) so it never clobbers an already
+  // saved custom location.
   useEffect(() => {
-    if (!followGraveLocation || !graveValue) return;
+    if (graveValue === lastGraveRef.current) return;
+    lastGraveRef.current = graveValue;
+    if (!graveValue) return;
+
     const selectedGrave = gravesList.items.find(
       (g) => String(g.id) === String(graveValue),
     );
@@ -344,7 +353,7 @@ function ManageDeadPersonsDesktop() {
       setValue("latitude", String(selectedGrave.latitude));
       setValue("longitude", String(selectedGrave.longitude));
     }
-  }, [followGraveLocation, graveValue, gravesList.items]);
+  }, [graveValue, gravesList.items]);
 
   const { createDeadPerson, updateDeadPerson, deleteDeadPerson } =
     useDeadPersonMutations();
@@ -390,20 +399,21 @@ function ManageDeadPersonsDesktop() {
   const openAddDialog = () => {
     setEditingPerson(null);
     reset(defaultDeadPersonField);
+    lastGraveRef.current = defaultDeadPersonField.grave;
     setShowMap(false);
-    setFollowGraveLocation(false);
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (person) => {
     setEditingPerson(person);
+    const graveValue = person.grave?.id.toString() || "";
     reset({
       ...person,
-      grave: person.grave?.id.toString() || "",
+      grave: graveValue,
       graveslotId: person.graveslot?.id ?? null,
     });
+    lastGraveRef.current = graveValue;
     setShowMap(false);
-    setFollowGraveLocation(false);
     setIsDialogOpen(true);
   };
 
@@ -479,6 +489,57 @@ function ManageDeadPersonsDesktop() {
     }
   };
 
+  const runOcr = async (file) => {
+    setOcrRunning(true);
+    try {
+      const text = await recognizeDocumentText(file);
+      const fields = extractDeadPersonFields(text);
+
+      if (fields.name && !watch("name")) setValue("name", fields.name);
+      if (fields.icnumber && !watch("icnumber")) {
+        setValue("icnumber", fields.icnumber);
+        if (!watch("dateofbirth")) {
+          const dob = parseDobFromIcNumber(fields.icnumber);
+          if (dob) setValue("dateofbirth", dob);
+        }
+      }
+      if (fields.dateofbirth && !watch("dateofbirth")) {
+        setValue("dateofbirth", fields.dateofbirth);
+      }
+      if (fields.dateofdeath && !watch("dateofdeath")) {
+        setValue("dateofdeath", fields.dateofdeath);
+      }
+      if (fields.causeofdeath && !watch("causeofdeath")) {
+        setValue("causeofdeath", fields.causeofdeath);
+      }
+      if (fields.gravelot && !watch("gravelot")) {
+        setValue("gravelot", fields.gravelot);
+      }
+
+      if (!Object.keys(fields).length) {
+        showError(
+          translate(
+            "Could not read any details from the photo. Please fill in the details manually.",
+          ),
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      showError(
+        translate(
+          "Could not read any details from the photo. Please fill in the details manually.",
+        ),
+      );
+    } finally {
+      setOcrRunning(false);
+    }
+  };
+
+  const handleFileUploadWithOcr = async (file, bucketName) => {
+    runOcr(file);
+    return await handleFileUpload(file, bucketName);
+  };
+
   const confirmDelete = async () => {
     if (!personToDelete) return;
     try {
@@ -550,13 +611,6 @@ function ManageDeadPersonsDesktop() {
               {translate("Upload New")}
             </Button>
             <Button
-              onClick={() => setOcrDialogOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 mr-2 text-white"
-            >
-              <ScanText className="w-4 h-4 mr-2" />
-              {translate("Add by Photo")}
-            </Button>
-            <Button
               onClick={openAddDialog}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
@@ -585,7 +639,7 @@ function ManageDeadPersonsDesktop() {
             show: isSuperAdmin,
             value: tempState,
             onChange: setTempState,
-            label: "Negeri",
+            label: translate("State"),
             options: [
               ...STATES_MY.map((state) => ({ value: state, label: state })),
             ],
@@ -721,7 +775,7 @@ function ManageDeadPersonsDesktop() {
                             `${createPageUrl("DetailJenazah")}?id=${person.id}`,
                           )
                         }
-                        title="Lihat Detail"
+                        title={translate("View Details")}
                       >
                         <Eye className="w-4 h-4 text-emerald-600" />
                       </Button>
@@ -918,6 +972,47 @@ function ManageDeadPersonsDesktop() {
                 <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
                   {translate("Dead Person Details")}
                 </h3>
+
+                <div className="rounded-lg border border-emerald-100 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                    <ScanText className="w-3.5 h-3.5" />
+                    {translate("Import from Photo (OCR)")}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {translate(
+                      "Upload or take a photo of the death confirmation letter or police report — details will be read automatically and can be edited before saving.",
+                    )}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FileUploadForm
+                      name="deathconfirmationphotourl"
+                      control={control}
+                      label={translate("Death Confirmation")}
+                      accept="image/*"
+                      isNeedPasteURL={false}
+                      bucketName="bucket-death-confirmation"
+                      uploading={uploading}
+                      handleFileUpload={handleFileUploadWithOcr}
+                    />
+                    <FileUploadForm
+                      name="policereportphotourl"
+                      control={control}
+                      label={translate("Police Report")}
+                      accept="image/*"
+                      isNeedPasteURL={false}
+                      bucketName="bucket-police-report"
+                      uploading={uploading}
+                      handleFileUpload={handleFileUploadWithOcr}
+                    />
+                  </div>
+                  {ocrRunning && (
+                    <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {translate("Reading details from photo...")}
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
                     name="name"
@@ -967,13 +1062,13 @@ function ManageDeadPersonsDesktop() {
                   <TextInputForm
                     name="heirname"
                     control={control}
-                    label={translate("Nama Waris")}
+                    label={translate("Next of Kin Name")}
                     errors={errors}
                   />
                   <TextInputForm
                     name="heirphoneno"
                     control={control}
-                    label={translate("No. Tel. Waris")}
+                    label={translate("Next of Kin Phone")}
                     errors={errors}
                   />
                 </div>
@@ -1018,18 +1113,11 @@ function ManageDeadPersonsDesktop() {
                   translate={translate}
                 />
 
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={followGraveLocation}
-                    onCheckedChange={(v) => setFollowGraveLocation(v === true)}
-                  />
-                  <Label
-                    className="text-sm font-normal cursor-pointer"
-                    onClick={() => setFollowGraveLocation((v) => !v)}
-                  >
-                    {translate("Follow cemetery's coordinates")}
-                  </Label>
-                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  {translate(
+                    "Latitude & longitude are filled in automatically from the selected cemetery — adjust below if this grave needs a more precise location.",
+                  )}
+                </p>
 
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
@@ -1037,7 +1125,6 @@ function ManageDeadPersonsDesktop() {
                     control={control}
                     label={translate("Latitude")}
                     isNumber
-                    disabled={followGraveLocation}
                     errors={errors}
                   />
                   <TextInputForm
@@ -1045,7 +1132,6 @@ function ManageDeadPersonsDesktop() {
                     control={control}
                     label={translate("Longitude")}
                     isNumber
-                    disabled={followGraveLocation}
                     errors={errors}
                   />
                 </div>
@@ -1071,7 +1157,7 @@ function ManageDeadPersonsDesktop() {
                         },
                       );
                     }}
-                    disabled={isLocating || followGraveLocation}
+                    disabled={isLocating}
                   >
                     <MapPin className="w-4 h-4 mr-2" />
                     {isLocating
@@ -1083,13 +1169,12 @@ function ManageDeadPersonsDesktop() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => setShowMap((v) => !v)}
-                    disabled={followGraveLocation}
                   >
                     <MapPin className="w-4 h-4 mr-2" />
                     {showMap ? translate("Hide Map") : translate("Pick on Map")}
                   </Button>
                 </div>
-                {showMap && !followGraveLocation && (
+                {showMap && (
                   <MapLocationPicker
                     lat={watch("latitude")}
                     lng={watch("longitude")}
@@ -1131,8 +1216,8 @@ function ManageDeadPersonsDesktop() {
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title={translate("delete")}
-        description={`Padam rekod "${personToDelete?.name}"?`}
+        title={translate("Delete")}
+        description={`${translate("Delete")} "${personToDelete?.name}"?`}
         onConfirm={confirmDelete}
         variant="destructive"
       />
@@ -1140,12 +1225,6 @@ function ManageDeadPersonsDesktop() {
         open={qrDialogOpen}
         onOpenChange={setQRDialogOpen}
         data={qrPerson}
-      />
-
-      <DeadPersonOcrDialog
-        open={ocrDialogOpen}
-        onOpenChange={setOcrDialogOpen}
-        onSaved={refetchDeadPersons}
       />
     </div>
   );

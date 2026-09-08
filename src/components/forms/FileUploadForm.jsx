@@ -182,11 +182,14 @@ export default function FileUploadForm({
                 allowCamera={allowCamera}
                 onSelectFile={() => {
                   setChooserOpen(false);
-                  fileInputRef.current?.click();
+                  // Defer past the closing dialog's focus-restore/cleanup —
+                  // triggering the native file/camera chooser in the same
+                  // tick as the dialog unmount can silently no-op on Android.
+                  setTimeout(() => fileInputRef.current?.click(), 0);
                 }}
                 onSelectCamera={() => {
                   setChooserOpen(false);
-                  setCameraOpen(true);
+                  setTimeout(() => setCameraOpen(true), 0);
                 }}
               />
               <CameraCaptureDialog
