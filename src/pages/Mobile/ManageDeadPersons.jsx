@@ -48,7 +48,11 @@ import { trpc } from "@/utils/trpc";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
-import { parseDobFromIcNumber } from "@/utils/helpers";
+import {
+  parseDobFromIcNumber,
+  capitalizeWords,
+  capitalizeFirst,
+} from "@/utils/helpers";
 import { trpcClient } from "@/utils/trpc";
 import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
 
@@ -303,6 +307,7 @@ function PersonFormSheet({
           control={control}
           label={translate("Name")}
           required
+          capitalizeWords
           errors={errors}
         />
         <TextInputForm
@@ -332,6 +337,7 @@ function PersonFormSheet({
           name="causeofdeath"
           control={control}
           label={translate("Cause of Death")}
+          capitalizeFirst
         />
         <SelectForm
           name="grave"
@@ -351,7 +357,6 @@ function PersonFormSheet({
             setValue("graveslotId", slot?.id ?? null);
           }}
           isMobile
-          required
         />
         <p className="text-xs text-slate-400 dark:text-slate-500">
           {translate(
@@ -413,12 +418,14 @@ function PersonFormSheet({
           control={control}
           label={translate("Biography")}
           isTextArea
+          capitalizeFirst
         />
         <div className="grid grid-cols-2 gap-3">
           <TextInputForm
             name="heirname"
             control={control}
             label={translate("Next of Kin Name")}
+            capitalizeWords
             errors={errors}
           />
           <TextInputForm
@@ -564,6 +571,12 @@ export default function MobileManageDeadPersons() {
     setIsSubmitting(true);
     const submitData = {
       ...rest,
+      name: capitalizeWords(rest.name),
+      heirname: rest.heirname ? capitalizeWords(rest.heirname) : rest.heirname,
+      causeofdeath: rest.causeofdeath
+        ? capitalizeFirst(rest.causeofdeath)
+        : rest.causeofdeath,
+      biography: rest.biography ? capitalizeFirst(rest.biography) : rest.biography,
       latitude,
       longitude,
       dateofbirth: rest.dateofbirth || null,

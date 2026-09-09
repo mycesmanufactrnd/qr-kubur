@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { validateFields } from "@/utils/validations";
-import { formatICNumber } from "@/utils/helpers";
+import { formatICNumber, capitalizeWords, capitalizeFirst } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 
 export default function TextInputForm({
@@ -22,12 +22,20 @@ export default function TextInputForm({
   isEmail = false,
   isMoney = false,
   isICNumber = false,
+  capitalizeWords: shouldCapitalizeWords = false,
+  capitalizeFirst: shouldCapitalizeFirst = false,
   step = "any",
   placeholder,
   disabled = false,
 }) {
   const { isSubmitted } = useFormState({ control });
   const errorMessage = errors?.[name]?.message;
+
+  const applyCapitalization = (value) => {
+    if (shouldCapitalizeWords) return capitalizeWords(value);
+    if (shouldCapitalizeFirst) return capitalizeFirst(value);
+    return value;
+  };
 
   return (
     <div className="space-y-2">
@@ -72,6 +80,7 @@ export default function TextInputForm({
                 rows={rows}
                 placeholder={placeholder}
                 disabled={disabled}
+                onChange={(e) => field.onChange(applyCapitalization(e.target.value))}
                 className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
               />
             );
@@ -101,7 +110,7 @@ export default function TextInputForm({
                   } else if (isICNumber) {
                     field.onChange(formatICNumber(e.target.value));
                   } else {
-                    field.onChange(e.target.value);
+                    field.onChange(applyCapitalization(e.target.value));
                   }
                 }}
                 className={isMoney ? "pr-12 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200" : "dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"}

@@ -238,3 +238,12 @@ export function isCompleteICNumber(value: string) {
   return (value || "").replace(/\D/g, "").length === 12;
 }
 
+export function capitalizeWords(value: string) {
+  return (value || "").replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+}
+
+export function capitalizeFirst(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+

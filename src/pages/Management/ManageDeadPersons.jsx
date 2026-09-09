@@ -71,7 +71,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import GraveLotPickerField from "@/components/GraveLotPickerField";
-import { parseDobFromIcNumber } from "@/utils/helpers";
+import {
+  parseDobFromIcNumber,
+  capitalizeWords,
+  capitalizeFirst,
+} from "@/utils/helpers";
 import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
 import { trpcClient } from "@/utils/trpc";
 import TableExportButtons from "@/components/TableExportButtons";
@@ -352,7 +356,7 @@ function ManageDeadPersonsDesktop() {
     useDeadPersonMutations();
 
   const handleSearch = () => {
-    const params = defaultDeadPersonFilter;
+    const params = { ...defaultDeadPersonFilter };
 
     if (tempName) params.name = tempName;
     if (tempIC) params.ic = tempIC;
@@ -445,6 +449,12 @@ function ManageDeadPersonsDesktop() {
     const submitData = {
       ...rest,
       icnumber: rest.icnumber?.replace(/-/g, "") || null,
+      name: capitalizeWords(rest.name),
+      heirname: rest.heirname ? capitalizeWords(rest.heirname) : rest.heirname,
+      causeofdeath: rest.causeofdeath
+        ? capitalizeFirst(rest.causeofdeath)
+        : rest.causeofdeath,
+      biography: rest.biography ? capitalizeFirst(rest.biography) : rest.biography,
       latitude,
       longitude,
       dateofbirth: rest.dateofbirth || null,
@@ -960,6 +970,7 @@ function ManageDeadPersonsDesktop() {
                     control={control}
                     label={translate("Name")}
                     required
+                    capitalizeWords
                     errors={errors}
                   />
                   <TextInputForm
@@ -990,17 +1001,20 @@ function ManageDeadPersonsDesktop() {
                   name="causeofdeath"
                   control={control}
                   label={translate("Cause of Death")}
+                  capitalizeFirst
                 />
                 <TextInputForm
                   name="biography"
                   control={control}
                   label={translate("Biography")}
+                  capitalizeFirst
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
                     name="heirname"
                     control={control}
                     label={translate("Next of Kin Name")}
+                    capitalizeWords
                     errors={errors}
                   />
                   <TextInputForm
@@ -1037,7 +1051,6 @@ function ManageDeadPersonsDesktop() {
                       setValue("gravelot", slot?.label ?? "");
                       setValue("graveslotId", slot?.id ?? null);
                     }}
-                    required
                   />
                 </div>
                 <FileUploadForm
