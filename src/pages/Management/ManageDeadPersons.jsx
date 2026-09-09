@@ -75,6 +75,8 @@ import {
   parseDobFromIcNumber,
   capitalizeWords,
   capitalizeFirst,
+  formatICNumber,
+  isCompleteICNumber,
 } from "@/utils/helpers";
 import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
 import { trpcClient } from "@/utils/trpc";
@@ -334,10 +336,6 @@ function ManageDeadPersonsDesktop() {
     return data?.items ?? [];
   };
 
-  // Auto-fill latitude/longitude from the selected cemetery whenever the
-  // admin actually changes the grave dropdown — skipped on the render right
-  // after opening the dialog (add or edit) so it never clobbers an already
-  // saved custom location.
   useEffect(() => {
     if (graveValue === lastGraveRef.current) return;
     lastGraveRef.current = graveValue;
@@ -356,6 +354,13 @@ function ManageDeadPersonsDesktop() {
     useDeadPersonMutations();
 
   const handleSearch = () => {
+    if (tempIC && !isCompleteICNumber(tempIC)) {
+      showError(
+        translate("Please enter the complete IC number, or leave it blank."),
+      );
+      return;
+    }
+
     const params = { ...defaultDeadPersonFilter };
 
     if (tempName) params.name = tempName;
@@ -616,7 +621,7 @@ function ManageDeadPersonsDesktop() {
             type: "text",
             key: "icnumber",
             value: tempIC,
-            onChange: setTempIC,
+            onChange: (v) => setTempIC(formatICNumber(v)),
             label: translate("IC No"),
           },
           {

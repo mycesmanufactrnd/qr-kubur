@@ -1,8 +1,8 @@
 import "reflect-metadata";
-import crypto from "crypto";
 import type { DeepPartial } from "typeorm";
 import { AppDataSource } from "../../../datasource.js";
 import { User } from "../../entities.js";
+import { hashPassword } from "../../../helpers/passwordHelper.js";
 
 const STATES_MY = [
   "Federal", "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",
@@ -20,8 +20,8 @@ export async function runUserSeederProd() {
 
     const existingUser = await userRepo.findOne({
       where: [
-        { username: "superadmin@qrkubur.com" },
-        { username: "admin@qrkubur.com" },
+        { username: "superadmin" },
+        { username: "admin" },
       ],
     });
 
@@ -30,15 +30,12 @@ export async function runUserSeederProd() {
       return;
     }
 
-    const hashedPassword = crypto
-      .createHash("sha256")
-      .update("password")
-      .digest("hex");
+    const hashedPassword = await hashPassword("password");
 
     const users: DeepPartial<User>[] = [
       {
         fullname: "Super Admin",
-        username: "superadmin@qrkubur.com",
+        username: "superadmin",
         email: "superadmin@qrkubur.com",
         password: hashedPassword,
         role: "superadmin",
@@ -48,7 +45,7 @@ export async function runUserSeederProd() {
       },
       {
         fullname: "Admin",
-        username: "admin@qrkubur.com",
+        username: "admin",
         email: "admin@qrkubur.com",
         password: hashedPassword,
         role: "admin",

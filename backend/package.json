@@ -8,6 +8,7 @@
     "start": "node dist/server.js",
     "seed": "tsx src/db/seed.js",
     "seed:prod": "tsx src/db/seed.prod.js",
+    "backfill:icnumber": "tsx src/db/scripts/backfillIcNumberEncryption.ts",
     "typeorm": "typeorm-ts-node-esm",
     "migration:create": "npm run typeorm -- migration:create",
     "migration:generate": "npm run typeorm -- migration:generate --dataSource ./src/datasource.js",

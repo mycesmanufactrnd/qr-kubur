@@ -1,5 +1,4 @@
 // @ts-nocheck
-import crypto from "crypto";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { In } from "typeorm";
@@ -15,6 +14,7 @@ import {
   User,
 } from "../db/entities.js";
 import { buildDefaultPermissions } from "../helpers/authHelper.js";
+import { hashPassword } from "../helpers/passwordHelper.js";
 import { ApprovalStatus, ActiveInactiveStatus } from "../db/enums.js";
 import {
   allowedTempOrganisationTypeNames,
@@ -22,10 +22,6 @@ import {
   tempOrganisationRegisterSchema,
   tempOrganisationReviewSchema,
 } from "../schemas/tempOrganisationSchema.js";
-
-const hashPassword = (plainPassword: string) => {
-  return crypto.createHash("sha256").update(plainPassword).digest("hex");
-};
 
 const normalizeServiceData = (
   serviceoffered?: string[],
@@ -352,7 +348,7 @@ export const tempOrganisationRouter = router({
           username: adminUsername,
           email: tempOrganisation.contactemail?.trim().toLowerCase() || undefined,
           phoneno: tempOrganisation.contactphoneno?.trim() || undefined,
-          password: hashPassword(defaultPassword),
+          password: await hashPassword(defaultPassword),
           role: "admin",
           organisation: { id: savedOrganisation.id },
           states: tempOrganisation.states ?? [],

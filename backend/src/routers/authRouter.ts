@@ -1,5 +1,4 @@
 // @ts-nocheck
-import crypto from "crypto";
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
 import { z } from "zod";
 import { User } from "../db/entities/User.entity.js";
@@ -10,6 +9,7 @@ import {
   verifyToken,
 } from "../auth.js";
 import { assertRole } from "../helpers/authHelper.js";
+import { verifyPassword, hashPassword, isBcryptHash } from "../helpers/passwordHelper.js";
 import { AppDataSource } from "../datasource.js";
 import {
   DeathCharity,
@@ -79,11 +79,16 @@ export const authRouter = router({
       if (!user.password) throw new Error("No password given");
       if (!user.role) throw new Error("No role given");
 
-      const hashedInput = crypto
-        .createHash("sha256")
-        .update(input.password)
-        .digest("hex");
-      if (hashedInput !== user.password) throw new Error("Invalid credentials");
+      const isValidPassword = await verifyPassword(
+        input.password,
+        user.password,
+      );
+      if (!isValidPassword) throw new Error("Invalid credentials");
+
+      if (!isBcryptHash(user.password)) {
+        user.password = await hashPassword(input.password);
+        await userRepo.save(user);
+      }
 
       const role = user.role;
       assertRole(role);

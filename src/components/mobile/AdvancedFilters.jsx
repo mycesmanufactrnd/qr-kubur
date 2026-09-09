@@ -165,7 +165,12 @@ export default function AdvancedFilters({ parameter, onApplyFilter, storageKey }
                   <Input
                     placeholder={translate(p.label)}
                     value={filterValues[p.searchColumn]}
-                    onChange={e => handleChange(p.searchColumn, e.target.value)}
+                    onChange={e =>
+                      handleChange(
+                        p.searchColumn,
+                        p.format ? p.format(e.target.value) : e.target.value,
+                      )
+                    }
                     className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 )}

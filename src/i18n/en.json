@@ -1341,6 +1341,7 @@
   "Import from Photo (OCR)": "Import from Photo (OCR)",
   "Could not open the camera. Please try again.": "Could not open the camera. Please try again.",
   "Camera access is turned off for this app. Please enable Camera permission in your phone's Settings.": "Camera access is turned off for this app. Please enable Camera permission in your phone's Settings.",
+  "Please enter the complete IC number, or leave it blank.": "Please enter the complete IC number, or leave it blank.",
   "Latitude & longitude are filled in automatically from the selected cemetery — adjust below if this grave needs a more precise location.": "Latitude & longitude are filled in automatically from the selected cemetery — adjust below if this grave needs a more precise location.",
   "Upload or take a photo of the death confirmation letter or police report — details will be read automatically and can be edited before saving.": "Upload or take a photo of the death confirmation letter or police report — details will be read automatically and can be edited before saving.",
   "Reading details from photo...": "Reading details from photo...",

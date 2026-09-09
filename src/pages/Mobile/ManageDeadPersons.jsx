@@ -52,6 +52,8 @@ import {
   parseDobFromIcNumber,
   capitalizeWords,
   capitalizeFirst,
+  formatICNumber,
+  isCompleteICNumber,
 } from "@/utils/helpers";
 import { trpcClient } from "@/utils/trpc";
 import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
@@ -477,6 +479,7 @@ export default function MobileManageDeadPersons() {
   const [itemsPerPage] = useState(10);
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedGraveLot, setAppliedGraveLot] = useState("");
+  const [appliedIC, setAppliedIC] = useState("");
   const [exporting, setExporting] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -504,6 +507,7 @@ export default function MobileManageDeadPersons() {
     page,
     pageSize: itemsPerPage,
     filterName: appliedSearch,
+    filterIC: appliedIC,
     filterGraveLot: appliedGraveLot,
     organisationIds: accessibleOrgIds,
   });
@@ -667,13 +671,28 @@ export default function MobileManageDeadPersons() {
                   searchColumn: "name",
                 },
                 {
+                  label: translate("IC No"),
+                  type: "text",
+                  searchColumn: "icnumber",
+                  format: formatICNumber,
+                },
+                {
                   label: translate("Grave Lot"),
                   type: "text",
                   searchColumn: "gravelot",
                 },
               ]}
               onApplyFilter={(f) => {
+                if (f.icnumber && !isCompleteICNumber(f.icnumber)) {
+                  showError(
+                    translate(
+                      "Please enter the complete IC number, or leave it blank.",
+                    ),
+                  );
+                  return;
+                }
                 setAppliedSearch(f.name || "");
+                setAppliedIC(f.icnumber || "");
                 setAppliedGraveLot(f.gravelot || "");
                 setPage(1);
               }}

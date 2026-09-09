@@ -5,12 +5,12 @@ import {
   publicProcedure,
   adminProcedure,
 } from "../trpc.js";
-import bcrypt from "bcrypt";
 import { z } from "zod";
 import { AppDataSource } from "../datasource.js";
 import { Permission, User } from "../db/entities.js";
 import { updateUserSchema, userSchema } from "../schemas/userSchema.js";
 import { buildDefaultPermissions } from "../helpers/authHelper.js";
+import { hashPassword } from "../helpers/passwordHelper.js";
 
 export const usersRouter = router({
   getUserById: protectedProcedure
@@ -208,6 +208,7 @@ export const usersRouter = router({
 
       const user = userRepo.create({
         ...input,
+        password: await hashPassword(input.password),
         createdbyId: Number(ctx.user?.id),
       });
 
@@ -237,10 +238,14 @@ export const usersRouter = router({
       const userRepo = AppDataSource.getRepository(User);
       const user = await userRepo.findOneByOrFail({ id: input.id });
 
-      userRepo.merge(user, input.data);
+      const { password, ...rest } = input.data;
+      userRepo.merge(user, rest);
+      if (password) {
+        user.password = await hashPassword(password);
+      }
 
       const savedUser = await userRepo.save(user);
-      const { password, ...userWithoutPassword } = savedUser;
+      const { password: _password, ...userWithoutPassword } = savedUser;
 
       return userWithoutPassword;
     }),

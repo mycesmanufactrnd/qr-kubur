@@ -4,6 +4,7 @@ import { DeadPerson, DeathCharityMember, GraveSlot } from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
 import { z } from "zod";
 import { deadPersonSchema } from "../schemas/deadpersonSchema.js";
+import { hashForSearch } from "../helpers/cryptoHelper.js";
 
 const upsertForKariahSchema = deadPersonSchema.extend({
   deathCharityMemberId: z.number().optional().nullable(),
@@ -89,8 +90,9 @@ export const deadPersonRouter = router({
       }
 
       if (filterIC?.trim()) {
-        query.andWhere("deadperson.icnumber ILIKE :ic", {
-          ic: `%${filterIC.trim()}%`,
+        // must search by exact cannot partial
+        query.andWhere("deadperson.icnumberhash = :icHash", {
+          icHash: hashForSearch(stripIcDashes(filterIC.trim())),
         });
       }
 
@@ -128,7 +130,8 @@ export const deadPersonRouter = router({
       const allowedSortFields: Record<string, string> = {
         name: "deadperson.name",
         dateofdeath: "deadperson.dateofdeath",
-        icnumber: "deadperson.icnumber",
+        // icnumber is encrypted at rest — sorting by it would order by
+        // ciphertext, not the real value, so it's intentionally excluded.
       };
       const orderCol = (sortField && allowedSortFields[sortField]) || "deadperson.id";
       const orderDir = sortOrder === "ASC" ? "ASC" : "DESC";
@@ -170,7 +173,9 @@ export const deadPersonRouter = router({
 
       let existing: DeadPerson | null = null;
       if (icnumber) {
-        existing = await repo.findOne({ where: { icnumber } });
+        existing = await repo.findOne({
+          where: { icnumberhash: hashForSearch(icnumber) },
+        });
       }
 
       const resolvedData = await resolveGraveSlotAssignment(
@@ -232,7 +237,9 @@ export const deadPersonRouter = router({
     .query(async ({ input }) => {
       if (!input.icnumber) return null;
       return await AppDataSource.getRepository(DeadPerson).findOne({
-        where: { icnumber: stripIcDashes(input.icnumber) },
+        where: {
+          icnumberhash: hashForSearch(stripIcDashes(input.icnumber)),
+        },
         relations: ["grave", "graveslot"],
       });
     }),
