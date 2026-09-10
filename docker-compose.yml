@@ -25,6 +25,7 @@ services:
     container_name: backend
     restart: unless-stopped
     env_file: .env
+    cpuset: "0-4"
     ports:
       - "8083:8083"
     volumes:

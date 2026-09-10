@@ -11,4 +11,5 @@ RUN npm run build
 
 EXPOSE 8083
 
-CMD ["node", "dist/server.js"]
+# CMD ["node", "dist/server.js"]
+CMD ["npx", "pm2-runtime", "ecosystem.config.cjs"]

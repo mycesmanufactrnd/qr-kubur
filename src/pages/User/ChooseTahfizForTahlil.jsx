@@ -42,7 +42,7 @@ export default function ChooseTahfizForTahlil() {
   };
 
   return (
-    <div className="min-h-screen pb-10 bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen pb-10 dark:bg-slate-900">
       <BackNavigation title={translate("Choose Tahfiz Center")} />
 
       <div className="max-w-2xl mx-auto px-4 space-y-4 pt-2">
