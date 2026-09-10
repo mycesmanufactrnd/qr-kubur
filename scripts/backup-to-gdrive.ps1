@@ -17,6 +17,16 @@ $ErrorActionPreference = "Stop"
 $date = Get-Date -Format "yyyy-MM-dd_HHmmss"
 $tempDir = Join-Path $env:TEMP "qubur-backup-$date"
 
+# rclone lives in "C:\Program Files\rclone" and is on the machine PATH, but a shell
+# that was already open when it was installed won't see that until restarted. Fall
+# back to the known install location so this script doesn't depend on session state.
+if (-not (Get-Command rclone -ErrorAction SilentlyContinue)) {
+    $rcloneDir = "C:\Program Files\rclone"
+    if (Test-Path (Join-Path $rcloneDir "rclone.exe")) {
+        $env:PATH = "$env:PATH;$rcloneDir"
+    }
+}
+
 function Get-EnvValue($name) {
     $line = Get-Content "$RepoRoot\$EnvFile" | Where-Object { $_ -match "^$name=" }
     if (-not $line) { return $null }
