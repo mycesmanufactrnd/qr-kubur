@@ -40,8 +40,16 @@ try {
     $raw = docker exec $ContainerName npx pm2 jlist
     if ($LASTEXITCODE -ne 0) { throw "Could not reach PM2 inside container '$ContainerName' (is it running?)" }
 
-    $processes = $raw | ConvertFrom-Json
-    $online = @($processes | Where-Object { $_.name -eq $AppName -and $_.pm2_env.status -eq "online" })
+    # pm2 jlist embeds each process's full environment under pm2_env.env, which can contain
+    # keys that differ only by case (e.g. NODE_VERSION and node_version). ConvertFrom-Json
+    # builds a case-INSENSITIVE object, so that collision throws DuplicateKeysInJsonString
+    # no matter how the JSON is shaped. JavaScriptSerializer's Dictionary<string,object> is
+    # case-sensitive, so parse with that instead.
+    Add-Type -AssemblyName System.Web.Extensions
+    $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+    $serializer.MaxJsonLength = 100MB
+    $processes = $serializer.DeserializeObject($raw)
+    $online = @($processes | Where-Object { $_["name"] -eq $AppName -and $_["pm2_env"]["status"] -eq "online" })
 
     if ($online.Count -lt $ExpectedInstances) {
         $msg = "Only $($online.Count)/$ExpectedInstances '$AppName' workers online"
