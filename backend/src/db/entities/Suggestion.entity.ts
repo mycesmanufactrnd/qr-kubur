@@ -1,9 +1,10 @@
 // @ts-nocheck
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ApprovalStatus } from "../enums.js";
 import { DeadPerson } from "./DeadPerson.entity.js";
 import { Grave } from "./Grave.entity.js";
 import { Organisation } from "./Organisation.entity.js";
+import { GoogleUser } from "./GoogleUser/GoogleUser.entity.js";
 
 @Entity("suggestion")
 export class Suggestion {
@@ -45,6 +46,16 @@ export class Suggestion {
         onDelete: "SET NULL",
     })
     organisation?: Organisation | null;
+
+    @Column("integer", { nullable: true })
+    googleuserId?: number | null;
+
+    @ManyToOne(() => GoogleUser, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    @JoinColumn({ name: "googleuserId" })
+    googleuser?: GoogleUser | null;
 
     @Column({
         type: "enum",

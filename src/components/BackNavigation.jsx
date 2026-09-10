@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAdminAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
 
-export default function BackNavigation({ title = "Back" }) {
+export default function BackNavigation({ title = "Back", rightAction = null }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { hasAdminAccess, isTahfizAdmin } = useAdminAccess();
@@ -27,18 +27,21 @@ export default function BackNavigation({ title = "Back" }) {
 
   return (
     <>
-      <div className="flex items-center gap-3 pt-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleBack}
-          className="h-3 w-5 dark:text-gray-300"
-        >
-          <ArrowLeft className="w-5 h-5 text-stone-700 dark:text-white" />
-        </Button>
-        <h1 className="text-md font-bold text-gray-900 dark:text-white">
-          {translate(title)}
-        </h1>
+      <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="h-3 w-5 dark:text-gray-300"
+          >
+            <ArrowLeft className="w-5 h-5 text-stone-700 dark:text-white" />
+          </Button>
+          <h1 className="text-md font-bold text-gray-900 dark:text-white truncate">
+            {translate(title)}
+          </h1>
+        </div>
+        {rightAction}
       </div>
       <hr className="my-2 border-0" />
     </>

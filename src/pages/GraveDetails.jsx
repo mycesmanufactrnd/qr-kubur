@@ -373,7 +373,6 @@ export default function GraveDetails() {
                     <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-1">
                       {translate("Name")}
                     </label>
-
                     <Input
                       placeholder={translate("Search name...")}
                       value={searchName}

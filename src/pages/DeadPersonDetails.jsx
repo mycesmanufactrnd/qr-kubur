@@ -1,7 +1,14 @@
 ﻿// @ts-nocheck
+import { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { trpc } from "@/utils/trpc";
-import { Building2, ChevronRight, MapPin, HandHeart } from "lucide-react";
+import {
+  Building2,
+  ChevronRight,
+  MapPin,
+  HandHeart,
+  HelpCircle,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,11 +23,15 @@ import { createPageUrl, resolveFileUrl } from "@/utils";
 import InitialAvatarImage from "@/components/InitialAvatarImage";
 import { ImageViewer } from "@/components/ImageViewer";
 import AddFamilyMemberButton from "@/components/AddFamilyMemberButton";
+import GoogleSignInDialog from "@/components/GoogleSignInDialog";
+import { getStoredGoogleUser } from "@/utils/auth";
 
 export default function DeadPersonDetails() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const personId = Number(searchParams.get("id"));
+  const [googleUser, setGoogleUser] = useState(() => getStoredGoogleUser());
+  const [suggestLoginOpen, setSuggestLoginOpen] = useState(false);
 
   const {
     data: deadPersonDetails,
@@ -63,9 +74,53 @@ export default function DeadPersonDetails() {
     deadPersonDetails.dateofdeath,
   );
 
+  const goToSuggestion = (user) => {
+    navigate(createPageUrl("SubmitSuggestion"), {
+      state: {
+        type: "person",
+        graveId: graveDetails?.id ?? null,
+        graveState: graveDetails?.state ?? null,
+        deadpersonId: deadPersonDetails.id,
+        googleuserId: user?.id ?? null,
+      },
+    });
+  };
+
+  const handleSuggestClick = () => {
+    if (googleUser?.id) {
+      goToSuggestion(googleUser);
+    } else {
+      setSuggestLoginOpen(true);
+    }
+  };
+
   return (
     <div className="space-y-3 pb-2 p-1">
-      <BackNavigation title={deadPersonDetails.name} />
+      <BackNavigation
+        title={deadPersonDetails.name}
+        rightAction={
+          <button
+            type="button"
+            onClick={handleSuggestClick}
+            title={translate("Suggest a correction")}
+            className="w-9 h-9 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 active:opacity-70 shrink-0"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
+        }
+      />
+
+      <GoogleSignInDialog
+        open={suggestLoginOpen}
+        onOpenChange={setSuggestLoginOpen}
+        message={translate(
+          "Please sign in with Google to suggest a correction for this record.",
+        )}
+        onLoginSuccess={(user) => {
+          setGoogleUser(user);
+          goToSuggestion(user);
+        }}
+      />
 
       <Card className="border-0 shadow-sm dark:bg-gray-800">
         <CardContent className="p-4 space-y-4">

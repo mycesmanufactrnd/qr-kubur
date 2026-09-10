@@ -14,6 +14,7 @@ export const suggestionSchema = z.object({
   grave: z.object({ id: z.number() }).nullable().optional(),
   deadperson: z.object({ id: z.number() }).nullable().optional(),
   organisation: z.object({ id: z.number() }).nullable().optional(),
+  googleuserId: z.number().nullable().optional(),
 });
 
 export const suggestionApprovalSchema = z.object({

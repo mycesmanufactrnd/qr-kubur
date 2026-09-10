@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { jsPDF } from "jspdf";
+import { Capacitor } from "@capacitor/core";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 const APP_NAME = "QubuR";
 const APP_TAGLINE = "Grave Management & Islamic Services Platform";
@@ -297,5 +300,21 @@ export async function generateJenazahCasePdf(data) {
     });
   }
 
-  doc.save(`Jenazah-${data.referenceno || "permohonan"}.pdf`);
+  const filename = `Jenazah-${data.referenceno || "permohonan"}.pdf`;
+
+  // doc.save() relies on the browser's <a download> mechanism, which Android
+  // WebView doesn't implement — clicking it silently does nothing. On native,
+  // write the PDF to the app's cache dir instead and hand it to the native
+  // share sheet, which lets the user save it or send it on from there.
+  if (Capacitor.isNativePlatform()) {
+    const base64Data = doc.output("datauristring").split(",")[1];
+    const { uri } = await Filesystem.writeFile({
+      path: filename,
+      data: base64Data,
+      directory: Directory.Cache,
+    });
+    await Share.share({ title: filename, url: uri });
+  } else {
+    doc.save(filename);
+  }
 }

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils/index";
 import { CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,9 @@ import Select2Form from "@/components/forms/Select2Form";
 const PHONE_STORAGE_KEY = "suggestion_phoneno";
 
 export default function SubmitSuggestion() {
+  const location = useLocation();
+  const prefillFromDeadPerson =
+    location.state?.type === "person" ? location.state : null;
   const { userLocation, userState } = useLocationContext();
   const { currentUser } = useAdminAccess();
   const oneHourAgo = useMemo(
@@ -50,7 +53,19 @@ export default function SubmitSuggestion() {
     watch,
     formState: { errors },
   } = useForm({
-    defaultValues: defaultSuggestionField,
+    defaultValues: prefillFromDeadPerson
+      ? {
+          ...defaultSuggestionField,
+          type: "person",
+          state: prefillFromDeadPerson.graveState || "",
+          watchSelectedGrave: prefillFromDeadPerson.graveId
+            ? String(prefillFromDeadPerson.graveId)
+            : "",
+          entityId: prefillFromDeadPerson.deadpersonId
+            ? String(prefillFromDeadPerson.deadpersonId)
+            : "",
+        }
+      : defaultSuggestionField,
   });
 
   useEffect(() => {
@@ -159,6 +174,8 @@ export default function SubmitSuggestion() {
       reason,
     } = formData;
 
+    const googleUser = getStoredGoogleUser();
+
     const suggestionData = {
       name,
       phoneno,
@@ -168,6 +185,7 @@ export default function SubmitSuggestion() {
       reason,
       status: "pending",
       visitorip: visitorIp ?? null,
+      googleuserId: prefillFromDeadPerson?.googleuserId ?? googleUser?.id ?? null,
     };
 
     const graveId =

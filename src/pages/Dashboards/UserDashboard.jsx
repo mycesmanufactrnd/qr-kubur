@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Star,
@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
+import { getStoredGoogleUser } from "@/utils/auth";
+import GoogleSignInDialog from "@/components/GoogleSignInDialog";
 import { HIJRI_MONTHS } from "@/utils/enums";
 // import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton"; // no longer needed — favorites now live on their own page
 import doaBanners from "./DailyDoaBanner";
@@ -138,6 +140,8 @@ const css = `
     display: flex; flex-direction: column; align-items: center; gap: 9px;
     text-decoration: none; -webkit-tap-highlight-color: transparent;
     transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    border: none; background: transparent; padding: 0; font: inherit;
+    text-align: inherit; cursor: pointer;
   }
   .db-qbtn:active { transform: scale(0.88); }
 
@@ -298,9 +302,12 @@ const G = {
 };
 
 export default function UserDashboard() {
+  const navigate = useNavigate();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light",
   );
+  const [googleUser, setGoogleUser] = useState(() => getStoredGoogleUser());
+  const [suggestionLoginOpen, setSuggestionLoginOpen] = useState(false);
   const { pullY, refreshing, threshold } = usePullToRefresh();
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
@@ -421,6 +428,7 @@ export default function UserDashboard() {
               label: translate("Suggestion"),
               page: "SubmitSuggestion",
               g: G.teal,
+              requiresGoogleAuth: true,
             },
             {
               icon: Map,
@@ -440,16 +448,45 @@ export default function UserDashboard() {
               page: "StatusCheck",
               g: G.crimson,
             },
-          ].map(({ icon: Icon, label, page, g }) => (
-            <Link key={page} to={createPageUrl(page)} className="db-qbtn">
-              <div className="db-qicon" style={{ background: g }}>
-                <Icon style={{ width: 22, height: 22, color: "#fff" }} />
-              </div>
-              <div className="db-qlabel">{label}</div>
-            </Link>
-          ))}
+          ].map(({ icon: Icon, label, page, g, requiresGoogleAuth }) =>
+            requiresGoogleAuth ? (
+              <button
+                key={page}
+                type="button"
+                className="db-qbtn"
+                onClick={() => {
+                  if (googleUser?.id) navigate(createPageUrl(page));
+                  else setSuggestionLoginOpen(true);
+                }}
+              >
+                <div className="db-qicon" style={{ background: g }}>
+                  <Icon style={{ width: 22, height: 22, color: "#fff" }} />
+                </div>
+                <div className="db-qlabel">{label}</div>
+              </button>
+            ) : (
+              <Link key={page} to={createPageUrl(page)} className="db-qbtn">
+                <div className="db-qicon" style={{ background: g }}>
+                  <Icon style={{ width: 22, height: 22, color: "#fff" }} />
+                </div>
+                <div className="db-qlabel">{label}</div>
+              </Link>
+            ),
+          )}
         </div>
       </div>
+
+      <GoogleSignInDialog
+        open={suggestionLoginOpen}
+        onOpenChange={setSuggestionLoginOpen}
+        message={translate(
+          "Please sign in with Google to submit a suggestion.",
+        )}
+        onLoginSuccess={(user) => {
+          setGoogleUser(user);
+          navigate(createPageUrl("SubmitSuggestion"));
+        }}
+      />
 
       <div className="mx-4 mt-4">
         <Link
