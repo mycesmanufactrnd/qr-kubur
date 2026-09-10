@@ -131,6 +131,18 @@ app.get("/", async () => {
   return { message: "tRPC backend is running" };
 });
 
+app.get("/health", async (_req, reply) => {
+  if (!AppDataSource.isInitialized) {
+    return reply.status(503).send({ status: "error", db: "not connected" });
+  }
+  try {
+    await AppDataSource.query("SELECT 1");
+    return { status: "ok", db: "connected" };
+  } catch (err) {
+    return reply.status(503).send({ status: "error", db: "unreachable" });
+  }
+});
+
 app.addHook("onRequest", (req, reply, done) => {
   // Try both Bearer token and cookies for token extraction
   let token = req.headers.authorization?.replace("Bearer ", "");
