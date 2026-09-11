@@ -509,14 +509,14 @@ function MemberFormSheet({
             <TextInputForm
               name="heirname"
               control={control}
-              label={translate("Nama Waris")}
+              label={translate("Next of Kin Name")}
               required
               errors={errors}
             />
             <TextInputForm
               name="heirphoneno"
               control={control}
-              label={translate("No. Tel. Waris")}
+              label={translate("Next of Kin Phone")}
               required
               errors={errors}
             />

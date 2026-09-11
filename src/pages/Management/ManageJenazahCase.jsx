@@ -182,6 +182,18 @@ function CaseDetailDialog({
   canReject,
   canEdit,
 }) {
+  const { currentUser, isSuperAdmin } = useAdminAccess();
+  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
+
+  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id, isIdOnly: true },
+    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
+  );
+
+  useEffect(() => {
+    if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
+  }, [parentAndChildQuery.data]);
+
   const [adminRemarks, setAdminRemarks] = useState(
     caseItem?.adminremarks ?? "",
   );
@@ -222,8 +234,9 @@ function CaseDetailDialog({
   });
 
   const { gravesList = { items: [] } } = useGetGravePaginated({
-    pageSize: 1000,
-  });
+      organisationIds: accessibleOrgIds,
+    });
+
   const graves = gravesList.items;
 
   const { data: deadPersonRecord } = trpc.deadperson.getByIcNumber.useQuery(
@@ -549,7 +562,7 @@ function CaseDetailDialog({
             <>
               <div className="space-y-3 border border-slate-100 dark:border-slate-700 rounded-lg p-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {translate("Maklumat Jenazah")}
+                  {translate("Deceased Details")}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <DetailRow
@@ -680,20 +693,20 @@ function CaseDetailDialog({
               </div>
 
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b pb-2 dark:border-slate-600">
-                {translate("Maklumat Waris")}
+                {translate("Next of Kin Information")}
               </h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <TextInputForm
                   name="heirname"
                   control={dc}
-                  label={translate("Nama Waris")}
+                  label={translate("Next of Kin Name")}
                   errors={de}
                 />
                 <TextInputForm
                   name="heirphoneno"
                   control={dc}
-                  label={translate("No. Tel. Waris")}
+                  label={translate("Next of Kin Phone")}
                   errors={de}
                 />
               </div>
@@ -1199,7 +1212,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
                 value="deceased"
                 className="pointer-events-none h-auto whitespace-normal text-center py-2 text-xs sm:text-sm"
               >
-                {translate("Maklumat Jenazah")}
+                {translate("Deceased Details")}
               </TabsTrigger>
               <TabsTrigger
                 value="management"
@@ -1323,20 +1336,20 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
 
               <div className="space-y-3">
                 <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-                  {translate("Maklumat Waris")}
+                  {translate("Next of Kin Information")}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <TextInputForm
                     name="heirname"
                     control={control}
-                    label={translate("Nama Waris")}
+                    label={translate("Next of Kin Name")}
                     required
                     errors={errors}
                   />
                   <TextInputForm
                     name="heirphoneno"
                     control={control}
-                    label={translate("No. Tel. Waris")}
+                    label={translate("Next of Kin Phone")}
                     isPhone
                     required
                     errors={errors}
@@ -2275,8 +2288,6 @@ function ManageJenazahCaseDesktop() {
     </div>
   );
 }
-
-// ─── Entry point ──────────────────────────────────────────────────────────
 
 export default function ManageJenazahCase() {
   const isNarrow = useIsNarrow();

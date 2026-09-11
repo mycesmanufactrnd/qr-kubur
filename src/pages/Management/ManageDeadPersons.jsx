@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import Breadcrumb from "@/components/Breadcrumb";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
@@ -129,6 +130,7 @@ function ManageDeadPersonsDesktop() {
   const urlGrave = searchParams.get("grave") || "";
   const urlGraveLot = searchParams.get("gravelot") || "";
   const urlState = searchParams.get("state") || "";
+  const urlKariah = searchParams.get("kariah") || "";
   const urlDateFrom = searchParams.get("dateFrom") || "";
   const urlDateTo = searchParams.get("dateTo") || "";
   const urlSortField = searchParams.get("sortField") || "";
@@ -139,6 +141,7 @@ function ManageDeadPersonsDesktop() {
   const [tempGrave, setTempGrave] = useState(urlGrave);
   const [tempGraveLot, setTempGraveLot] = useState(urlGraveLot);
   const [tempState, setTempState] = useState(urlState);
+  const [tempKariah, setTempKariah] = useState(urlKariah);
   const [tempDateFrom, setTempDateFrom] = useState(urlDateFrom);
   const [tempDateTo, setTempDateTo] = useState(urlDateTo);
 
@@ -241,7 +244,9 @@ function ManageDeadPersonsDesktop() {
           `${count} ${translate("records imported")}, ${errors.length} ${translate("rows skipped")}: ${errors.slice(0, 3).join("; ")}`,
         );
       } else {
-        showSuccess(`${count} ${translate("deceased records imported successfully")}`);
+        showSuccess(
+          `${count} ${translate("deceased records imported successfully")}`,
+        );
       }
 
       setUploadDialogOpen(false);
@@ -254,6 +259,7 @@ function ManageDeadPersonsDesktop() {
       setBulkUploading(false);
     }
   };
+
   const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
 
   const {
@@ -270,9 +276,19 @@ function ManageDeadPersonsDesktop() {
     setTempGrave(urlGrave);
     setTempGraveLot(urlGraveLot);
     setTempState(urlState);
+    setTempKariah(urlKariah);
     setTempDateFrom(urlDateFrom);
     setTempDateTo(urlDateTo);
-  }, [urlName, urlIC, urlGrave, urlGraveLot, urlState, urlDateFrom, urlDateTo]);
+  }, [
+    urlName,
+    urlIC,
+    urlGrave,
+    urlGraveLot,
+    urlState,
+    urlKariah,
+    urlDateFrom,
+    urlDateTo,
+  ]);
 
   const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
     {
@@ -301,6 +317,7 @@ function ManageDeadPersonsDesktop() {
     filterGrave: Number(urlGrave) || undefined,
     filterGraveLot: urlGraveLot || undefined,
     filterState: urlState || undefined,
+    filterKariah: urlKariah || undefined,
     dateFrom: urlDateFrom,
     dateTo: urlDateTo,
     organisationIds: accessibleOrgIds,
@@ -324,6 +341,7 @@ function ManageDeadPersonsDesktop() {
       filterGrave: Number(urlGrave) || undefined,
       filterGraveLot: urlGraveLot || undefined,
       filterState: urlState || undefined,
+      filterKariah: urlKariah || undefined,
       dateFrom: urlDateFrom,
       dateTo: urlDateTo,
       organisationIds: accessibleOrgIds,
@@ -350,8 +368,43 @@ function ManageDeadPersonsDesktop() {
     }
   }, [graveValue, gravesList.items]);
 
-  const { createDeadPerson, updateDeadPerson, deleteDeadPerson } =
-    useDeadPersonMutations();
+  const {
+    createDeadPerson,
+    updateDeadPerson,
+    deleteDeadPerson,
+    bulkDeleteDeadPersons,
+  } = useDeadPersonMutations();
+
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+
+  const allPageIds = deadPersonsList.items.map((p) => p.id);
+  const allSelected =
+    allPageIds.length > 0 && allPageIds.every((id) => selectedIds.includes(id));
+  const someSelected = allPageIds.some((id) => selectedIds.includes(id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !allPageIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => [...new Set([...prev, ...allPageIds])]);
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const confirmBulkDelete = async () => {
+    await bulkDeleteDeadPersons.mutateAsync(selectedIds, {
+      onSuccess: () => {
+        setSelectedIds([]);
+        setBulkDeleteDialogOpen(false);
+      },
+    });
+  };
 
   const handleSearch = () => {
     if (tempIC && !isCompleteICNumber(tempIC)) {
@@ -368,6 +421,7 @@ function ManageDeadPersonsDesktop() {
     if (tempGrave) params.grave = tempGrave;
     if (tempGraveLot) params.gravelot = tempGraveLot;
     if (tempState) params.state = tempState;
+    if (tempKariah) params.kariah = tempKariah;
     if (tempDateFrom) params.dateFrom = tempDateFrom;
     if (tempDateTo) params.dateTo = tempDateTo;
     setSearchParams(params);
@@ -402,7 +456,9 @@ function ManageDeadPersonsDesktop() {
     setEditingPerson(null);
     const soleGrave =
       gravesList.items.length === 1 ? gravesList.items[0] : null;
-    const graveId = soleGrave ? String(soleGrave.id) : defaultDeadPersonField.grave;
+    const graveId = soleGrave
+      ? String(soleGrave.id)
+      : defaultDeadPersonField.grave;
     reset({
       ...defaultDeadPersonField,
       grave: graveId,
@@ -459,7 +515,9 @@ function ManageDeadPersonsDesktop() {
       causeofdeath: rest.causeofdeath
         ? capitalizeFirst(rest.causeofdeath)
         : rest.causeofdeath,
-      biography: rest.biography ? capitalizeFirst(rest.biography) : rest.biography,
+      biography: rest.biography
+        ? capitalizeFirst(rest.biography)
+        : rest.biography,
       latitude,
       longitude,
       dateofbirth: rest.dateofbirth || null,
@@ -558,40 +616,51 @@ function ManageDeadPersonsDesktop() {
           <Users className="w-6 h-6 text-blue-600" />
           {translate("Manage Deceased")}
         </h1>
+        <div className="flex items-center gap-2">
+          <TableExportButtons
+            fetchRows={fetchAllDeadPersons}
+            columns={deadPersonExportColumns}
+            filename="deceased-records"
+            pdfTitle={translate("Manage Deceased")}
+            pdfSubtitle={
+              currentUser?.organisation?.name
+                ? `${translate("Organisation")}: ${currentUser.organisation.name}`
+                : undefined
+            }
+          />
 
-        <TableExportButtons
-          fetchRows={fetchAllDeadPersons}
-          columns={deadPersonExportColumns}
-          filename="deceased-records"
-          pdfTitle={translate("Manage Deceased")}
-          pdfSubtitle={
-            currentUser?.organisation?.name
-              ? `${translate("Organisation")}: ${currentUser.organisation.name}`
-              : undefined
-          }
-        />
+          {canDelete && selectedIds.length > 0 && (
+            <Button
+              onClick={() => setBulkDeleteDialogOpen(true)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {translate("Delete")} ({selectedIds.length})
+            </Button>
+          )}
 
-        {canCreate && (
-          <div>
-            <Button
-              onClick={() => {
-                setUploadFile(null);
-                setUploadDialogOpen(true);
-              }}
-              className="bg-amber-600 hover:bg-amber-700 mr-2 text-white"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {translate("Upload New")}
-            </Button>
-            <Button
-              onClick={openAddDialog}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {translate("Add New")}
-            </Button>
-          </div>
-        )}
+          {canCreate && (
+            <div>
+              <Button
+                onClick={() => {
+                  setUploadFile(null);
+                  setUploadDialogOpen(true);
+                }}
+                className="bg-amber-600 hover:bg-amber-700 mr-2 text-white"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {translate("Upload New")}
+              </Button>
+              <Button
+                onClick={openAddDialog}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {translate("Add New")}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <SearchBar
@@ -643,10 +712,21 @@ function ManageDeadPersonsDesktop() {
             })),
           },
           {
+            type: "select",
+            key: "kariah",
+            value: tempKariah,
+            onChange: setTempKariah,
+            label: translate("Kariah Status"),
+            options: [
+              { value: "kariah", label: translate("Kariah") },
+              { value: "not_kariah", label: translate("Not Kariah") },
+            ],
+          },
+          {
             type: "text",
             key: "dateFrom",
             isDate: true,
-            label: translate("Date From"),
+            label: translate("Date of Death From"),
             value: tempDateFrom,
             onChange: setTempDateFrom,
           },
@@ -654,7 +734,7 @@ function ManageDeadPersonsDesktop() {
             type: "text",
             key: "dateTo",
             isDate: true,
-            label: translate("Date To"),
+            label: translate("Date of Death To"),
             value: tempDateTo,
             onChange: setTempDateTo,
           },
@@ -666,6 +746,20 @@ function ManageDeadPersonsDesktop() {
           <Table>
             <TableHeader>
               <TableRow>
+                {canDelete && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={
+                        allSelected
+                          ? true
+                          : someSelected
+                            ? "indeterminate"
+                            : false
+                      }
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                )}
                 <TableHead
                   className="cursor-pointer select-none"
                   onClick={() => handleSort("name")}
@@ -709,12 +803,23 @@ function ManageDeadPersonsDesktop() {
             </TableHeader>
             <TableBody>
               {isLoadingDeadPerson ? (
-                <InlineLoadingComponent isTable={true} colSpan={7} />
+                <InlineLoadingComponent
+                  isTable={true}
+                  colSpan={canDelete ? 8 : 7}
+                />
               ) : deadPersonsList.items.length === 0 ? (
-                <NoDataTableComponent colSpan={7} />
+                <NoDataTableComponent colSpan={canDelete ? 8 : 7} />
               ) : (
                 deadPersonsList.items.map((person) => (
                   <TableRow key={person.id}>
+                    {canDelete && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(person.id)}
+                          onCheckedChange={() => toggleSelectOne(person.id)}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">{person.name}</TableCell>
                     <TableCell className="text-center">
                       {person.icnumber || "-"}
@@ -1175,6 +1280,14 @@ function ManageDeadPersonsDesktop() {
         title={translate("Delete")}
         description={`${translate("Delete")} "${personToDelete?.name}"?`}
         onConfirm={confirmDelete}
+        variant="destructive"
+      />
+      <ConfirmDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        onConfirm={confirmBulkDelete}
+        title={translate("Delete Records")}
+        description={`${translate("Delete")} ${selectedIds.length} ${translate("selected records")}?`}
         variant="destructive"
       />
       <QRCodeDialog

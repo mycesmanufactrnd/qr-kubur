@@ -9,6 +9,7 @@ type useGetDeadPersonPaginatedParams = {
   filterGrave?: number;
   filterGraveLot?: string;
   filterState?: string;
+  filterKariah?: string;
   dateFrom?: string;
   dateTo?: string;
   organisationIds?: number[];
@@ -26,6 +27,7 @@ export function useGetDeadPersonPaginated({
   filterGrave,
   filterGraveLot,
   filterState,
+  filterKariah,
   dateFrom,
   dateTo,
   organisationIds,
@@ -41,6 +43,7 @@ export function useGetDeadPersonPaginated({
       filterGrave,
       filterGraveLot,
       filterState,
+      filterKariah,
       dateFrom,
       dateTo,
       organisationIds,
@@ -95,12 +98,20 @@ export function useDeadPersonMutations() {
   });
 
   const deleteDeadPerson = trpc.deadperson.delete.useMutation({
-    onSuccess: () => { 
-      showSuccess(titleMessage, 'delete'); 
-      invalidateAll(); 
+    onSuccess: () => {
+      showSuccess(titleMessage, 'delete');
+      invalidateAll();
     },
     onError: (err) => showApiError(err),
   });
 
-  return { createDeadPerson, updateDeadPerson, deleteDeadPerson };
+  const bulkDeleteDeadPersons = trpc.deadperson.bulkDelete.useMutation({
+    onSuccess: () => {
+      showSuccess(titleMessage, 'delete');
+      invalidateAll();
+    },
+    onError: (err) => showApiError(err),
+  });
+
+  return { createDeadPerson, updateDeadPerson, deleteDeadPerson, bulkDeleteDeadPersons };
 }

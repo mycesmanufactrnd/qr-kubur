@@ -188,6 +188,10 @@ export const graveRouter = router({
       const query = graveRepo
         .createQueryBuilder("grave")
         .leftJoinAndSelect("grave.organisation", "organisation")
+        .leftJoinAndSelect(
+          "organisation.organisationpaymentconfigs",
+          "organisationpaymentconfigs",
+        )
         .where("grave.latitude IS NOT NULL AND grave.longitude IS NOT NULL");
 
       if (input.filters) {

@@ -391,8 +391,8 @@ export default function UserTransactionRecords() {
             <InfoRow icon={Building2} label={translate("Address")} value={j.mosque?.address} />
             <InfoRow icon={User} label={translate("Deceased")} value={jd.deceasedFullname} />
             <InfoRow icon={BadgeCheck} label={translate("IC No.")} value={jd.deceasedIcnumber} />
-            <InfoRow icon={User} label={translate("Nama Waris")} value={jd.heirname} />
-            <InfoRow icon={Phone} label={translate("No. Tel. Waris")} value={jd.heirphoneno} />
+            <InfoRow icon={User} label={translate("Next of Kin Name")} value={jd.heirname} />
+            <InfoRow icon={Phone} label={translate("Next of Kin Phone")} value={jd.heirphoneno} />
             <InfoRow
               icon={Calendar}
               label={translate("Burial Date")}

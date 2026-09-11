@@ -47,6 +47,7 @@ export const deadPersonRouter = router({
         filterGrave: z.number().optional(),
         filterGraveLot: z.string().optional(),
         filterState: z.string().optional(),
+        filterKariah: z.enum(["kariah", "not_kariah"]).optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
         organisationIds: z.array(z.number()).optional(),
@@ -63,6 +64,7 @@ export const deadPersonRouter = router({
         filterGrave,
         filterGraveLot,
         filterState,
+        filterKariah,
         dateFrom,
         dateTo,
         organisationIds,
@@ -110,6 +112,15 @@ export const deadPersonRouter = router({
 
       if (filterState) {
         query.andWhere("grave.state = :state", { state: filterState });
+      }
+
+      if (filterKariah === "kariah" || filterKariah === "not_kariah") {
+        query.leftJoin("deadperson.deathcharitymember", "deathcharitymember");
+        query.andWhere(
+          filterKariah === "kariah"
+            ? "deathcharitymember.id IS NOT NULL"
+            : "deathcharitymember.id IS NULL",
+        );
       }
 
       if (dateFrom && dateTo) {
@@ -231,6 +242,13 @@ export const deadPersonRouter = router({
     const repo = AppDataSource.getRepository(DeadPerson);
     return await repo.delete(input);
   }),
+
+  bulkDelete: protectedProcedure
+    .input(z.array(z.number()).min(1))
+    .mutation(async ({ input }) => {
+      const repo = AppDataSource.getRepository(DeadPerson);
+      return await repo.delete(input);
+    }),
 
   getByIcNumber: publicProcedure
     .input(z.object({ icnumber: z.string() }))

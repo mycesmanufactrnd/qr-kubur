@@ -209,7 +209,9 @@ function PersonFormSheet({
         }
       : {
           ...defaultDeadPersonField,
-          grave: soleGrave ? String(soleGrave.id) : defaultDeadPersonField.grave,
+          grave: soleGrave
+            ? String(soleGrave.id)
+            : defaultDeadPersonField.grave,
           latitude:
             soleGrave?.latitude != null
               ? String(soleGrave.latitude)
@@ -480,6 +482,7 @@ export default function MobileManageDeadPersons() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedGraveLot, setAppliedGraveLot] = useState("");
   const [appliedIC, setAppliedIC] = useState("");
+  const [appliedKariah, setAppliedKariah] = useState("");
   const [exporting, setExporting] = useState(null);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -509,6 +512,7 @@ export default function MobileManageDeadPersons() {
     filterName: appliedSearch,
     filterIC: appliedIC,
     filterGraveLot: appliedGraveLot,
+    filterKariah: appliedKariah || undefined,
     organisationIds: accessibleOrgIds,
   });
 
@@ -580,7 +584,9 @@ export default function MobileManageDeadPersons() {
       causeofdeath: rest.causeofdeath
         ? capitalizeFirst(rest.causeofdeath)
         : rest.causeofdeath,
-      biography: rest.biography ? capitalizeFirst(rest.biography) : rest.biography,
+      biography: rest.biography
+        ? capitalizeFirst(rest.biography)
+        : rest.biography,
       latitude,
       longitude,
       dateofbirth: rest.dateofbirth || null,
@@ -624,6 +630,7 @@ export default function MobileManageDeadPersons() {
         pageSize: 100000,
         filterName: appliedSearch,
         filterGraveLot: appliedGraveLot,
+        filterKariah: appliedKariah || undefined,
         organisationIds: accessibleOrgIds,
       });
       const rows = data?.items ?? [];
@@ -681,6 +688,15 @@ export default function MobileManageDeadPersons() {
                   type: "text",
                   searchColumn: "gravelot",
                 },
+                {
+                  label: translate("Kariah Status"),
+                  type: "select",
+                  searchColumn: "kariah",
+                  options: [
+                    { id: "kariah", name: translate("Kariah") },
+                    { id: "not_kariah", name: translate("Not Kariah") },
+                  ],
+                },
               ]}
               onApplyFilter={(f) => {
                 if (f.icnumber && !isCompleteICNumber(f.icnumber)) {
@@ -694,6 +710,7 @@ export default function MobileManageDeadPersons() {
                 setAppliedSearch(f.name || "");
                 setAppliedIC(f.icnumber || "");
                 setAppliedGraveLot(f.gravelot || "");
+                setAppliedKariah(f.kariah || "");
                 setPage(1);
               }}
             />
@@ -722,20 +739,20 @@ export default function MobileManageDeadPersons() {
                   <FileText className="w-4 h-4" />
                 )}
               </button>
+              {canCreate && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      setEditingPerson(null);
+                      setFormOpen(true);
+                    }}
+                    className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600 text-white active:opacity-80"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
             </div>
-            {canCreate && (
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => {
-                    setEditingPerson(null);
-                    setFormOpen(true);
-                  }}
-                  className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600 text-white active:opacity-80"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
-            )}
           </div>
 
           {isLoading ? (

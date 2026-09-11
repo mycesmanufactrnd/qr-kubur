@@ -1014,7 +1014,7 @@ export default function JenazahEmergencyRequest() {
         {mosque && pageStep === 2 && (
           <>
             <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
-              {translate("Maklumat Jenazah")}
+              {translate("Deceased Details")}
             </h3>
 
             <div className="space-y-1.5">
@@ -1150,14 +1150,14 @@ export default function JenazahEmergencyRequest() {
                     <TextInputForm
                       name="heirname"
                       control={control}
-                      label={translate("Nama Waris")}
+                      label={translate("Next of Kin Name")}
                       required
                       placeholder={translate("Next of kin full name")}
                     />
                     <TextInputForm
                       name="heirphoneno"
                       control={control}
-                      label={translate("No. Tel. Waris")}
+                      label={translate("Next of Kin Phone")}
                       isPhone
                       required
                       placeholder="0123456789"

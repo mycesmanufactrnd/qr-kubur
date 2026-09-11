@@ -16,6 +16,7 @@ export const defaultDeadPersonFilter = {
   grave: "",
   gravelot: "",
   state: "",
+  kariah: "",
   dateFrom: "",
   dateTo: "",
 };

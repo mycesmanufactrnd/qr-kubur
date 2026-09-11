@@ -25,12 +25,14 @@ const STATUS_CONFIG = {
   },
   full: {
     label: "Full",
-    className: "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 border-rose-100 dark:border-rose-800",
+    className:
+      "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 border-rose-100 dark:border-rose-800",
     icon: null,
   },
   maintenance: {
     label: "Maintenance",
-    className: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-100 dark:border-amber-800",
+    className:
+      "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-100 dark:border-amber-800",
     icon: <Hammer className="w-3 h-3 mr-1" />,
   },
 };
@@ -76,7 +78,8 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
 
   const status = STATUS_CONFIG[grave.status?.toLowerCase()] || {
     label: grave.status,
-    className: "bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-600",
+    className:
+      "bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-600",
     icon: null,
   };
 
@@ -152,14 +155,12 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
             to={createPageUrl(`GraveDetails?id=${grave.id}`)}
             className="flex-1"
           >
-            <button
-              className="w-full h-8 rounded-xl border border-emerald-200 dark:border-emerald-700 bg-transparent text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:opacity-75"
-            >
+            <button className="w-full h-8 rounded-xl border border-emerald-200 dark:border-emerald-700 bg-transparent text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:opacity-75">
               <ExternalLink className="w-3.5 h-3.5" />
               {translate("Details") || "View Details"}
             </button>
           </Link>
-          {grave.organisation && (
+          {grave.organisation?.organisationpaymentconfigs?.length > 0 && (
             <DonationButton
               recipientId={String(grave.organisation?.id)}
               recipientType={"organisation"}

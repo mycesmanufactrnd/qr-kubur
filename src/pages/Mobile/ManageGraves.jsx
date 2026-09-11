@@ -10,7 +10,8 @@ import {
   Save,
   QrCode,
   Navigation,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileText
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
@@ -387,8 +388,6 @@ function GraveFormSheet({
     </div>
   );
 }
-
-// ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function MobileManageGraves() {
   const {

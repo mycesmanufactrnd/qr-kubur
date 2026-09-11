@@ -882,12 +882,12 @@ export default function StatusCheck() {
                 />
                 <InfoRow
                   Icon={Users}
-                  label={translate("Nama Waris")}
+                  label={translate("Next of Kin Name")}
                   value={jenazahCase.details?.heirname}
                 />
                 <InfoRow
                   Icon={Phone}
-                  label={translate("No. Tel. Waris")}
+                  label={translate("Next of Kin Phone")}
                   value={jenazahCase.details?.heirphoneno}
                 />
                 {jenazahCase.details?.burialDate && (

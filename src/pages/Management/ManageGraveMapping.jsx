@@ -172,7 +172,6 @@ export default function ManageGraveMapping() {
   const accessibleOrgIds = parentAndChildQuery.data ?? [];
 
   const { gravesList } = useGetGravePaginated({
-    pageSize: 500,
     organisationIds: isSuperAdmin ? undefined : accessibleOrgIds,
   });
   const grave = gravesList.items.find((g) => String(g.id) === String(graveId));

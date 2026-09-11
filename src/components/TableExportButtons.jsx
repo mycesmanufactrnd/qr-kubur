@@ -49,6 +49,7 @@ export default function TableExportButtons({
         variant="outline"
         onClick={() => handleExport("xlsx")}
         disabled={disabled || isBusy}
+        className="border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800"
       >
         {exporting === "xlsx" ? (
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -62,6 +63,7 @@ export default function TableExportButtons({
         variant="outline"
         onClick={() => handleExport("pdf")}
         disabled={disabled || isBusy}
+        className="border-red-600 text-red-700 hover:bg-red-50 hover:text-red-800"
       >
         {exporting === "pdf" ? (
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />

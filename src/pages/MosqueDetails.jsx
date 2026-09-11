@@ -49,7 +49,9 @@ export default function MosqueDetailsPage() {
 
   if (isMosqueLoading) return <PageLoadingComponent />;
   if (isMosqueError || !mosque)
-    return <NoDataCardComponent isPage description={translate("Mosque Not Found")} />;
+    return (
+      <NoDataCardComponent isPage description={translate("Mosque Not Found")} />
+    );
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -58,7 +60,9 @@ export default function MosqueDetailsPage() {
           <img
             src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
             referrerPolicy="no-referrer"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
             alt={mosque.name}
             className="w-full h-full object-cover"
           />
@@ -118,11 +122,13 @@ export default function MosqueDetailsPage() {
             latitude={mosque.latitude}
             longitude={mosque.longitude}
           />
-          <DonationButton
-            recipientId={String(mosque.organisation?.id)}
-            recipientType="organisation"
-            state={mosque.organisation?.state}
-          />
+          {mosque.organisation?.organisationpaymentconfigs?.length > 0 && (
+            <DonationButton
+              recipientId={String(mosque.organisation?.id)}
+              recipientType="organisation"
+              state={mosque.organisation?.state}
+            />
+          )}
         </div>
 
         {mosque.canarrangefuneral && (
@@ -143,11 +149,9 @@ export default function MosqueDetailsPage() {
         {mosque.hasdeathcharity ? (
           <Link
             to={`${createPageUrl(`DeathCharityUserPayment`)}?mosque=${mosque.id}`}
-            className="flex-1"
           >
             <Button
-              className="mt-2 w-[calc(100%-2rem)] 
-                        bg-orange-600 text-white font-semibold shadow-md"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold shadow-md"
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();

@@ -49,7 +49,11 @@ export const mosqueRouter = router({
       const query = mosqueRepo
         .createQueryBuilder("mosque")
         .leftJoinAndSelect("mosque.organisation", "organisation")
-        .leftJoinAndSelect("mosque.organisationcharts", "organisationcharts");
+        .leftJoinAndSelect("mosque.organisationcharts", "organisationcharts")
+        .leftJoinAndSelect(
+          "organisation.organisationpaymentconfigs",
+          "organisationpaymentconfigs",
+        );
 
       if (input.filters) {
         for (const [key, value] of Object.entries(input.filters)) {

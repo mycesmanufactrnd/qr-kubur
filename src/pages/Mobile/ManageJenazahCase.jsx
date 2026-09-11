@@ -457,7 +457,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           )}
         </FormSection>
 
-        <FormSection title={translate("Maklumat Jenazah")}>
+        <FormSection title={translate("Deceased Details")}>
           <TextInputForm
             name="deceasedFullname"
             control={control}
@@ -467,18 +467,18 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
           />
         </FormSection>
 
-        <FormSection title={translate("Maklumat Waris")}>
+        <FormSection title={translate("Next of Kin Information")}>
           <TextInputForm
             name="heirname"
             control={control}
-            label={translate("Nama Waris")}
+            label={translate("Next of Kin Name")}
             required
             errors={errors}
           />
           <TextInputForm
             name="heirphoneno"
             control={control}
-            label={translate("No. Tel. Waris")}
+            label={translate("Next of Kin Phone")}
             isPhone
             required
             errors={errors}
@@ -700,6 +700,18 @@ function CaseDetailSheet({
   canReject,
   canEdit,
 }) {
+  const { currentUser, isSuperAdmin } = useAdminAccess();
+  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
+
+  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id, isIdOnly: true },
+    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
+  );
+
+  useEffect(() => {
+    if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
+  }, [parentAndChildQuery.data]);
+
   const [adminRemarks, setAdminRemarks] = useState(
     caseItem?.adminremarks ?? "",
   );
@@ -739,6 +751,7 @@ function CaseDetailSheet({
 
   const { gravesList = { items: [] } } = useGetGravePaginated({
     pageSize: 1000,
+    organisationIds: accessibleOrgIds,
   });
   const graves = gravesList.items;
 
@@ -955,7 +968,7 @@ function CaseDetailSheet({
           </div>
         )}
 
-        <FormSection title={translate("Maklumat Jenazah")}>
+        <FormSection title={translate("Deceased Details")}>
           <div className="grid grid-cols-2 gap-3">
             <DetailRow label={translate("Name")} value={d.deceasedFullname} />
             <DetailRow label={translate("IC No.")} value={d.deceasedIcnumber} />
@@ -1084,11 +1097,11 @@ function CaseDetailSheet({
                 }
               />
               <DetailRow
-                label={translate("Nama Waris")}
+                label={translate("Next of Kin Name")}
                 value={deadPersonRecord.heirname}
               />
               <DetailRow
-                label={translate("No. Tel. Waris")}
+                label={translate("Next of Kin Phone")}
                 value={deadPersonRecord.heirphoneno}
               />
             </div>
@@ -1253,13 +1266,13 @@ function CaseDetailSheet({
               <TextInputForm
                 name="heirname"
                 control={dc}
-                label={translate("Nama Waris")}
+                label={translate("Next of Kin Name")}
                 errors={de}
               />
               <TextInputForm
                 name="heirphoneno"
                 control={dc}
-                label={translate("No. Tel. Waris")}
+                label={translate("Next of Kin Phone")}
                 errors={de}
               />
             </div>

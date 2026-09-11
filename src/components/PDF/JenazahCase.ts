@@ -268,7 +268,7 @@ export async function generateJenazahCasePdf(data) {
   }
 
   const reminderText =
-    "PENTING: Sila bawa softcopy Surat Pengesahan Kematian dan Laporan Polis, serta sebarang dokumen sokongan berkaitan, semasa ke masjid.";
+    "PENTING: Sila bawa hardcopy Surat Pengesahan Kematian dan Laporan Polis, serta sebarang dokumen sokongan berkaitan, semasa ke masjid.";
   const reminderLines = doc.splitTextToSize(reminderText, contentWidth - 8);
   const reminderHeight = reminderLines.length * 5 + 8;
   ensureSpace(reminderHeight);

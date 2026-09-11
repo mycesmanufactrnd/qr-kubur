@@ -193,7 +193,7 @@ function JenazahCaseDashboardDesktop() {
     return <NoDataCardComponent isPage title={translate("Case not found")} />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900 pb-10">
+    <div className="min-h-screen dark:from-slate-900 dark:to-slate-900 pb-10">
       <div className="max-w-6xl mx-auto px-4">
         <BackNavigation title="Funeral Case Details" />
 
@@ -210,7 +210,7 @@ function JenazahCaseDashboardDesktop() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6 items-stretch">
-          {/* 1. Case Details */}
+          {/* Case Details */}
           <Card className="border-0 shadow-sm bg-white dark:bg-slate-800 h-full flex flex-col">
             <CardHeader className="py-3 px-4 border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
@@ -282,13 +282,13 @@ function JenazahCaseDashboardDesktop() {
             </CardContent>
           </Card>
 
-          {/* 2. Jenazah Details & Waris Details */}
+          {/* Jenazah Details & Waris Details */}
           <Card className="border-0 shadow-sm bg-white dark:bg-slate-800 h-full flex flex-col">
             <CardHeader className="py-3 px-4 border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
                 <User className="w-4 h-4 text-emerald-600" />
-                {translate("Maklumat Jenazah")} &amp;{" "}
-                {translate("Maklumat Waris")}
+                {translate("Deceased Details")} &amp;{" "}
+                {translate("Next of Kin Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 py-4 px-4 space-y-4">
@@ -341,15 +341,15 @@ function JenazahCaseDashboardDesktop() {
               <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" />
-                  {translate("Maklumat Waris")}
+                  {translate("Next of Kin Information")}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <DetailRow
-                    label={translate("Nama Waris")}
+                    label={translate("Next of Kin Name")}
                     value={d.heirname}
                   />
                   <DetailRow
-                    label={translate("No. Tel. Waris")}
+                    label={translate("Next of Kin Phone")}
                     value={d.heirphoneno}
                   />
                 </div>
@@ -357,7 +357,7 @@ function JenazahCaseDashboardDesktop() {
             </CardContent>
           </Card>
 
-          {/* 3. Documents */}
+          {/* Documents */}
           <Card className="border-0 shadow-sm bg-white dark:bg-slate-800 h-full flex flex-col">
             <CardHeader className="py-3 px-4 border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
@@ -386,7 +386,7 @@ function JenazahCaseDashboardDesktop() {
             </CardContent>
           </Card>
 
-          {/* 4. Grave Details */}
+          {/* Grave Details */}
           <Card className="border-0 shadow-sm bg-white dark:bg-slate-800 h-full flex flex-col">
             <CardHeader className="py-3 px-4 border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
@@ -445,7 +445,6 @@ function JenazahCaseDashboardDesktop() {
             </CardContent>
           </Card>
 
-          {/* 5 & 6. Reserved for future use */}
           <EmptyGridCard />
           <EmptyGridCard />
         </div>

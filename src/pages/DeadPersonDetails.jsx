@@ -176,7 +176,7 @@ export default function DeadPersonDetails() {
             {(deadPersonDetails.heirname || deadPersonDetails.heirphoneno) && (
               <div className="pt-2 border-t dark:border-gray-700">
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {translate("Waris")}
+                  {translate("Next of Kin")}
                 </p>
                 {deadPersonDetails.heirname && (
                   <p className="text-sm font-medium dark:text-white">

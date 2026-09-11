@@ -344,15 +344,15 @@ export default function JenazahCaseDashboardMobile() {
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" />
-                    {translate("Maklumat Waris")}
+                    {translate("Next of Kin Information")}
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <DetailRow
-                      label={translate("Nama Waris")}
+                      label={translate("Next of Kin Name")}
                       value={d.heirname}
                     />
                     <DetailRow
-                      label={translate("No. Tel. Waris")}
+                      label={translate("Next of Kin Phone")}
                       value={d.heirphoneno}
                     />
                   </div>

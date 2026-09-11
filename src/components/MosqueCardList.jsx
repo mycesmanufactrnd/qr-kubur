@@ -1,24 +1,33 @@
 // @ts-nocheck
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, ExternalLink, Landmark, Heart, MapPinHouse } from 'lucide-react';
-import { createPageUrl, resolveFileUrl } from '@/utils';
-import { openDirections, showEarthDistance } from '@/utils/helpers';
-import { translate } from '@/utils/translations';
-import { useState } from 'react';
-import { useEffect } from 'react';
-import DonationButton from './DonationButton';
-import BannerImageWithFallback from './BannerImageWithFallback';
+import {
+  MapPin,
+  Navigation,
+  ExternalLink,
+  Landmark,
+  Heart,
+  MapPinHouse,
+} from "lucide-react";
+import { createPageUrl, resolveFileUrl } from "@/utils";
+import { openDirections, showEarthDistance } from "@/utils/helpers";
+import { translate } from "@/utils/translations";
+import { useState } from "react";
+import { useEffect } from "react";
+import DonationButton from "./DonationButton";
+import BannerImageWithFallback from "./BannerImageWithFallback";
 
-export default function MosqueCardList({ mosque, onFavoriteChange  }) {
+export default function MosqueCardList({ mosque, onFavoriteChange }) {
   if (!mosque) return null;
-  
+
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
-    const isAlreadyFavorited = favorites.some(fav => fav.id === mosque.id);
+    const favorites = JSON.parse(
+      localStorage.getItem("favoritedmosque") || "[]",
+    );
+    const isAlreadyFavorited = favorites.some((fav) => fav.id === mosque.id);
     setIsFavorited(isAlreadyFavorited);
   }, [mosque.id]);
 
@@ -26,20 +35,22 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
     e.preventDefault();
     e.stopPropagation();
 
-    const favorites = JSON.parse(localStorage.getItem('favoritedmosque') || '[]');
-    
+    const favorites = JSON.parse(
+      localStorage.getItem("favoritedmosque") || "[]",
+    );
+
     if (isFavorited) {
-      const updatedFavorites = favorites.filter(fav => fav.id !== mosque.id);
-      localStorage.setItem('favoritedmosque', JSON.stringify(updatedFavorites));
+      const updatedFavorites = favorites.filter((fav) => fav.id !== mosque.id);
+      localStorage.setItem("favoritedmosque", JSON.stringify(updatedFavorites));
       setIsFavorited(false);
     } else {
       const favMosque = {
         id: mosque.id,
         name: mosque.name,
       };
-      
+
       favorites.push(favMosque);
-      localStorage.setItem('favoritedmosque', JSON.stringify(favorites));
+      localStorage.setItem("favoritedmosque", JSON.stringify(favorites));
       setIsFavorited(true);
     }
 
@@ -50,7 +61,7 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
     <Card className="group overflow-hidden bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-500 border-0 shadow-md">
       <div className="relative h-40 bg-gradient-to-br from-pink-500 via-red-500 to-orange-600 overflow-hidden">
         <BannerImageWithFallback
-          src={resolveFileUrl(mosque.photourl, 'bucket-mosque')}
+          src={resolveFileUrl(mosque.photourl, "bucket-mosque")}
           alt={mosque.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -64,7 +75,7 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
               </span>
             </div>
           )}
-          
+
           <Button
             onClick={toggleFavorite}
             variant="ghost"
@@ -73,14 +84,16 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
           >
             <Heart
               className={`w-5 h-5 transition-colors ${
-                isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                isFavorited ? "fill-red-500 text-red-500" : "text-gray-600"
               }`}
             />
           </Button>
         </div>
 
         <div className="absolute bottom-3 left-4 right-4">
-          <h5 className="text-lg font-bold text-white line-clamp-1">{mosque.name}</h5>
+          <h5 className="text-lg font-bold text-white line-clamp-1">
+            {mosque.name}
+          </h5>
           <p className="text-white/80 text-sm flex items-center gap-1">
             {mosque.state}
           </p>
@@ -94,31 +107,33 @@ export default function MosqueCardList({ mosque, onFavoriteChange  }) {
             <span>{mosque.address}</span>
           </div>
         )}
-        
+
         <div className="flex gap-2 pt-2">
-          <Link 
-            to={`${createPageUrl('MosqueDetailsPage')}?id=${mosque.id}`} 
+          <Link
+            to={`${createPageUrl("MosqueDetailsPage")}?id=${mosque.id}`}
             className="flex-1"
           >
-            <button
-              className="w-full h-9 flex items-center justify-center rounded-md border border-emerald-200 dark:border-emerald-700 bg-transparent text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors px-3"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              {translate('Details') || 'View Details'}
+            <button className="w-full h-8 rounded-xl border border-emerald-200 dark:border-emerald-700 bg-transparent text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors active:opacity-75">
+              <ExternalLink className="w-3.5 h-3.5" />
+              {translate("Details") || "View Details"}
             </button>
           </Link>
-          <div className="flex gap-2">
-            <DonationButton recipientId={mosque.organisation?.id} recipientType={'organisation'} state={mosque.state}/>
-            <Button 
-              onClick={(e) => {
-                  e.stopPropagation();
-                  openDirections(mosque.latitude, mosque.longitude);
-              }}
-              className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
-            >
-              <Navigation className="w-4 h-4" />
-            </Button>
-          </div>
+          {mosque.organisation?.organisationpaymentconfigs?.length > 0 && (
+            <DonationButton
+              recipientId={mosque.organisation?.id}
+              recipientType={"organisation"}
+              state={mosque.state}
+            />
+          )}
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              openDirections(mosque.latitude, mosque.longitude);
+            }}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md"
+          >
+            <Navigation className="w-4 h-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>

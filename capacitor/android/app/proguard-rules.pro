@@ -17,6 +17,12 @@
 # Capawesome Firebase Auth plugin
 -keep class io.capawesome.capacitorjs.plugins.firebase.authentication.** { *; }
 
+# The plugin's Facebook-provider handler references the Facebook Login SDK
+# unconditionally at compile time, but this app only configures the Google
+# provider (capacitor.config.json) and never depends on the Facebook SDK —
+# that code path is unreachable here, so tell R8 not to fail on it.
+-dontwarn com.facebook.**
+
 -keepattributes Signature
 -keepattributes *Annotation*
 -keepattributes EnclosingMethod
