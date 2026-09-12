@@ -312,9 +312,32 @@ function MemberFormSheet({
             </span>
           )}
         </div>
+        {formDisabled
+          ? canApprove && (
+              <button
+                type="button"
+                onClick={handleApproveClick}
+                disabled={isApproving}
+                className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-sm font-medium flex items-center gap-1.5 disabled:opacity-40 active:opacity-80 shrink-0"
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+                {translate("Approve Member")}
+              </button>
+            )
+          : (
+              <button
+                type="button"
+                onClick={handleSubmit(submitHandler)}
+                disabled={isSubmitting}
+                className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-sm font-medium flex items-center gap-1.5 disabled:opacity-40 active:opacity-80 shrink-0"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {editing ? translate("Save") : translate("Add Member")}
+              </button>
+            )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
         <FormSection title={translate("Status")}>
           <div className="flex items-center gap-2">
             <Switch
@@ -521,32 +544,6 @@ function MemberFormSheet({
               errors={errors}
             />
           </FormSection>
-        )}
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
-        {formDisabled ? (
-          canApprove && (
-            <button
-              type="button"
-              onClick={handleApproveClick}
-              disabled={isApproving}
-              className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
-            >
-              <CheckCircle className="w-4 h-4" />
-              {translate("Approve Member")}
-            </button>
-          )
-        ) : (
-          <button
-            type="button"
-            onClick={handleSubmit(submitHandler)}
-            disabled={isSubmitting}
-            className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            {editing ? translate("Save") : translate("Add Member")}
-          </button>
         )}
       </div>
     </div>

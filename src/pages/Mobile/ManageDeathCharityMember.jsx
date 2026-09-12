@@ -261,14 +261,25 @@ function MemberFormSheet({
         >
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm flex-1">
           {editing
             ? translate("Edit Death Charity Member")
             : translate("Add Death Charity Member")}
         </h2>
+        <button
+          type="button"
+          onClick={handleSubmit((data) =>
+            onSubmit({ ...data, allowDuplicateIc: icDecision === "approved" }),
+          )}
+          disabled={isSubmitting || !isFormUnlocked}
+          className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-sm font-medium flex items-center gap-1.5 disabled:opacity-40 active:opacity-80 shrink-0"
+        >
+          <Save className="w-3.5 h-3.5" />
+          {translate("Save")}
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
         {!editing && (
           <FormSection title={translate("Step 1: Check IC Number")}>
             <div className="flex gap-2">
@@ -441,20 +452,6 @@ function MemberFormSheet({
             </FormSection>
           </>
         )}
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 p-4 shrink-0">
-        <button
-          type="button"
-          onClick={handleSubmit((data) =>
-            onSubmit({ ...data, allowDuplicateIc: icDecision === "approved" }),
-          )}
-          disabled={isSubmitting || !isFormUnlocked}
-          className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
-        >
-          <Save className="w-4 h-4" />
-          {translate("Save")}
-        </button>
       </div>
     </div>
   );

@@ -213,13 +213,21 @@ function GraveFormSheet({
         >
           <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
         </button>
-        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm flex-1">
           {editing ? translate("Edit Cemetery") : translate("Add Cemetery")}
         </h2>
+        <button
+          onClick={handleSubmit(onSubmit)}
+          disabled={isSubmitting || uploading}
+          className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-sm font-medium flex items-center gap-1.5 disabled:opacity-40 active:opacity-80 shrink-0"
+        >
+          <Save className="w-3.5 h-3.5" />
+          {isSubmitting ? translate("Saving...") : translate("Save")}
+        </button>
       </div>
 
       {/* Scrollable form */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-28">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         <h3 className="text-sm font-medium text-gray-700 border-b pb-2 dark:text-slate-200">
           {translate("Cemetery Details")}
         </h3>
@@ -372,18 +380,6 @@ function GraveFormSheet({
           handleFileUpload={handleFileUpload}
           translate={translate}
         />
-      </div>
-
-      {/* Fixed save bar */}
-      <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
-        <button
-          onClick={handleSubmit(onSubmit)}
-          disabled={isSubmitting || uploading}
-          className="w-full h-12 rounded-2xl bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-40 active:opacity-80"
-        >
-          <Save className="w-5 h-5" />
-          {isSubmitting ? translate("Saving...") : translate("Save")}
-        </button>
       </div>
     </div>
   );
