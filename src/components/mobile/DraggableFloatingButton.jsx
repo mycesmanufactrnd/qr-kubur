@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import {
   Menu,
   Home,
-  AlertTriangle,
   HeartHandshake,
   MapPinHouse,
   MapPinned,
@@ -29,12 +28,6 @@ export function DraggableFloatingButton() {
   const startTime = useRef(0);
 
   const menuItems = [
-    {
-      icon: AlertTriangle,
-      label: "Emergency",
-      color: "bg-red-500",
-      page: "JenazahEmergency",
-    },
     {
       icon: MapPinned,
       label: "Favorited Grave",

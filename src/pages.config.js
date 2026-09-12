@@ -44,7 +44,6 @@ import CheckTahlilStatus from '@/pages/User/CheckTahlilStatus';
 
 import SurahPage from '@/pages/User/SurahPage';
 import SolatJenazah from '@/pages/SolatJenazah.jsx';
-import JenazahEmergency from '@/pages/JenazahEmergency.jsx';
 import JenazahEmergencyRequest from '@/pages/User/JenazahEmergencyRequest.jsx';
 import IslamicCalendar from '@/pages/IslamicCalendar.jsx';
 import DailyDua from '@/pages/ExtraFeatures/DailyDua.jsx';
@@ -162,7 +161,6 @@ export const PAGES = {
     "FamilyTree": FamilyTree,
     "SurahPage": SurahPage,
     "SolatJenazah": SolatJenazah,
-    "JenazahEmergency": JenazahEmergency,
     "JenazahEmergencyRequest": JenazahEmergencyRequest,
     "IslamicCalendar": IslamicCalendar,
     "DailyDua": DailyDua,

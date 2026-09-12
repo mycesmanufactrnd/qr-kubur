@@ -58,25 +58,36 @@ async function initFCMNative(): Promise<FCMResult> {
     // Attach listeners BEFORE calling register() — on a refresh, register()
     // can resolve with an already-cached token almost instantly, and if the
     // listeners aren't attached yet the "registration" event is missed.
+    //
+    // Only these two listeners are removed on cleanup (not removeAllListeners()),
+    // since that would also tear down the persistent pushNotificationReceived /
+    // pushNotificationActionPerformed listeners registered in useFCM.ts.
+    let registrationHandle: { remove: () => void } | undefined;
+    let errorHandle: { remove: () => void } | undefined;
+    const cleanup = () => {
+      registrationHandle?.remove();
+      errorHandle?.remove();
+    };
+
     const timer = setTimeout(() => {
-      PushNotifications.removeAllListeners();
+      cleanup();
       console.warn("[FCM] Native registration timed out");
       resolve({ token: null, reason: "Registration timed out after 10s (no response from FCM/APNs)" });
     }, 10_000);
 
     PushNotifications.addListener("registration", (token) => {
       clearTimeout(timer);
-      PushNotifications.removeAllListeners();
+      cleanup();
       localStorage.setItem("fcmToken", token.value);
       resolve({ token: token.value });
-    });
+    }).then((handle) => { registrationHandle = handle; });
 
     PushNotifications.addListener("registrationError", (err) => {
       clearTimeout(timer);
-      PushNotifications.removeAllListeners();
+      cleanup();
       console.error("[FCM] Native registration error:", err);
       resolve({ token: null, reason: err?.error || JSON.stringify(err) });
-    });
+    }).then((handle) => { errorHandle = handle; });
 
     PushNotifications.register();
   });

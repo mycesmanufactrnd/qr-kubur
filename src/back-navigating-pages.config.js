@@ -20,7 +20,6 @@ export const backNavigationMap = {
 
   // Bottom navigation bar (Layout) & Floating Action Button
   SettingsPage: "/",
-  JenazahEmergency: "/",
 
   // Detail pages — back to their parent search/list page
   GraveDetails: "/searchgrave",
