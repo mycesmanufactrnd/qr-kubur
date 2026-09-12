@@ -137,7 +137,7 @@ const FAQ_DATA = [
       },
       {
         q: "How do I make a contribution payment?",
-        a: "Members can make payments through the dedicated Death Charity page for their scheme. Enter the member's IC number, select the payment type (registration/monthly/yearly), and complete the payment.",
+        a: "Members can make payments through the dedicated Death Charity page for their scheme. Enter the member's IC number, select the payment plan (registration with yearly fee, or yearly only), and complete the payment.",
       },
       {
         q: "How do I submit a claim?",
@@ -145,7 +145,7 @@ const FAQ_DATA = [
       },
       {
         q: "How do I check my payment records?",
-        a: "Sign in with Google and go to Settings > Transaction Records. All Death Charity payments will be listed. You can also view the fund transfer status via the 'Transfer Status' button.",
+        a: "Sign in with Google and go to Settings > Transaction Records. All Death Charity payments you have made will be listed there.",
       },
     ],
   },
@@ -194,6 +194,38 @@ const FAQ_DATA = [
       {
         q: "What is Jenazah Emergency?",
         a: "Jenazah Emergency allows you to contact or find nearby funeral management services in an emergency situation.",
+      },
+      {
+        q: "How do I submit a Jenazah Emergency request?",
+        a: "From Jenazah Emergency, select 'Request Service' to submit an emergency request with the deceased's details so a nearby funeral management team can respond quickly.",
+      },
+    ],
+  },
+  {
+    category: "Favorites & Kariah",
+    icon: "⭐",
+    items: [
+      {
+        q: "How do I save a favorite grave, mosque, or tahfiz centre?",
+        a: "Tap the favorite icon on a grave, mosque, or tahfiz centre listing to save it. You can view all your saved items anytime under 'Favorites' from the main menu.",
+      },
+      {
+        q: "What is Kariah Registration?",
+        a: "Kariah Registration lets you register as a member of your local mosque Kariah, or check your existing membership status by selecting your state and mosque and entering your IC number.",
+      },
+    ],
+  },
+  {
+    category: "Suggestion & Feedback",
+    icon: "💬",
+    items: [
+      {
+        q: "How do I submit a suggestion or report an issue?",
+        a: "Go to 'Suggestion' from the main menu or Settings. Fill in your name, phone number, email, the type of record, state, and the relevant grave or deceased record, then submit. Signing in with Google is required.",
+      },
+      {
+        q: "Why do I need to complete a captcha to submit a suggestion?",
+        a: "The captcha helps prevent spam and abuse of the suggestion form, ensuring genuine feedback reaches the relevant organisation.",
       },
     ],
   },
