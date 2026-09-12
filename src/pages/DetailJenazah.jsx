@@ -23,8 +23,16 @@ import Breadcrumb from "@/components/Breadcrumb";
 import DocumentLinks from "@/components/DocumentLinks";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
+import { useIsNarrow } from "@/hooks/useIsNarrow";
+import MobileDetailJenazah from "@/pages/Mobile/DetailJenazah";
 
 export default function DetailJenazah() {
+  const isNarrow = useIsNarrow();
+  if (isNarrow) return <MobileDetailJenazah />;
+  return <DetailJenazahDesktop />;
+}
+
+function DetailJenazahDesktop() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const personId = Number(searchParams.get("id"));
