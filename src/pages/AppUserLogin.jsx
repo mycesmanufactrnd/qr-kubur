@@ -1,10 +1,17 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { handleLoginTRPC } from "@/utils/auth";
+import { LogIn, AlertCircle, Eye, EyeOff, Fingerprint } from "lucide-react";
+import { handleLoginTRPC, useBiometricLoginTRPC } from "@/utils/auth";
+import {
+  isBiometricAvailable,
+  isBiometricEnabled,
+  getBiometricUsername,
+  getBiometricRefreshToken,
+  disableBiometricLogin,
+} from "@/utils/biometricAuth";
 import { translate } from "@/utils/translations";
 
 export default function AppUserLogin() {
@@ -16,8 +23,25 @@ export default function AppUserLogin() {
   const [rememberMe, setRememberMe] = useState(
     () => !!localStorage.getItem("rememberedUsername"),
   );
+  const [canUseBiometric, setCanUseBiometric] = useState(false);
+  const [biometricSupported, setBiometricSupported] = useState(false);
 
   const { login, loading, error, setError } = handleLoginTRPC();
+  const {
+    loginWithRefreshToken,
+    loading: biometricLoading,
+    error: biometricError,
+  } = useBiometricLoginTRPC();
+
+  useEffect(() => {
+    (async () => {
+      const available = await isBiometricAvailable();
+      setBiometricSupported(available);
+      if (available && isBiometricEnabled()) {
+        setCanUseBiometric(true);
+      }
+    })();
+  }, []);
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -26,7 +50,23 @@ export default function AppUserLogin() {
     } else {
       localStorage.removeItem("rememberedUsername");
     }
-    login(username, password);
+    // Tying biometric enrollment to "Remember me" keeps it a single, familiar checkbox
+    // instead of adding a second one — checking it also offers to save fingerprint/face login.
+    login(username, password, rememberMe);
+  };
+
+  const onBiometricLogin = async () => {
+    const refreshToken = await getBiometricRefreshToken();
+    if (!refreshToken) {
+      setError(translate("Biometric login failed. Please use your password."));
+      return;
+    }
+    const success = await loginWithRefreshToken(refreshToken);
+    if (!success) {
+      // Stored token has expired (7 days) — clear it so the button doesn't stay stuck failing.
+      await disableBiometricLogin();
+      setCanUseBiometric(false);
+    }
   };
 
   return (
@@ -44,11 +84,35 @@ export default function AppUserLogin() {
           </p>
         </CardHeader>
         <CardContent>
+          {canUseBiometric && (
+            <div className="space-y-3 mb-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-emerald-500 text-emerald-600 dark:text-emerald-400"
+                disabled={biometricLoading}
+                onClick={onBiometricLogin}
+              >
+                <Fingerprint className="w-4 h-4 mr-2" />
+                {biometricLoading
+                  ? translate("Verifying...")
+                  : getBiometricUsername()
+                    ? `${translate("Login as")} ${getBiometricUsername()}`
+                    : translate("Login with fingerprint or face")}
+              </Button>
+              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                <div className="flex-1 border-t dark:border-gray-700" />
+                {translate("or use your password")}
+                <div className="flex-1 border-t dark:border-gray-700" />
+              </div>
+            </div>
+          )}
+
           <form onSubmit={onSubmit} className="space-y-4">
-            {error && (
+            {(error || biometricError) && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2 text-red-700 dark:text-red-400">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <p className="text-sm">{error}</p>
+                <p className="text-sm">{error || biometricError}</p>
               </div>
             )}
 
@@ -105,6 +169,12 @@ export default function AppUserLogin() {
                 className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer select-none"
               >
                 {translate("Remember me")}
+                {biometricSupported && !canUseBiometric && (
+                  <span className="text-gray-400 dark:text-gray-500">
+                    {" "}
+                    ({translate("also enables fingerprint/face login")})
+                  </span>
+                )}
               </label>
             </div>
 

@@ -99,16 +99,30 @@ export const sendPushNotifications = async (
   const staleTokens: string[] = [];
 
   try {
-    // Send as data-only — no top-level `notification` field.
-    // With a `notification` field, FCM shows it automatically AND onBackgroundMessage
-    // also fires, causing duplicate notifications. Data-only lets the SW be the
-    // single display controller for both foreground and background.
+    // No top-level `notification` field — with one, FCM shows it automatically on
+    // web AND onBackgroundMessage also fires, causing duplicate notifications there.
+    // Data-only keeps the web SW as the single display controller.
+    //
+    // Android has no such SW/data-only path: the Capacitor app has no listener wired
+    // up to build a notification itself, so a plain data message is silently dropped
+    // whenever the app is backgrounded or killed. `android.notification` is scoped to
+    // Android only (ignored by webpush/web clients), and tells the OS to auto-display
+    // the notification in the system tray even when the app isn't running.
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
       data: {
         title: notification.title,
         body: notification.body,
         ...data,
+      },
+      android: {
+        priority: "high",
+        notification: {
+          title: notification.title,
+          body: notification.body,
+          channelId: "default",
+          icon: "ic_launcher",
+        },
       },
       webpush: { fcmOptions: {} },
     });
@@ -136,7 +150,7 @@ export const sendPushNotifications = async (
   return staleTokens;
 };
 
-export const sendNotificationFCMFromGoogle = async ({
+export const sendNotificationFCMToUser = async ({
   entityname,
   entityid,
   extraParam,

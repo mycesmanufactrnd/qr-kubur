@@ -4,6 +4,7 @@ import { trpc, trpcClient } from "./trpc";
 import { STATES_MY } from "./enums";
 import { useNavigate } from "react-router-dom";
 import { captureError } from "./helpers";
+import { enableBiometricLogin } from "./biometricAuth";
 
 const GOOGLE_AUTH_KEY = "googleAuth";
 const GOOGLE_SIGNED_OUT_KEY = "googleSignedOut";
@@ -71,58 +72,72 @@ export function isGoogleSignedOut() {
   return localStorage.getItem(GOOGLE_SIGNED_OUT_KEY) === "1";
 }
 
+/**
+ * Shared by password login and biometric login (which exchanges a stored
+ * refresh token via auth.refresh) — same storage + role-redirect logic either way.
+ * Throws with a user-facing message on failure so both callers can surface it the same way.
+ */
+async function completeAppUserLogin(data: any) {
+  storeTokensFallback(data.accessToken, data.refreshToken);
+
+  sessionStorage.removeItem("user_location");
+  if (data.clientIp) {
+    sessionStorage.setItem("clientIP", data.clientIp);
+  }
+  sessionStorage.setItem("appUserAuth", JSON.stringify(data));
+  if (data.role) {
+    localStorage.setItem("appUserAuth", JSON.stringify(data));
+  }
+
+  const permissions = await trpcClient.permission.getByUser.query({
+    userId: data.id,
+  });
+  sessionStorage.setItem("permissions", JSON.stringify(permissions));
+
+  if (data.role === "superadmin") {
+    window.location.href = createPageUrl("SuperadminDashboard");
+    return;
+  }
+
+  // Tahfiz admins go to Tahfiz dashboard; employee/admin roles go to Admin dashboard even without org linkage.
+  if (data.tahfizcenter) {
+    window.location.href = createPageUrl("TahfizDashboard");
+    return;
+  }
+
+  if (
+    data.role === "admin" ||
+    data.role === "employee" ||
+    data.organisation
+  ) {
+    window.location.href = createPageUrl("AdminDashboard");
+    return;
+  }
+
+  // Login succeeded but user isn't configured for admin access.
+  sessionStorage.removeItem("appUserAuth");
+  localStorage.removeItem("appUserAuth");
+  sessionStorage.removeItem("permissions");
+  clearTokensFallback();
+  throw new Error("Your account is not set up for admin access.");
+}
+
 export function handleLoginTRPC() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const enableBiometricRef = useRef(false);
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       try {
-        /**
-         * Store tokens as fallback in sessionStorage
-         * Primary authentication is via httpOnly cookies set by server
-         * These are backup in case cookies aren't available
-         */
-        storeTokensFallback(data.accessToken, data.refreshToken);
-
-        sessionStorage.removeItem("user_location");
-        sessionStorage.setItem("clientIP", data.clientIp);
-        sessionStorage.setItem("appUserAuth", JSON.stringify(data));
-        if (data.role) {
-          localStorage.setItem("appUserAuth", JSON.stringify(data));
+        if (enableBiometricRef.current && data.refreshToken) {
+          // Best-effort: a declined/failed fingerprint prompt shouldn't block login.
+          await enableBiometricLogin(
+            data.username ?? "",
+            data.refreshToken,
+          ).catch(() => {});
         }
-
-        const permissions = await trpcClient.permission.getByUser.query({
-          userId: data.id,
-        });
-        sessionStorage.setItem("permissions", JSON.stringify(permissions));
-
-        if (data.role === "superadmin") {
-          window.location.href = createPageUrl("SuperadminDashboard");
-          return;
-        }
-
-        // Tahfiz admins go to Tahfiz dashboard; employee/admin roles go to Admin dashboard even without org linkage.
-        if (data.tahfizcenter) {
-          window.location.href = createPageUrl("TahfizDashboard");
-          return;
-        }
-
-        if (
-          data.role === "admin" ||
-          data.role === "employee" ||
-          data.organisation
-        ) {
-          window.location.href = createPageUrl("AdminDashboard");
-          return;
-        }
-
-        // Login succeeded but user isn't configured for admin access.
-        sessionStorage.removeItem("appUserAuth");
-        localStorage.removeItem("appUserAuth");
-        sessionStorage.removeItem("permissions");
-        clearTokensFallback();
-        setError("Your account is not set up for admin access.");
+        await completeAppUserLogin(data);
       } catch (e: any) {
         captureError(
           "Login failed",
@@ -130,10 +145,6 @@ export function handleLoginTRPC() {
           { message: e?.message },
         );
         console.error(e);
-        sessionStorage.removeItem("appUserAuth");
-        localStorage.removeItem("appUserAuth");
-        sessionStorage.removeItem("permissions");
-        clearTokensFallback();
         setError(e?.message || "Login failed");
       } finally {
         setLoading(false);
@@ -151,13 +162,55 @@ export function handleLoginTRPC() {
     },
   });
 
-  const login = (username: string, password: string) => {
+  /**
+   * Pass enableBiometric=true (tied to the "Remember me" checkbox on the login
+   * page) to also prompt fingerprint/face enrollment for next time, once this
+   * password login succeeds.
+   */
+  const login = (
+    username: string,
+    password: string,
+    enableBiometric?: boolean,
+  ) => {
     setError("");
     setLoading(true);
+    enableBiometricRef.current = !!enableBiometric;
     loginMutation.mutate({ username, password });
   };
 
   return { login, loading, error, setError };
+}
+
+/**
+ * Biometric login: exchanges a refresh token (retrieved from secure device
+ * storage after a successful fingerprint/face prompt) for a fresh session,
+ * via the same auth.refresh endpoint normal token rotation uses.
+ */
+export function useBiometricLoginTRPC() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loginWithRefreshToken = async (refreshToken: string): Promise<boolean> => {
+    setError("");
+    setLoading(true);
+    try {
+      const data = await trpcClient.auth.refresh.mutate({ refreshToken });
+      await completeAppUserLogin(data);
+      return true;
+    } catch (e: any) {
+      captureError(
+        "Biometric login failed",
+        { action: "biometricLogin" },
+        { message: e?.message },
+      );
+      console.error(e);
+      setError(e?.message || "Biometric login failed");
+      setLoading(false);
+      return false;
+    }
+  };
+
+  return { loginWithRefreshToken, loading, error, setError };
 }
 
 /**

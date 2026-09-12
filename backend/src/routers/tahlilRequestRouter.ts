@@ -11,7 +11,7 @@ import {
 import { In } from "typeorm";
 import { TahlilStatus } from "../db/enums.js";
 import {
-  sendNotificationFCMFromGoogle,
+  sendNotificationFCMToUser,
   sendNotificationFCMToTahfiz,
 } from "../services/firebase.service.js";
 
@@ -168,7 +168,7 @@ export const tahlilRequestRouter = router({
       const savedTahlilRequests = await tahlilRequestRepo.save(tahlilRequests);
 
       if (input.data.status === TahlilStatus.ACCEPTED) {
-        await sendNotificationFCMFromGoogle({
+        await sendNotificationFCMToUser({
           entityname: "tahlilrequest",
           entityid: input.id,
           extraParam: { event: "tahlilrequest", inputData: input },
@@ -202,7 +202,7 @@ export const tahlilRequestRouter = router({
       if (input.data.liveurl) {
         await Promise.allSettled(
           saved.map((request) =>
-            sendNotificationFCMFromGoogle({
+            sendNotificationFCMToUser({
               entityname: "tahlilrequest",
               entityid: request.id,
               extraParam: {
