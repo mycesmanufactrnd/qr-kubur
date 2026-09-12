@@ -10,7 +10,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import MultipleFileUploadForm from "@/components/forms/MultipleFileUploadForm";
-import { appendCurrentUserToFormData, createPageUrl } from "@/utils";
+import { appendCurrentUserToFormData } from "@/utils";
 import BackNavigation from "@/components/BackNavigation";
 import {
   Select,
@@ -706,7 +706,7 @@ export default function JenazahEmergencyRequest() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+                onClick={() => navigate("/")}
               >
                 {translate("Back")}
               </Button>
@@ -1407,7 +1407,7 @@ export default function JenazahEmergencyRequest() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate(createPageUrl("JenazahEmergency"))}
+                    onClick={() => navigate("/")}
                     className="flex-1"
                   >
                     {translate("Cancel")}
