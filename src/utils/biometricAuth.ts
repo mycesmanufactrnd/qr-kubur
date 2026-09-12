@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import { NativeBiometric } from "capacitor-native-biometric";
+import { NativeBiometric } from "@capgo/capacitor-native-biometric";
 
 /**
  * Biometric unlock never stores the account password. It stores the refresh
