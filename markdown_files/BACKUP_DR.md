@@ -109,11 +109,13 @@ Nobody manually runs the backup in prod — Task Scheduler (the Windows equivale
 2. **Same account that ran `rclone config`** — `rclone.conf` (containing your Drive auth token) lives in that account's profile (`%APPDATA%\rclone\rclone.conf`). The scheduled task must run as that exact same Windows account, or rclone won't find it.
 
 ```powershell
+$cred = Get-Credential
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-  -Argument '-NoProfile -ExecutionPolicy Bypass -File "C:\path\to\qr-kubur\scripts\backup-to-gdrive.ps1"'
-$trigger = New-ScheduledTaskTrigger -Daily -At 2am
+  -Argument '-NoProfile -ExecutionPolicy Bypass -File "C:\Website\qr-kubur\scripts\backup-to-gdrive.ps1"'
+$trigger = New-ScheduledTaskTrigger -Daily -At 3:49pm
 Register-ScheduledTask -TaskName "QuburBackupToGDrive" -Action $action -Trigger $trigger -RunLevel Highest `
-  -User "<the account you ran 'rclone config' as>" -Password "<its password>"
+  -User $cred.UserName -Password $cred.GetNetworkCredential().Password
+
 ```
 
 Providing `-User`/`-Password` is what sets the logon type to "Run whether user is logged on or not" — Task Scheduler stores the credential securely (Windows Credential Manager), you don't need to keep the password anywhere after this one-time setup.
