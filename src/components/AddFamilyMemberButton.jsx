@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Users, UserCheck } from "lucide-react";
+import { UserPlus, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,7 +34,10 @@ const RELATION_LABEL_KEYS = {
   [FamilyRelation.OTHER]: "Other",
 };
 
-export default function AddFamilyMemberButton({ deadPersonId, compact = false }) {
+export default function AddFamilyMemberButton({
+  deadPersonId,
+  compact = false,
+}) {
   const [googleUser] = useState(() => getStoredGoogleUser());
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [relationDialogOpen, setRelationDialogOpen] = useState(false);
@@ -110,24 +113,21 @@ export default function AddFamilyMemberButton({ deadPersonId, compact = false })
 
   const buttonClass = compact
     ? existingEntry
-      ? "w-full h-8 px-2 text-[11px] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+      ? "w-full h-8 px-2 text-[11px] bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/30"
       : "w-full h-8 px-2 text-[11px] bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-0 shadow-sm shadow-emerald-200/50 dark:shadow-emerald-900/30"
     : existingEntry
-      ? "w-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+      ? "w-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/30"
       : "w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-0 shadow-md shadow-emerald-200/50 dark:shadow-emerald-900/30 hover:opacity-90";
 
   return (
     <>
       <Button type="button" onClick={handleClick} className={buttonClass}>
         {existingEntry ? (
-          <UserCheck className={compact ? "w-3.5 h-3.5" : "w-4 h-4 mr-2"} />
+          <UserMinus className={compact ? "w-3.5 h-3.5 mr-1" : "w-4 h-4 mr-2"} />
         ) : (
-          <Users className={compact ? "w-3.5 h-3.5" : "w-4 h-4 mr-2"} />
+          <UserPlus className={compact ? "w-3.5 h-3.5 mr-1" : "w-4 h-4 mr-2"} />
         )}
-        {!compact &&
-          (existingEntry
-            ? translate("Added to Family Tree")
-            : translate("Add as Family Member"))}
+        {translate("Family")}
       </Button>
 
       <GoogleSignInDialog

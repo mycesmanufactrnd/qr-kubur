@@ -216,13 +216,6 @@ function AddFamilyMemberDialog({ open, onOpenChange, onSaved, googleUserId }) {
 
           <DialogFooter>
             <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              {translate("Cancel")}
-            </Button>
-            <Button
               type="submit"
               disabled={createMutation.isPending}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"

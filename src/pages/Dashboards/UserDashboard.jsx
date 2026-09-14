@@ -307,7 +307,8 @@ export default function UserDashboard() {
     () => localStorage.getItem("theme") || "light",
   );
   const [googleUser, setGoogleUser] = useState(() => getStoredGoogleUser());
-  const [suggestionLoginOpen, setSuggestionLoginOpen] = useState(false);
+  const [googleAuthGateOpen, setGoogleAuthGateOpen] = useState(false);
+  const [nextGoogleLoginPage, setNextGoogleLoginPage] = useState(null);
   const { pullY, refreshing, threshold } = usePullToRefresh();
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
@@ -457,7 +458,10 @@ export default function UserDashboard() {
                 className="db-qbtn"
                 onClick={() => {
                   if (googleUser?.id) navigate(createPageUrl(page));
-                  else setSuggestionLoginOpen(true);
+                  else {
+                    setNextGoogleLoginPage(page);
+                    setGoogleAuthGateOpen(true);
+                  }
                 }}
               >
                 <div className="db-qicon" style={{ background: g }}>
@@ -478,14 +482,12 @@ export default function UserDashboard() {
       </div>
 
       <GoogleSignInDialog
-        open={suggestionLoginOpen}
-        onOpenChange={setSuggestionLoginOpen}
-        message={translate(
-          "Please sign in with Google to submit a suggestion.",
-        )}
+        open={googleAuthGateOpen}
+        onOpenChange={setGoogleAuthGateOpen}
+        message={translate("Please sign in with Google to continue.")}
         onLoginSuccess={(user) => {
           setGoogleUser(user);
-          navigate(createPageUrl("SubmitSuggestion"));
+          navigate(createPageUrl(nextGoogleLoginPage));
         }}
       />
 

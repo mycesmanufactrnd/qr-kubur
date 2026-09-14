@@ -15,7 +15,7 @@ import {
   Phone,
   Share2,
   ArrowLeft,
-  Users,
+  Hash,
   Info,
   ImageIcon,
   Building2,
@@ -23,8 +23,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
@@ -46,7 +44,7 @@ import { trpc } from "@/utils/trpc";
 import { ImageViewer } from "@/components/ImageViewer";
 import AddFamilyMemberButton from "@/components/AddFamilyMemberButton";
 import { getStoredGoogleUser } from "@/utils/auth";
-import { Checkbox } from "@/components/ui/checkbox";
+import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 
 export default function GraveDetails() {
   const navigate = useNavigate();
@@ -63,16 +61,15 @@ export default function GraveDetails() {
     ? Number(searchParams.get("id"))
     : null;
 
-  const [searchName, setSearchName] = useState("");
-  const [searchDate, setSearchDate] = useState("");
-
-  const [filterName, setFilterName] = useState("");
-  const [filterDate, setFilterDate] = useState("");
+  const [filters, setFilters] = useState({
+    name: "",
+    date: "",
+    gravelot: "",
+    familyOnly: false,
+  });
 
   const [displayedCount, setDisplayedCount] = useState(10);
-  const [isSearching, setIsSearching] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
-  const [familyOnly, setFamilyOnly] = useState(false);
   const [googleUser] = useState(() => getStoredGoogleUser());
 
   const { data: familyMembers = [] } = trpc.familyTree.getByGoogleUser.useQuery(
@@ -107,27 +104,26 @@ export default function GraveDetails() {
     { enabled: !!graveState },
   );
 
-  const handleSearch = () => {
-    setIsSearching(true);
-    setFilterName(searchName);
-    setFilterDate(searchDate);
-
-    setTimeout(() => {
-      setDisplayedCount(10);
-      setIsSearching(false);
-    }, 300);
+  const handleApplyFilter = (newFilters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setDisplayedCount(10);
   };
 
   const filtered =
     personsData &&
     personsData.filter((p) => {
       const matchesName =
-        !filterName || p.name?.toLowerCase().includes(filterName.toLowerCase());
+        !filters.name ||
+        p.name?.toLowerCase().includes(filters.name.toLowerCase());
       const matchesDate =
-        !filterDate ||
-        (p.dateofdeath && String(p.dateofdeath).startsWith(filterDate));
-      const matchesFamily = !familyOnly || familyDeadPersonIds.has(p.id);
-      return matchesName && matchesDate && matchesFamily;
+        !filters.date ||
+        (p.dateofdeath && String(p.dateofdeath).startsWith(filters.date));
+      const matchesGravelot =
+        !filters.gravelot ||
+        p.gravelot?.toLowerCase().includes(filters.gravelot.toLowerCase());
+      const matchesFamily =
+        !filters.familyOnly || familyDeadPersonIds.has(p.id);
+      return matchesName && matchesDate && matchesGravelot && matchesFamily;
     });
 
   const displayedPersons = filtered && filtered.slice(0, displayedCount);
@@ -241,25 +237,28 @@ export default function GraveDetails() {
                   </div>
                 </div>
 
-                {/* Capacity */}
-                <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600">
-                  <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shrink-0">
-                    <Users className="w-4 h-4 text-emerald-600" />
-                  </div>
+                {(grave.lot || grave.block) && (
+                  <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-100 dark:border-slate-600">
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shrink-0">
+                      <Hash className="w-4 h-4 text-emerald-600" />
+                    </div>
 
-                  <div>
-                    <p className="text-[9px] uppercase font-semibold text-slate-400 tracking-wide">
-                      {translate("Capacity")}
-                    </p>
+                    <div>
+                      <p className="text-[9px] uppercase font-semibold text-slate-400 tracking-wide">
+                        {translate("Lot / Block")}
+                      </p>
 
-                    <p className="font-semibold text-base text-slate-700 dark:text-slate-200">
-                      {grave.totalgraves ?? 0}
-                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">
-                        Lot
-                      </span>
-                    </p>
+                      <p className="font-semibold text-base text-slate-700 dark:text-slate-200">
+                        {[
+                          grave.lot && `${translate("Lot")} ${grave.lot}`,
+                          grave.block && `${translate("Block")} ${grave.block}`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -361,63 +360,31 @@ export default function GraveDetails() {
 
             <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
               <CardHeader className="py-3 px-4">
-                <CardTitle className="text-base flex items-center gap-2 text-slate-800 dark:text-slate-100">
-                  <Search className="w-4 h-4 text-emerald-600" />
-                  {translate("Search Deceased")}
+                <CardTitle className="text-base flex items-center justify-between gap-2 text-slate-800 dark:text-slate-100">
+                  <span className="flex items-center gap-2">
+                    <Search className="w-4 h-4 text-emerald-600" />
+                    {translate("Search Deceased")}
+                  </span>
+                  <AdvancedFilters
+                    storageKey={`gravedetails-${graveId}`}
+                    parameter={[
+                      { label: translate("Name"), type: "text", searchColumn: "name" },
+                      { label: translate("Date"), type: "date", searchColumn: "date" },
+                      { label: translate("Grave Lot"), type: "text", searchColumn: "gravelot" },
+                      ...(googleUser?.id
+                        ? [
+                            {
+                              label: translate("Show only my family members"),
+                              type: "checkbox",
+                              searchColumn: "familyOnly",
+                            },
+                          ]
+                        : []),
+                    ]}
+                    onApplyFilter={handleApplyFilter}
+                  />
                 </CardTitle>
               </CardHeader>
-
-              <CardContent className="px-4 pb-4 space-y-3">
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-1">
-                      {translate("Name")}
-                    </label>
-                    <Input
-                      placeholder={translate("Search name...")}
-                      value={searchName}
-                      onChange={(e) => setSearchName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                      className="h-9 text-sm border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-600 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-1">
-                      {translate("Date")}
-                    </label>
-
-                    <div className="flex gap-2">
-                      <Input
-                        type="date"
-                        value={searchDate}
-                        onChange={(e) => setSearchDate(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        className="h-9 text-sm border-slate-200 bg-slate-50 flex-1 focus:bg-white transition-colors"
-                      />
-
-                      <Button
-                        onClick={handleSearch}
-                        className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9 p-0 shrink-0 active:scale-95"
-                      >
-                        <Search className="w-3.5 h-3.5 text-white" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {!!googleUser?.id && (
-                  <label className="flex items-center gap-2 pt-1 cursor-pointer">
-                    <Checkbox
-                      checked={familyOnly}
-                      onCheckedChange={(v) => setFamilyOnly(v === true)}
-                    />
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                      {translate("Show only my family members")}
-                    </span>
-                  </label>
-                )}
-              </CardContent>
             </Card>
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1 border-l-4 border-emerald-500 pl-4">
@@ -432,7 +399,7 @@ export default function GraveDetails() {
                 </Badge>
               </div>
 
-              {isSearching || personsLoading ? (
+              {personsLoading ? (
                 <ListCardSkeletonComponent />
               ) : (
                 <div className="grid gap-3">
