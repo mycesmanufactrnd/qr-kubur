@@ -56,9 +56,18 @@ try {
     docker exec $DbContainer pg_dump -U $pgUser -Fc $pgDb > $dumpFile
     if ($LASTEXITCODE -ne 0) { throw "pg_dump failed" }
 
-    Write-Host "Archiving storage_data..."
-    $storageZip = Join-Path $tempDir "storage_$date.zip"
-    Compress-Archive -Path "$RepoRoot\storage_data\*" -DestinationPath $storageZip
+    Write-Host "Archiving storage_data (one zip per bucket folder)..."
+    $storageBuckets = Get-ChildItem -Path "$RepoRoot\storage_data" -Directory -ErrorAction SilentlyContinue
+    foreach ($bucket in $storageBuckets) {
+        $bucketHasFiles = Get-ChildItem -Path $bucket.FullName -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $bucketHasFiles) {
+            Write-Host "  Skipping empty folder: $($bucket.Name)"
+            continue
+        }
+        Write-Host "  Zipping $($bucket.Name)..."
+        $bucketZip = Join-Path $tempDir "storage_$($bucket.Name)_$date.zip"
+        Compress-Archive -Path "$($bucket.FullName)\*" -DestinationPath $bucketZip
+    }
 
     Write-Host "Uploading to $RcloneRemote/$date ..."
     rclone copy $tempDir "$RcloneRemote/$date" --progress
