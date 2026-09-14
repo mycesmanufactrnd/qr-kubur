@@ -107,6 +107,10 @@ export default function FileUploadForm({
           const isPdfPreview = localPreviewSrc
             ? localIsPdf
             : !isUrlMode && /\.pdf$/i.test(storedPreviewValue || "");
+          const previewFileName = (storedPreviewValue || "").replace(
+            /^[0-9a-f-]{36}-/i,
+            "",
+          );
 
           const processFile = async (file) => {
             if (!isAllowedFile(file, accept)) {
@@ -233,10 +237,7 @@ export default function FileUploadForm({
                         onClick={() => setPreviewOpen(true)}
                         className="text-xs text-slate-700 dark:text-slate-200 underline truncate flex-1 text-left"
                       >
-                        {(storedPreviewValue || "").replace(
-                          /^[0-9a-f-]{36}-/i,
-                          "",
-                        )}
+                        {previewFileName}
                       </button>
                       <button
                         type="button"
@@ -256,6 +257,7 @@ export default function FileUploadForm({
                     src={displaySrc}
                     isPdf={isPdfPreview}
                     title={label}
+                    fileName={previewFileName}
                   />
                 </>
               )}
@@ -276,6 +278,7 @@ export default function FileUploadForm({
                     src={displaySrc}
                     isPdf
                     title={label}
+                    fileName={previewFileName}
                   />
                 </>
               )}

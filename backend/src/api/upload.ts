@@ -233,6 +233,12 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
         "Content-Type",
         stored?.contentType ?? obj.contentType ?? "application/octet-stream",
       );
+      // Explicit `inline` so browsers render PDFs/images in place (e.g. an <iframe>
+      // or <img>) instead of guessing — without this header some browsers default
+      // to downloading rather than previewing. The frontend's own download button
+      // uses <a download> instead, which forces a save regardless of this header.
+      const downloadName = (stored?.originalName ?? filename).replace(/"/g, "");
+      reply.header("Content-Disposition", `inline; filename="${downloadName}"`);
       return reply.send(obj.stream);
     } catch (err) {
       console.error('Failed to fetch file:', err);

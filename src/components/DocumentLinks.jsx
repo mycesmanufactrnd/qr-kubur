@@ -33,6 +33,7 @@ export default function DocumentLinks({ label, value, bucket }) {
         src={previewKey ? resolveFileUrl(previewKey, bucket) : null}
         isPdf={isPdfKey(previewKey)}
         title={label}
+        fileName={previewKey?.replace(/^[0-9a-f-]{36}-/i, "")}
       />
     </div>
   );
