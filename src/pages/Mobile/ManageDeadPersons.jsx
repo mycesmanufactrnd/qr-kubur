@@ -288,7 +288,7 @@ function PersonFormSheet({
             name="deathconfirmationphotourl"
             control={control}
             label={translate("Death Confirmation")}
-            accept="image/*"
+            accept="image/*,application/pdf"
             isNeedPasteURL={false}
             bucketName="bucket-death-confirmation"
             uploading={uploading}
@@ -298,7 +298,7 @@ function PersonFormSheet({
             name="policereportphotourl"
             control={control}
             label={translate("Police Report")}
-            accept="image/*"
+            accept="image/*,application/pdf"
             isNeedPasteURL={false}
             bucketName="bucket-police-report"
             uploading={uploading}
