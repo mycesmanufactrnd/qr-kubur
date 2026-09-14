@@ -23,8 +23,6 @@ export * from "./entities/Mosque.entity.js";
 export * from "./entities/ActivityPosts.entity.js";
 export * from "./entities/IslamicEvent.entity.js";
 export * from "./entities/WaqfProject.entity.js";
-export * from "./entities/GanttChart.entity.js";
-export * from "./entities/PaymentComparison.entity.js";
 export * from "./entities/CollectionTree/CollectionTree.entity.js";
 export * from "./entities/CollectionTree/CollectionTreeItem.entity.js";
 export * from "./entities/TahfizPaymentConfig.entity.js";

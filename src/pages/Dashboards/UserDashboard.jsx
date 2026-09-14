@@ -20,6 +20,7 @@ import {
   BadgeCheck,
   Loader2,
   AlertTriangle,
+  GitBranch,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -36,8 +37,7 @@ const todayDoa =
 function getHijriDate(gregorianDate) {
   const islamicEpoch = 1948440;
   const julianDay = Math.floor(gregorianDate.getTime() / 86400000) + 2440588;
-  const islamicYear =
-    Math.floor(((julianDay - islamicEpoch) * 30) / 10631) + 1;
+  const islamicYear = Math.floor(((julianDay - islamicEpoch) * 30) / 10631) + 1;
   const temp =
     julianDay - Math.floor(((islamicYear - 1) * 10631) / 30) - islamicEpoch;
   const islamicMonth = Math.min(12, Math.ceil(temp / 29.5));
@@ -437,10 +437,11 @@ export default function UserDashboard() {
               g: G.sapphire,
             },
             {
-              icon: Calendar,
-              label: translate("Islamic Calendar"),
-              page: "IslamicCalendar",
+              icon: GitBranch,
+              label: translate("Family Tree"),
+              page: "FamilyTree",
               g: G.ocean,
+              requiresGoogleAuth: true,
             },
             {
               icon: BadgeCheck,
