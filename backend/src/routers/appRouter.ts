@@ -38,8 +38,6 @@ import { quotationRouter } from "./quotationRouter.js";
 import { googleRouter } from "./googleRouter.js";
 import { tempOrganisationRouter } from "./tempOrganisationRouter.js";
 import { paymentDistributionRouter } from "./paymentDistributionRouter.js";
-import { ganttchartRouter } from "./ganttchartRouter.js";
-import { paymentComparisonRouter } from "./paymentComparisonRouter.js";
 import { financialReportRouter } from "./financialReportRouter.js";
 import { collectionTreeRouter } from "./collectionTreeRouter.js";
 import { inventoryItemRouter } from "./inventoryItemRouter.js";
@@ -93,8 +91,6 @@ export const appRouter = trpcRouter({
   deathCharityClaim: deathCharityClaimRouter,
   deathCharityPayment: deathCharityPaymentRouter,
   quotation: quotationRouter,
-  ganttchart: ganttchartRouter,
-  paymentComparison: paymentComparisonRouter,
   financialReport: financialReportRouter,
   collectionTree: collectionTreeRouter,
   inventoryItem: inventoryItemRouter,

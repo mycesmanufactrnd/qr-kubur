@@ -133,12 +133,21 @@ export default function GraveCardList({ grave, onFavoriteChange }) {
             {status.label}
           </Badge>
 
-          {grave.totalgraves > 0 && (
+          {grave.lot && (
             <Badge
               variant="outline"
               className="text-xs text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600"
             >
-              {grave.totalgraves} {translate("Total Grave")}
+              {translate("Lot")} {grave.lot}
+            </Badge>
+          )}
+
+          {grave.block && (
+            <Badge
+              variant="outline"
+              className="text-xs text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600"
+            >
+              {translate("Block")} {grave.block}
             </Badge>
           )}
         </div>

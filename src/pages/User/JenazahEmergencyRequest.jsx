@@ -328,6 +328,13 @@ export default function JenazahEmergencyRequest() {
       setValue("fullname", member.fullname ?? "");
       setValue("icnumber", member.icnumber ?? "");
       setValue("phone", "");
+      // The deceased is already a registered Kariah member, so the
+      // "family member of a Kariah member" fields are hidden — clear any
+      // stale values so they don't get silently submitted.
+      setIsFamilyOfKariah(false);
+      setValue("familyKariahIcSearch", "");
+      setSearchedFamilyKariahIc("");
+      setFamilyKariahManualName("");
     } else {
       setMemberResult(null);
       setValue("icnumber", searchedIc);
@@ -1176,6 +1183,7 @@ export default function JenazahEmergencyRequest() {
                     placeholder={translate("Cause of death, if known")}
                   />
 
+                  {!memberResult && (
                   <div className="space-y-2">
                     <label className="flex items-start gap-2 cursor-pointer">
                       <Checkbox
@@ -1258,6 +1266,7 @@ export default function JenazahEmergencyRequest() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   <TextInputForm
                     name="userremarks"

@@ -20,6 +20,7 @@ import {
   BadgeCheck,
   Loader2,
   AlertTriangle,
+  GitBranch,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
@@ -36,8 +37,7 @@ const todayDoa =
 function getHijriDate(gregorianDate) {
   const islamicEpoch = 1948440;
   const julianDay = Math.floor(gregorianDate.getTime() / 86400000) + 2440588;
-  const islamicYear =
-    Math.floor(((julianDay - islamicEpoch) * 30) / 10631) + 1;
+  const islamicYear = Math.floor(((julianDay - islamicEpoch) * 30) / 10631) + 1;
   const temp =
     julianDay - Math.floor(((islamicYear - 1) * 10631) / 30) - islamicEpoch;
   const islamicMonth = Math.min(12, Math.ceil(temp / 29.5));
@@ -307,7 +307,8 @@ export default function UserDashboard() {
     () => localStorage.getItem("theme") || "light",
   );
   const [googleUser, setGoogleUser] = useState(() => getStoredGoogleUser());
-  const [suggestionLoginOpen, setSuggestionLoginOpen] = useState(false);
+  const [googleAuthGateOpen, setGoogleAuthGateOpen] = useState(false);
+  const [nextGoogleLoginPage, setNextGoogleLoginPage] = useState(null);
   const { pullY, refreshing, threshold } = usePullToRefresh();
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
@@ -437,10 +438,11 @@ export default function UserDashboard() {
               g: G.sapphire,
             },
             {
-              icon: Calendar,
-              label: translate("Islamic Calendar"),
-              page: "IslamicCalendar",
+              icon: GitBranch,
+              label: translate("Family Tree"),
+              page: "FamilyTree",
               g: G.ocean,
+              requiresGoogleAuth: true,
             },
             {
               icon: BadgeCheck,
@@ -456,7 +458,10 @@ export default function UserDashboard() {
                 className="db-qbtn"
                 onClick={() => {
                   if (googleUser?.id) navigate(createPageUrl(page));
-                  else setSuggestionLoginOpen(true);
+                  else {
+                    setNextGoogleLoginPage(page);
+                    setGoogleAuthGateOpen(true);
+                  }
                 }}
               >
                 <div className="db-qicon" style={{ background: g }}>
@@ -477,14 +482,12 @@ export default function UserDashboard() {
       </div>
 
       <GoogleSignInDialog
-        open={suggestionLoginOpen}
-        onOpenChange={setSuggestionLoginOpen}
-        message={translate(
-          "Please sign in with Google to submit a suggestion.",
-        )}
+        open={googleAuthGateOpen}
+        onOpenChange={setGoogleAuthGateOpen}
+        message={translate("Please sign in with Google to continue.")}
         onLoginSuccess={(user) => {
           setGoogleUser(user);
-          navigate(createPageUrl("SubmitSuggestion"));
+          navigate(createPageUrl(nextGoogleLoginPage));
         }}
       />
 

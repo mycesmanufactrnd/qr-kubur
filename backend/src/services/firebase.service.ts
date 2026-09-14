@@ -12,6 +12,7 @@ import {
 import { AppDataSource } from "../datasource.js";
 import { TahlilStatus } from "../db/enums.js";
 import type { EntityNameGoogleUserRecord } from "../db/enums.js";
+import { buildNotificationUrl } from "./notificationUrls.js";
 
 let initialized = false;
 
@@ -203,10 +204,6 @@ export const sendNotificationFCMToUser = async ({
     const { event, inputData } = extraParam;
 
     if (entityname === "tahlilrequest") {
-      const refUrl = referenceno
-        ? `/CheckTahlilStatus?ref=${encodeURIComponent(referenceno)}`
-        : "/CheckTahlilStatus";
-
       let title: string = "";
       let body: string = "";
 
@@ -231,7 +228,10 @@ export const sendNotificationFCMToUser = async ({
       staleTokens = await sendPushNotifications(
         tokens,
         { title, body },
-        { requestId: String(inputData.id ?? ""), url: refUrl },
+        {
+          requestId: String(inputData.id ?? ""),
+          url: buildNotificationUrl(event, { referenceno }),
+        },
       );
     }
 
@@ -290,6 +290,7 @@ export const sendNotificationFCMToTahfiz = async ({
       {
         tahfizId: String(tahfizId),
         event,
+        url: buildNotificationUrl(event),
       },
     );
 
@@ -380,6 +381,7 @@ export const sendNotificationFCMToOrganisation = async ({
       {
         organisationId: String(organisationId),
         event,
+        url: buildNotificationUrl(event),
       },
     );
 
@@ -410,6 +412,7 @@ export const sendNotificationToKariahDevices = async ({
     const staleTokens = await sendPushNotifications(tokens, notification, {
       icnumber,
       event: "kariahRegistrationStatus",
+      url: buildNotificationUrl("kariahRegistrationStatus"),
     });
 
     if (staleTokens.length > 0) {

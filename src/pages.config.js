@@ -104,9 +104,7 @@ import ManagePaymentPlatforms from '@/pages/Management/ManagePaymentPlatforms';
 import FinancialReports from '@/pages/Payment/FinancialReports.jsx';
 import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
-import PaymentComparison from '@/pages/Payment/PaymentComparison.jsx';
 
-import GanttChartScheduling from '@/pages/Settings/GanttChartScheduling';
 import ViewLogs from '@/pages/Settings/ViewLogs';
 import IconLibrary from '@/pages/Settings/IconLibrary';
 import Ollama from '@/pages/Settings/Ollama.jsx';
@@ -219,11 +217,9 @@ export const PAGES = {
     "ManagePaymentFields": ManagePaymentFields,
     "ManagePaymentPlatforms": ManagePaymentPlatforms,
     "FinancialReports": FinancialReports,
-    
-    "PaymentComparison": PaymentComparison,
+
     "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
-    "GanttChartScheduling": GanttChartScheduling,
     "ViewLogs": ViewLogs,
     "IconLibrary": IconLibrary,
     "Ollama": Ollama,
