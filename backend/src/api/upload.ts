@@ -38,9 +38,21 @@ const parseUploadedBy = (raw: string | undefined): StoredFileUploadedBy | null =
   }
 };
 
+const ALLOWED_UPLOAD_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+]);
+const ALLOWED_UPLOAD_EXTENSION = /\.(jpe?g|png|webp|gif|pdf)$/i;
+
 export const registerUploadRoutes = (app: FastifyInstance) => {
-  
-  app.post('/api/upload/:bucket', async (request, reply) => {
+
+  app.post(
+    '/api/upload/:bucket',
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (request, reply) => {
     try {
       const { bucket } = request.params as { bucket: string };
 
@@ -83,6 +95,15 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
       if (!filename || !mimetype || !buffer) {
         return reply.status(400).send({ error: 'No file uploaded' });
+      }
+
+      if (
+        !ALLOWED_UPLOAD_MIME_TYPES.has(mimetype) ||
+        !ALLOWED_UPLOAD_EXTENSION.test(filename)
+      ) {
+        return reply.status(400).send({
+          error: 'File type not allowed. Only JPEG, PNG, WEBP, GIF, and PDF files are accepted.',
+        });
       }
 
       console.log("Uploading file:", filename, mimetype, "size:", buffer.length);
