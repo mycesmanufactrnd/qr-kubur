@@ -58,7 +58,7 @@ await app.register(helmet, {
 
 await app.register(rateLimit, {
   global: true,
-  max: 60, // max request
+  max: 120, // max request
   timeWindow: "1 minute", //Each IP is allowed max X requests per 1 minute sliding window
   allowList: ["127.0.0.1"],
 });
@@ -76,8 +76,6 @@ await app.register(import("@fastify/cors"), {
       "https://api.qubur.mycesgroup.com",
       frontendNgrokUrl,
       backendNgrokUrl,
-      "pinggy-free.link",
-      "ngrok",
     ].filter((v): v is string => Boolean(v));
 
     const isAllowed = allowed.some((a) => origin.includes(a));

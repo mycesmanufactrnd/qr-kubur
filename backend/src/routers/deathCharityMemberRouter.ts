@@ -17,6 +17,7 @@ import {
   sendNotificationFCMToOrganisation,
   sendNotificationToKariahDevices,
 } from "../services/firebase.service.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 const stripIcDashes = (value) =>
   typeof value === "string" ? value.replace(/-/g, "").trim() : value;
@@ -365,7 +366,7 @@ export const deathCharityMemberRouter = router({
         .getMany();
     }),
 
-  registerKariah: publicProcedure
+  registerKariah: rateLimited(5, 60 * 1000, "Too many registration attempts. Please try again later.")
     .input(
       z.object({
         fullname: z.string().min(1),

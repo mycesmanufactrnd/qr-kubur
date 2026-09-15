@@ -14,6 +14,7 @@ import {
   sendNotificationFCMToUser,
   sendNotificationFCMToTahfiz,
 } from "../services/firebase.service.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 export const tahlilRequestRouter = router({
   getByReferenceNo: publicProcedure
@@ -116,7 +117,7 @@ export const tahlilRequestRouter = router({
       return { items, total };
     }),
 
-  create: publicProcedure
+  create: rateLimited(10, 60 * 1000, "Too many requests. Please try again shortly.")
     .input(
       tahlilRequestSchema.extend({
         googleuserId: z.number().optional().nullable(),

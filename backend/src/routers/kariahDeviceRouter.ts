@@ -3,9 +3,10 @@ import z from "zod";
 import { publicProcedure, router } from "../trpc.js";
 import { KariahDevice } from "../db/entities.js";
 import { AppDataSource } from "../datasource.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 export const kariahDeviceRouter = router({
-  saveToken: publicProcedure
+  saveToken: rateLimited(20, 60 * 1000, "Too many requests. Please try again shortly.")
     .input(
       z.object({
         fcmKariahToken: z.string().min(1),

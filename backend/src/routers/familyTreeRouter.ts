@@ -3,6 +3,7 @@ import z from "zod";
 import { publicProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
 import { FamilyTree } from "../db/entities.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 export const familyTreeRouter = router({
   getByGoogleUser: publicProcedure
@@ -17,7 +18,7 @@ export const familyTreeRouter = router({
       });
     }),
 
-  create: publicProcedure
+  create: rateLimited(10, 60 * 1000, "Too many requests. Please try again shortly.")
     .input(
       z.object({
         googleuserId: z.number(),

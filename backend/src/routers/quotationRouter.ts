@@ -1,6 +1,7 @@
 // @ts-nocheck
 import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 import { AppDataSource } from "../datasource.js";
 import { GoogleUserRecord, Quotation } from "../db/entities.js";
 import { quotationSchema } from "../schemas/quotationSchema.js";
@@ -8,7 +9,7 @@ import { QuotationStatus } from "../db/enums.js";
 import { sendNotificationFCMToOrganisation } from "../services/firebase.service.js";
 
 export const quotationRouter = router({
-  create: publicProcedure
+  create: rateLimited(10, 60 * 1000, "Too many requests. Please try again shortly.")
     .input(quotationSchema.extend({
       googleuserId: z.number().optional().nullable(),
     }))

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { router, publicProcedure, protectedProcedure } from "../trpc.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 import { z } from "zod";
 import { User } from "../db/entities/User.entity.js";
 import {
@@ -59,7 +60,11 @@ export const authRouter = router({
     return ip;
   }),
 
-  login: publicProcedure
+  login: rateLimited(
+    8,
+    5 * 60 * 1000,
+    "Too many login attempts. Please try again in a few minutes.",
+  )
     .input(z.object({ username: z.string(), password: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const userRepo = AppDataSource.getRepository(User);
