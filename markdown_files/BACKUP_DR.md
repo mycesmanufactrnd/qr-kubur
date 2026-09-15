@@ -112,7 +112,7 @@ Nobody manually runs the backup in prod — Task Scheduler (the Windows equivale
 $cred = Get-Credential
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
   -Argument '-NoProfile -ExecutionPolicy Bypass -File "C:\Website\qr-kubur\scripts\backup-to-gdrive.ps1"'
-$trigger = New-ScheduledTaskTrigger -Daily -At 3:49pm
+$trigger = New-ScheduledTaskTrigger -Daily -At 2pm
 Register-ScheduledTask -TaskName "QuburBackupToGDrive" -Action $action -Trigger $trigger -RunLevel Highest `
   -User $cred.UserName -Password $cred.GetNetworkCredential().Password
 

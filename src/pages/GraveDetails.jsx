@@ -1,5 +1,5 @@
 ﻿// @ts-nocheck
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Link,
   useNavigate,
@@ -127,6 +127,20 @@ export default function GraveDetails() {
     });
 
   const displayedPersons = filtered && filtered.slice(0, displayedCount);
+
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setDisplayedCount((prev) => prev + 10);
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayedCount, filtered.length]);
 
   if (graveLoading) return <PageLoadingComponent />;
 
@@ -465,6 +479,12 @@ export default function GraveDetails() {
                       </CardContent>
                     </Card>
                   ))}
+
+                  {displayedCount < filtered.length && (
+                    <div ref={sentinelRef} className="flex justify-center py-4">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+                    </div>
+                  )}
 
                   {filtered.length === 0 && (
                     <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border-2 border-dashed border-slate-100 dark:border-slate-700">
