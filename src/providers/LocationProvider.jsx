@@ -5,6 +5,43 @@ import { getMalaysiaGeo } from '@/utils/helpers';
 
 const LocationContext = createContext(null);
 
+// A single fast, high-accuracy fix often fails: cold GPS chips can take well
+// over 8s to lock, and on native the OS permission dialog can still be
+// unanswered when this first fires. Retry with looser accuracy/timeout
+// before giving up — but never retry PERMISSION_DENIED, since no amount of
+// waiting fixes that.
+const GPS_ATTEMPTS = [
+  { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
+  { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+  { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+];
+const GPS_RETRY_DELAYS_MS = [2000, 4000];
+
+const getPosition = (options) =>
+  new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function getPositionWithRetries() {
+  let lastError = null;
+
+  for (let i = 0; i < GPS_ATTEMPTS.length; i++) {
+    try {
+      return await getPosition(GPS_ATTEMPTS[i]);
+    } catch (err) {
+      lastError = err;
+      if (err?.code === 1 /* PERMISSION_DENIED */) break;
+      if (i < GPS_ATTEMPTS.length - 1) {
+        await wait(GPS_RETRY_DELAYS_MS[i] ?? 4000);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 export function LocationProvider({ children }) {
   const [userLocation, setUserLocation] = useState(null);
   const [userState, setUserState] = useState(null);
@@ -40,17 +77,7 @@ export function LocationProvider({ children }) {
 
     try {
       const malaysiaStates = await getMalaysiaGeo();
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          {
-            timeout: 8000,
-            enableHighAccuracy: true,
-            maximumAge: 0,
-          }
-        );
-      });
+      const position = await getPositionWithRetries();
 
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;

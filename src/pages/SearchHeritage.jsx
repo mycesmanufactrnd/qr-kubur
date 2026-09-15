@@ -63,7 +63,10 @@ export default function SearchGrave() {
               options: STATES_MY.map((s) => ({ id: s, name: s })),
             },
           ]}
-          onApplyFilter={setFilters}
+          onApplyFilter={(newFilters) => {
+            setFilters(newFilters);
+            setDisplayedCount(10);
+          }}
         />
       </div>
 

@@ -515,6 +515,10 @@
   "Refresh GPS": "تحديث GPS",
   "Requesting GPS...": "جارٍ طلب GPS...",
   "If location is blocked, allow it in your browser site settings and tap Enable GPS again.": "إذا كان الموقع محظورًا، فاسمح به في إعدادات موقع المتصفح ثم اضغط على تفعيل GPS مرة أخرى.",
+  "No Location Detected": "لم يتم اكتشاف الموقع",
+  "Location unavailable. Please make sure GPS and mobile data are turned on, then try again.": "الموقع غير متاح. يرجى التأكد من تفعيل GPS وبيانات الهاتف المحمول، ثم حاول مرة أخرى.",
+  "Waiting for GPS signal...": "في انتظار إشارة GPS...",
+  "If location is enabled, allow it in your browser settings and tap Enable GPS again.": "إذا كان الموقع مفعّلاً، فاسمح به في إعدادات المتصفح ثم اضغط على تفعيل GPS مرة أخرى.",
   "QubuR. All Rights Reserved.": "QR قبر. جميع الحقوق محفوظة.",
   "Leave Impersonating": "إنهاء الانتحال",
 

@@ -14,11 +14,21 @@ export default function SearchWaqf() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [filters, setFilters] = useState({});
-    
+    const [waqfList, setWaqfList] = useState([]);
+
     const { data, isLoading, refetch } = useGetWaqfProject(page, pageSize, filters);
 
-    const waqfList = data?.items ?? [];
     const hasMore = (data?.total ?? 0) > page * pageSize;
+
+    useEffect(() => {
+      if (!data?.items) return;
+      setWaqfList((prev) => (page === 1 ? data.items : [...prev, ...data.items]));
+    }, [data, page]);
+
+    const handleApplyFilter = (newFilters) => {
+      setFilters(newFilters);
+      setPage(1);
+    };
 
     const sentinelRef = useRef(null);
     useEffect(() => {
@@ -55,11 +65,11 @@ export default function SearchWaqf() {
                         }))
                     },
                 ]}
-                onApplyFilter={setFilters}
+                onApplyFilter={handleApplyFilter}
             />
         </div>
 
-        {isLoading ? (
+        {isLoading && page === 1 ? (
             <ListCardSkeletonComponent/>
         ) : waqfList.length === 0 ? (
             <NoDataCardComponent isPage/>

@@ -135,6 +135,7 @@ export default function SearchMosque() {
               ...newFilters,
               ...(defaultFilter.isFavorited ? { ids: favoritedMosqueIds } : {}),
             }));
+            setDisplayedCount(10);
           }}
         />
       </div>
