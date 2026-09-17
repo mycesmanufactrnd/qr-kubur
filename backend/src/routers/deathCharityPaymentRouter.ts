@@ -7,17 +7,37 @@ import { deathCharityPaymentSchema } from "../schemas/deathCharityPaymentSchema.
 import { rateLimited } from "../middleware/rateLimit.js";
 
 export const deathCharityPaymentRouter = router({
-  getByReferenceNo: publicProcedure
+  getByReferenceNo: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
     .input(z.object({ referenceno: z.string() }))
     .query(async ({ input }) => {
       const repo = AppDataSource.getRepository(DeathCharityPayment);
       return repo.findOne({
         where: { referenceno: input.referenceno },
-        relations: [
-          "member",
-          "member.deathcharity",
-          "member.deathcharity.organisation",
-        ],
+        select: {
+          id: true,
+          referenceno: true,
+          amount: true,
+          paymenttype: true,
+          paymentmethod: true,
+          coversfromyear: true,
+          coverstoyear: true,
+          paidat: true,
+          member: {
+            id: true,
+            fullname: true,
+            deathcharity: {
+              id: true,
+              organisation: { id: true, name: true },
+            },
+          },
+        },
+        relations: {
+          member: { deathcharity: { organisation: true } },
+        },
       });
     }),
 

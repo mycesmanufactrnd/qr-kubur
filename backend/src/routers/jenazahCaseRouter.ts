@@ -11,6 +11,7 @@ import {
 import { JenazahCaseStatus } from "../db/enums.js";
 import { z } from "zod";
 import { sendNotificationFCMToOrganisation } from "../services/firebase.service.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 const sanitizeDetails = (details) => {
   if (!details || typeof details.deceasedIcnumber !== "string") return details;
@@ -382,7 +383,45 @@ export const jenazahCaseRouter = router({
       return { success: true };
     }),
 
-  getByReferenceNo: publicProcedure
+  getByReferenceNo: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
+    .input(
+      z.object({
+        referenceno: z.string().optional().nullable(),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (!input.referenceno) return null;
+      const repo = AppDataSource.getRepository(JenazahCase);
+      const jenazahCase = await repo.findOne({
+        where: { referenceno: input.referenceno },
+        select: {
+          id: true,
+          referenceno: true,
+          status: true,
+          details: true,
+          adminremarks: true,
+          createdat: true,
+          mosque: { id: true, name: true, address: true },
+        },
+        relations: { mosque: true },
+      });
+
+      if (!jenazahCase) return null;
+
+      const { deceasedFullname, deceasedIcnumber, heirname, heirphoneno, burialDate } =
+        jenazahCase.details ?? {};
+
+      return {
+        ...jenazahCase,
+        details: { deceasedFullname, deceasedIcnumber, heirname, heirphoneno, burialDate },
+      };
+    }),
+
+  getByReferenceNoAdmin: protectedProcedure
     .input(
       z.object({
         referenceno: z.string().optional().nullable(),

@@ -42,13 +42,32 @@ export const quotationRouter = router({
       return savedQuotation;
     }),
 
-  getByReferenceNo: publicProcedure
+  getByReferenceNo: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
     .input(z.object({ referenceno: z.string() }))
     .query(async ({ input }) => {
       const repo = AppDataSource.getRepository(Quotation);
       return repo.findOne({
         where: { referenceno: input.referenceno },
-        relations: ["organisation", "deadperson"],
+        select: {
+          id: true,
+          referenceno: true,
+          status: true,
+          payername: true,
+          payeremail: true,
+          payerphone: true,
+          createdat: true,
+          selectedservices: true,
+          totalamount: true,
+          maintenancefeeamount: true,
+          photourl: true,
+          organisation: { id: true, name: true },
+          deadperson: { id: true, name: true },
+        },
+        relations: { organisation: true, deadperson: true },
       });
     }),
 

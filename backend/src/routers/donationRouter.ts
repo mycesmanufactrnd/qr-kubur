@@ -11,15 +11,30 @@ import {
   donationSchema,
   donationApprovalSchema,
 } from "../schemas/donationSchema.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 export const donationRouter = router({
-  getByReferenceNo: publicProcedure
+  getByReferenceNo: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
     .input(z.object({ referenceno: z.string() }))
     .query(async ({ input }) => {
       const repo = AppDataSource.getRepository(Donation);
       return repo.findOne({
         where: { referenceno: input.referenceno },
-        relations: ["organisation", "tahfizcenter"],
+        select: {
+          id: true,
+          referenceno: true,
+          donorname: true,
+          amount: true,
+          notes: true,
+          createdat: true,
+          organisation: { id: true, name: true },
+          tahfizcenter: { id: true, name: true },
+        },
+        relations: { organisation: true, tahfizcenter: true },
       });
     }),
 

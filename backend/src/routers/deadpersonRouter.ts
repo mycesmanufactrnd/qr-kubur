@@ -250,7 +250,7 @@ export const deadPersonRouter = router({
       return await repo.delete(input);
     }),
 
-  getByIcNumber: publicProcedure
+  getByIcNumber: protectedProcedure
     .input(z.object({ icnumber: z.string() }))
     .query(async ({ input }) => {
       if (!input.icnumber) return null;

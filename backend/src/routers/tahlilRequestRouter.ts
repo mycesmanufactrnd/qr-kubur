@@ -17,7 +17,11 @@ import {
 import { rateLimited } from "../middleware/rateLimit.js";
 
 export const tahlilRequestRouter = router({
-  getByReferenceNo: publicProcedure
+  getByReferenceNo: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
     .input(
       z.object({
         referenceno: z.string().optional().nullable(),
@@ -32,7 +36,21 @@ export const tahlilRequestRouter = router({
 
       return await repo.findOne({
         where: { referenceno: input.referenceno },
-        relations: ["tahfizcenter"],
+        select: {
+          id: true,
+          referenceno: true,
+          status: true,
+          liveurl: true,
+          requestorname: true,
+          createdat: true,
+          deceasednames: true,
+          selectedservices: true,
+          photourls: true,
+          serviceamount: true,
+          platformfeeamount: true,
+          tahfizcenter: { id: true, name: true },
+        },
+        relations: { tahfizcenter: true },
       });
     }),
 

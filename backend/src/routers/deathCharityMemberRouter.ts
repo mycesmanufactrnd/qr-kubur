@@ -183,7 +183,11 @@ export const deathCharityMemberRouter = router({
       });
     }),
 
-  searchByDeathCharity: publicProcedure
+  searchByDeathCharity: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
     .input(
       z.object({
         deathcharityId: z.number(),
@@ -197,6 +201,13 @@ export const deathCharityMemberRouter = router({
 
       return await memberRepo
         .createQueryBuilder("member")
+        .select([
+          "member.id",
+          "member.fullname",
+          "member.icnumber",
+          "member.phone",
+          "member.email",
+        ])
         .leftJoin("member.deathcharity", "deathcharity")
         .where("deathcharity.id = :deathcharityId", { deathcharityId })
         .andWhere(
@@ -591,7 +602,16 @@ export const deathCharityMemberRouter = router({
       return savedMember;
     }),
 
-  searchByIcNumber: publicProcedure
+  // Public — IC number is a fixed, guessable format, and this endpoint still
+  // returns full member/deadperson/jenazahcase records (shared with several
+  // admin pages, so it can't be field-restricted the same way the other
+  // lookups above were without a larger public/admin split). Rate-limiting
+  // is the interim mitigation until that split happens.
+  searchByIcNumber: rateLimited(
+    20,
+    60 * 1000,
+    "Too many requests. Please try again shortly.",
+  )
     .input(
       z.object({
         icnumber: z.string(),

@@ -137,7 +137,7 @@ function JenazahCaseDashboardDesktop() {
   const [previewFile, setPreviewFile] = useState(null);
 
   const { data: caseItem, isLoading: caseLoading } =
-    trpc.jenazahCase.getByReferenceNo.useQuery(
+    trpc.jenazahCase.getByReferenceNoAdmin.useQuery(
       { referenceno },
       { enabled: !!referenceno && hasAdminAccess },
     );
