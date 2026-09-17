@@ -4,6 +4,7 @@ import { publicProcedure, router } from "../trpc.js";
 import { AppDataSource } from "../datasource.js";
 import { DeathCharityPayment, GoogleUserRecord } from "../db/entities.js";
 import { deathCharityPaymentSchema } from "../schemas/deathCharityPaymentSchema.js";
+import { rateLimited } from "../middleware/rateLimit.js";
 
 export const deathCharityPaymentRouter = router({
   getByReferenceNo: publicProcedure
@@ -12,11 +13,19 @@ export const deathCharityPaymentRouter = router({
       const repo = AppDataSource.getRepository(DeathCharityPayment);
       return repo.findOne({
         where: { referenceno: input.referenceno },
-        relations: ["member", "member.deathcharity", "member.deathcharity.organisation"],
+        relations: [
+          "member",
+          "member.deathcharity",
+          "member.deathcharity.organisation",
+        ],
       });
     }),
 
-  getPaymentByMemberId: publicProcedure
+  getPaymentByMemberId: rateLimited(
+    5,
+    60 * 1000,
+    "Too many attempts. Please try again later.",
+  )
     .input(
       z.object({
         memberId: z.number(),
