@@ -1,5 +1,18 @@
 # Add project specific ProGuard rules here.
 
+# Capacitor core + plugins — without this, R8 full mode strips the
+# reflection-based @CapacitorPlugin annotation metadata that Bridge/Plugin
+# rely on at runtime (getPluginAnnotation() returns null), which crashes any
+# plugin's permission check with a NullPointerException in
+# Plugin.getPermissionStates() — hit in production via
+# PushNotificationsPlugin.requestPermissions(). Same class of bug can hit any
+# other plugin's permission handling too (e.g. the biometric plugin), so this
+# keeps the whole surface, not just push-notifications.
+# https://github.com/ionic-team/capacitor/issues/8589
+-keep class com.getcapacitor.** { *; }
+-keep public class * extends com.getcapacitor.Plugin
+-keep @com.getcapacitor.annotation.CapacitorPlugin public class *
+
 # Firebase Authentication
 -keep class com.google.firebase.** { *; }
 -dontwarn com.google.firebase.**

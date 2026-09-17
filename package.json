@@ -42,6 +42,7 @@
     "@capacitor/filesystem": "^8.1.3",
     "@capacitor/push-notifications": "^8.1.1",
     "@capacitor/share": "^8.0.1",
+    "@capawesome/capacitor-app-update": "^8.0.5",
     "@capgo/capacitor-native-biometric": "^8.6.8",
     "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",

@@ -1,5 +1,5 @@
 import './App.css'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import QuickDonation from '@/pages/QuickLink/QuickDonation';
@@ -7,9 +7,11 @@ import QuickTahlil from '@/pages/QuickLink/QuickTahlil';
 import { LocationProvider } from './providers/LocationProvider';
 import { AudioPlayerProvider } from './providers/AudioPlayerProvider';
 import AudioMiniPlayer from './components/AudioMiniPlayer';
+import ForceUpdateScreen from './components/ForceUpdateScreen';
 import { useFCM } from './firebase/useFCM';
 import { useLoginGoogle } from './utils/auth';
 import { useNativeBackButton } from './hooks/useNativeBackButton';
+import { checkForMandatoryUpdate } from './utils/appUpdate';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -69,6 +71,18 @@ const AuthenticatedApp = () => {
 
 function App() {
   useFCM();
+
+  const [forceUpdateInfo, setForceUpdateInfo] = useState(null);
+
+  useEffect(() => {
+    checkForMandatoryUpdate().then((info) => {
+      if (info) setForceUpdateInfo(info);
+    });
+  }, []);
+
+  if (forceUpdateInfo) {
+    return <ForceUpdateScreen updateInfo={forceUpdateInfo} />;
+  }
 
   return (
     <LocationProvider>
