@@ -47,6 +47,19 @@ const ALLOWED_UPLOAD_MIME_TYPES = new Set([
 ]);
 const ALLOWED_UPLOAD_EXTENSION = /\.(jpe?g|png|webp|gif|pdf)$/i;
 
+const PUBLIC_FILE_BUCKETS = new Set([
+  "bucket-grave",
+  "bucket-dead-person",
+  "bucket-mosque",
+  "bucket-organisation",
+  "bucket-heritage-site",
+  "bucket-waqf-project",
+  "bucket-tahfiz-center",
+  "bucket-activity-storage",
+  "bucket-tahlil-request",
+  "bucket-organisation-services-proof",
+]);
+
 export const registerUploadRoutes = (app: FastifyInstance) => {
 
   app.post(
@@ -242,6 +255,12 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
   app.get('/api/file/:bucket/:filename', async (req, reply) => {
     const { filename, bucket } = req.params as { filename: string, bucket: string };
+
+    if (!PUBLIC_FILE_BUCKETS.has(bucket)) {
+      if (!req.user || req.user.type === "refresh") {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+    }
 
     try {
       const storage = getStorage();
