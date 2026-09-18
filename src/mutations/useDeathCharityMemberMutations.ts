@@ -6,6 +6,8 @@ type useGetDeathCharityMemberPaginatedParams = {
   page?: number;
   pageSize?: number;
   filterFullName?: string;
+  filterIcNumber?: string;
+  filterDeathCharityId?: number | null;
   sortField?: string;
   sortOrder?: string;
 };
@@ -16,6 +18,8 @@ export function useGetDeathCharityMemberPaginated({
   page,
   pageSize,
   filterFullName,
+  filterIcNumber,
+  filterDeathCharityId,
   sortField,
   sortOrder,
 }: useGetDeathCharityMemberPaginatedParams) {
@@ -25,6 +29,8 @@ export function useGetDeathCharityMemberPaginated({
     trpc.deathCharityMember.getPaginated.useQuery(
       {
         page, pageSize, filterFullName,
+        filterIcNumber,
+        filterDeathCharityId,
         sortField,
         sortOrder: sortOrder === 'ASC' || sortOrder === 'DESC' ? sortOrder : undefined,
       },

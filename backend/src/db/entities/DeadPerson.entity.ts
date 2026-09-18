@@ -31,8 +31,6 @@ export class DeadPerson {
   @Column("varchar", { length: 255 })
   name!: string;
 
-  // Encrypted at rest (AES-256-GCM) via the transformer below. Never query
-  // this column directly with WHERE/ILIKE — use icnumberhash for lookups.
   @Column("varchar", {
     length: 255,
     nullable: true,
@@ -43,11 +41,17 @@ export class DeadPerson {
   })
   icnumber?: string | null;
 
-  // Deterministic HMAC of icnumber, kept in sync automatically (see
-  // setIcNumberHash below). Used for exact-match search since the encrypted
-  // icnumber column itself can't be matched with WHERE/ILIKE.
+  // kept in sync automatically
+  // used for exact-match search since the encrypted
   @Column("varchar", { length: 64, nullable: true })
   icnumberhash?: string | null;
+
+  // run before the icnumber transformer encrypts the value (for search)
+  @BeforeInsert()
+  @BeforeUpdate()
+  setIcNumberHash() {
+    this.icnumberhash = this.icnumber ? hashForSearch(this.icnumber) : null;
+  }
 
   @Column({ type: "date", nullable: true })
   dateofbirth?: Date | null;
@@ -55,7 +59,17 @@ export class DeadPerson {
   @Column({ type: "date", nullable: true })
   dateofdeath?: Date | null;
 
-  @Column("varchar", { length: 255, nullable: true })
+  // Encrypted at rest — PDPA treats cause of death as health-related
+  // (sensitive) personal data. Never queried by exact match/WHERE anywhere
+  // in the app, so no companion hash column is needed here.
+  @Column("varchar", {
+    length: 255,
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
   causeofdeath?: string | null;
 
   @ManyToOne(() => Grave, (grave) => grave.deadPersons, {
@@ -116,12 +130,4 @@ export class DeadPerson {
 
   @OneToOne(() => DeathCharityMember, (member) => member.deadperson)
   deathcharitymember?: DeathCharityMember | null;
-
-  // Runs before the icnumber transformer encrypts the value, so `this.icnumber`
-  // is still plaintext here.
-  @BeforeInsert()
-  @BeforeUpdate()
-  setIcNumberHash() {
-    this.icnumberhash = this.icnumber ? hashForSearch(this.icnumber) : null;
-  }
 }

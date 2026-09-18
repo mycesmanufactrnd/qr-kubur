@@ -38,7 +38,7 @@ import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc, trpcClient } from "@/utils/trpc";
-import { formatICNumber } from "@/utils/helpers";
+import { formatICNumber, isCompleteICNumber } from "@/utils/helpers";
 import { ClaimStatus } from "@/utils/enums";
 import { createPageUrl } from "@/utils";
 import {
@@ -904,6 +904,8 @@ export default function ManageDeathCharityMember() {
   const [itemsPerPage] = useState(10);
 
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [appliedIcNumber, setAppliedIcNumber] = useState("");
+  const [appliedDeathCharityId, setAppliedDeathCharityId] = useState(null);
   const [exporting, setExporting] = useState(null);
 
   const [formSheet, setFormSheet] = useState(null);
@@ -916,6 +918,8 @@ export default function ManageDeathCharityMember() {
       page,
       pageSize: itemsPerPage,
       filterFullName: appliedSearch,
+      filterIcNumber: appliedIcNumber,
+      filterDeathCharityId: appliedDeathCharityId,
     });
 
   const handleExport = async (type) => {
@@ -925,6 +929,8 @@ export default function ManageDeathCharityMember() {
         page: 1,
         pageSize: 100000,
         filterFullName: appliedSearch,
+        filterIcNumber: appliedIcNumber,
+        filterDeathCharityId: appliedDeathCharityId,
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
@@ -1131,9 +1137,37 @@ export default function ManageDeathCharityMember() {
                 type: "text",
                 searchColumn: "search",
               },
+              {
+                label: translate("IC No."),
+                type: "text",
+                searchColumn: "icnumber",
+                format: formatICNumber,
+              },
+              {
+                label: translate("Death Charity"),
+                type: "select",
+                searchColumn: "deathcharityId",
+                options: deathCharityList.map((dc) => ({
+                  id: dc.id,
+                  name: dc.name,
+                })),
+              },
             ]}
             onApplyFilter={(f) => {
+              if (f.icnumber && !isCompleteICNumber(f.icnumber)) {
+                showError(
+                  translate(
+                    "Please enter the complete IC number, or leave it blank.",
+                  ),
+                );
+                return;
+              }
+
               setAppliedSearch(f.search || "");
+              setAppliedIcNumber(f.icnumber || "");
+              setAppliedDeathCharityId(
+                f.deathcharityId ? Number(f.deathcharityId) : null,
+              );
               setPage(1);
             }}
           />

@@ -18,6 +18,7 @@ import {
   sendNotificationToKariahDevices,
 } from "../services/firebase.service.js";
 import { rateLimited } from "../middleware/rateLimit.js";
+import { hashForSearch } from "../helpers/cryptoHelper.js";
 
 const stripIcDashes = (value) =>
   typeof value === "string" ? value.replace(/-/g, "").trim() : value;
@@ -29,12 +30,22 @@ export const deathCharityMemberRouter = router({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).default(10),
         filterFullName: z.string().optional(),
+        filterIcNumber: z.string().optional(),
+        filterDeathCharityId: z.number().optional().nullable(),
         sortField: z.string().optional(),
         sortOrder: z.enum(["ASC", "DESC"]).optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { page, pageSize, filterFullName, sortField, sortOrder } = input;
+      const {
+        page,
+        pageSize,
+        filterFullName,
+        filterIcNumber,
+        filterDeathCharityId,
+        sortField,
+        sortOrder,
+      } = input;
 
       const deathCharityMemberRepo =
         AppDataSource.getRepository(DeathCharityMember);
@@ -48,6 +59,20 @@ export const deathCharityMemberRouter = router({
       if (filterFullName) {
         query.andWhere("member.fullname ILIKE :fullname", {
           fullname: `%${filterFullName}%`,
+        });
+      }
+
+      if (filterIcNumber) {
+        // icnumber is encrypted at rest — only exact match via icnumberhash
+        // is possible, no partial/ILIKE search.
+        query.andWhere("member.icnumberhash = :icnumberhash", {
+          icnumberhash: hashForSearch(stripIcDashes(filterIcNumber)),
+        });
+      }
+
+      if (filterDeathCharityId) {
+        query.andWhere("deathcharity.id = :deathcharityId", {
+          deathcharityId: filterDeathCharityId,
         });
       }
 
@@ -79,7 +104,7 @@ export const deathCharityMemberRouter = router({
       const icnumber = stripIcDashes(input.icnumber);
 
       const existing = await deathCharityMemberRepo.findOne({
-        where: { icnumber },
+        where: { icnumberhash: hashForSearch(icnumber) },
       });
 
       if (existing && !input.allowDuplicateIc) {
@@ -199,6 +224,11 @@ export const deathCharityMemberRouter = router({
       const { deathcharityId, keyword, limit } = input;
       const memberRepo = AppDataSource.getRepository(DeathCharityMember);
 
+      // icnumber is encrypted (non-deterministic ciphertext), so a partial
+      // ILIKE match against it is no longer possible — only an exact match
+      // against icnumberhash. Full-name search stays a partial ILIKE.
+      const icnumberhash = hashForSearch(stripIcDashes(keyword));
+
       return await memberRepo
         .createQueryBuilder("member")
         .select([
@@ -211,9 +241,10 @@ export const deathCharityMemberRouter = router({
         .leftJoin("member.deathcharity", "deathcharity")
         .where("deathcharity.id = :deathcharityId", { deathcharityId })
         .andWhere(
-          "(member.fullname ILIKE :keyword OR member.icnumber ILIKE :keyword)",
+          "(member.fullname ILIKE :keyword OR member.icnumberhash = :icnumberhash)",
         )
         .setParameter("keyword", `%${keyword}%`)
+        .setParameter("icnumberhash", icnumberhash)
         .orderBy("member.fullname", "ASC")
         .take(limit)
         .getMany();
@@ -394,7 +425,7 @@ export const deathCharityMemberRouter = router({
       const icnumber = stripIcDashes(input.icnumber);
 
       const existing = await memberRepo.findOne({
-        where: { icnumber },
+        where: { icnumberhash: hashForSearch(icnumber) },
       });
 
       if (existing) {
@@ -452,7 +483,9 @@ export const deathCharityMemberRouter = router({
         .createQueryBuilder("member")
         .leftJoin("member.deathcharity", "deathcharity")
         .where("deathcharity.id = :deathcharityId", { deathcharityId })
-        .andWhere("LOWER(member.icnumber) = LOWER(:icnumber)", { icnumber })
+        .andWhere("member.icnumberhash = :icnumberhash", {
+          icnumberhash: hashForSearch(icnumber),
+        })
         .getOne();
 
       if (existingMember) {
@@ -624,10 +657,11 @@ export const deathCharityMemberRouter = router({
       if (!input.icnumber?.trim()) return input.searchMany ? [] : null;
 
       const icnumber = stripIcDashes(input.icnumber);
+      const icnumberhash = hashForSearch(icnumber);
 
       if (input.searchMany) {
         return await AppDataSource.getRepository(DeathCharityMember).find({
-          where: { icnumber },
+          where: { icnumberhash },
           relations: [
             "mosque",
             "organisation",
@@ -640,7 +674,7 @@ export const deathCharityMemberRouter = router({
 
       const member = await AppDataSource.getRepository(DeathCharityMember).findOne({
         where: {
-          icnumber,
+          icnumberhash,
           ...(input.mosqueId ? { mosqueId: input.mosqueId } : {}),
         },
         relations: ["mosque", "organisation", "deadperson"],

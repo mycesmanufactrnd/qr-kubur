@@ -12,6 +12,7 @@ import { JenazahCaseStatus } from "../db/enums.js";
 import { z } from "zod";
 import { sendNotificationFCMToOrganisation } from "../services/firebase.service.js";
 import { rateLimited } from "../middleware/rateLimit.js";
+import { hashForSearch } from "../helpers/cryptoHelper.js";
 
 const sanitizeDetails = (details) => {
   if (!details || typeof details.deceasedIcnumber !== "string") return details;
@@ -249,7 +250,7 @@ export const jenazahCaseRouter = router({
       }
 
       const existingMember = icRaw
-        ? await memberRepo.findOneBy({ icnumber: icRaw })
+        ? await memberRepo.findOneBy({ icnumberhash: hashForSearch(icRaw) })
         : null;
 
       if (existingMember && input.resolution !== "replace") {

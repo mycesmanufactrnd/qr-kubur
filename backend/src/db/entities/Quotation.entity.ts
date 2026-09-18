@@ -4,6 +4,7 @@ import { DeadPerson } from "./DeadPerson.entity.js";
 import { Grave } from "./Grave.entity.js";
 import { Organisation } from "./Organisation.entity.js";
 import { QuotationStatus } from "../enums.js";
+import { encryptField, decryptField } from "../../helpers/cryptoHelper.js";
 
 @Entity("quotation")
 export class Quotation {
@@ -28,10 +29,24 @@ export class Quotation {
   @Column("varchar", { length: 255, nullable: true })
   payername?: string;
   
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", {
+    length: 255,
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
   payeremail?: string;
-  
-  @Column("varchar", { length: 255, nullable: true })
+
+  @Column("varchar", {
+    length: 255,
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
   payerphone?: string;
 
   @Column("decimal", { precision: 10, scale: 2, nullable: true })

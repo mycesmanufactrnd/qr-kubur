@@ -2,6 +2,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { TahfizCenter } from "./TahfizCenter.entity.js";
 import { TahlilStatus } from "../enums.js";
+import { encryptField, decryptField } from "../../helpers/cryptoHelper.js";
 
 @Entity("tahlilrequest")
 export class TahlilRequest {
@@ -11,10 +12,24 @@ export class TahlilRequest {
     @Column("varchar", { length: 255, nullable: true })
     requestorname?: string;
 
-    @Column("varchar", { length: 255, nullable: true })
+    @Column("varchar", {
+        length: 255,
+        nullable: true,
+        transformer: {
+            to: (value?: string | null) => (value ? encryptField(value) : value),
+            from: (value?: string | null) => (value ? decryptField(value) : value),
+        },
+    })
     requestorphoneno?: string;
-    
-    @Column("varchar", { length: 255, nullable: true })
+
+    @Column("varchar", {
+        length: 255,
+        nullable: true,
+        transformer: {
+            to: (value?: string | null) => (value ? encryptField(value) : value),
+            from: (value?: string | null) => (value ? decryptField(value) : value),
+        },
+    })
     requestoremail?: string;
 
     @Column("text", { array: true, nullable: true })

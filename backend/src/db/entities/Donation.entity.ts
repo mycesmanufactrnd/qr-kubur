@@ -3,6 +3,7 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } f
 import { Organisation } from "./Organisation.entity.js";
 import { TahfizCenter } from "./TahfizCenter.entity.js";
 import { VerificationStatus } from "../enums.js";
+import { encryptField, decryptField } from "../../helpers/cryptoHelper.js";
 
 @Entity("donation")
 export class Donation {
@@ -12,10 +13,24 @@ export class Donation {
     @Column("varchar", { length: 255, nullable: true })
     donorname?: string;
 
-    @Column("varchar", { length: 100, nullable: true })
+    @Column("varchar", {
+        length: 255,
+        nullable: true,
+        transformer: {
+            to: (value?: string | null) => (value ? encryptField(value) : value),
+            from: (value?: string | null) => (value ? decryptField(value) : value),
+        },
+    })
     donoremail?: string;
-    
-    @Column("varchar", { length: 100, nullable: true })
+
+    @Column("varchar", {
+        length: 255,
+        nullable: true,
+        transformer: {
+            to: (value?: string | null) => (value ? encryptField(value) : value),
+            from: (value?: string | null) => (value ? decryptField(value) : value),
+        },
+    })
     donorphoneno?: string;
     
     @Column("decimal", { precision: 10, scale: 2, nullable: true })

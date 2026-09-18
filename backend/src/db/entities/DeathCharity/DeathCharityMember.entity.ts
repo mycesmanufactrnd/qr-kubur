@@ -9,6 +9,8 @@ import {
   OneToOne,
   UpdateDateColumn,
   JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from "typeorm";
 import { DeathCharity } from "./DeathCharity.entity.js";
 import { DeathCharityPayment } from "./DeathCharityPayment.entity.js";
@@ -18,6 +20,11 @@ import { AuditableEntity } from "../ExtendsEntity/AuditableEntity.js";
 import { Mosque } from "../Mosque.entity.js";
 import { Organisation } from "../Organisation.entity.js";
 import { DeadPerson } from "../DeadPerson.entity.js";
+import {
+  encryptField,
+  decryptField,
+  hashForSearch,
+} from "../../../helpers/cryptoHelper.js";
 
 @Entity("deathcharitymember")
 export class DeathCharityMember extends AuditableEntity {
@@ -42,13 +49,46 @@ export class DeathCharityMember extends AuditableEntity {
   @Column("varchar", { length: 255 })
   fullname!: string;
 
-  @Column("varchar", { length: 255 })
-  icnumber!: string;
+  @Column("varchar", {
+    length: 255,
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
+  icnumber?: string | null;
 
-  @Column("varchar", { length: 255, nullable: true })
+  // kept in sync automatically
+  // used for exact-match search since the encrypted
+  @Column("varchar", { length: 64, nullable: true })
+  icnumberhash?: string | null;
+
+  // run before the icnumber transformer encrypts the value (for search)
+  @BeforeInsert()
+  @BeforeUpdate()
+  setIcNumberHash() {
+    this.icnumberhash = this.icnumber ? hashForSearch(this.icnumber) : null;
+  }
+
+  @Column("varchar", {
+    length: 255,
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
   phone?: string;
 
-  @Column("varchar", { length: 255, nullable: true })
+  @Column("varchar", {
+    length: 255,
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
   email?: string;
 
   @Column("text", { nullable: true })

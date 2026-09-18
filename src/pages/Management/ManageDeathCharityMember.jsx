@@ -69,8 +69,9 @@ import { useGetDeathCharityByOrganisation } from "@/mutations/useDeathCharityMut
 import { useDeathCharityClaimMutations } from "@/mutations/useDeathCharityClaimMutations";
 import { useIsNarrow } from "@/hooks/useIsNarrow";
 import { trpc, trpcClient } from "@/utils/trpc";
-import { formatICNumber } from "@/utils/helpers";
+import { formatICNumber, isCompleteICNumber } from "@/utils/helpers";
 import TableExportButtons from "@/components/TableExportButtons";
+import { showError } from "@/components/ToastrNotification";
 
 export default function ManageDeathCharityMember() {
   const isNarrow = useIsNarrow();
@@ -114,10 +115,14 @@ function ManageDeathCharityMemberDesktop() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlFullName = searchParams.get("fullname") || "";
+  const urlIcNumber = searchParams.get("icnumber") || "";
+  const urlDeathCharityId = searchParams.get("deathcharity") || "";
   const urlSortField = searchParams.get("sortField") || "";
   const urlSortOrder = searchParams.get("sortOrder") || "";
 
   const [tempFullName, setTempFullName] = useState(urlFullName);
+  const [tempIcNumber, setTempIcNumber] = useState(urlIcNumber);
+  const [tempDeathCharityId, setTempDeathCharityId] = useState(urlDeathCharityId);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDeathCharityMember, setEditingDeathCharityMember] =
@@ -162,6 +167,8 @@ function ManageDeathCharityMemberDesktop() {
       page: urlPage,
       pageSize: itemsPerPage,
       filterFullName: urlFullName,
+      filterIcNumber: urlIcNumber,
+      filterDeathCharityId: urlDeathCharityId ? Number(urlDeathCharityId) : undefined,
       sortField: urlSortField || undefined,
       sortOrder:
         urlSortOrder === "ASC" || urlSortOrder === "DESC"
@@ -174,6 +181,8 @@ function ManageDeathCharityMemberDesktop() {
       page: 1,
       pageSize: 100000,
       filterFullName: urlFullName,
+      filterIcNumber: urlIcNumber,
+      filterDeathCharityId: urlDeathCharityId ? Number(urlDeathCharityId) : undefined,
       sortField: urlSortField || undefined,
       sortOrder:
         urlSortOrder === "ASC" || urlSortOrder === "DESC"
@@ -241,11 +250,22 @@ function ManageDeathCharityMemberDesktop() {
 
   useEffect(() => {
     setTempFullName(urlFullName);
-  }, [urlFullName]);
+    setTempIcNumber(urlIcNumber);
+    setTempDeathCharityId(urlDeathCharityId);
+  }, [urlFullName, urlIcNumber, urlDeathCharityId]);
 
   const handleSearch = () => {
-    const params = { page: "1", fullname: "" };
+    if (tempIcNumber && !isCompleteICNumber(tempIcNumber)) {
+      showError(
+        translate("Please enter the complete IC number, or leave it blank."),
+      );
+      return;
+    }
+
+    const params = { page: "1", fullname: "", icnumber: "", deathcharity: "" };
     if (tempFullName) params.fullname = tempFullName;
+    if (tempIcNumber) params.icnumber = tempIcNumber;
+    if (tempDeathCharityId) params.deathcharity = tempDeathCharityId;
     setSearchParams(params);
   };
 
@@ -599,6 +619,24 @@ function ManageDeathCharityMemberDesktop() {
             value: tempFullName,
             onChange: setTempFullName,
             label: translate("Full Name"),
+          },
+          {
+            type: "text",
+            key: "icnumber",
+            value: tempIcNumber,
+            onChange: (v) => setTempIcNumber(formatICNumber(v)),
+            label: translate("IC No."),
+          },
+          {
+            type: "select",
+            key: "deathcharity",
+            value: tempDeathCharityId,
+            onChange: setTempDeathCharityId,
+            label: translate("Death Charity"),
+            options: deathCharityList.map((dc) => ({
+              value: String(dc.id),
+              label: dc.name,
+            })),
           },
         ]}
       />
