@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken } from "firebase/messaging";
 import { getAuth } from "firebase/auth";
@@ -6,13 +7,13 @@ import { Capacitor } from "@capacitor/core";
 export { getToken };
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA1mnqTzd0xkTcuQeKCmKfxne86agVcfRw",
-  authDomain: "myces-qr-kubur.firebaseapp.com",
-  projectId: "myces-qr-kubur",
-  storageBucket: "myces-qr-kubur.firebasestorage.app",
-  messagingSenderId: "681335807437",
-  appId: "1:681335807437:web:2093110bbc258bd706f884",
-  measurementId: "G-M201KH668N",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
