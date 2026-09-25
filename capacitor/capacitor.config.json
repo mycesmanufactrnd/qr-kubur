@@ -11,6 +11,10 @@
     "allowMixedContent": true
   },
   "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 5000,
+      "launchAutoHide": true
+    },
     "GoogleAuth": {
       "scopes": ["profile", "email"],
       "serverClientId": "681335807437-041lj62hn8k2f2hvrkpvr3g1c5587opd.apps.googleusercontent.com",
