@@ -110,8 +110,8 @@ export default function PrivacyPolicy() {
 
         <h2 className="text-xl font-semibold dark:text-slate-200 mt-6">{translate('12. Contact Information')}</h2>
         <p className="mb-2">{translate('If you have any questions, concerns, or requests regarding this Privacy Policy or the handling of your personal data, please contact us at:')}</p>
-        <p className="mb-2">{translate('Email: admin@mycesgroup.com')}</p>
-        <p className="mb-2">{translate('Organization Name: My Ces Manufacturing Sdn Bhd')}</p>
+        <p className="mb-2">{translate('Email: hello@mycesgroup.com')}</p>
+        <p className="mb-2">{translate('Organization Name: MyCes Manufacturing Sdn Bhd')}</p>
         <p className="mb-2">{translate('Address: Jalan Damai Mewah 1, Taman Damai Mewah, 43000 Kajang, Selangor')}</p>
       </div>
     </div>

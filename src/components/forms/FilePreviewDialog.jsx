@@ -22,6 +22,14 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+// pdf.js fetches the file itself (separately from the browser's normal
+// resource loading), and defaults to NOT sending cookies — so gated buckets
+// (e.g. bucket-death-confirmation) would 401 even with a valid session,
+// since the access-token cookie never gets attached. Must be a stable
+// reference (not re-created per render) per react-pdf's own docs, or it
+// reloads the document on every render.
+const PDF_DOCUMENT_OPTIONS = { withCredentials: true };
+
 export default function FilePreviewDialog({
   open,
   onClose,
@@ -65,6 +73,7 @@ export default function FilePreviewDialog({
             <div className="flex flex-col items-center gap-3 bg-slate-100 dark:bg-slate-900 rounded p-3 max-h-[75vh] overflow-y-auto">
               <Document
                 file={src}
+                options={PDF_DOCUMENT_OPTIONS}
                 loading={
                   <p className="text-sm text-slate-400 dark:text-slate-500 py-10">
                     {translate("Loading...")}
