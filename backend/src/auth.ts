@@ -54,10 +54,21 @@ export const rotateTokens = (user: { id: string; role: TokenPayload["role"] }) =
 /**
  * Validates token and returns payload with type information
  */
-export const verifyToken = (token: string): TokenPayload | null => {
+export const verifyToken = (token: string | undefined | null): TokenPayload | null => {
   try {
+    if (!JWT_SECRET) {
+      console.error("JWT_SECRET is not configured");
+      return null;
+    }
+
+    if (!token) {
+      console.error("Token is not set");
+      return null;
+    }
+
     return jwt.verify(token, JWT_SECRET) as TokenPayload;
-  } catch (err) {
+  } catch (err: any) {
+    console.error("JWT VERIFY ERROR:", err?.name, err?.message);
     return null;
   }
 };
