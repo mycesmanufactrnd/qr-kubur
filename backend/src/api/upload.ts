@@ -1,7 +1,9 @@
 import { randomUUID } from "crypto";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import path from "path";
-import { verifyToken } from "../auth.js";
+import type { TokenPayload } from "../auth.js";
+import { AppDataSource } from "../datasource.js";
+import { User } from "../db/entities.js";
 import {
   bulkImportDeadPersons,
   bulkImportGraves,
@@ -14,6 +16,49 @@ import {
   findStoredFile,
 } from "../services/storageMetadata.service.js";
 import type { StoredFileUploadedBy } from "../db/entities/StoredFile.entity.js";
+
+// The global onRequest hook in server.ts sets request.user from EITHER the
+// Authorization header OR the accessToken cookie. Prefer this over a manual
+// header-only re-check so cookie-authenticated (browser) requests work too.
+const getAuthenticatedUser = (request: FastifyRequest): TokenPayload | null => {
+  if (!request.user || request.user.type === "refresh") return null;
+  return request.user;
+};
+
+// Verifies a logged-in user isn't uploading a file tagged with someone
+// else's organisation/tahfiz center — the `currentUser` multipart field is
+// client-supplied, so it can't be trusted on its own for that.
+const ensureUploadScopeAllowed = async (
+  user: TokenPayload,
+  uploadedBy: StoredFileUploadedBy | null,
+): Promise<boolean> => {
+  if (!uploadedBy) return true;
+  if (user.role === "superadmin") return true;
+  if (uploadedBy.organisationId == null && uploadedBy.tahfizcenterId == null) {
+    return true;
+  }
+
+  const currentUser = await AppDataSource.getRepository(User).findOne({
+    where: { id: Number(user.id) },
+    relations: ["organisation", "tahfizcenter"],
+  });
+
+  if (
+    uploadedBy.organisationId != null &&
+    currentUser?.organisation?.id !== uploadedBy.organisationId
+  ) {
+    return false;
+  }
+
+  if (
+    uploadedBy.tahfizcenterId != null &&
+    currentUser?.tahfizcenter?.id !== uploadedBy.tahfizcenterId
+  ) {
+    return false;
+  }
+
+  return true;
+};
 
 const parseUploadedBy = (
   raw: string | undefined,
@@ -56,7 +101,6 @@ const ALLOWED_UPLOAD_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
-  "image/gif",
   "application/pdf",
 ]);
 const ALLOWED_UPLOAD_EXTENSION = /\.(jpe?g|png|webp|gif|pdf)$/i;
@@ -74,6 +118,14 @@ const PUBLIC_FILE_BUCKETS = new Set([
   "bucket-organisation-services-proof",
 ]);
 
+const PUBLIC_UPLOAD_BUCKETS = new Set([
+  "bucket-death-confirmation",
+  "bucket-police-report",
+  "supporting-doc-jenazah-case",
+  "bucket-organisation-config",
+  "bucket-grave-service-quotation",
+]);
+
 export const registerUploadRoutes = (app: FastifyInstance) => {
   app.post(
     "/api/upload/:bucket",
@@ -81,6 +133,11 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
     async (request, reply) => {
       try {
         const { bucket } = request.params as { bucket: string };
+
+        const authedUser = getAuthenticatedUser(request);
+        if (!PUBLIC_UPLOAD_BUCKETS.has(bucket) && !authedUser) {
+          return reply.status(401).send({ error: "Unauthorized" });
+        }
 
         let currentUserRaw: string | undefined;
         let filename: string | undefined;
@@ -137,6 +194,19 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
           });
         }
 
+        const uploadedBy =
+          parseUploadedBy(currentUserRaw) ??
+          (authedUser?.id ? { id: Number(authedUser.id) } : null);
+
+        if (
+          authedUser &&
+          !(await ensureUploadScopeAllowed(authedUser, uploadedBy))
+        ) {
+          return reply.status(403).send({
+            error: "You can only upload to your own organisation or tahfiz center",
+          });
+        }
+
         console.log(
           "Uploading file:",
           filename,
@@ -160,10 +230,6 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
           contentType: mimetype,
         });
 
-        const uploadedBy =
-          parseUploadedBy(currentUserRaw) ??
-          (request.user?.id ? { id: Number(request.user.id) } : null);
-
         const stored = await createStoredFile({
           bucket: result.bucket,
           key: result.key,
@@ -186,8 +252,7 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
   app.post("/api/upload/graves/bulk", async (request, reply) => {
     try {
-      const token = request.headers.authorization?.replace("Bearer ", "");
-      const user = token ? verifyToken(token) : null;
+      const user = getAuthenticatedUser(request);
       if (!user) return reply.status(401).send({ error: "Unauthorized" });
 
       const file = await request.file();
@@ -220,8 +285,7 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
   app.post("/api/upload/mosques/bulk", async (request, reply) => {
     try {
-      const token = request.headers.authorization?.replace("Bearer ", "");
-      const user = token ? verifyToken(token) : null;
+      const user = getAuthenticatedUser(request);
       if (!user) return reply.status(401).send({ error: "Unauthorized" });
 
       const file = await request.file();
@@ -254,8 +318,7 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
   app.post("/api/upload/tahfiz/bulk", async (request, reply) => {
     try {
-      const token = request.headers.authorization?.replace("Bearer ", "");
-      const user = token ? verifyToken(token) : null;
+      const user = getAuthenticatedUser(request);
       if (!user) return reply.status(401).send({ error: "Unauthorized" });
 
       const file = await request.file();
@@ -288,8 +351,7 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
 
   app.post("/api/upload/deadpersons/bulk", async (request, reply) => {
     try {
-      const token = request.headers.authorization?.replace("Bearer ", "");
-      const user = token ? verifyToken(token) : null;
+      const user = getAuthenticatedUser(request);
       if (!user) return reply.status(401).send({ error: "Unauthorized" });
 
       const file = await request.file();
@@ -326,12 +388,8 @@ export const registerUploadRoutes = (app: FastifyInstance) => {
       bucket: string;
     };
 
-    if (!PUBLIC_FILE_BUCKETS.has(bucket)) {
-      const user = request.cookies ? verifyToken(request.cookies.jwt) : null;
-
-      if (!user) {
-        return reply.status(401).send({ error: "Unauthorized" });
-      }
+    if (!PUBLIC_FILE_BUCKETS.has(bucket) && !getAuthenticatedUser(request)) {
+      return reply.status(401).send({ error: "Unauthorized" });
     }
 
     try {
