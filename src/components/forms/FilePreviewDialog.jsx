@@ -19,7 +19,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-// use AccessToken
+// use AccessToken instead of credentials
 const getPdfDocumentOptions = () => {
   const accessToken =
     sessionStorage.getItem("accessToken") ||
