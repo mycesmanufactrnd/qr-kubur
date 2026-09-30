@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Download } from "lucide-react";
 import {
@@ -13,22 +13,29 @@ import { translate } from "@/utils/translations";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
-// Rendered via pdf.js (canvas) instead of a bare <iframe> — an iframe's PDF
-// preview depends on the browser's own PDF plugin and how the server sets
-// Content-Disposition, which is what was making previews come up blank/download
-// instead of showing inline. Canvas rendering sidesteps all of that.
+// Rendered via pdf.js (canvas) instead of a bare <iframe>
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
-// pdf.js fetches the file itself (separately from the browser's normal
-// resource loading), and defaults to NOT sending cookies — so gated buckets
-// (e.g. bucket-death-confirmation) would 401 even with a valid session,
-// since the access-token cookie never gets attached. Must be a stable
-// reference (not re-created per render) per react-pdf's own docs, or it
-// reloads the document on every render.
-const PDF_DOCUMENT_OPTIONS = { withCredentials: true };
+// use AccessToken
+const getPdfDocumentOptions = () => {
+  const accessToken =
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken");
+  const cleanedAccessToken =
+    accessToken && accessToken !== "undefined" && accessToken !== "null"
+      ? accessToken
+      : null;
+
+  return {
+    withCredentials: true,
+    ...(cleanedAccessToken
+      ? { httpHeaders: { Authorization: `Bearer ${cleanedAccessToken}` } }
+      : {}),
+  };
+};
 
 export default function FilePreviewDialog({
   open,
@@ -40,6 +47,7 @@ export default function FilePreviewDialog({
 }) {
   const resolvedTitle = title ?? translate("Preview File");
   const [numPages, setNumPages] = useState(0);
+  const pdfDocumentOptions = useMemo(() => getPdfDocumentOptions(), [src]);
 
   useEffect(() => {
     setNumPages(0);
@@ -73,7 +81,7 @@ export default function FilePreviewDialog({
             <div className="flex flex-col items-center gap-3 bg-slate-100 dark:bg-slate-900 rounded p-3 max-h-[75vh] overflow-y-auto">
               <Document
                 file={src}
-                options={PDF_DOCUMENT_OPTIONS}
+                options={pdfDocumentOptions}
                 loading={
                   <p className="text-sm text-slate-400 dark:text-slate-500 py-10">
                     {translate("Loading...")}
