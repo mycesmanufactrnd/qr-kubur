@@ -146,6 +146,21 @@ export default function MosqueDetailsPage() {
           </Button>
         )}
 
+        {mosque.haskariahregistration && (
+          <Button
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-md"
+            size="sm"
+            onClick={() =>
+              navigate(createPageUrl("UserKariahRegistration"), {
+                state: { mosque },
+              })
+            }
+          >
+            <Users className="w-4 h-4 mr-2" />
+            {translate("Register as Kariah Member")}
+          </Button>
+        )}
+
         {mosque.hasdeathcharity ? (
           <Link
             to={`${createPageUrl(`DeathCharityUserPayment`)}?mosque=${mosque.id}`}

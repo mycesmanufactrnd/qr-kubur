@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
   Clock,
@@ -114,6 +114,8 @@ const InfoRow = ({ label, value }) => (
 );
 
 export default function UserKariahRegistration() {
+  const location = useLocation();
+  const preselectedMosque = location.state?.mosque;
   const [searchParams] = useSearchParams();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedState, setSelectedState] = useState("");
@@ -200,11 +202,20 @@ export default function UserKariahRegistration() {
   };
 
   useEffect(() => {
-    if (userState && STATES_MY.includes(userState)) {
+    if (preselectedMosque?.state) {
+      setValue("state", preselectedMosque.state);
+      setSelectedState(preselectedMosque.state);
+    } else if (userState && STATES_MY.includes(userState)) {
       setValue("state", userState);
       setSelectedState(userState);
     }
-  }, [userState, setValue]);
+  }, [preselectedMosque, userState, setValue]);
+
+  useEffect(() => {
+    if (preselectedMosque?.id) {
+      setValue("mosqueId", String(preselectedMosque.id));
+    }
+  }, [preselectedMosque, setValue]);
 
   const handleSearch = async () => {
     const valid = await trigger(["state", "mosqueId", "icnumber"]);
