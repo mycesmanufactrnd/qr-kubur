@@ -810,6 +810,7 @@ export default function MobileManageKariahMember() {
     currentUserStates,
   } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
+  const trpcUtils = trpc.useUtils();
   const {
     loading: permissionsLoading,
     canView,
@@ -879,6 +880,7 @@ export default function MobileManageKariahMember() {
     onSuccess: () => {
       showSuccess(translate("Deleted"), "success");
       refetch();
+      trpcUtils.deathCharityMember.getKariahPaginated.invalidate();
       setDeleteDialog(null);
     },
     onError: (err) => showApiError(err),
@@ -890,7 +892,11 @@ export default function MobileManageKariahMember() {
   });
 
   const approveMutation = trpc.deathCharityMember.approveMember.useMutation({
-    onSuccess: () => showSuccess(translate("Member approved"), "success"),
+    onSuccess: () => {
+      showSuccess(translate("Member approved"), "success");
+      refetch();
+      trpcUtils.deathCharityMember.getKariahPaginated.invalidate();
+    },
     onError: (err) => showApiError(err),
   });
 
