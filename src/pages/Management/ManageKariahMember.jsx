@@ -92,6 +92,7 @@ export default function ManageKariahMember() {
 function ManageKariahMemberDesktop() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
   const userOrgId = currentUser?.organisation?.id ?? null;
+  const trpcUtils = trpc.useUtils();
   const {
     loading: permissionsLoading,
     canView,
@@ -332,6 +333,7 @@ function ManageKariahMemberDesktop() {
     onSuccess: () => {
       showSuccess(translate("Deleted"), "success");
       refetch();
+      trpcUtils.deathCharityMember.getKariahPaginated.invalidate();
       setDeleteDialogOpen(false);
       setMemberToDelete(null);
     },
@@ -348,6 +350,8 @@ function ManageKariahMemberDesktop() {
   const approveMutation = trpc.deathCharityMember.approveMember.useMutation({
     onSuccess: () => {
       showSuccess(translate("Member approved"), "success");
+      refetch();
+      trpcUtils.deathCharityMember.getKariahPaginated.invalidate();
     },
     onError: (err) => showApiError(err),
   });
