@@ -550,7 +550,7 @@ export default function MobileManageQuotations() {
               onClick={() => handleExport("xlsx")}
               disabled={!!exporting}
               title={translate("Export Excel")}
-              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-emerald-400 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-600 dark:text-emerald-400 active:opacity-70 disabled:opacity-50"
             >
               {exporting === "xlsx" ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -562,7 +562,7 @@ export default function MobileManageQuotations() {
               onClick={() => handleExport("pdf")}
               disabled={!!exporting}
               title={translate("Export PDF")}
-              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+              className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/20 dark:border-red-600 dark:text-red-400 active:opacity-70 disabled:opacity-50"
             >
               {exporting === "pdf" ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
