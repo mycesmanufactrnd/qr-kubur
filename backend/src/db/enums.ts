@@ -39,12 +39,6 @@ export enum QuotationStatus {
   REJECTED = "rejected",
 }
 
-export enum NotificationType {
-  SUGGESTION = "suggestion",
-  DONATION = "donation",
-  TAHLILREQUEST = "tahlilrequest",
-}
-
 export enum WaqfCategory {
   EDUCATION = "Education",
   MOSQUE = "Mosque",

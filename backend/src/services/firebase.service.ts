@@ -151,6 +151,38 @@ export const sendPushNotifications = async (
   return staleTokens;
 };
 
+// An admin can be logged into both the website and the native app on the
+// same phone, which registers two separate UserDevice rows for one person —
+// without this, they'd get the same event as two pushes, and tapping the web
+// one opens a browser even though the app is right there. When a user has
+// both, only the native token(s) are kept; a user with only a web token still
+// gets it (no app installed). Requires `devices` to have `user` populated
+// (pass `relations: ["user"]` when querying UserDevice).
+export const pickBestTokensPerUser = (devices: UserDevice[]): string[] => {
+  const byUser = new Map<number, UserDevice[]>();
+  const unowned: UserDevice[] = [];
+
+  for (const device of devices) {
+    if (device.user?.id) {
+      const existing = byUser.get(device.user.id);
+      if (existing) existing.push(device);
+      else byUser.set(device.user.id, [device]);
+    } else {
+      unowned.push(device);
+    }
+  }
+
+  const tokens: string[] = [];
+  for (const userDevices of byUser.values()) {
+    const native = userDevices.filter((d) => d.platform && d.platform !== "web");
+    const chosen = native.length > 0 ? native : userDevices;
+    tokens.push(...chosen.map((d) => d.fcmToken).filter(Boolean));
+  }
+  tokens.push(...unowned.map((d) => d.fcmToken).filter(Boolean));
+
+  return tokens;
+};
+
 export const sendNotificationFCMToUser = async ({
   entityname,
   entityid,
@@ -268,9 +300,10 @@ export const sendNotificationFCMToTahfiz = async ({
 
     const devices = await deviceRepo.find({
       where: { user: { id: In(tahfizUsers.map((u) => u.id)) } },
+      relations: ["user"],
     });
 
-    const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    const tokens = pickBestTokensPerUser(devices);
     if (tokens.length === 0) return;
 
     let title = "";
@@ -329,9 +362,10 @@ export const sendNotificationFCMToOrganisation = async ({
 
     const devices = await deviceRepo.find({
       where: { user: { id: In(orgUsers.map((u) => u.id)) } },
+      relations: ["user"],
     });
 
-    const tokens = devices.map((d) => d.fcmToken).filter(Boolean);
+    const tokens = pickBestTokensPerUser(devices);
     if (tokens.length === 0) return;
 
     let title = "";

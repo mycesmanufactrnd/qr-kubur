@@ -239,7 +239,12 @@ export const authRouter = router({
     }),
 
   saveUserDeviceToken: protectedProcedure
-    .input(z.object({ fcmToken: z.string().min(1) }))
+    .input(
+      z.object({
+        fcmToken: z.string().min(1),
+        platform: z.enum(["web", "android", "ios"]).optional(),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.user?.id) throw new Error("Unauthorized");
 
@@ -252,6 +257,7 @@ export const authRouter = router({
 
       if (existingByToken) {
         existingByToken.user = { id: ctx.user.id } as any;
+        if (input.platform) existingByToken.platform = input.platform;
         await deviceRepo.save(existingByToken);
         return { success: true };
       }
@@ -260,6 +266,7 @@ export const authRouter = router({
       const device = deviceRepo.create({
         fcmToken: input.fcmToken,
         user: { id: ctx.user.id } as any,
+        platform: input.platform ?? null,
       });
       await deviceRepo.save(device);
 

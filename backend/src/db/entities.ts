@@ -16,7 +16,6 @@ export * from "./entities/TahlilRequest.entity.js";
 export * from "./entities/Quotation.entity.js";
 export * from "./entities/ActivityLog.entity.js";
 export * from "./entities/OrganisationPaymentConfig.entity.js";
-export * from "./entities/AdminNotification.entity.js";
 export * from "./entities/OnlineTransaction.entity.js";
 export * from "./entities/OnlineTransactionAccount.entity.js";
 export * from "./entities/Mosque.entity.js";

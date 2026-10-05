@@ -3,7 +3,6 @@ import { router as trpcRouter } from "../trpc.js";
 import { activityLogsRouter } from "./activityLogsRouter.js";
 import { authRouter } from "./authRouter.js";
 import { donationRouter } from "./donationRouter.js";
-import { notificationRouter } from "./notificationRouter.js";
 import { organisationRouter } from "./organisationRouter.js";
 import { organisationTypeRouter } from "./organisationTypeRouter.js";
 import { paymentFieldRouter } from "./paymentFieldRouter.js";
@@ -77,7 +76,6 @@ export const appRouter = trpcRouter({
   tahlilRequest: tahlilRequestRouter,
   activityLogs: activityLogsRouter,
   visitLogs: visitLogsRouter,
-  notification: notificationRouter,
   deadperson: deadPersonRouter,
   familyTree: familyTreeRouter,
   billplz: billplzRouter,
