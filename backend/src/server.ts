@@ -72,6 +72,7 @@ await app.register(import("@fastify/cors"), {
       "localhost:5173",
       "localhost:5174",
       "localhost:3000",
+      "https://localhost", //capacitor
       "https://qubur.mycesgroup.com",
       "https://api.qubur.mycesgroup.com",
       frontendNgrokUrl,

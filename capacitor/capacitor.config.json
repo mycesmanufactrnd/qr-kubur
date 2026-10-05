@@ -1,12 +1,7 @@
 {
   "appId": "com.myces.qubur",
   "appName": "QubuR",
-  "webDir": "dist",
-  "server": {
-    "url": "https://qubur.mycesgroup.com/",
-    "cleartext": true,
-    "allowNavigation": ["qubur.mycesgroup.com"]
-  },
+  "webDir": "../dist",
   "android": {
     "allowMixedContent": true
   },
