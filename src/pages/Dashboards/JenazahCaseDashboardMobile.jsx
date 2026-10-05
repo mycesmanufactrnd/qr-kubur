@@ -279,6 +279,12 @@ export default function JenazahCaseDashboardMobile() {
                           ?.label
                   }
                 />
+                {d.careScenario !== "other" && d.careScenarioDetails && (
+                  <DetailRow
+                    label={translate("Additional Details")}
+                    value={d.careScenarioDetails}
+                  />
+                )}
                 {d.pickupLat && d.pickupLng && (
                   <DetailRow label={translate("Pickup Location")}>
                     <DirectionButton

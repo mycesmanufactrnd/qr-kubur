@@ -53,11 +53,22 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { CARE_SCENARIOS } from "@/utils/enums";
+import { CARE_SCENARIOS, getCareScenarioKind } from "@/utils/enums";
 import { parseDobFromIcNumber, formatRM, getNextGraveLotLabel } from "@/utils/helpers";
 import { defaultManageJenazahCaseField } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
+
+function getCareScenarioDetailsPlaceholder(careScenario) {
+  const kind = getCareScenarioKind(careScenario);
+  if (kind === "home") {
+    return translate("e.g. Next to En Ibrahim's house, Taman Bahagia");
+  }
+  if (kind === "hospital") {
+    return translate("e.g. Hospital Kuala Lumpur, Ward 5");
+  }
+  return translate("Any additional details (optional)");
+}
 
 const jenazahCaseExportColumns = [
   {
@@ -324,6 +335,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
       policereportphotourl,
       supportingphotourl,
       careScenarioOther,
+      careScenarioDetails,
       burialdate: submittedBurialdate,
       burialtime: submittedBurialtime,
       burialtimenote: submittedBurialtimenote,
@@ -342,6 +354,10 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
         careScenarioOther:
           formDetails.careScenario === "other"
             ? careScenarioOther?.trim()
+            : null,
+        careScenarioDetails:
+          formDetails.careScenario !== "other"
+            ? careScenarioDetails?.trim() || null
             : null,
         burialDate: submittedBurialdate,
         burialTime: submittedBurialtime || null,
@@ -538,7 +554,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
             required
             errors={errors}
           />
-          {careScenario === "other" && (
+          {careScenario === "other" ? (
             <TextInputForm
               name="careScenarioOther"
               control={control}
@@ -550,6 +566,16 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
               placeholder={translate(
                 "Describe the location, bathing, and prayer arrangements",
               )}
+            />
+          ) : (
+            <TextInputForm
+              name="careScenarioDetails"
+              control={control}
+              label={translate("Additional Details")}
+              isTextArea
+              rows={2}
+              errors={errors}
+              placeholder={getCareScenarioDetailsPlaceholder(careScenario)}
             />
           )}
         </FormSection>
@@ -1049,6 +1075,12 @@ function CaseDetailSheet({
                     ?.label
             }
           />
+          {d.careScenario !== "other" && d.careScenarioDetails && (
+            <DetailRow
+              label={translate("Additional Details")}
+              value={d.careScenarioDetails}
+            />
+          )}
         </FormSection>
 
         {caseItem?.isapproved && deadPersonRecord && (

@@ -33,7 +33,12 @@ import {
 } from "lucide-react";
 import { trpc, trpcClient } from "@/utils/trpc";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
-import { CARE_SCENARIOS, STATES_MY, JenazahCaseStatus } from "@/utils/enums";
+import {
+  CARE_SCENARIOS,
+  STATES_MY,
+  JenazahCaseStatus,
+  getCareScenarioKind,
+} from "@/utils/enums";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { defaultJenazahRequestField } from "@/utils/defaultformfields";
 import { translate } from "@/utils/translations";
@@ -42,6 +47,17 @@ import { formatRM } from "@/utils/helpers";
 import { generateJenazahCasePdf } from "@/components/PDF/JenazahCase";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
+
+function getCareScenarioDetailsPlaceholder(careScenario) {
+  const kind = getCareScenarioKind(careScenario);
+  if (kind === "home") {
+    return translate("e.g. Next to En Ibrahim's house, Taman Bahagia");
+  }
+  if (kind === "hospital") {
+    return translate("e.g. Hospital Kuala Lumpur, Ward 5");
+  }
+  return translate("Any additional details (optional)");
+}
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.myces.qubur&pcampaignid=web_share";
@@ -175,10 +191,12 @@ export default function JenazahEmergencyRequest() {
     setMemberResult(undefined);
     setExistingCase(null);
     setProceedDespitePending(false);
+    setProceedDespiteDeceased(false);
     reset({
       ...defaultJenazahRequestField,
       burialdate: watch("burialdate"),
       careScenarioOther: watch("careScenarioOther"),
+      careScenarioDetails: watch("careScenarioDetails"),
     });
   };
 
@@ -295,6 +313,7 @@ export default function JenazahEmergencyRequest() {
   const [memberResult, setMemberResult] = useState(undefined);
   const [existingCase, setExistingCase] = useState(null);
   const [proceedDespitePending, setProceedDespitePending] = useState(false);
+  const [proceedDespiteDeceased, setProceedDespiteDeceased] = useState(false);
 
   const searchQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
     { icnumber: searchedIc, mosqueId: mosque?.id, searchCase: true },
@@ -306,6 +325,8 @@ export default function JenazahEmergencyRequest() {
     existingCase?.status === JenazahCaseStatus.CLOSED;
   const isCaseBlocking =
     !!existingCase && !isCaseApproved && !proceedDespitePending;
+  const isDeceasedBlocking =
+    !!memberResult?.isdeceased && !proceedDespiteDeceased;
 
   const createCase = trpc.jenazahCase.create.useMutation({
     onSuccess: () => {
@@ -352,6 +373,7 @@ export default function JenazahEmergencyRequest() {
     setMemberResult(undefined);
     setExistingCase(null);
     setProceedDespitePending(false);
+    setProceedDespiteDeceased(false);
     setSearchedIc("");
     setValue("fullname", "");
     setValue("icnumber", "");
@@ -380,7 +402,12 @@ export default function JenazahEmergencyRequest() {
     setMemberResult(undefined);
     setExistingCase(null);
     setProceedDespitePending(false);
+    setProceedDespiteDeceased(false);
     setSearchedIc(ic);
+  };
+
+  const handleContinueDespiteDeceased = () => {
+    setProceedDespiteDeceased(true);
   };
 
   const handleNextStep = async () => {
@@ -406,10 +433,6 @@ export default function JenazahEmergencyRequest() {
         });
         return;
       }
-    }
-    if (!currentCoords) {
-      showApiError({ message: translate("Please share your GPS location.") });
-      return;
     }
     const validDate = await trigger("burialdate");
     if (!validDate) {
@@ -467,6 +490,14 @@ export default function JenazahEmergencyRequest() {
       });
       return;
     }
+    if (isDeceasedBlocking) {
+      showApiError({
+        message: translate(
+          "This person is already recorded as deceased. Please confirm before submitting.",
+        ),
+      });
+      return;
+    }
     if (isOutOfArea === null) {
       showApiError({
         message: translate("Please answer the incident location question."),
@@ -488,11 +519,6 @@ export default function JenazahEmergencyRequest() {
       setPageStep(1);
       return;
     }
-    if (!currentCoords) {
-      showApiError({ message: translate("Please share your GPS location.") });
-      setPageStep(1);
-      return;
-    }
     if (!data.burialdate) {
       showApiError({ message: translate("Please specify the burial date.") });
       setPageStep(1);
@@ -509,6 +535,8 @@ export default function JenazahEmergencyRequest() {
       careScenario,
       careScenarioOther:
         careScenario === "other" ? data.careScenarioOther?.trim() : null,
+      careScenarioDetails:
+        careScenario !== "other" ? data.careScenarioDetails?.trim() || null : null,
       burialDate: data.burialdate,
       burialTime: data.burialtime || null,
       burialTimeNote: data.burialtimenote?.trim() || null,
@@ -626,7 +654,7 @@ export default function JenazahEmergencyRequest() {
             <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-400">
               {translate(
-                "Please bring a softcopy of the Death Confirmation letter and Police Report, along with any related supporting documents, when you go to the mosque.",
+                "Please bring a softcopy of the Death Confirmation letter and Police Report along with any related supporting documents when you go to the mosque",
               )}
             </p>
           </div>
@@ -875,7 +903,9 @@ export default function JenazahEmergencyRequest() {
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 pb-1">
                     {translate("GPS Location")}
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-slate-400 dark:text-slate-500 ml-1 normal-case tracking-normal font-normal">
+                      ({translate("Optional")})
+                    </span>
                   </p>
                   <p className="text-sm text-slate-700 dark:text-slate-300">
                     {translate(
@@ -939,7 +969,7 @@ export default function JenazahEmergencyRequest() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {careScenario === "other" && (
+                  {careScenario === "other" ? (
                     <TextInputForm
                       name="careScenarioOther"
                       control={control}
@@ -950,6 +980,18 @@ export default function JenazahEmergencyRequest() {
                       errors={errors}
                       placeholder={translate(
                         "Describe the location, bathing, and prayer arrangements",
+                      )}
+                    />
+                  ) : (
+                    <TextInputForm
+                      name="careScenarioDetails"
+                      control={control}
+                      label={translate("Additional Details")}
+                      isTextArea
+                      rows={2}
+                      errors={errors}
+                      placeholder={getCareScenarioDetailsPlaceholder(
+                        careScenario,
                       )}
                     />
                   )}
@@ -1106,6 +1148,36 @@ export default function JenazahEmergencyRequest() {
                 !isSearching &&
                 !isCaseApproved &&
                 !isCaseBlocking &&
+                isDeceasedBlocking && (
+                  <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2 mt-1">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div>
+                        <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                          {translate("Person Already Recorded as Deceased")}
+                        </p>
+                        <p className="text-xs text-amber-700 dark:text-amber-400">
+                          {translate(
+                            "This Kariah member is already recorded as deceased in the system. A funeral case may have already been processed for them.",
+                          )}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleContinueDespiteDeceased}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        {translate("Continue Anyway")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              {hasSearched &&
+                !isSearching &&
+                !isCaseApproved &&
+                !isCaseBlocking &&
+                !isDeceasedBlocking &&
                 memberResult && (
                   <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2 mt-1">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
@@ -1143,7 +1215,8 @@ export default function JenazahEmergencyRequest() {
             {hasSearched &&
               !isSearching &&
               !isCaseApproved &&
-              !isCaseBlocking && (
+              !isCaseBlocking &&
+              !isDeceasedBlocking && (
                 <>
                   <TextInputForm
                     name="fullname"
@@ -1184,88 +1257,90 @@ export default function JenazahEmergencyRequest() {
                   />
 
                   {!memberResult && (
-                  <div className="space-y-2">
-                    <label className="flex items-start gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={isFamilyOfKariah}
-                        onCheckedChange={handleToggleFamilyOfKariah}
-                        className="mt-0.5"
-                      />
-                      <span className="text-sm text-slate-700 dark:text-slate-300">
-                        {translate(
-                          "This jenazah is a family member of a registered Kariah member",
-                        )}
-                      </span>
-                    </label>
-
-                    {isFamilyOfKariah && (
-                      <div className="pl-6 space-y-2">
-                        <div className="flex gap-2 items-end">
-                          <div className="flex-1">
-                            <TextInputForm
-                              name="familyKariahIcSearch"
-                              control={control}
-                              label={translate("Registered Kariah Member's IC No.")}
-                              isICNumber
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            onClick={handleSearchFamilyKariahIc}
-                            disabled={
-                              isFamilyKariahSearching ||
-                              !familyKariahIcSearch.replace(/-/g, "").trim()
-                            }
-                            size="sm"
-                            variant="outline"
-                            className="h-10 px-3 mb-0.5"
-                          >
-                            {isFamilyKariahSearching ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Search className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-
-                        {hasFamilyKariahSearched &&
-                          !isFamilyKariahSearching &&
-                          familyKariahMember && (
-                            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                              <p className="text-sm text-slate-700 dark:text-slate-200">
-                                {familyKariahMember.fullname}
-                              </p>
-                            </div>
+                    <div className="space-y-2">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={isFamilyOfKariah}
+                          onCheckedChange={handleToggleFamilyOfKariah}
+                          className="mt-0.5"
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-300">
+                          {translate(
+                            "This jenazah is a family member of a registered Kariah member",
                           )}
+                        </span>
+                      </label>
 
-                        {hasFamilyKariahSearched &&
-                          !isFamilyKariahSearching &&
-                          !familyKariahMember && (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2">
-                                <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-                                <p className="text-xs text-amber-700 dark:text-amber-400">
-                                  {translate(
-                                    "No registered Kariah member found with this IC number.",
-                                  )}
-                                </p>
-                              </div>
-                              <Input
-                                value={familyKariahManualName}
-                                onChange={(e) =>
-                                  setFamilyKariahManualName(e.target.value)
-                                }
-                                placeholder={translate(
-                                  "Registered Kariah Member's Name",
+                      {isFamilyOfKariah && (
+                        <div className="pl-6 space-y-2">
+                          <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                              <TextInputForm
+                                name="familyKariahIcSearch"
+                                control={control}
+                                label={translate(
+                                  "Registered Kariah Member's IC No.",
                                 )}
-                                className="h-10"
+                                isICNumber
                               />
                             </div>
-                          )}
-                      </div>
-                    )}
-                  </div>
+                            <Button
+                              type="button"
+                              onClick={handleSearchFamilyKariahIc}
+                              disabled={
+                                isFamilyKariahSearching ||
+                                !familyKariahIcSearch.replace(/-/g, "").trim()
+                              }
+                              size="sm"
+                              variant="outline"
+                              className="h-10 px-3 mb-0.5"
+                            >
+                              {isFamilyKariahSearching ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Search className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+
+                          {hasFamilyKariahSearched &&
+                            !isFamilyKariahSearching &&
+                            familyKariahMember && (
+                              <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg px-3 py-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                <p className="text-sm text-slate-700 dark:text-slate-200">
+                                  {familyKariahMember.fullname}
+                                </p>
+                              </div>
+                            )}
+
+                          {hasFamilyKariahSearched &&
+                            !isFamilyKariahSearching &&
+                            !familyKariahMember && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg px-3 py-2">
+                                  <XCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                                    {translate(
+                                      "No registered Kariah member found with this IC number.",
+                                    )}
+                                  </p>
+                                </div>
+                                <Input
+                                  value={familyKariahManualName}
+                                  onChange={(e) =>
+                                    setFamilyKariahManualName(e.target.value)
+                                  }
+                                  placeholder={translate(
+                                    "Registered Kariah Member's Name",
+                                  )}
+                                  className="h-10"
+                                />
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   <TextInputForm
@@ -1447,7 +1522,8 @@ export default function JenazahEmergencyRequest() {
                     !hasSearched ||
                     isSearching ||
                     isCaseApproved ||
-                    isCaseBlocking
+                    isCaseBlocking ||
+                    isDeceasedBlocking
                   }
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                 >
@@ -1471,7 +1547,8 @@ export default function JenazahEmergencyRequest() {
                     !hasSearched ||
                     isSearching ||
                     isCaseApproved ||
-                    isCaseBlocking
+                    isCaseBlocking ||
+                    isDeceasedBlocking
                   }
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                 >

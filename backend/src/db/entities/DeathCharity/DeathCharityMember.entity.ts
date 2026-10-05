@@ -91,7 +91,13 @@ export class DeathCharityMember extends AuditableEntity {
   })
   email?: string;
 
-  @Column("text", { nullable: true })
+  @Column("text", {
+    nullable: true,
+    transformer: {
+      to: (value?: string | null) => (value ? encryptField(value) : value),
+      from: (value?: string | null) => (value ? decryptField(value) : value),
+    },
+  })
   address?: string;
 
   @Column("boolean", { default: false })

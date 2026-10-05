@@ -74,6 +74,7 @@ async function run() {
     await encryptIcNumberWithHash("deathcharitymember");
     await encryptPlainColumn("deathcharitymember", "phone");
     await encryptPlainColumn("deathcharitymember", "email");
+    await encryptPlainColumn("deathcharitymember", "address");
 
     await encryptPlainColumn("deadperson", "causeofdeath");
 

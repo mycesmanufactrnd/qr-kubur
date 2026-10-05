@@ -457,3 +457,10 @@ export const CARE_SCENARIOS = [
   { value: "hospital_home", label: "Di Hospital — Mandi & Solat di Rumah" },
   { value: "other", label: "Lain-lain (Nyatakan Sendiri)" },
 ];
+
+export function getCareScenarioKind(careScenario) {
+  if (careScenario === "other") return "other";
+  if (careScenario?.startsWith("home")) return "home";
+  if (careScenario?.startsWith("hospital")) return "hospital";
+  return null;
+}

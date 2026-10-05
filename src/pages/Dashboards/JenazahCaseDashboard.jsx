@@ -271,6 +271,12 @@ function JenazahCaseDashboardDesktop() {
                         ?.label
                 }
               />
+              {d.careScenario !== "other" && d.careScenarioDetails && (
+                <DetailRow
+                  label={translate("Additional Details")}
+                  value={d.careScenarioDetails}
+                />
+              )}
               {mapsUrl && (
                 <DetailRow label={translate("Pickup Location")}>
                   <DirectionButton

@@ -114,6 +114,8 @@ function AdminDashboardDesktop() {
 
   const { loading: kariahPermissionsLoading, canView: canViewKariah } =
     useCrudPermissions("kariah");
+  const { loading: inventoryPermissionsLoading, canView: canViewInventory } =
+    useCrudPermissions("inventory");
   const { loading: jenazahPermissionsLoading, canView: canViewJenazahCase } =
     useCrudPermissions("jenazah_case");
 
@@ -431,15 +433,17 @@ function AdminDashboardDesktop() {
                       {translate("Statistics")}
                     </Button>
                   </Link>
-                  <Link to={createPageUrl("InventoryDashboard")}>
-                    <Button
-                      variant="outline"
-                      className="gap-2 border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"
-                    >
-                      <Package className="w-4 h-4" />
-                      {translate("Inventory")}
-                    </Button>
-                  </Link>
+                  {canViewInventory && (
+                    <Link to={createPageUrl("InventoryDashboard")}>
+                      <Button
+                        variant="outline"
+                        className="gap-2 border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"
+                      >
+                        <Package className="w-4 h-4" />
+                        {translate("Inventory")}
+                      </Button>
+                    </Link>
+                  )}
                   <Link to={createPageUrl("FinancialReports")}>
                     <Button
                       variant="outline"
@@ -843,6 +847,10 @@ function AdminDashboardDesktop() {
                             icon: List,
                             color: "amber",
                           },
+                        ]
+                      : []),
+                    ...(isOrgCanManageMosque && canViewInventory
+                      ? [
                           {
                             label: translate("Manage Inventory"),
                             page: "InventoryDashboard",

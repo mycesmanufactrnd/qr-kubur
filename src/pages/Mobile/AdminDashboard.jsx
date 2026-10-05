@@ -57,6 +57,8 @@ export default function MobileAdminDashboard() {
 
   const { loading: kariahPermissionsLoading, canView: canViewKariah } =
     useCrudPermissions("kariah");
+  const { loading: inventoryPermissionsLoading, canView: canViewInventory } =
+    useCrudPermissions("inventory");
   const { loading: jenazahPermissionsLoading, canView: canViewJenazahCase } =
     useCrudPermissions("jenazah_case");
 
@@ -129,7 +131,12 @@ export default function MobileAdminDashboard() {
   const totalCompleteQuo = QUOStats?.totalCompleteQuo ?? 0;
   const totalPayoutQuo = QUOStats?.totalPayoutQuo ?? 0;
 
-  if (loadingUser || kariahPermissionsLoading || jenazahPermissionsLoading)
+  if (
+    loadingUser ||
+    kariahPermissionsLoading ||
+    inventoryPermissionsLoading ||
+    jenazahPermissionsLoading
+  )
     return <PageLoadingComponent />;
   if (!hasAdminAccess || isTahfizAdmin) return <AccessDeniedComponent />;
 
@@ -336,6 +343,10 @@ export default function MobileAdminDashboard() {
             icon: List,
             color: "amber",
           },
+        ]
+      : []),
+    ...(isOrgCanManageMosque && canViewInventory
+      ? [
           {
             label: translate("Manage Inventory"),
             page: "InventoryDashboard",

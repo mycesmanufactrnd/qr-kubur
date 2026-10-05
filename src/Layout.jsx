@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils/index";
 import {
   PermissionsProvider,
+  useCrudPermissions,
   usePermissions,
 } from "@/components/PermissionsContext";
 import {
@@ -116,6 +117,9 @@ function LayoutContent({ children, currentPageName }) {
     }
   };
 
+  const { loading: inventoryPermissionsLoading, canView: canViewInventory } =
+    useCrudPermissions("inventory");
+
   useEffect(() => {
     if (loadingUser) return;
 
@@ -166,6 +170,10 @@ function LayoutContent({ children, currentPageName }) {
             icon: UserCheck,
             page: "ManageDeadPersons",
           },
+        ]
+      : []),
+    ...(isOrgCanManageMosque && canViewInventory
+      ? [
           {
             name: translate("Manage Inventory"),
             icon: BarChart3,
@@ -288,9 +296,7 @@ function LayoutContent({ children, currentPageName }) {
               to={createPageUrl(getMainPage())}
               className="flex items-center gap-2"
             >
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center hover:scale-105 transition overflow-hidden"
-              >
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center hover:scale-105 transition overflow-hidden">
                 <img
                   src="/Logo.jpg"
                   alt="Logo"
@@ -450,7 +456,10 @@ function LayoutContent({ children, currentPageName }) {
               {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2 hover:bg-white/10 ">
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 hover:bg-white/10 "
+                    >
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-sm font-medium">
                         {currentUser.fullname?.[0] ||
                           currentUser.email?.[0]?.toUpperCase()}

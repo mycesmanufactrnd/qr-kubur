@@ -326,6 +326,7 @@ export const defaultJenazahRequestField = {
   burialtime: "",
   burialtimenote: "",
   careScenarioOther: "",
+  careScenarioDetails: "",
   familyKariahIcSearch: "",
 };
 
@@ -341,6 +342,7 @@ export const defaultManageJenazahCaseField = {
   pickupLng: "",
   careScenario: "",
   careScenarioOther: "",
+  careScenarioDetails: "",
   burialdate: "",
   burialtime: "",
   burialtimenote: "",
