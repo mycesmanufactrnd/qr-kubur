@@ -934,7 +934,7 @@ export default function ManageDeathCharityMember() {
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
-        exportRowsToExcel({
+        await exportRowsToExcel({
           filename: "death-charity-members",
           columns: deathCharityMemberExportColumns,
           rows,

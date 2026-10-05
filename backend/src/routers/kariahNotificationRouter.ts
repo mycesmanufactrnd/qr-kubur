@@ -9,7 +9,10 @@ import {
   KariahDeathNotification,
   KariahDevice,
 } from "../db/entities.js";
-import { sendPushNotifications } from "../services/firebase.service.js";
+import {
+  sendNotificationFCMToOrganisation,
+  sendPushNotifications,
+} from "../services/firebase.service.js";
 
 const DEFAULT_TEMPLATE =
   "Innalillahi wainna ilaihi rajiun. Dengan penuh dukacita kami memaklumkan bahawa ahli kariah kita, {name}, telah kembali ke rahmatullah. Semoga Allah mencucuri rahmat ke atas rohnya dan ditempatkan dalam kalangan orang-orang yang soleh. Al-Fatihah.";
@@ -129,6 +132,13 @@ export const kariahNotificationRouter = router({
         deceasedMemberId,
         message,
       );
+
+      await sendNotificationFCMToOrganisation({
+        organisationId: deceased.organisation.id,
+        event: "kariah_death_notified",
+        inputData: { deceasedFullname: deceased.fullname, notifiedcount },
+        roles: ["admin"],
+      });
 
       const notif = notifRepo.create({
         deceasedMember: { id: deceasedMemberId },

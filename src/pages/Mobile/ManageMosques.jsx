@@ -608,7 +608,7 @@ export default function MobileManageMosques() {
   return (
     <>
       <div className="min-h-screen pb-6">
-        <BackNavigation title={translate("Manage Mosques")} />
+        <BackNavigation title={translate("Manage Mosque")} />
 
         <div className="max-w-2xl mx-auto px-3 space-y-3">
           <div className="flex items-center justify-between">

@@ -32,6 +32,7 @@ import {
 import Breadcrumb from "@/components/Breadcrumb";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useAdminAccess } from "@/utils/auth";
@@ -113,6 +114,7 @@ export default function InventoryReports() {
 
 function InventoryReportsDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("inventory");
 
   const [dateFrom, setDateFrom] = useState(thirtyDaysAgoStr());
   const [dateTo,   setDateTo]   = useState(todayStr());
@@ -131,7 +133,7 @@ function InventoryReportsDesktop() {
       dateTo:   queryParams.dateTo,
       filterType: queryParams.filterType,
     },
-    { enabled: hasAdminAccess && !!queryParams.dateFrom && !!queryParams.dateTo },
+    { enabled: hasAdminAccess && canView && !!queryParams.dateFrom && !!queryParams.dateTo },
   );
 
   const handleSearch = () => {
@@ -154,8 +156,9 @@ function InventoryReportsDesktop() {
     { stockIn: 0, stockOut: 0, returns: 0, total: 0 },
   );
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
@@ -358,6 +361,7 @@ function InventoryReportsDesktop() {
 
 function MobileInventoryReports() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("inventory");
 
   const [dateFrom, setDateFrom] = useState(thirtyDaysAgoStr());
   const [dateTo,   setDateTo]   = useState(todayStr());
@@ -373,7 +377,7 @@ function MobileInventoryReports() {
 
   const { data: reportData, isLoading: reportLoading } = trpc.inventoryTransaction.getTransactionReport.useQuery(
     { dateFrom: queryParams.dateFrom, dateTo: queryParams.dateTo, filterType: queryParams.filterType },
-    { enabled: hasAdminAccess && !!queryParams.dateFrom && !!queryParams.dateTo },
+    { enabled: hasAdminAccess && canView && !!queryParams.dateFrom && !!queryParams.dateTo },
   );
 
   const handleSearch = () => {
@@ -384,8 +388,9 @@ function MobileInventoryReports() {
     });
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 p-4">

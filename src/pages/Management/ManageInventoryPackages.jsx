@@ -38,6 +38,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetAllInventoryPackages,
   useInventoryPackageMutations,
@@ -464,7 +465,7 @@ function PackageItemsForm({ control, errors, allItems, selectedLocation, onLocat
 
 // ── Package Location Card ─────────────────────────────────────────────────────
 
-function PackageLocationCard({ location, packages, onAddPackage, onView, onEdit, onDelete, hasAdminAccess }) {
+function PackageLocationCard({ location, packages, onAddPackage, onView, onEdit, onDelete, canCreate }) {
   return (
     <Card
       className="border shadow-sm dark:bg-slate-800 dark:border-slate-700 cursor-pointer hover:shadow-xl hover:scale-105 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300"
@@ -476,7 +477,7 @@ function PackageLocationCard({ location, packages, onAddPackage, onView, onEdit,
             <MapPin className="w-4 h-4 text-indigo-500 shrink-0" />
             <span className="truncate">{location}</span>
           </CardTitle>
-          {hasAdminAccess && (
+          {canCreate && (
             <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
               <Button
                 size="sm"
@@ -513,7 +514,7 @@ function PackageLocationCard({ location, packages, onAddPackage, onView, onEdit,
 
 // ── Package Location Detail Dialog ────────────────────────────────────────────
 
-function PackageLocationDetailDialog({ location, packages, open, onClose, onView, onEdit, onDelete, onAddPackage, hasAdminAccess }) {
+function PackageLocationDetailDialog({ location, packages, open, onClose, onView, onEdit, onDelete, onAddPackage, canCreate, canEdit, canDelete }) {
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:bg-slate-800">
@@ -526,7 +527,7 @@ function PackageLocationDetailDialog({ location, packages, open, onClose, onView
               </DialogTitle>
               <DialogDescription>{packages.length} {translate("package(s)")}</DialogDescription>
             </div>
-            {hasAdminAccess && (
+            {canCreate && (
               <Button size="sm" onClick={() => { onClose(); onAddPackage(); }} className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white">
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 {translate("Add Package")}
@@ -575,15 +576,15 @@ function PackageLocationDetailDialog({ location, packages, open, onClose, onView
                         <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onView(pkg); }}>
                           <Eye className="w-3.5 h-3.5 text-gray-500" />
                         </Button>
-                        {hasAdminAccess && (
-                          <>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onEdit(pkg); }}>
-                              <Edit className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onDelete(pkg); }}>
-                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                            </Button>
-                          </>
+                        {canEdit && (
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onEdit(pkg); }}>
+                            <Edit className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onDelete(pkg); }}>
+                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          </Button>
                         )}
                       </td>
                     </tr>
@@ -607,15 +608,15 @@ function PackageLocationDetailDialog({ location, packages, open, onClose, onView
                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onView(pkg); }}>
                         <Eye className="w-3.5 h-3.5 text-gray-500" />
                       </Button>
-                      {hasAdminAccess && (
-                        <>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onEdit(pkg); }}>
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onDelete(pkg); }}>
-                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                          </Button>
-                        </>
+                      {canEdit && (
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onEdit(pkg); }}>
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { onClose(); onDelete(pkg); }}>
+                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -642,6 +643,13 @@ function PackageLocationDetailDialog({ location, packages, open, onClose, onView
 
 function ManageInventoryPackagesDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("inventory");
 
   const [isDialogOpen, setIsDialogOpen]         = useState(false);
   const [editingPackage, setEditingPackage]     = useState(null);
@@ -726,8 +734,9 @@ function ManageInventoryPackagesDesktop() {
     setPackageToDelete(null);
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
@@ -742,7 +751,7 @@ function ManageInventoryPackagesDesktop() {
           <Boxes className="w-6 h-6 text-indigo-600" />
           {translate("Inventory Packages")}
         </h1>
-        {hasAdminAccess && (
+        {canCreate && (
           <Button onClick={() => openAddDialog()} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add Package")}
@@ -769,7 +778,7 @@ function ManageInventoryPackagesDesktop() {
               onView={() => setDetailLocation(location)}
               onEdit={openEditDialog}
               onDelete={(pkg) => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}
-              hasAdminAccess={hasAdminAccess}
+              canCreate={canCreate}
             />
           ))}
         </div>
@@ -785,7 +794,9 @@ function ManageInventoryPackagesDesktop() {
         onEdit={openEditDialog}
         onDelete={(pkg) => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}
         onAddPackage={() => openAddDialog(detailLocation)}
-        hasAdminAccess={hasAdminAccess}
+        canCreate={canCreate}
+        canEdit={canEdit}
+        canDelete={canDelete}
       />
 
       {/* Package view dialog */}
@@ -793,7 +804,7 @@ function ManageInventoryPackagesDesktop() {
         pkg={viewingPackage}
         open={!!viewingPackage}
         onOpenChange={(o) => { if (!o) setViewingPackage(null); }}
-        onEdit={hasAdminAccess ? () => { setViewingPackage(null); openEditDialog(viewingPackage); } : null}
+        onEdit={canEdit ? () => { setViewingPackage(null); openEditDialog(viewingPackage); } : null}
       />
 
       {/* Add / Edit Dialog */}
@@ -891,6 +902,13 @@ function ManageInventoryPackagesDesktop() {
 
 function MobileManageInventoryPackages() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("inventory");
 
   const [isDialogOpen, setIsDialogOpen]         = useState(false);
   const [editingPackage, setEditingPackage]     = useState(null);
@@ -951,8 +969,9 @@ function MobileManageInventoryPackages() {
     setPackageToDelete(null);
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 p-4">
@@ -966,7 +985,7 @@ function MobileManageInventoryPackages() {
           <Boxes className="w-5 h-5 text-indigo-600" />
           {translate("Packages")}
         </h1>
-        {hasAdminAccess && (
+        {canCreate && (
           <Button size="sm" onClick={() => openAddDialog()} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             <Plus className="w-4 h-4" />
           </Button>
@@ -987,7 +1006,7 @@ function MobileManageInventoryPackages() {
                     <MapPin className="w-4 h-4 text-indigo-500 shrink-0" />
                     <span className="font-semibold text-gray-900 dark:text-white truncate">{location}</span>
                   </div>
-                  {hasAdminAccess && (
+                  {canCreate && (
                     <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-7 px-2 text-xs shrink-0 ml-2"
                       onClick={(e) => { e.stopPropagation(); openAddDialog(location); }}>
                       <Plus className="w-3 h-3 mr-1" />{translate("Add")}
@@ -1023,14 +1042,16 @@ function MobileManageInventoryPackages() {
         onEdit={openEditDialog}
         onDelete={(pkg) => { setPackageToDelete(pkg); setDeleteDialogOpen(true); }}
         onAddPackage={() => openAddDialog(detailLocation)}
-        hasAdminAccess={hasAdminAccess}
+        canCreate={canCreate}
+        canEdit={canEdit}
+        canDelete={canDelete}
       />
 
       <PackageViewDialog
         pkg={viewingPackage}
         open={!!viewingPackage}
         onOpenChange={(o) => { if (!o) setViewingPackage(null); }}
-        onEdit={hasAdminAccess ? () => { setViewingPackage(null); openEditDialog(viewingPackage); } : null}
+        onEdit={canEdit ? () => { setViewingPackage(null); openEditDialog(viewingPackage); } : null}
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

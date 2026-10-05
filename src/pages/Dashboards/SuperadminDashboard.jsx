@@ -197,7 +197,7 @@ export default function SuperadminDashboard() {
               color: "amber",
             },
             {
-              name: translate("Manage Dead Person"),
+              name: translate("Manage Deceased"),
               page: "ManageDeadPersons",
               icon: Users,
               color: "blue",
@@ -209,7 +209,7 @@ export default function SuperadminDashboard() {
               color: "emerald",
             },
             {
-              name: translate("Manage Mosques"),
+              name: translate("Manage Mosque"),
               page: "ManageMosques",
               icon: Home,
               color: "teal",

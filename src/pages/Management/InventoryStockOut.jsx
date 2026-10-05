@@ -19,6 +19,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetAllInventoryItems,
   useGetAllInventoryPackages,
@@ -261,6 +262,7 @@ export default function InventoryStockOut() {
 
 function InventoryStockOutDesktop() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate } = useCrudPermissions("inventory");
   const { itemsList: allItems, isLoading: itemsLoading } = useGetAllInventoryItems();
   const { packagesList } = useGetAllInventoryPackages();
   const { stockOut } = useInventoryTransactionMutations();
@@ -330,8 +332,9 @@ function InventoryStockOutDesktop() {
     }
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   const recordedBy = currentUser?.fullname;
   const isReusable = form.itemType === InventoryItemType.REUSABLE;
@@ -455,21 +458,23 @@ function InventoryStockOutDesktop() {
               />
             </div>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || form.selectedCount === 0 || hasOverStock}
-              className="w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-60"
-            >
-              <TrendingDown className="w-4 h-4 mr-2" />
-              {isSubmitting
-                ? translate("Saving...")
-                : hasOverStock
-                  ? translate("Qty melebihi stok — semak semula")
-                  : form.selectedCount === 0
-                    ? translate("Select items first")
-                    : `${translate("Record Stock Out")} (${form.selectedCount})`
-              }
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || form.selectedCount === 0 || hasOverStock}
+                className="w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-60"
+              >
+                <TrendingDown className="w-4 h-4 mr-2" />
+                {isSubmitting
+                  ? translate("Saving...")
+                  : hasOverStock
+                    ? translate("Qty melebihi stok — semak semula")
+                    : form.selectedCount === 0
+                      ? translate("Select items first")
+                      : `${translate("Record Stock Out")} (${form.selectedCount})`
+                }
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -523,6 +528,7 @@ function InventoryStockOutDesktop() {
 
 function MobileInventoryStockOut() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate } = useCrudPermissions("inventory");
   const { itemsList: allItems, isLoading: itemsLoading } = useGetAllInventoryItems();
   const { packagesList } = useGetAllInventoryPackages();
   const { stockOut } = useInventoryTransactionMutations();
@@ -592,8 +598,9 @@ function MobileInventoryStockOut() {
     }
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   const recordedBy = currentUser?.fullname;
   const isReusable = form.itemType === InventoryItemType.REUSABLE;
@@ -710,21 +717,23 @@ function MobileInventoryStockOut() {
         </CardContent>
       </Card>
 
-      <Button
-        onClick={handleSubmit}
-        disabled={isSubmitting || form.selectedCount === 0 || hasOverStock}
-        className="w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-60"
-      >
-        <TrendingDown className="w-4 h-4 mr-2" />
-        {isSubmitting
-          ? translate("Saving...")
-          : hasOverStock
-            ? translate("Qty melebihi stok — semak semula")
-            : form.selectedCount === 0
-              ? translate("Select items first")
-              : `${translate("Record Stock Out")} (${form.selectedCount})`
-        }
-      </Button>
+      {canCreate && (
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting || form.selectedCount === 0 || hasOverStock}
+          className="w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-60"
+        >
+          <TrendingDown className="w-4 h-4 mr-2" />
+          {isSubmitting
+            ? translate("Saving...")
+            : hasOverStock
+              ? translate("Qty melebihi stok — semak semula")
+              : form.selectedCount === 0
+                ? translate("Select items first")
+                : `${translate("Record Stock Out")} (${form.selectedCount})`
+          }
+        </Button>
+      )}
     </div>
   );
 }

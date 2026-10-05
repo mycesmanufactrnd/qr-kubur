@@ -108,6 +108,12 @@ export const PERMISSIONS = {
   JENAZAH_CASE_REJECT: "jenazah_case_reject",
   JENAZAH_CASE_EDIT: "jenazah_case_edit",
   JENAZAH_CASE_DELETE: "jenazah_case_delete",
+
+  // Inventory
+  INVENTORY_VIEW: "inventory_view",
+  INVENTORY_CREATE: "inventory_create",
+  INVENTORY_EDIT: "inventory_edit",
+  INVENTORY_DELETE: "inventory_delete",
 };
 
 export const PERMISSION_CATEGORIES = {
@@ -285,6 +291,16 @@ export const PERMISSION_CATEGORIES = {
       { slug: PERMISSIONS.GRAVES_CREATE, label: "Create" },
       { slug: PERMISSIONS.GRAVES_EDIT, label: "Edit" },
       { slug: PERMISSIONS.GRAVES_DELETE, label: "Delete" },
+    ],
+  },
+
+  inventory: {
+    label: "Inventory",
+    permissions: [
+      { slug: PERMISSIONS.INVENTORY_VIEW, label: "View" },
+      { slug: PERMISSIONS.INVENTORY_CREATE, label: "Create" },
+      { slug: PERMISSIONS.INVENTORY_EDIT, label: "Edit" },
+      { slug: PERMISSIONS.INVENTORY_DELETE, label: "Delete" },
     ],
   },
 

@@ -2,6 +2,9 @@
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Capacitor } from "@capacitor/core";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 const APP_NAME = "QubuR";
 const APP_TAGLINE = "Grave Management & Islamic Services Platform";
@@ -29,7 +32,20 @@ const cellValue = (col, row) => {
   return value == null || value === "" ? "-" : value;
 };
 
-export function exportRowsToExcel({ filename, columns, rows }) {
+// XLSX.writeFile() / doc.save() both rely on the browser's <a download>
+// mechanism, which Android WebView doesn't implement — clicking it silently
+// does nothing. On native, write the file to the app's cache dir instead and
+// hand it to the native share sheet, which lets the user save it or send it on.
+async function saveOrShareFile(filename, base64Data) {
+  const { uri } = await Filesystem.writeFile({
+    path: filename,
+    data: base64Data,
+    directory: Directory.Cache,
+  });
+  await Share.share({ title: filename, url: uri });
+}
+
+export async function exportRowsToExcel({ filename, columns, rows }) {
   const data = rows.map((row) => {
     const record = {};
     columns.forEach((col) => {
@@ -41,7 +57,17 @@ export function exportRowsToExcel({ filename, columns, rows }) {
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
-  XLSX.writeFile(workbook, `${filename}.xlsx`);
+
+  const fullFilename = `${filename}.xlsx`;
+  if (Capacitor.isNativePlatform()) {
+    const base64Data = XLSX.write(workbook, {
+      type: "base64",
+      bookType: "xlsx",
+    });
+    await saveOrShareFile(fullFilename, base64Data);
+  } else {
+    XLSX.writeFile(workbook, fullFilename);
+  }
 }
 
 export async function exportRowsToPdf({
@@ -126,5 +152,11 @@ export async function exportRowsToPdf({
     });
   }
 
-  doc.save(`${filename}.pdf`);
+  const fullFilename = `${filename}.pdf`;
+  if (Capacitor.isNativePlatform()) {
+    const base64Data = doc.output("datauristring").split(",")[1];
+    await saveOrShareFile(fullFilename, base64Data);
+  } else {
+    doc.save(fullFilename);
+  }
 }

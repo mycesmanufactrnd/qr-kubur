@@ -4,6 +4,9 @@
   "Next": "Next",
   "Save": "Save",
   "Cancel": "Cancel",
+  "Exit App": "Exit App",
+  "Are you sure you want to exit the app?": "Are you sure you want to exit the app?",
+  "Exit": "Exit",
   "Delete": "Delete",
   "Edit": "Edit",
   "Add": "Add",
@@ -881,7 +884,6 @@
   "Select Dependent": "Select Dependent",
   "Select status": "Select status",
 
-  "Manage Mosques": "Manage Mosques",
   "Add Mosque": "Add Mosque",
   "Edit Mosque": "Edit Mosque",
   "Delete Mosque": "Delete Mosque",
@@ -991,7 +993,6 @@
   "Get Quotation": "Get Quotation",
   "selected": "selected",
 
-  "Manage Dead Person": "Manage Dead Person",
   "Manage Death Charity Members": "Manage Death Charity Members",
   "Manage Tahfiz Center": "Manage Tahfiz Center",
   "Organisation & Others": "Organisation & Others",

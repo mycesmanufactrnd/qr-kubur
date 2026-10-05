@@ -129,6 +129,11 @@ export function buildDefaultPermissions({
         { slug: "dead_persons_create", enabled: true, user },
         { slug: "dead_persons_edit", enabled: true, user },
         { slug: "dead_persons_delete", enabled: true, user },
+        // inventory
+        { slug: "inventory_view", enabled: true, user },
+        { slug: "inventory_create", enabled: true, user },
+        { slug: "inventory_edit", enabled: true, user },
+        { slug: "inventory_delete", enabled: true, user },
       );
     }
 

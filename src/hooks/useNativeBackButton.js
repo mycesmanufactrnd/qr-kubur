@@ -4,6 +4,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { backNavigationMap } from "@/back-navigating-pages.config";
 
+// Landing pages a user can be dropped on right after login — there's nowhere
+// further back to go from here, so the back button should offer to exit the
+// app instead of navigating.
+const homeRoutes = ["/", createPageUrl("AdminDashboard")];
+
 // Fired by MainActivity.java via evaluateJavascript when the hardware back button is pressed.
 export function useNativeBackButton() {
   const navigate = useNavigate();
@@ -11,6 +16,11 @@ export function useNativeBackButton() {
 
   useEffect(() => {
     const handleBack = () => {
+      if (homeRoutes.includes(location.pathname)) {
+        window.dispatchEvent(new CustomEvent("nativeBackExitRequest"));
+        return;
+      }
+
       const matched = Object.entries(backNavigationMap).find(
         ([pageName]) => createPageUrl(pageName) === location.pathname,
       );

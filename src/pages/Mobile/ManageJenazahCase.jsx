@@ -1445,7 +1445,7 @@ export default function MobileManageJenazahCase() {
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
-        exportRowsToExcel({
+        await exportRowsToExcel({
           filename: "jenazah-cases",
           columns: jenazahCaseExportColumns,
           rows,

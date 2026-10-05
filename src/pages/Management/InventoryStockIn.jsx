@@ -19,6 +19,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetAllInventoryItems,
   useInventoryTransactionMutations,
@@ -221,6 +222,7 @@ export default function InventoryStockIn() {
 
 function InventoryStockInDesktop() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate } = useCrudPermissions("inventory");
   const { itemsList: allItems, isLoading: itemsLoading } = useGetAllInventoryItems();
   const { stockIn } = useInventoryTransactionMutations();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -273,8 +275,9 @@ function InventoryStockInDesktop() {
     }
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   const recordedBy = currentUser?.fullname;
   const isReusable = itemsForm.itemType === InventoryItemType.REUSABLE;
@@ -385,19 +388,21 @@ function InventoryStockInDesktop() {
               />
             </div>
 
-            <Button
-              onClick={handleSubmitItems}
-              disabled={isSubmitting || itemsForm.selectedCount === 0}
-              className="w-full text-white bg-green-600 hover:bg-green-700"
-            >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              {isSubmitting
-                ? translate("Saving...")
-                : itemsForm.selectedCount === 0
-                  ? translate("Select items first")
-                  : `${translate("Record Stock In")} (${itemsForm.selectedCount})`
-              }
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={handleSubmitItems}
+                disabled={isSubmitting || itemsForm.selectedCount === 0}
+                className="w-full text-white bg-green-600 hover:bg-green-700"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                {isSubmitting
+                  ? translate("Saving...")
+                  : itemsForm.selectedCount === 0
+                    ? translate("Select items first")
+                    : `${translate("Record Stock In")} (${itemsForm.selectedCount})`
+                }
+              </Button>
+            )}
           </CardContent>
         </Card>
 
@@ -451,6 +456,7 @@ function InventoryStockInDesktop() {
 
 function MobileInventoryStockIn() {
   const { loadingUser, hasAdminAccess, currentUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate } = useCrudPermissions("inventory");
   const { itemsList: allItems, isLoading: itemsLoading } = useGetAllInventoryItems();
   const { stockIn } = useInventoryTransactionMutations();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -503,8 +509,9 @@ function MobileInventoryStockIn() {
     }
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   const recordedBy = currentUser?.fullname || currentUser?.name || currentUser?.email;
   const isReusable = itemsForm.itemType === InventoryItemType.REUSABLE;
@@ -613,19 +620,21 @@ function MobileInventoryStockIn() {
         </CardContent>
       </Card>
 
-      <Button
-        onClick={handleSubmitItems}
-        disabled={isSubmitting || itemsForm.selectedCount === 0}
-        className="w-full text-white bg-green-600 hover:bg-green-700"
-      >
-        <TrendingUp className="w-4 h-4 mr-2" />
-        {isSubmitting
-          ? translate("Saving...")
-          : itemsForm.selectedCount === 0
-            ? translate("Select items first")
-            : `${translate("Record Stock In")} (${itemsForm.selectedCount})`
-        }
-      </Button>
+      {canCreate && (
+        <Button
+          onClick={handleSubmitItems}
+          disabled={isSubmitting || itemsForm.selectedCount === 0}
+          className="w-full text-white bg-green-600 hover:bg-green-700"
+        >
+          <TrendingUp className="w-4 h-4 mr-2" />
+          {isSubmitting
+            ? translate("Saving...")
+            : itemsForm.selectedCount === 0
+              ? translate("Select items first")
+              : `${translate("Record Stock In")} (${itemsForm.selectedCount})`
+          }
+        </Button>
+      )}
     </div>
   );
 }

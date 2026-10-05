@@ -498,7 +498,7 @@ export default function MobileManageQuotations() {
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
-        exportRowsToExcel({
+        await exportRowsToExcel({
           filename: "quotations",
           columns: quotationExportColumns,
           rows,

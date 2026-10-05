@@ -4,6 +4,9 @@
   "Next": "التالي",
   "Save": "حفظ",
   "Cancel": "إلغاء",
+  "Exit App": "الخروج من التطبيق",
+  "Are you sure you want to exit the app?": "هل أنت متأكد من أنك تريد الخروج من التطبيق؟",
+  "Exit": "خروج",
   "Delete": "حذف",
   "Add": "إضافة",
   "Search": "بحث",
@@ -908,7 +911,6 @@
   "Select Dependent": "اختر المعال",
   "Select status": "اختر الحالة",
 
-  "Manage Mosques": "إدارة المساجد",
   "Add Mosque": "إضافة مسجد",
   "Edit Mosque": "تعديل المسجد",
   "Delete Mosque": "حذف المسجد",
@@ -1065,7 +1067,6 @@
   "Reference Transfer No": "رقم مرجع التحويل",
   "Transaction proof": "إثبات المعاملة",
 
-  "Manage Dead Person": "إدارة المتوفين",
   "Organisation & Others": "المنظمة والمزيد",
   "Others": "أخرى",
   "Organisation Registrations": "تسجيلات المنظمات",

@@ -448,7 +448,7 @@ export default function MobileManageGraves() {
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
-        exportRowsToExcel({
+        await exportRowsToExcel({
           filename: "cemeteries",
           columns: graveExportColumns,
           rows,

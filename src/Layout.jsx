@@ -162,14 +162,9 @@ function LayoutContent({ children, currentPageName }) {
             page: "ManageGraves",
           },
           {
-            name: translate("Manage Dead Person"),
+            name: translate("Manage Deceased"),
             icon: UserCheck,
             page: "ManageDeadPersons",
-          },
-          {
-            name: translate("Grave Slot Mapping"),
-            icon: Map,
-            page: "ManageGraveMapping",
           },
           {
             name: translate("Manage Inventory"),
@@ -181,7 +176,7 @@ function LayoutContent({ children, currentPageName }) {
     ...(isOrgCanManageMosque
       ? [
           {
-            name: translate("Manage Mosques"),
+            name: translate("Manage Mosque"),
             icon: Building2,
             page: "ManageMosques",
           },

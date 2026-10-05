@@ -325,7 +325,7 @@ function ManagePermissionsDesktop() {
                         return false;
 
                       if (
-                        (key === "graves" || key === "dead_persons") &&
+                        (key === "graves" || key === "dead_persons" || key === "inventory") &&
                         !isOrgCanManageGrave &&
                         !isSuperAdmin
                       )

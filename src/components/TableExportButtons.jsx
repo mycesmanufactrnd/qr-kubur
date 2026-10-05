@@ -22,7 +22,7 @@ export default function TableExportButtons({
     try {
       const rows = await fetchRows();
       if (type === "xlsx") {
-        exportRowsToExcel({ filename, columns, rows });
+        await exportRowsToExcel({ filename, columns, rows });
       } else {
         await exportRowsToPdf({
           filename,

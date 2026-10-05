@@ -1,5 +1,7 @@
 // @ts-nocheck
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { App as CapacitorApp } from "@capacitor/app";
 import { createPageUrl } from "@/utils/index";
 import {
   MapPin,
@@ -30,11 +32,11 @@ import {
 import { translate } from "@/utils/translations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { useGetAdminDashboardStats } from "@/mutations/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
-import { useMemo } from "react";
 import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert";
 import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
 import JenazahCaseOngoingAlert from "@/components/PopUpAlert/JenazahCaseOngoingAlert";
@@ -57,6 +59,15 @@ export default function MobileAdminDashboard() {
     useCrudPermissions("kariah");
   const { loading: jenazahPermissionsLoading, canView: canViewJenazahCase } =
     useCrudPermissions("jenazah_case");
+
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    const handleExitRequest = () => setExitConfirmOpen(true);
+    window.addEventListener("nativeBackExitRequest", handleExitRequest);
+    return () =>
+      window.removeEventListener("nativeBackExitRequest", handleExitRequest);
+  }, []);
 
   const statsNeeded = useMemo(() => {
     const arr = ["OS"];
@@ -552,6 +563,16 @@ export default function MobileAdminDashboard() {
         )}
         {isOrgCanManageMosque && canViewKariah && <KariahRegistrationAlert />}
       </div>
+
+      <ConfirmDialog
+        open={exitConfirmOpen}
+        onOpenChange={setExitConfirmOpen}
+        title={translate("Exit App")}
+        description={translate("Are you sure you want to exit the app?")}
+        confirmText={translate("Exit")}
+        onConfirm={() => CapacitorApp.exitApp()}
+        showLogo
+      />
     </div>
   );
 }

@@ -26,6 +26,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { useAdminAccess } from "@/utils/auth";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetAllInventoryItems,
   useInventoryItemMutations,
@@ -117,9 +118,10 @@ function conditionBadge(condition) {
 
 // ── Location Detail Popup ─────────────────────────────────────────────────────
 
-function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete, onAddItem, hasAdminAccess }) {
+function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete, onAddItem, canCreate, canEdit, canDelete }) {
   const consumableItems = items.filter((i) => i.item_type === InventoryItemType.ONE_TIME);
   const reusableItems = items.filter((i) => i.item_type === InventoryItemType.REUSABLE);
+  const canModify = canEdit || canDelete;
 
   const ItemTable = ({ rows, isReusable }) => (
     <>
@@ -137,7 +139,7 @@ function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete
               {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Condition")}</th>}
               <th className="pb-2 pr-3 font-medium">{translate("Status")}</th>
               {isReusable && <th className="pb-2 pr-3 font-medium">{translate("Nama Arwah")}</th>}
-              {hasAdminAccess && <th className="pb-2 font-medium text-center">{translate("Actions")}</th>}
+              {canModify && <th className="pb-2 font-medium text-center">{translate("Actions")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -168,16 +170,20 @@ function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete
                       : "—"}
                   </td>
                 )}
-                {hasAdminAccess && (
+                {canModify && (
                   <td className="py-2 text-center">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
-                      onClick={() => { onClose(); onEdit(item); }}>
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
-                      onClick={() => { onClose(); onDelete(item); }}>
-                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                    </Button>
+                    {canEdit && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
+                        onClick={() => { onClose(); onEdit(item); }}>
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
+                        onClick={() => { onClose(); onDelete(item); }}>
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      </Button>
+                    )}
                   </td>
                 )}
               </tr>
@@ -202,16 +208,20 @@ function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete
                   <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">{item.group.name}</p>
                 )}
               </div>
-              {hasAdminAccess && (
+              {canModify && (
                 <div className="flex items-center gap-1 shrink-0">
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
-                    onClick={() => { onClose(); onEdit(item); }}>
-                    <Edit className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
-                    onClick={() => { onClose(); onDelete(item); }}>
-                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                  </Button>
+                  {canEdit && (
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
+                      onClick={() => { onClose(); onEdit(item); }}>
+                      <Edit className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0"
+                      onClick={() => { onClose(); onDelete(item); }}>
+                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -247,7 +257,7 @@ function LocationDetailDialog({ location, items, open, onClose, onEdit, onDelete
               </DialogTitle>
               <DialogDescription>{items.length} {translate("item(s)")}</DialogDescription>
             </div>
-            {hasAdminAccess && (
+            {canCreate && (
               <Button size="sm" onClick={onAddItem} className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 {translate("Add Item")}
@@ -306,7 +316,8 @@ function LocationCard({
   onAddItem,
   onDeleteLocation,
   onOpenDetail,
-  hasAdminAccess,
+  canCreate,
+  canDelete,
 }) {
   const consumableCount = items.filter((i) => i.item_type === InventoryItemType.ONE_TIME).length;
   const reusableCount = items.filter((i) => i.item_type === InventoryItemType.REUSABLE).length;
@@ -322,24 +333,28 @@ function LocationCard({
             <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
             <span className="truncate">{location}</span>
           </CardTitle>
-          {hasAdminAccess && (
+          {(canCreate || canDelete) && (
             <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-              <Button
-                size="sm"
-                onClick={onAddItem}
-                className="bg-blue-600 hover:bg-blue-700 text-white h-7 px-2 text-xs"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                {translate("Add Item")}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                onClick={onDeleteLocation}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+              {canCreate && (
+                <Button
+                  size="sm"
+                  onClick={onAddItem}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-7 px-2 text-xs"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  {translate("Add Item")}
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={onDeleteLocation}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -413,6 +428,13 @@ function TypeSelectionDialog({ open, onClose, onSelectType }) {
 
 export default function ManageInventoryItems() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const {
+    loading: permissionsLoading,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useCrudPermissions("inventory");
   const { itemsList, isLoading } = useGetAllInventoryItems();
   const { groups } = useGetAllReusableItemGroups();
   const { createGroup } = useReusableItemGroupMutations();
@@ -613,8 +635,9 @@ export default function ManageInventoryItems() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
@@ -631,7 +654,7 @@ export default function ManageInventoryItems() {
           <Package className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
           {translate("Inventory Items")}
         </h1>
-        {hasAdminAccess && (
+        {canCreate && (
           <Button onClick={() => setAddLocDialog(true)} className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             {translate("Add Location")}
@@ -658,7 +681,8 @@ export default function ManageInventoryItems() {
               onAddItem={() => openTypeSelect(location)}
               onDeleteLocation={() => { setLocationToDelete(location); setDeleteLocDialog(true); }}
               onOpenDetail={() => setDetailLocation(location)}
-              hasAdminAccess={hasAdminAccess}
+              canCreate={canCreate}
+              canDelete={canDelete}
             />
           ))}
         </div>
@@ -673,7 +697,9 @@ export default function ManageInventoryItems() {
         onEdit={openEditDialog}
         onDelete={(item) => { setDetailLocation(null); setItemToDelete(item); setDeleteDialogOpen(true); }}
         onAddItem={() => openTypeSelect(detailLocation)}
-        hasAdminAccess={hasAdminAccess}
+        canCreate={canCreate}
+        canEdit={canEdit}
+        canDelete={canDelete}
       />
 
       {/* ── Type Selection Dialog ───────────────────────────────────────────── */}

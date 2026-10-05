@@ -373,6 +373,13 @@ export const sendNotificationFCMToOrganisation = async ({
       body = `Kes jenazah untuk ${deceasedFullname} masih menunggu kelulusan. Sila semak semula.`;
     }
 
+    if (event === "kariah_death_notified") {
+      const deceasedFullname = inputData.deceasedFullname ?? "seorang ahli kariah";
+      const notifiedcount = inputData.notifiedcount ?? 0;
+      title = "Notifikasi Kematian Kariah Dihantar";
+      body = `Notifikasi kematian untuk ${deceasedFullname} telah dihantar kepada ${notifiedcount} ahli kariah.`;
+    }
+
     if (!title) return;
 
     const staleTokens = await sendPushNotifications(

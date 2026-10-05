@@ -28,6 +28,7 @@ export default function ConfirmDialog({
   reasonLabel = translate("Reason (optional)"),
   reasonPlaceholder = translate("Add a note (optional)"),
   isMobile = false,
+  showLogo = false,
 }) {
   const [reason, setReason] = useState("");
 
@@ -79,6 +80,13 @@ export default function ConfirmDialog({
         }
       >
         <AlertDialogHeader>
+          {showLogo && (
+            <img
+              src="/Logo-No_Background.png"
+              alt="QubuR"
+              className="h-16 w-16 mx-auto sm:mx-0"
+            />
+          )}
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{finalDescription}</AlertDialogDescription>
         </AlertDialogHeader>

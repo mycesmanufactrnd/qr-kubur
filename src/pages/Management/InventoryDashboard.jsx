@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   Package,
   AlertTriangle,
@@ -93,11 +94,13 @@ export default function InventoryDashboard() {
 
 function InventoryDashboardDesktop() {
   const { hasAdminAccess, loadingUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("inventory");
   const { stats, isLoading: statsLoading } = useGetInventoryDashboardStats();
   const { lowStockItems, isLoading: lowStockLoading } = useGetLowStockItems();
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   const statCards = [
     {
@@ -357,11 +360,13 @@ function InventoryDashboardDesktop() {
 
 function MobileInventoryDashboard() {
   const { hasAdminAccess, loadingUser } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("inventory");
   const { stats, isLoading: statsLoading } = useGetInventoryDashboardStats();
   const { lowStockItems, isLoading: lowStockLoading } = useGetLowStockItems();
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   const statCards = [
     {

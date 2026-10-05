@@ -488,7 +488,7 @@ function ManageMosquesDesktop() {
               page: isSuperAdmin ? "SuperadminDashboard" : "AdminDashboard",
             },
             {
-              label: translate("Manage Mosques"),
+              label: translate("Manage Mosque"),
               page: "ManageMosques",
             },
           ]}
@@ -509,7 +509,7 @@ function ManageMosquesDesktop() {
             page: isSuperAdmin ? "SuperadminDashboard" : "AdminDashboard",
           },
           {
-            label: translate("Manage Mosques"),
+            label: translate("Manage Mosque"),
             page: "ManageMosques",
           },
         ]}
@@ -518,7 +518,7 @@ function ManageMosquesDesktop() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Landmark className="w-6 h-6 text-stone-600" />
-          {translate("Manage Mosques")}
+          {translate("Manage Mosque")}
         </h1>
         {canCreate && (
           <div className="flex items-center gap-2">

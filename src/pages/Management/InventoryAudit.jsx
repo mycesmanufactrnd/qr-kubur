@@ -60,6 +60,7 @@ import Pagination from "@/components/Pagination";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { showSuccess, showApiError } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
@@ -226,7 +227,8 @@ function SortIcon({ field, current, order }) {
 // ── Physical Count Row ────────────────────────────────────────────────────────
 // Each row manages its own local state and saves on blur.
 
-function CountRow({ detail, sessionCompleted, onSaved }) {
+function CountRow({ detail, sessionCompleted, canEdit = true, onSaved }) {
+  const readOnly = sessionCompleted || !canEdit;
   const neverSaved = detail.physical_count === null || detail.physical_count === undefined;
   const [localCount, setLocalCount] = useState(
     neverSaved ? String(detail.system_quantity) : String(detail.physical_count),
@@ -236,7 +238,7 @@ function CountRow({ detail, sessionCompleted, onSaved }) {
   const { updateCount } = useInventoryAuditMutations();
 
   useEffect(() => {
-    if (neverSaved && !sessionCompleted) {
+    if (neverSaved && !readOnly) {
       updateCount.mutateAsync({ detailId: detail.id, physical_count: detail.system_quantity })
         .then(() => onSaved?.())
         .catch(() => {});
@@ -271,7 +273,7 @@ function CountRow({ detail, sessionCompleted, onSaved }) {
       </TableCell>
       <TableCell className="text-right font-mono">{detail.system_quantity}</TableCell>
       <TableCell className="w-28">
-        {sessionCompleted ? (
+        {readOnly ? (
           <span className="font-mono text-sm">{detail.physical_count ?? "—"}</span>
         ) : (
           <Input
@@ -299,7 +301,7 @@ function CountRow({ detail, sessionCompleted, onSaved }) {
           : resultBadge(detail.result)}
       </TableCell>
       <TableCell className="w-40">
-        {sessionCompleted ? (
+        {readOnly ? (
           <span className="text-sm text-gray-500">{detail.notes || "—"}</span>
         ) : (
           <Input
@@ -320,7 +322,8 @@ function CountRow({ detail, sessionCompleted, onSaved }) {
 // ── Reusable Item Row ─────────────────────────────────────────────────────────
 // Checks condition + status instead of quantity.
 
-function ReusableCountRow({ detail, sessionCompleted, onSaved }) {
+function ReusableCountRow({ detail, sessionCompleted, canEdit = true, onSaved }) {
+  const readOnly = sessionCompleted || !canEdit;
   const [localCondition, setLocalCondition] = useState(detail.condition ?? detail.item?.condition ?? "");
   const [localStatus, setLocalStatus] = useState(detail.reusable_status ?? detail.item?.status ?? "");
   const [localNotes, setLocalNotes] = useState(detail.notes ?? "");
@@ -349,7 +352,7 @@ function ReusableCountRow({ detail, sessionCompleted, onSaved }) {
         {detail.item?.item_name ?? `Item #${detail.itemId}`}
       </TableCell>
       <TableCell className="w-40">
-        {sessionCompleted ? (
+        {readOnly ? (
           conditionBadge(detail.condition ?? detail.item?.condition)
         ) : (
           <Select
@@ -369,7 +372,7 @@ function ReusableCountRow({ detail, sessionCompleted, onSaved }) {
         )}
       </TableCell>
       <TableCell className="w-40">
-        {sessionCompleted ? (
+        {readOnly ? (
           reusableStatusBadge(detail.reusable_status ?? detail.item?.status)
         ) : (
           <Select
@@ -392,7 +395,7 @@ function ReusableCountRow({ detail, sessionCompleted, onSaved }) {
         {saving && <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />}
       </TableCell>
       <TableCell className="w-40">
-        {sessionCompleted ? (
+        {readOnly ? (
           <span className="text-sm text-gray-500">{detail.notes || "—"}</span>
         ) : (
           <Input
@@ -419,6 +422,7 @@ export default function InventoryAudit() {
 
 function InventoryAuditDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate, canEdit } = useCrudPermissions("inventory");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const selectedSessionId = searchParams.get("sessionId")
@@ -498,8 +502,9 @@ function InventoryAuditDesktop() {
   };
 
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   // ── Session Detail View ───────────────────────────────────────────────────
 
@@ -570,27 +575,29 @@ function InventoryAuditDesktop() {
             </div>
 
             {/* Actions: toggle status left, Save right */}
-            <div className="flex justify-between gap-2">
-              <Button
-                variant="outline"
-                onClick={handleToggleLocalStatus}
-                className={isCompleted
-                  ? "border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400"
-                  : "border-teal-500 text-teal-600 hover:bg-teal-50 dark:border-teal-400 dark:text-teal-400"}
-              >
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                {isCompleted ? translate("Selesai") : translate("In Progress")}
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={completeSession.isPending || reopenSession.isPending}
-                className="bg-teal-600 hover:bg-teal-700 text-white"
-              >
-                {(completeSession.isPending || reopenSession.isPending)
-                  ? translate("Saving...")
-                  : translate("Save")}
-              </Button>
-            </div>
+            {canEdit && (
+              <div className="flex justify-between gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleToggleLocalStatus}
+                  className={isCompleted
+                    ? "border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400"
+                    : "border-teal-500 text-teal-600 hover:bg-teal-50 dark:border-teal-400 dark:text-teal-400"}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  {isCompleted ? translate("Selesai") : translate("In Progress")}
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={completeSession.isPending || reopenSession.isPending}
+                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  {(completeSession.isPending || reopenSession.isPending)
+                    ? translate("Saving...")
+                    : translate("Save")}
+                </Button>
+              </div>
+            )}
 
             {/* Consumable items */}
             <div className="space-y-2">
@@ -617,6 +624,7 @@ function InventoryAuditDesktop() {
                             key={detail.id}
                             detail={detail}
                             sessionCompleted={isCompleted}
+                            canEdit={canEdit}
                             onSaved={refetchDetail}
                           />
                         ))
@@ -651,6 +659,7 @@ function InventoryAuditDesktop() {
                             key={detail.id}
                             detail={detail}
                             sessionCompleted={isCompleted}
+                            canEdit={canEdit}
                             onSaved={refetchDetail}
                           />
                         ))
@@ -681,10 +690,12 @@ function InventoryAuditDesktop() {
           <ClipboardCheck className="w-6 h-6 text-teal-600" />
           {translate("Stock Audit")}
         </h1>
-        <Button onClick={() => setCreateDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          {translate("New Audit Session")}
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setCreateDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white">
+            <Plus className="w-4 h-4 mr-2" />
+            {translate("New Audit Session")}
+          </Button>
+        )}
       </div>
 
       {/* Status & Location filters */}
@@ -830,6 +841,7 @@ function InventoryAuditDesktop() {
 
 function MobileInventoryAudit() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loading: permissionsLoading, canView, canCreate, canEdit } = useCrudPermissions("inventory");
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedSessionId = searchParams.get("sessionId") ? Number(searchParams.get("sessionId")) : null;
   const urlPage = parseInt(searchParams.get("page") || "1");
@@ -896,8 +908,9 @@ function MobileInventoryAudit() {
     }
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   // Detail view
   if (selectedSessionId) {
@@ -954,27 +967,29 @@ function MobileInventoryAudit() {
               </CardContent>
             </Card>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleToggleLocalStatus}
-                className={`flex-1 ${isCompleted
-                  ? "border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                  : "border-teal-500 text-teal-600 dark:border-teal-400 dark:text-teal-400"}`}
-              >
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                {isCompleted ? translate("Selesai") : translate("In Progress")}
-              </Button>
-              <Button
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
-                onClick={handleSave}
-                disabled={completeSession.isPending || reopenSession.isPending}
-              >
-                {(completeSession.isPending || reopenSession.isPending)
-                  ? translate("Saving...")
-                  : translate("Save")}
-              </Button>
-            </div>
+            {canEdit && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleToggleLocalStatus}
+                  className={`flex-1 ${isCompleted
+                    ? "border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+                    : "border-teal-500 text-teal-600 dark:border-teal-400 dark:text-teal-400"}`}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  {isCompleted ? translate("Selesai") : translate("In Progress")}
+                </Button>
+                <Button
+                  className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+                  onClick={handleSave}
+                  disabled={completeSession.isPending || reopenSession.isPending}
+                >
+                  {(completeSession.isPending || reopenSession.isPending)
+                    ? translate("Saving...")
+                    : translate("Save")}
+                </Button>
+              </div>
+            )}
 
             <div className="space-y-2">
               <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{translate("Consumable Items")}</h2>
@@ -986,6 +1001,7 @@ function MobileInventoryAudit() {
                     key={detail.id}
                     detail={detail}
                     sessionCompleted={isCompleted}
+                    canEdit={canEdit}
                     onSaved={refetchDetail}
                   />
                 ))
@@ -1002,6 +1018,7 @@ function MobileInventoryAudit() {
                     key={detail.id}
                     detail={detail}
                     sessionCompleted={isCompleted}
+                    canEdit={canEdit}
                     onSaved={refetchDetail}
                   />
                 ))
@@ -1026,9 +1043,11 @@ function MobileInventoryAudit() {
           <ClipboardCheck className="w-5 h-5 text-teal-600" />
           {translate("Stock Audit")}
         </h1>
-        <Button size="sm" onClick={() => setCreateDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white">
-          <Plus className="w-4 h-4" />
-        </Button>
+        {canCreate && (
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white">
+            <Plus className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
       <Select
@@ -1107,7 +1126,8 @@ function MobileInventoryAudit() {
 }
 
 // Mobile per-item count card
-function MobileCountCard({ detail, sessionCompleted, onSaved }) {
+function MobileCountCard({ detail, sessionCompleted, canEdit = true, onSaved }) {
+  const readOnly = sessionCompleted || !canEdit;
   const neverSaved = detail.physical_count === null || detail.physical_count === undefined;
   const [localCount, setLocalCount] = useState(
     neverSaved ? String(detail.system_quantity) : String(detail.physical_count),
@@ -1117,7 +1137,7 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
   const { updateCount } = useInventoryAuditMutations();
 
   useEffect(() => {
-    if (neverSaved && !sessionCompleted) {
+    if (neverSaved && !readOnly) {
       updateCount.mutateAsync({ detailId: detail.id, physical_count: detail.system_quantity })
         .then(() => onSaved?.())
         .catch(() => {});
@@ -1164,7 +1184,7 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {saving ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : resultBadge(detail.result)}
-            {sessionCompleted ? (
+            {readOnly ? (
               <span className="font-mono text-sm w-16 text-center">{detail.physical_count ?? "—"}</span>
             ) : (
               <Input
@@ -1180,7 +1200,7 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
             )}
           </div>
         </div>
-        {sessionCompleted ? (
+        {readOnly ? (
           detail.notes ? <p className="text-xs text-gray-500">{translate("Catatan")}: {detail.notes}</p> : null
         ) : (
           <Input
@@ -1199,7 +1219,8 @@ function MobileCountCard({ detail, sessionCompleted, onSaved }) {
 }
 
 // Mobile per-item reusable check card
-function MobileReusableCard({ detail, sessionCompleted, onSaved }) {
+function MobileReusableCard({ detail, sessionCompleted, canEdit = true, onSaved }) {
+  const readOnly = sessionCompleted || !canEdit;
   const [localCondition, setLocalCondition] = useState(detail.condition ?? detail.item?.condition ?? "");
   const [localStatus, setLocalStatus] = useState(detail.reusable_status ?? detail.item?.status ?? "");
   const [localNotes, setLocalNotes] = useState(detail.notes ?? "");
@@ -1232,7 +1253,7 @@ function MobileReusableCard({ detail, sessionCompleted, onSaved }) {
           {saving && <Loader2 className="h-4 w-4 animate-spin text-gray-400 shrink-0" />}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {sessionCompleted ? (
+          {readOnly ? (
             <div>{conditionBadge(detail.condition ?? detail.item?.condition)}</div>
           ) : (
             <Select
@@ -1250,7 +1271,7 @@ function MobileReusableCard({ detail, sessionCompleted, onSaved }) {
               </SelectContent>
             </Select>
           )}
-          {sessionCompleted ? (
+          {readOnly ? (
             <div>{reusableStatusBadge(detail.reusable_status ?? detail.item?.status)}</div>
           ) : (
             <Select
@@ -1269,7 +1290,7 @@ function MobileReusableCard({ detail, sessionCompleted, onSaved }) {
             </Select>
           )}
         </div>
-        {sessionCompleted ? (
+        {readOnly ? (
           detail.notes ? <p className="text-xs text-gray-500">{translate("Catatan")}: {detail.notes}</p> : null
         ) : (
           <Input

@@ -635,7 +635,7 @@ export default function MobileManageDeadPersons() {
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
-        exportRowsToExcel({
+        await exportRowsToExcel({
           filename: "deceased-records",
           columns: deadPersonExportColumns,
           rows,

@@ -22,10 +22,12 @@ import {
   AlertTriangle,
   GitBranch,
 } from "lucide-react";
+import { App as CapacitorApp } from "@capacitor/app";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 import { getStoredGoogleUser } from "@/utils/auth";
 import GoogleSignInDialog from "@/components/GoogleSignInDialog";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { HIJRI_MONTHS } from "@/utils/enums";
 // import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton"; // no longer needed — favorites now live on their own page
 import doaBanners from "./DailyDoaBanner";
@@ -309,6 +311,7 @@ export default function UserDashboard() {
   const [googleUser, setGoogleUser] = useState(() => getStoredGoogleUser());
   const [googleAuthGateOpen, setGoogleAuthGateOpen] = useState(false);
   const [nextGoogleLoginPage, setNextGoogleLoginPage] = useState(null);
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const { pullY, refreshing, threshold } = usePullToRefresh();
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
@@ -316,6 +319,13 @@ export default function UserDashboard() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  useEffect(() => {
+    const handleExitRequest = () => setExitConfirmOpen(true);
+    window.addEventListener("nativeBackExitRequest", handleExitRequest);
+    return () =>
+      window.removeEventListener("nativeBackExitRequest", handleExitRequest);
+  }, []);
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
@@ -489,6 +499,16 @@ export default function UserDashboard() {
           setGoogleUser(user);
           navigate(createPageUrl(nextGoogleLoginPage));
         }}
+      />
+
+      <ConfirmDialog
+        open={exitConfirmOpen}
+        onOpenChange={setExitConfirmOpen}
+        title={translate("Exit App")}
+        description={translate("Are you sure you want to exit the app?")}
+        confirmText={translate("Exit")}
+        onConfirm={() => CapacitorApp.exitApp()}
+        showLogo
       />
 
       <div className="mx-4 mt-4">

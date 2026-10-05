@@ -4,6 +4,9 @@
   "Next": "Seterusnya",
   "Save": "Simpan",
   "Cancel": "Batal",
+  "Exit App": "Keluar Aplikasi",
+  "Are you sure you want to exit the app?": "Adakah anda pasti mahu keluar daripada aplikasi ini?",
+  "Exit": "Keluar",
   "Delete": "Padam",
   "Edit": "Sunting",
   "Add": "Tambah",
@@ -918,7 +921,6 @@
   "Select Dependent": "Pilih Tanggungan",
   "Select status": "Pilih status",
 
-  "Manage Mosques": "Urus Masjid-Masjid",
   "Add Mosque": "Tambah Masjid",
   "Edit Mosque": "Sunting Masjid",
   "Delete Mosque": "Padam Masjid",
@@ -1075,7 +1077,6 @@
   "Reference Transfer No": "No. Rujukan Pindahan",
   "Transaction proof": "Bukti Transaksi",
 
-  "Manage Dead Person": "Urus Orang Meninggal",
   "Organisation & Others": "Organisasi & Lain-lain",
   "Others": "Lain-lain",
   "Organisation Registrations": "Pendaftaran Organisasi",

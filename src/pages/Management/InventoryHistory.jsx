@@ -35,6 +35,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Pagination from "@/components/Pagination";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
+import { useCrudPermissions } from "@/components/PermissionsContext";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useAdminAccess } from "@/utils/auth";
@@ -125,6 +126,7 @@ export default function InventoryHistory() {
 
 function InventoryHistoryDesktop() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("inventory");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage      = parseInt(searchParams.get("page") || "1");
@@ -199,8 +201,9 @@ function InventoryHistoryDesktop() {
     });
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-6">
@@ -378,6 +381,7 @@ function InventoryHistoryDesktop() {
 
 function MobileInventoryHistory() {
   const { loadingUser, hasAdminAccess } = useAdminAccess();
+  const { loading: permissionsLoading, canView } = useCrudPermissions("inventory");
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlPage   = parseInt(searchParams.get("page") || "1");
@@ -403,8 +407,9 @@ function MobileInventoryHistory() {
     });
   };
 
-  if (loadingUser) return <PageLoadingComponent />;
+  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
   if (!hasAdminAccess) return <AccessDeniedComponent />;
+  if (!canView) return <AccessDeniedComponent />;
 
   return (
     <div className="space-y-4 p-4">

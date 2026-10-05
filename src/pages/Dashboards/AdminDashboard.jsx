@@ -793,12 +793,6 @@ function AdminDashboardDesktop() {
                             icon: Users,
                             color: "blue",
                           },
-                          {
-                            label: translate("Grave Slot Mapping"),
-                            page: "ManageGraveMapping",
-                            icon: Map,
-                            color: "teal",
-                          },
                         ]
                       : []),
                     {

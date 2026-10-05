@@ -415,7 +415,7 @@ export default function MobileManageDonations() {
       });
       const rows = data?.items ?? [];
       if (type === "xlsx") {
-        exportRowsToExcel({
+        await exportRowsToExcel({
           filename: "donations",
           columns: donationExportColumns,
           rows,

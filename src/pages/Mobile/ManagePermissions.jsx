@@ -264,7 +264,7 @@ export default function MobileManagePermissions() {
         return false;
 
       if (
-        (key === "graves" || key === "dead_persons") &&
+        (key === "graves" || key === "dead_persons" || key === "inventory") &&
         !isOrgCanManageGrave &&
         !isSuperAdmin
       )
