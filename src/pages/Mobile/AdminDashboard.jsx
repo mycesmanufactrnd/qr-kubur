@@ -583,6 +583,7 @@ export default function MobileAdminDashboard() {
         confirmText={translate("Exit")}
         onConfirm={() => CapacitorApp.exitApp()}
         showLogo
+        isMobile
       />
     </div>
   );

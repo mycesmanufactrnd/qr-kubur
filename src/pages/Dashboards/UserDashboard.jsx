@@ -509,6 +509,7 @@ export default function UserDashboard() {
         confirmText={translate("Exit")}
         onConfirm={() => CapacitorApp.exitApp()}
         showLogo
+        isMobile
       />
 
       <div className="mx-4 mt-4">
