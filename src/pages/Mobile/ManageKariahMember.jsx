@@ -31,6 +31,7 @@ import Select2Form from "@/components/forms/Select2Form";
 import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { translate } from "@/utils/translations";
 import { useAdminAccess } from "@/utils/auth";
+import { createPageUrl } from "@/utils";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
@@ -1079,7 +1080,22 @@ export default function MobileManageKariahMember() {
     setNotifyConfirmOpen(true);
   };
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  // A push notification deep-links straight into this page — if there's no
+  // session at all (e.g. tapped from a device that was never logged in here),
+  // send them to log in instead of a dead-end "Access Denied", and bring them
+  // right back afterwards instead of the generic dashboard. Reserve the real
+  // Access Denied screen for an actual logged-in account that just lacks
+  // this permission.
+  useEffect(() => {
+    if (loadingUser || currentUser) return;
+    window.location.href = `${createPageUrl("AppUserLogin")}?return=${encodeURIComponent(
+      window.location.pathname + window.location.search,
+    )}`;
+  }, [loadingUser, currentUser]);
+
+  if (loadingUser || permissionsLoading || (!currentUser && !loadingUser)) {
+    return <PageLoadingComponent />;
+  }
   if (!hasAdminAccess) return <AccessDeniedComponent />;
   if (!canView) return <AccessDeniedComponent />;
 

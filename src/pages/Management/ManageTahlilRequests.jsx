@@ -59,6 +59,7 @@ import {
   appendCurrentUserToFormData,
   createPageUrl,
   resolveFileUrl,
+  apiUrl,
 } from "@/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { showError } from "@/components/ToastrNotification";
@@ -275,7 +276,7 @@ function ManageTahlilRequestsDesktop() {
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
 
-      const res = await fetch("/api/upload/bucket-tahlil-request", {
+      const res = await fetch(apiUrl("/api/upload/bucket-tahlil-request"), {
         method: "POST",
         body: formData,
       });

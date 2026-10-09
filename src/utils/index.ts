@@ -1,5 +1,22 @@
+import { Capacitor } from "@capacitor/core";
+
 export function createPageUrl(pageName: string) {
   return "/" + pageName.toLowerCase().replace(/ /g, "-");
+}
+
+/**
+ * Web: a relative path resolves against the same origin (reverse-proxied to
+ * the backend). Native: the app bundles its own dist/ instead of loading
+ * qubur.mycesgroup.com (so push notifications stay fully native), so there's
+ * no same-origin backend to resolve against — prefix with the real backend's
+ * absolute URL instead. Use this for every backend-relative URL (uploads,
+ * file/image links, etc.) — never hardcode a bare "/api/..." path.
+ */
+export function apiUrl(path: string): string {
+  const base = Capacitor.isNativePlatform()
+    ? (import.meta.env.VITE_API_BASE_URL ?? "")
+    : "";
+  return `${base}${path}`;
 }
 
 // export function resolveFileUrl(photourl: string | null | undefined, bucket: string) {
@@ -26,7 +43,7 @@ export function resolveFileUrl(
 
   if (!bucket) return undefined;
 
-  return `/api/file/${bucket}/${encodeURIComponent(photourl)}`;
+  return apiUrl(`/api/file/${bucket}/${encodeURIComponent(photourl)}`);
 }
 
 export function appendCurrentUserToFormData(formData: FormData) {

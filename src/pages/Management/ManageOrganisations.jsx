@@ -53,7 +53,7 @@ import { getLabelFromId, hashPassword } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { trpc } from "@/utils/trpc";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { useGetOrganisationTypePaginated } from "@/mutations/useOrganisationTypeMutations";
 import {
@@ -253,7 +253,7 @@ function ManageOrganisationsDesktop() {
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
 
-      const res = await fetch("/api/upload/bucket-organisation-config", {
+      const res = await fetch(apiUrl("/api/upload/bucket-organisation-config"), {
         method: "POST",
         body: formData,
       });
@@ -766,7 +766,7 @@ function ManageOrganisationsDesktop() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });

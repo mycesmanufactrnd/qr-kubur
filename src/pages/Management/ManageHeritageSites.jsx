@@ -49,7 +49,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { defaultHeritageField } from "@/utils/defaultformfields";
 import { validateFields } from "@/utils/validations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
@@ -159,7 +159,7 @@ export default function ManageHeritageSites() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch("/api/upload/bucket-heritage-site", {
+      const res = await fetch(apiUrl("/api/upload/bucket-heritage-site"), {
         method: "POST",
         body: formDataUpload,
       });

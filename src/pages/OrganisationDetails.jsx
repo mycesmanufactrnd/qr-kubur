@@ -35,7 +35,7 @@ import { validateFields } from "@/utils/validations";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { userGoogleAccess } from "@/utils/auth";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 
@@ -95,7 +95,7 @@ export default function OrganisationDetails() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: fd,
       });

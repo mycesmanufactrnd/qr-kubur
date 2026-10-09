@@ -5,6 +5,13 @@ import autoTable from "jspdf-autotable";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
+import { showSuccess, showWarning } from "@/components/ToastrNotification";
+import { translate } from "@/utils/translations";
+import { NativeExtras } from "@/utils/nativeExtras";
+
+const XLSX_MIME =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const PDF_MIME = "application/pdf";
 
 const APP_NAME = "QubuR";
 const APP_TAGLINE = "Grave Management & Islamic Services Platform";
@@ -34,9 +41,41 @@ const cellValue = (col, row) => {
 
 // XLSX.writeFile() / doc.save() both rely on the browser's <a download>
 // mechanism, which Android WebView doesn't implement — clicking it silently
-// does nothing. On native, write the file to the app's cache dir instead and
-// hand it to the native share sheet, which lets the user save it or send it on.
-async function saveOrShareFile(filename, base64Data) {
+// does nothing. On native, NativeExtras.saveToDownloads writes into the real
+// Downloads folder (MediaStore on Android 10+, asking for storage permission
+// only on Android 9 and below) and posts a "download complete" notification
+// that opens the file when tapped.
+//
+// Falls back to cache + share sheet if that fails, e.g. storage permission
+// denied, or an older installed APK that doesn't include the plugin yet — so
+// export never just does nothing.
+async function saveOrShareFile(filename, base64Data, mimeType) {
+  try {
+    const result = await NativeExtras.saveToDownloads({
+      filename,
+      data: base64Data,
+      mimeType,
+      notificationBody: translate("Download complete. Tap to open."),
+      channelName: translate("Downloads"),
+    });
+    showSuccess(
+      translate("Saved to Downloads: {filename}").replace(
+        "{filename}",
+        result?.filename || filename,
+      ),
+    );
+    return;
+  } catch (err) {
+    console.error("[export] Save to Downloads failed, using share sheet:", err);
+    if (err?.code === "PERMISSION_DENIED") {
+      showWarning(
+        translate(
+          "Storage permission was denied, so the file can't be saved to Downloads. Choose where to save it instead.",
+        ),
+      );
+    }
+  }
+
   const { uri } = await Filesystem.writeFile({
     path: filename,
     data: base64Data,
@@ -64,7 +103,7 @@ export async function exportRowsToExcel({ filename, columns, rows }) {
       type: "base64",
       bookType: "xlsx",
     });
-    await saveOrShareFile(fullFilename, base64Data);
+    await saveOrShareFile(fullFilename, base64Data, XLSX_MIME);
   } else {
     XLSX.writeFile(workbook, fullFilename);
   }
@@ -155,7 +194,7 @@ export async function exportRowsToPdf({
   const fullFilename = `${filename}.pdf`;
   if (Capacitor.isNativePlatform()) {
     const base64Data = doc.output("datauristring").split(",")[1];
-    await saveOrShareFile(fullFilename, base64Data);
+    await saveOrShareFile(fullFilename, base64Data, PDF_MIME);
   } else {
     doc.save(fullFilename);
   }

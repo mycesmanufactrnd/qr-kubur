@@ -60,7 +60,7 @@ import {
   useGetDeadPersonPaginated,
   useDeadPersonMutations,
 } from "@/mutations/useDeadPersonMutations";
-import { resolveFileUrl, appendCurrentUserToFormData } from "@/utils";
+import { resolveFileUrl, appendCurrentUserToFormData, apiUrl } from "@/utils";
 
 function StatCard({ icon: Icon, iconClass, label, value }) {
   return (
@@ -201,7 +201,7 @@ export default function ManageGraveMapping() {
       const formData = new FormData();
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
-      const res = await fetch("/api/upload/bucket-grave-mapping", {
+      const res = await fetch(apiUrl("/api/upload/bucket-grave-mapping"), {
         method: "POST",
         body: formData,
       });

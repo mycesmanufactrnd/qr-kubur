@@ -32,6 +32,7 @@ import { HIJRI_MONTHS } from "@/utils/enums";
 // import { DraggableFloatingButton } from "@/components/mobile/DraggableFloatingButton"; // no longer needed — favorites now live on their own page
 import doaBanners from "./DailyDoaBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useFirstInstallPermissions } from "@/hooks/useFirstInstallPermissions";
 
 const todayDoa =
   doaBanners[Math.floor(Date.now() / 86400000) % doaBanners.length];
@@ -313,6 +314,7 @@ export default function UserDashboard() {
   const [nextGoogleLoginPage, setNextGoogleLoginPage] = useState(null);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const { pullY, refreshing, threshold } = usePullToRefresh();
+  useFirstInstallPermissions();
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
 

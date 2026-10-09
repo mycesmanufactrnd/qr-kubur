@@ -32,6 +32,7 @@ import {
   appendCurrentUserToFormData,
   resolveFileUrl,
   createPageUrl,
+  apiUrl,
 } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
@@ -538,7 +539,7 @@ export default function MobileManageDeadPersons() {
       const formData = new FormData();
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formData,
       });

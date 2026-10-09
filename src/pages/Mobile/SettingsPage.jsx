@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { createPageUrl } from "@/utils/index";
 import {
   HelpCircle,
@@ -21,6 +22,7 @@ import {
   Bell,
   BellOff,
   BookOpen,
+  LayoutDashboard,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -127,14 +129,11 @@ export default function SettingsPageMobile() {
   );
   const [phoneDraft, setPhoneDraft] = useState(savedPhone);
 
-  const [authMode, setAuthMode] = useState(() => {
-    if (sessionStorage.getItem("appUserAuth")) return "admin";
-    if (getStoredGoogleUser()) return "google";
-    return "guest";
-  });
-
   const { login, loading, error } = useLoginGoogle();
-  const isWebView = /wv/i.test(navigator.userAgent) || !!window.Capacitor?.isNativePlatform?.();
+  // Capacitor.isNativePlatform() (proper import, same as trpc.ts/payment.ts)
+  // instead of the window.Capacitor global, which isn't guaranteed to be
+  // populated by the time this evaluates.
+  const isWebView = Capacitor.isNativePlatform() || /wv/i.test(navigator.userAgent);
   const [signInError, setSignInError] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const { pullY, refreshing: pullRefreshing, threshold } = usePullToRefresh();
@@ -163,7 +162,7 @@ export default function SettingsPageMobile() {
           const appUserAuth = sessionStorage.getItem("appUserAuth");
           
           if (appUserAuth) {
-            await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+            await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token, platform: Capacitor.getPlatform() });
           }
         } catch (saveErr) {
           console.error("[FCM] saveDeviceToken failed:", saveErr);
@@ -268,19 +267,10 @@ export default function SettingsPageMobile() {
     applyFontSize(savedSize);
     applyTheme(savedTheme);
 
-    const appUserAuth = sessionStorage.getItem("appUserAuth") || null;
-    const storedGoogleUser = getStoredGoogleUser();
-
-    if (appUserAuth) {
-      setAuthMode("admin");
-      return;
-    }
-    if (storedGoogleUser) {
-      setAuthMode("google");
-      setGoogleUser(storedGoogleUser);
-      return;
-    }
-    setAuthMode("guest");
+    // Admin and Google are independent, persistent sessions — both can be
+    // logged in at once, so this always checks Google regardless of whether
+    // an admin session also exists (never short-circuits on one or the other).
+    setGoogleUser(getStoredGoogleUser());
   }, []);
 
   const onRequestGpsClick = async () => {
@@ -308,19 +298,28 @@ export default function SettingsPageMobile() {
           ? translate("Location permission not decided")
           : translate("Location permission unknown");
 
-  const onLogoutClick = () => {
-    if (authMode === "google") {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.disableAutoSelect();
-        if (googleUser?.email && window.google.accounts.id.revoke) {
-          window.google.accounts.id.revoke(googleUser.email, () => {});
-        }
+  // Admin and Google are independent sessions — each gets its own logout
+  // action rather than branching on a single shared auth mode.
+  const onGoogleLogoutClick = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.disableAutoSelect();
+      if (googleUser?.email && window.google.accounts.id.revoke) {
+        window.google.accounts.id.revoke(googleUser.email, () => {});
       }
-      clearStoredGoogleAuth();
-      window.location.href = createPageUrl("UserDashboard");
-    } else {
-      handleLogout(clearPermissions);
     }
+    clearStoredGoogleAuth();
+    window.location.href = createPageUrl("UserDashboard");
+  };
+
+  const onAdminLogoutClick = () => handleLogout(clearPermissions);
+
+  // Mirrors Layout.jsx's getMainPage() — the admin header (where "Switch to
+  // User Dashboard" lives) is hidden while browsing citizen pages, so this is
+  // the way back to the admin side while keeping the admin session intact.
+  const getAdminMainPage = () => {
+    if (isSuperAdmin) return "SuperadminDashboard";
+    if (isTahfizContext) return "TahfizDashboard";
+    return "AdminDashboard";
   };
 
   const applyFontSize = (size) => {
@@ -353,7 +352,7 @@ export default function SettingsPageMobile() {
       <BackNavigation title={translate("Settings")} />
 
       <div className="max-w-2xl mx-auto px-2 space-y-4">
-        {authMode === "guest" && (
+        {!googleUser && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 space-y-3">
             <div className="px-0 pb-3 border-b border-slate-100 dark:border-slate-700">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
@@ -383,7 +382,7 @@ export default function SettingsPageMobile() {
           </div>
         )}
 
-        {authMode === "google" && googleUser && (
+        {!!googleUser && (
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
@@ -427,7 +426,7 @@ export default function SettingsPageMobile() {
             </div>
             <div className="px-4 pb-4">
               <button
-                onClick={onLogoutClick}
+                onClick={onGoogleLogoutClick}
                 className="w-full h-10 flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 active:scale-95 transition-all text-sm font-medium text-slate-700 dark:text-slate-200"
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg">
@@ -657,15 +656,22 @@ export default function SettingsPageMobile() {
             label={translate("Privacy Policy")}
             action={() => navigate(createPageUrl("PrivacyPolicy"))}
           />
-          {authMode === "admin" && (
+          {!!currentUser && (
+            <NavRow
+              icon={LayoutDashboard}
+              label={translate("Switch to Admin Dashboard")}
+              action={() => navigate(createPageUrl(getAdminMainPage()))}
+            />
+          )}
+          {!!currentUser && (
             <NavRow
               icon={LogOut}
               label={translate("Log Out")}
-              action={onLogoutClick}
+              action={onAdminLogoutClick}
               danger
             />
           )}
-          {authMode === "guest" && (
+          {!currentUser && (
             <NavRow
               icon={LogIn}
               label={translate("Admin Login")}
@@ -675,14 +681,14 @@ export default function SettingsPageMobile() {
         </SectionCard>
 
         <SectionCard title={translate("Guides")}>
-          {(authMode === "guest" || authMode === "google" || isSuperAdmin) && (
+          {(!currentUser || !!googleUser || isSuperAdmin) && (
             <NavRow
               icon={BookOpen}
               label={translate("User Guide")}
               action={() => navigate(createPageUrl("UserManual"))}
             />
           )}
-          {(isSuperAdmin || (authMode === "admin" && !isTahfizContext)) && (
+          {(isSuperAdmin || (!!currentUser && !isTahfizContext)) && (
             <NavRow
               icon={BookOpen}
               label={translate("Organisation Admin Guide")}

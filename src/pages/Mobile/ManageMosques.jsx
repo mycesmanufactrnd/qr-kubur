@@ -21,7 +21,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
@@ -492,7 +492,7 @@ export default function MobileManageMosques() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: fd,
       });

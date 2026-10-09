@@ -9,7 +9,7 @@ import TextInputForm from '@/components/forms/TextInputForm';
 import SelectForm from '@/components/forms/SelectForm';
 import { ProjectStatus, WaqfCategory, WaqfType } from '@/utils/enums';
 import { defaultWaqfProjectField } from '@/utils/defaultformfields';
-import { appendCurrentUserToFormData, resolveFileUrl } from '@/utils';
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from '@/utils';
 
 export default function WaqfForm({ project, onSubmit, onCancel, }) {
     const { control, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting }} = useForm({
@@ -58,7 +58,7 @@ export default function WaqfForm({ project, onSubmit, onCancel, }) {
             formDataUpload.append('file', file);
             appendCurrentUserToFormData(formDataUpload);
         
-            const res = await fetch('/api/upload/bucket-waqf-project', { method: 'POST', body: formDataUpload });
+            const res = await fetch(apiUrl('/api/upload/bucket-waqf-project'), { method: 'POST', body: formDataUpload });
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
                 showError(errorData.error || 'Failed to upload photo');

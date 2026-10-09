@@ -16,7 +16,7 @@ import CheckboxForm from "@/components/forms/CheckboxForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import RichTextEditorForm from "@/components/forms/RichTextEditorForm";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
@@ -268,7 +268,7 @@ export default function MobileManageActivityPosts() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: fd,
       });

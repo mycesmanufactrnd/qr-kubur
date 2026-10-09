@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import Breadcrumb from "@/components/Breadcrumb";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import { showError } from "@/components/ToastrNotification";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
@@ -196,7 +196,7 @@ export default function ManagePaymentDistribution() {
         const formData = new FormData();
         formData.append("file", photoFile);
         appendCurrentUserToFormData(formData);
-        const res = await fetch("/api/upload/bucket-online-transaction", {
+        const res = await fetch(apiUrl("/api/upload/bucket-online-transaction"), {
           method: "POST",
           body: formData,
         });

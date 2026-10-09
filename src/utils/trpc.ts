@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { createTRPCReact } from '@trpc/react-query';
 import { httpBatchLink, httpLink, splitLink } from '@trpc/client';
+import { Capacitor } from '@capacitor/core';
 import type { AppRouter } from '../../backend/src/routers/appRouter';
 
 export const trpc = createTRPCReact<AppRouter>();
@@ -21,7 +22,13 @@ const getHeaders = () => {
   };
 };
 
-const trpcUrl = '/trpc';
+// Web: relative path, reverse-proxied same-origin ("/trpc").
+// Native: the app now bundles its own dist/ instead of loading the live site
+// (so push notifications stay fully native), so there's no same-origin
+// backend to proxy to — needs the real backend's absolute URL instead.
+const trpcUrl = Capacitor.isNativePlatform()
+  ? `${import.meta.env.VITE_API_BASE_URL}/trpc`
+  : '/trpc';
 
 export const trpcClient = trpc.createClient({
   links: [

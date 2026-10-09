@@ -39,7 +39,7 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import {
   useGetQuotationPaginated,
   useUpdateQuotation,
@@ -269,7 +269,7 @@ function ManageQuotationsDesktop() {
       formData.append("file", uploadDialogFile);
       appendCurrentUserToFormData(formData);
       const res = await fetch(
-        `/api/upload/bucket-organisation-services-proof`,
+        apiUrl(`/api/upload/bucket-organisation-services-proof`),
         {
           method: "POST",
           body: formData,
@@ -307,7 +307,7 @@ function ManageQuotationsDesktop() {
       formData.append("file", inlineUploadFile);
       appendCurrentUserToFormData(formData);
       const res = await fetch(
-        `/api/upload/bucket-organisation-services-proof`,
+        apiUrl(`/api/upload/bucket-organisation-services-proof`),
         {
           method: "POST",
           body: formData,

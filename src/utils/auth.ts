@@ -58,18 +58,33 @@ export function setStoredGoogleAuth(user: any, token?: string | null) {
   }
 }
 
+// Google and admin are independent, persistent sessions on the same device —
+// signing out of one must never touch the other's tokens (appUserAuth/
+// accessToken/refreshToken belong exclusively to the admin session).
 export function clearStoredGoogleAuth() {
   localStorage.removeItem(GOOGLE_AUTH_KEY);
   sessionStorage.removeItem(GOOGLE_AUTH_KEY);
-  // Ensure Google sign-out is a complete app sign-out even when we fall back to Bearer tokens.
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  clearTokensFallback();
   localStorage.setItem(GOOGLE_SIGNED_OUT_KEY, "1");
 }
 
 export function isGoogleSignedOut() {
   return localStorage.getItem(GOOGLE_SIGNED_OUT_KEY) === "1";
+}
+
+/**
+ * Reads ?return=/some/path off the current URL — used so a push notification
+ * that deep-links an unauthenticated admin into a Manage* page (via
+ * AppUserLogin's login-wall redirect) lands them back there after logging in,
+ * instead of the generic role-based dashboard. Only accepts same-app relative
+ * paths (must start with "/", not "//") to rule out an open-redirect via a
+ * crafted return value.
+ */
+export function getSafeReturnUrl(): string | null {
+  const target = new URLSearchParams(window.location.search).get("return");
+  if (!target || !target.startsWith("/") || target.startsWith("//")) {
+    return null;
+  }
+  return target;
 }
 
 /**
@@ -93,6 +108,21 @@ async function completeAppUserLogin(data: any) {
     userId: data.id,
   });
   sessionStorage.setItem("permissions", JSON.stringify(permissions));
+
+  const hasAdminRole =
+    data.role === "superadmin" ||
+    data.role === "admin" ||
+    data.role === "employee" ||
+    !!data.tahfizcenter ||
+    !!data.organisation;
+
+  if (hasAdminRole) {
+    const returnUrl = getSafeReturnUrl();
+    if (returnUrl) {
+      window.location.href = returnUrl;
+      return;
+    }
+  }
 
   if (data.role === "superadmin") {
     window.location.href = createPageUrl("SuperadminDashboard");
@@ -314,7 +344,7 @@ export async function impersonateUser(user: any) {
   window.location.href = createPageUrl("AdminDashboard");
 }
 
-async function refreshAppUserAuth(cachedUser: any) {
+export async function refreshAppUserAuth(cachedUser: any) {
   if (!cachedUser?.id) return null;
 
   try {
@@ -359,6 +389,20 @@ export function useAdminAccess() {
           const cachedUser = JSON.parse(appUserAuth);
           if (isMounted) {
             setCurrentUser(cachedUser);
+          }
+          return;
+        }
+
+        // sessionStorage is wiped whenever Android kills the app's process (no
+        // biometrics needed to trigger this — it just happens on backgrounding).
+        // localStorage survives that, so rehydrate the session from it instead
+        // of forcing a fresh login every time the app is reopened.
+        const persistedAuth = localStorage.getItem("appUserAuth");
+        if (persistedAuth) {
+          const cachedUser = JSON.parse(persistedAuth);
+          const refreshedUser = await refreshAppUserAuth(cachedUser);
+          if (isMounted) {
+            setCurrentUser(refreshedUser);
           }
         }
       } catch (e) {

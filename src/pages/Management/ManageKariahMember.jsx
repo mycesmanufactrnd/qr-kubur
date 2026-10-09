@@ -71,6 +71,7 @@ import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import GraveLotPickerField from "@/components/GraveLotPickerField";
 import { useAdminAccess } from "@/utils/auth";
+import { apiUrl, createPageUrl } from "@/utils";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import { trpc } from "@/utils/trpc";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
@@ -292,7 +293,7 @@ function ManageKariahMemberDesktop() {
         appendCurrentUserToFormData(formDataUpload);
       } catch (e) {}
 
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });
@@ -613,7 +614,19 @@ function ManageKariahMemberDesktop() {
     approveMutation.isPending;
   const formDisabled = !!(editingMember && !isApprovedLocal);
 
-  if (loadingUser || permissionsLoading) return <PageLoadingComponent />;
+  // See Mobile/ManageKariahMember.jsx — a push notification deep-links here;
+  // send a logged-out visitor to log in (with a return path back here)
+  // instead of a dead-end Access Denied.
+  useEffect(() => {
+    if (loadingUser || currentUser) return;
+    window.location.href = `${createPageUrl("AppUserLogin")}?return=${encodeURIComponent(
+      window.location.pathname + window.location.search,
+    )}`;
+  }, [loadingUser, currentUser]);
+
+  if (loadingUser || permissionsLoading || (!currentUser && !loadingUser)) {
+    return <PageLoadingComponent />;
+  }
   if (!hasAdminAccess) return <AccessDeniedComponent />;
   if (!canView)
     return (

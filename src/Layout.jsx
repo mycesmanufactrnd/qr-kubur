@@ -16,7 +16,6 @@ import {
   LogOut,
   QrCode,
   ChevronDown,
-  Bell,
   Shield,
   User,
   UserX,
@@ -51,7 +50,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { translate } from "@/utils/translations";
 import {
   handleLogout,
@@ -59,8 +57,16 @@ import {
   useAdminAccess,
 } from "@/utils/auth";
 import PageLoadingComponent from "@/components/PageLoadingComponent.jsx";
-import { trpc } from "./utils/trpc";
-import { notificationQueryOptions } from "@/utils/queryOptions";
+
+// Admin dashboards that don't follow the "Manage*" naming convention.
+const ADMIN_ONLY_PAGE_NAMES = new Set([
+  "AdminDashboard",
+  "SuperadminDashboard",
+  "TahfizDashboard",
+  "ImpersonateUser",
+  "FinancialReports",
+  "InventoryDashboard",
+]);
 
 export default function Layout({ children, currentPageName }) {
   return (
@@ -87,17 +93,6 @@ function LayoutContent({ children, currentPageName }) {
   const { clearPermissions } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState("false");
-
-  const { data: unreadData, isLoading } =
-    trpc.notification.getUnreadNotificationCount.useQuery(
-      { receiveremail: currentUser?.email ?? "" },
-      {
-        enabled: !!currentUser?.email,
-        ...notificationQueryOptions,
-      },
-    );
-
-  const unreadNotiCount = unreadData?.count ?? 0;
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "light";
@@ -137,6 +132,15 @@ function LayoutContent({ children, currentPageName }) {
   }, [isAdmin, currentPageName, currentUser, loadingUser]);
 
   const isUserDashboard = currentPageName === "UserDashboard";
+
+  // Admin and citizen sessions now persist independently (an admin can
+  // browse the citizen side without losing their admin session), so "is
+  // there an admin session" alone no longer decides which chrome to show —
+  // it has to be "is the CURRENT page an admin page." Every admin-only page
+  // in this app is named "Manage*" or one of these few dashboard names.
+  const isAdminOnlyPage = (pageName) =>
+    ADMIN_ONLY_PAGE_NAMES.has(pageName) || pageName?.startsWith("Manage");
+  const isAdminArea = isAdmin && isAdminOnlyPage(currentPageName);
 
   const onLogoutClick = () => {
     handleLogout(clearPermissions);
@@ -280,7 +284,7 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-white to-teal-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Mobile Header - Admin Only */}
-      {isAdmin && (
+      {isAdminArea && (
         <header className="lg:hidden sticky top-0 z-50 bg-emerald-900 dark:bg-gray-900/80 backdrop-blur-xl border-b">
           <div className="flex items-center justify-between h-14 px-4">
             <Button
@@ -330,6 +334,13 @@ function LayoutContent({ children, currentPageName }) {
                   </p>
                 </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("UserDashboard")}>
+                    <Home className="w-4 h-4 mr-2" />
+                    {translate("Switch to User Dashboard")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={onLogoutClick}
                   className="text-red-600"
@@ -344,7 +355,7 @@ function LayoutContent({ children, currentPageName }) {
       )}
 
       {/* Mobile Drawer - Admin Only */}
-      {isAdmin && (
+      {isAdminArea && (
         <>
           {isMenuOpen && (
             <div
@@ -438,21 +449,6 @@ function LayoutContent({ children, currentPageName }) {
               </div>
             </Link>
             <div className="flex items-center gap-3">
-              {/* {hasAdminAccess && (
-                <Link
-                  to={createPageUrl("NotificationPage")}
-                  className="relative"
-                >
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="w-5 h-5" />
-                    {unreadNotiCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-xs">
-                        {unreadNotiCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-              )} */}
               {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -558,7 +554,7 @@ function LayoutContent({ children, currentPageName }) {
       </main>
 
       {/* Bottom Navigation Bar - Mobile Only */}
-      {!isAdmin && (
+      {!isAdminArea && (
         <nav className="fixed bottom-0 left-0 right-0 z-[1000] bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-2xl lg:hidden">
           <div className="flex items-center justify-around py-1">
             {bottomNavItems.map((item) => {

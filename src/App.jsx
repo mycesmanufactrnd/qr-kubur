@@ -8,6 +8,7 @@ import { LocationProvider } from './providers/LocationProvider';
 import { AudioPlayerProvider } from './providers/AudioPlayerProvider';
 import AudioMiniPlayer from './components/AudioMiniPlayer';
 import ForceUpdateScreen from './components/ForceUpdateScreen';
+import PageLoadingComponent from './components/PageLoadingComponent';
 import { useFCM } from './firebase/useFCM';
 import { useLoginGoogle } from './utils/auth';
 import { useNativeBackButton } from './hooks/useNativeBackButton';
@@ -72,6 +73,19 @@ const AuthenticatedApp = () => {
 function App() {
   useFCM();
 
+  // Native splash screen (launchAutoHide: false in capacitor.config.json) is
+  // held open until this fires, instead of a fixed timer — no risk of it
+  // hiding before React is actually ready to paint, no guessing a duration.
+  // PageLoadingComponent bridges the gap so the handoff never shows a blank
+  // frame: same component already used for every other loading state in the
+  // app, not a one-off splash design.
+  const [booting, setBooting] = useState(true);
+
+  useEffect(() => {
+    window.Capacitor?.Plugins?.SplashScreen?.hide().catch(() => {});
+    setBooting(false);
+  }, []);
+
   const [forceUpdateInfo, setForceUpdateInfo] = useState(null);
 
   useEffect(() => {
@@ -79,6 +93,10 @@ function App() {
       if (info) setForceUpdateInfo(info);
     });
   }, []);
+
+  if (booting) {
+    return <PageLoadingComponent />;
+  }
 
   if (forceUpdateInfo) {
     return <ForceUpdateScreen updateInfo={forceUpdateInfo} />;

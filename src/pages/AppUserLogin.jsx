@@ -1,10 +1,16 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, AlertCircle, Eye, EyeOff, Fingerprint } from "lucide-react";
-import { handleLoginTRPC, useBiometricLoginTRPC } from "@/utils/auth";
+import {
+  handleLoginTRPC,
+  useBiometricLoginTRPC,
+  useAdminAccess,
+  getSafeReturnUrl,
+} from "@/utils/auth";
 import {
   isBiometricAvailable,
   isBiometricEnabled,
@@ -12,13 +18,50 @@ import {
   getBiometricRefreshToken,
   disableBiometricLogin,
 } from "@/utils/biometricAuth";
+import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
+import PageLoadingComponent from "@/components/PageLoadingComponent";
 
 export default function AppUserLogin() {
+  const navigate = useNavigate();
+  // Admin and Google sessions persist independently on this device — if an
+  // admin session already exists (e.g. navigating here from UserDashboard,
+  // or via an admin push notification deep link while a Google session is
+  // also active), skip the form and go straight to the right dashboard
+  // instead of forcing the credentials to be re-entered.
+  const {
+    currentUser: adminUser,
+    loadingUser: loadingAdminUser,
+    isSuperAdmin,
+    isTahfizAdmin,
+    isAdmin,
+    isEmployee,
+  } = useAdminAccess();
+
+  useEffect(() => {
+    if (loadingAdminUser || !adminUser) return;
+    const returnUrl = getSafeReturnUrl();
+    if (returnUrl) {
+      navigate(returnUrl, { replace: true });
+    } else if (isSuperAdmin) {
+      navigate(createPageUrl("SuperadminDashboard"), { replace: true });
+    } else if (isTahfizAdmin) {
+      navigate(createPageUrl("TahfizDashboard"), { replace: true });
+    } else if (isAdmin || isEmployee) {
+      navigate(createPageUrl("AdminDashboard"), { replace: true });
+    }
+  }, [loadingAdminUser, adminUser, isSuperAdmin, isTahfizAdmin, isAdmin, isEmployee, navigate]);
+
   const [username, setUsername] = useState(
     () => localStorage.getItem("rememberedUsername") ?? "",
   );
-  const [password, setPassword] = useState("");
+  // Remember me also remembers the password (plaintext in localStorage, scoped
+  // to this app's own sandboxed storage — not shared with other apps). This is
+  // a deliberate trade-off requested for devices without biometric hardware,
+  // so "stay logged in" doesn't depend on fingerprint/face support existing.
+  const [password, setPassword] = useState(
+    () => localStorage.getItem("rememberedPassword") ?? "",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(
     () => !!localStorage.getItem("rememberedUsername"),
@@ -43,12 +86,18 @@ export default function AppUserLogin() {
     })();
   }, []);
 
+  if (loadingAdminUser || adminUser) {
+    return <PageLoadingComponent />;
+  }
+
   const onSubmit = (e) => {
     e.preventDefault();
     if (rememberMe) {
       localStorage.setItem("rememberedUsername", username);
+      localStorage.setItem("rememberedPassword", password);
     } else {
       localStorage.removeItem("rememberedUsername");
+      localStorage.removeItem("rememberedPassword");
     }
     // Tying biometric enrollment to "Remember me" keeps it a single, familiar checkbox
     // instead of adding a second one — checking it also offers to save fingerprint/face login.

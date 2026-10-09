@@ -12,6 +12,13 @@
 -keep class com.getcapacitor.** { *; }
 -keep public class * extends com.getcapacitor.Plugin
 -keep @com.getcapacitor.annotation.CapacitorPlugin public class *
+# Plugin methods and permission callbacks are looked up by name via
+# reflection (e.g. this app's own NativeExtrasPlugin), so keep them too.
+-keepclassmembers class * extends com.getcapacitor.Plugin {
+    @com.getcapacitor.PluginMethod public <methods>;
+    @com.getcapacitor.annotation.PermissionCallback <methods>;
+    @com.getcapacitor.annotation.ActivityCallback <methods>;
+}
 
 # Firebase Authentication
 -keep class com.google.firebase.** { *; }

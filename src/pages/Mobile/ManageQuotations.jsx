@@ -21,7 +21,7 @@ import Pagination from "@/components/Pagination";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import {
   useGetQuotationPaginated,
@@ -186,7 +186,7 @@ function DetailSheet({ quotation, onClose, canVerify, canReject }) {
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
       const res = await fetch(
-        `/api/upload/bucket-organisation-services-proof`,
+        apiUrl(`/api/upload/bucket-organisation-services-proof`),
         {
           method: "POST",
           body: formData,

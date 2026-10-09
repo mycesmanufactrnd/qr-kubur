@@ -10,7 +10,7 @@ import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import MultipleFileUploadForm from "@/components/forms/MultipleFileUploadForm";
-import { appendCurrentUserToFormData } from "@/utils";
+import { appendCurrentUserToFormData, apiUrl } from "@/utils";
 import BackNavigation from "@/components/BackNavigation";
 import {
   Select,
@@ -293,7 +293,7 @@ export default function JenazahEmergencyRequest() {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });
@@ -522,6 +522,15 @@ export default function JenazahEmergencyRequest() {
     if (!data.burialdate) {
       showApiError({ message: translate("Please specify the burial date.") });
       setPageStep(1);
+      return;
+    }
+    if (!data.deathconfirmationphotourl && !data.policereportphotourl) {
+      showApiError({
+        message: translate(
+          "Please upload either the Death Confirmation or the Police Report.",
+        ),
+      });
+      setPageStep(2);
       return;
     }
 
@@ -1362,7 +1371,6 @@ export default function JenazahEmergencyRequest() {
                       name="deathconfirmationphotourl"
                       control={control}
                       label={translate("Death Confirmation")}
-                      required
                       errors={errors}
                       accept="image/*,application/pdf"
                       isNeedPasteURL={false}

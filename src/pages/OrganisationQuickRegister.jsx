@@ -30,7 +30,7 @@ import {
   showSuccess,
 } from "@/components/ToastrNotification";
 import { defaultQuickRegisterForm } from "@/utils/defaultformfields";
-import { appendCurrentUserToFormData } from "@/utils";
+import { appendCurrentUserToFormData, apiUrl } from "@/utils";
 
 export default function OrganisationQuickRegister() {
   const [serviceEntries, setServiceEntries] = useState([]);
@@ -173,7 +173,7 @@ export default function OrganisationQuickRegister() {
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
 
-      const res = await fetch("/api/upload/bucket-organisation-config", {
+      const res = await fetch(apiUrl("/api/upload/bucket-organisation-config"), {
         method: "POST",
         body: formData,
       });

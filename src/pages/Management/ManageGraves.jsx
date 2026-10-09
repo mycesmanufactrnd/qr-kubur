@@ -66,7 +66,7 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import { useForm } from "react-hook-form";
 import FileUploadForm from "@/components/forms/FileUploadForm";
-import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, createPageUrl, apiUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { trpcClient } from "@/utils/trpc";
 import TableExportButtons from "@/components/TableExportButtons";
@@ -190,7 +190,7 @@ function ManageGravesDesktop() {
       const formData = new FormData();
       formData.append("file", uploadFile);
 
-      const res = await fetch("/api/upload/graves/bulk", {
+      const res = await fetch(apiUrl("/api/upload/graves/bulk"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -349,7 +349,7 @@ function ManageGravesDesktop() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });

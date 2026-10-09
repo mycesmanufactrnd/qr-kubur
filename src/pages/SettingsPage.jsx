@@ -1,6 +1,7 @@
 //@ts-nocheck
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { createPageUrl } from "@/utils/index";
 import {
   HelpCircle,
@@ -77,12 +78,6 @@ function SettingsPageDesktop() {
   );
   const [phoneDraft, setPhoneDraft] = useState(savedPhone);
 
-  const [authMode, setAuthMode] = useState(() => {
-    if (sessionStorage.getItem("appUserAuth")) return "admin";
-    if (getStoredGoogleUser()) return "google";
-    return "guest";
-  });
-
   const { login, loading, error } = useLoginGoogle();
   const [signInError, setSignInError] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -109,7 +104,7 @@ function SettingsPageDesktop() {
           }
           const appUserAuth = sessionStorage.getItem("appUserAuth");
           if (appUserAuth) {
-            await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token });
+            await trpcClient.auth.saveUserDeviceToken.mutate({ fcmToken: token, platform: Capacitor.getPlatform() });
           }
         } catch (saveErr) {
           console.error("[FCM] saveDeviceToken failed:", saveErr);
@@ -201,18 +196,10 @@ function SettingsPageDesktop() {
     applyFontSize(savedSize);
     applyTheme(savedTheme);
 
-    const appUserAuth = sessionStorage.getItem("appUserAuth") || null;
-    const storedGoogleUser = getStoredGoogleUser();
-    if (appUserAuth) {
-      setAuthMode("admin");
-      return;
-    }
-    if (storedGoogleUser) {
-      setAuthMode("google");
-      setGoogleUser(storedGoogleUser);
-      return;
-    }
-    setAuthMode("guest");
+    // Admin and Google are independent, persistent sessions — both can be
+    // logged in at once, so this always checks Google regardless of whether
+    // an admin session also exists (never short-circuits on one or the other).
+    setGoogleUser(getStoredGoogleUser());
   }, []);
 
   const onRequestGpsClick = async () => {
@@ -240,20 +227,20 @@ function SettingsPageDesktop() {
           ? translate("Location permission not decided")
           : translate("Location permission unknown");
 
-  const onLogoutClick = () => {
-    if (authMode === "google") {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.disableAutoSelect();
-        if (googleUser?.email && window.google.accounts.id.revoke) {
-          window.google.accounts.id.revoke(googleUser.email, () => {});
-        }
+  // Admin and Google are independent sessions — each gets its own logout
+  // action rather than branching on a single shared auth mode.
+  const onGoogleLogoutClick = () => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.disableAutoSelect();
+      if (googleUser?.email && window.google.accounts.id.revoke) {
+        window.google.accounts.id.revoke(googleUser.email, () => {});
       }
-      clearStoredGoogleAuth();
-      window.location.href = createPageUrl("UserDashboard");
-    } else {
-      handleLogout(clearPermissions);
     }
+    clearStoredGoogleAuth();
+    window.location.href = createPageUrl("UserDashboard");
   };
+
+  const onAdminLogoutClick = () => handleLogout(clearPermissions);
 
   const applyFontSize = (size) => {
     const sizes = { small: "14px", medium: "16px", large: "18px" };
@@ -289,7 +276,7 @@ function SettingsPageDesktop() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Auth — guest */}
-        {authMode === "guest" && (
+        {!googleUser && (
           <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
@@ -342,7 +329,7 @@ function SettingsPageDesktop() {
         )}
 
         {/* Auth — google */}
-        {authMode === "google" && googleUser && (
+        {!!googleUser && (
           <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader className="border-b border-slate-100 dark:border-slate-700">
               <CardTitle className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
@@ -389,7 +376,7 @@ function SettingsPageDesktop() {
                   variant="outline"
                   size="sm"
                   className="dark:bg-slate-700 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-                  onClick={onLogoutClick}
+                  onClick={onGoogleLogoutClick}
                 >
                   {translate("Sign out of Google")}
                 </Button>
@@ -709,18 +696,18 @@ function SettingsPageDesktop() {
               <Shield className="w-4 h-4 text-slate-400" />
               {translate("Privacy Policy")}
             </Button>
-            {authMode === "admin" && (
+            {!!currentUser && (
               <Button
                 variant="outline"
                 size="sm"
                 className="w-full justify-start gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800 dark:bg-red-900/10"
-                onClick={onLogoutClick}
+                onClick={onAdminLogoutClick}
               >
                 <LogOut className="w-4 h-4" />
                 {translate("Log Out")}
               </Button>
             )}
-            {authMode === "guest" && (
+            {!currentUser && (
               <Button
                 variant="outline"
                 size="sm"
@@ -742,7 +729,7 @@ function SettingsPageDesktop() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {(authMode === "guest" || authMode === "google" || isSuperAdmin) && (
+            {(!currentUser || !!googleUser || isSuperAdmin) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -753,7 +740,7 @@ function SettingsPageDesktop() {
                 {translate("User Guide")}
               </Button>
             )}
-            {(isSuperAdmin || (authMode === "admin" && !isTahfizContext)) && (
+            {(isSuperAdmin || (!!currentUser && !isTahfizContext)) && (
               <Button
                 variant="outline"
                 size="sm"

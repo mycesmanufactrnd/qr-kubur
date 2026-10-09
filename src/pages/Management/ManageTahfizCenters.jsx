@@ -63,7 +63,7 @@ import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
 import { defaultTahfizTemplateHeaders } from "@/utils/defaulttemplateheader";
 import { hashPassword } from "@/utils/helpers";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { trpc } from "@/utils/trpc";
 import {
@@ -166,7 +166,7 @@ function ManageTahfizCentersDesktop() {
       const formData = new FormData();
       formData.append("file", uploadFile);
 
-      const res = await fetch("/api/upload/tahfiz/bulk", {
+      const res = await fetch(apiUrl("/api/upload/tahfiz/bulk"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -413,7 +413,7 @@ function ManageTahfizCentersDesktop() {
       formData.append("file", file);
       appendCurrentUserToFormData(formData);
 
-      const res = await fetch("/api/upload/bucket-tahfiz-config", {
+      const res = await fetch(apiUrl("/api/upload/bucket-tahfiz-config"), {
         method: "POST",
         body: formData,
       });
@@ -930,7 +930,7 @@ function ManageTahfizCentersDesktop() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });

@@ -2,6 +2,9 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { booleanPointInPolygon } from '@turf/turf';
 import { getMalaysiaGeo } from '@/utils/helpers';
+import { isOnboardingPermissionsDone } from '@/utils/onboarding';
+import { NativeExtras } from '@/utils/nativeExtras';
+import { Capacitor } from '@capacitor/core';
 
 const LocationContext = createContext(null);
 
@@ -116,7 +119,32 @@ export function LocationProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    resolveUserLocation();
+    // Fresh install: don't trigger the location prompt at app launch —
+    // useFirstInstallPermissions asks once UserDashboard is on screen, then
+    // asks for notifications right after.
+    if (!isOnboardingPermissionsDone()) {
+      setIsLocationLoading(false);
+      return;
+    }
+
+    // Returning users: only fetch if location was already granted. Calling
+    // geolocation without it makes Android show the system dialog again on
+    // launch; the user can still turn it on from Settings > Enable GPS.
+    if (!Capacitor.isNativePlatform()) {
+      resolveUserLocation();
+      return;
+    }
+    NativeExtras.checkLocationPermission()
+      .then(({ granted }) => {
+        if (granted) {
+          resolveUserLocation();
+        } else {
+          setLocationDenied(true);
+          setIsLocationLoading(false);
+        }
+      })
+      // Older installed APK without the plugin — keep the previous behaviour.
+      .catch(() => resolveUserLocation());
   }, [resolveUserLocation]);
 
   return (

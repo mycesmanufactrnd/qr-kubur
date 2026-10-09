@@ -4,9 +4,10 @@ import { onMessage } from "firebase/messaging";
 import { Capacitor } from "@capacitor/core";
 import { getStoredGoogleUser } from "../utils/auth";
 import { trpcClient } from "../utils/trpc";
+import { isOnboardingPermissionsDone } from "../utils/onboarding";
 import { initFCM, messaging } from "./firebase";
 
-const saveToken = (token: string) => {
+export const saveToken = (token: string) => {
   const googleUser = getStoredGoogleUser();
   if (googleUser?.id) {
     trpcClient.google.saveDeviceToken
@@ -17,20 +18,29 @@ const saveToken = (token: string) => {
   const appUserAuth = sessionStorage.getItem("appUserAuth");
   if (appUserAuth) {
     trpcClient.auth.saveUserDeviceToken
-      .mutate({ fcmToken: token })
+      .mutate({ fcmToken: token, platform: Capacitor.getPlatform() as "web" | "android" | "ios" })
       .catch((e) => console.error("[FCM] saveUserDeviceToken failed:", e));
   }
 };
 
 export const useFCM = () => {
   useEffect(() => {
-    // Register token on mount
-    initFCM().then((token) => { if (token) saveToken(token); });
+    // On a fresh install, useFirstInstallPermissions (UserDashboard) asks for
+    // notification permission itself, right after the user answers the
+    // location dialog — never both at once. For returning users the
+    // permission is already decided, so there's no dialog: just register /
+    // refresh the token.
+    if (isOnboardingPermissionsDone()) {
+      initFCM().then((token) => { if (token) saveToken(token); });
+    }
 
     // Re-register on visibility — Firebase silently rotates tokens on mobile.
     // Each time the user opens the tab/app we sync the latest token to the DB.
+    // Skipped during first-install onboarding: closing the location dialog can
+    // itself flip visibility back to "visible", which would fire a second
+    // notification request on top of the one onboarding is about to make.
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && isOnboardingPermissionsDone()) {
         initFCM().then((token) => { if (token) saveToken(token); });
       }
     };

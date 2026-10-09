@@ -57,7 +57,7 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultMosqueTemplateHeaders } from "@/utils/defaulttemplateheader";
 import { validateFields } from "@/utils/validations";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 
 import {
   useGetMosquePaginated,
@@ -187,7 +187,7 @@ function ManageMosquesDesktop() {
       const formData = new FormData();
       formData.append("file", uploadFile);
 
-      const res = await fetch("/api/upload/mosques/bulk", {
+      const res = await fetch(apiUrl("/api/upload/mosques/bulk"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -327,7 +327,7 @@ function ManageMosquesDesktop() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch("/api/upload/bucket-mosque", {
+      const res = await fetch(apiUrl("/api/upload/bucket-mosque"), {
         method: "POST",
         body: formDataUpload,
       });

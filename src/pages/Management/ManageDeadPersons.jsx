@@ -68,6 +68,7 @@ import {
   appendCurrentUserToFormData,
   resolveFileUrl,
   createPageUrl,
+  apiUrl,
 } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import MapLocationPicker from "@/components/MapLocationPicker";
@@ -225,7 +226,7 @@ function ManageDeadPersonsDesktop() {
       const formData = new FormData();
       formData.append("file", uploadFile);
 
-      const res = await fetch("/api/upload/deadpersons/bulk", {
+      const res = await fetch(apiUrl("/api/upload/deadpersons/bulk"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -547,7 +548,7 @@ function ManageDeadPersonsDesktop() {
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
 
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });

@@ -13,7 +13,7 @@ import Pagination from "@/components/Pagination";
 import { getLabelFromId, hashPassword } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
-import { appendCurrentUserToFormData, resolveFileUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { useGetOrganisationTypePaginated } from "@/mutations/useOrganisationTypeMutations";
 import {
@@ -295,7 +295,7 @@ export default function MobileManageOrganisation() {
       const fd = new FormData();
       fd.append("file", file);
       appendCurrentUserToFormData(fd);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: fd,
       });

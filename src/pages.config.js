@@ -29,7 +29,6 @@ import SearchMosque from '@/pages/SearchMosque.jsx';
 import MosqueDetails from '@/pages/MosqueDetails.jsx';
 import OrganisationDetails from '@/pages/OrganisationDetails.jsx';
 import MapView from '@/pages/MapView.jsx';
-import NotificationPage from '@/pages/NotificationPage';
 import SettingsPage from '@/pages/SettingsPage';
 
 import DonationPage from '@/pages/DonationPage';
@@ -143,7 +142,6 @@ export const PAGES = {
     "MosqueDetailsPage": MosqueDetails,
     "OrganisationDetails": OrganisationDetails,
     "MapView": MapView,
-    "NotificationPage": NotificationPage,
     "SettingsPage": SettingsPage,
 
     "DonationPage": DonationPage,

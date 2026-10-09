@@ -17,7 +17,7 @@ import FileUploadForm from "@/components/forms/FileUploadForm";
 import MultipleFileUploadForm from "@/components/forms/MultipleFileUploadForm";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import DocumentLinks from "@/components/DocumentLinks";
-import { appendCurrentUserToFormData } from "@/utils";
+import { appendCurrentUserToFormData, apiUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -832,7 +832,7 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
       appendCurrentUserToFormData(formDataUpload);
-      const res = await fetch(`/api/upload/${bucketName}`, {
+      const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
         body: formDataUpload,
       });
