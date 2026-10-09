@@ -304,13 +304,27 @@ export default function FileUploadForm({
               )}
 
               {!isShowList && displaySrc && !isPdfPreview && authenticatedImgSrc && (
-                <div className="mt-2 relative inline-block">
-                  <img
-                    src={authenticatedImgSrc}
-                    alt={translate("Preview")}
-                    className="max-h-40 rounded border shadow-sm"
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewOpen(true)}
+                    className="mt-2 block"
+                  >
+                    <img
+                      src={authenticatedImgSrc}
+                      alt={translate("Preview")}
+                      className="max-h-40 rounded border shadow-sm"
+                    />
+                  </button>
+                  <FilePreviewDialog
+                    open={previewOpen}
+                    onClose={() => setPreviewOpen(false)}
+                    src={displaySrc}
+                    isPdf={false}
+                    title={label}
+                    fileName={previewFileName}
                   />
-                </div>
+                </>
               )}
             </>
           );
