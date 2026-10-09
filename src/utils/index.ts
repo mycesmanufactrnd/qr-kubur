@@ -46,6 +46,23 @@ export function resolveFileUrl(
   return apiUrl(`/api/file/${bucket}/${encodeURIComponent(photourl)}`);
 }
 
+/**
+ * Several storage buckets (death confirmation, police report, etc.) require
+ * an authenticated GET on /api/file/:bucket/:filename — a plain <img src>
+ * can't attach an Authorization header and isn't guaranteed to carry the
+ * accessToken cookie cross-origin (native app), so it silently 401s. Use
+ * this to build the same header react-pdf is given for PDF previews, so a
+ * manual fetch()+blob can stand in for <img src> on those buckets.
+ */
+export function getAuthHeaders(): Record<string, string> {
+  const accessToken =
+    sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
+  if (!accessToken || accessToken === "undefined" || accessToken === "null") {
+    return {};
+  }
+  return { Authorization: `Bearer ${accessToken}` };
+}
+
 export function appendCurrentUserToFormData(formData: FormData) {
   try {
     const raw = sessionStorage.getItem("appUserAuth");

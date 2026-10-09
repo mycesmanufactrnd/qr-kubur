@@ -53,7 +53,12 @@ import { getLabelFromId, hashPassword } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { trpc } from "@/utils/trpc";
-import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
+import {
+  appendCurrentUserToFormData,
+  resolveFileUrl,
+  apiUrl,
+  getAuthHeaders,
+} from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { useGetOrganisationTypePaginated } from "@/mutations/useOrganisationTypeMutations";
 import {
@@ -696,7 +701,13 @@ function ManageOrganisationsDesktop() {
                 continue;
               }
 
-              const res = await fetch(fileUrl);
+              // bucket-organisation-config requires a logged-in user to GET —
+              // a plain fetch() won't carry the Authorization header needed
+              // for it (and cookies alone don't cross origins on the native app).
+              const res = await fetch(fileUrl, {
+                credentials: "include",
+                headers: getAuthHeaders(),
+              });
               if (!res.ok) {
                 continue;
               }

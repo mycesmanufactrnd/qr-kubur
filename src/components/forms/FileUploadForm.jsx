@@ -8,6 +8,7 @@ import { resolveFileUrl } from "@/utils";
 import { compressImage } from "@/utils/fileCompression";
 import { FileText, Image as ImageIcon, Upload, X } from "lucide-react";
 import { showApiError } from "@/components/ToastrNotification";
+import { useAuthenticatedObjectUrl } from "@/hooks/useAuthenticatedObjectUrl";
 import FilePreviewDialog from "@/components/forms/FilePreviewDialog";
 import FileSourceDialog from "@/components/forms/FileSourceDialog";
 import CameraCaptureDialog from "@/components/forms/CameraCaptureDialog";
@@ -48,6 +49,46 @@ export default function FileUploadForm({
   const [cameraOpen, setCameraOpen] = useState(false);
   const fileInputId = useId();
   const allowCamera = accept.includes("image");
+
+  const storedPreviewValue = isUrlMode ? urlInput : fieldValue;
+  const storedPreviewSrc = storedPreviewValue
+    ? isUrlMode
+      ? storedPreviewValue
+      : resolveFileUrl(storedPreviewValue, bucketName)
+    : "";
+  const fallbackSrc =
+    subBucketName && storedPreviewValue && !isUrlMode
+      ? resolveFileUrl(storedPreviewValue, subBucketName)
+      : null;
+  const displaySrc = localPreviewSrc || storedPreviewSrc;
+  const isPdfPreview = localPreviewSrc
+    ? localIsPdf
+    : !isUrlMode && /\.pdf$/i.test(storedPreviewValue || "");
+  const previewFileName = (storedPreviewValue || "").replace(
+    /^[0-9a-f-]{36}-/i,
+    "",
+  );
+
+  // Restricted buckets (death confirmation, police report, etc.) need an
+  // Authorization header to GET — a plain <img src> can't attach one, so
+  // fetch it ourselves and fall back to subBucketName on failure, same as
+  // the old onError-swap behaviour did for public buckets.
+  const [activeImgSrc, setActiveImgSrc] = useState(null);
+  useEffect(() => {
+    setActiveImgSrc(!isPdfPreview ? displaySrc : null);
+  }, [displaySrc, isPdfPreview]);
+  const { src: authenticatedImgSrc, error: imgLoadError } =
+    useAuthenticatedObjectUrl(activeImgSrc);
+  useEffect(() => {
+    if (
+      imgLoadError &&
+      fallbackSrc &&
+      activeImgSrc !== fallbackSrc &&
+      !(activeImgSrc || "").startsWith("blob:")
+    ) {
+      setActiveImgSrc(fallbackSrc);
+    }
+  }, [imgLoadError, fallbackSrc, activeImgSrc]);
 
   // Sync URL mode when field value changes externally
   useEffect(() => {
@@ -91,27 +132,6 @@ export default function FileUploadForm({
             : undefined
         }
         render={({ field }) => {
-          const storedPreviewValue = isUrlMode ? urlInput : field.value;
-          const storedPreviewSrc = storedPreviewValue
-            ? isUrlMode
-              ? storedPreviewValue
-              : resolveFileUrl(storedPreviewValue, bucketName)
-            : "";
-
-          const fallbackSrc =
-            subBucketName && storedPreviewValue && !isUrlMode
-              ? resolveFileUrl(storedPreviewValue, subBucketName)
-              : null;
-
-          const displaySrc = localPreviewSrc || storedPreviewSrc;
-          const isPdfPreview = localPreviewSrc
-            ? localIsPdf
-            : !isUrlMode && /\.pdf$/i.test(storedPreviewValue || "");
-          const previewFileName = (storedPreviewValue || "").replace(
-            /^[0-9a-f-]{36}-/i,
-            "",
-          );
-
           const processFile = async (file) => {
             if (!isAllowedFile(file, accept)) {
               showApiError({
@@ -283,30 +303,12 @@ export default function FileUploadForm({
                 </>
               )}
 
-              {!isShowList && displaySrc && !isPdfPreview && (
+              {!isShowList && displaySrc && !isPdfPreview && authenticatedImgSrc && (
                 <div className="mt-2 relative inline-block">
                   <img
-                    src={displaySrc}
+                    src={authenticatedImgSrc}
                     alt={translate("Preview")}
-                    referrerPolicy={
-                      !displaySrc.startsWith("blob:") &&
-                      !displaySrc.startsWith("data:") &&
-                      !displaySrc.startsWith("/")
-                        ? "no-referrer"
-                        : undefined
-                    }
                     className="max-h-40 rounded border shadow-sm"
-                    onError={(e) => {
-                      if (
-                        fallbackSrc &&
-                        !e.currentTarget.src.startsWith("blob:") &&
-                        e.currentTarget.src !== fallbackSrc
-                      ) {
-                        e.currentTarget.src = fallbackSrc;
-                      } else {
-                        e.currentTarget.style.display = "none";
-                      }
-                    }}
                   />
                 </div>
               )}

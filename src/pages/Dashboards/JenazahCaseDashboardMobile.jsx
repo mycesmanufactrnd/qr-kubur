@@ -5,6 +5,7 @@ import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
 import { resolveFileUrl } from "@/utils";
 import { useAdminAccess } from "@/utils/auth";
+import { useAuthenticatedObjectUrl } from "@/hooks/useAuthenticatedObjectUrl";
 import BackNavigation from "@/components/BackNavigation";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
@@ -86,6 +87,13 @@ const isPdfKey = (key) => /\.pdf$/i.test(key || "");
 function DocumentThumb({ fileKey, bucket, label, onOpen }) {
   const src = resolveFileUrl(fileKey, bucket);
   const isPdf = isPdfKey(fileKey);
+  // bucket-death-confirmation / bucket-police-report / supporting-doc-jenazah-case
+  // require a logged-in user to GET — a plain <img src> can't attach the
+  // Authorization header that needs, so fetch it the authenticated way
+  // instead (same approach FilePreviewDialog uses for PDFs/images).
+  const { src: authenticatedSrc } = useAuthenticatedObjectUrl(
+    !isPdf ? src : null,
+  );
   return (
     <button
       type="button"
@@ -97,16 +105,14 @@ function DocumentThumb({ fileKey, bucket, label, onOpen }) {
           <FileText className="w-7 h-7 text-slate-400" />
           <span className="text-[10px] font-semibold text-slate-400">PDF</span>
         </div>
-      ) : (
+      ) : authenticatedSrc ? (
         <img
-          src={src}
+          src={authenticatedSrc}
           alt={label}
-          referrerPolicy="no-referrer"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
           className="h-24 w-full object-cover rounded-lg border border-slate-200 dark:border-slate-600 group-active:border-emerald-400 transition-colors"
         />
+      ) : (
+        <div className="h-24 w-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 animate-pulse" />
       )}
       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
         {label}

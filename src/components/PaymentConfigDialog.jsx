@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from './ToastrNotification';
 import { translate } from '@/utils/translations';
-import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from '@/utils';
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl, getAuthHeaders } from '@/utils';
 import { trpc } from '@/utils/trpc';
 import { useGetConfigByEntity, useUpsertConfigByEntity } from '@/mutations/usePaymentConfigMutations';
 
@@ -105,7 +105,15 @@ export default function PaymentConfigDialog({
                   continue;
                 }
 
-                const res = await fetch(fileUrl);
+                // bucket-organisation-config / bucket-tahfiz-config require a
+                // logged-in user to GET — attach the same Authorization header
+                // used elsewhere for restricted-bucket previews, since a plain
+                // fetch() won't carry it (and cookies alone don't cross origins
+                // on the native app).
+                const res = await fetch(fileUrl, {
+                  credentials: "include",
+                  headers: getAuthHeaders(),
+                });
                 if (!res.ok) {
                   console.warn(`Failed to fetch file: ${configValue}`);
                   values[`${platformCode}_${fieldKey}`] = '';

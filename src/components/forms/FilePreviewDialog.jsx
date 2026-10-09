@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { translate } from "@/utils/translations";
+import { useAuthenticatedObjectUrl } from "@/hooks/useAuthenticatedObjectUrl";
 
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -48,6 +49,13 @@ export default function FilePreviewDialog({
   const resolvedTitle = title ?? translate("Preview File");
   const [numPages, setNumPages] = useState(0);
   const pdfDocumentOptions = useMemo(() => getPdfDocumentOptions(), [src]);
+  // <img src> can't attach an Authorization header the way react-pdf does
+  // for the Document above, so restricted buckets (death confirmation,
+  // police report, etc.) 401 on a plain image request — fetch it the same
+  // authenticated way instead and hand <img> a blob: URL.
+  const { src: authenticatedImgSrc, error: imgError } =
+    useAuthenticatedObjectUrl(!isPdf ? src : null);
+  const downloadHref = isPdf ? src : authenticatedImgSrc || src;
 
   useEffect(() => {
     setNumPages(0);
@@ -64,9 +72,9 @@ export default function FilePreviewDialog({
         <DialogHeader>
           <div className="flex items-center justify-between gap-3 pr-6">
             <DialogTitle>{resolvedTitle}</DialogTitle>
-            {src && (
+            {downloadHref && (
               <a
-                href={src}
+                href={downloadHref}
                 download={fileName || true}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline shrink-0"
               >
@@ -104,19 +112,18 @@ export default function FilePreviewDialog({
                 ))}
               </Document>
             </div>
-          ) : (
+          ) : authenticatedImgSrc ? (
             <img
-              src={src}
+              src={authenticatedImgSrc}
               alt={resolvedTitle}
-              referrerPolicy={
-                !src.startsWith("blob:") &&
-                !src.startsWith("data:") &&
-                !src.startsWith("/")
-                  ? "no-referrer"
-                  : undefined
-              }
               className="max-h-[75vh] w-auto max-w-full mx-auto rounded"
             />
+          ) : (
+            <p className="text-sm text-slate-400 dark:text-slate-500 py-10 text-center">
+              {imgError
+                ? translate("Failed to load image")
+                : translate("Loading...")}
+            </p>
           ))}
       </DialogContent>
     </Dialog>
