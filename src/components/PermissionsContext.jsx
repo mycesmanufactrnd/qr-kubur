@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { trpcClient } from '@/utils/trpc';
+import { refreshAppUserAuth } from '@/utils/auth';
 
 const PermissionsContext = createContext(null);
 
@@ -15,10 +16,24 @@ export function PermissionsProvider({ children }) {
   const loadUserAndPermissions = async () => {
     try {
       const appUserAuth = sessionStorage.getItem('appUserAuth');
-      if (appUserAuth) {
-        const userData = JSON.parse(appUserAuth);
+      let userData = appUserAuth ? JSON.parse(appUserAuth) : null;
+
+      if (!userData) {
+        // sessionStorage is wiped whenever Android kills the app's process
+        // in the background (e.g. reopening via a push notification) —
+        // localStorage survives that. Without this, useAdminAccess() still
+        // rehydrates the session fine (same fallback there), but this
+        // context would silently decide there's no user and deny every
+        // permission check, even though the admin is still logged in.
+        const persistedAuth = localStorage.getItem('appUserAuth');
+        if (persistedAuth) {
+          userData = await refreshAppUserAuth(JSON.parse(persistedAuth));
+        }
+      }
+
+      if (userData) {
         setUser(userData);
-        
+
         if (userData.id) {
           const storedPermissions = sessionStorage.getItem("permissions");
           if (storedPermissions) {

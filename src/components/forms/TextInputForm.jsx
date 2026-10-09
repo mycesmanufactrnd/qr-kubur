@@ -3,9 +3,97 @@ import { Controller, useFormState } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { validateFields } from "@/utils/validations";
 import { formatICNumber, capitalizeWords, capitalizeFirst } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
+
+const HOUR_OPTIONS = Array.from({ length: 12 }, (_, i) =>
+  String(i + 1).padStart(2, "0"),
+);
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) =>
+  String(i).padStart(2, "0"),
+);
+
+// Stores/displays burial time as a plain "hh:mm AM/PM" string (e.g. "02:05 PM")
+// instead of a native <input type="time">, which renders 24-hour on most
+// devices regardless of locale settings.
+function parseAmPmTime(value) {
+  const match = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec((value ?? "").trim());
+  if (!match) return { hour: "", minute: "", period: "" };
+  return {
+    hour: match[1].padStart(2, "0"),
+    minute: match[2],
+    period: match[3].toUpperCase(),
+  };
+}
+
+function TimeAmPmInput({ value, onChange, disabled }) {
+  const { hour, minute, period } = parseAmPmTime(value);
+
+  const emit = (next) => {
+    const h = next.hour ?? hour;
+    const m = next.minute ?? minute;
+    const p = next.period ?? period;
+    onChange(h && m && p ? `${h}:${m} ${p}` : "");
+  };
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <Select
+        value={hour}
+        onValueChange={(v) => emit({ hour: v })}
+        disabled={disabled}
+      >
+        <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+          <SelectValue placeholder={translate("Hour")} />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          {HOUR_OPTIONS.map((h) => (
+            <SelectItem key={h} value={h}>
+              {h}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={minute}
+        onValueChange={(v) => emit({ minute: v })}
+        disabled={disabled}
+      >
+        <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+          <SelectValue placeholder={translate("Minute")} />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          {MINUTE_OPTIONS.map((m) => (
+            <SelectItem key={m} value={m}>
+              {m}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={period}
+        onValueChange={(v) => emit({ period: v })}
+        disabled={disabled}
+      >
+        <SelectTrigger className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+          <SelectValue placeholder="AM/PM" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="AM">AM</SelectItem>
+          <SelectItem value="PM">PM</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export default function TextInputForm({
   name,
@@ -86,13 +174,21 @@ export default function TextInputForm({
             );
           }
 
+          if (isTime) {
+            return (
+              <TimeAmPmInput
+                value={field.value}
+                onChange={field.onChange}
+                disabled={disabled}
+              />
+            );
+          }
+
           return (
             <div className="relative">
               <Input
                 {...field}
-                type={
-                  isNumber ? "number" : isDate ? "date" : isTime ? "time" : "text"
-                }
+                type={isNumber ? "number" : isDate ? "date" : "text"}
                 disabled={disabled}
                 step={isNumber ? step || "any" : undefined}
                 placeholder={placeholder}
