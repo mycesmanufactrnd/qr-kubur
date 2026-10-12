@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   MapPin,
@@ -29,6 +30,11 @@ import { createPageUrl, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
 
+// Same key UserKariahRegistration saves a found/approved member under — used
+// here only to decide whether this button should say "Register" or "Check
+// Status", since that page already shows the saved status screen on its own.
+const KARIAH_STORAGE_KEY = "kariahRegisteredMember";
+
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
   const { userLocation } = useLocationContext();
@@ -46,6 +52,18 @@ export default function MosqueDetailsPage() {
     mosqueId,
     tahfizId: null,
   });
+
+  const [hasKariahRecord, setHasKariahRecord] = useState(false);
+  useEffect(() => {
+    if (!mosque?.name) return;
+    try {
+      const raw = localStorage.getItem(KARIAH_STORAGE_KEY);
+      const saved = raw ? JSON.parse(raw) : null;
+      setHasKariahRecord(saved?.mosqueName === mosque.name);
+    } catch {
+      setHasKariahRecord(false);
+    }
+  }, [mosque?.name]);
 
   if (isMosqueLoading) return <PageLoadingComponent />;
   if (isMosqueError || !mosque)
@@ -157,11 +175,13 @@ export default function MosqueDetailsPage() {
             }
           >
             <Users className="w-4 h-4 mr-2" />
-            {translate("Register as Kariah Member")}
+            {hasKariahRecord
+              ? translate("Check Kariah Member Status")
+              : translate("Register as Kariah Member")}
           </Button>
         )}
 
-        {mosque.hasdeathcharity ? (
+        {mosque.hasdeathcharity && (
           <Link
             to={`${createPageUrl(`DeathCharityUserPayment`)}?mosque=${mosque.id}`}
           >
@@ -176,8 +196,6 @@ export default function MosqueDetailsPage() {
               {translate("Register & Payment of Death Charity")}
             </Button>
           </Link>
-        ) : (
-          <div className="mb-5"></div>
         )}
 
         <div className="grid lg:grid-cols-3 gap-4">

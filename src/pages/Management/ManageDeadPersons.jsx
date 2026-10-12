@@ -788,8 +788,14 @@ function ManageDeadPersonsDesktop() {
                     <SortIcon field="dateofdeath" />
                   </span>
                 </TableHead>
-                <TableHead className="text-center">
-                  {translate("Grave Lot")}
+                <TableHead
+                  className="text-center cursor-pointer select-none"
+                  onClick={() => handleSort("gravelot")}
+                >
+                  <span className="flex items-center justify-center">
+                    {translate("Grave Lot")}
+                    <SortIcon field="gravelot" />
+                  </span>
                 </TableHead>
                 <TableHead className="text-center">
                   {translate("Cemetery Name")}

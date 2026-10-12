@@ -9,7 +9,7 @@ type useGetDeadPersonPaginatedParams = {
   filterGrave?: number;
   filterGraveLot?: string;
   filterState?: string;
-  filterKariah?: string;
+  filterKariah?: "kariah" | "not_kariah";
   dateFrom?: string;
   dateTo?: string;
   organisationIds?: number[];
