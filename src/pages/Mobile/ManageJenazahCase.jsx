@@ -31,6 +31,7 @@ import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
+import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import {
   Building2,
   MapPinned,
@@ -52,9 +53,14 @@ import {
   FileSpreadsheet,
   FileText,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { CARE_SCENARIOS, getCareScenarioKind } from "@/utils/enums";
-import { parseDobFromIcNumber, formatRM, getNextGraveLotLabel } from "@/utils/helpers";
+import {
+  parseDobFromIcNumber,
+  formatRM,
+  getNextGraveLotLabel,
+} from "@/utils/helpers";
 import { defaultManageJenazahCaseField } from "@/utils/defaultformfields";
 
 const toDateInputValue = (d) => d.toISOString().split("T")[0];
@@ -292,7 +298,9 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
 
   const onFormInvalid = () => {
     showApiError({
-      message: translate("Please complete the required fields before proceeding."),
+      message: translate(
+        "Please complete the required fields before proceeding.",
+      ),
     });
   };
 
@@ -315,9 +323,7 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
     }
     if (data.careScenario === "other" && !data.careScenarioOther?.trim()) {
       showApiError({
-        message: translate(
-          "Please specify the funeral management procedure.",
-        ),
+        message: translate("Please specify the funeral management procedure."),
       });
       return;
     }
@@ -454,7 +460,9 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
               }
               className="shrink-0 h-9 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-40"
             >
-              {memberSearching ? translate("Searching...") : translate("Search")}
+              {memberSearching
+                ? translate("Searching...")
+                : translate("Search")}
             </button>
           </div>
           {!selectedMosqueId ? (
@@ -881,8 +889,14 @@ function CaseDetailSheet({
       const selectedGrave = graves.find(
         (grave) => Number(grave.id) === Number(formData.grave),
       );
-      const latitude = selectedGrave?.latitude != null ? parseFloat(selectedGrave.latitude) : null;
-      const longitude = selectedGrave?.longitude != null ? parseFloat(selectedGrave.longitude) : null;
+      const latitude =
+        selectedGrave?.latitude != null
+          ? parseFloat(selectedGrave.latitude)
+          : null;
+      const longitude =
+        selectedGrave?.longitude != null
+          ? parseFloat(selectedGrave.longitude)
+          : null;
 
       await upsertDeadPerson.mutateAsync({
         name: d.deceasedFullname ?? "",
@@ -1021,9 +1035,7 @@ function CaseDetailSheet({
             )}
           </DetailRow>
           {d.isFamilyOfKariah && (
-            <DetailRow
-              label={translate("Family Member of Registered Kariah")}
-            >
+            <DetailRow label={translate("Family Member of Registered Kariah")}>
               <p className="text-sm text-slate-700 dark:text-slate-200">
                 {d.familyKariahMemberName || "—"}
               </p>
@@ -1071,8 +1083,7 @@ function CaseDetailSheet({
             value={
               d.careScenario === "other"
                 ? d.careScenarioOther
-                : CARE_SCENARIOS.find((s) => s.value === d.careScenario)
-                    ?.label
+                : CARE_SCENARIOS.find((s) => s.value === d.careScenario)?.label
             }
           />
           {d.careScenario !== "other" && d.careScenarioDetails && (
@@ -1343,7 +1354,9 @@ function CaseDetailSheet({
                     className="flex-[2] h-11 rounded-2xl bg-green-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-80 disabled:opacity-50"
                   >
                     <CheckCircle className="w-4 h-4" />
-                    {isBusy ? translate("Saving...") : translate("Approve & Save")}
+                    {isBusy
+                      ? translate("Saving...")
+                      : translate("Approve & Save")}
                   </button>
                 </>
               ) : (
@@ -1394,7 +1407,9 @@ function CaseDetailSheet({
               className="w-full h-11 rounded-2xl bg-emerald-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 active:opacity-80 disabled:opacity-50"
             >
               <UserPlus className="w-4 h-4" />
-              {isAddingToKariah ? translate("Registering...") : translate("Add to Kariah")}
+              {isAddingToKariah
+                ? translate("Registering...")
+                : translate("Add to Kariah")}
             </button>
           )}
       </div>
@@ -1403,7 +1418,8 @@ function CaseDetailSheet({
 }
 
 export default function MobileManageJenazahCase() {
-  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } = useAdminAccess();
+  const { currentUser, hasAdminAccess, isSuperAdmin, loadingUser } =
+    useAdminAccess();
   const {
     loading: permissionsLoading,
     canView,
@@ -1413,7 +1429,7 @@ export default function MobileManageJenazahCase() {
     canEdit,
     canDelete,
   } = useCrudPermissions("jenazah_case");
-  const [statusFilter, setStatusFilter] = useState("pending");
+  const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCase, setSelectedCase] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -1423,16 +1439,17 @@ export default function MobileManageJenazahCase() {
   const [exporting, setExporting] = useState(null);
   const itemsPerPage = 10;
 
-  const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
-    {
-      page,
-      pageSize: itemsPerPage,
-      status: statusFilter || undefined,
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin,
-    },
-    { enabled: !loadingUser && hasAdminAccess },
-  );
+  const { data, isLoading, isFetching, refetch } =
+    trpc.jenazahCase.getPaginated.useQuery(
+      {
+        page,
+        pageSize: itemsPerPage,
+        status: statusFilter || undefined,
+        currentUserOrganisation: currentUser?.organisation?.id ?? null,
+        isSuperAdmin,
+      },
+      { enabled: !loadingUser && hasAdminAccess },
+    );
 
   const updateStatus = trpc.jenazahCase.updateStatus.useMutation({
     onSuccess: () => {
@@ -1554,60 +1571,70 @@ export default function MobileManageJenazahCase() {
     <div className="min-h-screen pb-6">
       <BackNavigation title={translate("Funeral Case Management")} />
 
-      <div className="max-w-2xl mx-auto px-3 space-y-3 pt-1">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleExport("xlsx")}
-            disabled={!!exporting}
-            title={translate("Export Excel")}
-            className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-emerald-400 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-600 dark:text-emerald-400 active:opacity-70 disabled:opacity-50"
-          >
-            {exporting === "xlsx" ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <FileSpreadsheet className="w-4 h-4" />
-            )}
-          </button>
-          <button
-            onClick={() => handleExport("pdf")}
-            disabled={!!exporting}
-            title={translate("Export PDF")}
-            className="shrink-0 h-10 w-10 flex items-center justify-center rounded-xl border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/20 dark:border-red-600 dark:text-red-400 active:opacity-70 disabled:opacity-50"
-          >
-            {exporting === "pdf" ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4" />
-            )}
-          </button>
-          {canCreate && (
+      <div className="max-w-2xl mx-auto px-3 space-y-3">
+        <div className="flex items-center gap-2 pt-1">
+          <AdvancedFilters
+            parameter={[
+              {
+                label: translate("Status"),
+                type: "select",
+                searchColumn: "status",
+                options: STATUS_TABS.map((tab) => ({
+                  id: tab.value,
+                  name: tab.label,
+                })),
+              },
+            ]}
+            onApplyFilter={(f) => {
+              setStatusFilter(f.status || "");
+              setPage(1);
+            }}
+          />
+          <div className="flex items-center gap-2 ml-auto">
             <button
-              onClick={() => setFormOpen(true)}
-              className="flex-1 h-11 rounded-2xl bg-rose-600 text-white text-sm font-semibold flex items-center justify-center gap-2 active:opacity-80 shadow-sm"
+              onClick={() => handleExport("xlsx")}
+              disabled={!!exporting}
+              title={translate("Export Excel")}
+              className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl border border-emerald-400 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-600 dark:text-emerald-400 active:opacity-70 disabled:opacity-50"
             >
-              <Plus className="w-4 h-4" />
-              {translate("Add Funeral Case")}
+              {exporting === "xlsx" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+              )}
             </button>
-          )}
-        </div>
-
-        <div className="flex gap-1 overflow-x-auto pb-0.5">
-          {STATUS_TABS.map((tab) => (
             <button
-              key={tab.value}
-              onClick={() => {
-                setStatusFilter(tab.value);
-                setPage(1);
-              }}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                statusFilter === tab.value
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-              }`}
+              onClick={() => handleExport("pdf")}
+              disabled={!!exporting}
+              title={translate("Export PDF")}
+              className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/20 dark:border-red-600 dark:text-red-400 active:opacity-70 disabled:opacity-50"
             >
-              {tab.label}
+              {exporting === "pdf" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <FileText className="w-3.5 h-3.5" />
+              )}
             </button>
-          ))}
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              title={translate("Refresh")}
+              aria-label={translate("Refresh")}
+              className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`}
+              />
+            </button>
+            {canCreate && (
+              <button
+                onClick={() => setFormOpen(true)}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl bg-emerald-600 text-white active:opacity-80 shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
@@ -1654,7 +1681,8 @@ export default function MobileManageJenazahCase() {
                     )}
                     {(c.addedtokariah || d.isKariahMember) && (
                       <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                        <BadgeCheck className="w-3 h-3" /> {translate("Kariah Member")}
+                        <BadgeCheck className="w-3 h-3" />{" "}
+                        {translate("Kariah Member")}
                       </span>
                     )}
                   </div>

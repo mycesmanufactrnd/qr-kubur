@@ -14,6 +14,7 @@ import {
   Loader2,
   XCircle,
   Info,
+  RefreshCw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -839,7 +840,7 @@ export default function MobileManageKariahMember() {
   const [notifyReminderMember, setNotifyReminderMember] = useState(null);
   const [unmarkConfirmOpen, setUnmarkConfirmOpen] = useState(false);
 
-  const { data, isLoading, refetch } =
+  const { data, isLoading, isFetching, refetch } =
     trpc.deathCharityMember.getKariahPaginated.useQuery({
       page,
       pageSize: itemsPerPage,
@@ -1140,10 +1141,21 @@ export default function MobileManageKariahMember() {
               setPage(1);
             }}
           />
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title={translate("Refresh")}
+            aria-label={translate("Refresh")}
+            className="flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:opacity-70 disabled:opacity-50 ml-auto"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`}
+            />
+          </button>
           {canCreate && (
             <button
               onClick={() => setIcCheckOpen(true)}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-600 text-white text-xs font-semibold active:opacity-80 shadow-sm ml-auto"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-emerald-600 text-white text-xs font-semibold active:opacity-80 shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
