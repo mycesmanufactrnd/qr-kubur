@@ -103,6 +103,14 @@ separate, likely-legacy path** — see [[overview#legacy--half-migrated-pieces]]
 Don't copy patterns from `AuthContext.jsx`/`ProtectedRoute.jsx` into new code without checking that
 question first.
 
+## Admin pages need a mobile view too
+
+New `src/pages/Management/ManageX.jsx` pages are expected to ship a
+`src/pages/Mobile/ManageX.jsx` card-list counterpart, switched in via `useIsNarrow()` (not
+`useIsMobile()` — that's a different hook used elsewhere). Several existing pages still lack this.
+See [[../20-knowledge/frontend-conventions/admin-mobile-pattern|20-knowledge/frontend-conventions/admin-mobile-pattern.md]]
+for the exact shape, confirmed examples, and the current coverage gap.
+
 ## i18n — mandatory, enforced by root `CLAUDE.md`
 
 All user-facing text goes through `translate("...")` from `@/utils/translations`. Every new key must
@@ -110,4 +118,4 @@ be added to **all three** of `src/i18n/en.json`, `src/i18n/ms.json`, `src/i18n/a
 translations (not copies) in the same change. This rule lives in the repo's `CLAUDE.md`, not
 duplicated here — see it for the exact wording.
 
-Related: [[overview]] · [[backend-patterns]] · [[../20-knowledge/frontend-conventions/mutation-hooks-pattern|mutation-hooks-pattern.md]]
+Related: [[overview]] · [[backend-patterns]] · [[../20-knowledge/frontend-conventions/mutation-hooks-pattern|mutation-hooks-pattern.md]] · [[../20-knowledge/frontend-conventions/admin-mobile-pattern|admin-mobile-pattern.md]]

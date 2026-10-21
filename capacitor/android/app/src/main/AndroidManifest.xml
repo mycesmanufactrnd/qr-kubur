@@ -39,7 +39,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- No READ_MEDIA_IMAGES / READ_MEDIA_VIDEO: photo/video selection goes through
+         the system picker only — Camera.getPhoto(source: Camera) for capture
+         (CameraCaptureDialog.jsx) and a plain <input type="file"> for gallery/file
+         picking (FileSourceDialog.jsx / FileUploadForm.jsx), which routes through
+         Android's Photo Picker on API 33+ without needing broad media permissions.
+         Google Play's photo/video permissions policy requires removing these
+         unless a system picker is technically insufficient, which isn't the case here. -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Android 9 and below only: NativeExtrasPlugin.saveToDownloads writes the
          export straight into the public Downloads folder. Android 10+ uses

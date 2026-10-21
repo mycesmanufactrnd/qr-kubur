@@ -18,7 +18,8 @@ The rules this system runs on live in [CLAUDE.md](../CLAUDE.md).
   status.
 - **[[40-questions/index|40-questions/]]** -> **Questions for you.** Things the code cannot answer,
   parked instead of guessed — e.g. whether the base44 `AuthContext` path is actually mounted anywhere.
-- **[[50-todo/index|50-todo/]]** -> Tracked work items, currently the PDPA remediation gaps.
+- **[[50-todo/index|50-todo/]]** -> Tracked work items: the PDPA remediation gaps, and frontend
+  consistency gaps (admin pages missing a mobile view, a misplaced mutations file).
 - **[[60-compliance/index|60-compliance/]]** -> **Why this matters**: QubuR stores IC numbers, names,
   addresses, phone/email, and cause of death. Malaysia's PDPA (Act 709) mapped to what's actually
   implemented — field encryption, the shipped Privacy Policy page, and a confirmed finding that two

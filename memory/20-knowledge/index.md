@@ -4,7 +4,8 @@ What was **learned building and operating QubuR** — pitfalls, contracts and co
 obvious from the code alone, split by domain. Unlike `10-architecture/`, this folder grows lazily:
 a subfolder appears the first time a real pitfall or convention is actually found.
 
-- **[[frontend-conventions/index|frontend-conventions/]]** -> The mutation-hooks copy-paste template.
+- **[[frontend-conventions/index|frontend-conventions/]]** -> The mutation-hooks copy-paste template,
+  and the admin-page mobile (`useIsNarrow`) convention.
 - **[[security/index|security/]]** -> Field-level encryption (`encryptField`/`decryptField`/
   `hashForSearch`), how to add it to a new PII column.
 - **[[legacy/index|legacy/]]** -> What's actually dead vs. live between the original Base44 scaffold,

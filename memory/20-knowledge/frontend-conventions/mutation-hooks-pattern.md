@@ -75,3 +75,12 @@ export function use<Entity>Mutations() {
   grave-mapping queries too).
 - `src/hooks/useInventoryMutations.ts` — multiple related sub-domains in one file, `useAdminAccess`
   gating, non-CRUD mutations (`stockIn`, `stockOut`, `processPackage`).
+- `src/mutations/useJenazahCaseMutations.ts` — a mutation reused by multiple pages that each want a
+  *different* success toast/side effect (e.g. `createJenazahCase` used by both an admin form and a
+  public self-service form). Pattern: the hook's own `onSuccess` does only `invalidateAll()`, no
+  toast; each call site supplies its own message via
+  `mutation.mutate(payload, { onSuccess: () => {...} })` (or `mutateAsync` + code immediately after
+  the `await`) — React Query fires both the hook-level and call-level `onSuccess`, so this doesn't
+  skip the shared invalidation. Also shows the imperative "export all rows" idiom as a plain
+  exported `async function fetchAllX(params)` using `trpcClient` (not a hook), for pages with a
+  bulk CSV/PDF export button — see `fetchAllJenazahCases`/`fetchAllDeadPersons`.

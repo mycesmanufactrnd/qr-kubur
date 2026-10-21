@@ -12,7 +12,32 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/en.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ms.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ar.json','utf8'\\)\\); console.log\\('JSON OK'\\)\")",
       "Bash(node \"C:\\\\Users\\\\zahir\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-zahir-Documents-GitHub-qr-kubur\\\\4363f8ce-23ac-41e0-84c2-d5434f9009f2\\\\scratchpad\\\\check_dup2.js\")",
-      "Bash(node \"C:\\\\Users\\\\zahir\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-zahir-Documents-GitHub-qr-kubur\\\\4363f8ce-23ac-41e0-84c2-d5434f9009f2\\\\scratchpad\\\\check_i18n_jenazah2.js\")"
+      "Bash(node \"C:\\\\Users\\\\zahir\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-zahir-Documents-GitHub-qr-kubur\\\\4363f8ce-23ac-41e0-84c2-d5434f9009f2\\\\scratchpad\\\\check_i18n_jenazah2.js\")",
+      "Bash(node \"C:\\\\Users\\\\zahir\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-zahir-Documents-GitHub-qr-kubur\\\\4363f8ce-23ac-41e0-84c2-d5434f9009f2\\\\scratchpad\\\\check_i18n_deadperson.js\")",
+      "Bash(adb -s 192.168.0.115:37657 install -r \"C:/Users/zahir/Documents/GitHub/qr-kubur/capacitor/android/app/build/outputs/apk/debug/app-debug.apk\")",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(./gradlew.bat assembleDebug)",
+      "Bash(node -e \"console.log\\(require.resolve\\('sharp'\\)\\)\")",
+      "Bash(node -e \"console.log\\(require.resolve\\('sharp', {paths:['capacitor/node_modules']}\\)\\)\")",
+      "Bash(./node_modules/.bin/capacitor-assets --help)",
+      "Bash(./node_modules/.bin/capacitor-assets generate *)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/en.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ms.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ar.json','utf8'\\)\\); console.log\\('all valid'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/en.json','utf8'\\)\\); console.log\\('en.json valid'\\)\")",
+      "Bash(git -C \"C:\\\\Users\\\\zahir\\\\Documents\\\\GitHub\\\\qr-kubur\" show HEAD:src/pages/DetailJenazah.jsx)",
+      "Bash(node -e \"console.log\\(require\\('./capacitor/node_modules/@capacitor/cli/package.json'\\).version\\)\")",
+      "Bash(npm run *)",
+      "Bash(node scratch_check_i18n.cjs)",
+      "Bash(rm scratch_check_i18n.cjs)",
+      "Bash(npx vite *)",
+      "Bash(git status *)",
+      "Bash(curl -s https://registry.npmjs.org/capacitor-native-biometric)",
+      "Bash(curl -s \"https://registry.npmjs.org/@capgo/capacitor-native-biometric\")",
+      "Bash(npm uninstall *)",
+      "Bash(npx cap *)",
+      "Bash(docker exec *)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/en.json'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ms.json'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('src/i18n/ar.json'\\)\\); console.log\\('all valid JSON'\\)\")",
+      "Bash(node -e \"const icons = require\\('lucide-react'\\); console.log\\('UserMinus:', !!icons.UserMinus, 'UserPlus:', !!icons.UserPlus\\);\")"
     ]
   }
 }
