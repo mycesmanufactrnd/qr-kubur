@@ -8,6 +8,8 @@ a subfolder appears the first time a real pitfall or convention is actually foun
   and the admin-page mobile (`useIsNarrow`) convention.
 - **[[security/index|security/]]** -> Field-level encryption (`encryptField`/`decryptField`/
   `hashForSearch`), how to add it to a new PII column.
+- **[[dashboards/index|dashboards/]]** -> Parent-organisation Management Overview, and how the
+  admin dashboard stats are (and aren't) scoped to child organisations.
 - **[[legacy/index|legacy/]]** -> What's actually dead vs. live between the original Base44 scaffold,
   the leftover Supabase CLI state, and the real JWT/tRPC system.
 
