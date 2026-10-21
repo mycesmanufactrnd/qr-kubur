@@ -12,7 +12,6 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { createPageUrl } from "@/utils/index";
 import { translate } from "@/utils/translations";
-import { hashPassword } from "@/utils/helpers";
 import { validateFields } from "@/utils/validations";
 import { ROLE_TYPE } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
@@ -536,7 +535,7 @@ export default function MobileManageUsers() {
           ? { id: Number(userData.tahfizcenter) }
           : null,
         ...(userData.password
-          ? { password: await hashPassword(userData.password) }
+          ? { password: userData.password }
           : {}),
       };
 

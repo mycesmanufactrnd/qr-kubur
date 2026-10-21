@@ -49,7 +49,7 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 import PaymentConfigDialog from "@/components/PaymentConfigDialog";
-import { getLabelFromId, hashPassword } from "@/utils/helpers";
+import { getLabelFromId } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { trpc } from "@/utils/trpc";
@@ -558,7 +558,7 @@ function ManageOrganisationsDesktop() {
       organisation: { id: Number(organisationId) },
       tahfizcenter: null,
       states: resolvedStates,
-      password: await hashPassword(DEFAULT_USER_PASSWORD),
+      password: DEFAULT_USER_PASSWORD,
     };
   };
 

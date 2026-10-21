@@ -62,7 +62,6 @@ import { useAdminAccess } from "@/utils/auth";
 import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
 import { defaultTahfizTemplateHeaders } from "@/utils/defaulttemplateheader";
-import { hashPassword } from "@/utils/helpers";
 import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { trpc } from "@/utils/trpc";
@@ -376,7 +375,7 @@ function ManageTahfizCentersDesktop() {
       organisation: null,
       tahfizcenter: { id: Number(tahfizCenterId) },
       states: state ? [state] : [],
-      password: await hashPassword(DEFAULT_USER_PASSWORD),
+      password: DEFAULT_USER_PASSWORD,
     };
   };
 

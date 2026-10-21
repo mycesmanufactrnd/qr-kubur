@@ -43,7 +43,6 @@ import {
 } from "@/mutations/useUserMutations";
 import { useGetOrganisationPaginated } from "@/mutations/useOrganisationMutations";
 import { useGetTahfizPaginated } from "@/mutations/useTahfizMutations";
-import { hashPassword } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import { createPageUrl } from "@/utils";
 import { defaultUserField } from "@/utils/defaultformfields";
@@ -203,7 +202,7 @@ function ManageUsersDesktop() {
       tahfizcenter: data.tahfizcenter
         ? { id: Number(data.tahfizcenter) }
         : null,
-      ...(data.password ? { password: await hashPassword(data.password) } : {}),
+      ...(data.password ? { password: data.password } : {}),
     };
 
     if (!isAddMode && !submitData.password) {

@@ -10,7 +10,7 @@ import BackNavigation from "@/components/BackNavigation";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
-import { getLabelFromId, hashPassword } from "@/utils/helpers";
+import { getLabelFromId } from "@/utils/helpers";
 import { ActiveInactiveStatus, STATES_MY } from "@/utils/enums";
 import { useAdminAccess } from "@/utils/auth";
 import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
@@ -285,7 +285,7 @@ export default function MobileManageOrganisation() {
       organisation: { id: Number(organisationId) },
       tahfizcenter: null,
       states: (Array.isArray(states) ? states : [states]).filter(Boolean),
-      password: await hashPassword(DEFAULT_USER_PASSWORD),
+      password: DEFAULT_USER_PASSWORD,
     };
   };
 

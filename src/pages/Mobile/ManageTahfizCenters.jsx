@@ -1145,7 +1145,7 @@ export default function ManageTahfizCenters() {
             organisation: null,
             tahfizcenter: { id: Number(tahfizCenterId) },
             states: formData.state ? [formData.state] : [],
-            password: await hashPassword(DEFAULT_USER_PASSWORD),
+            password: DEFAULT_USER_PASSWORD,
           };
           await createUser.mutateAsync(userPayload);
         }
