@@ -1,6 +1,7 @@
 import __Layout from '@/Layout.jsx';
 import UserDashboard from '@/pages/Dashboards/UserDashboard.jsx';
 import AdminDashboard from '@/pages/Dashboards/AdminDashboard';
+import ParentAdminDashboard from '@/pages/Dashboards/ParentAdminDashboard';
 import TahfizDashboard from '@/pages/Dashboards/TahfizDashboard';
 import SuperadminDashboard from '@/pages/Dashboards/SuperadminDashboard';
 import StatisticDashboard from '@/pages/Dashboards/StatisticDashboard';
@@ -115,6 +116,7 @@ import AdminTahfizManual from '@/pages/Settings/Manuals/AdminTahfizManual.jsx';
 export const PAGES = {
     "UserDashboard": UserDashboard,
     "AdminDashboard": AdminDashboard,
+    "ParentAdminDashboard": ParentAdminDashboard,
     "TahfizDashboard": TahfizDashboard,
     "SuperadminDashboard": SuperadminDashboard,
     "StatisticDashboard": StatisticDashboard,

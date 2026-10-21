@@ -27,6 +27,7 @@ import {
   Bell,
   ChevronRight,
   RefreshCw,
+  Map,
   BarChart3,
 } from "lucide-react";
 import { translate } from "@/utils/translations";
@@ -35,7 +36,10 @@ import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { useGetAdminDashboardStats } from "@/mutations/useDashboardMutations";
+import {
+  useGetAdminDashboardStats,
+  useIsParentOrganisation,
+} from "@/mutations/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert";
 import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
@@ -54,6 +58,10 @@ export default function MobileAdminDashboard() {
     isOrgCanBeDonated,
     isOrgCanManageGrave,
   } = useAdminAccess();
+
+  const { isParentOrganisation } = useIsParentOrganisation(
+    !isSuperAdmin && !!currentUser?.organisation?.id,
+  );
 
   const { loading: kariahPermissionsLoading, canView: canViewKariah } =
     useCrudPermissions("kariah");
@@ -399,6 +407,15 @@ export default function MobileAdminDashboard() {
                 className={isRefetching ? "animate-spin" : ""}
               />
             </button>
+            {isParentOrganisation && (
+              <Link
+                to={createPageUrl("ParentAdminDashboard")}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 no-underline"
+              >
+                <Map size={11} />
+                {translate("Management Overview")}
+              </Link>
+            )}
             {isSuperAdmin && (
               <>
                 <Link

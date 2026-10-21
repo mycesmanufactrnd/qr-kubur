@@ -11,12 +11,14 @@ import {
   Donation,
   Grave,
   JenazahCase,
+  Mosque,
   Organisation,
   KariahDeathNotification,
   Quotation,
   Suggestion,
   TahfizCenter,
   TahlilRequest,
+  User,
 } from "../db/entities.js";
 import {
   ClaimStatus,
@@ -26,7 +28,380 @@ import {
   VerificationStatus,
 } from "../db/enums.js";
 
+const PARENT_ORGANISATION_TYPE = "Majlis Agama Islam";
+
+// Scope is derived from the logged-in user, never from client input: the
+// user's own organisation plus its direct child organisations.
+const resolveOrgFamily = async (userId) => {
+  const user = await AppDataSource.getRepository(User).findOne({
+    where: { id: Number(userId) },
+    relations: ["organisation", "organisation.organisationtype"],
+  });
+  const rootId = user?.organisation?.id;
+  if (!rootId) return null;
+
+  const organisations = await AppDataSource.getRepository(Organisation)
+    .createQueryBuilder("organisation")
+    .select("organisation.id", "id")
+    .addSelect("organisation.name", "name")
+    .addSelect("organisation.latitude", "latitude")
+    .addSelect("organisation.longitude", "longitude")
+    .addSelect("organisation.states", "states")
+    .where("organisation.id = :id OR organisation.parentorganisation = :id", {
+      id: rootId,
+    })
+    .orderBy("organisation.name", "ASC")
+    .getRawMany();
+
+  return {
+    rootId,
+    organisations,
+    ids: organisations.map((o) => Number(o.id)),
+    isParent:
+      user.organisation.organisationtype?.name === PARENT_ORGANISATION_TYPE ||
+      organisations.some((o) => Number(o.id) !== rootId),
+  };
+};
+
+const toNumber = (value) => Number(value ?? 0) || 0;
+const toCoordinate = (value) => {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : null;
+};
+
 export const dashboardRouter = router({
+  getParentOrgStatus: protectedProcedure.query(async ({ ctx }) => {
+    const family = await resolveOrgFamily(ctx.user.id);
+    return { isParent: !!family?.isParent };
+  }),
+
+  getParentOverview: protectedProcedure
+    .input(z.object({ year: z.number().int().min(2000).max(2100) }))
+    .query(async ({ ctx, input }) => {
+      const family = await resolveOrgFamily(ctx.user.id);
+      if (!family) return null;
+
+      const { ids, rootId } = family;
+      const { year } = input;
+      const years = [year - 1, year];
+
+      const [
+        mosqueRows,
+        graveRows,
+        arwahByOrg,
+        arwahByState,
+        arwahMonthly,
+        jenazahByStatus,
+        jenazahByOrg,
+        jenazahByState,
+        jenazahMonthly,
+        topMosques,
+        kariahRows,
+        kariahByOrg,
+        khairatSchemes,
+        khairatMembers,
+        khairatPayout,
+        notificationCount,
+      ] = await Promise.all([
+        AppDataSource.getRepository(Mosque)
+          .createQueryBuilder("mosque")
+          .innerJoin("mosque.organisation", "org")
+          .select("mosque.id", "id")
+          .addSelect("mosque.name", "name")
+          .addSelect("mosque.state", "state")
+          .addSelect("mosque.latitude", "latitude")
+          .addSelect("mosque.longitude", "longitude")
+          .addSelect("org.id", "organisationId")
+          .where("org.id IN (:...ids)", { ids })
+          .getRawMany(),
+
+        AppDataSource.getRepository(Grave)
+          .createQueryBuilder("grave")
+          .innerJoin("grave.organisation", "org")
+          .select("grave.id", "id")
+          .addSelect("grave.name", "name")
+          .addSelect("grave.state", "state")
+          .addSelect("grave.latitude", "latitude")
+          .addSelect("grave.longitude", "longitude")
+          .addSelect("org.id", "organisationId")
+          .where("org.id IN (:...ids)", { ids })
+          .getRawMany(),
+
+        AppDataSource.getRepository(DeadPerson)
+          .createQueryBuilder("deadperson")
+          .innerJoin("deadperson.grave", "grave")
+          .innerJoin("grave.organisation", "org")
+          .select("org.id", "organisationId")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("org.id")
+          .getRawMany(),
+
+        AppDataSource.getRepository(DeadPerson)
+          .createQueryBuilder("deadperson")
+          .innerJoin("deadperson.grave", "grave")
+          .innerJoin("grave.organisation", "org")
+          .select("grave.state", "state")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("grave.state")
+          .getRawMany(),
+
+        AppDataSource.getRepository(DeadPerson)
+          .createQueryBuilder("deadperson")
+          .innerJoin("deadperson.grave", "grave")
+          .innerJoin("grave.organisation", "org")
+          .select("EXTRACT(YEAR FROM deadperson.dateofdeath)::int", "year")
+          .addSelect("EXTRACT(MONTH FROM deadperson.dateofdeath)::int", "month")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .andWhere("EXTRACT(YEAR FROM deadperson.dateofdeath) IN (:...years)", {
+            years,
+          })
+          .groupBy("year")
+          .addGroupBy("month")
+          .getRawMany(),
+
+        AppDataSource.getRepository(JenazahCase)
+          .createQueryBuilder("jenazahcase")
+          .innerJoin("jenazahcase.mosque", "mosque")
+          .innerJoin("mosque.organisation", "org")
+          .select("jenazahcase.status", "status")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("jenazahcase.status")
+          .getRawMany(),
+
+        AppDataSource.getRepository(JenazahCase)
+          .createQueryBuilder("jenazahcase")
+          .innerJoin("jenazahcase.mosque", "mosque")
+          .innerJoin("mosque.organisation", "org")
+          .select("org.id", "organisationId")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("org.id")
+          .getRawMany(),
+
+        AppDataSource.getRepository(JenazahCase)
+          .createQueryBuilder("jenazahcase")
+          .innerJoin("jenazahcase.mosque", "mosque")
+          .innerJoin("mosque.organisation", "org")
+          .select("mosque.state", "state")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("mosque.state")
+          .getRawMany(),
+
+        AppDataSource.getRepository(JenazahCase)
+          .createQueryBuilder("jenazahcase")
+          .innerJoin("jenazahcase.mosque", "mosque")
+          .innerJoin("mosque.organisation", "org")
+          .select("EXTRACT(YEAR FROM jenazahcase.createdat)::int", "year")
+          .addSelect("EXTRACT(MONTH FROM jenazahcase.createdat)::int", "month")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .andWhere("EXTRACT(YEAR FROM jenazahcase.createdat) IN (:...years)", {
+            years,
+          })
+          .groupBy("year")
+          .addGroupBy("month")
+          .getRawMany(),
+
+        AppDataSource.getRepository(JenazahCase)
+          .createQueryBuilder("jenazahcase")
+          .innerJoin("jenazahcase.mosque", "mosque")
+          .innerJoin("mosque.organisation", "org")
+          .select("mosque.id", "id")
+          .addSelect("mosque.name", "name")
+          .addSelect("mosque.state", "state")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("mosque.id")
+          .addGroupBy("mosque.name")
+          .addGroupBy("mosque.state")
+          .orderBy("count", "DESC")
+          .limit(5)
+          .getRawMany(),
+
+        AppDataSource.getRepository(DeathCharityMember)
+          .createQueryBuilder("member")
+          .innerJoin("member.organisation", "org")
+          .select("member.isapproved", "isapproved")
+          .addSelect("member.isdeceased", "isdeceased")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("member.isapproved")
+          .addGroupBy("member.isdeceased")
+          .getRawMany(),
+
+        AppDataSource.getRepository(DeathCharityMember)
+          .createQueryBuilder("member")
+          .innerJoin("member.organisation", "org")
+          .select("org.id", "organisationId")
+          .addSelect("COUNT(*)", "count")
+          .where("org.id IN (:...ids)", { ids })
+          .groupBy("org.id")
+          .getRawMany(),
+
+        AppDataSource.getRepository(DeathCharity)
+          .createQueryBuilder("deathcharity")
+          .innerJoin("deathcharity.organisation", "org")
+          .where("org.id IN (:...ids)", { ids })
+          .getCount(),
+
+        AppDataSource.getRepository(DeathCharityMember)
+          .createQueryBuilder("member")
+          .innerJoin("member.deathcharity", "deathcharity")
+          .innerJoin("deathcharity.organisation", "org")
+          .where("org.id IN (:...ids)", { ids })
+          .getCount(),
+
+        AppDataSource.getRepository(DeathCharityClaim)
+          .createQueryBuilder("claim")
+          .innerJoin("claim.deathcharity", "deathcharity")
+          .innerJoin("deathcharity.organisation", "org")
+          .select("COALESCE(SUM(claim.payoutamount), 0)", "total")
+          .where("org.id IN (:...ids)", { ids })
+          .andWhere("claim.status = :status", { status: ClaimStatus.PAID })
+          .getRawOne(),
+
+        AppDataSource.getRepository(KariahDeathNotification)
+          .createQueryBuilder("notification")
+          .innerJoin("notification.organisation", "org")
+          .where("org.id IN (:...ids)", { ids })
+          .getCount(),
+      ]);
+
+      const countBy = (rows, key) =>
+        new Map(rows.map((r) => [String(r[key]), toNumber(r.count)]));
+
+      const arwahOrgMap = countBy(arwahByOrg, "organisationId");
+      const jenazahOrgMap = countBy(jenazahByOrg, "organisationId");
+      const kariahOrgMap = countBy(kariahByOrg, "organisationId");
+
+      const mosques = mosqueRows.map((m) => ({
+        id: Number(m.id),
+        name: m.name,
+        state: m.state,
+        latitude: toCoordinate(m.latitude),
+        longitude: toCoordinate(m.longitude),
+        organisationId: Number(m.organisationId),
+      }));
+
+      const graves = graveRows.map((g) => ({
+        id: Number(g.id),
+        name: g.name,
+        state: g.state,
+        latitude: toCoordinate(g.latitude),
+        longitude: toCoordinate(g.longitude),
+        organisationId: Number(g.organisationId),
+      }));
+
+      const organisations = family.organisations.map((o) => {
+        const id = Number(o.id);
+        return {
+          id,
+          name: o.name,
+          latitude: toCoordinate(o.latitude),
+          longitude: toCoordinate(o.longitude),
+          states: o.states ?? [],
+          isRoot: id === rootId,
+          mosqueCount: mosques.filter((m) => m.organisationId === id).length,
+          graveCount: graves.filter((g) => g.organisationId === id).length,
+          arwahCount: arwahOrgMap.get(String(id)) ?? 0,
+          jenazahCount: jenazahOrgMap.get(String(id)) ?? 0,
+          kariahCount: kariahOrgMap.get(String(id)) ?? 0,
+        };
+      });
+
+      const jenazahStatus = countBy(jenazahByStatus, "status");
+      const jenazah = {
+        pending: jenazahStatus.get("pending") ?? 0,
+        ongoing: jenazahStatus.get("ongoing") ?? 0,
+        closed: jenazahStatus.get("closed") ?? 0,
+        rejected: jenazahStatus.get("rejected") ?? 0,
+      };
+
+      const kariah = { total: 0, approved: 0, pending: 0, deceased: 0 };
+      for (const row of kariahRows) {
+        const count = toNumber(row.count);
+        kariah.total += count;
+        if (row.isapproved) kariah.approved += count;
+        else kariah.pending += count;
+        if (row.isdeceased) kariah.deceased += count;
+      }
+
+      const monthlyCount = (rows, y, m) =>
+        toNumber(
+          rows.find((r) => Number(r.year) === y && Number(r.month) === m)
+            ?.count,
+        );
+      const monthly = Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        arwah: monthlyCount(arwahMonthly, year, i + 1),
+        arwahPrev: monthlyCount(arwahMonthly, year - 1, i + 1),
+        jenazah: monthlyCount(jenazahMonthly, year, i + 1),
+        jenazahPrev: monthlyCount(jenazahMonthly, year - 1, i + 1),
+      }));
+
+      const stateMap = new Map();
+      const bumpState = (state, key, amount = 1) => {
+        if (!state) return;
+        const entry = stateMap.get(state) ?? {
+          state,
+          mosques: 0,
+          graves: 0,
+          arwah: 0,
+          jenazah: 0,
+        };
+        entry[key] += amount;
+        stateMap.set(state, entry);
+      };
+      mosques.forEach((m) => bumpState(m.state, "mosques"));
+      graves.forEach((g) => bumpState(g.state, "graves"));
+      arwahByState.forEach((r) => bumpState(r.state, "arwah", toNumber(r.count)));
+      jenazahByState.forEach((r) =>
+        bumpState(r.state, "jenazah", toNumber(r.count)),
+      );
+
+      return {
+        year,
+        isParent: family.isParent,
+        organisations,
+        mosques,
+        graves,
+        totals: {
+          organisations: organisations.length,
+          mosques: mosques.length,
+          graves: graves.length,
+          arwah: organisations.reduce((sum, o) => sum + o.arwahCount, 0),
+          arwahThisYear: monthly.reduce((sum, m) => sum + m.arwah, 0),
+          jenazah: {
+            ...jenazah,
+            total: Object.values(jenazah).reduce((a, b) => a + b, 0),
+          },
+          jenazahThisYear: monthly.reduce((sum, m) => sum + m.jenazah, 0),
+          kariah,
+          khairat: {
+            schemes: khairatSchemes,
+            members: khairatMembers,
+            payout: toNumber(khairatPayout?.total),
+          },
+          notifications: notificationCount,
+        },
+        monthly,
+        topMosquesByJenazah: topMosques.map((m) => ({
+          id: Number(m.id),
+          name: m.name,
+          state: m.state,
+          count: toNumber(m.count),
+        })),
+        states: [...stateMap.values()].sort(
+          (a, b) => b.arwah + b.jenazah - (a.arwah + a.jenazah),
+        ),
+      };
+    }),
+
   // OS: Organisations,Suggestion
   getOSAdminStates: protectedProcedure
     .input(

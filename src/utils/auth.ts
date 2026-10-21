@@ -92,6 +92,15 @@ export function getSafeReturnUrl(): string | null {
  * refresh token via auth.refresh) — same storage + role-redirect logic either way.
  * Throws with a user-facing message on failure so both callers can surface it the same way.
  */
+async function getOrganisationHomePage(): Promise<string> {
+  try {
+    const { isParent } = await trpcClient.dashboard.getParentOrgStatus.query();
+    return isParent ? "ParentAdminDashboard" : "AdminDashboard";
+  } catch {
+    return "AdminDashboard";
+  }
+}
+
 async function completeAppUserLogin(data: any) {
   storeTokensFallback(data.accessToken, data.refreshToken);
 
@@ -140,7 +149,9 @@ async function completeAppUserLogin(data: any) {
     data.role === "employee" ||
     data.organisation
   ) {
-    window.location.href = createPageUrl("AdminDashboard");
+    window.location.href = createPageUrl(
+      data.organisation ? await getOrganisationHomePage() : "AdminDashboard",
+    );
     return;
   }
 

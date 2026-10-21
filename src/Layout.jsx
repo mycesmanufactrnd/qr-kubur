@@ -57,10 +57,12 @@ import {
   useAdminAccess,
 } from "@/utils/auth";
 import PageLoadingComponent from "@/components/PageLoadingComponent.jsx";
+import { useIsParentOrganisation } from "@/mutations/useDashboardMutations";
 
 // Admin dashboards that don't follow the "Manage*" naming convention.
 const ADMIN_ONLY_PAGE_NAMES = new Set([
   "AdminDashboard",
+  "ParentAdminDashboard",
   "SuperadminDashboard",
   "TahfizDashboard",
   "ImpersonateUser",
@@ -89,6 +91,10 @@ function LayoutContent({ children, currentPageName }) {
     isOrgCanManageMosque,
     isOrgCanManageGrave,
   } = useAdminAccess();
+
+  const { isParentOrganisation } = useIsParentOrganisation(
+    (isAdmin || isEmployee) && !isSuperAdmin && !!currentUser?.organisation?.id,
+  );
 
   const { clearPermissions } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -147,6 +153,15 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   const adminNavItems = [
+    ...(isParentOrganisation
+      ? [
+          {
+            name: translate("Management Overview"),
+            icon: Map,
+            page: "ParentAdminDashboard",
+          },
+        ]
+      : []),
     {
       name: translate("Admin Dashboard"),
       icon: LayoutDashboard,
@@ -269,6 +284,8 @@ function LayoutContent({ children, currentPageName }) {
   function getMainPage() {
     if (isSuperAdmin) return "SuperadminDashboard";
     if (isTahfizAdmin) return "TahfizDashboard";
+    if ((isAdmin || isEmployee) && isParentOrganisation)
+      return "ParentAdminDashboard";
     if (isAdmin || isEmployee) return "AdminDashboard";
     return "AppUserLogin";
   }

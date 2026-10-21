@@ -261,3 +261,21 @@ export function useGetAdminDashboardStats({
     isRefetching,
   };
 }
+
+export function useIsParentOrganisation(enabled = true) {
+  const { data, isLoading } = trpc.dashboard.getParentOrgStatus.useQuery(
+    undefined,
+    { enabled, staleTime: 5 * 60 * 1000 },
+  );
+  return { isParentOrganisation: !!data?.isParent, isLoading: enabled && isLoading };
+}
+
+export function useGetParentOverview({
+  year,
+  enabled = true,
+}: {
+  year: number;
+  enabled?: boolean;
+}) {
+  return trpc.dashboard.getParentOverview.useQuery({ year }, { enabled });
+}

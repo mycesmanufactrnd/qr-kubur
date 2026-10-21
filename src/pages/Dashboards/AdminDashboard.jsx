@@ -40,7 +40,10 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import AccessDeniedComponent from "@/components/AccessDeniedComponent.jsx";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
-import { useGetAdminDashboardStats } from "@/mutations/useDashboardMutations";
+import {
+  useGetAdminDashboardStats,
+  useIsParentOrganisation,
+} from "@/mutations/useDashboardMutations";
 import { formatRM } from "@/utils/helpers";
 import { useMemo } from "react";
 import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert";
@@ -111,6 +114,10 @@ function AdminDashboardDesktop() {
     isOrgCanBeDonated,
     isOrgCanManageGrave,
   } = useAdminAccess();
+
+  const { isParentOrganisation } = useIsParentOrganisation(
+    !isSuperAdmin && !!currentUser?.organisation?.id,
+  );
 
   const { loading: kariahPermissionsLoading, canView: canViewKariah } =
     useCrudPermissions("kariah");
@@ -424,6 +431,17 @@ function AdminDashboardDesktop() {
                 </>
               ) : (
                 <div className="flex gap-2 items-center">
+                  {isParentOrganisation && (
+                    <Link to={createPageUrl("ParentAdminDashboard")}>
+                      <Button
+                        variant="outline"
+                        className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                      >
+                        <Map className="w-4 h-4" />
+                        {translate("Management Overview")}
+                      </Button>
+                    </Link>
+                  )}
                   <Link to={createPageUrl("StatisticDashboard")}>
                     <Button
                       variant="outline"

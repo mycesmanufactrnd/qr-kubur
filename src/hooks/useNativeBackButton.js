@@ -7,7 +7,11 @@ import { backNavigationMap } from "@/back-navigating-pages.config";
 // Landing pages a user can be dropped on right after login — there's nowhere
 // further back to go from here, so the back button should offer to exit the
 // app instead of navigating.
-const homeRoutes = ["/", createPageUrl("AdminDashboard")];
+const homeRoutes = [
+  "/",
+  createPageUrl("AdminDashboard"),
+  createPageUrl("ParentAdminDashboard"),
+];
 
 // Fired by MainActivity.java via evaluateJavascript when the hardware back button is pressed.
 export function useNativeBackButton() {
