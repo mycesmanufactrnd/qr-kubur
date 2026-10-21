@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useState, useEffect } from "react";
 import { Controller, useFormState } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,14 +35,27 @@ function parseAmPmTime(value) {
   };
 }
 
+function formatAmPmTime({ hour, minute, period }) {
+  return hour && minute && period ? `${hour}:${minute} ${period}` : "";
+}
+
 function TimeAmPmInput({ value, onChange, disabled }) {
-  const { hour, minute, period } = parseAmPmTime(value);
+  // Partial picks (e.g. only the hour) are kept locally, since the form value
+  // stays "" until all three parts are chosen.
+  const [parts, setParts] = useState(() => parseAmPmTime(value));
+  const { hour, minute, period } = parts;
+
+  // Re-sync only when the form value changes externally (reset/setValue).
+  useEffect(() => {
+    setParts((prev) =>
+      formatAmPmTime(prev) === (value ?? "") ? prev : parseAmPmTime(value),
+    );
+  }, [value]);
 
   const emit = (next) => {
-    const h = next.hour ?? hour;
-    const m = next.minute ?? minute;
-    const p = next.period ?? period;
-    onChange(h && m && p ? `${h}:${m} ${p}` : "");
+    const updated = { ...parts, ...next };
+    setParts(updated);
+    onChange(formatAmPmTime(updated));
   };
 
   return (
