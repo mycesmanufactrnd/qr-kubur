@@ -131,3 +131,51 @@ export function useSearchMemberByDeathCharity(
     { enabled: !!deathCharityId && trimmedKeyword.length > 1 }
   );
 }
+
+export function useGetDeathCharityOrganisations(
+  organisationId: number | null | undefined,
+  options?: { enabled?: boolean },
+) {
+  const { data = [], isLoading } = trpc.deathCharityMember.getOrganisations.useQuery(
+    { organisationId },
+    options?.enabled === undefined ? undefined : { enabled: options.enabled },
+  );
+  return { organisations: data, isLoading };
+}
+
+type GetMosquesByStateParams = {
+  state?: string | null;
+  organisationId?: number | null;
+  canArrangeFuneral?: boolean;
+  hasKariahRegistration?: boolean;
+};
+
+export function useGetMosquesByState(
+  params: GetMosquesByStateParams,
+  options?: { enabled?: boolean },
+) {
+  const { data = [], isLoading } = trpc.deathCharityMember.getMosquesByState.useQuery(
+    params,
+    options?.enabled === undefined ? undefined : { enabled: options.enabled },
+  );
+  return { mosques: data, isLoading };
+}
+
+type SearchByIcNumberParams = {
+  icnumber: string;
+  mosqueId?: number | null;
+  searchCase?: boolean;
+};
+
+export function useSearchDeathCharityMemberByIcNumber(
+  params: SearchByIcNumberParams,
+  options?: { enabled?: boolean; staleTime?: number; refetchOnWindowFocus?: boolean },
+) {
+  return trpc.deathCharityMember.searchByIcNumber.useQuery(params, {
+    enabled: options?.enabled ?? !!params.icnumber,
+    ...(options?.staleTime !== undefined ? { staleTime: options.staleTime } : {}),
+    ...(options?.refetchOnWindowFocus !== undefined
+      ? { refetchOnWindowFocus: options.refetchOnWindowFocus }
+      : {}),
+  });
+}

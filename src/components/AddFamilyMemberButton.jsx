@@ -14,10 +14,13 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import GoogleSignInDialog from "@/components/GoogleSignInDialog";
 import BottomSheetSelectForm from "@/components/forms/BottomSheetSelectForm";
 import TextInputForm from "@/components/forms/TextInputForm";
-import { trpc } from "@/utils/trpc";
+import {
+  useGetFamilyTreeByGoogleUser,
+  useFamilyTreeMutations,
+} from "@/mutations/useFamilyTreeMutations";
 import { translate } from "@/utils/translations";
 import { FamilyRelation } from "@/utils/enums";
-import { showApiError, showSuccess } from "@/components/ToastrNotification";
+import { showSuccess } from "@/components/ToastrNotification";
 import { getStoredGoogleUser } from "@/utils/auth";
 
 const RELATION_LABEL_KEYS = {
@@ -43,12 +46,7 @@ export default function AddFamilyMemberButton({
   const [relationDialogOpen, setRelationDialogOpen] = useState(false);
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
 
-  const trpcUtils = trpc.useUtils();
-
-  const { data: familyMembers = [] } = trpc.familyTree.getByGoogleUser.useQuery(
-    { googleUserId: googleUser?.id ?? null },
-    { enabled: !!googleUser?.id },
-  );
+  const { data: familyMembers = [] } = useGetFamilyTreeByGoogleUser(googleUser?.id);
 
   const existingEntry = familyMembers.find(
     (m) => m.deadperson?.id === deadPersonId,
@@ -68,23 +66,7 @@ export default function AddFamilyMemberButton({
     ([value, labelKey]) => ({ value, label: translate(labelKey) }),
   );
 
-  const createMutation = trpc.familyTree.create.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Family member added"), "success");
-      reset();
-      setRelationDialogOpen(false);
-      trpcUtils.familyTree.getByGoogleUser.invalidate();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const deleteMutation = trpc.familyTree.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Removed from family tree"), "success");
-      trpcUtils.familyTree.getByGoogleUser.invalidate();
-    },
-    onError: (err) => showApiError(err),
-  });
+  const { createFamilyMember, deleteFamilyMember } = useFamilyTreeMutations();
 
   const handleClick = () => {
     if (existingEntry) {
@@ -100,7 +82,7 @@ export default function AddFamilyMemberButton({
 
   const onSubmit = async (data) => {
     if (!data.relation) return;
-    await createMutation.mutateAsync({
+    await createFamilyMember.mutateAsync({
       googleuserId: googleUser.id,
       deadpersonId: deadPersonId,
       relation: data.relation,
@@ -109,6 +91,9 @@ export default function AddFamilyMemberButton({
           ? data.relationother?.trim() || null
           : null,
     });
+    showSuccess(translate("Family member added"), "success");
+    reset();
+    setRelationDialogOpen(false);
   };
 
   const buttonClass = compact
@@ -180,10 +165,10 @@ export default function AddFamilyMemberButton({
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending}
+                disabled={createFamilyMember.isPending}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {createMutation.isPending
+                {createFamilyMember.isPending
                   ? translate("Saving...")
                   : translate("Save")}
               </Button>
@@ -202,7 +187,12 @@ export default function AddFamilyMemberButton({
         confirmText={translate("Remove")}
         variant="destructive"
         onConfirm={() => {
-          if (existingEntry) deleteMutation.mutate(existingEntry.id);
+          if (existingEntry) {
+            deleteFamilyMember.mutate(existingEntry.id, {
+              onSuccess: () =>
+                showSuccess(translate("Removed from family tree"), "success"),
+            });
+          }
         }}
       />
     </>

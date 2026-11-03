@@ -114,7 +114,7 @@ export default function DonationPage() {
     donorname || donoremail || donorphoneno || notes,
   );
 
-  const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const createBillMutation = trpc.billplz.createBill.useMutation();
   const saveTransactionAccountMutation =
     trpc.toyyibPay.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();

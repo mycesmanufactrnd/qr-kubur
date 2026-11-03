@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { trpc } from "@/utils/trpc";
+import { useGetDeadPersonById } from "@/mutations/useDeadPersonMutations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,11 +37,7 @@ function DetailJenazahDesktop() {
   const navigate = useNavigate();
   const personId = Number(searchParams.get("id"));
 
-  const { data: person, isLoading } =
-    trpc.deadperson.getDeadPersonById.useQuery(
-      { id: personId },
-      { enabled: !!personId },
-    );
+  const { data: person, isLoading } = useGetDeadPersonById(personId);
 
   if (isLoading) return <PageLoadingComponent />;
 

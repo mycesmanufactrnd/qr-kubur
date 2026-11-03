@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { trpc } from "@/utils/trpc";
+import { paymentToyyibStatus } from "@/utils/enums";
 
 export default function BillplzConfigPage() {
   const [searchParams] = useSearchParams();
@@ -12,12 +13,14 @@ export default function BillplzConfigPage() {
   const createBillMutation = trpc.billplz.createBill.useMutation();
 
   useEffect(() => {
-    const billId = searchParams.get("billplz[id]") || undefined;
-    const isPaid = searchParams.get("billplz[paid]") === "true";
-    
+    const billId = searchParams.get("billcode") || undefined;
+    const status_id = searchParams.get("status_id");
+
     setPaymentInfo({
       billId,
-      statusText: billId ? (isPaid ? "Success" : "Pending") : "Waiting for Test",
+      statusText: status_id
+        ? paymentToyyibStatus[status_id] || "Unknown"
+        : "Waiting for Test",
     });
   }, [searchParams]);
 
@@ -31,7 +34,10 @@ export default function BillplzConfigPage() {
         referenceNo: `TEST-BP-${Date.now()}`,
         name: "Billplz Test User",
         email: "test@example.com",
+        returnTo: "config",
       });
+
+      if (!bill?.paymentUrl) throw new Error(bill?.message || "Payment Failed");
 
       setPaymentInfo((prev) => ({
         ...prev,

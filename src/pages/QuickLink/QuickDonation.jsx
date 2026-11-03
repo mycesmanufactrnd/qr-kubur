@@ -82,7 +82,7 @@ export default function QuickDonation() {
     donorname || donoremail || donorphoneno || notes,
   );
 
-  const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const createBillMutation = trpc.billplz.createBill.useMutation();
   const createDonationRunningNoMutation =
     trpc.runningNo.createDonationRunningNo.useMutation();
 

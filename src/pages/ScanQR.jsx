@@ -16,10 +16,13 @@ import {
 import QrScanner from "react-qr-scanner";
 import { translate } from "@/utils/translations";
 import BackNavigation from "@/components/BackNavigation";
-import { trpc } from "@/utils/trpc";
+import { useGetClientIp } from "@/utils/auth";
+import { useGetGraveById } from "@/mutations/useGraveMutations";
+import { useGetDeadPersonById } from "@/mutations/useDeadPersonMutations";
+import { useGetGraveServiceByState } from "@/mutations/useOrganisationMutations";
+import { useVisitLogMutations } from "@/mutations/useVisitLogMutations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { showSuccess } from "@/components/ToastrNotification";
-import { ipAddressQueryOptions } from "@/utils/queryOptions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -54,9 +57,7 @@ const css = `
 `;
 
 export default function ScanQR() {
-  const { data: visitorIp } = trpc.auth.getClientIp.useQuery(undefined, {
-    ...ipAddressQueryOptions,
-  });
+  const visitorIp = useGetClientIp();
 
   const [searchParams] = useSearchParams();
   const [scanning, setScanning] = useState(false);
@@ -65,17 +66,15 @@ export default function ScanQR() {
   const [scannedGraveId, setScannedGraveId] = useState(null);
   const [scannedDeadPersonId, setScannedDeadPersonId] = useState(null);
 
-  const { data: selectedGrave, isLoading: graveLoading } =
-    trpc.grave.getGraveById.useQuery(
-      { id: scannedGraveId },
-      { enabled: typeof scannedGraveId === "number" },
-    );
+  const { data: selectedGrave, isLoading: graveLoading } = useGetGraveById(
+    scannedGraveId,
+    { enabled: typeof scannedGraveId === "number" },
+  );
 
   const { data: selectedDeadPerson, isLoading: personLoading } =
-    trpc.deadperson.getDeadPersonById.useQuery(
-      { id: scannedDeadPersonId },
-      { enabled: typeof scannedDeadPersonId === "number" },
-    );
+    useGetDeadPersonById(scannedDeadPersonId, {
+      enabled: typeof scannedDeadPersonId === "number",
+    });
 
   const result = selectedGrave
     ? { type: "grave", data: selectedGrave }
@@ -95,15 +94,9 @@ export default function ScanQR() {
   const {
     data: graveServiceOrganisations = [],
     isLoading: isGraveServiceOrganisationsLoading,
-  } = trpc.organisation.getGraveServiceByState.useQuery(
-    {
-      state,
-      graveOrganisationId,
-    },
-    {
-      enabled: !!state && !!graveOrganisationId,
-    },
-  );
+  } = useGetGraveServiceByState(state, graveOrganisationId, {
+    enabled: !!state && !!graveOrganisationId,
+  });
 
   // Handle deep-link from native camera: /scanqr?type=grave&id=123
   useEffect(() => {
@@ -121,12 +114,12 @@ export default function ScanQR() {
       showSuccess(`${translate("Record Found")}: ${selectedDeadPerson.name}`);
   }, [selectedGrave, selectedDeadPerson]);
 
-  const createMutation = trpc.visitLogs.create.useMutation();
+  const { createVisitLog: createVisitLogMutation } = useVisitLogMutations();
 
   const createVisitLog = async (type, id) => {
     if (!visitorIp) return;
     try {
-      await createMutation.mutateAsync({
+      await createVisitLogMutation.mutateAsync({
         grave: type === "grave" ? { id } : null,
         deadperson: type === "deadperson" ? { id } : null,
         visitorip: visitorIp,

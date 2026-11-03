@@ -1,7 +1,8 @@
 ﻿// @ts-nocheck
 import { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { trpc } from "@/utils/trpc";
+import { useGetDeadPersonById } from "@/mutations/useDeadPersonMutations";
+import { useGetGraveServiceByState } from "@/mutations/useOrganisationMutations";
 import {
   Building2,
   ChevronRight,
@@ -37,10 +38,7 @@ export default function DeadPersonDetails() {
     data: deadPersonDetails,
     isLoading,
     isError,
-  } = trpc.deadperson.getDeadPersonById.useQuery(
-    { id: personId },
-    { enabled: !!personId },
-  );
+  } = useGetDeadPersonById(personId);
 
   const graveDetails = deadPersonDetails?.grave;
   const graveState = graveDetails?.state?.trim() || "";
@@ -48,13 +46,7 @@ export default function DeadPersonDetails() {
   const {
     data: graveServiceOrganisations = [],
     isLoading: isGraveServiceOrganisationsLoading,
-  } = trpc.organisation.getGraveServiceByState.useQuery(
-    {
-      state: graveState,
-      graveOrganisationId: graveDetails?.organisation?.id ?? null,
-    },
-    { enabled: !!graveState },
-  );
+  } = useGetGraveServiceByState(graveState, graveDetails?.organisation?.id ?? null);
 
   if (isLoading) {
     return <PageLoadingComponent />;

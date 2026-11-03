@@ -9,8 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { JenazahCaseStatus } from "@/utils/enums";
-import { useAdminAccess } from "@/utils/auth";
-import { trpc } from "@/utils/trpc";
+import { useGetJenazahCasePaginated } from "@/mutations/useJenazahCaseMutations";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 
@@ -19,20 +18,14 @@ export default function JenazahCaseAlert() {
   const [dismissed, setDismissed] = useState(false);
   const [translateX, setTranslateX] = useState(0);
   const touchStartX = useRef(null);
-  const { currentUser, hasAdminAccess, isSuperAdmin } = useAdminAccess();
 
-  const { data } = trpc.jenazahCase.getPaginated.useQuery(
-    {
-      page: 1,
-      pageSize: 500,
-      status: JenazahCaseStatus.PENDING,
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin,
-    },
-    { enabled: hasAdminAccess && !!currentUser },
-  );
+  const { jenazahCasesList } = useGetJenazahCasePaginated({
+    page: 1,
+    pageSize: 500,
+    status: JenazahCaseStatus.PENDING,
+  });
 
-  const pendingItems = data?.items ?? [];
+  const pendingItems = jenazahCasesList.items;
 
   const onTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;

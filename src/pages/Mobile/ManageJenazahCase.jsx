@@ -1,8 +1,23 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { trpc, trpcClient } from "@/utils/trpc";
 import { useAdminAccess } from "@/utils/auth";
+import { useGetAccessibleOrgIds } from "@/mutations/useOrganisationMutations";
+import {
+  useGetDeadPersonByIcNumber,
+  useGetDeadPersonByGraveId,
+  useDeadPersonMutations,
+} from "@/mutations/useDeadPersonMutations";
+import {
+  useGetDeathCharityOrganisations,
+  useGetMosquesByState,
+  useSearchDeathCharityMemberByIcNumber,
+} from "@/mutations/useDeathCharityMemberMutations";
+import {
+  useGetJenazahCasePaginated,
+  useJenazahCaseMutations,
+  fetchAllJenazahCases,
+} from "@/mutations/useJenazahCaseMutations";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import BackNavigation from "@/components/BackNavigation";
 import TextInputForm from "@/components/forms/TextInputForm";
@@ -243,19 +258,15 @@ function CaseFormSheet({ onClose, onSubmit, isSubmitting }) {
   const burialdate = watch("burialdate");
   const careScenario = watch("careScenario");
 
-  const { data: organisations = [] } =
-    trpc.deathCharityMember.getOrganisations.useQuery({
-      organisationId: userOrgId,
-    });
+  const { organisations } = useGetDeathCharityOrganisations(userOrgId);
 
-  const { data: mosques = [], isLoading: mosquesLoading } =
-    trpc.deathCharityMember.getMosquesByState.useQuery(
-      { organisationId: selectedOrgId, canArrangeFuneral: true },
-      { enabled: !!selectedOrgId },
-    );
+  const { mosques, isLoading: mosquesLoading } = useGetMosquesByState(
+    { organisationId: selectedOrgId, canArrangeFuneral: true },
+    { enabled: !!selectedOrgId },
+  );
 
   const { data: memberResult, isFetching: memberSearching } =
-    trpc.deathCharityMember.searchByIcNumber.useQuery(
+    useSearchDeathCharityMemberByIcNumber(
       { icnumber: searchedIc.trim(), mosqueId: selectedMosqueId },
       { enabled: !!searchedIc.trim(), refetchOnWindowFocus: false },
     );
@@ -731,17 +742,7 @@ function CaseDetailSheet({
   canReject,
   canEdit,
 }) {
-  const { currentUser, isSuperAdmin } = useAdminAccess();
-  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
-
-  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
-    { organisationId: currentUser?.organisation?.id, isIdOnly: true },
-    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
-  );
-
-  useEffect(() => {
-    if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
-  }, [parentAndChildQuery.data]);
+  const accessibleOrgIds = useGetAccessibleOrgIds();
 
   const [adminRemarks, setAdminRemarks] = useState(
     caseItem?.adminremarks ?? "",
@@ -786,24 +787,14 @@ function CaseDetailSheet({
   });
   const graves = gravesList.items;
 
-  const { data: deadPersonRecord } = trpc.deadperson.getByIcNumber.useQuery(
-    { icnumber: icRaw },
-    { enabled: !!icRaw && !!caseItem?.isapproved },
-  );
-
-  const upsertDeadPerson = trpc.deadperson.upsertForKariah.useMutation({
-    onError: (err) => showApiError(err),
+  const { data: deadPersonRecord } = useGetDeadPersonByIcNumber(icRaw, {
+    enabled: !!icRaw && !!caseItem?.isapproved,
   });
 
-  const trpcUtils = trpc.useUtils();
-
-  const updateDeadPersonGraveLot = trpc.deadperson.update.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Grave lot updated"), "success");
-      trpcUtils.deadperson.getByIcNumber.invalidate({ icnumber: icRaw });
-    },
-    onError: (err) => showApiError(err),
-  });
+  const {
+    upsertDeadPersonForKariah: upsertDeadPerson,
+    updateDeadPerson: updateDeadPersonGraveLot,
+  } = useDeadPersonMutations();
 
   const handleGraveLotPick = async (slot) => {
     if (!deadPersonRecord) return;
@@ -833,11 +824,10 @@ function CaseDetailSheet({
   // Auto-assign the next lot number for an already-approved deceased record
   // that has no lot yet, based on the highest numbered lot used in that grave.
   const approveGraveId = deadPersonRecord?.grave?.id ?? null;
-  const { data: approveGraveDeadPersons } =
-    trpc.deadperson.getDeadPersonByGraveId.useQuery(
-      { graveId: approveGraveId },
-      { enabled: !!approveGraveId },
-    );
+  const { data: approveGraveDeadPersons } = useGetDeadPersonByGraveId(
+    { graveId: approveGraveId },
+    { enabled: !!approveGraveId },
+  );
   const autoAssignedLotRef = useRef(null);
   useEffect(() => {
     if (!deadPersonRecord || deadPersonRecord.gravelot) return;
@@ -858,11 +848,10 @@ function CaseDetailSheet({
   // Auto-fill the suggested next lot number when a grave is chosen in the
   // deceased-creation form, based on the highest numbered lot in that grave.
   const dcGraveId = watchDc("grave") ? Number(watchDc("grave")) : null;
-  const { data: dcGraveDeadPersons } =
-    trpc.deadperson.getDeadPersonByGraveId.useQuery(
-      { graveId: dcGraveId },
-      { enabled: !!dcGraveId },
-    );
+  const { data: dcGraveDeadPersons } = useGetDeadPersonByGraveId(
+    { graveId: dcGraveId },
+    { enabled: !!dcGraveId },
+  );
   useEffect(() => {
     if (!dcGraveId || !dcGraveDeadPersons) return;
     if (watchDc("gravelot")) return;
@@ -1459,40 +1448,23 @@ export default function MobileManageJenazahCase() {
     },
     onError: (err) => showApiError(err),
   });
+  const data = jenazahCasesList;
 
-  const createMutation = trpc.jenazahCase.create.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Funeral case added successfully."));
-      setFormOpen(false);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const deleteMutation = trpc.jenazahCase.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Funeral case deleted successfully."));
-      setCaseToDelete(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const addToKariahMutation = trpc.jenazahCase.addToKariah.useMutation({
-    onError: (err) => showApiError(err),
-  });
+  const {
+    updateJenazahCaseStatus: updateStatus,
+    createJenazahCase: createMutation,
+    deleteJenazahCase: deleteMutation,
+    addJenazahCaseToKariah: addToKariahMutation,
+  } = useJenazahCaseMutations();
 
   const handleExport = async (type) => {
     setExporting(type);
     try {
-      const data = await trpcClient.jenazahCase.getPaginated.query({
-        page: 1,
-        pageSize: 100000,
+      const rows = await fetchAllJenazahCases({
         status: statusFilter || undefined,
         currentUserOrganisation: currentUser?.organisation?.id ?? null,
         isSuperAdmin,
       });
-      const rows = data?.items ?? [];
       if (type === "xlsx") {
         await exportRowsToExcel({
           filename: "jenazah-cases",
@@ -1551,6 +1523,9 @@ export default function MobileManageJenazahCase() {
       supportingphotourl,
       autoApprove: true,
     });
+    showSuccess(translate("Funeral case added successfully."));
+    setFormOpen(false);
+    refetch();
   };
 
   const STATUS_TABS = [
@@ -1749,11 +1724,20 @@ export default function MobileManageJenazahCase() {
           caseItem={selectedCase}
           onClose={() => setSelectedCase(null)}
           onStatusChange={(id, status, adminremarks) =>
-            updateStatus.mutate({
-              id,
-              status,
-              adminremarks: adminremarks || null,
-            })
+            updateStatus.mutate(
+              {
+                id,
+                status,
+                adminremarks: adminremarks || null,
+              },
+              {
+                onSuccess: () => {
+                  showSuccess(translate("Case status updated."));
+                  setSelectedCase(null);
+                  refetch();
+                },
+              },
+            )
           }
           isUpdating={updateStatus.isPending}
           onAddToKariah={(id) => setAddToKariahId(id)}
@@ -1780,7 +1764,18 @@ export default function MobileManageJenazahCase() {
         title={translate("Delete Funeral Case")}
         isDelete
         itemToDelete={caseToDelete?.details?.deceasedFullname}
-        onConfirm={() => deleteMutation.mutate({ id: caseToDelete?.id })}
+        onConfirm={() =>
+          deleteMutation.mutate(
+            { id: caseToDelete?.id },
+            {
+              onSuccess: () => {
+                showSuccess(translate("Funeral case deleted successfully."));
+                setCaseToDelete(null);
+                refetch();
+              },
+            },
+          )
+        }
         isMobile
       />
 

@@ -110,3 +110,30 @@ export function useGetOrganisationByTypeId(organisationTypeId: number | undefine
     { enabled: !!hasAdminAccess && !!currentUser }
   );
 }
+
+// Every admin list page scopes its query to the logged-in admin's org + its
+// children, unless they're superadmin (who sees everything, so this stays
+// empty — callers already treat an empty array as "no org filter applied").
+// This repeats the exact same organisationId/isIdOnly/enabled shape across
+// every admin page, so it's centralized here instead of copy-pasted.
+export function useGetAccessibleOrgIds() {
+  const { currentUser, isSuperAdmin } = useAdminAccess();
+
+  const { data } = trpc.organisation.getParentAndChildOrgs.useQuery(
+    { organisationId: currentUser?.organisation?.id, isIdOnly: true },
+    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
+  );
+
+  return data ?? [];
+}
+
+export function useGetGraveServiceByState(
+  state: string | null | undefined,
+  graveOrganisationId: number | null | undefined,
+  options?: { enabled?: boolean },
+) {
+  return trpc.organisation.getGraveServiceByState.useQuery(
+    { state: state ?? null, graveOrganisationId: graveOrganisationId ?? null },
+    { enabled: options?.enabled ?? !!state },
+  );
+}

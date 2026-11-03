@@ -72,7 +72,7 @@ export default function QuickTahlil() {
   const { data: tahfiz, isLoading: isTahfizLoading } =
     useGetTahfizById(tahfizId);
 
-  const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const createBillMutation = trpc.billplz.createBill.useMutation();
   const createTahlilRunningNoMutation =
     trpc.runningNo.createTahlilRunningNo.useMutation();
 

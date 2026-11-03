@@ -34,13 +34,14 @@ import InitialAvatarImage from "@/components/InitialAvatarImage";
 import DirectionButton from "@/components/DirectionButton";
 import { useGetGraveById } from "@/mutations/useGraveMutations";
 import { useGetDeadPersonByGraveId } from "@/mutations/useDeadPersonMutations";
+import { useGetGraveServiceByState } from "@/mutations/useOrganisationMutations";
+import { useGetFamilyTreeByGoogleUser } from "@/mutations/useFamilyTreeMutations";
 import PageLoadingComponent from "@/components/PageLoadingComponent";
 import NoDataCardComponent from "@/components/NoDataCardComponent";
 import ListCardSkeletonComponent from "@/components/ListCardSkeletonComponent";
 import { translate } from "@/utils/translations";
 import { shareLink } from "@/utils/helpers";
 import DonationButton from "@/components/DonationButton";
-import { trpc } from "@/utils/trpc";
 import { ImageViewer } from "@/components/ImageViewer";
 import AddFamilyMemberButton from "@/components/AddFamilyMemberButton";
 import { getStoredGoogleUser } from "@/utils/auth";
@@ -72,10 +73,7 @@ export default function GraveDetails() {
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [googleUser] = useState(() => getStoredGoogleUser());
 
-  const { data: familyMembers = [] } = trpc.familyTree.getByGoogleUser.useQuery(
-    { googleUserId: googleUser?.id ?? null },
-    { enabled: !!googleUser?.id },
-  );
+  const { data: familyMembers = [] } = useGetFamilyTreeByGoogleUser(googleUser?.id);
   const familyDeadPersonIds = new Set(
     familyMembers.map((m) => m.deadperson?.id).filter(Boolean),
   );
@@ -96,13 +94,7 @@ export default function GraveDetails() {
   const {
     data: graveServiceOrganisations = [],
     isLoading: isGraveServiceOrganisationsLoading,
-  } = trpc.organisation.getGraveServiceByState.useQuery(
-    {
-      state: graveState,
-      graveOrganisationId: grave?.organisation?.id ?? null,
-    },
-    { enabled: !!graveState },
-  );
+  } = useGetGraveServiceByState(graveState, grave?.organisation?.id ?? null);
 
   const handleApplyFilter = (newFilters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { trpc } from "@/utils/trpc";
+import { useGetDeadPersonById } from "@/mutations/useDeadPersonMutations";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -32,11 +32,7 @@ export default function MobileDetailJenazah() {
   const navigate = useNavigate();
   const personId = Number(searchParams.get("id"));
 
-  const { data: person, isLoading } =
-    trpc.deadperson.getDeadPersonById.useQuery(
-      { id: personId },
-      { enabled: !!personId },
-    );
+  const { data: person, isLoading } = useGetDeadPersonById(personId);
 
   if (isLoading) return <PageLoadingComponent />;
 

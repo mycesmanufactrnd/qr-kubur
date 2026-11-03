@@ -40,9 +40,11 @@ export function useGetInventoryItemsPaginated({
   return { itemsList, total, totalPages, isLoading, refetch, error };
 }
 
-export function useGetAllInventoryItems() {
+export function useGetAllInventoryItems(options?: { enabled?: boolean }) {
   const { hasAdminAccess } = useAdminAccess();
-  const { data, isLoading } = trpc.inventoryItem.getAll.useQuery(undefined, { enabled: hasAdminAccess });
+  const { data, isLoading } = trpc.inventoryItem.getAll.useQuery(undefined, {
+    enabled: hasAdminAccess && (options?.enabled ?? true),
+  });
   return { itemsList: data ?? [], isLoading };
 }
 
@@ -140,9 +142,11 @@ export function useGetInventoryPackagesPaginated({
   return { packagesList, total, totalPages, isLoading, refetch, error };
 }
 
-export function useGetAllInventoryPackages() {
+export function useGetAllInventoryPackages(options?: { enabled?: boolean }) {
   const { hasAdminAccess } = useAdminAccess();
-  const { data, isLoading } = trpc.inventoryPackage.getAll.useQuery(undefined, { enabled: hasAdminAccess });
+  const { data, isLoading } = trpc.inventoryPackage.getAll.useQuery(undefined, {
+    enabled: hasAdminAccess && (options?.enabled ?? true),
+  });
   return { packagesList: data ?? [], isLoading };
 }
 
@@ -234,6 +238,7 @@ export function useInventoryTransactionMutations() {
     trpcUtils.inventoryTransaction.getPaginated.invalidate();
     trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
     trpcUtils.inventoryItem.getPaginated.invalidate();
+    trpcUtils.inventoryItem.getAll.invalidate();
     trpcUtils.inventoryItem.getLowStock.invalidate();
   };
 

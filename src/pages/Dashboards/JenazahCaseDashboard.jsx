@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { trpc } from "@/utils/trpc";
+import { useGetJenazahCaseByReferenceNoAdmin } from "@/mutations/useJenazahCaseMutations";
+import { useGetDeadPersonByIcNumber } from "@/mutations/useDeadPersonMutations";
 import { translate } from "@/utils/translations";
 import { resolveFileUrl } from "@/utils";
 import { useAdminAccess } from "@/utils/auth";
@@ -143,18 +144,14 @@ function JenazahCaseDashboardDesktop() {
   const [previewFile, setPreviewFile] = useState(null);
 
   const { data: caseItem, isLoading: caseLoading } =
-    trpc.jenazahCase.getByReferenceNoAdmin.useQuery(
-      { referenceno },
-      { enabled: !!referenceno && hasAdminAccess },
-    );
+    useGetJenazahCaseByReferenceNoAdmin(referenceno);
 
   const d = caseItem?.details ?? {};
   const icRaw = (d.deceasedIcnumber ?? "").replace(/-/g, "");
 
-  const { data: deadPerson } = trpc.deadperson.getByIcNumber.useQuery(
-    { icnumber: icRaw },
-    { enabled: !!icRaw && hasAdminAccess },
-  );
+  const { data: deadPerson } = useGetDeadPersonByIcNumber(icRaw, {
+    enabled: !!icRaw && hasAdminAccess,
+  });
 
   const grave = deadPerson?.grave ?? null;
 

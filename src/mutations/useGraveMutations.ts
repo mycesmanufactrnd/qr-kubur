@@ -115,6 +115,12 @@ export function useGetGravesCoordinates(
   );
 }
 
-export function useGetGraveById(id: number | null) {
-  return trpc.grave.getGraveById.useQuery({ id: id as number }, { enabled: !!id });
+export function useGetGraveById(
+  id: number | null,
+  options?: { enabled?: boolean },
+) {
+  return trpc.grave.getGraveById.useQuery(
+    { id: id as number },
+    { enabled: options?.enabled ?? !!id },
+  );
 }

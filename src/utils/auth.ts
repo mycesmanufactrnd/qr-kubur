@@ -5,6 +5,7 @@ import { STATES_MY } from "./enums";
 import { useNavigate } from "react-router-dom";
 import { captureError } from "./helpers";
 import { enableBiometricLogin } from "./biometricAuth";
+import { ipAddressQueryOptions } from "./queryOptions";
 
 const GOOGLE_AUTH_KEY = "googleAuth";
 const GOOGLE_SIGNED_OUT_KEY = "googleSignedOut";
@@ -585,4 +586,13 @@ export function useLoginGoogle(options?: {
   };
 
   return { login, loading, error, setError };
+}
+
+// Lives alongside the other trpc.auth.* hooks in this file rather than in
+// src/mutations/, same reasoning as loginMutation/loginGoogleMutation above.
+export function useGetClientIp() {
+  const { data } = trpc.auth.getClientIp.useQuery(undefined, {
+    ...ipAddressQueryOptions,
+  });
+  return data;
 }

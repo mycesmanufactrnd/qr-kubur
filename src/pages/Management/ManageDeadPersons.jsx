@@ -54,9 +54,10 @@ import { useAdminAccess } from "@/utils/auth";
 import {
   useGetDeadPersonPaginated,
   useDeadPersonMutations,
+  fetchAllDeadPersons,
 } from "@/mutations/useDeadPersonMutations";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
-import { trpc } from "@/utils/trpc";
+import { useGetAccessibleOrgIds } from "@/mutations/useOrganisationMutations";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import NoDataTableComponent from "@/components/NoDataTableComponent";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
@@ -81,7 +82,6 @@ import {
   isCompleteICNumber,
 } from "@/utils/helpers";
 import { defaultDeadPersonFilter } from "@/utils/defaultfilter";
-import { trpcClient } from "@/utils/trpc";
 import TableExportButtons from "@/components/TableExportButtons";
 
 export default function ManageDeadPersons() {
@@ -261,7 +261,7 @@ function ManageDeadPersonsDesktop() {
     }
   };
 
-  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
+  const accessibleOrgIds = useGetAccessibleOrgIds();
 
   const {
     loading: permissionsLoading,
@@ -291,20 +291,6 @@ function ManageDeadPersonsDesktop() {
     urlDateTo,
   ]);
 
-  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
-    {
-      organisationId: currentUser?.organisation?.id,
-      isIdOnly: true,
-    },
-    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
-  );
-
-  useEffect(() => {
-    if (parentAndChildQuery && parentAndChildQuery.data) {
-      setAccessibleOrgIds(parentAndChildQuery?.data ?? []);
-    }
-  }, [parentAndChildQuery && parentAndChildQuery]);
-
   const {
     deadPersonsList,
     totalPages,
@@ -333,10 +319,8 @@ function ManageDeadPersonsDesktop() {
     organisationIds: accessibleOrgIds,
   });
 
-  const fetchAllDeadPersons = async () => {
-    const data = await trpcClient.deadperson.getPaginated.query({
-      page: 1,
-      pageSize: 100000,
+  const fetchAllDeadPersonsForExport = () =>
+    fetchAllDeadPersons({
       filterName: urlName,
       filterIC: urlIC,
       filterGrave: Number(urlGrave) || undefined,
@@ -352,8 +336,6 @@ function ManageDeadPersonsDesktop() {
           ? urlSortOrder
           : undefined,
     });
-    return data?.items ?? [];
-  };
 
   useEffect(() => {
     if (graveValue === lastGraveRef.current) return;
@@ -619,7 +601,7 @@ function ManageDeadPersonsDesktop() {
         </h1>
         <div className="flex items-center gap-2">
           <TableExportButtons
-            fetchRows={fetchAllDeadPersons}
+            fetchRows={fetchAllDeadPersonsForExport}
             columns={deadPersonExportColumns}
             filename="deceased-records"
             pdfTitle={translate("Manage Deceased")}

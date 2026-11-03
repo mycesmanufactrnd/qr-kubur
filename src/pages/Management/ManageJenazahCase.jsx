@@ -4,8 +4,28 @@ import { useIsNarrow } from "@/hooks/useIsNarrow";
 import MobileManageJenazahCase from "@/pages/Mobile/ManageJenazahCase";
 import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { trpc, trpcClient } from "@/utils/trpc";
 import TableExportButtons from "@/components/TableExportButtons";
+import { useGetAccessibleOrgIds } from "@/mutations/useOrganisationMutations";
+import {
+  useGetDeadPersonByIcNumber,
+  useGetDeadPersonByGraveId,
+  useDeadPersonMutations,
+} from "@/mutations/useDeadPersonMutations";
+import {
+  useGetDeathCharityOrganisations,
+  useGetMosquesByState,
+  useSearchDeathCharityMemberByIcNumber,
+} from "@/mutations/useDeathCharityMemberMutations";
+import {
+  useGetJenazahCasePaginated,
+  useJenazahCaseMutations,
+  fetchAllJenazahCases,
+} from "@/mutations/useJenazahCaseMutations";
+import {
+  useInventoryTransactionMutations,
+  useGetAllInventoryPackages,
+  useGetAllInventoryItems,
+} from "@/hooks/useInventoryMutations";
 import { useAdminAccess } from "@/utils/auth";
 import { useCrudPermissions } from "@/components/PermissionsContext";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -193,17 +213,7 @@ function CaseDetailDialog({
   canReject,
   canEdit,
 }) {
-  const { currentUser, isSuperAdmin } = useAdminAccess();
-  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
-
-  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
-    { organisationId: currentUser?.organisation?.id, isIdOnly: true },
-    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
-  );
-
-  useEffect(() => {
-    if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
-  }, [parentAndChildQuery.data]);
+  const accessibleOrgIds = useGetAccessibleOrgIds();
 
   const [adminRemarks, setAdminRemarks] = useState(
     caseItem?.adminremarks ?? "",
@@ -250,16 +260,11 @@ function CaseDetailDialog({
 
   const graves = gravesList.items;
 
-  const { data: deadPersonRecord } = trpc.deadperson.getByIcNumber.useQuery(
-    { icnumber: icRaw },
-    { enabled: !!icRaw && !!caseItem?.isapproved },
-  );
-
-  const upsertDeadPerson = trpc.deadperson.upsertForKariah.useMutation({
-    onError: (err) => showApiError(err),
+  const { data: deadPersonRecord } = useGetDeadPersonByIcNumber(icRaw, {
+    enabled: !!icRaw && !!caseItem?.isapproved,
   });
 
-  const trpcUtils = trpc.useUtils();
+  const { upsertDeadPersonForKariah: upsertDeadPerson } = useDeadPersonMutations();
 
   // Once an existing deadperson record loads, populate the deceased/grave
   // form with its real saved values instead of leaving it on blank defaults.
@@ -288,11 +293,10 @@ function CaseDetailDialog({
   // Auto-fill the suggested next lot number when a grave is chosen in the
   // deceased-creation form, based on the highest numbered lot in that grave.
   const dcGraveId = watchDc("grave") ? Number(watchDc("grave")) : null;
-  const { data: dcGraveDeadPersons } =
-    trpc.deadperson.getDeadPersonByGraveId.useQuery(
-      { graveId: dcGraveId },
-      { enabled: !!dcGraveId },
-    );
+  const { data: dcGraveDeadPersons } = useGetDeadPersonByGraveId(
+    { graveId: dcGraveId },
+    { enabled: !!dcGraveId },
+  );
   useEffect(() => {
     if (!dcGraveId || !dcGraveDeadPersons) return;
     if (watchDc("gravelot")) return;
@@ -353,7 +357,6 @@ function CaseDetailDialog({
           handleAction("ongoing");
         } else {
           showSuccess(translate("Deceased & grave information updated."));
-          trpcUtils.deadperson.getByIcNumber.invalidate({ icnumber: icRaw });
         }
       } catch {
         // errors shown by onError handlers
@@ -853,51 +856,31 @@ function CaseFormDialog({ open, onClose, onSubmit, isSubmitting }) {
   const burialdate = watch("burialdate");
   const careScenario = watch("careScenario");
 
-  const { data: organisations = [] } =
-    trpc.deathCharityMember.getOrganisations.useQuery(
-      { organisationId: userOrgId },
-      { enabled: open },
-    );
+  const { organisations } = useGetDeathCharityOrganisations(userOrgId, {
+    enabled: open,
+  });
 
-  const { data: mosques = [], isLoading: mosquesLoading } =
-    trpc.deathCharityMember.getMosquesByState.useQuery(
-      { organisationId: selectedOrgId, canArrangeFuneral: true },
-      { enabled: open && !!selectedOrgId },
-    );
+  const { mosques, isLoading: mosquesLoading } = useGetMosquesByState(
+    { organisationId: selectedOrgId, canArrangeFuneral: true },
+    { enabled: open && !!selectedOrgId },
+  );
 
   const { data: memberResult, isFetching: memberSearching } =
-    trpc.deathCharityMember.searchByIcNumber.useQuery(
+    useSearchDeathCharityMemberByIcNumber(
       { icnumber: searchedIc.trim(), mosqueId: selectedMosqueId },
       { enabled: !!searchedIc.trim(), refetchOnWindowFocus: false },
     );
 
-  const trpcUtils = trpc.useUtils();
+  const { stockOut } = useInventoryTransactionMutations();
 
-  const stockOut = trpc.inventoryTransaction.stockOut.useMutation({
-    onSuccess: () => {
-      trpcUtils.inventoryTransaction.getPaginated.invalidate();
-      trpcUtils.inventoryTransaction.getDashboardStats.invalidate();
-      trpcUtils.inventoryItem.getPaginated.invalidate();
-      trpcUtils.inventoryItem.getAll.invalidate();
-      trpcUtils.inventoryItem.getLowStock.invalidate();
-    },
-    onError: (err) => showApiError(err),
+  const { packagesList: rawPackages = [] } = useGetAllInventoryPackages({
+    enabled: open,
   });
-
-  const { data: rawPackages = [] } = trpc.inventoryPackage.getAll.useQuery(
-    undefined,
-    {
-      enabled: open,
-    },
-  );
   const packagesList = rawPackages.filter((p) => p.status === "active");
 
-  const { data: allItems = [] } = trpc.inventoryItem.getAll.useQuery(
-    undefined,
-    {
-      enabled: open,
-    },
-  );
+  const { itemsList: allItems = [] } = useGetAllInventoryItems({
+    enabled: open,
+  });
 
   // Locations derived from each package's own location field.
   const locations = [
@@ -1910,62 +1893,30 @@ function ManageJenazahCaseDesktop() {
     setTempReferenceNo(urlReferenceNo);
   }, [urlSearch, urlStatus, urlReferenceNo]);
 
-  const { data, isLoading, refetch } = trpc.jenazahCase.getPaginated.useQuery(
-    {
-      page: urlPage,
-      pageSize: itemsPerPage,
-      status: urlStatus || undefined,
-      search: urlSearch || undefined,
-      referenceno: urlReferenceNo || undefined,
-      currentUserOrganisation: currentUser?.organisation?.id ?? null,
-      isSuperAdmin,
-    },
-    { enabled: !loadingUser && hasAdminAccess },
-  );
+  const { jenazahCasesList, isLoading, refetch } = useGetJenazahCasePaginated({
+    page: urlPage,
+    pageSize: itemsPerPage,
+    status: urlStatus,
+    search: urlSearch,
+    referenceno: urlReferenceNo,
+  });
+  const data = jenazahCasesList;
 
-  const fetchAllJenazahCases = async () => {
-    const data = await trpcClient.jenazahCase.getPaginated.query({
-      page: 1,
-      pageSize: 100000,
+  const fetchAllCases = async () =>
+    fetchAllJenazahCases({
       status: urlStatus || undefined,
       search: urlSearch || undefined,
       referenceno: urlReferenceNo || undefined,
       currentUserOrganisation: currentUser?.organisation?.id ?? null,
       isSuperAdmin,
     });
-    return data?.items ?? [];
-  };
 
-  const updateStatus = trpc.jenazahCase.updateStatus.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Case status updated."));
-      setSelectedCase(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const createMutation = trpc.jenazahCase.create.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Funeral case added successfully."));
-      setFormOpen(false);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const deleteMutation = trpc.jenazahCase.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Funeral case deleted successfully."));
-      setDeleteId(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
-
-  const addToKariahMutation = trpc.jenazahCase.addToKariah.useMutation({
-    onError: (err) => showApiError(err),
-  });
+  const {
+    updateJenazahCaseStatus: updateStatus,
+    createJenazahCase: createMutation,
+    deleteJenazahCase: deleteMutation,
+    addJenazahCaseToKariah: addToKariahMutation,
+  } = useJenazahCaseMutations();
 
   const runAddToKariah = async (payload) => {
     try {
@@ -1991,7 +1942,7 @@ function ManageJenazahCaseDesktop() {
     policereportphotourl,
     supportingphotourl,
   }) => {
-    return await createMutation.mutateAsync({
+    const result = await createMutation.mutateAsync({
       mosqueId,
       details,
       adminremarks,
@@ -2000,6 +1951,10 @@ function ManageJenazahCaseDesktop() {
       supportingphotourl,
       autoApprove: true,
     });
+    showSuccess(translate("Funeral case added successfully."));
+    setFormOpen(false);
+    refetch();
+    return result;
   };
 
   const items = data?.items ?? [];
@@ -2068,7 +2023,7 @@ function ManageJenazahCaseDesktop() {
         </h1>
         <div className="flex items-center gap-2">
           <TableExportButtons
-            fetchRows={fetchAllJenazahCases}
+            fetchRows={fetchAllCases}
             columns={jenazahCaseExportColumns}
             filename="jenazah-cases"
             pdfTitle={translate("Funeral Case Management")}
@@ -2263,11 +2218,20 @@ function ManageJenazahCaseDesktop() {
           caseItem={selectedCase}
           onClose={() => setSelectedCase(null)}
           onStatusChange={(id, status, adminremarks) =>
-            updateStatus.mutate({
-              id,
-              status,
-              adminremarks: adminremarks || null,
-            })
+            updateStatus.mutate(
+              {
+                id,
+                status,
+                adminremarks: adminremarks || null,
+              },
+              {
+                onSuccess: () => {
+                  showSuccess(translate("Case status updated."));
+                  setSelectedCase(null);
+                  refetch();
+                },
+              },
+            )
           }
           isUpdating={updateStatus.isPending}
           onAddToKariah={(id) => setAddToKariahId(id)}
@@ -2288,7 +2252,18 @@ function ManageJenazahCaseDesktop() {
       <DeleteConfirmDialog
         open={!!deleteId}
         onClose={() => setDeleteId(null)}
-        onConfirm={() => deleteMutation.mutate({ id: deleteId })}
+        onConfirm={() =>
+          deleteMutation.mutate(
+            { id: deleteId },
+            {
+              onSuccess: () => {
+                showSuccess(translate("Funeral case deleted successfully."));
+                setDeleteId(null);
+                refetch();
+              },
+            },
+          )
+        }
         isDeleting={deleteMutation.isPending}
       />
 

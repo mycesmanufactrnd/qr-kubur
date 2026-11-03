@@ -98,7 +98,7 @@ export default function TahlilRequestPage() {
   const status_id = searchParams.get("status_id");
   const order_id = searchParams.get("order_id");
 
-  const createBillMutation = trpc.toyyibPay.createBill.useMutation();
+  const createBillMutation = trpc.billplz.createBill.useMutation();
   const saveTransactionAccountMutation =
     trpc.toyyibPay.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();

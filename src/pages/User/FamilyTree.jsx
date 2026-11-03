@@ -15,11 +15,15 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import SelectForm from "@/components/forms/SelectForm";
 import Select2Form from "@/components/forms/Select2Form";
 import TextInputForm from "@/components/forms/TextInputForm";
-import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
 import { STATES_MY, FamilyRelation } from "@/utils/enums";
 import { useGetGravesCoordinates } from "@/mutations/useGraveMutations";
-import { showApiError, showSuccess } from "@/components/ToastrNotification";
+import { useGetDeadPersonByGraveId } from "@/mutations/useDeadPersonMutations";
+import {
+  useGetFamilyTreeByGoogleUser,
+  useFamilyTreeMutations,
+} from "@/mutations/useFamilyTreeMutations";
+import { showSuccess } from "@/components/ToastrNotification";
 import { getStoredGoogleUser, useLoginGoogle } from "@/utils/auth";
 
 function GoogleIcon({ className }) {
@@ -90,7 +94,7 @@ function AddFamilyMemberDialog({ open, onOpenChange, onSaved, googleUserId }) {
   );
 
   const { data: persons = [], isLoading: isPersonsLoading } =
-    trpc.deadperson.getDeadPersonByGraveId.useQuery(
+    useGetDeadPersonByGraveId(
       { graveId: Number(watchGrave) || 0 },
       { enabled: !!watchGrave },
     );
@@ -108,18 +112,11 @@ function AddFamilyMemberDialog({ open, onOpenChange, onSaved, googleUserId }) {
     ([value, labelKey]) => ({ value, label: translate(labelKey) }),
   );
 
-  const createMutation = trpc.familyTree.create.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Family member added"), "success");
-      reset(DEFAULT_FORM);
-      onSaved();
-    },
-    onError: (err) => showApiError(err),
-  });
+  const { createFamilyMember } = useFamilyTreeMutations();
 
   const onSubmit = async (data) => {
     if (!data.deadpersonId || !data.relation) return;
-    await createMutation.mutateAsync({
+    await createFamilyMember.mutateAsync({
       googleuserId: googleUserId,
       deadpersonId: Number(data.deadpersonId),
       relation: data.relation,
@@ -128,6 +125,9 @@ function AddFamilyMemberDialog({ open, onOpenChange, onSaved, googleUserId }) {
           ? data.relationother?.trim() || null
           : null,
     });
+    showSuccess(translate("Family member added"), "success");
+    reset(DEFAULT_FORM);
+    onSaved();
   };
 
   return (
@@ -217,10 +217,10 @@ function AddFamilyMemberDialog({ open, onOpenChange, onSaved, googleUserId }) {
           <DialogFooter>
             <Button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={createFamilyMember.isPending}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              {createMutation.isPending
+              {createFamilyMember.isPending
                 ? translate("Saving...")
                 : translate("Save")}
             </Button>
@@ -269,19 +269,9 @@ export default function FamilyTree() {
     data: members = [],
     isLoading,
     refetch,
-  } = trpc.familyTree.getByGoogleUser.useQuery(
-    { googleUserId: googleUser?.id ?? null },
-    { enabled: !!googleUser?.id },
-  );
+  } = useGetFamilyTreeByGoogleUser(googleUser?.id);
 
-  const deleteMutation = trpc.familyTree.delete.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Deleted"), "success");
-      refetch();
-      setMemberToDelete(null);
-    },
-    onError: (err) => showApiError(err),
-  });
+  const { deleteFamilyMember } = useFamilyTreeMutations();
 
   const relationLabel = (relation, relationother) => {
     if (relation === FamilyRelation.OTHER) {
@@ -416,7 +406,15 @@ export default function FamilyTree() {
         onOpenChange={(open) => !open && setMemberToDelete(null)}
         title={translate("Delete Family Member")}
         description={`${translate("Delete")} "${memberToDelete?.deadperson?.name ?? ""}"?`}
-        onConfirm={() => deleteMutation.mutateAsync(memberToDelete.id)}
+        onConfirm={() =>
+          deleteFamilyMember.mutateAsync(memberToDelete.id, {
+            onSuccess: () => {
+              showSuccess(translate("Deleted"), "success");
+              refetch();
+              setMemberToDelete(null);
+            },
+          })
+        }
         confirmText={translate("Delete")}
         variant="destructive"
       />

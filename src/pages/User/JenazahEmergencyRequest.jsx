@@ -31,7 +31,12 @@ import {
   CreditCard,
   ListChecks,
 } from "lucide-react";
-import { trpc, trpcClient } from "@/utils/trpc";
+import { trpcClient } from "@/utils/trpc";
+import {
+  useGetMosquesByState,
+  useSearchDeathCharityMemberByIcNumber,
+} from "@/mutations/useDeathCharityMemberMutations";
+import { useJenazahCaseMutations } from "@/mutations/useJenazahCaseMutations";
 import { showApiError, showSuccess } from "@/components/ToastrNotification";
 import {
   CARE_SCENARIOS,
@@ -151,8 +156,8 @@ export default function JenazahEmergencyRequest() {
   const pickerState = watchPicker("state");
   const pickerMosqueId = watchPicker("mosqueId");
 
-  const { data: pickerMosques = [], isLoading: pickerMosqueLoading } =
-    trpc.deathCharityMember.getMosquesByState.useQuery(
+  const { mosques: pickerMosques = [], isLoading: pickerMosqueLoading } =
+    useGetMosquesByState(
       { state: pickerState || null, canArrangeFuneral: true },
       { enabled: !isMosqueLocked },
     );
@@ -236,7 +241,7 @@ export default function JenazahEmergencyRequest() {
 
   const familyKariahIcSearch = watch("familyKariahIcSearch");
 
-  const familyKariahQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
+  const familyKariahQuery = useSearchDeathCharityMemberByIcNumber(
     { icnumber: searchedFamilyKariahIc, mosqueId: mosque?.id },
     { enabled: !!searchedFamilyKariahIc, staleTime: 0 },
   );
@@ -315,7 +320,7 @@ export default function JenazahEmergencyRequest() {
   const [proceedDespitePending, setProceedDespitePending] = useState(false);
   const [proceedDespiteDeceased, setProceedDespiteDeceased] = useState(false);
 
-  const searchQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
+  const searchQuery = useSearchDeathCharityMemberByIcNumber(
     { icnumber: searchedIc, mosqueId: mosque?.id, searchCase: true },
     { enabled: !!searchedIc, staleTime: 0 },
   );
@@ -328,12 +333,7 @@ export default function JenazahEmergencyRequest() {
   const isDeceasedBlocking =
     !!memberResult?.isdeceased && !proceedDespiteDeceased;
 
-  const createCase = trpc.jenazahCase.create.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Funeral case application has been submitted."));
-    },
-    onError: (err) => showApiError(err),
-  });
+  const { createJenazahCase: createCase } = useJenazahCaseMutations();
 
   useEffect(() => {
     if (!searchedIc) return;
@@ -577,6 +577,7 @@ export default function JenazahEmergencyRequest() {
       },
       {
         onSuccess: (savedCase) => {
+          showSuccess(translate("Funeral case application has been submitted."));
           setSubmittedCase({
             referenceno: savedCase?.referenceno,
             fullname: data.fullname,

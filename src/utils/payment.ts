@@ -5,7 +5,7 @@ import { showError } from '@/components/ToastrNotification';
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 10 * 60 * 1000; // give up after 10 minutes
 
-// Maps OnlineTransaction.gatewaystatus (set from ToyyibPay's server-to-server
+// Maps OnlineTransaction.gatewaystatus (set from the gateway's server-to-server
 // callback) to the same "Success" / "Pending" / "Unsuccessful" strings the
 // pages already derive from `paymentToyyibStatus[status_id]` on web.
 function mapGatewayStatus(gatewaystatus?: string | null): string | null {
@@ -22,7 +22,7 @@ type OpenPaymentUrlOptions = {
    * Native only: called once the payment reaches a terminal state ("Success"
    * / "Unsuccessful"), or with `null` if the user closed the in-app browser
    * before that happened (or polling timed out). Never called on web — on
-   * web, ToyyibPay's redirect back to `returnUrl?status_id=...` reloads the
+   * web, the gateway's redirect back to `returnUrl?status_id=...` reloads the
    * page instead, which pages already handle via `useSearchParams`.
    */
   onStatus?: (statusText: string | null) => void;
@@ -32,10 +32,10 @@ type OpenPaymentUrlOptions = {
  * Opens a payment gateway URL.
  * - Web: standard window.location navigation (existing behaviour).
  * - Native (Capacitor): opens the URL in an in-app browser overlay via
- *   @capacitor/browser. ToyyibPay's return redirect happens inside that
+ *   @capacitor/browser. The gateway's return redirect happens inside that
  *   separate overlay, not the app's own WebView, so the app can never see
  *   `status_id` in its own URL there. Instead, when `orderNo` + `onStatus`
- *   are provided, this polls the backend — which ToyyibPay always notifies
+ *   are provided, this polls the backend — which the gateway always notifies
  *   server-to-server via the payment callback webhook, independent of the
  *   overlay — until the payment reaches a terminal status, then closes the
  *   overlay itself and reports the result.

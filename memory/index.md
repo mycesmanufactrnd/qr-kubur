@@ -14,8 +14,8 @@ The rules this system runs on live in [CLAUDE.md](../CLAUDE.md).
   Fastify/tRPC backend + Postgres, the mutation-hooks request convention, TypeORM entities, dev
   workflow, pitfalls. Written from the code on 2026-10-12.
 - **[[20-knowledge/index|20-knowledge/]]** -> What was **learned building and operating it**: the
-  mutation-hooks copy-paste template, field-level encryption how-to, and the legacy base44/supabase
-  status.
+  mutation-hooks copy-paste template, field-level encryption how-to, the Billplz payment flow, and
+  the legacy base44/supabase status.
 - **[[40-questions/index|40-questions/]]** -> **Questions for you.** Things the code cannot answer,
   parked instead of guessed — e.g. whether the base44 `AuthContext` path is actually mounted anywhere.
 - **[[50-todo/index|50-todo/]]** -> Tracked work items: the PDPA remediation gaps, and frontend

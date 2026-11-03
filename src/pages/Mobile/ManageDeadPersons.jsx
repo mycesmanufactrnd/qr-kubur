@@ -43,9 +43,10 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import {
   useGetDeadPersonPaginated,
   useDeadPersonMutations,
+  fetchAllDeadPersons,
 } from "@/mutations/useDeadPersonMutations";
 import { useGetGravePaginated } from "@/mutations/useGraveMutations";
-import { trpc } from "@/utils/trpc";
+import { useGetAccessibleOrgIds } from "@/mutations/useOrganisationMutations";
 import { defaultDeadPersonField } from "@/utils/defaultformfields";
 import InlineLoadingComponent from "@/components/InlineLoadingComponent";
 import MobileEmptyList from "@/components/mobile/MobileEmptyList";
@@ -56,7 +57,6 @@ import {
   formatICNumber,
   isCompleteICNumber,
 } from "@/utils/helpers";
-import { trpcClient } from "@/utils/trpc";
 import { exportRowsToExcel, exportRowsToPdf } from "@/utils/exportTable";
 
 const deadPersonExportColumns = [
@@ -468,8 +468,7 @@ function PersonFormSheet({
 
 export default function MobileManageDeadPersons() {
   const navigate = useNavigate();
-  const { currentUser, loadingUser, hasAdminAccess, isSuperAdmin } =
-    useAdminAccess();
+  const { currentUser, loadingUser, hasAdminAccess } = useAdminAccess();
   const {
     loading: permissionsLoading,
     canView,
@@ -496,16 +495,7 @@ export default function MobileManageDeadPersons() {
   const [qrDialogOpen, setQRDialogOpen] = useState(false);
   const [qrPerson, setQRPerson] = useState({});
 
-  const [accessibleOrgIds, setAccessibleOrgIds] = useState([]);
-
-  const parentAndChildQuery = trpc.organisation.getParentAndChildOrgs.useQuery(
-    { organisationId: currentUser?.organisation?.id, isIdOnly: true },
-    { enabled: !!currentUser?.organisation?.id && !isSuperAdmin },
-  );
-
-  useEffect(() => {
-    if (parentAndChildQuery.data) setAccessibleOrgIds(parentAndChildQuery.data);
-  }, [parentAndChildQuery.data]);
+  const accessibleOrgIds = useGetAccessibleOrgIds();
 
   const { deadPersonsList, totalPages, isLoading } = useGetDeadPersonPaginated({
     page,
@@ -626,15 +616,12 @@ export default function MobileManageDeadPersons() {
   const handleExport = async (type) => {
     setExporting(type);
     try {
-      const data = await trpcClient.deadperson.getPaginated.query({
-        page: 1,
-        pageSize: 100000,
+      const rows = await fetchAllDeadPersons({
         filterName: appliedSearch,
         filterGraveLot: appliedGraveLot,
         filterKariah: appliedKariah || undefined,
         organisationIds: accessibleOrgIds,
       });
-      const rows = data?.items ?? [];
       if (type === "xlsx") {
         await exportRowsToExcel({
           filename: "deceased-records",
