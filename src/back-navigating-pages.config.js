@@ -14,7 +14,7 @@ export const backNavigationMap = {
 
   // Feature & row cards (UserDashboard body)
   SurahPage: "/",
-  SolatJenazah: "/",
+  BurialGuidance: "/",
   SearchMosque: "/",
   SearchHeritage: "/",
 

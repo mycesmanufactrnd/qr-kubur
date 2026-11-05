@@ -11,7 +11,7 @@ Read [[overview]] first. Load-first files are in [[critical|critical.md]].
 | [[overview]] | What QubuR is, the pieces (React frontend / Fastify+tRPC backend / Postgres / Capacitor mobile), how they talk, the legacy base44/supabase status, scale. Start here. |
 | [[project-structure]] | What every top-level and `src/`/`backend/src/` subfolder is, live vs dead. |
 | [[backend-patterns]] | JWT auth + role-gated tRPC procedures, router/schema pairing, file upload/download (REST, outside tRPC), payments, PM2 cluster. |
-| [[frontend-patterns]] | **The mutation-hooks convention** — one `use<Entity>Mutations.ts` file per backend entity, the exact shape, the rules it implies. The tRPC client setup. Real vs legacy auth. i18n rule pointer. |
+| [[frontend-patterns]] | **The mutation-hooks convention** — one `use<Entity>Mutations.ts` file per backend entity, the exact shape, the rules it implies. The tRPC client setup. Real vs legacy auth. i18n rule pointer. Shared `PDFViewer` for bundled PDFs. |
 | [[entity-system]] | TypeORM entities as schema (`DATABASE_SYNC=true`), column conventions, and the encrypted-at-rest PII columns already in the codebase. |
 | [[development-workflow]] | Docker/dev commands, Capacitor/APK build, PM2, backups, monitoring doc pointers, flow runbooks, test tooling. |
 | [[best-practices]] | Pitfalls: misplaced mutations file, i18n three-file rule, `DATABASE_SYNC` data-loss risk, adding PII columns without encryption, the `FIELD_ENCRYPTION_KEY` disaster-recovery risk, unconfirmed Stripe/PayPal wiring. |

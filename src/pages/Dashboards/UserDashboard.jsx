@@ -616,7 +616,7 @@ export default function UserDashboard() {
             </div>
           </Link>
 
-          <Link to={createPageUrl("SolatJenazah")} className="db-row-card">
+          <Link to={createPageUrl("BurialGuidance")} className="db-row-card">
             <div className="db-row-accent" style={{ background: "#e74c3c" }} />
             <div className="db-row-icon" style={{ background: "#fff0f0" }}>
               <Newspaper style={{ width: 20, height: 20, color: "#c0392b" }} />
@@ -628,7 +628,9 @@ export default function UserDashboard() {
               >
                 {translate("Immediate Guide")}
               </div>
-              <div className="db-row-title">{translate("Solat Jenazah")}</div>
+              <div className="db-row-title">
+                {translate("Funeral Management Guide")}
+              </div>
               <div className="db-row-sub">
                 {translate("Procedure & complete guide")}
               </div>

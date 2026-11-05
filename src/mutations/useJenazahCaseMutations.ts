@@ -20,7 +20,7 @@ export function useGetJenazahCasePaginated({
 }: useGetJenazahCasePaginatedParams) {
   const { currentUser, isSuperAdmin, hasAdminAccess, loadingUser } = useAdminAccess();
 
-  const { data, isLoading, refetch, error } = trpc.jenazahCase.getPaginated.useQuery(
+  const { data, isLoading, isFetching, refetch, error } = trpc.jenazahCase.getPaginated.useQuery(
     {
       page: page ?? 1,
       pageSize: pageSize ?? 10,
@@ -36,7 +36,7 @@ export function useGetJenazahCasePaginated({
   const jenazahCasesList = { items: data?.items ?? [], total: data?.total ?? 0 };
   const totalPages = Math.ceil(jenazahCasesList.total / (pageSize ?? 10));
 
-  return { jenazahCasesList, totalPages, isLoading, refetch, error };
+  return { jenazahCasesList, totalPages, isLoading, isFetching, refetch, error };
 }
 
 export function useGetJenazahCaseByReferenceNoAdmin(

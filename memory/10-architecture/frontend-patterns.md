@@ -118,4 +118,13 @@ be added to **all three** of `src/i18n/en.json`, `src/i18n/ms.json`, `src/i18n/a
 translations (not copies) in the same change. This rule lives in the repo's `CLAUDE.md`, not
 duplicated here — see it for the exact wording.
 
+## Bundled PDFs — reuse `src/components/PDFViewer.jsx`
+
+PDFs shipped in `public/` (Tahlil, Doa Tahlil, Talqin, Panduan Solat/Pengebumian Jenazah) are shown
+with the shared `PDFViewer` (react-pdf, no iframe). Don't copy the viewer into a page. Tabbed PDF
+pages (`User/SurahPage.jsx`, `BurialGuidance.jsx`) follow the same tab-bar markup.
+`BurialGuidance` (Funeral Management Guide, Burial + Solat tabs) was renamed from `SolatJenazah`;
+`App.jsx` redirects `/SolatJenazah` to it. When renaming any page, add the same kind of redirect —
+unknown routes otherwise fall through to `/` silently.
+
 Related: [[overview]] · [[backend-patterns]] · [[../20-knowledge/frontend-conventions/mutation-hooks-pattern|mutation-hooks-pattern.md]] · [[../20-knowledge/frontend-conventions/admin-mobile-pattern|admin-mobile-pattern.md]]

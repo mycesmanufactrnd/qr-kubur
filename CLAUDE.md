@@ -296,17 +296,25 @@ what's wrong, add what's missing, report the diff.
 
 ---
 
-# Internationalization (i18n) — mandatory
+# Internationalization (i18n) — mandatory, automatic
 
 All user-facing text must go through `translate("...")` from `@/utils/translations`.
 
-Whenever you add or change a `translate("...")` call, add the exact same key to **all three** locale files, each with a real translation (not just copying the English string):
+**This is automatic for every agent (Claude, Copilot, Codex, …) — the user should never have to ask
+for translations.** Whenever you add or change a `translate("...")` call (new page, renamed label,
+tab, button, toast, error message), add the exact same key to **all three** locale files in that same
+change, each with a real translation (not just copying the English string):
 
 - `src/i18n/en.json`
 - `src/i18n/ms.json`
 - `src/i18n/ar.json`
 
 Rules:
+- **Keys are written in English.** If the user gives a label in Malay (e.g. "Panduan Pengurusan
+  Jenazah"), use the English key (`translate("Funeral Management Guide")`) and put the Malay text in
+  `ms.json`. Some legacy Malay keys exist (e.g. `"Permohonan Pengurusan Jenazah"`) — don't add more.
+- **Renaming a label = a new English key in all three files**, not just a changed `en.json` value.
+  Leave the old key in place if anything else still calls it.
 - The key (the English string passed to `translate()`) must match exactly across all three files.
 - `en.json` value is normally the same as the key. `ms.json` and `ar.json` must contain actual Malay / Arabic translations, not the English text.
 - Do this for every new `translate()` call in the same change — don't defer it or add it to only one file.

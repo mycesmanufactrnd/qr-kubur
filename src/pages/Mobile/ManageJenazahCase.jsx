@@ -1428,26 +1428,12 @@ export default function MobileManageJenazahCase() {
   const [exporting, setExporting] = useState(null);
   const itemsPerPage = 10;
 
-  const { data, isLoading, isFetching, refetch } =
-    trpc.jenazahCase.getPaginated.useQuery(
-      {
-        page,
-        pageSize: itemsPerPage,
-        status: statusFilter || undefined,
-        currentUserOrganisation: currentUser?.organisation?.id ?? null,
-        isSuperAdmin,
-      },
-      { enabled: !loadingUser && hasAdminAccess },
-    );
-
-  const updateStatus = trpc.jenazahCase.updateStatus.useMutation({
-    onSuccess: () => {
-      showSuccess(translate("Case status updated."));
-      setSelectedCase(null);
-      refetch();
-    },
-    onError: (err) => showApiError(err),
-  });
+  const { jenazahCasesList, isLoading, isFetching, refetch } =
+    useGetJenazahCasePaginated({
+      page,
+      pageSize: itemsPerPage,
+      status: statusFilter,
+    });
   const data = jenazahCasesList;
 
   const {
