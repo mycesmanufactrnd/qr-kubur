@@ -19,6 +19,7 @@ export default function SelectForm({
   errors = {},
   disabled = false,
   onValueChange,
+  dropdownSide = "bottom",
 }) {
   const errorMessage = errors?.[name]?.message;
 
@@ -53,8 +54,7 @@ export default function SelectForm({
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
 
-            <SelectContent>
-              {options.map((option, idx) => {
+            <SelectContent>              {options.map((option, idx) => {
                 if (typeof option === "string") {
                   return (
                     <SelectItem key={idx} value={option}>

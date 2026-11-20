@@ -28,13 +28,13 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
-import { PLATFORM_FEE, paymentToyyibStatus } from "@/utils/enums";
+import { PLATFORM_FEE, paymentStatus } from "@/utils/enums";
 import { activityLogError, shareLink } from "@/utils/helpers";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
-import { userGoogleAccess } from "@/utils/auth";
+import { getStoredGoogleUser, userGoogleAccess } from "@/utils/auth";
 import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
@@ -83,7 +83,7 @@ export default function OrganisationDetails() {
 
   const createBillMutation = trpc.billplz.createBill.useMutation();
   const saveTransactionAccountMutation =
-    trpc.toyyibPay.saveTransactionAccount.useMutation();
+    trpc.billplz.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createQuoteRunningNoMutation =
     trpc.runningNo.createQuotationRunningNo.useMutation();
@@ -224,7 +224,7 @@ export default function OrganisationDetails() {
     if (!exists) setValue("paymentMethod", paymentPlatforms[0].code);
   }, [paymentPlatforms, paymentMethod, setValue]);
 
-  // Handles a terminal ToyyibPay result, whether it came from the web
+  // Handles a terminal payment result, whether it came from the web
   // redirect (`?status_id=...` in the URL, see effect below) or from native
   // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
   const handlePaymentResult = (statusText, orderId) => {
@@ -314,7 +314,7 @@ export default function OrganisationDetails() {
 
   useEffect(() => {
     if (!status_id) return;
-    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
+    handlePaymentResult(paymentStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const onSubmit = async (formData) => {
@@ -396,6 +396,7 @@ export default function OrganisationDetails() {
         email: quotationDetails?.payeremail ?? "noreply@gmail.com",
         phone: quotationDetails?.payerphone ?? "0123456789",
         returnTo: "organisation",
+        googleUserId: getStoredGoogleUser()?.id ?? null,
       });
       if (quotation?.paymentUrl) {
         openPaymentUrl(quotation.paymentUrl, {

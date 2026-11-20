@@ -20,7 +20,6 @@ import { organisationPaymentConfigRouter } from "./organisationPaymentConfigRout
 import { deadPersonRouter } from "./deadpersonRouter.js";
 import { tahfizPaymentConfigRouter } from "./tahfizPaymentConfigRouter.js";
 import { dashboardRouter } from "./dashboardRouter.js";
-import { toyyibPayRouter } from "./toyyibPayRouter.js";
 import { runningNoRouter } from "./runningNoRouter.js";
 import { billplzRouter } from "./billplzRouter.js";
 import { mosqueRouter } from "./mosqueRouter.js";
@@ -56,7 +55,6 @@ export const appRouter = trpcRouter({
   google: googleRouter,
   tempOrganisation: tempOrganisationRouter,
   runningNo: runningNoRouter,
-  toyyibPay: toyyibPayRouter,
   dashboard: dashboardRouter,
   users: usersRouter,
   permission: permissionRouter,

@@ -52,8 +52,8 @@ not re-summarized here.
 
 ## Flow runbooks
 
-`flow/google-sign-in.md`, `flow/toyyibpay-payment.md`, `flow/fix-postgres-ownership.md` — step-by-step
-procedures for those specific flows. Read before touching Google SSO or ToyyibPay payment code.
+`flow/google-sign-in.md`, `flow/fix-postgres-ownership.md` — step-by-step procedures for those
+specific flows. Read before touching Google SSO or Postgres ownership.
 
 ## Tests
 

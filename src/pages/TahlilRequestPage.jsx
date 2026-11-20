@@ -39,7 +39,7 @@ import {
 import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import {
   DONATION_AMOUNTS,
-  paymentToyyibStatus,
+  paymentStatus,
   PLATFORM_FEE,
   TahlilStatus,
 } from "@/utils/enums";
@@ -55,7 +55,7 @@ import { trpc } from "@/utils/trpc";
 import { useSearchParams } from "react-router-dom";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
-import { userGoogleAccess } from "@/utils/auth";
+import { getStoredGoogleUser, userGoogleAccess } from "@/utils/auth";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { translate } from "@/utils/translations";
 
@@ -100,7 +100,7 @@ export default function TahlilRequestPage() {
 
   const createBillMutation = trpc.billplz.createBill.useMutation();
   const saveTransactionAccountMutation =
-    trpc.toyyibPay.saveTransactionAccount.useMutation();
+    trpc.billplz.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createTahlilRunningNoMutation =
     trpc.runningNo.createTahlilRunningNo.useMutation();
@@ -263,7 +263,7 @@ export default function TahlilRequestPage() {
 
   const finalAmountWithFee = finalAmountWithoutFee + platformFee;
 
-  // Handles a terminal ToyyibPay result, whether it came from the web
+  // Handles a terminal payment result, whether it came from the web
   // redirect (`?status_id=...` in the URL, see effect below) or from native
   // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
   const handlePaymentResult = (statusText, orderId) => {
@@ -353,7 +353,7 @@ export default function TahlilRequestPage() {
 
   useEffect(() => {
     if (!status_id) return;
-    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
+    handlePaymentResult(paymentStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const { data: paymentConfigs } = useGetConfigByEntity({
@@ -475,6 +475,7 @@ export default function TahlilRequestPage() {
         email: formData?.requestoremail ?? "noreply@gmail.com",
         phone: formData?.requestorphoneno ?? "0123456789",
         returnTo: "tahfiz",
+        googleUserId: getStoredGoogleUser()?.id ?? null,
       });
       if (bill?.paymentUrl) {
         openPaymentUrl(bill.paymentUrl, {

@@ -5,12 +5,12 @@ obvious from the code alone, split by domain. Unlike `10-architecture/`, this fo
 a subfolder appears the first time a real pitfall or convention is actually found.
 
 - **[[frontend-conventions/index|frontend-conventions/]]** -> The mutation-hooks copy-paste template,
-  and the admin-page mobile (`useIsNarrow`) convention.
+  the admin-page mobile (`useIsNarrow`) convention, and custom Radix dialog animations.
 - **[[security/index|security/]]** -> Field-level encryption (`encryptField`/`decryptField`/
   `hashForSearch`), how to add it to a new PII column.
 - **[[dashboards/index|dashboards/]]** -> Parent-organisation Management Overview, and how the
   admin dashboard stats are (and aren't) scoped to child organisations.
-- **[[payments/index|payments/]]** -> Billplz is the active gateway (ToyyibPay kept, unused):
+- **[[payments/index|payments/]]** -> Billplz is the only payment gateway:
   callback/redirect flow, X-Signature, env vars.
 - **[[legacy/index|legacy/]]** -> What's actually dead vs. live between the original Base44 scaffold,
   the leftover Supabase CLI state, and the real JWT/tRPC system.

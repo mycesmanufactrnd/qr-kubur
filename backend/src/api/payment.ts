@@ -1,5 +1,4 @@
 import type { FastifyInstance } from "fastify";
-import { handleToyyibPayCallback } from "../services/toyyibpay.service.js";
 import {
   getBill,
   getBillplzReturnUrl,
@@ -9,46 +8,6 @@ import {
 } from "../services/billplz.service.js";
 
 export const registerPaymentRoutes = (app: FastifyInstance) => {
-  app.post("/api/payment/callback", async (req, reply) => {
-
-    const data: Record<string, string> = {};
-
-    if (req.isMultipart && req.isMultipart()) {
-      const parts = req.parts();
-      for await (const part of parts) {
-        if (part.type === "field") {
-          data[part.fieldname] = String(part.value);
-        }
-      }
-    } else if (req.body && typeof req.body === "object") {
-      for (const [key, value] of Object.entries(
-        req.body as Record<string, any>,
-      )) {
-        data[key] = String(value);
-      }
-    } else if (typeof req.body === "string") {
-      const params = new URLSearchParams(req.body);
-      for (const [key, value] of params.entries()) {
-        data[key] = value;
-      }
-    }
-
-    // console.log("ToyyibPay callback parsed:", data);
-
-    try {
-      const callbackRes = await handleToyyibPayCallback(data);
-
-      if(!callbackRes) {
-        console.error("ToyyibPay callback error");
-      }
-
-      return reply.send("OK");
-    } catch (err: any) {
-      console.error("ToyyibPay callback error:", err);
-      return reply.status(500).send("Error");
-    }
-  });
-
   // Billplz server-to-server notification (application/x-www-form-urlencoded).
   app.post("/api/payment/billplz/callback", async (req, reply) => {
     const data: Record<string, string> = {};
@@ -84,7 +43,7 @@ export const registerPaymentRoutes = (app: FastifyInstance) => {
   });
 
   // Billplz sends the payer's browser here; we verify it and forward to the
-  // page in the same `?status_id=&order_id=&billcode=` shape ToyyibPay used.
+  // page with `?status_id=1|3&order_id=&billcode=`, the query shape the pages parse.
   app.get<{ Params: { returnTo: string } }>(
     "/api/payment/billplz/redirect/:returnTo",
     async (req, reply) => {
@@ -125,40 +84,3 @@ export const registerPaymentRoutes = (app: FastifyInstance) => {
     },
   );
 };
-
-// Success
-// http://localhost:5173/toyyibpayconfigpage?status_id=1&billcode=d91enxrw&order_id=TEST123&msg=ok&transaction_id=TP2601154353784154
-
-
-// ToyyibPay callback parsed: {
-//   refno: 'TP2601154353784154',
-//   status: '1',
-//   reason: 'Payment Approved',
-//   billcode: 'd91enxrw',
-//   order_id: 'TEST123',
-//   amount: '1.00',
-//   status_id: '1',
-//   msg: 'ok',
-//   transaction_id: 'TP2601154353784154',
-//   fpx_transaction_id: '2601150337384747',
-//   hash: 'e65d98b4f3cdf1cc8858cf88f1b44498',
-//   transaction_time: '2026-01-15 03:37:38'
-// }
-
-// Failed
-// http://localhost:5173/toyyibpayconfigpage?status_id=3&billcode=6a1i76sy&order_id=TEST123&msg=ok&transaction_id=TP2601154792316690
-
-// ToyyibPay callback parsed: {
-//   refno: 'TP2601154792316690',
-//   status: '3',
-//   reason: 'Payment Unsuccessful',
-//   billcode: '6a1i76sy',
-//   order_id: 'TEST123',
-//   amount: '1.00',
-//   status_id: '3',
-//   msg: 'ok',
-//   transaction_id: 'TP2601154792316690',
-//   fpx_transaction_id: '2601150339173414',
-//   hash: 'de81f4b6520796cf37a429fbe132ed3d',
-//   transaction_time: '2026-01-15 03:39:17'
-// }

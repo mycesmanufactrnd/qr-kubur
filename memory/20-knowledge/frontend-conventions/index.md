@@ -6,5 +6,7 @@
 - **[[admin-mobile-pattern|admin-mobile-pattern.md]]** -> New admin "Manage" pages need a mobile
   view too: the `useIsNarrow()` desktop/mobile split, `src/pages/Mobile/ManageX.jsx` card-list
   convention, and which existing pages still lack it.
+- **[[dialog-custom-animation|dialog-custom-animation.md]]** -> Replacing a Radix dialog's CSS
+  animation with a grow-from-origin Web Animation (QR modal), and the ref re-attach flash pitfall.
 
 Parent: [[../index|20-knowledge/]].

@@ -188,7 +188,7 @@ const SECTIONS = [
       {
         title: "What is Payment Config?",
         content:
-          "Each organisation can be connected to one or more payment gateways (e.g. ToyyibPay, Billplz). This lets the organisation collect donations, service payments, and death charity contributions through the app.",
+          "Each organisation can be connected to one or more payment gateways (e.g. Billplz). This lets the organisation collect donations, service payments, and death charity contributions through the app.",
       },
       {
         title: "Configure Payment During Create/Edit",

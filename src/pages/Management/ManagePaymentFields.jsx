@@ -263,19 +263,6 @@ export default function ManagePaymentFields() {
               required
               errors={errors}
             /> 
-            <SelectForm
-              name="fieldtype"
-              control={control}
-              label={translate("Type")}
-              placeholder={translate("Select field type")}
-              options={paymentPlatformList.items.map(platform => ({
-                  value: platform.id,
-                  label: platform.name,
-              }))}
-              required
-              errors={errors}
-              disabled={!!editingField}
-            />
            <SelectForm
               name="fieldtype"
               control={control}
@@ -285,6 +272,7 @@ export default function ManagePaymentFields() {
                 { value: "text", label: "Text" },
                 { value: "textarea", label: "Textarea" },
                 { value: "password", label: "Password" },
+                { value: "image", label: translate("Image") },
               ]}
               required
               errors={errors}
@@ -294,15 +282,15 @@ export default function ManagePaymentFields() {
               control={control}
               label={translate("Is Required")}
             />
-            <DialogFooter>
+            <DialogFooter className="gap-2 pt-20 sm:space-x-0">
               <Button 
-                type="button" variant="outline" 
+                type="button" variant="outline" className="h-10 w-full sm:w-28"
                 onClick={() => setIsDialogOpen(false)}
               >
                 {translate('Close')}
               </Button>
               <Button 
-                type="submit" className="bg-purple-600"
+                type="submit" className="h-10 w-full bg-purple-600 hover:bg-purple-700 sm:w-28"
                 disabled={createPaymentField.isPending || updatePaymentField.isPending || isSubmitting}
               >
                 <Save className="w-4 h-4 mr-2" />

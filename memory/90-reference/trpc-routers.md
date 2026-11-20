@@ -17,9 +17,9 @@ organisationRouter · organisationTypeRouter · paymentDistributionRouter · pay
 paymentPlatformRouter · permissionRouter · publicRouter · quotationRouter ·
 reusableItemGroupRouter · runningNoRouter · suggestionRouter · surahRouter ·
 tahfizPaymentConfigRouter · tahfizRouter · tahlilRequestRouter · tempOrganisationRouter ·
-toyyibPayRouter · usersRouter · visitLogsRouter · waqfProjectRouter
+usersRouter · visitLogsRouter · waqfProjectRouter
 
-`publicProcedure` (no auth) is used across **33 of the 51 routers**, not just `publicRouter` (which
+`publicProcedure` (no auth) is used across **32 of the 50 routers**, not just `publicRouter` (which
 itself only exposes `getClientIp`). The QR grave-lookup flow's actual public endpoints are
 `deadpersonRouter.getDeadPersonById` / `getDeadPersonByGraveId` and `graveRouter.getGraveById` /
 `getGraveByCoordinates` — **confirmed to return the full `DeadPerson` entity with no field

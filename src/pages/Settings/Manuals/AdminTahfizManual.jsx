@@ -128,7 +128,7 @@ const SECTIONS = [
       },
       {
         title: "Payment Configuration",
-        content: "Go to Menu → 'Payment Config' → View the payment gateway connected to your centre (ToyyibPay or Billplz). To change or update payment credentials, contact your Super Admin.",
+        content: "Go to Menu → 'Payment Config' → View the payment gateway connected to your centre (Billplz). To change or update payment credentials, contact your Super Admin.",
       },
     ],
   },

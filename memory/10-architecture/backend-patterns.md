@@ -56,13 +56,12 @@ the tRPC adapter in `server.ts`):
 
 ## Payments
 
-`services/toyyibpay.service.ts` and `services/billplz.service.ts`, each with a `config/*.config.ts`
-that validates required env keys are present at boot (`server.ts` logs what's missing — check boot
-logs if payment calls fail before assuming the code is broken). **Billplz is the active gateway**
-for all payment pages; ToyyibPay code is kept but unused — see
+`services/billplz.service.ts` with `config/billplz.config.ts`, whose required env keys are checked
+at boot (`server.ts` logs what's missing — check boot logs if payment calls fail before assuming the
+code is broken). **Billplz is the only gateway** for all payment pages — see
 [[../20-knowledge/payments/billplz|20-knowledge/payments/billplz.md]]. `stripe.config.ts` and
-`paypal.config.ts` also exist but confirmed-live payment flows per
-`markdown_files/FULL_ARCHITECTURE.md` are ToyyibPay and Billplz only — see the open question in
+`paypal.config.ts` also exist but the confirmed-live payment flow per
+`markdown_files/FULL_ARCHITECTURE.md` is Billplz only — see the open question in
 [[../40-questions/unanswered/architecture|40-questions/unanswered/architecture.md]] before assuming
 Stripe/PayPal are wired up.
 

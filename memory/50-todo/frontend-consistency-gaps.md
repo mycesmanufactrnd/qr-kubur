@@ -64,7 +64,7 @@ payment, and PII-bearing pages.
     `Management/ManageDeathCharityMember.jsx` (+ Mobile), `User/UserKariahRegistration.jsx`,
     `PopUpAlert/KariahRegistrationAlert.jsx`, `Management/ManageNotifyDeathKariah.jsx` (+ Mobile),
     `DeathCharityUserPayment.jsx`.
-  - Payment/Finance: `Payment/FinancialReports.jsx` (+ Mobile), `Payment/ToyyibPayConfigPage.jsx`,
+  - Payment/Finance: `Payment/FinancialReports.jsx` (+ Mobile),
     `Payment/BillplzConfigPage.jsx`, `Settings/UserTransactionRecords.jsx`, `DonationPage.jsx`,
     `QuickLink/QuickDonation.jsx`.
   - Tahlil: `TahlilRequestPage.jsx` (reuses `deadperson.getDeadPersonById`/`familyTree.getByGoogleUser`,
@@ -76,7 +76,7 @@ payment, and PII-bearing pages.
     already wrapped), `User/SurahPage.jsx`, `Management/InventoryReports.jsx`.
   - `Settings/Ollama.jsx`, `Management/ManageNotifyDeathKariah.jsx`,
     `Management/ManageCollectionTree.jsx`, `Management/ManageTempOrganisations.jsx`,
-    `Payment/ToyyibPayConfigPage.jsx`/`BillplzConfigPage.jsx` need a **new**
+    `Payment/BillplzConfigPage.jsx` need a **new**
     `use<Entity>Mutations.ts` created from scratch (zero hook coverage today) — the rest reuse or
     extend an existing file.
 - Raw `fetch()`/`fetch(apiUrl(...))` calls to the non-tRPC REST endpoints

@@ -15,14 +15,15 @@ import DonationFilter from "@/components/DonationFilter";
 import {
   DONATION_AMOUNTS,
   normalizeState,
-  paymentToyyibStatus,
+  paymentStatus,
   PLATFORM_DONATION_FEE,
   STATES_MY,
   VerificationStatus,
 } from "@/utils/enums";
 import { useGetTahfizCoordinates } from "@/mutations/useTahfizMutations";
 import { useGetOrganisationCoordinates } from "@/mutations/useOrganisationMutations";
-import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
+import { usePublicPaymentMethods } from "@/mutations/usePublicPaymentMethods";
+import PaymentQrDisplay from '@/components/PaymentQrDisplay';
 import { useForm } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { validateFields } from "@/utils/validations";
@@ -34,7 +35,7 @@ import { useSearchParams } from "react-router-dom";
 import { activityLogError, clearQueryParams } from "@/utils/helpers";
 import { translate } from "@/utils/translations";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
-import { userGoogleAccess } from "@/utils/auth";
+import { getStoredGoogleUser, userGoogleAccess } from "@/utils/auth";
 
 function Section({
   title,
@@ -116,7 +117,7 @@ export default function DonationPage() {
 
   const createBillMutation = trpc.billplz.createBill.useMutation();
   const saveTransactionAccountMutation =
-    trpc.toyyibPay.saveTransactionAccount.useMutation();
+    trpc.billplz.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createDonationRunningNoMutation =
     trpc.runningNo.createDonationRunningNo.useMutation();
@@ -155,7 +156,7 @@ export default function DonationPage() {
     [baseAmount],
   );
 
-  // Handles a terminal ToyyibPay result, whether it came from the web
+  // Handles a terminal payment result, whether it came from the web
   // redirect (`?status_id=...` in the URL, see effect below) or from native
   // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
   const handlePaymentResult = (statusText, orderId) => {
@@ -253,7 +254,7 @@ export default function DonationPage() {
 
   useEffect(() => {
     if (!status_id) return;
-    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
+    handlePaymentResult(paymentStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   const hasSpecificState = selectedState !== "nearby" && !!selectedState;
@@ -332,11 +333,8 @@ export default function DonationPage() {
     setValue,
   ]);
 
-  const { data: paymentConfigs = [] } = useGetConfigByEntity({
-    entityId: Number(selectedRecipient),
-    entityType: recipientType,
-    enabled: !!selectedRecipient && !!recipientType,
-  });
+  const { data: paymentPlatforms = [], isFetching: loadingMethods, isError: methodsError } =
+    usePublicPaymentMethods(recipientType, selectedRecipient);
 
   useEffect(() => {
     if (!selectedRecipient) return;
@@ -358,25 +356,15 @@ export default function DonationPage() {
     setValue,
   ]);
 
-  const paymentPlatforms = useMemo(() => {
-    const map = {};
-    paymentConfigs.forEach((config) => {
-      if (!config.paymentplatform) return;
-      const code = config.paymentplatform.code;
-      if (!map[code])
-        map[code] = { code, name: config.paymentplatform.name, fields: [] };
-      if (config.paymentfield)
-        map[code].fields.push({
-          key: config.paymentfield.key,
-          label: config.paymentfield.label,
-          fieldtype: config.paymentfield.fieldtype,
-          value: config.value,
-        });
-    });
-    return Object.values(map);
-  }, [paymentConfigs]);
+  const displayPaymentPlatforms = useMemo(() => {
+    if (!selectedRecipientObj || loadingMethods || methodsError) return paymentPlatforms;
+    return paymentPlatforms.some(p => p.kind === 'qr') ? paymentPlatforms : [
+      ...paymentPlatforms,
+      { code: '__qr_unavailable', name: 'QR Payment', kind: 'qr', fields: [], qrUrl: null, unavailable: true },
+    ];
+  }, [paymentPlatforms, selectedRecipientObj, loadingMethods, methodsError]);
 
-  const selectedPlatform = paymentPlatforms.find(
+  const selectedPlatform = displayPaymentPlatforms.find(
     (p) => p.code === paymentMethod,
   );
   const selectedAccount = useMemo(() => {
@@ -390,14 +378,26 @@ export default function DonationPage() {
     };
   }, [selectedPlatform]);
 
+  const paymentRecipientRef = useRef('');
   useEffect(() => {
-    if (!paymentPlatforms.length) return;
-    if (!paymentPlatforms.some((p) => p.code === paymentMethod))
-      setValue("paymentMethod", paymentPlatforms[0].code);
-  }, [paymentPlatforms, paymentMethod, setValue]);
+    const recipientKey = `${recipientType}:${selectedRecipient}`;
+    if (displayPaymentPlatforms.length && paymentRecipientRef.current !== recipientKey) {
+      paymentRecipientRef.current = recipientKey;
+      setValue('paymentMethod', displayPaymentPlatforms.find(p => p.kind === 'bank')?.code || displayPaymentPlatforms[0].code);
+      return;
+    }
+    if (!displayPaymentPlatforms.length) {
+      if (paymentMethod) setValue('paymentMethod', '');
+      return;
+    }
+    if (!displayPaymentPlatforms.some((p) => p.code === paymentMethod))
+      setValue("paymentMethod", displayPaymentPlatforms[0].code);
+  }, [displayPaymentPlatforms, paymentMethod, setValue, recipientType, selectedRecipient]);
 
   const handlePaymentConfig = async (formData) => {
     if (!formData) return false;
+    if (selectedPlatform?.kind === 'qr') return false;
+    if (!paymentPlatforms.some(p => p.code === formData.paymentMethod)) return false;
     setLoadingPayment(true);
     localStorage.setItem(
       "donationPending",
@@ -414,6 +414,7 @@ export default function DonationPage() {
         email: formData?.donoremail ?? "noreply@gmail.com",
         phone: formData?.donorphoneno ?? "0123456789",
         returnTo: "donation",
+        googleUserId: getStoredGoogleUser()?.id ?? null,
       });
       if (bill?.paymentUrl) {
         openPaymentUrl(bill.paymentUrl, {
@@ -436,6 +437,7 @@ export default function DonationPage() {
   };
 
   const onSubmit = async (formData) => {
+    if (selectedPlatform?.kind === 'qr') return;
     const isValid = validateFields(formData, [
       { field: "recipientType", label: "Recipient Type", type: "select" },
       { field: "selectedRecipient", label: "Recipient", type: "text" },
@@ -550,6 +552,79 @@ export default function DonationPage() {
             )}
           </Section>
 
+          {(loadingMethods || methodsError) && <p role="status" className="text-sm text-slate-500">{translate(methodsError ? 'Payment details unavailable' : 'Loading...')}</p>}
+          {displayPaymentPlatforms.length > 0 && (
+            <Section
+              title={translate("Payment Method")}
+              icon={CreditCard}
+              accent="emerald"
+            >
+              <div className="space-y-2">
+                {displayPaymentPlatforms.map((p) => {
+                  const isSelected = paymentMethod === p.code;
+                  return (
+                    <label
+                      key={p.code}
+                      onClick={() => setValue("paymentMethod", p.code)}
+                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-emerald-400 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/20"
+                          : "border-slate-100 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      <input type="radio" name="displayPaymentMethod" value={p.code} checked={isSelected} onChange={() => setValue('paymentMethod', p.code)} className="sr-only peer" />
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-600 peer-focus-visible:ring-offset-2 ${
+                          isSelected
+                            ? "border-emerald-500 bg-emerald-500"
+                            : "border-slate-300 dark:border-slate-600"
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
+                      </div>
+                      <CreditCard className="w-4 h-4 text-slate-400" />
+                      <span
+                        className={`text-sm font-medium ${isSelected ? "text-emerald-800 dark:text-emerald-300" : "text-slate-700 dark:text-slate-300"}`}
+                      >
+                        {translate(p.kind === 'qr' ? 'QR Payment' : p.name)}
+                      </span>
+                    </label>
+                  );
+                })}
+
+                {selectedPlatform?.kind === 'qr' ? (
+                  <PaymentQrDisplay key={`${recipientType}-${selectedRecipient}-${selectedPlatform.qrUrl}`} name={selectedRecipientObj?.name} src={selectedPlatform.qrUrl} location={selectedRecipientObj?.state} recipientLabel={translate(recipientType === 'tahfiz' ? 'Tahfiz Center' : 'Organisation')} />
+                ) : selectedPlatform && (
+                  <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-600 space-y-2">
+                    {selectedPlatform.fields.map((f) =>
+                      f.fieldtype === "image" ? (
+                        <img
+                          key={f.key}
+                          src={f.value}
+                          alt={f.label}
+                          className="max-w-[180px] rounded-lg border"
+                        />
+                      ) : (
+                        <p
+                          key={f.key}
+                          className="text-xs text-slate-600 dark:text-slate-400"
+                        >
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {f.label}:
+                          </span>{" "}
+                          {f.value}
+                        </p>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {selectedPlatform?.kind !== 'qr' && <>
           <Section title={translate("Total Donations")} accent="amber">
             <div className="space-y-3">
               <div className="grid grid-cols-4 gap-1.5">
@@ -621,74 +696,6 @@ export default function DonationPage() {
             </div>
           </Section>
 
-          {paymentPlatforms.length > 0 && (
-            <Section
-              title={translate("Payment Method")}
-              icon={CreditCard}
-              accent="emerald"
-            >
-              <div className="space-y-2">
-                {paymentPlatforms.map((p) => {
-                  const isSelected = paymentMethod === p.code;
-                  return (
-                    <label
-                      key={p.code}
-                      onClick={() => setValue("paymentMethod", p.code)}
-                      className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-emerald-400 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-900/20"
-                          : "border-slate-100 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                          isSelected
-                            ? "border-emerald-500 bg-emerald-500"
-                            : "border-slate-300 dark:border-slate-600"
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        )}
-                      </div>
-                      <CreditCard className="w-4 h-4 text-slate-400" />
-                      <span
-                        className={`text-sm font-medium ${isSelected ? "text-emerald-800 dark:text-emerald-300" : "text-slate-700 dark:text-slate-300"}`}
-                      >
-                        {p.name}
-                      </span>
-                    </label>
-                  );
-                })}
-
-                {selectedPlatform && (
-                  <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-600 space-y-2">
-                    {selectedPlatform.fields.map((f) =>
-                      f.fieldtype === "image" ? (
-                        <img
-                          key={f.key}
-                          src={f.value}
-                          alt={f.label}
-                          className="max-w-[180px] rounded-lg border"
-                        />
-                      ) : (
-                        <p
-                          key={f.key}
-                          className="text-xs text-slate-600 dark:text-slate-400"
-                        >
-                          <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            {f.label}:
-                          </span>{" "}
-                          {f.value}
-                        </p>
-                      ),
-                    )}
-                  </div>
-                )}
-              </div>
-            </Section>
-          )}
-
           <Section
             title={translate("Donor Information (Optional)")}
             icon={User}
@@ -745,10 +752,10 @@ export default function DonationPage() {
 
           <button
             type="submit"
-            disabled={paymentPlatforms.length === 0 || createDonation.isPending}
+            disabled={!selectedPlatform || selectedPlatform.unavailable || paymentPlatforms.length === 0 || createDonation.isPending}
             className={`w-full h-12 rounded-2xl font-semibold text-sm shadow-lg transition-all
             ${
-              paymentPlatforms.length > 0
+              paymentPlatforms.length > 0 && selectedPlatform && !selectedPlatform.unavailable
                 ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white active:opacity-80"
                 : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-600 cursor-not-allowed"
             }
@@ -758,6 +765,7 @@ export default function DonationPage() {
               ? translate("Submitting...")
               : translate("Submit Donation")}
           </button>
+          </>}
         </form>
       </div>
 

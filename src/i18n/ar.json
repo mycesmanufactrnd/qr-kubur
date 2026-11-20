@@ -1,4 +1,6 @@
 {
+  "No payment QR available": "رمز الدفع غير متاح بعد",
+  "This recipient has no available QR payment image.": "لا توجد صورة رمز دفع متاحة لهذا المستلم.",
   "Has Kariah & Death Charity": "لديه قارية وصندوق وفاة",
   "Back": "رجوع",
   "Next": "التالي",
@@ -534,7 +536,6 @@
 
   "No Permission": "لا توجد صلاحية",
 
-  "ToyyibPay Configuration": "إعدادات تويب باي",
 
   "Location not available": "الموقع غير متاح"
 
@@ -1090,7 +1091,6 @@
   "Payment Config": "إعداد الدفع",
   "Payment Platforms": "منصات الدفع",
   "3rd Party Config": "إعداد الطرف الثالث",
-  "ToyyibPay Config": "إعداد تويب باي",
   "Billplz Config": "إعداد Billplz",
   "Payment Comparison": "مقارنة المدفوعات",
   "Admin Library": "مكتبة الإدارة",
@@ -2040,5 +2040,17 @@
   "Sep": "سبتمبر",
   "Oct": "أكتوبر",
   "Nov": "نوفمبر",
-  "Dec": "ديسمبر"
+  "Dec": "ديسمبر",
+  "Donation QR": "رمز التبرع",
+  "QR Payment": "الدفع برمز QR",
+  "Show Donation QR": "عرض رمز التبرع",
+  "Download QR": "تنزيل الرمز",
+  "Share QR": "مشاركة الرمز",
+  "Enlarge QR": "تكبير الرمز",
+  "Tap to enlarge": "اضغط للتكبير",
+  "QR image unavailable": "صورة الرمز غير متاحة. حاول مجدداً.",
+  "QR downloaded for sharing": "تم تنزيل الرمز. يمكنك مشاركة الصورة المحفوظة.",
+  "Unable to save or share QR": "تعذر حفظ الرمز أو مشاركته. حاول مجدداً.",
+  "Payment details unavailable": "تفاصيل الدفع غير متاحة.",
+  "Retry": "إعادة المحاولة"
 }

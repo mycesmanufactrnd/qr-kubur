@@ -3,10 +3,10 @@ import axios from "axios";
 import crypto from "crypto";
 import { getBillplzConfig } from "../config/billplz.config.js";
 import { AppDataSource } from "../datasource.js";
-import { OnlineTransaction } from "../db/entities.js";
+import { OnlineTransaction, OnlineTransactionAccount } from "../db/entities.js";
 import { DONATION_PLATFORM_FEE, PLATFORM_FEE } from "../db/enums.js";
 
-// Keys match the `returnTo` values the pages already send to toyyibPay.createBill.
+// Keys match the `returnTo` values the pages send to billplz.createBill.
 const BILL_DESCRIPTIONS: Record<string, string> = {
   donation: "Donation contribution",
   tahfiz: "Tahlil service contribution",
@@ -47,6 +47,21 @@ function toFriendlyMessage(error: any) {
   return rawMessage;
 }
 
+// Which account paid. Billplz keeps it on the bill as reference_2 ("Users:12",
+// "GoogleUser:5") and returns it from GET /bills/:id, so the callback and redirect —
+// which have no login of their own — can still fill userid / usertablereference.
+export const ACCOUNT_TABLES = ["Users", "GoogleUser"] as const;
+
+function encodeAccountRef(table?: string | null, id?: string | number | null) {
+  if (!table || !ACCOUNT_TABLES.includes(table) || id == null || id === "") return null;
+  return `${table}:${id}`;
+}
+
+function decodeAccountRef(ref?: string | null) {
+  const match = /^(Users|GoogleUser):(\d+)$/.exec(String(ref ?? ""));
+  return match ? { table: match[1], id: match[2] } : null;
+}
+
 export async function createBill({
   amount,
   referenceNo,
@@ -54,6 +69,8 @@ export async function createBill({
   email,
   phone,
   returnTo,
+  userTable,
+  userId,
 }: {
   amount: number;
   referenceNo: string;
@@ -61,6 +78,8 @@ export async function createBill({
   email: string;
   phone?: string | null;
   returnTo: string;
+  userTable?: "Users" | "GoogleUser" | null;
+  userId?: string | number | null;
 }) {
   const config = getBillplzConfig();
   const redirectTarget = BILL_DESCRIPTIONS[returnTo] ? returnTo : "config";
@@ -77,6 +96,12 @@ export async function createBill({
     reference_1: referenceNo,
   };
   if (phone) payload.mobile = phone;
+
+  const accountRef = encodeAccountRef(userTable, userId);
+  if (accountRef) {
+    payload.reference_2_label = "Account";
+    payload.reference_2 = accountRef;
+  }
 
   try {
     const res = await axios.post(`${config.baseUrl}/bills`, payload, {
@@ -185,6 +210,7 @@ export async function recordBillplzPayment({
   const orderAmount = Number(bill.amount || 0) / 100;
   const originalAmount = Math.max(0, orderAmount - platformFee);
   const paidAt = parseDate(bill.paid_at);
+  const account = decodeAccountRef(bill.reference_2);
 
   const existing = await repo.findOne({
     where: { billcode: bill.id },
@@ -203,7 +229,8 @@ export async function recordBillplzPayment({
     maintenancefee: Number(platformFee.toFixed(2)),
     orderstatus: paid ? "1" : "3",
     transactionid: transactionId || existing?.transactionid || null,
-    userid: null,
+    userid: account?.id ?? existing?.userid ?? null,
+    usertablereference: account?.table ?? existing?.usertablereference ?? null,
     fpxtransactiontime: paidAt ?? existing?.fpxtransactiontime ?? null,
     billcode: bill.id,
     gatewaymsg: bill.state,
@@ -213,4 +240,56 @@ export async function recordBillplzPayment({
   });
 
   return await repo.save(transaction);
+}
+
+// Payer's bank account for manual payout, attached to the latest transaction of an order.
+export async function upsertTransactionAccountByOrderNo({
+  orderNo,
+  accountNo,
+  bankName,
+  type = "QR Kubur",
+}: {
+  orderNo: string;
+  accountNo: string;
+  bankName: string;
+  type?: string;
+}) {
+  const onlineTransactionRepo = AppDataSource.getRepository(OnlineTransaction);
+  const onlineTransactionAccountRepo = AppDataSource.getRepository(
+    OnlineTransactionAccount,
+  );
+
+  const transaction = await onlineTransactionRepo.findOne({
+    where: { orderno: orderNo },
+    order: { createdat: "DESC" },
+  });
+
+  if (!transaction) {
+    throw new Error(
+      "Online transaction not found for the provided order number.",
+    );
+  }
+
+  const existingAccount = await onlineTransactionAccountRepo.findOne({
+    where: { transaction: { id: transaction.id } },
+    order: { createdat: "DESC" },
+  });
+
+  if (existingAccount) {
+    existingAccount.bankname = bankName;
+    existingAccount.accountno = accountNo;
+    existingAccount.type = type;
+    existingAccount.amount = Number(transaction.orderamount || 0);
+    return await onlineTransactionAccountRepo.save(existingAccount);
+  }
+
+  const transactionAccount = onlineTransactionAccountRepo.create({
+    type,
+    bankname: bankName,
+    accountno: accountNo,
+    amount: Number(transaction.orderamount || 0),
+    transaction: { id: transaction.id },
+  });
+
+  return await onlineTransactionAccountRepo.save(transactionAccount);
 }

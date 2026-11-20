@@ -120,7 +120,7 @@ function ManagePaymentConfigDesktop() {
       {groupedConfigs.length === 0 ? (
         <NoDataCardComponent isPage />
       ) : (
-        <div>
+        <div className="space-y-4">
           {groupedConfigs.map(([platformName, configs]) => (
             <Card key={platformName} className="border-0 shadow-md">
               <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-slate-100">

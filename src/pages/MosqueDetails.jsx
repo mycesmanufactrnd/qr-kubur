@@ -14,6 +14,7 @@ import {
   ListChecks,
   Users,
   ClipboardPlus,
+  QrCode,
 } from "lucide-react";
 import MapBox from "@/components/MapBox";
 import ActivityPostsCard from "@/components/ActivityPostsCard";
@@ -29,6 +30,8 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import { createPageUrl, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
+import { usePublicPaymentMethods } from '@/mutations/usePublicPaymentMethods';
+import { PaymentQrModal } from '@/components/PaymentQrDisplay';
 
 // Same key UserKariahRegistration saves a found/approved member under — used
 // here only to decide whether this button should say "Register" or "Check
@@ -54,6 +57,10 @@ export default function MosqueDetailsPage() {
   });
 
   const [hasKariahRecord, setHasKariahRecord] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const { data: paymentMethods = [] } = usePublicPaymentMethods('organisation', mosque?.organisation?.id);
+  const qrMethod = paymentMethods.find(method => method.kind === 'qr');
+  useEffect(() => { setQrOpen(false); }, [mosqueId]);
   useEffect(() => {
     if (!mosque?.name) return;
     try {
@@ -140,14 +147,18 @@ export default function MosqueDetailsPage() {
             latitude={mosque.latitude}
             longitude={mosque.longitude}
           />
-          {mosque.organisation?.organisationpaymentconfigs?.length > 0 && (
+          {(paymentMethods.length > 0 || mosque.organisation?.organisationpaymentconfigs?.length > 0) && (
             <DonationButton
               recipientId={String(mosque.organisation?.id)}
               recipientType="organisation"
               state={mosque.organisation?.state}
             />
           )}
+          <Button type="button" variant="outline" className="gap-2 text-emerald-700 dark:text-emerald-300" onClick={() => setQrOpen(true)}>
+            <QrCode className="h-4 w-4" />{translate('Show Donation QR')}
+          </Button>
         </div>
+        <PaymentQrModal key={qrMethod?.qrUrl || mosque.id} open={qrOpen} onOpenChange={setQrOpen} name={mosque.name} src={qrMethod?.qrUrl} location={mosque.state} recipientLabel={translate('Mosque')} />
 
         {mosque.canarrangefuneral && (
           <Button

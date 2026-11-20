@@ -42,7 +42,7 @@ import {
 } from "@/mutations/useDeathCharityPaymentMutations";
 import { useGetConfigByEntity } from "@/mutations/usePaymentConfigMutations";
 import { trpc } from "@/utils/trpc";
-import { paymentToyyibStatus, PLATFORM_FEE } from "@/utils/enums";
+import { paymentStatus, PLATFORM_FEE } from "@/utils/enums";
 import { validateFields } from "@/utils/validations";
 import {
   activityLogError,
@@ -52,6 +52,7 @@ import {
 } from "@/utils/helpers";
 import PaymentSuccessfulComponent from "@/components/PaymentSuccessfulComponent";
 import { translate } from "@/utils/translations";
+import { getStoredGoogleUser } from "@/utils/auth";
 
 const PAYMENT_PLAN = {
   REGISTER_ONLY: "register_only",
@@ -138,7 +139,7 @@ export default function DeathCharityUserPayment() {
 
   const createBillMutation = trpc.billplz.createBill.useMutation();
   const saveTransactionAccountMutation =
-    trpc.toyyibPay.saveTransactionAccount.useMutation();
+    trpc.billplz.saveTransactionAccount.useMutation();
   const createLogMutation = trpc.activityLogs.create.useMutation();
   const createDeathCharityRunningNoMutation =
     trpc.runningNo.createDeathCharityRunningNo.useMutation();
@@ -296,7 +297,7 @@ export default function DeathCharityUserPayment() {
     paymentPlan === PAYMENT_PLAN.YEARLY_ONLY ||
     paymentPlan === PAYMENT_PLAN.REGISTER_AND_YEARLY;
 
-  // Handles a terminal ToyyibPay result, whether it came from the web
+  // Handles a terminal payment result, whether it came from the web
   // redirect (`?status_id=...` in the URL, see effect below) or from native
   // polling via `openPaymentUrl`'s `onStatus` callback (see handlePaymentConfig).
   const handlePaymentResult = (statusText, orderId) => {
@@ -448,7 +449,7 @@ export default function DeathCharityUserPayment() {
 
   useEffect(() => {
     if (!status_id) return;
-    handlePaymentResult(paymentToyyibStatus[status_id] || "Unknown", order_id);
+    handlePaymentResult(paymentStatus[status_id] || "Unknown", order_id);
   }, [searchParams]);
 
   // Malaysian IC number patterns:
@@ -642,6 +643,7 @@ export default function DeathCharityUserPayment() {
         email: paymentData.payeremail || "noreply@gmail.com",
         phone: paymentData.payerphone || "0123456789",
         returnTo: "deathcharity",
+        googleUserId: getStoredGoogleUser()?.id ?? null,
       });
 
       if (bill?.paymentUrl) {

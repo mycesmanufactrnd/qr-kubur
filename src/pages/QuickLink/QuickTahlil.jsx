@@ -28,7 +28,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import TextInputForm from "@/components/forms/TextInputForm.jsx";
 import { translate } from "@/utils/translations";
-import { userGoogleAccess } from "@/utils/auth";
+import { getStoredGoogleUser, userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
 
 const CUSTOM_SERVICE_KEY = "custom";
@@ -260,10 +260,11 @@ export default function QuickTahlil() {
         email: formData?.requestoremail ?? "noreply@gmail.com",
         phone: formData?.requestorphoneno ?? "0123456789",
         returnTo: "tahfiz",
+        googleUserId: getStoredGoogleUser()?.id ?? null,
       });
       if (bill?.paymentUrl) {
         // On native, this page has no local resume logic of its own — like on
-        // web (where ToyyibPay's returnUrl points at TahlilRequestPage), hand
+        // web (where the gateway's return URL points at TahlilRequestPage), hand
         // the result off to TahlilRequestPage, which already knows how to
         // finish creating the request from the shared "tahlilRequestPending"
         // payload.

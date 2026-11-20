@@ -1,4 +1,6 @@
 {
+  "No payment QR available": "No payment QR available",
+  "This recipient has no available QR payment image.": "This recipient has no available QR payment image.",
   "Has Kariah & Death Charity": "Has Kariah & Death Charity",
   "Back": "Back",
   "Next": "Next",
@@ -506,7 +508,6 @@
 
   "No Permission": "No Permission",
   
-  "ToyyibPay Configuration": "ToyyibPay Configuration",
   "Location not available": "Location not available",
   "Islamic Calendar": "Islamic Calendar",
   "Location": "Location",
@@ -1015,7 +1016,6 @@
   "Manage Volunteer & NGO": "Manage Volunteer & NGO",
   "Payment Distribution": "Payment Distribution",
   "Payment Platforms": "Payment Platforms",
-  "ToyyibPay Config": "ToyyibPay Config",
   "Billplz Config": "Billplz Config",
   "Payment Comparison": "Payment Comparison",
   "Ollama": "Ollama",
@@ -1217,7 +1217,6 @@
   "Platform Name": "Platform Name",
   "Select category": "Select category",
   "Delete Platform": "Delete Platform",
-  "ToyyibPay Payment Details": "ToyyibPay Payment Details",
 
   "Search by User, Activity, or Summary": "Search by User, Activity, or Summary",
   "Filter by Level": "Filter by Level",
@@ -2167,5 +2166,17 @@
   "Sep": "Sep",
   "Oct": "Oct",
   "Nov": "Nov",
-  "Dec": "Dec"
+  "Dec": "Dec",
+  "Donation QR": "Donation QR",
+  "QR Payment": "QR Payment",
+  "Show Donation QR": "Show Donation QR",
+  "Download QR": "Download QR",
+  "Share QR": "Share QR",
+  "Enlarge QR": "Enlarge QR",
+  "Tap to enlarge": "Tap to enlarge",
+  "QR image unavailable": "QR image unavailable. Please retry.",
+  "QR downloaded for sharing": "QR downloaded. You can share the saved image.",
+  "Unable to save or share QR": "Unable to save or share QR. Please retry.",
+  "Payment details unavailable": "Payment details unavailable.",
+  "Retry": "Retry"
 }

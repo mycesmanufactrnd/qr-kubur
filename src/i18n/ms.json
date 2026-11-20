@@ -1,4 +1,6 @@
 {
+  "No payment QR available": "QR pembayaran belum tersedia",
+  "This recipient has no available QR payment image.": "Tiada imej QR pembayaran tersedia untuk penerima ini.",
   "Has Kariah & Death Charity": "Mempunyai Kariah & Tabung Kematian",
   "Back": "Kembali",
   "Next": "Seterusnya",
@@ -531,7 +533,6 @@
 
   "No Permission": "Tiada Kebenaran",
 
-  "ToyyibPay Configuration": "Konfigurasi ToyyibPay",
 
   "Location not available": "Lokasi tidak tersedia",
   "Islamic Calendar": "Takwim Islam",
@@ -1100,7 +1101,6 @@
   "Payment Config": "Konfigurasi Pembayaran",
   "Payment Platforms": "Platform Pembayaran",
   "3rd Party Config": "Konfigurasi Pihak Ketiga",
-  "ToyyibPay Config": "Konfigurasi ToyyibPay",
   "Billplz Config": "Konfigurasi Billplz",
   "Payment Comparison": "Perbandingan Pembayaran",
   "Admin Library": "Perpustakaan Admin",
@@ -2048,5 +2048,17 @@
   "Sep": "Sep",
   "Oct": "Okt",
   "Nov": "Nov",
-  "Dec": "Dis"
+  "Dec": "Dis",
+  "Donation QR": "QR Derma",
+  "QR Payment": "Pembayaran QR",
+  "Show Donation QR": "Papar QR Derma",
+  "Download QR": "Muat Turun QR",
+  "Share QR": "Kongsi QR",
+  "Enlarge QR": "Besarkan QR",
+  "Tap to enlarge": "Tekan untuk besarkan",
+  "QR image unavailable": "Imej QR tidak tersedia. Sila cuba lagi.",
+  "QR downloaded for sharing": "QR dimuat turun. Anda boleh berkongsi imej ini.",
+  "Unable to save or share QR": "Tidak dapat menyimpan atau berkongsi QR. Sila cuba lagi.",
+  "Payment details unavailable": "Maklumat pembayaran tidak tersedia.",
+  "Retry": "Cuba Lagi"
 }

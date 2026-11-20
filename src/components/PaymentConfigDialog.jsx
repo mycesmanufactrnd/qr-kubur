@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CreditCard, Save, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,12 @@ export default function PaymentConfigDialog({
   const [configValues, setConfigValues] = useState({});
   const [uploadingFiles, setUploadingFiles] = useState({});
   const [previewUrls, setPreviewUrls] = useState({});
+  const allocatedPreviews = useRef(new Set());
+  const createPreview = (file) => {
+    const url = URL.createObjectURL(file);
+    allocatedPreviews.current.add(url);
+    return url;
+  };
   const [removedPlatforms, setRemovedPlatforms] = useState([]);
 
   const buildPaymentConfigPayload = (entityType, entityId, configsToUpsert, existingConfigs = [], selectedPlatforms = []) => {
@@ -80,6 +86,7 @@ export default function PaymentConfigDialog({
     if (existingConfigs.length > 0) {
       const fetchAllFileUrls = async () => {
         const values = {};
+        const previews = {};
         const platformSet = new Set();
 
         for (const config of existingConfigs) {
@@ -91,17 +98,17 @@ export default function PaymentConfigDialog({
             platformSet.add(platformCode);
 
             if (fieldType == "image") {
+              values[`${platformCode}_${fieldKey}`] = /^(blob|data):/i.test(configValue) ? '' : configValue;
               const bucketType = entityType === "organisation" ? 'bucket-organisation-config' : 'bucket-tahfiz-config';
 
               try {
                 const fileUrl = resolveFileUrl(configValue, bucketType);
                 if (!fileUrl) {
-                  values[`${platformCode}_${fieldKey}`] = '';
                   continue;
                 }
 
-                if (/^https?:\/\//i.test(fileUrl)) {
-                  values[`${platformCode}_${fieldKey}`] = fileUrl;
+                if (/^(https?:|blob:|data:)/i.test(configValue)) {
+                  previews[`${platformCode}_${fieldKey}`] = fileUrl;
                   continue;
                 }
 
@@ -116,15 +123,13 @@ export default function PaymentConfigDialog({
                 });
                 if (!res.ok) {
                   console.warn(`Failed to fetch file: ${configValue}`);
-                  values[`${platformCode}_${fieldKey}`] = '';
                   continue;
                 }
   
                 const blob = await res.blob();
-                values[`${platformCode}_${fieldKey}`] = URL.createObjectURL(blob);
+                previews[`${platformCode}_${fieldKey}`] = createPreview(blob);
               } catch (err) {
                 console.error('Error fetching file:', err);
-                values[`${platformCode}_${fieldKey}`] = '';
               }
             }
             else {
@@ -135,6 +140,7 @@ export default function PaymentConfigDialog({
 
         setSelectedPlatforms(Array.from(platformSet));
         setConfigValues(values);
+        setPreviewUrls(previews);
       };
 
       fetchAllFileUrls();
@@ -143,11 +149,11 @@ export default function PaymentConfigDialog({
 
   useEffect(() => {
     return () => {
-      Object.values(previewUrls).forEach(url => {
+      allocatedPreviews.current.forEach(url => {
         URL.revokeObjectURL(url);
       });
     };
-  }, [previewUrls]);
+  }, []);
   
   const handleFileUpload = async (platformCode, fieldKey, fieldType, file) => {
     const uploadKey = `${platformCode}_${fieldKey}`;
@@ -162,6 +168,8 @@ export default function PaymentConfigDialog({
 
       const res = await fetch(apiUrl(`/api/upload/${bucketType}`), { 
         method: 'POST', 
+        credentials: 'include',
+        headers: getAuthHeaders(),
         body: formData 
       });
 
@@ -174,7 +182,7 @@ export default function PaymentConfigDialog({
       const data = await res.json();
       
       setConfigValues({ ...configValues, [uploadKey]: data.file_url });
-      setPreviewUrls(prev => ({ ...prev, [uploadKey]: URL.createObjectURL(file) }));
+      setPreviewUrls(prev => ({ ...prev, [uploadKey]: createPreview(file) }));
       showSuccess('Photo uploaded');
       
     } catch (err) {

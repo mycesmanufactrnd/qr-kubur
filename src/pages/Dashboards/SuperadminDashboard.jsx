@@ -13,7 +13,6 @@ import {
   UserCheck,
   UserX,
   Moon,
-  Sun,
   Globe,
   Calendar,
   Gift,
@@ -260,12 +259,6 @@ export default function SuperadminDashboard() {
         {
           title: "3rd Party Config",
           items: [
-            {
-              name: translate("ToyyibPay Config"),
-              page: "ToyyibPayConfigPage",
-              icon: Sun,
-              color: "yellow",
-            },
             {
               name: translate("Billplz Config"),
               page: "BillplzConfigPage",

@@ -42,7 +42,7 @@ Things that cost time or risk a mistake here, verified against the code.
   outside the entity's save lifecycle (raw SQL, a script), you must recompute the hash yourself —
   see `backend/src/db/scripts/backfillPdpaEncryption.ts` for the reference approach.
 - **Config for Stripe/PayPal exists (`config/stripe.config.ts`, `config/paypal.config.ts`) but the
-  architecture doc and docker-compose only confirm ToyyibPay + Billplz as live.** Don't assume
+  architecture doc and docker-compose only confirm Billplz as live.** Don't assume
   Stripe/PayPal payment flows are production-ready without checking — see
   [[../40-questions/unanswered/architecture|open questions]].
 

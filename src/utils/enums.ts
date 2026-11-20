@@ -276,7 +276,7 @@ export enum TahlilStatus {
   REJECTED = "rejected",
 }
 
-export const paymentToyyibStatus = {
+export const paymentStatus = {
   "1": "Success",
   "2": "Pending",
   "3": "Unsuccessful",
@@ -289,6 +289,7 @@ export const ACCEPTED_UPLOAD_TYPES = ".csv,.xlsx,.xls";
 
 export const SST_PERCENTAGE = 0.06;
 export const PLATFORM_FEE = 2;
+// Donation fee breakdown: RM1.25 for Billplz.
 export const PLATFORM_DONATION_FEE = 1.5;
 export const SERVICE_FEE = 3;
 

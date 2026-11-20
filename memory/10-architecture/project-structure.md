@@ -10,7 +10,7 @@ What every top-level folder is, verified against the repo listing.
 | `public/` | Static assets, `firebase-messaging-sw.js` (web push service worker). | Live |
 | `dockerfiles/` | `backend.prod.dockerfile`, `frontend.prod.dockerfile` (multi-stage, nginx). | Live |
 | `scripts/` | Build/version helper scripts (e.g. `bump-android-version.js`), `backup-to-gdrive.ps1`. | Live |
-| `flow/` | Hand-written runbooks for specific flows: `google-sign-in.md`, `toyyibpay-payment.md`, `fix-postgres-ownership.md`. | Live, read before touching those flows |
+| `flow/` | Hand-written runbooks for specific flows: `google-sign-in.md`, `fix-postgres-ownership.md`. | Live, read before touching those flows |
 | `markdown_files/` | Ops/architecture docs: `FULL_ARCHITECTURE.md`, `BACKUP_DR.md`, `MONITORING.md`, `ALERTING_FLOW.md`, `RUNNER.md`, `SETUP_PM2.md`, `postgres.md`. | Live, authoritative for ops — this memory system links to it rather than duplicating it |
 | `base44/` | `.app.jsonc` / `config.jsonc` only — Base44 scaffold leftover. | Mostly dead, see [[overview#legacy]] |
 | `supabase/` | CLI branch/temp metadata only, no code references it. | Dead |
@@ -37,7 +37,7 @@ What every top-level folder is, verified against the repo listing.
 
 | Subfolder | Contents |
 |---|---|
-| `routers/` | **51 files**, one tRPC sub-router per domain, composed into `appRouter.ts`. 1:1 with `src/mutations/*.ts` on the frontend (see [[frontend-patterns]]). |
+| `routers/` | **50 files**, one tRPC sub-router per domain, composed into `appRouter.ts`. 1:1 with `src/mutations/*.ts` on the frontend (see [[frontend-patterns]]). |
 | `schemas/` | Zod validation schemas, one per entity-ish domain, imported by the matching router. |
 | `db/entities/` | **53 TypeORM entity files** — the schema. Some grouped into subfolders (`DeathCharity/`, `Inventory/`, `CollectionTree/`, `FirebaseReceiver/`, `GoogleUser/`, `ExtendsEntity/`). |
 | `db/migrations/` | **One** hand-written migration — `DATABASE_SYNC=true` is the real schema mechanism, see [[entity-system]]. |
@@ -46,8 +46,8 @@ What every top-level folder is, verified against the repo listing.
 | `helpers/` | `authHelper.ts`, `cryptoHelper.ts` (field encryption, see [[../20-knowledge/security/field-encryption|field-encryption.md]]), `passwordHelper.ts`, `requestContext.ts`. |
 | `middleware/` | `rateLimit.ts`. |
 | `storage/` | `storage.ts` (driver switch), `storageDisk.ts`, `storageS3.ts` — `STORAGE_DRIVER=disk\|s3`. |
-| `services/` | `firebase.service.ts` (push), `billplz.service.ts`, `toyyibpay.service.ts`, `upload.service.ts`, `storageMetadata.service.ts`, `notificationUrls.ts` (event → in-app deep link map). |
-| `config/` | Payment gateway configs: `billplz.config.ts`, `toyyibpay.config.ts`, `stripe.config.ts`, `paypal.config.ts` (Stripe/PayPal present but check [[../40-questions/unanswered/architecture|open questions]] for whether they're wired up — ToyyibPay/Billplz are the ones confirmed live in `markdown_files/FULL_ARCHITECTURE.md`). |
+| `services/` | `firebase.service.ts` (push), `billplz.service.ts`, `upload.service.ts`, `storageMetadata.service.ts`, `notificationUrls.ts` (event → in-app deep link map). |
+| `config/` | Payment gateway configs: `billplz.config.ts`, `stripe.config.ts`, `paypal.config.ts` (Stripe/PayPal present but check [[../40-questions/unanswered/architecture|open questions]] for whether they're wired up — Billplz is the one confirmed live in `markdown_files/FULL_ARCHITECTURE.md`). |
 | `ollama/` | Local LLM integration (chains, prompts, router) — separate from the Base44 `InvokeLLM` integration. |
 | `api/` | Plain REST handlers: `api.ts`, `payment.ts`, `proxy.ts`, `upload.ts` (outside tRPC — file upload/download and payment callbacks). |
 | `auth.ts`, `trpc.ts`, `datasource.ts`, `server.ts` | Core wiring — see [[backend-patterns]]. |

@@ -40,7 +40,6 @@ flowchart TB
 
     subgraph External["External services"]
         Firebase["Firebase<br/>(Auth + Cloud Messaging + Admin SDK)"]
-        ToyyibPay["ToyyibPay"]
         Billplz["Billplz"]
         GDrive["Google Drive<br/>(via rclone)"]
         Healthchecks["Healthchecks.io"]
@@ -62,7 +61,6 @@ flowchart TB
     Fastify1 -->|"/api/upload/:bucket<br/>/api/file/:bucket/:filename"| Vol2
 
     Fastify1 <-->|"Admin SDK: verify ID token,<br/>send push notifications"| Firebase
-    Fastify1 <--> ToyyibPay
     Fastify1 <--> Billplz
 
     Vol1 -.->|"pg_dump (scheduled)"| Backup["backup-to-gdrive.ps1"]
@@ -82,7 +80,7 @@ flowchart TB
 | File storage | Local disk (`STORAGE_DRIVER=disk`, default) or S3 (`STORAGE_DRIVER=s3`) | bind mount `./storage_data` | — | One subfolder per bucket (`bucket-grave`, `bucket-dead-person`, …); served via `GET /api/file/:bucket/:filename`, written via `POST /api/upload/:bucket` |
 | Auth | Firebase Auth (Google SSO) + custom JWT | inside `backend` | — | `verifyToken()` reads Bearer header or `accessToken` httpOnly cookie on every request (`onRequest` hook) |
 | Push notifications | Firebase Cloud Messaging | `backend` (sender) + browser SW / Capacitor plugin (receiver) | — | Web: `public/firebase-messaging-sw.js`. Android: `@capacitor/push-notifications` |
-| Payments | ToyyibPay, Billplz | inside `backend` | — | Config validated at boot (`server.ts` logs missing keys) |
+| Payments | Billplz | inside `backend` | — | Config validated at boot (`server.ts` logs missing keys) |
 | Backup | PowerShell script + rclone | runs on the Docker **host** (not containerized) | — | `scripts/backup-to-gdrive.ps1`, see §4 |
 
 ## 3. Process management inside the backend container

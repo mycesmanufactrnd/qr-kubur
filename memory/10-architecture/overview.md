@@ -3,7 +3,7 @@
 A **grave / mosque / death-management platform** for Malaysian kariah (mosque congregation)
 communities: grave mapping, deceased person records, death charity (takaful-style mutual aid)
 membership and claims, tahlil requests, donations, waqf projects, mosque org charts, inventory
-(jenazah/funeral equipment), and payments (ToyyibPay, Billplz). Written from the code and from
+(jenazah/funeral equipment), and payments (Billplz). Written from the code and from
 `markdown_files/FULL_ARCHITECTURE.md` (that file has the full Mermaid diagrams — this is the
 condensed, navigable version).
 
@@ -28,7 +28,7 @@ Browser/Capacitor app ──HTTPS──> reverse proxy (NOT in this repo) ──
                                                                            │
                                                       tRPC /trpc/* + REST /api/* ──TypeORM──> Postgres
                                                            │
-                                                 Firebase Admin SDK (push), ToyyibPay, Billplz
+                                                 Firebase Admin SDK (push), Billplz
 ```
 
 - **Auth is a JWT**, not Firebase session cookies for the core app: `backend/src/auth.ts` signs
@@ -76,7 +76,7 @@ Browser/Capacitor app ──HTTPS──> reverse proxy (NOT in this repo) ──
 
 - Frontend: **130 page files**, **139 component files**, **28 mutation-hook files** in
   `src/mutations/` (plus one misplaced in `src/hooks/` — see [[best-practices]]).
-- Backend: **51 router files**, **53 entity files**, **1** hand-written migration.
+- Backend: **50 router files**, **53 entity files**, **1** hand-written migration.
 
 Related: [[project-structure]] · [[backend-patterns]] · [[frontend-patterns]] · [[entity-system]] ·
 [[development-workflow]] · [[best-practices]]

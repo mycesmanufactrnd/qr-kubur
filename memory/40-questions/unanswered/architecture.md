@@ -37,7 +37,7 @@ and delete this entry per the lifecycle in [[../index|40-questions/index.md]].
 
 **What was checked**: `backend/src/config/stripe.config.ts` and `paypal.config.ts` exist, and
 `@stripe/react-stripe-js`/`@stripe/stripe-js` are frontend dependencies. `markdown_files/FULL_ARCHITECTURE.md`
-only lists ToyyibPay and Billplz as confirmed-live payment integrations (its component table and
+only lists Billplz as the confirmed-live payment integration (its component table and
 request-flow diagram don't mention Stripe/PayPal at all).
 
 **Why the code can't answer it**: a config file existing doesn't confirm a live, called code path —

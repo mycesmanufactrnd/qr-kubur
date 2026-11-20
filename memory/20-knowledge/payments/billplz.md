@@ -2,27 +2,25 @@
 
 Since 2026-10-21 every payment page (`DonationPage`, `TahlilRequestPage`, `DeathCharityUserPayment`,
 `OrganisationDetails`, `QuickLink/QuickDonation`, `QuickLink/QuickTahlil`) calls
-`trpc.billplz.createBill`. ToyyibPay code, env vars and `/api/payment/callback` are kept but unused
-(user decision: switch, don't remove). `ToyyibPayConfigPage` still tests ToyyibPay.
+`trpc.billplz.createBill`. Billplz is the only payment gateway.
 
-One platform-wide Billplz collection (`BILLPLZ_COLLECTION_ID`), same as ToyyibPay's single
-account. Per-recipient bank accounts in payment config are for manual payout
-(`saveTransactionAccount`), not separate gateway accounts. `db/seeder/gateway/billplzSeeder.ts`
+One platform-wide Billplz collection (`BILLPLZ_COLLECTION_ID`). Per-recipient bank accounts in
+payment config are for manual payout (`billplz.saveTransactionAccount`), not separate gateway
+accounts. `db/seeder/gateway/billplzSeeder.ts`
 (per-entity API keys) is never called.
 
 ## Flow
 
-1. `billplz.createBill` (same input/output shape as `toyyibPay.createBill`, incl. `returnTo`) →
+1. `billplz.createBill` (input incl. `returnTo`) →
    `POST /v3/bills` with `reference_1` = our order no (`DON-…` etc.),
    `redirect_url` = `BILLPLZ_REDIRECT_URL/<returnTo>`.
 2. Billplz → `POST /api/payment/billplz/callback` (form-encoded, must be publicly reachable).
 3. Payer's browser → `GET /api/payment/billplz/redirect/:returnTo?billplz[id]=…` → backend
    verifies, then 302s to `BILLPLZ_RETURN_URL_*` with `?status_id=1|3&order_id=&billcode=` — the
-   exact query shape the pages already parse from ToyyibPay, so page code didn't change.
+   query shape the pages parse (`status_id` decoded via `paymentStatus` in `src/utils/enums.ts`).
 4. Both 2 and 3 fetch the bill (`GET /v3/bills/:id`, the only way to get `reference_1` back) and
    upsert `OnlineTransaction` by `billcode` (= Billplz bill id). Native polling
-   (`src/utils/payment.ts`) still uses `toyyibPay.getTransactionStatusByOrderNo`, which is a
-   gateway-agnostic DB lookup.
+   (`src/utils/payment.ts`) uses `billplz.getTransactionStatusByOrderNo`, a DB lookup by order no.
 
 ## Pitfalls
 

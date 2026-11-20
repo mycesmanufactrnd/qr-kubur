@@ -17,7 +17,7 @@ import PageLoadingComponent from "@/components/PageLoadingComponent";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { translate } from "@/utils/translations";
-import { userGoogleAccess } from "@/utils/auth";
+import { getStoredGoogleUser, userGoogleAccess } from "@/utils/auth";
 import { createPageUrl } from "@/utils";
 
 function Section({
@@ -179,10 +179,11 @@ export default function QuickDonation() {
         email: formData?.donoremail ?? "noreply@gmail.com",
         phone: formData?.donorphoneno ?? "0123456789",
         returnTo: "donation",
+        googleUserId: getStoredGoogleUser()?.id ?? null,
       });
       if (bill?.paymentUrl) {
         // On native, this page has no local resume logic of its own — like on
-        // web (where ToyyibPay's returnUrl points at DonationPage), hand the
+        // web (where the gateway's return URL points at DonationPage), hand the
         // result off to DonationPage, which already knows how to finish
         // creating the donation from the shared "donationPending" payload.
         openPaymentUrl(bill.paymentUrl, {

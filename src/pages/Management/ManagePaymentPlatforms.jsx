@@ -232,7 +232,7 @@ export default function ManagePaymentPlatforms() {
               required
               errors={errors}
             /> 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <SelectForm
                 name="category"
                 control={control}
@@ -258,15 +258,15 @@ export default function ManagePaymentPlatforms() {
                 errors={errors}
               />
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2 pt-20 sm:space-x-0">
               <Button 
-                type="button" variant="outline" 
+                type="button" variant="outline" className="h-10 w-full sm:w-28"
                 onClick={() => setIsDialogOpen(false)}
               >
                 {translate('Close')}
               </Button>
               <Button 
-                type="submit" className="bg-blue-600"
+                type="submit" className="h-10 w-full bg-blue-600 hover:bg-blue-700 sm:w-28"
                 disabled={createPaymentPlatform.isPending || updatePaymentPlatform.isPending || isSubmitting}>
                   <Save className="w-4 h-4 mr-2" />
                   {translate('Save')}

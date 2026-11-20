@@ -1,4 +1,5 @@
 export const PLATFORM_FEE = 2;
+// Donation fee breakdown: RM1.25 for Billplz.
 export const DONATION_PLATFORM_FEE = 1.50;
 
 export const ORG_SERVICE_FEE = 0.05;

@@ -7,7 +7,7 @@ const POLL_TIMEOUT_MS = 10 * 60 * 1000; // give up after 10 minutes
 
 // Maps OnlineTransaction.gatewaystatus (set from the gateway's server-to-server
 // callback) to the same "Success" / "Pending" / "Unsuccessful" strings the
-// pages already derive from `paymentToyyibStatus[status_id]` on web.
+// pages derive from `status_id` on web.
 function mapGatewayStatus(gatewaystatus?: string | null): string | null {
   if (gatewaystatus === 'success') return 'Success';
   if (gatewaystatus === 'unsuccessful') return 'Unsuccessful';
@@ -76,8 +76,9 @@ export async function openPaymentUrl(
           return;
         }
         try {
+          // Gateway-neutral DB lookup by order no (reads Billplz rows).
           const transaction =
-            await trpcClient.toyyibPay.getTransactionStatusByOrderNo.query({
+            await trpcClient.billplz.getTransactionStatusByOrderNo.query({
               orderNo,
             });
           const statusText = mapGatewayStatus(transaction?.gatewaystatus);

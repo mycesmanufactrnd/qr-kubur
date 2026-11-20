@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { trpc } from "@/utils/trpc";
-import { paymentToyyibStatus } from "@/utils/enums";
+import { paymentStatus } from "@/utils/enums";
 
 export default function BillplzConfigPage() {
   const [searchParams] = useSearchParams();
@@ -19,7 +19,7 @@ export default function BillplzConfigPage() {
     setPaymentInfo({
       billId,
       statusText: status_id
-        ? paymentToyyibStatus[status_id] || "Unknown"
+        ? paymentStatus[status_id] || "Unknown"
         : "Waiting for Test",
     });
   }, [searchParams]);

@@ -33,7 +33,6 @@ import { appRouter } from "./routers/appRouter.js";
 import multipart from "@fastify/multipart";
 import formbody from "@fastify/formbody";
 import cookie from "@fastify/cookie"; //cookie support for secure httpOnly cookies
-import { getToyyibpayConfig } from "./config/toyyibpay.config.js";
 import { registerAPIRoutes } from "./api/api.js";
 import { getBucketConfig } from "./config/bucket.config.js";
 import { getBillplzConfig } from "./config/billplz.config.js";
@@ -156,28 +155,6 @@ app.addHook("onRequest", (req, reply, done) => {
     done();
   });
 });
-
-const toyyibpayConfig = getToyyibpayConfig();
-
-console.log("\n📦 ToyyibPay Configs:");
-console.table(
-  Object.entries(toyyibpayConfig).map(([key, value]) => ({
-    key,
-    value: value || "❌ MISSING",
-  })),
-);
-
-const missingToyyibPayKeys = Object.entries(toyyibpayConfig)
-  .filter(([_, value]) => !value)
-  .map(([key]) => key);
-
-if (missingToyyibPayKeys.length === 0) {
-  console.log("✅ All toyyibPay configs loaded");
-} else {
-  console.log(
-    `❌ Missing toyyibPay configs: ${missingToyyibPayKeys.join(", ")}`,
-  );
-}
 
 const bucketConfig = getBucketConfig();
 

@@ -102,7 +102,6 @@ import ManagePaymentDistribution from '@/pages/Management/ManagePaymentDistribut
 import ManagePaymentFields from '@/pages/Management/ManagePaymentFields';
 import ManagePaymentPlatforms from '@/pages/Management/ManagePaymentPlatforms';
 import FinancialReports from '@/pages/Payment/FinancialReports.jsx';
-import ToyyibPayConfigPage from '@/pages/Payment/ToyyibPayConfigPage.jsx';
 import BillplzConfigPage from '@/pages/Payment/BillplzConfigPage.jsx';
 
 import ViewLogs from '@/pages/Settings/ViewLogs';
@@ -218,7 +217,6 @@ export const PAGES = {
     "ManagePaymentPlatforms": ManagePaymentPlatforms,
     "FinancialReports": FinancialReports,
 
-    "ToyyibPayConfigPage": ToyyibPayConfigPage,
     "BillplzConfigPage": BillplzConfigPage,
     "ViewLogs": ViewLogs,
     "IconLibrary": IconLibrary,

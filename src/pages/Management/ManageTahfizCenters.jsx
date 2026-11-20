@@ -62,7 +62,7 @@ import { useAdminAccess } from "@/utils/auth";
 import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultTahfizField } from "@/utils/defaultformfields";
 import { defaultTahfizTemplateHeaders } from "@/utils/defaulttemplateheader";
-import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
+import { appendCurrentUserToFormData, resolveFileUrl, apiUrl, getAuthHeaders } from "@/utils";
 import MapLocationPicker from "@/components/MapLocationPicker";
 import { trpc } from "@/utils/trpc";
 import {
@@ -414,6 +414,8 @@ function ManageTahfizCentersDesktop() {
 
       const res = await fetch(apiUrl("/api/upload/bucket-tahfiz-config"), {
         method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(),
         body: formData,
       });
 
@@ -618,12 +620,15 @@ function ManageTahfizCentersDesktop() {
               );
               if (!fileUrl) continue;
 
-              if (/^https?:\/\//i.test(fileUrl)) {
+              if (/^(https?:|blob:|data:)/i.test(configValue)) {
                 previews[`${platformCode}_${fieldKey}`] = fileUrl;
                 continue;
               }
 
-              const res = await fetch(fileUrl);
+              const res = await fetch(fileUrl, {
+                credentials: "include",
+                headers: getAuthHeaders(),
+              });
               if (!res.ok) {
                 continue;
               }
