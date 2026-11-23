@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,8 @@ export default function FileUploadForm({
   isNeedPasteURL = true,
   isShowList = false,
   accept = "image/*",
+  // false = "Upload File" opens the file picker directly (no camera/file chooser dialog).
+  allowCamera: allowCameraProp = true,
 }) {
   const errorMessage = errors?.[name]?.message;
   const fieldValue = useWatch({ control, name });
@@ -48,7 +50,8 @@ export default function FileUploadForm({
   const [chooserOpen, setChooserOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const fileInputId = useId();
-  const allowCamera = accept.includes("image");
+  const fileInputRef = useRef(null);
+  const allowCamera = allowCameraProp && accept.includes("image");
 
   const storedPreviewValue = isUrlMode ? urlInput : fieldValue;
   const storedPreviewSrc = storedPreviewValue
@@ -167,6 +170,7 @@ export default function FileUploadForm({
               <div className="flex items-center gap-3">
                 <input
                   key={fileInputKey}
+                  ref={fileInputRef}
                   id={fileInputId}
                   type="file"
                   accept={accept}
@@ -181,7 +185,11 @@ export default function FileUploadForm({
                   type="button"
                   variant="outline"
                   disabled={busy}
-                  onClick={() => setChooserOpen(true)}
+                  onClick={() =>
+                    allowCamera
+                      ? setChooserOpen(true)
+                      : fileInputRef.current?.click()
+                  }
                   className="dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
                 >
                   <Upload className="w-4 h-4 mr-2" />

@@ -75,10 +75,8 @@ export default defineConfig({
     proxy: {
       "/api": "http://backend:8083",
       "/trpc": "http://backend:8083",
-      "^/.+\\.pdf$": {
-        target: "https://qubur.mycesgroup.com",
-        changeOrigin: true,
-      },
+      // No *.pdf proxy: PDFViewer (PDF.js) loads the PDFs from local public/. The old proxy to the
+      // live site made new PDFs (not yet deployed) load as an HTML page and fail to display.
     },
   },
 });

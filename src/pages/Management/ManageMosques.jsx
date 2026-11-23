@@ -57,7 +57,12 @@ import { useCrudPermissions } from "@/components/PermissionsContext";
 import { ACCEPTED_UPLOAD_TYPES, STATES_MY } from "@/utils/enums";
 import { defaultMosqueTemplateHeaders } from "@/utils/defaulttemplateheader";
 import { validateFields } from "@/utils/validations";
-import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
+import {
+  appendCurrentUserToFormData,
+  resolveFileUrl,
+  apiUrl,
+  getAuthHeaders,
+} from "@/utils";
 
 import {
   useGetMosquePaginated,
@@ -235,6 +240,7 @@ function ManageMosquesDesktop() {
   });
 
   const photourl = watch("photourl") || "";
+  const qrurl = watch("qrurl") || "";
   const hasdeathcharity = watch("hasdeathcharity");
   const canarrangefuneral = watch("canarrangefuneral");
   const jenazahPaymentItems = watch("jenazahmanagementpayment") || [];
@@ -329,6 +335,8 @@ function ManageMosquesDesktop() {
 
       const res = await fetch(apiUrl("/api/upload/bucket-mosque"), {
         method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(),
         body: formDataUpload,
       });
 
@@ -345,6 +353,35 @@ function ManageMosquesDesktop() {
     } catch (err) {
       console.error(err);
       showError("Failed to upload photo");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleQrUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      appendCurrentUserToFormData(formDataUpload);
+      const res = await fetch(apiUrl("/api/upload/bucket-mosque"), {
+        method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(),
+        body: formDataUpload,
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showError(errorData.error || translate("Failed to upload file"));
+        return;
+      }
+      const data = await res.json();
+      setValue("qrurl", data.file_url);
+      showSuccess(translate("QR uploaded"));
+    } catch (err) {
+      console.error(err);
+      showError(translate("Failed to upload file"));
     } finally {
       setUploading(false);
     }
@@ -1063,6 +1100,34 @@ function ManageMosquesDesktop() {
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                         <ImageIcon className="text-white w-8 h-8" />
                       </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{translate("Donation QR")}</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => handleQrUpload(e.target.files?.[0])}
+                      disabled={uploading}
+                      className="cursor-pointer"
+                    />
+                    {uploading && (
+                      <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400">
+                        <span>{translate("Uploading...")}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {qrurl && (
+                    <div className="mt-3 w-40 h-40">
+                      <img
+                        src={resolveFileUrl(qrurl, "bucket-mosque")}
+                        alt={translate("Donation QR")}
+                        className="w-full h-full object-contain rounded-lg border-2 border-stone-100 dark:border-slate-700 shadow-sm bg-white"
+                      />
                     </div>
                   )}
                 </div>

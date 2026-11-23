@@ -230,6 +230,7 @@ export const defaultMosqueField = {
   longitude: "",
   organisation: "",
   photourl: "",
+  qrurl: "",
   canarrangefuneral: false,
   hasdeathcharity: false,
   haskariahregistration: false,

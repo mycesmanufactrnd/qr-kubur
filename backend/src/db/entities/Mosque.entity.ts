@@ -69,6 +69,10 @@ export class Mosque {
   @Column("varchar", { length: 255, nullable: true })
   photourl?: string;
 
+  // Donation/payment QR image (e.g. DuitNow) — uploaded file key in bucket-mosque, same as photourl.
+  @Column("varchar", { length: 255, nullable: true })
+  qrurl?: string;
+
   @Column("jsonb", { nullable: true })
   jenazahmanagementpayment?: { item: string; price: number }[] | null;
   

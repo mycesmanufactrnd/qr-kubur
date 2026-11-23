@@ -123,8 +123,15 @@ duplicated here — see it for the exact wording.
 PDFs shipped in `public/` (Tahlil, Doa Tahlil, Talqin, Panduan Solat/Pengebumian Jenazah) are shown
 with the shared `PDFViewer` (react-pdf, no iframe). Don't copy the viewer into a page. Tabbed PDF
 pages (`User/SurahPage.jsx`, `BurialGuidance.jsx`) follow the same tab-bar markup.
-`BurialGuidance` (Funeral Management Guide, Burial + Solat tabs) was renamed from `SolatJenazah`;
+`BurialGuidance` (Funeral Management Guide, Management + Shrouding + Solat + Burial tabs, in the order the rites happen; each tab's
+`credit` array of `{label, value}` rows renders the source attribution under its PDF — only what
+the PDF itself states; the Solat PDF names no publisher) was renamed from `SolatJenazah`;
 `App.jsx` redirects `/SolatJenazah` to it. When renaming any page, add the same kind of redirect —
 unknown routes otherwise fall through to `/` silently.
+
+Pitfall (fixed 2026-11-20): `vite.config.js` used to proxy every `*.pdf` request in dev to the live
+site, so a newly added PDF that wasn't deployed yet came back as the site's HTML page and showed
+"Unable to load PDF." Don't re-add that proxy. On a deployed site, a new PDF only appears after
+the next frontend deploy.
 
 Related: [[overview]] · [[backend-patterns]] · [[../20-knowledge/frontend-conventions/mutation-hooks-pattern|mutation-hooks-pattern.md]] · [[../20-knowledge/frontend-conventions/admin-mobile-pattern|admin-mobile-pattern.md]]

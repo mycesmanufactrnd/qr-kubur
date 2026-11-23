@@ -83,6 +83,12 @@ payment, and PII-bearing pages.
   (`/api/upload/:bucket`, `/api/file/:bucket/:filename`, CSV bulk-import routes) are **out of
   scope** for this convention by user decision 2026-10-13 — the mutation-hooks template is
   tRPC-specific and those aren't tRPC procedures.
+- [ ] **Uploads without auth → 401 "Unauthorized".** `POST /api/upload/:bucket` needs a logged-in
+  user unless the bucket is in `PUBLIC_UPLOAD_BUCKETS` (`backend/src/api/upload.ts`). Most page
+  upload handlers call `fetch(apiUrl(...), { method, body })` with no auth, so the token/cookie never
+  reaches the backend. Fix = add `credentials: "include", headers: getAuthHeaders()` (from `@/utils`),
+  as `PaymentConfigDialog.jsx` does. Fixed 2026-11-20 in `ManageMosques.jsx` (desktop + mobile);
+  the other `Manage*.jsx` upload handlers still lack it.
 
 ## Misplaced mutations file
 

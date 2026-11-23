@@ -11,6 +11,7 @@ export const mosqueSchema = z.object({
   longitude: z.number().optional().nullable(),
   organisation: z.object({ id: z.number() }),
   photourl: z.string().optional().nullable(),
+  qrurl: z.string().optional().nullable(),
   canarrangefuneral: z.boolean().default(false),
   hasdeathcharity: z.boolean().default(false),
   haskariahregistration: z.boolean().default(false),

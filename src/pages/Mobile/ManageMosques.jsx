@@ -21,7 +21,12 @@ import SelectForm from "@/components/forms/SelectForm";
 import CheckboxForm from "@/components/forms/CheckboxForm";
 import FileUploadForm from "@/components/forms/FileUploadForm";
 import { translate } from "@/utils/translations";
-import { appendCurrentUserToFormData, resolveFileUrl, apiUrl } from "@/utils";
+import {
+  appendCurrentUserToFormData,
+  resolveFileUrl,
+  apiUrl,
+  getAuthHeaders,
+} from "@/utils";
 import AdvancedFilters from "@/components/mobile/AdvancedFilters";
 import { showError, showSuccess } from "@/components/ToastrNotification";
 import { useAdminAccess } from "@/utils/auth";
@@ -398,6 +403,17 @@ function MosqueFormSheet({
           handleFileUpload={handleFileUpload}
           translate={translate}
         />
+
+        <FileUploadForm
+          name="qrurl"
+          control={control}
+          label={translate("Donation QR")}
+          bucketName="bucket-mosque"
+          uploading={uploading}
+          handleFileUpload={handleFileUpload}
+          isNeedPasteURL={false}
+          allowCamera={false}
+        />
       </div>
 
       <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-4 py-3">
@@ -494,6 +510,8 @@ export default function MobileManageMosques() {
       appendCurrentUserToFormData(fd);
       const res = await fetch(apiUrl(`/api/upload/${bucketName}`), {
         method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(),
         body: fd,
       });
       if (!res.ok) {
