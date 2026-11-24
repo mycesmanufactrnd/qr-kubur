@@ -11,5 +11,8 @@ lives here once, gets deleted once done).
   mobile (`useIsNarrow`) view, the one misplaced mutations file, and the phased rollout of the
   mutation-hooks pattern to pages still calling `trpc.*` directly (Jenazah Case / Dead Person domain
   done, others outstanding) — existing conventions not yet applied everywhere.
+- **[[ahli-kariah-module|ahli-kariah-module.md]]** -> Ahli Kariah leftovers after the 2026-11-24
+  user-side build: server-side staff org-scoping (separate change), kariah PII gaps, a missing
+  locale key, and the orphan `qariah*` tables.
 
 Parent: [[../index|memory root]].

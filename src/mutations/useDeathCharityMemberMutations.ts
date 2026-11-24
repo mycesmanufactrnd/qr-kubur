@@ -1,6 +1,13 @@
+import { useCallback, useEffect, useState } from 'react';
 import { trpc } from '@/utils/trpc';
-import { useAdminAccess } from '@/utils/auth';
+import { useAdminAccess, getStoredGoogleUser } from '@/utils/auth';
 import { showApiError, showSuccess } from '@/components/ToastrNotification';
+import {
+  type SavedKariahMembership,
+  getSavedKariahMembership,
+  saveKariahMembership,
+  clearSavedKariahMembership,
+} from '@/utils/kariahMembership';
 
 type useGetDeathCharityMemberPaginatedParams = {
   page?: number;
@@ -166,6 +173,75 @@ type SearchByIcNumberParams = {
   mosqueId?: number | null;
   searchCase?: boolean;
 };
+
+// Public, user-side Kariah status check — returns only { isapproved, mosque }
+// (or null when there's no membership at that mosque).
+export function useCheckKariahStatus(
+  params: { icnumber: string; mosqueId: number | null },
+  options?: { enabled?: boolean },
+) {
+  return trpc.deathCharityMember.checkKariahStatus.useQuery(
+    { icnumber: params.icnumber, mosqueId: params.mosqueId as number },
+    {
+      enabled:
+        (options?.enabled ?? true) && !!params.icnumber && !!params.mosqueId,
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+    },
+  );
+}
+
+// The membership saved on this device for the current user (see
+// utils/kariahMembership), re-checked against the server on mount so an
+// approval — or a rejection, which deletes the row — shows up without the
+// user searching again. A failed check (offline, rate-limited) keeps the
+// saved record as-is.
+export function useSavedKariahMembership() {
+  const googleUserId = getStoredGoogleUser()?.id ?? null;
+  const [membership, setMembership] = useState<SavedKariahMembership | null>(
+    () => getSavedKariahMembership(),
+  );
+
+  // re-read when the signed-in Google user changes
+  useEffect(() => {
+    setMembership(getSavedKariahMembership());
+  }, [googleUserId]);
+
+  const { data, isSuccess, isFetching } = useCheckKariahStatus({
+    icnumber: membership?.icnumber ?? '',
+    mosqueId: membership?.mosqueId ?? null,
+  });
+
+  useEffect(() => {
+    if (!membership || !isSuccess || isFetching) return;
+    if (!data) {
+      clearSavedKariahMembership();
+      setMembership(null);
+      return;
+    }
+    const mosqueName = data.mosque?.name ?? membership.mosqueName;
+    if (
+      data.isapproved !== membership.isApproved ||
+      mosqueName !== membership.mosqueName
+    ) {
+      const next = { ...membership, isApproved: data.isapproved, mosqueName };
+      saveKariahMembership(next);
+      setMembership(next);
+    }
+  }, [data, isSuccess, isFetching]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const save = useCallback((record: SavedKariahMembership) => {
+    saveKariahMembership(record);
+    setMembership(record);
+  }, []);
+
+  const forget = useCallback(() => {
+    clearSavedKariahMembership();
+    setMembership(null);
+  }, []);
+
+  return { membership, save, forget, isChecking: isFetching };
+}
 
 export function useSearchDeathCharityMemberByIcNumber(
   params: SearchByIcNumberParams,

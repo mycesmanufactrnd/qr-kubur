@@ -8,5 +8,8 @@
   convention, and which existing pages still lack it.
 - **[[dialog-custom-animation|dialog-custom-animation.md]]** -> Replacing a Radix dialog's CSS
   animation with a grow-from-origin Web Animation (QR modal), and the ref re-attach flash pitfall.
+- **[[kariah-saved-membership|kariah-saved-membership.md]]** -> How users see their Ahli Kariah
+  status without an account: the narrow `checkKariahStatus` lookup, the per-user saved record in
+  `utils/kariahMembership.ts`, and how it revalidates.
 
 Parent: [[../index|20-knowledge/]].

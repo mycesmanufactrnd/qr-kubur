@@ -33,10 +33,10 @@ import { Button } from "@/components/ui/button";
 import { usePublicPaymentMethods } from '@/mutations/usePublicPaymentMethods';
 import { PaymentQrModal } from '@/components/PaymentQrDisplay';
 
-// Same key UserKariahRegistration saves a found/approved member under — used
-// here only to decide whether this button should say "Register" or "Check
-// Status", since that page already shows the saved status screen on its own.
-const KARIAH_STORAGE_KEY = "kariahRegisteredMember";
+// The membership UserKariahRegistration saved for this user — used here only
+// to decide whether the button says "Register" or "Check Status", since that
+// page already shows the saved status screen on its own.
+import { getSavedKariahMembership } from "@/utils/kariahMembership";
 
 export default function MosqueDetailsPage() {
   const navigate = useNavigate();
@@ -62,15 +62,9 @@ export default function MosqueDetailsPage() {
   const qrMethod = paymentMethods.find(method => method.kind === 'qr');
   useEffect(() => { setQrOpen(false); }, [mosqueId]);
   useEffect(() => {
-    if (!mosque?.name) return;
-    try {
-      const raw = localStorage.getItem(KARIAH_STORAGE_KEY);
-      const saved = raw ? JSON.parse(raw) : null;
-      setHasKariahRecord(saved?.mosqueName === mosque.name);
-    } catch {
-      setHasKariahRecord(false);
-    }
-  }, [mosque?.name]);
+    if (!mosque?.id) return;
+    setHasKariahRecord(getSavedKariahMembership()?.mosqueId === mosque.id);
+  }, [mosque?.id]);
 
   if (isMosqueLoading) return <PageLoadingComponent />;
   if (isMosqueError || !mosque)

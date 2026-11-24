@@ -33,6 +33,7 @@ import { HIJRI_MONTHS } from "@/utils/enums";
 import doaBanners from "./DailyDoaBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useFirstInstallPermissions } from "@/hooks/useFirstInstallPermissions";
+import { useSavedKariahMembership } from "@/mutations/useDeathCharityMemberMutations";
 
 const todayDoa =
   doaBanners[Math.floor(Date.now() / 86400000) % doaBanners.length];
@@ -315,6 +316,7 @@ export default function UserDashboard() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const { pullY, refreshing, threshold } = usePullToRefresh();
   useFirstInstallPermissions();
+  const { membership: kariahMembership } = useSavedKariahMembership();
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
 
@@ -676,14 +678,47 @@ export default function UserDashboard() {
               iconBg: "#fef7e6",
               accent: "#c97000",
             },
+            {
+              icon: Users,
+              name: translate("Kariah Member"),
+              // saved membership (re-checked on load) replaces the generic subtitle
+              desc: kariahMembership
+                ? kariahMembership.mosqueName
+                : translate("Register or check your membership status"),
+              badge: kariahMembership
+                ? kariahMembership.isApproved
+                  ? {
+                      label: translate("Approved"),
+                      bg: "#dcfce7",
+                      color: "#15803d",
+                    }
+                  : {
+                      label: translate("Pending Approval"),
+                      bg: "#fef3c7",
+                      color: "#b45309",
+                    }
+                : null,
+              page: "UserKariahRegistration",
+              iconColor: "#0d7a58",
+              iconBg: "#e7f6ef",
+              accent: "#0d7a58",
+            },
           ].map(
-            ({ icon: Icon, name, desc, page, iconColor, iconBg, accent }) => (
+            ({ icon: Icon, name, desc, badge, page, iconColor, iconBg, accent }) => (
               <Link key={page} to={createPageUrl(page)} className="db-row-card">
                 <div className="db-row-accent" style={{ background: accent }} />
                 <div className="db-row-icon" style={{ background: iconBg }}>
                   <Icon style={{ width: 20, height: 20, color: iconColor }} />
                 </div>
                 <div className="db-row-info">
+                  {badge && (
+                    <div
+                      className="db-row-badge"
+                      style={{ background: badge.bg, color: badge.color }}
+                    >
+                      {badge.label}
+                    </div>
+                  )}
                   <div className="db-row-title">{name}</div>
                   <div className="db-row-sub">{desc}</div>
                 </div>

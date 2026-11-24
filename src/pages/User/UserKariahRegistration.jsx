@@ -22,8 +22,10 @@ import { showApiError } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { initFCM } from "@/firebase/firebase";
 import { defaultKariahRegistration } from "@/utils/defaultformfields";
-
-const STORAGE_KEY = "kariahRegisteredMember";
+import {
+  useCheckKariahStatus,
+  useSavedKariahMembership,
+} from "@/mutations/useDeathCharityMemberMutations";
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.myces.qubur&pcampaignid=web_share";
@@ -121,7 +123,11 @@ export default function UserKariahRegistration() {
   const [selectedState, setSelectedState] = useState("");
   const { userState } = useLocationContext();
 
-  const [savedRegistration, setSavedRegistration] = useState(null);
+  const {
+    membership: savedRegistration,
+    save: saveMembership,
+    forget: forgetMembership,
+  } = useSavedKariahMembership();
   const [hasSearched, setHasSearched] = useState(false);
   const [searchedIc, setSearchedIc] = useState("");
   const [searchMosqueId, setSearchMosqueId] = useState(null);
@@ -130,16 +136,6 @@ export default function UserKariahRegistration() {
 
   const urlParamType = searchParams.get("type");
   const isQrView = urlParamType === "qr";
-
-  useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    try {
-      setSavedRegistration(JSON.parse(raw));
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, []);
 
   const { data: mosques = [], isLoading: mosqueLoading } =
     trpc.deathCharityMember.getMosquesByState.useQuery({
@@ -166,10 +162,10 @@ export default function UserKariahRegistration() {
 
   const saveKariahDeviceToken = trpc.kariahDevice.saveToken.useMutation();
 
-  const searchQuery = trpc.deathCharityMember.searchByIcNumber.useQuery(
-    { icnumber: searchedIc, mosqueId: searchMosqueId },
-    { enabled: !!searchedIc, staleTime: 0 },
-  );
+  const searchQuery = useCheckKariahStatus({
+    icnumber: searchedIc,
+    mosqueId: searchMosqueId,
+  });
 
   useEffect(() => {
     if (!searchedIc || searchQuery.isFetching) return;
@@ -244,20 +240,17 @@ export default function UserKariahRegistration() {
   };
 
   const handleSaveRegistration = () => {
-    if (!foundMember) return;
-    const record = {
-      fullname: foundMember.fullname ?? "",
-      icnumber: foundMember.icnumber ?? searchedIc,
+    if (!foundMember || !searchMosqueId) return;
+    saveMembership({
+      icnumber: searchedIc,
+      mosqueId: searchMosqueId,
       mosqueName: foundMember.mosque?.name ?? "",
       isApproved: !!foundMember.isapproved,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
-    setSavedRegistration(record);
+    });
   };
 
   const handleForgetRegistration = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setSavedRegistration(null);
+    forgetMembership();
     handleReset();
     reset();
     setSelectedState("");
@@ -347,10 +340,6 @@ export default function UserKariahRegistration() {
           </p>
 
           <div className="w-full max-w-xs bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 space-y-2">
-            <InfoRow
-              label={translate("Name")}
-              value={savedRegistration.fullname || "-"}
-            />
             <InfoRow
               label={translate("IC Number")}
               value={formatIcDisplay(savedRegistration.icnumber)}
@@ -528,12 +517,8 @@ export default function UserKariahRegistration() {
 
             <div className="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
               <InfoRow
-                label={translate("Name")}
-                value={foundMember.fullname || "-"}
-              />
-              <InfoRow
                 label={translate("IC Number")}
-                value={formatIcDisplay(foundMember.icnumber)}
+                value={formatIcDisplay(searchedIc)}
               />
               <InfoRow
                 label={translate("Mosque")}
