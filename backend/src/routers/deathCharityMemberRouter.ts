@@ -635,45 +635,6 @@ export const deathCharityMemberRouter = router({
       return savedMember;
     }),
 
-  // Public status check for the user-side Kariah card / registration page.
-  // Returns ONLY the mosque and approval status — never the member's name,
-  // IC, contact details or linked records — so knowing someone's IC reveals
-  // nothing but whether they are a member of that mosque.
-  checkKariahStatus: rateLimited(
-    20,
-    60 * 1000,
-    "Too many requests. Please try again shortly.",
-  )
-    .input(
-      z.object({
-        icnumber: z.string().trim().min(1),
-        mosqueId: z.number(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const member = await AppDataSource.getRepository(DeathCharityMember).findOne({
-        where: {
-          icnumberhash: hashForSearch(stripIcDashes(input.icnumber)),
-          mosqueId: input.mosqueId,
-        },
-        select: {
-          id: true,
-          isapproved: true,
-          mosque: { id: true, name: true },
-        },
-        relations: { mosque: true },
-      });
-
-      if (!member) return null;
-
-      return {
-        isapproved: member.isapproved,
-        mosque: member.mosque
-          ? { id: member.mosque.id, name: member.mosque.name }
-          : null,
-      };
-    }),
-
   // Public — IC number is a fixed, guessable format, and this endpoint still
   // returns full member/deadperson/jenazahcase records (shared with several
   // admin pages, so it can't be field-restricted the same way the other

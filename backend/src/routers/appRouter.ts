@@ -46,6 +46,7 @@ import { reusableItemGroupRouter } from "./reusableItemGroupRouter.js";
 import { kariahNotificationRouter } from "./kariahNotificationRouter.js";
 import { jenazahCaseRouter } from "./jenazahCaseRouter.js";
 import { kariahDeviceRouter } from "./kariahDeviceRouter.js";
+import { qariahMemberRouter } from "./qariahMemberRouter.js";
 import { graveMappingRouter } from "./graveMappingRouter.js";
 import { familyTreeRouter } from "./familyTreeRouter.js";
 
@@ -98,6 +99,7 @@ export const appRouter = trpcRouter({
   jenazahCase: jenazahCaseRouter,
   kariahDevice: kariahDeviceRouter,
   graveMapping: graveMappingRouter,
+  qariahMember: qariahMemberRouter,
 });
 
 export type AppRouter = typeof appRouter;

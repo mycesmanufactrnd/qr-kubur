@@ -23,7 +23,7 @@ import {
   GitBranch,
 } from "lucide-react";
 import { App as CapacitorApp } from "@capacitor/app";
-import { createPageUrl } from "@/utils";
+import { createPageUrl, resolveFileUrl } from "@/utils";
 import { translate } from "@/utils/translations";
 import { getStoredGoogleUser } from "@/utils/auth";
 import GoogleSignInDialog from "@/components/GoogleSignInDialog";
@@ -33,7 +33,14 @@ import { HIJRI_MONTHS } from "@/utils/enums";
 import doaBanners from "./DailyDoaBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useFirstInstallPermissions } from "@/hooks/useFirstInstallPermissions";
-import { useSavedKariahMembership } from "@/mutations/useDeathCharityMemberMutations";
+import { useMyQariahRegistrations } from "@/mutations/useQariahMemberMutations";
+import { qariahStatusLabel } from "@/components/QariahStatusBadge";
+
+// dashboard-badge colours for a kariah registration's status
+const KARIAH_STATUS_COLORS = {
+  approved: { bg: "#dcfce7", color: "#15803d" },
+  pending: { bg: "#fef3c7", color: "#b45309" },
+};
 
 const todayDoa =
   doaBanners[Math.floor(Date.now() / 86400000) % doaBanners.length];
@@ -289,6 +296,46 @@ const css = `
   .dark .db-row-title { color: #f1f5f9; }
   .dark .db-row-sub { color: #64748b; }
   .dark .db-row-arrow { color: #475569; }
+
+  /* Masjid Berdaftar: non-clickable membership cards (mosque photo banner) */
+  .db-mem-scroll {
+    display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: none; padding-bottom: 2px;
+  }
+  .db-mem-scroll::-webkit-scrollbar { display: none; }
+  .db-mem-card {
+    flex: 0 0 100%; scroll-snap-align: start; background: #fff; border-radius: 20px;
+    overflow: hidden; border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+  }
+  .db-mem-scroll.is-multi .db-mem-card { flex-basis: 86%; }
+  .db-mem-banner {
+    position: relative; height: 112px;
+    background: linear-gradient(135deg, #063d2e 0%, #0d7a58 55%, #10956a 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .db-mem-banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .db-mem-shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.05) 65%); }
+  .db-mem-badge {
+    position: absolute; top: 10px; right: 10px; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase; padding: 3px 9px; border-radius: 8px;
+  }
+  .db-mem-name {
+    position: absolute; left: 14px; right: 14px; bottom: 10px;
+    color: #fff; font-size: 16px; font-weight: 700; line-height: 1.25;
+  }
+  .db-mem-body { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .db-mem-avatar {
+    width: 36px; height: 36px; border-radius: 12px; background: #e7f6ef;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .db-mem-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: #0d7a58; }
+  .db-mem-who { font-size: 14px; font-weight: 700; color: #111827; line-height: 1.3; }
+  .db-mem-meta { font-size: 11px; color: #9ca3af; margin-top: 2px; display: flex; flex-wrap: wrap; gap: 2px 10px; }
+  .dark .db-mem-card { background: #1e293b; border-color: #334155; box-shadow: 0 2px 14px rgba(0,0,0,0.3); }
+  .dark .db-mem-avatar { background: #334155; }
+  .dark .db-mem-label { color: #34d399; }
+  .dark .db-mem-who { color: #f1f5f9; }
+  .dark .db-mem-meta { color: #64748b; }
 `;
 
 const G = {
@@ -316,7 +363,12 @@ export default function UserDashboard() {
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const { pullY, refreshing, threshold } = usePullToRefresh();
   useFirstInstallPermissions();
-  const { membership: kariahMembership } = useSavedKariahMembership();
+  // only enrolled mosques (approved/pending) are shown inline; rejected ones
+  // stay on the full Masjid Berdaftar page
+  const { data: myRegistrations } = useMyQariahRegistrations();
+  const enrolledMosques = (myRegistrations ?? []).filter(
+    (r) => r.mosque && r.status !== "rejected",
+  );
   const todayDate = new Date();
   const todayHijri = getHijriDate(todayDate);
 
@@ -519,40 +571,31 @@ export default function UserDashboard() {
       <div className="mx-4 mt-4">
         <Link
           to={createPageUrl("IslamicCalendar")}
-          className="flex items-center bg-white dark:bg-slate-800 rounded-[22px] border border-slate-100 dark:border-slate-700 shadow-sm p-4 no-underline"
+          className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-[22px] border border-slate-100 dark:border-slate-700 shadow-sm p-4 no-underline"
         >
-          <div className="flex-1 flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                {translate("Gregorian")}
-              </p>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                {todayDate.toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
+          {/* One card, two rows: side-by-side halves cut long month names off on phones */}
+          <div className="flex-1 min-w-0 grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              <Calendar className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400 shrink-0" />
+              {translate("Gregorian")}
+            </span>
+            <span className="min-w-0 text-sm font-bold text-slate-900 dark:text-slate-100 break-words">
+              {todayDate.toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              <Moon className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400 shrink-0" />
+              {translate("Hijri")}
+            </span>
+            <span className="min-w-0 text-sm font-bold text-violet-700 dark:text-violet-300 break-words">
+              {todayHijri.day} {HIJRI_MONTHS[todayHijri.month - 1]}{" "}
+              {todayHijri.year}H
+            </span>
           </div>
-          <div className="w-px h-9 bg-slate-100 dark:bg-slate-700 mx-3 shrink-0" />
-          <div className="flex-1 flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
-              <Moon className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                {translate("Hijri")}
-              </p>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                {todayHijri.day} {HIJRI_MONTHS[todayHijri.month - 1]}{" "}
-                {todayHijri.year}H
-              </p>
-            </div>
-          </div>
+          <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-500 shrink-0" />
         </Link>
       </div>
 
@@ -678,58 +721,137 @@ export default function UserDashboard() {
               iconBg: "#fef7e6",
               accent: "#c97000",
             },
-            {
-              icon: Users,
-              name: translate("Kariah Member"),
-              // saved membership (re-checked on load) replaces the generic subtitle
-              desc: kariahMembership
-                ? kariahMembership.mosqueName
-                : translate("Register or check your membership status"),
-              badge: kariahMembership
-                ? kariahMembership.isApproved
-                  ? {
-                      label: translate("Approved"),
-                      bg: "#dcfce7",
-                      color: "#15803d",
-                    }
-                  : {
-                      label: translate("Pending Approval"),
-                      bg: "#fef3c7",
-                      color: "#b45309",
-                    }
-                : null,
-              page: "UserKariahRegistration",
-              iconColor: "#0d7a58",
-              iconBg: "#e7f6ef",
-              accent: "#0d7a58",
-            },
+            // with enrolled mosques the membership cards below replace this
+            // card; otherwise it is the sign-in gate / empty-state entry
+            ...(enrolledMosques.length
+              ? []
+              : [
+                  {
+                    icon: Users,
+                    name: translate("Enrolled Mosques"),
+                    desc: translate("Mosques where you are a Kariah member"),
+                    page: "MyKariahMosques",
+                    iconColor: "#0d7a58",
+                    iconBg: "#e7f6ef",
+                    accent: "#0d7a58",
+                    requiresGoogleAuth: true,
+                  },
+                ]),
           ].map(
-            ({ icon: Icon, name, desc, badge, page, iconColor, iconBg, accent }) => (
-              <Link key={page} to={createPageUrl(page)} className="db-row-card">
-                <div className="db-row-accent" style={{ background: accent }} />
-                <div className="db-row-icon" style={{ background: iconBg }}>
-                  <Icon style={{ width: 20, height: 20, color: iconColor }} />
-                </div>
-                <div className="db-row-info">
-                  {badge && (
-                    <div
-                      className="db-row-badge"
-                      style={{ background: badge.bg, color: badge.color }}
-                    >
-                      {badge.label}
-                    </div>
-                  )}
-                  <div className="db-row-title">{name}</div>
-                  <div className="db-row-sub">{desc}</div>
-                </div>
-                <ChevronRight
-                  className="db-row-arrow"
-                  style={{ width: 16, height: 16 }}
-                />
-              </Link>
-            ),
+            ({
+              icon: Icon,
+              name,
+              desc,
+              page,
+              iconColor,
+              iconBg,
+              accent,
+              requiresGoogleAuth,
+            }) => {
+              const content = (
+                <>
+                  <div className="db-row-accent" style={{ background: accent }} />
+                  <div className="db-row-icon" style={{ background: iconBg }}>
+                    <Icon style={{ width: 20, height: 20, color: iconColor }} />
+                  </div>
+                  <div className="db-row-info">
+                    <div className="db-row-title">{name}</div>
+                    <div className="db-row-sub">{desc}</div>
+                  </div>
+                  <ChevronRight
+                    className="db-row-arrow"
+                    style={{ width: 16, height: 16 }}
+                  />
+                </>
+              );
+              // same Google gate as the Quick Actions above
+              return requiresGoogleAuth && !googleUser?.id ? (
+                <button
+                  key={page}
+                  type="button"
+                  className="db-row-card w-full text-left"
+                  onClick={() => {
+                    setNextGoogleLoginPage(page);
+                    setGoogleAuthGateOpen(true);
+                  }}
+                >
+                  {content}
+                </button>
+              ) : (
+                <Link key={page} to={createPageUrl(page)} className="db-row-card">
+                  {content}
+                </Link>
+              );
+            },
           )}
         </div>
+
+        {enrolledMosques.length > 0 && (
+          <div className="db-sec">
+            <div className="db-ns-head">
+              <div className="db-ns-dot" style={{ background: "#0d7a58" }} />
+              <div className="db-ns-label">{translate("Enrolled Mosques")}</div>
+            </div>
+
+            <div
+              className={`db-mem-scroll ${enrolledMosques.length > 1 ? "is-multi" : ""}`}
+            >
+              {enrolledMosques.map((r) => {
+                const status = KARIAH_STATUS_COLORS[r.status];
+                return (
+                  <div key={r.id} className="db-mem-card">
+                    <div className="db-mem-banner">
+                      <Landmark
+                        style={{ width: 36, height: 36, color: "rgba(255,255,255,0.25)" }}
+                      />
+                      {r.mosque.photourl && (
+                        <img
+                          src={resolveFileUrl(r.mosque.photourl, "bucket-mosque")}
+                          alt=""
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      )}
+                      <div className="db-mem-shade" />
+                      <span
+                        className="db-mem-badge"
+                        style={{ background: status.bg, color: status.color }}
+                      >
+                        {qariahStatusLabel(r.status)}
+                      </span>
+                      <div className="db-mem-name">{r.mosque.name}</div>
+                    </div>
+                    <div className="db-mem-body">
+                      <div className="db-mem-avatar">
+                        <Users style={{ width: 18, height: 18, color: "#0d7a58" }} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="db-mem-label">
+                          {translate("Kariah Member")}
+                        </div>
+                        <div className="db-mem-who">{r.fullname}</div>
+                        <div className="db-mem-meta">
+                          {r.mosque.state && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                              <MapPin style={{ width: 11, height: 11 }} />
+                              {r.mosque.state}
+                            </span>
+                          )}
+                          <span>
+                            {translate("Registered")}{" "}
+                            {new Date(r.createdat).toLocaleDateString("ms-MY")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* <DraggableFloatingButton /> */}

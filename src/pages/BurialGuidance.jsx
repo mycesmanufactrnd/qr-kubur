@@ -93,23 +93,33 @@ export default function BurialGuidance() {
       <BackNavigation title={translate("Funeral Management Guide")} />
 
       <div className="max-w-2xl mx-auto px-2 space-y-4">
-        {/* TABS */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-1.5 flex gap-1">
-          {TABS.map(({ value, label }) => {
+        {/* TABS — numbered steps (the rites in order); 2x2 on phones so labels never crowd */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {TABS.map(({ value, label }, index) => {
             const isActive = activeTab === value;
 
             return (
               <button
                 key={value}
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => setActiveTab(value)}
-                className={`flex-1 flex items-center justify-center py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-left transition-all ${
                   isActive
                     ? "bg-emerald-500 text-white shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    : "bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-700 dark:hover:text-emerald-400"
                 }`}
               >
-                {translate(label)}
+                <span
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                    isActive
+                      ? "bg-white/25 text-white"
+                      : "bg-white dark:bg-slate-800 text-emerald-600 border border-emerald-100 dark:border-slate-600"
+                  }`}
+                >
+                  {index + 1}
+                </span>
+                <span className="truncate">{translate(label)}</span>
               </button>
             );
           })}

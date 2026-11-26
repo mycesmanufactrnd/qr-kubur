@@ -3,29 +3,26 @@ import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ChevronUp, ChevronDown, Users, X } from "lucide-react";
 import { useAdminAccess } from "@/utils/auth";
-import { trpc } from "@/utils/trpc";
 import { createPageUrl } from "@/utils";
 import { translate } from "@/utils/translations";
+import { useGetQariahMemberPaginated } from "@/mutations/useQariahMemberMutations";
 
 export default function KariahRegistrationAlert() {
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [translateX, setTranslateX] = useState(0);
   const touchStartX = useRef(null);
-  const { currentUser, hasAdminAccess } = useAdminAccess();
-  const userOrgId = currentUser?.organisation?.id ?? null;
+  const { currentUser } = useAdminAccess();
 
-  const { data } = trpc.deathCharityMember.getKariahPaginated.useQuery(
-    {
-      page: 1,
-      pageSize: 500,
-      filterOrganisationId: userOrgId || null,
-      filterIsApproved: false,
-    },
-    { enabled: hasAdminAccess && !!currentUser },
-  );
+  // pending kariah registrations, scoped server-side to this admin's organisation
+  const { qariahMemberList } = useGetQariahMemberPaginated({
+    page: 1,
+    pageSize: 100,
+    filterStatus: "pending",
+    enabled: !!currentUser,
+  });
 
-  const pendingItems = data?.items ?? [];
+  const pendingItems = qariahMemberList.items;
 
   const onTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
@@ -97,7 +94,7 @@ export default function KariahRegistrationAlert() {
             {pendingItems.map((m) => (
               <Link
                 key={m.id}
-                to={`${createPageUrl("ManageKariahMember")}?fullname=${encodeURIComponent(m.fullname)}`}
+                to={`${createPageUrl("ManageQariahRegistration")}?fullname=${encodeURIComponent(m.fullname)}`}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"
               >
                 <Users className="w-4 h-4 text-violet-500 shrink-0" />
@@ -106,7 +103,7 @@ export default function KariahRegistrationAlert() {
                     {m.fullname || translate("No Name")}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {m.icnumber || "-"} &bull;{" "}
+                    {m.icno || "-"} &bull;{" "}
                     {new Date(m.createdat).toLocaleDateString("ms-MY")}
                   </p>
                 </div>

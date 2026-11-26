@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { captureError } from "./helpers";
 import { enableBiometricLogin } from "./biometricAuth";
 import { ipAddressQueryOptions } from "./queryOptions";
+import { Capacitor } from "@capacitor/core";
 
 const GOOGLE_AUTH_KEY = "googleAuth";
 const GOOGLE_SIGNED_OUT_KEY = "googleSignedOut";
@@ -42,6 +43,32 @@ export function getStoredGoogleUser(): any | null {
       localStorage.getItem(GOOGLE_AUTH_KEY) ??
       sessionStorage.getItem(GOOGLE_AUTH_KEY);
     return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fresh Firebase ID token for the Google user signed in to the app, or null.
+ * Lets the backend verify who is signed in (verifyFirebaseIdToken) — e.g. to
+ * link a kariah registration — since loginGoogle issues no token of its own.
+ * Returns null when the app is signed out of Google even if a Firebase session
+ * lingers (app sign-out only clears the stored user), and never throws.
+ */
+export async function getGoogleIdToken(): Promise<string | null> {
+  if (!getStoredGoogleUser()) return null;
+  try {
+    // same native check as the sign-in flow (Mobile/SettingsPage)
+    const isNative =
+      Capacitor.isNativePlatform() || /wv/i.test(navigator.userAgent);
+    if (isNative) {
+      const plugin = (window as any).Capacitor?.Plugins?.FirebaseAuthentication;
+      const result = await plugin?.getIdToken();
+      return result?.token ?? null;
+    }
+    const { auth } = await import("@/firebase/firebase");
+    await auth.authStateReady(); // currentUser is null until the session is restored
+    return (await auth.currentUser?.getIdToken()) ?? null;
   } catch {
     return null;
   }

@@ -35,7 +35,9 @@ specifically to retrofit encryption onto previously-plaintext rows — this was 
 named-as-such PDPA remediation effort, not incidental.
 
 **Currently encrypted**: `DeadPerson.icnumber`/`causeofdeath`,
-`DeathCharityMember.icnumber`/`phone`/`email`/`address`, `Quotation.payerphone`/`payeremail`,
+`DeathCharityMember.icnumber`/`phone`/`email`/`address`,
+`QariahMember.icno`/`phoneno`/`email`/`address`/`spouseicno` (2026-11-25; its `fullname`,
+`gender`, `spousename`, `postcode`/`city`/`state` stay plaintext), `Quotation.payerphone`/`payeremail`,
 `TahlilRequest.requestorphoneno`/`requestoremail`, `Donation.donorphoneno`/`donoremail`.
 
 **Not yet encrypted** (full list + reasoning per field in

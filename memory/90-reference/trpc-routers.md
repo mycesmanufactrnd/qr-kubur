@@ -14,7 +14,7 @@ inventoryAuditRouter · inventoryItemRouter · inventoryPackageRouter · invento
 islamicEventRouter · jenazahCaseRouter · kariahDeviceRouter · kariahNotificationRouter ·
 mosqueOrganisationChartRouter · mosqueRouter · ollamaRouter · organisationPaymentConfigRouter ·
 organisationRouter · organisationTypeRouter · paymentDistributionRouter · paymentFieldRouter ·
-paymentPlatformRouter · permissionRouter · publicRouter · quotationRouter ·
+paymentPlatformRouter · permissionRouter · publicRouter · qariahMemberRouter · quotationRouter ·
 reusableItemGroupRouter · runningNoRouter · suggestionRouter · surahRouter ·
 tahfizPaymentConfigRouter · tahfizRouter · tahlilRequestRouter · tempOrganisationRouter ·
 usersRouter · visitLogsRouter · waqfProjectRouter

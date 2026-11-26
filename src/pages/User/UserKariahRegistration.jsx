@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useSearchParams } from "react-router-dom";
 import {
@@ -9,6 +9,8 @@ import {
   Loader2,
   Search,
   RotateCcw,
+  MapPin,
+  Info,
 } from "lucide-react";
 import BackNavigation from "@/components/BackNavigation";
 import { Button } from "@/components/ui/button";
@@ -18,14 +20,15 @@ import Select2Form from "@/components/forms/Select2Form";
 import { trpc } from "@/utils/trpc";
 import { translate } from "@/utils/translations";
 import { STATES_MY } from "@/utils/enums";
-import { showApiError } from "@/components/ToastrNotification";
 import { useLocationContext } from "@/providers/LocationProvider";
 import { initFCM } from "@/firebase/firebase";
 import { defaultKariahRegistration } from "@/utils/defaultformfields";
 import {
   useCheckKariahStatus,
   useSavedKariahMembership,
-} from "@/mutations/useDeathCharityMemberMutations";
+  useQariahMemberMutations,
+} from "@/mutations/useQariahMemberMutations";
+import { getGoogleIdToken } from "@/utils/auth";
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.myces.qubur&pcampaignid=web_share";
@@ -93,10 +96,49 @@ function AppDownloadFooter() {
   );
 }
 
-const SectionTitle = ({ children }) => (
-  <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 pb-1 border-b border-slate-100 dark:border-slate-700">
-    {children}
-  </p>
+// result / register cards slide in after "Cari", like the app's other reveals
+const REVEAL =
+  "animate-in fade-in slide-in-from-bottom-2 duration-300 motion-reduce:animate-none";
+
+// Semak -> Daftar: shows where the user is in the check-then-register flow.
+const StepIndicator = ({ labels, active }) => (
+  <div className="flex items-center gap-2">
+    {labels.map((label, i) => {
+      const step = i + 1;
+      const reached = step <= active;
+      return (
+        <Fragment key={step}>
+          {i > 0 && (
+            <div
+              className={`h-px flex-1 transition-colors duration-300 ${reached ? "bg-emerald-400" : "bg-slate-200 dark:bg-slate-700"}`}
+            />
+          )}
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`w-5 h-5 rounded-full text-[11px] font-semibold flex items-center justify-center transition-colors duration-300 ${reached ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400 dark:bg-slate-700"}`}
+            >
+              {step}
+            </span>
+            <span
+              className={`text-xs font-medium ${step === active ? "text-slate-800 dark:text-slate-100" : "text-slate-400"}`}
+            >
+              {label}
+            </span>
+          </div>
+        </Fragment>
+      );
+    })}
+  </div>
+);
+
+// `action`: optional control shown at the right end of the title row
+const SectionTitle = ({ children, action }) => (
+  <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-100 dark:border-slate-700">
+    <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+      {children}
+    </p>
+    {action}
+  </div>
 );
 
 const formatIcDisplay = (icnumber) => {
@@ -155,10 +197,7 @@ export default function UserKariahRegistration() {
     defaultValues: defaultKariahRegistration,
   });
 
-  const registerMutation = trpc.deathCharityMember.registerKariah.useMutation({
-    onSuccess: () => setIsSubmitted(true),
-    onError: (err) => showApiError(err),
-  });
+  const { registerQariahMember: registerMutation } = useQariahMemberMutations();
 
   const saveKariahDeviceToken = trpc.kariahDevice.saveToken.useMutation();
 
@@ -166,6 +205,11 @@ export default function UserKariahRegistration() {
     icnumber: searchedIc,
     mosqueId: searchMosqueId,
   });
+
+  const isRegistering = hasSearched && !foundMember;
+  const searchedMosqueName =
+    foundMember?.mosque?.name ??
+    mosques.find((m) => m.id === searchMosqueId)?.name;
 
   useEffect(() => {
     if (!searchedIc || searchQuery.isFetching) return;
@@ -178,15 +222,23 @@ export default function UserKariahRegistration() {
     const mosqueId = data.mosqueId ? Number(data.mosqueId) : null;
 
     const token = await initFCM();
+    // links the registration to the signed-in Google account (null if none)
+    const googleIdToken = await getGoogleIdToken();
 
-    await registerMutation.mutateAsync({
-      fullname: data.fullname,
-      icnumber,
-      phone: data.phone || null,
-      email: data.email || null,
-      address: data.address || null,
-      mosque: mosqueId ? { id: mosqueId } : null,
-    });
+    try {
+      await registerMutation.mutateAsync({
+        fullname: data.fullname,
+        icnumber,
+        phone: data.phone || null,
+        email: data.email || null,
+        address: data.address || null,
+        mosqueId,
+        googleIdToken,
+      });
+    } catch {
+      return; // error toast comes from the hook
+    }
+    setIsSubmitted(true);
 
     if (token) {
       saveKariahDeviceToken.mutate({
@@ -386,23 +438,63 @@ export default function UserKariahRegistration() {
 
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-4 space-y-6">
         {!isQrView && (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center">
-              <Users className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                {translate("Kariah Registration")}
-              </p>
-              <p className="text-xs text-slate-400">
-                {translate("Register as a member of your local mosque Kariah")}
-              </p>
-            </div>
-          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 -mb-2">
+            {translate("Register as a member of your local mosque Kariah")}
+          </p>
         )}
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 space-y-4">
-          <SectionTitle>{translate("Check Registration Status")}</SectionTitle>
+        {/* found: approval progress (Menunggu -> Diluluskan); else Semak -> Daftar */}
+        {foundMember ? (
+          <StepIndicator
+            labels={[translate("Pending"), translate("Approved")]}
+            active={foundMember.isapproved ? 2 : 1}
+          />
+        ) : (
+          <StepIndicator
+            labels={[translate("Check"), translate("Register")]}
+            active={isRegistering ? 2 : 1}
+          />
+        )}
+
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4 space-y-4">
+          <SectionTitle
+            action={
+              hasSearched && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="shrink-0 flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 rounded-lg px-2 py-1 -my-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:opacity-70"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  {translate("Search Again")}
+                </button>
+              )
+            }
+          >
+            {translate("Check Registration Status")}
+          </SectionTitle>
+
+          {hasSearched && (
+            <div className="flex items-start gap-3 animate-in fade-in duration-300 motion-reduce:animate-none">
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 break-words">
+                  {searchedMosqueName || "-"}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {selectedState && `${selectedState} · `}
+                  <span className="whitespace-nowrap">
+                    {formatIcDisplay(searchedIc)}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* kept mounted (only hidden) after a search so the form keeps state/mosque/IC */}
+          <div className={hasSearched ? "hidden" : "space-y-4"}>
           <p className="text-xs text-slate-400 -mt-2">
             {translate(
               "Select your state and mosque, then enter your IC number to check if you're already registered.",
@@ -460,38 +552,25 @@ export default function UserKariahRegistration() {
             placeholder="000000-00-0000"
           />
 
-          {!hasSearched && (
-            <Button
-              type="button"
-              onClick={handleSearch}
-              disabled={searchQuery.isFetching}
-              className="w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm"
-            >
-              {searchQuery.isFetching ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Search className="w-4 h-4 mr-2" />
-              )}
-              {translate("Search")}
-            </Button>
-          )}
-
-          {hasSearched && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-              className="w-full h-11 rounded-xl font-semibold text-sm"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              {translate("Search Again")}
-            </Button>
-          )}
+          <Button
+            type="button"
+            onClick={handleSearch}
+            disabled={searchQuery.isFetching}
+            className="w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm"
+          >
+            {searchQuery.isFetching ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : (
+              <Search className="w-4 h-4 mr-2" />
+            )}
+            {translate("Search")}
+          </Button>
+          </div>
         </div>
 
         {hasSearched && foundMember && (
           <div
-            className={`bg-white dark:bg-slate-800 rounded-2xl border p-4 space-y-3 ${foundMember.isapproved ? "border-emerald-100 dark:border-emerald-800" : "border-amber-100 dark:border-amber-800"}`}
+            className={`bg-white dark:bg-slate-800 rounded-2xl border shadow-sm p-4 space-y-3 ${REVEAL} ${foundMember.isapproved ? "border-emerald-100 dark:border-emerald-800" : "border-amber-100 dark:border-amber-800"}`}
           >
             <div className="flex items-center gap-2">
               {foundMember.isapproved ? (
@@ -555,18 +634,21 @@ export default function UserKariahRegistration() {
           </div>
         )}
 
-        {hasSearched && !foundMember && (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl p-3">
-              <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                {translate(
-                  "No registration found for this IC number. Please complete the form below to register.",
-                )}
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 space-y-4">
+        {isRegistering && (
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4 space-y-4 ${REVEAL}`}
+          >
               <SectionTitle>{translate("Personal Information")}</SectionTitle>
+
+              <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl px-3 py-2.5">
+                <Info className="w-4 h-4 mt-px shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  {translate(
+                    "No registration found for this IC number. Please complete the form below to register.",
+                  )}
+                </p>
+              </div>
 
               <TextInputForm
                 name="fullname"
@@ -605,12 +687,11 @@ export default function UserKariahRegistration() {
                 rows={3}
                 placeholder={translate("Street, Area, City")}
               />
-            </div>
 
             <Button
               type="submit"
               disabled={isSubmitting || registerMutation.isPending}
-              className="w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm"
+              className="w-full h-11 mt-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm"
             >
               {(isSubmitting || registerMutation.isPending) && (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />

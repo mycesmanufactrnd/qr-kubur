@@ -30,7 +30,7 @@ const NOTIFICATION_EVENT_URLS: Record<string, (params: UrlParams) => string> = {
 
   // sendNotificationFCMToOrganisation — to organisation admins/employees
   quotation_created: () => "/ManageQuotations",
-  kariah_registered: () => "/ManageKariahMember",
+  kariah_registered: () => "/ManageQariahRegistration",
   jenazahcase_created: () => "/ManageJenazahCase",
   jenazahcase_approved: () => "/ManageJenazahCase",
   jenazahcase_pending_reminder: () => "/ManageJenazahCase",

@@ -9,7 +9,7 @@ ActivityLog · ActivityPosts · DeadPerson · Donation · FamilyTree · Grave ·
 HeritageSite · IslamicEvent · JenazahCase · KariahDeathNotification · Mosque ·
 MosqueOrganisationChart · OnlineTransaction · OnlineTransactionAccount · Organisation ·
 OrganisationPaymentConfig · OrganisationType · PaymentField · PaymentPlatform · Permission ·
-Quotation · RunningNo · ServiceOffered · StoredFile · Suggestion · TahfizCenter ·
+QariahMember (added 2026-11-25) · Quotation · RunningNo · ServiceOffered · StoredFile · Suggestion · TahfizCenter ·
 TahfizPaymentConfig · TahlilRequest · TempOrganisation · User · VisitLog · WaqfProject
 
 ## Grouped subfolders
@@ -28,7 +28,7 @@ TahfizPaymentConfig · TahlilRequest · TempOrganisation · User · VisitLog · 
 For which of these store personal data and which columns are encrypted, see
 [[../10-architecture/entity-system|10-architecture/entity-system.md]] and
 [[../60-compliance/pdpa-malaysia|60-compliance/pdpa-malaysia.md]]. Entities confirmed to carry IC
-number, phone, email, address, or similar: `DeadPerson`, `DeathCharityMember`,
+number, phone, email, address, or similar: `DeadPerson`, `DeathCharityMember`, `QariahMember`,
 `DeathCharityDependent`, `KariahDevice`, `User`, `Quotation`, `TahlilRequest`, `Donation`,
 `Suggestion`, `MosqueOrganisationChart`, `TempOrganisation`.
 

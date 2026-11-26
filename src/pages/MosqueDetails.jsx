@@ -31,7 +31,7 @@ import { createPageUrl, resolveFileUrl } from "@/utils";
 import { formatRM } from "@/utils/helpers";
 import { Button } from "@/components/ui/button";
 import { usePublicPaymentMethods } from '@/mutations/usePublicPaymentMethods';
-import { PaymentQrModal } from '@/components/PaymentQrDisplay';
+import PaymentQrDisplay from '@/components/PaymentQrDisplay';
 
 // The membership UserKariahRegistration saved for this user — used here only
 // to decide whether the button says "Register" or "Check Status", since that
@@ -57,10 +57,8 @@ export default function MosqueDetailsPage() {
   });
 
   const [hasKariahRecord, setHasKariahRecord] = useState(false);
-  const [qrOpen, setQrOpen] = useState(false);
   const { data: paymentMethods = [] } = usePublicPaymentMethods('organisation', mosque?.organisation?.id);
   const qrMethod = paymentMethods.find(method => method.kind === 'qr');
-  useEffect(() => { setQrOpen(false); }, [mosqueId]);
   useEffect(() => {
     if (!mosque?.id) return;
     setHasKariahRecord(getSavedKariahMembership()?.mosqueId === mosque.id);
@@ -148,11 +146,7 @@ export default function MosqueDetailsPage() {
               state={mosque.organisation?.state}
             />
           )}
-          <Button type="button" variant="outline" className="gap-2 text-emerald-700 dark:text-emerald-300" onClick={() => setQrOpen(true)}>
-            <QrCode className="h-4 w-4" />{translate('Show Donation QR')}
-          </Button>
         </div>
-        <PaymentQrModal key={qrMethod?.qrUrl || mosque.id} open={qrOpen} onOpenChange={setQrOpen} name={mosque.name} src={qrMethod?.qrUrl} location={mosque.state} recipientLabel={translate('Mosque')} />
 
         {mosque.canarrangefuneral && (
           <Button
@@ -347,6 +341,25 @@ export default function MosqueDetailsPage() {
                   </div>
                 </div>
               )}
+
+            {qrMethod?.qrUrl && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                  <QrCode className="w-4 h-4 text-emerald-600" />
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                    {translate("Donation QR")}
+                  </p>
+                </div>
+                <PaymentQrDisplay
+                  key={qrMethod.qrUrl}
+                  bare
+                  name={mosque.name}
+                  src={qrMethod.qrUrl}
+                  location={mosque.state}
+                  recipientLabel={translate("Mosque")}
+                />
+              </div>
+            )}
 
             {mosque.latitude != null && mosque.longitude != null && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">

@@ -68,6 +68,12 @@ export enum ClaimStatus {
   PAID = "Paid",
 }
 
+export enum QariahMemberStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
 export enum JenazahCaseStatus {
   PENDING = "pending",
   ONGOING = "ongoing",

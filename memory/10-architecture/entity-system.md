@@ -38,6 +38,7 @@ encrypted value is non-deterministic and can't be used in `WHERE`:
 |---|---|---|
 | `DeadPerson` | `icnumber`, `causeofdeath` | `icnumberhash` |
 | `DeathCharityMember` | `icnumber`, `phone`, `email`, `address` | `icnumberhash` |
+| `QariahMember` | `icno`, `phoneno`, `email`, `address`, `spouseicno` | `icnohash` |
 | `Quotation` | `payerphone`, `payeremail` (per `backfillPdpaEncryption.ts`) | — |
 | `TahlilRequest` | `requestorphoneno`, `requestoremail` (per backfill script) | — |
 | `Donation` | `donorphoneno`, `donoremail` (per backfill script) | — |

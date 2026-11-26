@@ -17,6 +17,7 @@ export const backNavigationMap = {
   BurialGuidance: "/",
   SearchMosque: "/",
   SearchHeritage: "/",
+  MyKariahMosques: "/",
 
   // Bottom navigation bar (Layout) & Floating Action Button
   SettingsPage: "/",

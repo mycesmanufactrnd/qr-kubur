@@ -122,7 +122,9 @@ duplicated here — see it for the exact wording.
 
 PDFs shipped in `public/` (Tahlil, Doa Tahlil, Talqin, Panduan Solat/Pengebumian Jenazah) are shown
 with the shared `PDFViewer` (react-pdf, no iframe). Don't copy the viewer into a page. Tabbed PDF
-pages (`User/SurahPage.jsx`, `BurialGuidance.jsx`) follow the same tab-bar markup.
+pages (`User/SurahPage.jsx`, `BurialGuidance.jsx`) share the tab-bar look — except
+`BurialGuidance` uses numbered step tiles in a 2x2 grid (4 columns from `sm`), because 4 Malay
+labels crowd a single row on phones.
 `BurialGuidance` (Funeral Management Guide, Management + Shrouding + Solat + Burial tabs, in the order the rites happen; each tab's
 `credit` array of `{label, value}` rows renders the source attribution under its PDF — only what
 the PDF itself states; the Solat PDF names no publisher) was renamed from `SolatJenazah`;

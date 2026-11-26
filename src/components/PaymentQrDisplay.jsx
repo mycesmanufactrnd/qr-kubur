@@ -80,7 +80,9 @@ export function PaymentQrModal({ open, onOpenChange, name, src, location, recipi
   </Dialog>;
 }
 
-export default function PaymentQrDisplay({ name, src, location, recipientLabel, enlarged = false, preloaded = null, qrBoxRef }) {
+// `bare`: no card chrome and no name/location header — for embedding in a page
+// section that already names the recipient (e.g. MosqueDetails).
+export default function PaymentQrDisplay({ name, src, location, recipientLabel, enlarged = false, preloaded = null, qrBoxRef, bare = false }) {
   const thumbRef = useRef(null);
   const [asset, setAsset] = useState(preloaded);
   const [error, setError] = useState(false);
@@ -144,16 +146,16 @@ export default function PaymentQrDisplay({ name, src, location, recipientLabel, 
     } finally { setBusy(false); }
   };
 
-  return <div className={`text-center ${enlarged ? 'pt-5 pb-1' : 'rounded-2xl border border-emerald-100 bg-white px-4 py-7 shadow-sm dark:border-slate-600 dark:bg-slate-800 sm:px-6 sm:py-8'}`}>
-    <div className="flex flex-col items-center">
+  return <div className={`text-center ${enlarged ? 'pt-5 pb-1' : bare ? 'px-4 py-5' : 'rounded-2xl border border-emerald-100 bg-white px-4 py-7 shadow-sm dark:border-slate-600 dark:bg-slate-800 sm:px-6 sm:py-8'}`}>
+    {!bare && <div className="flex flex-col items-center">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
         <Landmark className="h-7 w-7" aria-hidden="true" />
       </div>
       <p className="text-base font-bold leading-snug text-slate-800 dark:text-white sm:text-lg">{name}</p>
       {location && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{location}</p>}
       {recipientLabel && <span className="mt-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-0.5 text-xs font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">{recipientLabel}</span>}
-    </div>
-    <div className="mx-auto mt-8 max-w-sm">
+    </div>}
+    <div className={`mx-auto max-w-sm ${bare ? '' : 'mt-8'}`}>
       {!src ? <div role="status" className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 dark:border-slate-600 dark:bg-slate-700/40">
         <QrCode className="h-12 w-12 text-slate-300 dark:text-slate-500" aria-hidden="true" />
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-200">{translate('No payment QR available')}</p>
@@ -174,7 +176,7 @@ export default function PaymentQrDisplay({ name, src, location, recipientLabel, 
           <span className="mt-3 block text-xs text-slate-500 dark:text-slate-400">{translate('Tap to enlarge')}</span>
         </button>}
     </div>
-    <div className="mt-7 flex flex-wrap items-center justify-center gap-1 sm:gap-3">
+    <div className={`${bare ? 'mt-4' : 'mt-7'} flex flex-wrap items-center justify-center gap-1 sm:gap-3`}>
       <Button type="button" variant="ghost" aria-label={translate('Download QR')} className="gap-2 px-2 text-xs text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 sm:px-3 sm:text-sm" disabled={!asset || error || busy} onClick={() => act(false)}><Download className="h-4 w-4" />{translate('Download')}</Button>
       <Button type="button" variant="ghost" aria-label={translate('Share QR')} className="gap-2 px-2 text-xs text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 sm:px-3 sm:text-sm" disabled={!asset || error || busy} onClick={() => act(true)}><Share2 className="h-4 w-4" />{translate('Share')}</Button>
     </div>

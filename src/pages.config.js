@@ -17,6 +17,7 @@ import FamilyTree from '@/pages/User/FamilyTree';
 import Favorites from '@/pages/User/Favorites';
 import SearchGrave from '@/pages/User/SearchGrave';
 import UserKariahRegistration from '@/pages/User/UserKariahRegistration';
+import MyKariahMosques from '@/pages/User/MyKariahMosques.jsx';
 import GraveDetails from '@/pages/GraveDetails';
 import GraveService from '@/pages/GraveService';
 import DeadPersonDetails from '@/pages/DeadPersonDetails';
@@ -84,6 +85,7 @@ import ManageDeathCharity from '@/pages/Management/ManageDeathCharity.jsx';
 import ManageNotifyDeathKariah from '@/pages/Management/ManageNotifyDeathKariah.jsx';
 import ManageDeathCharityMember from '@/pages/Management/ManageDeathCharityMember.jsx';
 import ManageKariahMember from '@/pages/Management/ManageKariahMember.jsx';
+import ManageQariahRegistration from '@/pages/Management/ManageQariahRegistration.jsx';
 import ManageDeathCharityClaim from '@/pages/Management/ManageDeathCharityClaim.jsx';
 import ManageDeathCharityLedger from '@/pages/Management/ManageDeathCharityLedger.jsx';
 import ManageQuotations from '@/pages/Management/ManageQuotations.jsx';
@@ -130,6 +132,7 @@ export const PAGES = {
     "Favorites": Favorites,
     "SearchGrave": SearchGrave,
     "UserKariahRegistration": UserKariahRegistration,
+    "MyKariahMosques": MyKariahMosques,
     "GraveDetails": GraveDetails,
     "GraveService": GraveService,
     "DeadPersonDetails": DeadPersonDetails,
@@ -198,6 +201,7 @@ export const PAGES = {
     "ManageNotifyDeathKariah": ManageNotifyDeathKariah,
     "ManageDeathCharityMember": ManageDeathCharityMember,
     "ManageKariahMember": ManageKariahMember,
+    "ManageQariahRegistration": ManageQariahRegistration,
     "ManageDeathCharityClaim": ManageDeathCharityClaim,
     "ManageDeathCharityLedger": ManageDeathCharityLedger,
     "ManageQuotations": ManageQuotations,

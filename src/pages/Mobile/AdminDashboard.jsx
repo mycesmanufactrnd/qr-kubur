@@ -45,6 +45,7 @@ import QuotationOverdueAlert from "@/components/PopUpAlert/QuotationOverdueAlert
 import JenazahCaseAlert from "@/components/PopUpAlert/JenazahCaseAlert";
 import JenazahCaseOngoingAlert from "@/components/PopUpAlert/JenazahCaseOngoingAlert";
 import KariahRegistrationAlert from "@/components/PopUpAlert/KariahRegistrationAlert";
+import { useGetQariahMemberPaginated } from "@/mutations/useQariahMemberMutations";
 
 export default function MobileAdminDashboard() {
   const {
@@ -131,6 +132,14 @@ export default function MobileAdminDashboard() {
   const donationVerified = DDVStats?.donationVerified ?? 0;
   const kariahMemberCount = CQNStats?.kariahMemberCount ?? 0;
   const kariahNotificationCount = CQNStats?.kariahNotificationCount ?? 0;
+  // kariah approvals come from qariahmember registrations (scoped server-side)
+  const { qariahMemberList: pendingQariah, isLoading: isPendingQariahLoading } =
+    useGetQariahMemberPaginated({
+      page: 1,
+      pageSize: 1,
+      filterStatus: "pending",
+      enabled: isReady && isOrgCanManageMosque && canViewKariah,
+    });
   const jenazahCaseCount = CQNStats?.jenazahCaseCount ?? 0;
   const deathCharityCount = CMCStats?.deathCharityCount ?? 0;
   const deathCharityMemberCount = CMCStats?.deathCharityMemberCount ?? 0;
@@ -204,6 +213,14 @@ export default function MobileAdminDashboard() {
             page: "ManageNotifyDeathKariah",
             loading: isCQNLoading,
             color: "blue",
+          },
+          {
+            label: translate("Kelulusan Ahli Kariah"),
+            value: pendingQariah.total,
+            icon: UserCheck,
+            page: "ManageQariahRegistration",
+            loading: isPendingQariahLoading,
+            color: "violet",
           },
         ]
       : []),
